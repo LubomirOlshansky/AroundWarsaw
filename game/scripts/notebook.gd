@@ -26,6 +26,7 @@ extends Node
 ## Loop MW-5: a chapter's last card was found (its id); main.gd opens a PÓŁNOC FM track.
 signal chapter_done(chapter_id: String)
 
+const Lang := preload("res://scripts/lang.gd")
 const Access := preload("res://scripts/access.gd")
 const PLACES_PATH := "res://data/places.json"
 ## The bake's flat projection (tools/bake_osm.py): metres a degree.
@@ -439,8 +440,8 @@ func record(id: String, date := 0) -> bool:
 		if log_on:
 			print("notes: chapter %d (%s) complete: +%d zł, +%d respect" % [ci + 1, cid, CHAPTER_ZL, CHAPTER_RESPECT])
 		if hud != null:
-			hud.show_note("ROZDZIAŁ GOTOWY · CHAPTER DONE", "%s: +%d zł, +%d ★\n%s" % [chapter["name_pl"],
-					CHAPTER_ZL, CHAPTER_RESPECT, chapter["name_en"]], Color("#f0b429"))
+			hud.show_note(Lang.pick("ROZDZIAŁ GOTOWY", "CHAPTER DONE"), "%s: +%d zł, +%d ★" % [Lang.pick(chapter["name_pl"], chapter["name_en"]),
+					CHAPTER_ZL, CHAPTER_RESPECT], Color("#f0b429"))
 		chapter_done.emit(cid)
 	if hud != null:
 		hud.notebook_changed()

@@ -84,6 +84,8 @@ const TRAFFIC := [
 const PARKED_PAINT := ["#e9e9e6", "#b8bcc0", "#6f7378", "#2b2c2f", "#2f4566", "#6a7487", "#24324a", "#cdbb9a", "#4c6650", "#f2f2ee"]
 ## Loop 2c, for loop 3g: the police car's and the city guards' paint (police.md section 9).
 const POLICE_WHITE := Color("#f2f2ee")
+## The patrol car's and van's silver paint (the real radiowozy are silver, not white).
+const POLICE_SILVER := Color("#c3c8ce")
 const GUARD_MUSTARD := Color("#e3b33a")
 ## The crash scenes: the ambulance's paint and its red band and lettering.
 const AMBULANCE_YELLOW := Color("#f2cf1d")
@@ -498,6 +500,14 @@ static func spec(name: String) -> Dictionary:
 					"cowl_z": -0.74, "cowl_y": 0.96, "belt_z": 1.66, "belt_y": 1.0, "tail_y": 0.98, "tail_in": 0.1,
 					"roof_y": 1.44, "roof_z0": -0.06, "roof_z1": 1.42, "gw0": 0.85, "gw1": 0.69, "r": 0.32,
 					"axle_f": -1.3, "axle_r": 1.3, "bp": 0.5, "sides": 8}, true)
+		"player_tt":
+			# G13: the shop's "Ołdi TT" (a parody of a certain Bavarian-Ingolstadt coupe): the
+			# player's footprint (the collision box is shared) but a lower, wider, rounder
+			# coupe, a short glasshouse, bigger wheels.
+			p.merge({"L": 4.1, "W": 0.94, "sill": 0.22, "bump_f": 0.44, "bump_r": 0.46, "nose": 0.7, "nose_in": 0.2,
+					"cowl_z": -0.55, "cowl_y": 0.88, "belt_z": 1.5, "belt_y": 0.92, "tail_y": 0.9, "tail_in": 0.12,
+					"roof_y": 1.24, "roof_z0": 0.05, "roof_z1": 0.95, "gw0": 0.86, "gw1": 0.66, "r": 0.34,
+					"axle_f": -1.28, "axle_r": 1.26, "bp": 0.55, "sides": 8}, true)
 		"coupe":
 			p.merge({"L": 4.4, "W": 0.92, "sill": 0.22, "bump_f": 0.44, "bump_r": 0.46, "nose": 0.66, "nose_in": 0.2,
 					"cowl_z": -0.5, "cowl_y": 0.86, "belt_z": 1.75, "belt_y": 0.9, "tail_y": 0.9, "tail_in": 0.12,
@@ -727,42 +737,77 @@ static func bus_mesh() -> ArrayMesh:
 
 
 ## Loop 2c, for loop 3g: the police estate and the city guards' car in one family (police.md
-## section 9): shape 0 the patrol car, white (its paint, POLICE_WHITE) with a blue band on the
-## doors, "POLICJA" in the pixel font on it (readable only zoomed in) and a light bar whose
-## blue and red lamps blink in turns (BLINK); shape 1 the guards' car, the same estate at
-## 0.88 scale, mustard (GUARD_MUSTARD) with a dark red band and two amber lamps.
+## section 9): shape 0 the patrol car, a silver Toyota-Auris-style estate (its paint,
+## POLICE_SILVER) in the real Polish livery: a blue band on the doors with "POLICJA" in the pixel
+## font (readable only zoomed in), a blue-and-silver checker strip above and below it, a blue
+## bonnet panel and a light bar whose blue and red lamps blink in turns (BLINK); shape 1 the
+## guards' car, the same estate at 0.88 scale, mustard (GUARD_MUSTARD) with a dark red band and
+## two amber lamps; shape 3 the patrol van, a silver VW-Crafter-style panel van (the "suka") with
+## the same band over a dark skirt, a black mesh window behind the cab, a low front bar and two
+## rear beacons.
 ## The crash scenes (crash_scenes.gd, 2026-11-01): shape 2 the ambulance (karetka), the panel
 ## van in AMBULANCE_YELLOW with a red band, "AMBULANS" in red above it and two blue lamps, so the
 ## scene's ambulance rides in the POLICE MultiMesh with the patrol car (+0 draw calls).
 static func police_mesh() -> ArrayMesh:
-	return family([_police(0), _police(1), _police(2)])
+	return family([_police(0), _police(1), _police(2), _police(3)])
 
 
-## Shape `which` of the police family: 0 the patrol estate, 1 the guards' car, 2 the ambulance.
-## Every shape adds the same parts in the same order (family() morphs between them); a part
-## another shape owns is hidden.
+## Shape `which` of the police family: 0 the patrol estate, 1 the guards' car, 2 the ambulance,
+## 3 the patrol van. Every shape adds the same parts in the same order (family() morphs
+## between them); a part another shape owns is hidden.
 static func _police(which: int) -> Shape:
 	var guard := which == 1
 	var amb := which == 2
+	var van := which == 3
+	var liv := which == 0 or van
 	var s := Shape.new()
 	if guard:
 		s.xform = Transform3D(Basis.from_scale(Vector3.ONE * 0.88), Vector3.ZERO)
-	var p := spec("panel van" if amb else "estate")
-	if not amb:
+	var p := spec("panel van" if (amb or van) else "estate")
+	if not (amb or van):
 		p.merge({"L": 4.7, "rails": false}, true)
 	_vehicle(s, p, fin(Color.WHITE, PAINT))
 	var W: float = p["W"]
+	var L: float = p["L"]
 	var roof_y: float = p["roof_y"]
-	var bar := Vector3(0.0, roof_y + 0.04, -0.05)
+	var bar := Vector3(0.0, roof_y + 0.04, -0.7 if van else -0.05)
 	var mid := Vector3(0.0, roof_y - 0.2, 0.3)
-	# The doors' band: from behind the front arch to before the rear one.
+	# The doors' band: from behind the front arch to before the rear one (the van's runs
+	# nearly the whole side, higher up).
 	var z0: float = p["axle_f"] + 0.42
 	var z1: float = p["axle_r"] - 0.42
 	var y0 := 0.44
 	var y1 := 0.88
-	s.keep_if(which == 0, mid)
+	if van:
+		z0 = -L * 0.5 + 0.3
+		z1 = L * 0.5 - 0.1
+		y0 = 0.82
+		y1 = 1.26
+	var blue := fin(Color("#1f4fd8"))
+	s.keep_if(liv, mid)
 	for sgn: float in [-1.0, 1.0]:
-		s.side_rect(sgn * (W + 0.01), sgn, y0, y1, z0, z1, fin(Color("#1f4fd8")))
+		s.side_rect(sgn * (W + 0.01), sgn, y0, y1, z0, z1, blue)
+	# The van's dark lower skirt and the black mesh window behind the cab.
+	s.keep_if(van, mid)
+	for sgn: float in [-1.0, 1.0]:
+		s.side_rect(sgn * (W + 0.008), sgn, 0.44, 0.8, z0 + 0.2, z1 - 0.1, fin(Color("#2a2d33")))
+		s.side_rect(sgn * (W + 0.008), sgn, 1.5, 2.08, -0.15, 1.75, fin(Color("#1d2025")))
+	# The checker strip (szachownica) above and below the band: every other square blue.
+	s.keep_if(liv, mid)
+	var squares := 16
+	for sgn: float in [-1.0, 1.0]:
+		for ys: Vector2 in [Vector2(y1 + 0.02, y1 + 0.08), Vector2(y0 - 0.08, y0 - 0.02)]:
+			for k in squares:
+				if k % 2 == 1:
+					continue
+				var za := lerpf(z0, z1, float(k) / squares)
+				var zb := lerpf(z0, z1, float(k + 1) / squares)
+				s.side_rect(sgn * (W + 0.012), sgn, ys.x, ys.y, za, zb, blue)
+	# The estate's blue bonnet panel (the real car's POLICJA bonnet).
+	var lower := _lower(p)
+	var lw := _widths(lower, W)
+	s.keep_if(which == 0, mid)
+	s.pane(s.edge_face(lower, lw, 2), 0.14, 0.86, 0.16, 0.86, blue)
 	s.keep_if(guard, mid)
 	for sgn: float in [-1.0, 1.0]:
 		s.side_rect(sgn * (W + 0.01), sgn, y0 + 0.08, y1 - 0.08, z0, z1, fin(Color("#7a2430")))
@@ -773,9 +818,14 @@ static func _police(which: int) -> Shape:
 	# The light bar: a dark base, then the police's two lenses, the guards' one, the ambulance's.
 	s.show()
 	s.box(bar, Vector3(1.36, 0.07, 0.28), fin(GRILLE))
-	s.keep_if(which == 0, mid)
+	s.keep_if(liv, mid)
 	s.box(bar + Vector3(-0.35, 0.08, 0.0), Vector3(0.6, 0.1, 0.24), fin(Color("#3d7bff"), BLINK, 0.0))
 	s.box(bar + Vector3(0.35, 0.08, 0.0), Vector3(0.6, 0.1, 0.24), fin(Color("#ff3b3b"), BLINK, 0.5))
+	# The van's two rear beacons, blue, in turns.
+	s.keep_if(van, mid)
+	for sgn: float in [-1.0, 1.0]:
+		s.box(Vector3(sgn * 0.8, roof_y + 0.1, 2.3), Vector3(0.14, 0.18, 0.14),
+				fin(Color("#3d7bff"), BLINK, 0.0 if sgn < 0.0 else 0.5))
 	# The guards' bar: two amber lamps, in one beat (a light bar, not a taxi's sign).
 	s.keep_if(guard, mid)
 	s.box(bar + Vector3(-0.35, 0.08, 0.0), Vector3(0.6, 0.1, 0.24), fin(Color("#ffb21e"), BLINK, 0.0))
@@ -786,7 +836,7 @@ static func _police(which: int) -> Shape:
 	s.box(bar + Vector3(0.35, 0.08, 0.0), Vector3(0.6, 0.1, 0.24), fin(Color("#3d7bff"), BLINK, 0.5))
 	# POLICJA on the band, both sides reading from the front of the letters (left side front
 	# to back, right side back to front), 5 cm pixels.
-	s.keep_if(which == 0, mid)
+	s.keep_if(liv, mid)
 	_side_text(s, "POLICJA", W, (z0 + z1) * 0.5, (y0 + y1) * 0.5, fin(POLICE_WHITE))
 	# AMBULANS in red above the ambulance's band, on the box behind the cab.
 	s.keep_if(amb, mid)
@@ -861,9 +911,10 @@ static func renew_parked(nodes: Array[Node]) -> bool:
 ## calls). The body takes `paint` and `stripes` (the hero part and its glow) and keeps its
 ## twin white stripes over the bonnet, the roof and the tailgate; black bumpers, a roof
 ## spoiler, round head lamps and light hub caps make it the one retro hot hatch in town.
-static func player_meshes(paint: Array, stripes: Array) -> Array[ArrayMesh]:
+## G13: `kind` "player" (the hatch) or "player_tt" (the shop's coupe, no roof spoiler).
+static func player_meshes(paint: Array, stripes: Array, kind := "player") -> Array[ArrayMesh]:
 	var s := Shape.new()
-	var p := spec("player")
+	var p := spec(kind)
 	_vehicle(s, p, paint, [], fin(Color("#2f3f52")), false)
 	var lower := _lower(p)
 	var W: float = p["W"]
@@ -885,7 +936,11 @@ static func player_meshes(paint: Array, stripes: Array) -> Array[ArrayMesh]:
 		s.pane(nose, (sx.x + W) / (2.0 * W), (sx.y + W) / (2.0 * W), 0.0, 1.0, stripes, 0.01)
 	# A roof spoiler over the tailgate (no mirrors: at the 80 m view they'd be one pixel).
 	var roof_y: float = p["roof_y"]
-	s.box(Vector3(0.0, roof_y - 0.01, p["roof_z1"] + 0.1), Vector3(1.3, 0.06, 0.3), fin(TRIM))
+	if kind == "player":
+		s.box(Vector3(0.0, roof_y - 0.01, p["roof_z1"] + 0.1), Vector3(1.3, 0.06, 0.3), fin(TRIM))
+	else:
+		# The coupe's spoiler is a thin lip on the boot lid instead.
+		s.box(Vector3(0.0, p["tail_y"] + 0.04, p["L"] * 0.5 - p["tail_in"] - 0.12), Vector3(1.5, 0.05, 0.22), fin(TRIM))
 	# Light hub caps over the plain ones (retro steel wheels).
 	var r: float = p["r"]
 	var wc := r * cos(PI / 8.0)

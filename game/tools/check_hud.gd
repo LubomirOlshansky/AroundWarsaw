@@ -60,11 +60,43 @@ func _initialize() -> void:
 	_run()
 
 
+## G16: while driving fast ambient bubbles are dropped and ambient toasts come one per 20 s.
+func _check_quiet_driving() -> void:
+	var hud: CanvasLayer = Hud.new()
+	root.add_child(hud)
+	var b: Control = Bubbles.new()
+	b.pt = hud.pt
+	var kmh: Array[float] = [60.0]
+	b.kmh = func() -> float: return kmh[0]
+	b.project = func(p: Vector3) -> Vector2: return Vector2(p.x, p.y)
+	root.add_child(b)
+	b.say_ambient(Vector3.ZERO, "", "x", "y")
+	if b.count() != 0:
+		problems.append("G16: an ambient bubble showed at 60 km/h")
+	b.say(Vector3.ZERO, "", "x", "y")
+	if b.count() != 1:
+		problems.append("G16: a quest bubble was dropped at 60 km/h")
+	b.clear()
+	kmh[0] = 30.0
+	b.say_ambient(Vector3.ZERO, "", "x", "y")
+	if b.count() != 1:
+		problems.append("G16: an ambient bubble was dropped at 30 km/h")
+	hud.set_speed(40)
+	hud.ambient_toast("a", "a")
+	hud._toast_left = 0.0
+	hud.ambient_toast("b", "b")
+	if hud._toast.text != "a":
+		problems.append("G16: a second ambient toast within 20 s showed while driving")
+	hud.queue_free()
+	b.queue_free()
+
+
 func _run() -> void:
 	await process_frame  # the tree is ready for nodes only once the first frame runs
 	var states := 0
 	for screen in SCREENS:
 		states += await _check_screen(screen)
+	_check_quiet_driving()
 	for w in _waits:
 		print("  waits for room: %s" % w)
 	if problems.is_empty():
@@ -623,6 +655,35 @@ func _check_garage(vp: SubViewport, hud: CanvasLayer, tag: String) -> int:
 		_check_fonts(g.card, where, pt)
 		if verbose:
 			print("  %s: card %s, action %s" % [where, _pts(card, pt), _pts(rects["action"], pt)])
+		states += 1
+	# G13: the parts tab, with every cell's state (the TT to buy, short, owned; the nitro; a maxed part).
+	g.card.show_tab("parts")
+	w.zl = 12345
+	for pick in ["tt", "nitro", "tyres", "engine", "hatch", "tt", "tyres"]:
+		if pick == "tt" and states == 9:
+			w.zl = 100  # short
+		if pick == "tyres" and states == 10:
+			w.tune = {"tyres": 3, "engine": 1}  # maxed
+			w.nitro = true
+		g.card.pick_item(pick)
+		await process_frame
+		await process_frame
+		var where2 := "%s garage parts (%s)" % [tag, pick]
+		var rects2: Dictionary = g.card.ui_rects()
+		var card2: Rect2 = rects2["card"]
+		if not safe.grow(0.5).encloses(card2):
+			problems.append("%s: the card %s sticks out of the safe area %s" % [where2, _pts(card2, pt), _pts(safe, pt)])
+		var names2 := rects2.keys()
+		names2.erase("card")
+		for a in names2.size():
+			var ra2: Rect2 = rects2[names2[a]]
+			_check_touch("%s %s" % [where2, names2[a]], ra2, pt, safe)
+			if not card2.grow(0.5).encloses(ra2):
+				problems.append("%s: %s is outside the card" % [where2, names2[a]])
+			for b in range(a + 1, names2.size()):
+				if ra2.intersection(rects2[names2[b]]).get_area() > pt * pt:
+					problems.append("%s: %s overlaps %s" % [where2, names2[a], names2[b]])
+		_check_fonts(g.card, where2, pt)
 		states += 1
 	(g.card.get("_leave") as Button).pressed.emit()
 	await process_frame

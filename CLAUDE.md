@@ -87,6 +87,10 @@ tools/export_android.sh [--skip-city|--apk]   # the signed Play AAB
   in `docs/CHANGELOG.md` only for a change the player or visitor can see (it feeds the live
   /progress/ page), and the item's line ticked (or added) in ROADMAP "v1.0 checklist" in the
   same PR, so progress stays checkable in one place. No progress-log row.
+- **Add-ons check.** Whenever you create or change NPC/agent behaviour or a conversation, decide
+  on Beehave / Dialogue Manager first (skills `beehave-trees`, `dialogue-scenes`) and write
+  "used / not used, because ..." in the PR. Default: not used outside the police and authored
+  branching scenes.
 - **Definition of done** is light or full by change kind (docs/WORKFLOW.md): light for content,
   text, site, docs, polish; full (verify, shots, bench, `--ios`) for gameplay, geometry and
   anything per-frame. Name what only the phone can show.
