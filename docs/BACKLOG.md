@@ -274,8 +274,14 @@ Left:
   lines, a toast) or a draw (`draw` lines). Left: the real stop names and whether trams or buses
   serve the stadium (the map has no tram near it; QUESTIONS), a phone look of the walkers' size
   and the cost on the phone (+1 draw call while they walk, 0.09 ms fans scripts in the cloud
-  probe, was 0.05), walkers dodging the car (they walk through it now, like the other crowds),
-  the standing groups thinning during the match (they stay out all evening now).
+  probe, was 0.05).
+- Making way and the match built (2026-11-02): walkers and the standing groups step out of the
+  car's path (2.6 m clear, a hop with scarves up and a `dodge` line above 30 km/h), walk round a
+  stopped car and step back after; during the match the groups file in until 15 % stay (the
+  drummer and a few with a radio, `match` lines, no smoke) and come back out just before full
+  time. Left: the feel on the phone (step speed, is the hop readable at the default zoom), a fan
+  stepping aside can end up against a wall or on the road edge (no obstacle test, capped at
+  3.2 m), the walkers don't step aside for the AI traffic, only the player's car.
 
 ## Police chases and radiowozy (F, 2026-11-02)
 
