@@ -332,9 +332,9 @@ const INFO := {
 	"dom_partii": ["Dom Partii",
 			"Biały gmach z 1952 roku. Była partia, giełda, dziś biura i bary.",
 			"A white block from 1952. Once the Party, then the stock exchange, now offices and bars."],
-	"deski": ["WTS DeSki",
-			"Klub przy Zaruskiego nad Wisłą: kort ziemny, hardy i dwa nowe, szklane do padla.",
-			"The club on Zaruskiego by the Vistula: clay, hard courts and two new glass ones for padel."],
+	"deski": ["WTS DESKA",
+			"Klub przy Zaruskiego nad Wisłą: hala tenisowa i jeden szklany kort do padla pod chmurką.",
+			"The club on Zaruskiego by the Vistula: a closed tennis hall and one open-air glass padel court."],
 	"gaulle": ["Pomnik generała de Gaulle'a",
 			"Maszeruje Alejami od 2005 roku. Kopia tego z Paryża.",
 			"Marching down the Avenues since 2005. A copy of the one in Paris."],
@@ -10256,13 +10256,11 @@ func _build_polonia(site: Dictionary) -> void:
 
 # --- WTS DeSki: the tennis club with the padel courts (F, 2026-11-01) -----------------------------
 
-## WTS DeSki (Warszawskie Towarzystwo Sportowe "DeSki", Zaruskiego 8, by Most Łazienkowski):
-## a real club with clay and hard tennis courts and, newest, an outdoor double padel court that
-## is open round the clock. The twelve mapped pitches are its tennis courts (OSM `pitch` quads);
-## the model dresses them (clay or hard surface, white lines, nets, posts), swaps the two
-## south-eastern ones for the glass padel pair (blue surface, glass back walls, posts, floodlights)
-## and puts players on three courts: four at padel, two at tennis, two more at padel two. The
-## clubhouse keeps its mapped box and gets the DESKI tube on its roof. Lore: docs/design/padel.md.
+## WTS DESKA, the parody of WTS DeSki (Zaruskiego 8, by Most Łazienkowski). F (2026-11-02): the real
+## club has closed tennis courts and one outdoor padel court. The model: a hipped-roof tennis hall
+## over the four western mapped pitches (OSM `pitch` quads), one outdoor glass padel court beside
+## it (blue, lit at night, four players, floodlights) and the DESKA neon on the clubhouse, which
+## keeps its mapped box. The other mapped pitches stay as the map draws them. docs/design/padel.md.
 const DESKI_PITCHES := [
 	[1508.6, 966.3, 1516.4, 963.7, 1521.8, 979.9, 1514.1, 982.5],
 	[1500.1, 979.7, 1507.4, 976.0, 1515.2, 991.3, 1508.0, 995.0],
@@ -10274,7 +10272,10 @@ const DESKI_PITCHES := [
 	[1478.6, 965.5, 1485.8, 961.8, 1493.9, 976.9, 1486.6, 980.7],
 	[1510.5, 945.1, 1517.5, 940.8, 1526.5, 955.5, 1519.5, 959.7],
 ]
-const DESKI_PADEL := [Vector2(1521.0, 992.0), Vector2(1532.0, 988.6)]
+const DESKI_PADEL := Vector2(1519.0, 965.0)
+const DESKI_HALL_PITCHES := [4, 5, 6, 7]
+const DESKI_HALL_WALL := Color("#cfd4d8")
+const DESKI_HALL_ROOF := Color("#8d99a3")
 const DESKI_AXIS := Vector2(0.322, 0.947)
 const DESKI_CLUBHOUSE := [Vector2(1491.7, 913.2), Vector2(1498.8, 909.0), Vector2(1503.2, 920.8), Vector2(1499.3, 923.0),
 		Vector2(1491.5, 925.8), Vector2(1486.8, 917.4)]
@@ -10305,61 +10306,50 @@ func _deski_frame(c: Vector2, axis: Vector2) -> void:
 func _build_deski(_site: Dictionary) -> void:
 	_no_roof = true
 	_mode = M_STONE
-	var none := Color(0, 0, 0, 0)
-	var n := 0
-	for q: Array in DESKI_PITCHES:
-		var c := Vector2(0.0, 0.0)
-		for k in 4:
-			c += Vector2(q[k * 2], q[k * 2 + 1]) * 0.25
-		_deski_frame(c, DESKI_AXIS)
-		var g: float = map.terrain_height(c.x, c.y)
-		var hard := n % 3 == 2
-		_deski_tennis(g, DESKI_HARD if hard else DESKI_CLAY, n)
-		n += 1
-	var pn := 0
-	for pc: Vector2 in DESKI_PADEL:
-		_deski_frame(pc, DESKI_AXIS)
-		var g: float = map.terrain_height(pc.x, pc.y)
-		_deski_padel(g, pn)
-		pn += 1
-	# Floodlights on the pair's four outer corners.
-	var mid := (DESKI_PADEL[0] + DESKI_PADEL[1]) * 0.5
-	_deski_frame(mid, DESKI_AXIS)
-	var gm: float = map.terrain_height(mid.x, mid.y)
+	# The closed tennis hall over the four western pitches: walls 7 m, a hipped roof.
+	var hall_c := Vector2.ZERO
+	for k in DESKI_HALL_PITCHES:
+		var q: Array = DESKI_PITCHES[k]
+		for j in 4:
+			hall_c += Vector2(q[j * 2], q[j * 2 + 1]) * (0.25 / DESKI_HALL_PITCHES.size())
+	_deski_frame(hall_c, DESKI_AXIS)
+	var lo := Vector2(INF, INF)
+	var hi := Vector2(-INF, -INF)
+	for k in DESKI_HALL_PITCHES:
+		var q: Array = DESKI_PITCHES[k]
+		for j in 4:
+			var l := _local(Vector2(q[j * 2], q[j * 2 + 1]))
+			lo = Vector2(minf(lo.x, l.x), minf(lo.y, l.y))
+			hi = Vector2(maxf(hi.x, l.x), maxf(hi.y, l.y))
+	var cu := (lo.x + hi.x) * 0.5
+	var cv := (lo.y + hi.y) * 0.5
+	var hu := (hi.x - lo.x) * 0.5 + 3.0
+	var hv := (hi.y - lo.y) * 0.5 + 3.0
+	var gh := _ground_under(_rect(cu, cv, hu, hv))
+	var wall := DESKI_HALL_WALL
+	_prism(_rect(cu, cv, hu, hv), gh - 0.3, gh + 7.0, wall, Color(0, 0, 0, 0), M_STONE)
+	# A dark window band under the eaves and a lit door bay on the south-east end.
+	_lbox(cu, cv, hu + 0.06, hv + 0.06, gh + 4.6, gh + 5.8, Color("#38424d"), M_STONE)
+	_frustum(_rect(cu, cv, hu + 0.4, hv + 0.4), gh + 7.0, _rect(cu, cv, hu * 0.55, hv * 0.55), gh + 9.6, DESKI_HALL_ROOF, DESKI_HALL_ROOF.lightened(0.05))
+	_lbox(cu + hu, cv, 0.3, 2.2, gh, gh + 3.2, Color("#ffe9b0"), M_LAMP)
+	var hall_ring := _rect(cu, cv, hu, hv)
+	_collide(hall_ring)
+	# The one outdoor padel court beside the hall, with four players and four floodlights.
+	_deski_frame(DESKI_PADEL, DESKI_AXIS)
+	var gp: float = map.terrain_height(DESKI_PADEL.x, DESKI_PADEL.y)
+	_deski_padel(gp, 0)
+	_collide(_rect(0.0, 0.0, 10.0, 5.0))
 	for su: float in [-1.0, 1.0]:
 		for sv: float in [-1.0, 1.0]:
 			var u := su * 11.2
-			var v := sv * 11.2
-			_lbox(u, v, 0.12, 0.12, gm, gm + 7.0, DESKI_FRAME.lightened(0.08), M_STONE)
-			_lbox(u, v - sv * 0.35, 0.5, 0.4, gm + 7.0, gm + 7.3, Color("#fff4cf"), M_LAMP)
-	# The clubhouse's tube.
+			var v := sv * 6.4
+			_lbox(u, v, 0.12, 0.12, gp, gp + 7.0, DESKI_FRAME.lightened(0.08), M_STONE)
+			_lbox(u, v - sv * 0.35, 0.5, 0.4, gp + 7.0, gp + 7.3, Color("#fff4cf"), M_LAMP)
+	# The club's tube on the clubhouse.
 	var ring := PackedVector2Array(DESKI_CLUBHOUSE)
 	var gc := _ground_under(ring)
-	_crown_signs(ring, gc + DESKI_CLUBHOUSE_H + 0.6, "DESKI", Color(0.25, 0.85, 1.0), 0.0, 0.6)
-	for pc2: Vector2 in DESKI_PADEL:
-		_deski_frame(pc2, DESKI_AXIS)
-		_collide(_rect(0.0, 0.0, 10.0, 5.0))
+	_crown_signs(ring, gc + DESKI_CLUBHOUSE_H + 0.6, "DESKA", Color(0.25, 0.85, 1.0), 0.0, 0.6)
 	_no_roof = false
-
-
-## One tennis court in the current frame: surface, lines, net and posts; players on two of them.
-func _deski_tennis(g: float, surface: Color, idx: int) -> void:
-	_lbox(0.0, 0.0, 9.2, 4.9, g - 0.2, g + 0.04, surface.darkened(0.12), M_STONE, surface.darkened(0.12))
-	_lbox(0.0, 0.0, 8.6, 4.3, g + 0.04, g + 0.06, surface, M_STONE, surface)
-	var lc := DESKI_LINE
-	for sv: float in [-1.0, 1.0]:
-		_lbox(0.0, sv * 3.5, 8.0, 0.05, g + 0.06, g + 0.075, lc, M_STONE, lc)
-	for su: float in [-1.0, 1.0]:
-		_lbox(su * 8.0, 0.0, 0.05, 3.5, g + 0.06, g + 0.075, lc, M_STONE, lc)
-		_lbox(su * 5.4, 0.0, 0.04, 2.6, g + 0.06, g + 0.075, lc, M_STONE, lc)
-	_lbox(0.0, 0.0, 5.4, 0.04, g + 0.06, g + 0.075, lc, M_STONE, lc)
-	# The net and its two posts.
-	_lbox(0.0, 0.0, 0.03, 4.1, g + 0.5, g + 1.0, Color("#e9e9e4"), M_STONE)
-	for sv: float in [-1.0, 1.0]:
-		_lbox(0.0, sv * 4.2, 0.06, 0.06, g, g + 1.07, DESKI_FRAME, M_STONE)
-	if idx == 0 or idx == 4:
-		_deski_player(Vector2(-7.0, -1.2), 0.0, g + 0.06, idx, false)
-		_deski_player(Vector2(7.0, 1.0), PI, g + 0.06, idx + 3, false)
 
 
 ## One padel court in the current frame: 10 x 20 m of blue, white lines, glass back walls and

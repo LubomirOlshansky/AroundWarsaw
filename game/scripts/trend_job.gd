@@ -72,7 +72,7 @@ const CZ_FROM := 400.0
 const CZ_TO := 1500.0
 const CZ_MIN_QUEUE := 10
 const CZ_COLOUR := Color("#2fd0e0")
-## "Czwarty" at WTS DeSki (landmarks.gd DESKI, docs/design/padel.md): a friend phones from the court
+## "Czwarty" at WTS DESKA (landmarks.gd DESKI, docs/design/padel.md): a friend phones from the court
 ## by the Vistula: the fourth player broke a leg at pole dance, come at once (drive or fly) and play.
 ## Once the player has driven a while, 8:00-22:00, then every DESKI_COOL s of play. No pickup: the
 ## beacon is the club's gate; a helicopter within DESKI_FLY_R m of it counts.
@@ -151,7 +151,7 @@ var _rng := RandomNumberGenerator.new()
 var _session := 0.0
 ## Set by the game each frame: where the player is (the car, or the helicopter in the air).
 var player_pos := Vector3.ZERO
-## When the DeSki call may ring next (_session seconds).
+## When the DESKA call may ring next (_session seconds).
 var _deski_at := DESKI_FIRST
 ## "Mlask": the places' points (setup), the van {spot, at: Vector3, ring: Vector3, yaw} or {}, its node.
 var _places := {}
@@ -434,7 +434,7 @@ func offer_czwarty() -> bool:
 	return true
 
 
-## The DeSki call (--trend-job=7 too): a friend phones, the club is short of a fourth. Accepting
+## The DESKA call (--trend-job=7 too): a friend phones, the club is short of a fourth. Accepting
 ## sets the gate as the target at once (no pickup). False in the air or with a job on.
 func offer_deski_call(force := false) -> bool:
 	if not force and not _free():
@@ -447,16 +447,16 @@ func offer_deski_call(force := false) -> bool:
 	var dist := Vector2(player_pos.x, player_pos.z).distance_to(DESKI_GATE)
 	order = {"kind": "czwarty", "call": true, "slot": -1, "word": "PADEL", "day": 0, "ring": Vector3(DESKI_GATE.x, gy, DESKI_GATE.y),
 			"door_ring": Vector3(DESKI_GATE.x, gy, DESKI_GATE.y), "road": dist * 1.3,
-			"name": "WTS DeSki", "customer": who, "from": "", "hurt": hurt}
+			"name": "WTS DESKA", "customer": who, "from": "", "hurt": hurt}
 	state = State.OFFER
 	_t = 0.0
 	hud.show_side_card("📞 %s DZWONI" % who.to_upper(),
-			"„Halo? Gramy na DeSkach w padla, a jedno z nas ma nogę w gipsie po pole dance (%s) i wypadło z gry! Brakuje czwartego. Dojedź albo doleć na kort przy Zaruskiego, 8 minut!”" % hurt,
+			"„Halo? Gramy na Desce w padla, a jedno z nas ma nogę w gipsie po pole dance (%s) i wypadło z gry! Brakuje czwartego. Dojedź albo doleć na kort DESKA przy Zaruskiego, 8 minut!”" % hurt,
 			PackedStringArray(["PRZYJEDŹ", "NIE TERAZ"]), CZ_COLOUR, "%s is calling" % who,
-			"\"Hello? We're playing padel at DeSki, but one of us has a leg in plaster after pole dance (%s) and dropped out! We need a fourth. Drive or fly to the court on Zaruskiego, 8 minutes!\"" % hurt)
+			"\"Hello? We're playing padel at DESKA, but one of us has a leg in plaster after pole dance (%s) and dropped out! We need a fourth. Drive or fly to the court on Zaruskiego, 8 minutes!\"" % hurt)
 	hud.ticker_out()
 	if log_on:
-		print("trend job: DeSki call from %s: %s broke a leg, %.0f m away" % [who, hurt, dist])
+		print("trend job: DESKA call from %s: %s broke a leg, %.0f m away" % [who, hurt, dist])
 	return true
 
 
@@ -745,9 +745,9 @@ func _accept_call() -> void:
 	_beacon.recolour(CZ_COLOUR)
 	_beacon.waving = true
 	_beacon.place(order["door_ring"], ARRIVE - 0.5)
-	hud.toast("Czwarty: na kort DeSki, jedź albo leć", "Fourth player: to the DeSki court, drive or fly")
+	hud.toast("Czwarty: na kort Deski, jedź albo leć", "Fourth player: to the DESKA court, drive or fly")
 	if log_on:
-		print("trend job: DeSki call accepted")
+		print("trend job: DESKA call accepted")
 
 
 func _pickup_tick(dt: float) -> void:

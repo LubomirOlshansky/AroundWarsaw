@@ -15,7 +15,7 @@ item. Updated 2026-11-01 from the audit. v1.0 = the Demo and TestFlight gates in
 then the Launch gate.
 
 ### Done (built and checked headless)
-- [x] WTS DeSki tennis club with two padel courts, players, DESKI neon and a friend's "Czwarty" phone call that sends you there (2026-11-01, PR pending; phone check open)
+- [x] WTS DESKA tennis club (hall + one padel court), players, DESKA neon and a friend's "Czwarty" phone call that sends you there (2026-11-01, PR pending; phone check open)
 - [x] Map: the 21 km² demo box in streamed sectors, 1 m terrain, map north (3c, 3d-1, 3d-2, 3e)
 - [x] Roads: checks C1-C10 and `check_drive` green on the Mac at the time (3a, 3b, 3b-2)
 - [x] The river off-limits (10a); the HUD at phone size (2e); the follow camera; car models (2c)
