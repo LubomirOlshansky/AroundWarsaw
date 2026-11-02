@@ -47,10 +47,15 @@ MAP = os.path.join(ROOT, "game", "map")
 # (+971: convenience 260, subway_entrance 84, bicycle_rental 92, 11 places' addresses, scooter_zone 56,
 # scooter 468; tools/check_pois.py checks them). Before: 3601.
 # G8 (2026-11-01): 4,571: one lying Leżak at the Centralny stop had no clear spot once its shelter stood on the kerb (tools/snap_props.py).
-# Krajobraz places (2026-11-02, tools/planted_trees.py, appended after the scanned trees): +22 young
-# trees in ul. Bracka's woonerf, planted after the scan. Skwer Linearny na Złotej (F, 2026-11-02,
-# tools/car_free.py): +36 young limes on Złota's new park. 44,890 trees. Before: 268992 / 44832.
-EXPECTED = {"trees3d": 269340, "pois": 4571, "trees3d_crown": 44890}
+# Krajobraz places (2026-11-02, tools/planted_trees.py, appended after the scanned trees): 44,854
+# trees (+22 young trees in ul. Bracka's woonerf, planted after the scan). Before: 268992 / 44832.
+# Krajobraz K5 (2026-11-02, tools/plaza_gardens.py): 44,975 trees (+121 in the plazas of Skyliner,
+# Generation Park and Mennica Legacy Tower; 18+21+12 beds in areas, 11 benches). Before: 269124 / 44854.
+# Krajobraz K3 (2026-11-02, planted_trees.py PLACE varso): 44,981 (+6 young trees in Chmielna's
+# bare beds by Varso Place). Before: 269850 / 44975.
+# Skwer Linearny na Złotej (F, 2026-11-02, tools/car_free.py): 45,017 (+36 young limes on Złota's
+# new park). Before: 269886 / 44981.
+EXPECTED = {"trees3d": 270102, "pois": 4571, "trees3d_crown": 45017}
 # docs/DEMO.md 7 row 7: the lane graph's strongly connected share at least this.
 SCC_SHARE = 0.95
 

@@ -3,6 +3,39 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Beta radio (F, 2026-11-02)
+
+- PÓŁNOC FM is out of the beta lineup, but the tape, the cassettes and eggs still unlock "a PÓŁNOC FM track" the player can't tune to (QUESTIONS, default: leave it).
+- KEBAB FM and MORDOR FM still play one synth loop each until F's songs arrive (docs/MUSIC.md "The beta radio"); remove the loops from radio.json then.
+## Rondo Dmowskiego and the metro entrances (F, 2026-11-02)
+
+F sent two aerials, a night aerial and the city's traffic plan of Rondo Dmowskiego and asked for the
+roundabout and the metro entrances round it. Done 2026-11-02 (cloud thread, site `rondo`, spec
+`docs/landmarks/specs/rondo-dmowskiego.md`):
+- **The island**: grey granite paving in concentric bands over the four mapped lawns between the tram
+  cross, a crescent flower bed per quarter (red or purple in a yellow rim) and a shrub bed in an
+  orange rim; the laser scan's trees on it removed (`tree_free`); the PRASA kiosk and two planters the
+  street-details bake had put on the island moved off (`DISCS`).
+- **The underpass stairs**: Metro Centrum's blue polycarbonate "tubes" over all twelve walled
+  stairwells (blue arches, closed deep end, red M post at the mouth glowing at night), and the same
+  `tube` form for the three Centrum `subway_entrance` stairs by the Patelnia (`Props`, storefronts).
+- **The Patelnia mural**: an original colourful pattern on the north face of its 1.9 m south wall.
+- **Street furniture**: a PRASA kiosk by the Patelnia stairs, an ice-cream cart in the south-west and
+  a tram shelter on the east Jerozolimskie island (`bake_street_details.py` RONDO; new kind `shelter`).
+- **Drive test**: the ring's four sides and Marszałkowska by the south-east stairs (playtest suspect
+  PT-4) are SPOTS in `check_drive.gd`.
+Left:
+- Mac look check (QUESTIONS): bed colours and sizes against the orthophoto, the tubes' height and
+  blue, whether every stairwell really has a tube (some may be open stairs), the mural's place.
+- The underpass itself (shops, the passage to the metro) is not modelled: the camera never sees it.
+- The crossings the city added in 2022 at the four arms are the road bake's; a zebra check against
+  the plan (Widok, Poznańska, Nowogrodzka, Parkingowa) belongs with "Roads against real Warsaw".
+- The occlusion ghost cuts the island's paving and beds on the camera's side when a tower hides the car
+  (they are in the building material, like every landmark): the lawn shows through in the ghost's
+  circle. A ground-level exemption in `building.gdshader` (by UV2.y, the height above ground) would
+  fix it for every site's ground dressing (Dom Partii's court, Plac Defilad).
+- The stairwell walls are the map's 1.9 m walls (`lines` k wall): real balustrades are about 1 m.
+  Lowering them is a map-builder change for every mapped wall, not done here.
 ## Map checks in GitHub CI (2026-11-02)
 
 - Done: the `map` job in `.github/workflows/verify.yml`. The GUGiK-derived files (lod2.bin, lod2.json,
@@ -54,19 +87,29 @@ fresh thread per item; ul. Złota and Zgoda stay with the Skwer Linearny thread.
 - [ ] K2 ul. Chmielna, Nowy Świat to Pasaż Wiecha (2024): granite slabs, 95 trees (two rows of
   elms before Plac Pięciu Rogów), 64 benches and chairs, the small fountain by Kino Atlantic,
   Ali's square (map, Opus spec; Sonnet build; a new PLACE in `planted_trees.py`).
-- [ ] K3 Varso Place: street planting on Chmielna's side, roof terraces on Varso 1/2, trees on
-  the tower's deck, and a parody name sign (default VERSO PLACE; never the real mark). Opus spec
-  from photos, Sonnet build.
-- [ ] K4 Zielona Świętokrzyska (2018): count the scanned trees against the 194 planted, add the
-  big planters (Sonnet, small).
-- [ ] K5 Rondo Daszyńskiego plazas: Skyliner's green passage (forest-like three tiers, wooden
-  benches on terraces), Generation Park's and Mennica Legacy Tower's plazas (Sonnet, Opus spec).
+- [x] K3 Varso Place (spec docs/landmarks/specs/varso_place.md): the sky garden on the tower's
+  205 m roof (16 hawthorns, dwarf pines, benches, glass balustrade), planted terraces on Varso 1's
+  71 m and Varso 2's 80 and 72 m roofs (site `varso_place`), the VERSO PLACE name stone and the
+  60 t erratic on the corner plaza by Al. Jana Pawła II, 6 young trees in Chmielna's bare beds
+  (`planted_trees.py` PLACE `varso`). Open for the Mac (QUESTIONS): the photo check of every
+  part; not built: the lobby's 12 olive trees, Varso 1's 7th-floor terrace, the raised crossing.
+- [x] K4 Zielona Świętokrzyska (2018): built, see docs/design/krajobraz-places.md (open for the Mac: a street photo
+  compare of the planters' places; trees stay as scanned).
+- [x] K5 Rondo Daszyńskiego plazas (2026-11-02): 121 young trees (birch, linden, hornbeam, a few
+  pines, rowan), 51 shrub beds and 11 benches in the open ground round Skyliner, Generation Park
+  and Mennica Legacy Tower (`tools/plaza_gardens.py`, spec docs/design/rondo-plazas.md). Open for
+  the Mac (QUESTIONS): the groves against photos, the wooden benches on terraces (flat ground here).
 - [ ] K6 Browary Warszawskie's Central Garden over the Leżakownia and Norblin's candelabra
   planes and climbers (Sonnet; with "Norblin, Browary" below).
-- [ ] K7 Bulwary Wiślane stages 1-2: the 6 floating pavilions, the splash pool, the Vistula fish,
-  the amphitheatre and trampolines, checked against the orthophoto (Sonnet).
-- [ ] K8 Arkadia's playground (Al. Jana Pawła II 82, 2018): the ribbon rope course, trampolines,
-  the wooden bench-sculpture, lamps on cables (Sonnet, small).
+- [x] K7 Bulwary Wiślane stages 1-2 (2026-11-02, site `bulwary_basen`, spec bulwary_basen.md): the
+  splash pool and 3 fish (the 6 pavilions are the boulevard dressing, PR #310). Left: the amphitheatre, trampolines and the "living river"
+  garden (not in OSM, need the orthophoto), and the Mac look check (QUESTIONS).
+- [x] K8 Arkadia's playground (Al. Jana Pawła II 82, 2018), 2026-11-02: one new park piece
+  `ropecourse` (ribbon rope course, three flush trampolines, timber bench-sculpture, three lamps on
+  a cable; ~520 tris, solid) in the green strip west of Arkadka (new park "arkadia" in
+  `bake_park_details.py`, 207 park items). Left: the real layout (slide, climbing frame, swings,
+  the water-play corner) is not modelled, only the rope course's look; position is a guess at the
+  strip, check against the orthophoto on the Mac (QUESTIONS).
 - [ ] K9 Stadion Narodowy's grounds: entrance avenues, tree rows, pollarded willows (Sonnet, small).
 - [ ] K10 Muzeum Historii Polski (Cytadela) lies ~0.7 km north of the map's north edge: parked
   in QUESTIONS (grow the map or a skyline stand-in).
@@ -92,6 +135,34 @@ Left:
 - The boulevard's buildings are a palette, not models: next pass is street by street, the real
   facade of each block along Jana Pawła II (Kaskada, the 1950s blocks near Rondo Daszyńskiego, the
   Żelazna Brama corner) from the orthophoto and photos.
+## Roadworks at the map's edges (F, 2026-11-02)
+F: "add some roadworks at the ends of the city where now the map ends". **Built** (`scripts/edge_roadworks.gd`,
+both city paths): every road that leaves the map is closed 12 m inside the outline: 237 closures from 393 road ends
+(42 big, 60 medium, the rest service lanes), each a line of red-and-white barriers with blinking amber lamps (a
+halo each at night), a B-1 no-entry disc and cones; on streets a yellow ROBOTY DROGOWE board and OBJAZD →; on
+avenues the A-14 triangle 18 m ahead, a cone taper, and behind the barriers a dug trench, sand, an orange pipe, a
+yellow excavator with a beacon, a site cabin or a TOJ TOJ (our parody of the blue toilet) and a 2 m tarp fence that
+hides the road running on past the edge. Solid: one box collider per barrier line, in front of the edge wall. The
+traffic stops at the barriers (`lane_graph.gd` `e_shut` / `e_open`: never through them, no starts behind them, a
+closed road only when nothing else is open; a waiting car leaves once out of sight; a rival or the autopilot takes
+the off-map link from the barriers). Check `check_edge_roadworks` (verify `roadworks`, CI too); `check_drive` leaves
+the closed stretches out and finds exactly what main finds. Meshes on a worker thread (0.34 M triangles in 39
+pieces of 512 m, ~1.5 s of GDScript on the cloud CPU, added within a 3 ms budget a frame). Probe at Jerozolimskie's
+west end: 90 → 93 draw calls (main 34 → 36, shadow 17 → 18), 0.39 → 0.41 M triangles.
+- [ ] Mac look check (QUESTIONS): the barriers' scale at phone zoom, the boards' text, the excavator and the fence
+      against real Warsaw roadworks; whether the big closures feel like too many of the same (55 kits, 3 tarps,
+      cabin or TOJ TOJ by a coin toss).
+- [ ] Phone: drive into a closure (the hit, the haptics, POMOC DROGOWA if wedged); the meshes' arrival a second or
+      so after the start (the player starts far from any edge).
+- [ ] A road meeting the edge at a shallow slant gets a barrier line across the road, not along the edge; a few
+      long ones look odd from above. 34 roads that run along the edge are closed 6.5 m in, just before the wall,
+      barriers and a fence only.
+- [ ] 14 service lanes that leave the map right beside a street are left to the edge wall (their barriers would
+      stand in the street's lanes); 4 short stubs in the edge band lead to no closure.
+- [ ] Traffic queues at a closure while it is on screen (a closed road is picked only when nothing else is open);
+      real drivers would turn round. A U-turn at the barriers would need a turning lane in the graph.
+- [ ] `--no-edge-roadworks` removes the meshes and colliders but the traffic still stops at the lines.
+
 ## Playtest bugs (Autopilot, 2026-11-02)
 
 The free-play bug log is `docs/PLAYTEST.md` "The bug log" (PT-n ids, severity, status); fix
@@ -324,10 +395,13 @@ modelled (site `zbawiciela`, spec `zbawiciela.md`, 1029 tris).
   check parked (QUESTIONS): arcade rhythm and depth, tower heights, the real reliefs.
 - Pass 5 (cloud, Sonnet, 2026-11-02): Plac Zbawiciela's cafés and the church at night. Four neon cafés
   (`Storefronts.ZBAWICIELA`: KAWA ZBAWIENIE, SZARLOTKA NA ROGU, PLAN Z, PO MSZY SPRITZ) and six parasol
-  terraces round the ring (`bake_street_details.py` TERRACES, 15 café sets, planters at the row ends);
+  terraces round the ring (`bake_street_details.py` TERRACES, 16 café sets, planters at the row ends);
   the church gets lit gilt crosses and balls, a stained rose that glows, four porch lanterns and 12
   floodlamps (1199 tris, budget 1250). Open: Mac look check (QUESTIONS), the signs on the real doors,
   heaters and awnings on the terraces, a café crowd (crowds.gd zone), the floodlit plaster wash.
+  Fixed 2026-11-02: verify `stops` failed on main since this pass (K5, a set 5 m off the east-end
+  shopfront). #282 added the shopfront test (two sets dropped); #302 uses `Placer.frontage` and moves
+  two rows 1 m in, so all 16 sets stand again.
 - Next on the street: the reliefs' real subjects, Marszałkowska's houses, roads and street life
   street by street.
 - Pass 2 (cloud, Sonnet): people waiting on Marszałkowska's 12 mapped tram platforms (`crowds.gd`
@@ -789,9 +863,10 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   their checks (`first10`, `first10-run`, `opening`, `cassettes`, `save`, `hud`), merge #115 then
   #121. Built, not verified on the phone.
 - **The first scene's open items** (design/first-scene.md items 4-5; BACKLOG "High priority: the
-  first scene"): the pavilions and towers behind the Eastern Wall stores, Plac Defilad's paving and
-  park strip, the tram stops and kerbs on Marszałkowska. Gap. Items 6-7 (pedestrians and sound at
-  the start) built 2026-11-02, phone check parked.
+  first scene"): the pavilions and towers behind the Eastern Wall stores, the park strip in front of
+  the museum, lowered kerbs at the crossings. Gap. The paving, the crossings' tactile pads and the
+  tram platforms' edges were built 2026-11-02 (first-scene.md "Items 4 and 5 as built"); items 6-7
+  (pedestrians and sound at the start) built 2026-11-02; both phone checks parked.
 
 ### P0: the whole build checked again (map and performance, Opus; needs the Mac)
 - **A full `tools/verify.sh` and `tools/verify.sh --ios` on the Mac on today's main**, both city
@@ -1046,8 +1121,12 @@ plan: docs/design/start-area-real.md (items R1-R8, ticked in ROADMAP "v1.0 check
   draw call), but it now reaches the spawn end, so the bench's opening view counts it and its
   shadow: draw calls 130 -> 132. Props: add_street_plates, add_bike_dock, add_tram_shelter. The plates on the
   buildings' corners (where Warsaw mostly hangs them) wait for the Mac photo check.
-- **Open:** R3 part 2: granite kerbs, the three new crossings (Złota itself is now the 2026 linear
-  park with its fountain on the old tunnel ramp, see "Skwer Linearny na Złotej" above) (orthophoto check on the Mac); R8 the museum's ribbon in stretches and the stepped roofline.
+- **R3 part 2, in part, 2026-11-02** (first-scene items 4-5): the start box's wide pavements and
+  bare ground grey, tactile pads at the crossings, the tram platforms' edge lines. The three new
+  crossings were already mapped zebras.
+- **Open:** R3 part 2: lowered kerbs and Złota's setts (Złota itself is now the 2026 linear park
+  with its fountain on the old tunnel ramp, see "Skwer Linearny na Złotej" above), orthophoto check
+  on the Mac; R8 the museum's ribbon in stretches and the stepped roofline.
 - Found: the cloud can't read Wykop (login wall) or Commons (403); the trends come from Google's
   2025 year in search and the trade press. A Mac pass could add Wykop's own tags.
 
@@ -1157,6 +1236,13 @@ golden-image shots runtime vs `--prebuilt`,
   the footway by the tables, not on the chairs (a seat list per café set would fix it); the
   "a few cars" part of item 6 is left to the Low traffic default (G2), no boost at the start; the
   title screen itself still shows the trams wherever they went while it was up.
+  **Items 4-5, paving and kerbs, built 2026-11-02** (first-scene.md "Items 4 and 5 as built"):
+  the start box's pavements, paving and bare ground in Warsaw grey (ground.gdshader `START_BOX`),
+  yellow tactile pads where every crossing meets a kerb (city-wide, map_builder `_build_tactile`),
+  a light edge and a tactile line on the two tram platforms in the box (first_scene.gd). Found then:
+  OSM draws the stores' frontage and the square south of the museum as bare ground (they were
+  sand-coloured); a zebra's mapped end can stop 2.5 m short of the kerb (the pads look for the kerb
+  line, not the end).
 
 ## Packs: running clubs, cycling packs, coffee raves, big guys with tiny dogs (F, 2026-11-01)
 Built (`packs.gd`, docs/design/packs.md): three parody running clubs and two road-cycling packs out

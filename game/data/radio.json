@@ -1,4 +1,9 @@
 {
+  "_lineup": "Beta radio (2026-11-02, F): the stations R and RADIO cycle through, in order; the rest stay loaded for --station= and the PÓŁNOC FM unlocks. Remove it to offer every station.",
+  "lineup": [
+    "nocna_fm",
+    "mordor_fm"
+  ],
   "stations": [
     {
       "id": "nocna_fm",

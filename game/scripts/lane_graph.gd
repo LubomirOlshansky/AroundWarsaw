@@ -90,6 +90,13 @@ var portal_to := PackedInt32Array()
 var portal_cost := PackedFloat32Array()
 ## Per edge: indices of the links from its far end (exits only).
 var e_portals: Array[PackedInt32Array] = []
+## The edge roadworks (edge_roadworks.gd, 2026-11-02): a road that leaves the map is closed by a
+## barrier line EdgeRoadworks.CLOSE_IN metres inside the outline. Per edge, `e_shut` is where a car
+## going out has to stop (s along the edge; INF: the road is open) and `e_open` where a car coming
+## in from the edge starts (-INF: everywhere). The traffic stops, spawns and comes back through a
+## portal by them, so no car drives through the barriers.
+var e_shut := PackedFloat32Array()
+var e_open := PackedFloat32Array()
 ## Per node: flat [other node, cost, ...] links in and out, for the shortest paths.
 var _portal_in: Array[PackedFloat32Array] = []
 var _portal_out: Array[PackedFloat32Array] = []
@@ -100,6 +107,14 @@ var grid := {}
 var clock := 0.0
 
 var _map: Node3D
+## Metres along the lane short of the barrier line where a car's nose stops (and past it where one
+## starts).
+const SHUT_PAD := 3.0
+## ... and at least this far further in from the map's outline than the line (m).
+const SHUT_CLEAR := 2.5
+## Metres past each end of a barrier line that still cut a lane crossing there.
+const END_SLACK := 3.0
+const EdgeRoadworks := preload("res://scripts/edge_roadworks.gd")
 var _heights: Array[PackedFloat32Array] = []
 
 
@@ -175,6 +190,7 @@ func _init(graph: Dictionary, map: Node3D) -> void:
 	for n in node_pos.size():
 		_portal_in.append(PackedFloat32Array())
 		_portal_out.append(PackedFloat32Array())
+	_find_closures()
 	for link in graph.get("portals", []):
 		var i := portal_from.size()
 		var from := int(link[0])
@@ -185,6 +201,165 @@ func _init(graph: Dictionary, map: Node3D) -> void:
 		e_portals[from].append(i)
 		_portal_out[e_b[from]].append_array(PackedFloat32Array([e_a[to], float(link[2])]))
 		_portal_in[e_a[to]].append_array(PackedFloat32Array([e_b[from], float(link[2])]))
+
+
+## Where the edge roadworks close each edge (`e_shut`, `e_open`). First every edge whose centreline
+## crosses a closure's barrier line (edge_roadworks.gd `closures`, the same placement the city draws):
+## going out it is shut SHUT_PAD along the lane short of the line and SHUT_CLEAR in from it (a slanted
+## road's bus corner), coming in it opens as far past it. Then from every dead end at the map's
+## outline (within EDGE_END of it: no way on but back) the road is followed inwards, edge by edge (the
+## straightest at a fork), to the first edge already cut, or failing that to where it crosses the
+## CLOSE_IN line; the edges on the way lie wholly behind the barriers. Needs a map with `in_map`.
+func _find_closures() -> void:
+	var n := e_a.size()
+	e_shut.resize(n)
+	e_shut.fill(INF)
+	e_open.resize(n)
+	e_open.fill(-INF)
+	if _map == null or not _map.has_method("in_map") or _map.bounds.size == Vector2.ZERO:
+		return
+	for c: Dictionary in EdgeRoadworks.closures(_map):
+		_cut_at(c)
+	for e in n:
+		var b := e_b[e]
+		if not _map.in_map(node_pos[b], -EdgeRoadworks.EDGE_END) and _dead_end(node_out[b], e_reverse[e]):
+			_shut_back(e)
+		var a := e_a[e]
+		if not _map.in_map(node_pos[a], -EdgeRoadworks.EDGE_END) and _dead_end(node_in[a], e_reverse[e]):
+			_open_on(e)
+
+
+## The edges crossing closure c's barrier line, shut or opened there.
+func _cut_at(c: Dictionary) -> void:
+	var out: Vector2 = c["dir"]
+	# A lane passing just beyond the line's end (a bus's corner would catch it) counts as crossing.
+	var side := Vector2(out.y, -out.x) * (float(c["half"]) + END_SLACK)
+	var at: Vector2 = c["at"]
+	var la := at - side
+	var lb := at + side
+	var seen := {}
+	var steps := maxi(1, ceili(la.distance_to(lb) / (CELL * 0.5)))
+	for j in steps + 1:
+		for e in grid.get(cell_key(la.lerp(lb, float(j) / steps)), PackedInt32Array()):
+			if seen.has(e):
+				continue
+			seen[e] = true
+			var i0 := e_first[e]
+			for k in e_count[e] - 1:
+				var a := pts[i0 + k]
+				var b := pts[i0 + k + 1]
+				var hit: Variant = Geometry2D.segment_intersects_segment(a, b, la, lb)
+				if hit == null:
+					continue
+				var s := cum[i0 + k] + a.distance_to(hit)
+				# Clear of the line: SHUT_PAD along the lane, SHUT_CLEAR across the line's normal.
+				if (b - a).dot(out) > 0.0:
+					var stop := s - SHUT_PAD
+					while stop > 0.0 and _clearance(e, stop, at, out) < SHUT_CLEAR:
+						stop -= 1.0
+					e_shut[e] = minf(e_shut[e], maxf(stop, 0.0))
+				else:
+					var go := s + SHUT_PAD
+					while go < e_len[e] and _clearance(e, go, at, out) < SHUT_CLEAR:
+						go += 1.0
+					e_open[e] = maxf(e_open[e], minf(go, e_len[e]))
+
+
+## How far in from a barrier line (through `at`, facing out along `out`) the nearest corner of a wide
+## vehicle on any of edge e's lanes at s stands (m).
+func _clearance(e: int, s: float, at: Vector2, out: Vector2) -> float:
+	var worst := INF
+	for lane in [0, e_lanes[e] - 1]:
+		var p := point_at(e, s, lane_offset(e, lane))
+		var across := Vector2(-direction(e, s).y, direction(e, s).x) * 1.4
+		for q: Vector2 in [p + across, p - across]:
+			worst = minf(worst, (at - q).dot(out))
+	return worst
+
+
+## Whether a point lies in the band at the map's edge where the roadworks stand (no traffic starts there).
+func in_works_band(p: Vector2) -> bool:
+	return _map != null and _map.has_method("in_map") and _map.bounds.size != Vector2.ZERO \
+			and not _map.in_map(p, -(EdgeRoadworks.CLOSE_IN + SHUT_CLEAR))
+
+
+## Going out along e towards the edge: to the first edge already cut, or shut where it crosses the
+## CLOSE_IN line, the edges before wholly.
+func _shut_back(e: int) -> void:
+	var inset := EdgeRoadworks.CLOSE_IN
+	var cur := e
+	var walked := 0.0
+	while cur >= 0 and walked <= EdgeRoadworks.WALK + 20.0:
+		if e_shut[cur] < INF:
+			return
+		var s := e_len[cur]
+		while s > 0.0 and not _map.in_map(point_at(cur, s), -inset):
+			s -= 1.0
+		if _map.in_map(point_at(cur, s), -inset):
+			var stop := s - SHUT_PAD
+			while stop > 0.0 and not _map.in_map(point_at(cur, stop), -inset - SHUT_CLEAR):
+				stop -= 1.0
+			e_shut[cur] = maxf(stop, 0.0)
+			return
+		e_shut[cur] = 0.0
+		walked += e_len[cur]
+		var here := direction(cur, 0.0)
+		var next := -1
+		var best := -0.2
+		for f in node_in[e_a[cur]]:
+			if f == e_reverse[cur]:
+				continue
+			var d := direction(f, e_len[f]).dot(here)
+			if d > best:
+				best = d
+				next = f
+		cur = next
+
+
+## Coming in along e from the edge: to the first edge already cut, or open past the CLOSE_IN line,
+## the edges before closed wholly.
+func _open_on(e: int) -> void:
+	var inset := EdgeRoadworks.CLOSE_IN
+	var cur := e
+	var walked := 0.0
+	while cur >= 0 and walked <= EdgeRoadworks.WALK + 20.0:
+		if e_open[cur] > -INF:
+			return
+		var s := 0.0
+		while s < e_len[cur] and not _map.in_map(point_at(cur, s), -inset):
+			s += 1.0
+		if _map.in_map(point_at(cur, s), -inset):
+			var go := s + SHUT_PAD
+			while go < e_len[cur] and not _map.in_map(point_at(cur, go), -inset - SHUT_CLEAR):
+				go += 1.0
+			e_open[cur] = minf(go, e_len[cur])
+			return
+		e_open[cur] = e_len[cur]
+		walked += e_len[cur]
+		var here := direction(cur, e_len[cur])
+		var next := -1
+		var best := -0.2
+		for f in node_out[e_b[cur]]:
+			if f == e_reverse[cur]:
+				continue
+			var d := direction(f, 0.0).dot(here)
+			if d > best:
+				best = d
+				next = f
+		cur = next
+
+
+## Whether a node's edges (out or in) are at most the way back: a dead end.
+static func _dead_end(edges: PackedInt32Array, rev: int) -> bool:
+	for f in edges:
+		if f != rev:
+			return false
+	return true
+
+
+## Whether s on edge e lies past its barrier line (the closed stretch at the map's edge).
+func closed_at(e: int, s: float) -> bool:
+	return s > e_shut[e] or s < e_open[e]
 
 
 static func _class_of(kind: String) -> int:
