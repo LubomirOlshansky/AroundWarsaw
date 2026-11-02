@@ -51,6 +51,9 @@ CORRIDORS = [
     ("C9", "avenue", [(-1337, -615), (-1238, -520), (-1166, -465), (-1126, -350), (-1091, -256)]),
     ("C10", "avenue", [(-872, 411), (-792, 544), (-750, 669), (-672, 876), (-594, 1095)]),
 ]
+# Streets that are one long café terrace in life (Nowy Świat, F 2026-11-01): a cluster every
+# `base` + up to `jitter` m instead of every 70-110 m, so the row reads continuous.
+DENSE = {"Nowy Świat": (11.0, 6.0)}
 REACH = 38.0                     # a road is on a corridor when its middle is this near the waypoints' line
 ROAD_KINDS = {"primary", "secondary", "tertiary", "unclassified", "residential", "living_street", "trunk"}
 NOT_NAMES = {"Wybrzeże Szczecińskie", "Nowy Zjazd"}
@@ -59,10 +62,10 @@ DISCS = [(-852.0, 334.0, 40.0)]   # the Rotunda (jobs.gd FIRST_PAST); the Palm i
 LANDMARK_CLEAR = 6.0
 # Props: footprint radius (m), own-kind spacing (m), poster/awning colours.
 RADIUS = {"kiosk": 2.2, "stall": 1.9, "cafe": 1.7, "planter": 0.9, "column": 1.2, "bollards": 1.0,
-          "cart": 1.4, "post": 0.5, "ticket": 0.7, "bench": 1.0}
+          "cart": 1.4, "post": 0.5, "ticket": 0.7, "bench": 1.0, "heater": 0.45}
 SPACING = {"kiosk": 250.0, "stall": 250.0, "column": 150.0, "cart": 400.0}
 SOLID = ("kiosk", "stall", "cart")
-KINDS = ["kiosk", "stall", "cafe", "planter", "column", "bollards", "cart", "post", "ticket", "bench"]
+KINDS = ["kiosk", "stall", "cafe", "planter", "column", "bollards", "cart", "post", "ticket", "bench", "heater"]
 # A stop kit on a tram island (a platform with no mapped shelter) carries this colour: the prop
 # stands on the slab (street_details.gd lifts it PLATFORM_TOP). Marszałkowska pass, 2026-11-02.
 ON_PLATFORM = "platform"
@@ -77,7 +80,7 @@ PARASOLS = ["#2f6b4f", "#f4f1de", "#24324a", "#c8282a", "#e07a5f"]
 POSTERS = ["#e07a5f", "#9db4d8", "#e8d36a", "#81b29a", "#e8a6b8"]
 AWNINGS = ["#e63946", "#2a9d8f", "#ffd23f"]
 MAX_ITEMS = 900
-MAX_SECTOR = 70
+MAX_SECTOR = 85  # the placer stops here; the stop kits may add a few more, up to the loader's 100
 SECTOR = 512.0
 PROBE_FROM, PROBE_TO, PROBE_STEP = 1.5, 8.0, 0.5
 STOP_REACH = 40.0
@@ -243,8 +246,15 @@ def cluster(pl, ch, road, side, x0, z0, tx, tz, nx, nz, w, anchor_key, corner):
             put("column", 0.0, pick(POSTERS, *anchor_key, "c"))
         else:
             n = 2 + int(h01(*anchor_key, "n") * 2)
+            if road.get("name", "") in DENSE:
+                n = 1 + int(h01(*anchor_key, "n") * 2)   # a terrace between two planters, closer together
             first = -3.5 * (n - 1) * 0.5
             sets = [put("cafe", first + 3.5 * k, pick(PARASOLS, *anchor_key, "cafe", k)) for k in range(n)]
+            if any(sets) and road.get("name") == "Nowy Świat":
+                # Nowy Świat pass 2: the terraces are gardens, a patio heater between and beside the sets.
+                for k in range(n):
+                    put("heater", first + 3.5 * k + 1.75)
+                put("heater", first - 2.4)
             if any(sets):   # G9: the planters only flank a terrace that stands against a shopfront
                 put("planter", first - 4.0, pick(FLOWERS, *anchor_key, "pa"))
                 put("planter", first + 3.5 * (n - 1) + 4.0, pick(FLOWERS, *anchor_key, "pb"))
@@ -402,7 +412,8 @@ def bake(data):
     for ch, r in roads:
         p = P.pairs(r["p"])
         side_key = (r.get("name", ""), r["k"])
-        walked = {1: h01(*side_key, p[0][0], p[0][1], 1.0) * 70.0, -1: h01(*side_key, p[0][0], p[0][1], -1.0) * 70.0}
+        base, jitter = DENSE.get(r.get("name", ""), (70.0, 40.0))
+        walked = {1: h01(*side_key, p[0][0], p[0][1], 1.0) * base, -1: h01(*side_key, p[0][0], p[0][1], -1.0) * base}
         total = sum(math.hypot(b[0] - a[0], b[1] - a[1]) for a, b in zip(p, p[1:]))
         run = 0.0
         for a, b in zip(p, p[1:]):
@@ -420,7 +431,7 @@ def bake(data):
                         corner = 15.0 <= to_end <= 40.0 or (total < 80.0 and to_end < 40.0)
                         key = (round(x0, 0), round(z0, 0), side)
                         cluster(pl, ch, r, side, x0, z0, tx, tz, nx, nz, r["w"], key, corner)
-                    pos += 70.0 + h01(round(a[0]), round(a[1]), round(pos), side) * 40.0
+                    pos += base + h01(round(a[0]), round(a[1]), round(pos), side) * jitter
                 walked[side] = pos
             run += ln
     stops = stop_kits(pl, roads) + platform_kits(pl, roads)

@@ -11,6 +11,8 @@ someone writes its lines.
 
 ## 2026-11-02
 - Plac Zbawiciela comes alive: four neon cafés round the roundabout (Kawa Zbawienie, Szarlotka na rogu, Plan Z and Po mszy Spritz) with parasol terraces in front of the blocks, and the Church of the Holiest Saviour is lit at night: gilded crosses, a glowing stained-glass rose, lanterns at the porch and floodlamps up the front.
+- The Barbican is now a proper brick gatehouse: a crenellated wall in a curve with four turrets under steep conical roofs.
+- Nowy Świat's houses now each have their own plaster (ivory, butter, ochre, salmon, sage, powder blue), its café terraces have patio heaters between the tables, and people fill the terraces at lunch and into the evening.
 - Marszałkowska gets eight neon shopfronts of old trades: a milk bar, a dry cleaner, a watchmaker, a pastry shop, an optician, a florist, a haberdashery and a herbalist.
 - Nowy Świat gets eight neon shopfronts between the Palm and Karowa: a doughnut shop, ice cream with no queue, a bookshop café, an antiquarian, a boutique, a wine bar, an unfathomable gallery and an exchange office.
 - Police chases can be escaped for real: the patrol cars are a little slower than you now, so a flat-out run opens a gap and the chase ends at 100 m. And the radiowozy look like the real ones: a silver Toyota-style estate with the blue POLICJA band, checker strips and a blue bonnet, and a silver police van.
@@ -37,6 +39,13 @@ someone writes its lines.
 - Getting wedged between traffic cars no longer ends the drive: push against them for a moment and your car slips through, and after eight seconds in a jam it is towed onto the road.
 
 ## 2026-11-01
+- Small houses without a detailed model now have pitched roofs, gabled or hipped: red tile, red sheet metal in MDM, and green copper or red on the Royal Route.
+- LORETKA, the pink rooftop date bar, now has its summer terrace up on the hotel roof: pink parasols, greenery, string lights and couples on summer evenings. Also new: the PRZEGRYWKI board-game bar and WACZEK burger joints with an upside-down golden W.
+- Osiedle Za Żelazną Bramą now stands as eleven proper concrete blocks with ribbon windows and coloured balconies, Hala Mirowska has its market stalls on the square, and the buildings along Aleja Jana Pawła II each wear their own post-war plaster.
+- The parks are alive: Ogród Saski, Ogród Krasińskich and Park Ujazdowski have statues, a carousel, a playground, a gazebo, swans and ducks on the ponds, squirrels, picnics, a yoga class and people sitting on the benches.
+- A second słoiki station at Dworzec Gdański: a newcomer with mum's jars wants a ride to a flat in Muranów, and the stations show on the minimap. And a peacock has escaped from Łazienki onto a roof by Ujazdów: when a roof call comes in while you are in the south, "Pan Paw" is the one waiting up there for the helicopter.
+- Nowy Świat is one long café terrace now: umbrellas, tables and flower tubs line both pavements from Świętokrzyska towards the de Gaulle roundabout, and six of its houses (the Zamoyski palace, the Mikulski, Bürger and Jasiński tenements, the Kossakowski palace) have their own colours and a card.
+- Getting paid now pops a gold "+54 zł" over your car with a coin ting, and each district has its own quiet background sound: the river at Powiśle, trees in the park, a square's chatter in the Old Town and on the Royal Route, courtyard wind and far trams in Praga and Muranów.
 - Powiśle has more to look at: the Ostrogski Castle with the Chopin Museum on Tamka, the parish church, the Syrenka statue on the boulevard, the water station and the Kaskada boat.
 - A new ice-cream parlour on Tamka, DALEJ DALLA GELATO: the queue stands all year, and in winter everyone queues in puffer jackets.
 - St John's Cathedral in the Old Town has its brick front: a stepped gable with a tall pointed window, stone pinnacles and a small gabled porch.
@@ -100,7 +109,7 @@ someone writes its lines.
 - Trains run through the city: green-and-white suburban units, the red city line and long grey-blue expresses come out of the cross-city tunnel and the map's edges, stop at Ochota, Powiśle and Stadion, and roll over the bridge.
 - Two 1960s railway stations are landmarks now: Warszawa Ochota's white concrete saddle roof floating over its glass hall above the tracks, and Warszawa Powiśle's kite-roofed pavilion over the tunnel's mouth, its round "UFO" pavilion with the red neon, and the X-shaped canopies on the platforms.
 - New side job "Mlask": Cringulo the food reviewer parks his cream van somewhere in the centre. Fetch him a bite from a new place, bring it while it's warm, read his review, then take his sticker back to the place and watch the queue explode.
-- Warsaw loves a queue: the KUKŁA crêpe place always has one, couples wait for the lift to LUŹNO, the pink rooftop date bar on HOTEL PIURE, and new neons light up KOSZTA COFFEE, GREEN CAFFE NERWO and the Party House's bars. Plus jokes about TIMBER dates and Cringulo's sold-out pizza at Frogs.
+- Warsaw loves a queue: the KUKŁA crêpe place always has one, couples wait for the lift to LORETKA, the pink rooftop date bar on HOTEL PIURE, and new neons light up KOSZTA COFFEE, GREEN CAFFE NERWO and the Party House's bars. Plus jokes about TIMBER dates and Cringulo's sold-out pizza at Frogs.
 - The game now plays with a game controller (Xbox, PlayStation or MFi): drive, fly, open Settings and the map; touch works as before.
 - General de Gaulle now marches on his tall dark plinth by the Palm's roundabout, on his stepped circle, and the white Party House behind him has its roof sign (ROBUR) and its courtyard fountain.
 - Marszałkowska by the start has Warsaw's navy street name plates at the corners, glass shelters and a ticket machine on the tram island, a city bike dock and bollards along Plac Centralny.

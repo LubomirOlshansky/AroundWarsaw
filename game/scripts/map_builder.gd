@@ -85,6 +85,11 @@ const COL := {
 	"rail": Color("#3d3a37"),
 }
 const FACADES := ["#e9dcc2", "#d8c6a6", "#cfc4b2", "#e3c993", "#c9b08e", "#b9bec4", "#d9b98f", "#b59c7e", "#e6dccd", "#c98f6b", "#a8a49d", "#d6a77a"]
+## RF4 (OsmRoofs): the pitched roofs' districts: aged copper, red sheet metal, ceramic tile.
+const PATINA := "#6f9c88"
+const RED_SHEET := "#93493b"
+const TILE_RED := "#a85a40"
+const MDM_REACH := 430.0   ## m from Plac Konstytucji: Marszałkowska's socialist-realist blocks
 const ROOFS := ["#8d8882", "#7d726a", "#9b9187", "#72777c", "#857a70"]
 const GLASS := ["#8fb4cb", "#9fbfd2", "#7ea4bd", "#a9c3cf"]
 const CANOPY_SUMMER := ["#4e8a3b", "#5d9a44", "#437c36", "#6aa64c", "#5a8f3e"]
@@ -4385,6 +4390,7 @@ func _build_buildings(st, keep: Array, marks) -> void:
 			continue
 		drawn.append(int(index))
 	var bottoms := _part_bottoms(list, drawn, marks)
+	var royal := _royal_segments()
 	for index in drawn:
 		var bld: Dictionary = list[index]
 		var poly := _pts(bld["p"])
@@ -4414,12 +4420,25 @@ func _build_buildings(st, keep: Array, marks) -> void:
 		for q in poly:
 			plan = plan.expand(q)
 		var skin: Dictionary = marks.skin_at(plan)
+		var pitched := {}
 		if not skin.is_empty():
 			wall = skin["wall"]
 			roof = skin["roof"]
 			_uv2.x = skin["mode"]
 		elif not glass and not _historic(plan.get_center(), 0.0):
 			_uv2.x = typed_seed(_building_type(str(bld["kind"]), poly, h), _uv2.x)
+			if not bld.has("pil") and not bld.has("cut") and mh < 1.0:
+				pitched = OsmRoofs.shape(poly, h, str(bld["kind"]))
+		# RF4: a small low house gets a pitched roof in its district's material (the walls stop
+		# at the eave, the ridge stands where the flat lid did).
+		var rise := float(pitched.get("rise", 0.0))
+		var wall_h := h - rise
+		if rise > 0.0:
+			_uv2.y = wall_h
+			if str(bld["rc"]) == "":
+				roof = _district_roof(plan.get_center(), hsh, str(bld["kind"]), royal)
+		if skin.is_empty() and not glass and _nowy_swiat(plan.get_center()):
+			wall = Color(NOWY_PASTELS[(hsh / 7) % NOWY_PASTELS.size()]).lerp(wall, 0.25)
 
 		var run := 0.0
 		for i in poly.size():
@@ -4434,13 +4453,13 @@ func _build_buildings(st, keep: Array, marks) -> void:
 			var bottom := ground + mh - (0.4 if mh < 0.5 else 0.0)
 			var p0 := Vector3(a.x, bottom, a.y)
 			var p1 := Vector3(b.x, bottom, b.y)
-			var p2 := Vector3(b.x, ground + h, b.y)
-			var p3 := Vector3(a.x, ground + h, a.y)
+			var p2 := Vector3(b.x, ground + wall_h, b.y)
+			var p3 := Vector3(a.x, ground + wall_h, a.y)
 			var base_col := wall.darkened(0.12) if mh < 1.0 else wall
 			var u0 := Vector2(run, mh)
 			var u1 := Vector2(run + length, mh)
-			var u2 := Vector2(run + length, h)
-			var u3 := Vector2(run, h)
+			var u2 := Vector2(run + length, wall_h)
+			var u3 := Vector2(run, wall_h)
 			_tri_shaded(st, p0, p1, p2, n, base_col, base_col, wall, u0, u1, u2)
 			_tri_shaded(st, p0, p2, p3, n, base_col, wall, wall, u0, u2, u3)
 			run += length
@@ -4450,10 +4469,64 @@ func _build_buildings(st, keep: Array, marks) -> void:
 				var g1 := ground + minf(5.0, h)
 				_wall_faces.append_array([Vector3(a.x, g0, a.y), Vector3(b.x, g0, b.y), Vector3(b.x, g1, b.y),
 						Vector3(a.x, g0, a.y), Vector3(b.x, g1, b.y), Vector3(a.x, g1, a.y)])
+		if rise > 0.0:
+			_pitched_gables(st, pitched, ground + wall_h, wall_h, wall)
 		_uv2 = Vector2(_uv2.x, -1.0)
-		_fill(st, poly, ground + h, roof)
+		if rise > 0.0:
+			_pitched_roof_slopes(st, pitched, ground + wall_h, roof)
+		else:
+			_fill(st, poly, ground + h, roof)
 		_roof_polygon(poly, ground + h, roof, wall)
 	_uv2 = Vector2.ZERO
+
+
+## RF4: the gable ends of an OsmRoofs.shape standing on the eave at `eave` (wall triangles, so
+## they take the building's windows' pattern and the wall colour; `_uv2` is still the wall's).
+func _pitched_gables(st, pitched: Dictionary, eave: float, wall_h: float, wall: Color) -> void:
+	for t: Array in pitched["gables"]:
+		var a: Vector3 = t[0] + Vector3(0.0, eave, 0.0)
+		var b: Vector3 = t[1] + Vector3(0.0, eave, 0.0)
+		var c: Vector3 = t[2] + Vector3(0.0, eave, 0.0)
+		var n := Vector3(b.z - a.z, 0.0, a.x - b.x).normalized()  # outward: to the right of a to b
+		_tri_shaded(st, a, b, c, n, wall, wall, wall, Vector2(a.x + a.z, wall_h + t[0].y), Vector2(b.x + b.z, wall_h + t[1].y),
+				Vector2(c.x + c.z, wall_h + t[2].y))
+
+
+## RF4: the roof slopes of an OsmRoofs.shape (the roof branch of the building shader, UV2.y < 0).
+func _pitched_roof_slopes(st, pitched: Dictionary, eave: float, roof: Color) -> void:
+	for t: Array in pitched["roof"]:
+		var a: Vector3 = t[0] + Vector3(0.0, eave, 0.0)
+		var b: Vector3 = t[1] + Vector3(0.0, eave, 0.0)
+		var c: Vector3 = t[2] + Vector3(0.0, eave, 0.0)
+		var n := (b - a).cross(c - a)
+		if n.length() < 0.001:
+			continue
+		n = n.normalized()
+		if n.y < 0.0:
+			n = -n
+		_tri(st, a, b, c, n, roof)
+
+
+## RF4: a pitched roof's colour by district where OpenStreetMap has none: the Royal Route's
+## palaces under copper (green with age) or red sheet metal, MDM's blocks under dark red sheet,
+## small houses under ceramic tile, the rest under painted sheet in grey or red-brown.
+func _district_roof(at: Vector2, hsh: int, kind: String, royal: Array) -> Color:
+	var pick := fposmod(hsh * 0.6180339887, 1.0)
+	var jitter := 0.92 + 0.16 * fposmod(hsh * 0.3819660113, 1.0)
+	var col: Color
+	if _on_royal_route(at.x, at.y, royal):
+		col = Color(PATINA) if pick < 0.55 else Color(RED_SHEET)
+	elif at.distance_to(Vector2(CANDELABRAS.x, CANDELABRAS.y)) < MDM_REACH:
+		col = Color(RED_SHEET).darkened(0.1)
+	elif kind == "house" or kind == "detached" or kind == "semidetached_house" or kind == "terrace":
+		col = Color(TILE_RED)
+	elif pick < 0.4:
+		col = Color(TILE_RED)
+	elif pick < 0.7:
+		col = Color(RED_SHEET)
+	else:
+		col = Color(ROOFS[hsh % ROOFS.size()])
+	return Color(col.r * jitter, col.g * jitter, col.b * jitter, 1.0)
 
 
 ## Loop 1: OpenStreetMap building parts that would float. A part is drawn from its
@@ -4719,6 +4792,7 @@ func _build_lod2(walls, marks) -> Array:
 	col = facades[0]
 	uv2 = facades[1]
 	uv2 = _typed_lod2(pos, col, uv2, building_runs)
+	col = _boulevard_dress(pos, nrm, col, building_runs)
 	var dress: Dictionary = facades[2]
 	if not walls.none:
 		_roof_dress(pos, nrm, col, uv, uv2, building_runs, dress)
@@ -5437,6 +5511,19 @@ const MARIENSZTAT := [Vector2(-546.7, -1395.0), Vector2(-333.3, -1395.0), Vector
 		Vector2(-246.7, -1236.7), Vector2(-270.0, -1223.3), Vector2(-306.7, -1260.0), Vector2(-350.0, -1233.3),
 		Vector2(-403.3, -1233.3), Vector2(-403.3, -1205.0), Vector2(-506.8, -1195.9), Vector2(-509.8, -1210.3),
 		Vector2(-534.3, -1213.4), Vector2(-544.0, -1236.5), Vector2(-546.7, -1286.7)]
+## Nowy Świat (the street-by-street pass 2, 2026-11-02): the street's houses were rebuilt after
+## 1945 in a classicist dress and stand in plaster of their own, house by house (ivory, butter,
+## ochre, salmon, grey-green, powder blue, sand), not in the one grey the aerial photo gives. Within
+## NOWY_REACH metres of the street's centre line (south of NOWY_END_Z, Al. Jerozolimskie) a house
+## takes one of these, a quarter of the mapped colour left in. Walls only: no tiles, dormers or
+## gables (the roofs stay the flat and hipped roofs the aerial photo shows). A *guess* from
+## memory of the street until the Mac photo check (QUESTIONS).
+const NOWY_PASTELS := ["#efe3c8", "#e8d49a", "#dcc08a", "#e4b5a2", "#e8c3c0", "#c3cfb4", "#b9cbd8", "#e6d8bd",
+		"#d8c7a4", "#cdbfd0"]
+const NOWY_REACH := 30.0
+const NOWY_END_Z := 262.0
+const NOWY_STREET := "Nowy Świat"
+
 ## Their tenements' own colours where OpenStreetMap has none (ochre, salmon, cream, terracotta,
 ## pale yellow, sage, blue-grey, peach, oxblood): the rebuilt Old Town's palette.
 const TENEMENTS := ["#d9a441", "#e1968f", "#ebe1d1", "#c8733f", "#efd9a0", "#a9b98a", "#9fb6cf",
@@ -5491,6 +5578,69 @@ static func _building_type(kind: String, poly: PackedVector2Array, h: float) -> 
 	if long >= 45.0 and short <= 16.0 and h >= 14.0:
 		return 2
 	return 1
+
+
+## Aleja Jana Pawła II's frontage (F, 2026-11-01): the street was laid out after the war and
+## rebuilt in the 1950s-70s, so its buildings are not the Old Town's pastel tenements nor the
+## default palette: mid-century plasters (cream, grey, ochre, sage, salmon, blue-grey, brown),
+## each building its own (a landmark's skin keeps its own: only plain LoD2 buildings are dressed).
+const BOULEVARD_NAME := "Aleja Jana Pawła II"
+const BOULEVARD_REACH := 42.0
+const BOULEVARD_PLASTERS := ["#d8cfb8", "#c9c5b8", "#d4b896", "#bfc7b4", "#d6b8a6", "#c4c9cf", "#e2dccb", "#b9a99a"]
+
+
+## The boulevard's centreline sampled every ~12 m into a grid of 48 m cells (point lists).
+func _boulevard_grid() -> Dictionary:
+	var grid := {}
+	for road in data.get("roads", []):
+		if str(road.get("name", "")) != BOULEVARD_NAME:
+			continue
+		var line := _pts(road["p"])
+		for i in range(line.size() - 1):
+			var a := line[i]
+			var b := line[i + 1]
+			var n := maxi(1, ceili(a.distance_to(b) / 12.0))
+			for k in n + 1:
+				var q := a.lerp(b, float(k) / n)
+				var key := Vector2i(floori(q.x / 48.0), floori(q.y / 48.0))
+				if not grid.has(key):
+					grid[key] = PackedVector2Array()
+				(grid[key] as PackedVector2Array).append(q)
+	return grid
+
+
+func _near_boulevard(grid: Dictionary, at: Vector2) -> bool:
+	var cx := floori(at.x / 48.0)
+	var cz := floori(at.y / 48.0)
+	for dx in range(-1, 2):
+		for dz in range(-1, 2):
+			for q: Vector2 in grid.get(Vector2i(cx + dx, cz + dz), PackedVector2Array()):
+				if q.distance_to(at) <= BOULEVARD_REACH:
+					return true
+	return false
+
+
+## Each building run (one building) within BOULEVARD_REACH of the boulevard takes a plaster by
+## its position's hash; walls only (roofs and glass towers keep theirs). Returns the colours.
+func _boulevard_dress(pos: PackedVector3Array, nrm: PackedVector3Array, col: PackedColorArray,
+		runs: Array[Vector3i]) -> PackedColorArray:
+	var grid := _boulevard_grid()
+	if grid.is_empty():
+		return col
+	for run in runs:
+		var lo := Vector3(INF, INF, INF)
+		var hi := -lo
+		for t in range(run.x, run.y):
+			lo = lo.min(pos[t])
+			hi = hi.max(pos[t])
+		var mid := Vector2((lo.x + hi.x) * 0.5, (lo.z + hi.z) * 0.5)
+		if hi.y - lo.y < 12.0 or _historic(mid, 0.0) or not _near_boulevard(grid, mid):
+			continue
+		var plaster := Color(BOULEVARD_PLASTERS[absi(int(mid.x * 73.0 + mid.y * 31.0)) % BOULEVARD_PLASTERS.size()])
+		for t in range(run.x, run.y):
+			if nrm[t].y < 0.7 and col[t].a >= 0.9:
+				col[t] = Color(plaster.r, plaster.g, plaster.b, col[t].a)
+	return col
 
 
 ## A wall's UV2.x for type `kind` (1-3) and seed 0..1: [1, 2) in quarters; 0 keeps the seed.
@@ -5588,6 +5738,7 @@ func _tenement_facades(pos: PackedVector3Array, nrm: PackedVector3Array, col: Pa
 	var looks: Array[Color] = []
 	var seeds: Array[float] = []
 	var roofs: Array[Color] = []
+	var plain: Array[bool] = []  # Nowy Świat's houses: the plaster only
 	for bld in data.get("buildings", []):
 		var p: Array = bld["p"]
 		if p.size() < 6 or NOT_TENEMENTS.has(str(bld.get("kind", ""))):
@@ -5596,12 +5747,16 @@ func _tenement_facades(pos: PackedVector3Array, nrm: PackedVector3Array, col: Pa
 		var box := Rect2(poly[0], Vector2.ZERO)
 		for q in poly:
 			box = box.expand(q)
-		if not _historic(box.get_center(), 40.0):
+		var nowy := _nowy_swiat(box.get_center())
+		if not nowy and not _historic(box.get_center(), 40.0):
 			continue
 		var hsh := absi(int(poly[0].x * 73.0 + poly[0].y * 31.0))
 		var k := polys.size()
 		polys.append(poly)
+		plain.append(nowy)
 		var look := _osm_colour(bld["c"], Color(TENEMENTS[hsh % TENEMENTS.size()]))
+		if nowy:
+			look = Color(NOWY_PASTELS[(hsh / 7) % NOWY_PASTELS.size()]).lerp(look, 0.25)
 		if box.get_center().distance_to(OldTownRoofs.PLAC) < PLAC_PALETTE_R:
 			look = Color(PLAC_PASTELS[hsh % PLAC_PASTELS.size()]).lerp(look, 0.25)
 		looks.append(look)
@@ -5623,11 +5778,18 @@ func _tenement_facades(pos: PackedVector3Array, nrm: PackedVector3Array, col: Pa
 		var c := (pos[t] + pos[t + 1] + pos[t + 2]) / 3.0
 		# A wall's house is a metre behind it; a roof slope's is under its centre.
 		var probe := Vector2(c.x, c.z) if pitched else Vector2(c.x, c.z) - Vector2(nrm[t].x, nrm[t].z).normalized()
-		if not _historic(probe, 0.0):
-			continue
 		var cands: Array = grid.get(Vector2i(floori(probe.x / cell), floori(probe.y / cell)), [])
+		if cands.is_empty():
+			continue
+		var in_old := _historic(probe, 0.0)
 		for k in cands:
-			if Geometry2D.is_point_in_polygon(probe, polys[k]):
+			if (in_old or plain[k]) and Geometry2D.is_point_in_polygon(probe, polys[k]):
+				if plain[k]:
+					if not pitched:
+						for v in 3:
+							col[t + v] = looks[k]
+							uv2[t + v].x = seeds[k]
+					break
 				for v in 3:
 					if pitched:
 						col[t + v] = col[t + v].lerp(roofs[k], 0.5)
@@ -5761,6 +5923,28 @@ func _historic(at: Vector2, slack: float) -> bool:
 		_mariensztat = PackedVector2Array(MARIENSZTAT)
 	return Geometry2D.is_point_in_polygon(at, _mariensztat)
 var _mariensztat := PackedVector2Array()
+
+
+## Whether a point stands in the houses of Nowy Świat (NOWY_REACH of its centre line, short of
+## Al. Jerozolimskie), apart from the historic districts, which keep their own dress.
+func _nowy_swiat(at: Vector2) -> bool:
+	if _nowy_segs.is_empty():
+		for r in data.get("roads", []):
+			if str(r.get("name", "")) != NOWY_STREET or bool(r.get("bridge", false)):
+				continue
+			var p: Array = r["p"]
+			for i in range(0, p.size() - 3, 2):
+				var a := Vector2(float(p[i]), float(p[i + 1]))
+				var b := Vector2(float(p[i + 2]), float(p[i + 3]))
+				if a.y < NOWY_END_Z and b.y < NOWY_END_Z:
+					_nowy_segs.append([a, b])
+	for sg: Array in _nowy_segs:
+		if absf(at.x - sg[0].x) > 80.0 or absf(at.y - sg[0].y) > 80.0:
+			continue
+		if Geometry2D.get_closest_point_to_segment(at, sg[0], sg[1]).distance_to(at) < NOWY_REACH:
+			return not _historic(at, 0.0)
+	return false
+var _nowy_segs: Array = []
 
 
 ## The named Royal Route streets' segments in this map or sector: [a, b, half width + reach].
