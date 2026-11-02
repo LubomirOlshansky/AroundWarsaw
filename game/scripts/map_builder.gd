@@ -4237,6 +4237,12 @@ func _build_platforms(st) -> void:
 	_uv2 = Vector2.ZERO
 
 
+## A cycle crossing's edge squares (P-11): their side in metres, a gap as long between them.
+const CROSS_SQ := 0.4
+## How far each row of squares lies from the crossing's middle (the red strip is 2.2 m wide).
+const CROSS_EDGE := 1.1
+
+
 ## Cycle crossings in red across the road, and zebra stripes on pedestrian crossings.
 func _build_crossings(st) -> void:
 	var keep_bias := _drape_bias
@@ -4248,6 +4254,28 @@ func _build_crossings(st) -> void:
 			_strip(st, _pts(p["p"]), 2.2, Y_MARK, COL["cycle"])
 	_drape_bias = keep_bias
 	_layer = L_MARK
+	# Idea #9 (2026-11-02): Warsaw's cycle crossings (P-11) are edged by two rows of white
+	# squares; a row of CROSS_SQ squares a gap apart down each side of the red strip.
+	for p in data["paths"]:
+		if p["k"] != "cyclecross":
+			continue
+		_dk = int(p.get("dk", -1))
+		var cpoly := _pts(p["p"])
+		for i in cpoly.size() - 1:
+			var a := cpoly[i]
+			var seg := cpoly[i + 1] - a
+			var length := seg.length()
+			if length < CROSS_SQ:
+				continue
+			var dir := seg / length
+			var side := Vector2(-dir.y, dir.x) * CROSS_EDGE
+			var t := CROSS_SQ * 0.5
+			while t < length - CROSS_SQ * 0.5:
+				var c := a + dir * t
+				for s in [side, -side]:
+					_strip(st, PackedVector2Array([c + s - dir * CROSS_SQ * 0.5, c + s + dir * CROSS_SQ * 0.5]),
+							CROSS_SQ, Y_MARK, COL["mark"], false)
+				t += CROSS_SQ * 2.0
 	for p in data["paths"]:
 		if p["k"] != "zebra":
 			continue
