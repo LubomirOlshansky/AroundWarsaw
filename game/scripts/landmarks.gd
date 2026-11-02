@@ -30,6 +30,7 @@ const Neon := preload("res://scripts/neon_signs.gd")  # the dusk loop: sign size
 const M_PAVILION := 8.0   # glass lit from inside: + 0 warm (the Rotunda), + 0.5 cool (Varso's crown)
 const M_ATTIC := 9.0      # a parapet cut into merlons; fraction = its height / 10 m
 const M_LAMP := 10.0      # glows at night
+const VIOLET_SIGN := Color(0.62, 0.25, 1.0)  # Level 26's neon, as neon_signs.gd VIOLET
 const M_MEMBRANE := 11.0  # the stadium's roof membrane
 const M_GLASS := 12.0     # curtain wall with mullions (Varso)
 const M_SKIN := 13.0      # a tower's own skin; fraction = style / 16 (S_*, building.gdshader skin())
@@ -131,6 +132,9 @@ const INFO := {
 	"stadium": ["Stadion Narodowy",
 			"Otwarty w 2012 roku na Euro 2012, w misie dawnego Stadionu Dziesięciolecia. Biało-czerwona plecionka fasady.",
 			"Opened in 2012 for Euro 2012, in the bowl of the old Tenth-Anniversary Stadium. A red-and-white woven skin."],
+	"legia": ["Stadion Leguminy",
+			"Stadion przy Łazienkowskiej, dom stołecznych legionistów od 1930 roku, przebudowany w 2010. Biało-czerwono-zielone trybuny pod białym dachem.",
+			"The ground on Łazienkowska, home of the capital's legionnaires since 1930, rebuilt in 2010. White, red and green stands under a white roof."],
 	"centralna": ["Warszawa Centralna",
 			"Dworzec otwarty w 1975 roku: szklana hala pod płaskim, wysuniętym dachem na paraboloidach hiperbolicznych.",
 			"The main station, opened in 1975: a glass hall under a flat overhanging roof on hyperbolic paraboloid shells."],
@@ -699,6 +703,7 @@ func _find_sites() -> void:
 	if varso.size() >= 3:
 		_add_site("varso", [varso])
 	_find_stadium()
+	_find_legia()
 	_find_centralna()
 	_find_towers()
 	# The landmarks loop: the skyline's towers, then Muzeum Narodowe.
@@ -732,6 +737,12 @@ func _find_sites() -> void:
 	if piure.size() >= 3:
 		var pe := _box_of([piure]).end
 		_add_site("piure_sign", [PackedVector2Array([pe, pe + Vector2(0.2, 0), pe + Vector2(0.2, 0.2), pe + Vector2(0, 0.2)])])
+	# Level 26 (F, 2026-11-01): the rooftop club on the Atlas Tower, Al. Jerozolimskie 123A. The tower
+	# stays the map's own; a 0.2 m zone at its bounding box's corner makes it a site.
+	var atlas := _landmark("Atlas Tower")
+	if atlas.size() >= 3:
+		var ae := _box_of([atlas]).end
+		_add_site("level26_club", [PackedVector2Array([ae, ae + Vector2(0.2, 0), ae + Vector2(0.2, 0.2), ae + Vector2(0, 0.2)])])
 	var metropol := _landmark("Hotel Metropol")
 	if metropol.size() >= 3:
 		# A 0.2 m zone at the roof's south-east corner: a site's zone drops what stands in it,
@@ -745,6 +756,8 @@ func _find_sites() -> void:
 	_find_dtc()
 	# The Mac photo check (2026-11-01, specs C and D): the tower and the slabs behind the stores.
 	_find_behind()
+	# Pokorna 2 (F, 2026-11-01): the 57 m residential block by Muranów, a model with balconies.
+	_find_pokorna2()
 	# R5 of docs/design/start-area-real.md: the Cepelia pavilion and Zodiak.
 	_find_modern_pavilions()
 	# The railway (docs/design/railway.md, S1): Warszawa Ochota's hall and its saddle roof.
@@ -1033,6 +1046,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_varso(s)
 			"stadium":
 				_build_stadium(s)
+			"legia":
+				_build_legia(s)
 			"centralna":
 				_build_centralna(s)
 			"poniatowski":
@@ -1071,6 +1086,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_metropol_sign(s)
 			"piure_sign":
 				_build_piure_sign(s)
+			"level26_club":
+				_build_level26_club(s)
 			"msn":
 				_build_msn(s)
 			"tr":
@@ -1164,6 +1181,9 @@ func build(surface, near := Rect2(), only := "") -> void:
 			"slabs":
 				_id = 0
 				_build_slabs(s)
+			"pokorna2":
+				_id = 0
+				_build_pokorna2(s)
 			"pawilony":
 				_build_pawilony(s)
 			"cepelia":
@@ -5505,6 +5525,85 @@ func _build_slabs(site: Dictionary) -> void:
 	_mode = M_STONE
 
 
+# --- Pokorna 2: the residential tower by Muranów ---------------------------------------------
+
+## F (2026-11-01): "Pokorna 2 looks strange, not as an apartment". OpenStreetMap has it as one
+## 57 m `apartments` outline (12 corners, a stepped 1970s block off Pokorna) and the plain
+## extrusion read as an office. Spec docs/landmarks/specs/pokorna2.md: the long faces take the
+## loggia skin S_SLAB (a window in every 3.6 m bay) plus a real balcony slab and railing on
+## every floor; the short faces stay plain; lift house and water tank on the flat roof. Unnamed.
+const POKORNA2_AT := Vector2(-2123.0, -2217.0)
+const POKORNA2_FLOOR := 2.85          # the S_SLAB shader's floor height
+const POKORNA2_PLASTER := Color("#d6c3ad")
+const POKORNA2_END := Color("#bda98f")
+const POKORNA2_SLAB := Color("#e8e2d6")
+const POKORNA2_RAIL := Color("#6f8f95")
+
+
+func _find_pokorna2() -> void:
+	var q := _outline_at(POKORNA2_AT)
+	if q.size() < 3:
+		return
+	_add_site("pokorna2", [_largest(Geometry2D.offset_polygon(q, 3.0, Geometry2D.JOIN_MITER))])
+	sites[-1]["outline"] = q
+
+
+func _build_pokorna2(site: Dictionary) -> void:
+	var poly := _simplify(site["outline"], 0.6)
+	if poly.size() < 3:
+		return
+	_g = _ground_under(poly)
+	var g := _g
+	var floors := 20
+	var top := g + POKORNA2_FLOOR * floors
+	for i in poly.size():
+		var a := poly[i]
+		var b := poly[(i + 1) % poly.size()]
+		var long_face := a.distance_to(b) >= 8.0
+		_mode = M_SKIN + float(S_SLAB) / 16.0 if long_face else M_STONE
+		_wall(a, b, g - 0.4, top, _out(poly, a, b), POKORNA2_PLASTER if long_face else POKORNA2_END)
+	_mode = M_STONE
+	_cap(poly, top, Color("#8c8a84"))
+	# A balcony slab with a railing on every floor above the first, along each long face, held
+	# 0.8 m short of the corners so neighbouring faces' balconies never cross.
+	for i in poly.size():
+		var a := poly[i]
+		var b := poly[(i + 1) % poly.size()]
+		var len := a.distance_to(b)
+		if len < 8.0:
+			continue
+		var d := (b - a) / len
+		var o := _out(poly, a, b)
+		var a2 := a + d * 0.8
+		var b2 := b - d * 0.8
+		var slab := PackedVector2Array([a2, b2, b2 + o * 1.0, a2 + o * 1.0])
+		if Geometry2D.is_polygon_clockwise(slab) != Geometry2D.is_polygon_clockwise(poly):
+			slab.reverse()
+		for n in range(1, floors):
+			var y := g + POKORNA2_FLOOR * n
+			_prism(slab, y, y + 0.15, POKORNA2_SLAB, POKORNA2_SLAB, M_STONE, M_STONE)
+			_wall(a2 + o * 1.0, b2 + o * 1.0, y + 0.15, y + 0.95, o, POKORNA2_RAIL)
+	# The roof: a lift house on the longest face's middle and a water tank beside it.
+	var best := 0
+	var longest := 0.0
+	for i in poly.size():
+		var el := poly[i].distance_to(poly[(i + 1) % poly.size()])
+		if el > longest:
+			longest = el
+			best = i
+	var e0 := poly[best]
+	var e1 := poly[(best + 1) % poly.size()]
+	var dd := (e1 - e0).normalized()
+	var oo := _out(poly, e0, e1)
+	var mid := (e0 + e1) * 0.5 - oo * 3.0
+	_prism(PackedVector2Array([mid - dd * 3.0 - oo * 2.0, mid + dd * 3.0 - oo * 2.0, mid + dd * 3.0 + oo * 2.0, mid - dd * 3.0 + oo * 2.0]),
+			top, top + 3.2, POKORNA2_PLASTER.darkened(0.06), Color("#7d7b75"), M_STONE, M_STONE)
+	var tank := mid + dd * 7.0
+	_prism(_square(tank, 1.6), top, top + 2.4, Color("#9aa3a8"), Color("#7d8388"), M_STONE, M_STONE)
+	_collide(poly)
+	_mode = M_STONE
+
+
 # --- TR Warszawa's building site ----------------------------------------------------------
 
 ## F's ask (2026-10-31): the empty plot west of the museum, between its tree court and the
@@ -5834,6 +5933,158 @@ func _build_piure_sign(_site: Dictionary) -> void:
 	if top < 15.0:
 		return
 	_crown_signs(outline, g + top + 2.2, "LUŹNO", Color(1.0, 0.45, 0.78), 0.0, 0.45)
+
+
+## Level 26 (F, 2026-11-01), the rooftop club on the Atlas Tower: on the roof of the tower's crown
+## (the 4 m top storey OSM maps over the main roof, 116 m) a dark timber deck inside a glass
+## balustrade, a bar with a glowing back wall at one end, the DJ booth under a lighting truss with an
+## LED wall and speaker stacks at the other, lounge sofas between, planters, festoon lamps on posts
+## and the name LEVEL 26 in violet neon. The people are crowds.gd's roof crowd (`level_26`), the bass
+## city_sounds.gd's `club` tag, the hours places.json's. Everything is drawn with `_no_roof`, so the
+## roof grid (where the crowd stands, where the violet band hangs) stays the tower's own.
+func _build_level26_club(_site: Dictionary) -> void:
+	var outline := _landmark("Atlas Tower")
+	var crown := PackedVector2Array()
+	var crown_h := 0.0
+	var best := 0.0
+	for bld in _parts_in(outline, func(b: Dictionary) -> bool: return float(b["h"]) >= 100.0 and float(b["mh"]) >= 100.0):
+		var q := _pts(bld["p"])
+		if absf(_area(q)) > best:
+			best = absf(_area(q))
+			crown = q
+			crown_h = float(bld["h"])
+	if crown.size() < 3 or best < 150.0:
+		return
+	var g := _ground_under(outline)
+	var y := g + crown_h
+	var deck := _largest(Geometry2D.offset_polygon(crown, -1.8, Geometry2D.JOIN_MITER))
+	if deck.size() < 3:
+		return
+	var keep_roof := _no_roof
+	_no_roof = true
+	var none := Color(0, 0, 0, 0)
+	var violet := Color("#a35cff")
+	var pink := Color("#ff3d9a")
+	var cyan := Color("#35e0ff")
+	var warm := Color("#ffc873")
+	var dark := Color("#1f1c26")
+	# The deck's axes: along its longest edge (d) and across (n); its extent along each.
+	var d := Vector2(1, 0)
+	var longest := 0.0
+	for i in deck.size():
+		var e := deck[(i + 1) % deck.size()] - deck[i]
+		if e.length() > longest:
+			longest = e.length()
+			d = e.normalized()
+	var n := Vector2(-d.y, d.x)
+	var c0 := _centre(deck)
+	var u0 := INF
+	var u1 := -INF
+	var v0 := INF
+	var v1 := -INF
+	for q in deck:
+		var r := q - c0
+		u0 = minf(u0, r.dot(d))
+		u1 = maxf(u1, r.dot(d))
+		v0 = minf(v0, r.dot(n))
+		v1 = maxf(v1, r.dot(n))
+	var inner := _largest(Geometry2D.offset_polygon(deck, -0.5, Geometry2D.JOIN_MITER))
+	if inner.size() < 3:
+		inner = deck
+	# A rectangle `hu` long along `axis` and `hv` across, centred on a point.
+	var orect := func(c: Vector2, axis: Vector2, hu: float, hv: float) -> PackedVector2Array:
+		var m := Vector2(-axis.y, axis.x)
+		return PackedVector2Array([c - axis * hu - m * hv, c + axis * hu - m * hv, c + axis * hu + m * hv, c - axis * hu + m * hv])
+	var fits := func(r: PackedVector2Array) -> bool:
+		for q in r:
+			if not Geometry2D.is_point_in_polygon(q, inner):
+				return false
+		return true
+	# The floor, then the glass balustrade round it.
+	_mode = M_STONE
+	_prism(deck, y, y + 0.12, Color("#4a3a30"), Color("#5a4636"), M_STONE, M_STONE)
+	_parapet(deck, y + 0.12, 1.1, Color("#b9d3e3"))
+	y += 0.12
+	# Where things stand: fractions of the deck's extent, nudged across until they fit.
+	var spot := func(uf: float, vf: float, hu: float, hv: float, axis: Vector2) -> Vector2:
+		for k in [0.0, 1.0, -1.0, 2.0, -2.0, 3.0, -3.0, 4.0, -4.0]:
+			var p: Vector2 = c0 + d * lerpf(u0, u1, uf) + n * (lerpf(v0, v1, vf) + k)
+			if fits.call(orect.call(p, axis, hu, hv)):
+				return p
+		return Vector2(INF, INF)
+	# The bar at the low end, its front toward the deck (+d).
+	var bar: Vector2 = spot.call(0.14, 0.5, 0.9, 3.4, n)
+	if bar.x < INF:
+		_prism(orect.call(bar, n, 3.3, 0.55), y, y + 1.1, dark, Color("#3a3446"), M_STONE, M_STONE)
+		_prism(orect.call(bar + d * 0.57, n, 3.1, 0.03), y + 0.25, y + 0.85, violet, violet, M_LAMP, M_LAMP)
+		_prism(orect.call(bar - d * 1.4, n, 3.3, 0.15), y, y + 2.3, dark, dark.lightened(0.1), M_STONE, M_STONE)
+		for k in 3:
+			_prism(orect.call(bar - d * 1.24, n, 3.0, 0.03), y + 1.0 + 0.5 * k, y + 1.08 + 0.5 * k,
+					[pink, cyan, violet][k], [pink, cyan, violet][k], M_LAMP, M_LAMP)
+		for k in 6:
+			_prism(_square(bar + d * 1.25 + n * (-2.5 + k), 0.22), y, y + 0.78, Color("#2b2733"), pink if k % 2 == 0 else cyan,
+					M_STONE, M_LAMP)
+	# The DJ booth at the high end, under a truss, facing the deck (-d).
+	var dj: Vector2 = spot.call(0.86, 0.5, 1.4, 2.4, n)
+	if dj.x < INF:
+		_prism(orect.call(dj, n, 1.7, 0.6), y, y + 1.15, dark, Color("#3a3446"), M_STONE, M_STONE)
+		_prism(orect.call(dj - d * 0.61, n, 1.5, 0.03), y + 0.2, y + 1.0, cyan, cyan, M_LAMP, M_LAMP)
+		_prism(orect.call(dj + d * 1.5, n, 2.4, 0.1), y + 0.9, y + 3.9, pink, pink, M_LAMP, M_LAMP)
+		for su: float in [-1.0, 1.0]:
+			_prism(_square(dj + n * (su * 2.7) - d * 0.3, 0.1), y, y + 4.2, Color("#8a8f98"), Color("#8a8f98"), M_STONE, M_STONE)
+			_prism(orect.call(dj + n * (su * 3.9) + d * 0.3, d, 0.45, 0.45), y, y + 2.0, Color("#15141a"), Color("#26242d"), M_STONE, M_STONE)
+		_prism(orect.call(dj - d * 0.3, n, 2.8, 0.1), y + 4.0, y + 4.25, Color("#8a8f98"), Color("#8a8f98"), M_STONE, M_STONE)
+		for k in 5:
+			_prism(_square(dj - d * 0.45 + n * (-2.2 + 1.1 * k), 0.18), y + 3.6, y + 4.0, [pink, cyan, violet, warm, pink][k],
+					[pink, cyan, violet, warm, pink][k], M_LAMP, M_LAMP)
+	# Lounge sofas and tables between, in two rows.
+	var seat := [[0.36, 0.22], [0.36, 0.78], [0.62, 0.22], [0.62, 0.78]]
+	for s in seat:
+		var p: Vector2 = spot.call(float(s[0]), float(s[1]), 1.2, 1.0, d)
+		if p.x >= INF:
+			continue
+		var face := (c0 - p).dot(n)
+		var f := n * (1.0 if face > 0.0 else -1.0)
+		_prism(orect.call(p, d, 1.1, 0.45), y, y + 0.5, Color("#3a2a55"), Color("#5a3d88"), M_STONE, M_STONE)
+		_prism(orect.call(p - f * 0.5, d, 1.1, 0.12), y + 0.5, y + 0.95, Color("#3a2a55"), Color("#4a3470"), M_STONE, M_STONE)
+		var t := p + f * 1.5
+		_prism(_square(t, 0.4), y, y + 0.4, dark, Color("#3a3446"), M_STONE, M_STONE)
+		_prism(_square(t, 0.1), y + 0.4, y + 0.55, warm, warm, M_LAMP, M_LAMP)
+	# Planters along both long sides.
+	for uf: float in [0.25, 0.5, 0.75]:
+		for vf: float in [0.04, 0.96]:
+			var p: Vector2 = spot.call(uf, vf, 0.8, 0.3, d)
+			if p.x < INF:
+				_prism(orect.call(p, d, 0.8, 0.3), y, y + 0.6, Color("#5a4a3a"), Color("#2f6b3a"), M_STONE, M_STONE)
+				_prism(orect.call(p, d, 0.65, 0.22), y + 0.6, y + 1.5, Color("#2f6b3a"), Color("#3e8a4a"), M_STONE, M_STONE)
+	# Festoon lamps: posts about every 9 m on the inner ring, a warm bulb on each and two between.
+	var ring_len := 0.0
+	for i in inner.size():
+		ring_len += inner[i].distance_to(inner[(i + 1) % inner.size()])
+	var posts: Array[Vector2] = []
+	var step := maxf(ring_len / maxf(roundf(ring_len / 9.0), 4.0), 4.0)
+	var walked := 0.0
+	var next := 0.0
+	for i in inner.size():
+		var a := inner[i]
+		var b := inner[(i + 1) % inner.size()]
+		var el := a.distance_to(b)
+		while next <= walked + el and posts.size() < 16:
+			posts.append(a.lerp(b, (next - walked) / maxf(el, 0.001)))
+			next += step
+		walked += el
+	for k in posts.size():
+		var p: Vector2 = posts[k]
+		_prism(_square(p, 0.06), y, y + 2.9, Color("#4a4a52"), Color("#4a4a52"), M_STONE, M_STONE)
+		_prism(_square(p, 0.15), y + 2.9, y + 3.2, warm, warm, M_LAMP, M_LAMP)
+		var q: Vector2 = posts[(k + 1) % posts.size()]
+		if p.distance_to(q) < step * 1.6:
+			for m in [1.0 / 3.0, 2.0 / 3.0]:
+				var w := p.lerp(q, m)
+				_prism(_square(w, 0.1), y + 2.75, y + 2.95, warm, warm, M_LAMP, M_LAMP)
+	# The name, in violet, standing on the crown's south and east edges.
+	_crown_signs(crown, y + 2.6, "LEVEL 26", VIOLET_SIGN, 0.0, 0.5)
+	_no_roof = keep_roof
 
 
 func _box_poly(r: Rect2) -> PackedVector2Array:
@@ -11456,6 +11707,222 @@ func _build_polonia(site: Dictionary) -> void:
 			"tube": Color(1.0, 0.85, 0.5), "whole": true, "canopy": Color("#6b2a2f")}, party)
 	_collide(ring)
 
+
+# --- Stadion Leguminy (Legia's ground, Łazienkowska) -----------------------------------------
+
+## Stadion Wojska Polskiego on ul. Łazienkowska, home of the capital's football legion (rebuilt
+## 2008-2010, about 31,000 seats), under the parody name "Stadion Leguminy" (spec
+## docs/landmarks/specs/legia.md, written 2026-11-01 in a cloud thread with no photos). The map
+## has it as one 27 m outline (the bowl), a 20 m west stand and a 5.4 m footprint; the model
+## is built from that outline: a dark glass concourse, a facade of light-grey and graphite
+## panels under a white-green-red band, a white roof ringing an open middle, three rings of
+## seats in white, green and red blocks round a striped pitch (105 x 68 m along the bowl's
+## long axis), four floodlight masts at the corners and LEGUMINA in neon on the south front.
+## Colours, panel rhythm and the mast spots are estimates: the Mac photo check is parked.
+const LEGIA_AT := Vector2(1139.0, 1500.0)
+const LEGIA_TOP := 27.0
+const LEGIA_GREEN := Color("#2b6e3f")
+const LEGIA_RED := Color("#b8212a")
+const LEGIA_PANELS := [Color("#d7dadd"), Color("#bcc1c6"), Color("#5a6068"), Color("#e8eaec"), Color("#a5abb1")]
+
+
+func _find_legia() -> void:
+	var outline := _tallest_at(LEGIA_AT)
+	if outline.size() < 8:
+		return
+	var box := _box_of([outline])
+	# The mapped bowl is about 165 x 205 m and 27 m high; anything else is another building.
+	if box.size.x < 140.0 or box.size.x > 200.0 or box.size.y < 170.0 or box.size.y > 240.0:
+		return
+	var ring := _simplify(outline, 0.6)
+	if Geometry2D.is_polygon_clockwise(ring):
+		ring.reverse()
+	var c := box.get_center()
+	# The pitch's long axis: the outline's principal axis (south-pointing).
+	var sxx := 0.0
+	var sxy := 0.0
+	var syy := 0.0
+	for v in ring:
+		var d := v - c
+		sxx += d.x * d.x
+		sxy += d.x * d.y
+		syy += d.y * d.y
+	var axis := Vector2.from_angle(0.5 * atan2(2.0 * sxy, sxx - syy))
+	if axis.y < 0.0:
+		axis = -axis
+	_add_site("legia", [outline])
+	if sites.is_empty() or sites[-1]["key"] != "legia":
+		return
+	sites[-1]["ring"] = ring
+	sites[-1]["centre"] = c
+	sites[-1]["axis"] = axis
+
+
+func _build_legia(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	var c: Vector2 = site["centre"]
+	var axis: Vector2 = site["axis"]
+	var across := Vector2(axis.y, -axis.x)
+	_o = c
+	_b = axis
+	_a = across
+	var n := ring.size()
+	var g := _ground_under(ring)
+	_g = g
+	var pitch: float = map.terrain_height(c.x, c.y)
+	var none := Color(0, 0, 0, 0)
+	var dirs: Array[Vector2] = []
+	for v in ring:
+		dirs.append((v - c).normalized())
+	# A rounded rectangle round the pitch (half-sizes along and across the axis), sampled at the
+	# outline's vertex angles so every ring meets the next one quad by quad.
+	var oblong := func(half_a: float, half_b: float, power: float) -> PackedVector2Array:
+		var out := PackedVector2Array()
+		for d: Vector2 in dirs:
+			var x := absf(d.dot(axis)) / half_a
+			var y := absf(d.dot(across)) / half_b
+			out.append(c + d * pow(pow(x, power) + pow(y, power), -1.0 / power))
+		return out
+	var scaled := func(s: float) -> PackedVector2Array:
+		var out := PackedVector2Array()
+		for v in ring:
+			out.append(c + (v - c) * s)
+		return out
+	# The paved apron and the facade's foot.
+	var apron := _largest(Geometry2D.offset_polygon(ring, 3.5, Geometry2D.JOIN_MITER))
+	_mode = M_STONE
+	_prism(apron, g - 1.5, g + 0.25, Color("#a9a79f"), Color("#b6b4ac"), M_STONE, M_STONE)
+	# The concourse: dark glass to 6.5 m.
+	_prism(ring, g - 1.0, g + 6.5, Color("#2c3640"), none, M_GLASS)
+	# The facade above it: panels in greys, bay by bay, under a graphite band.
+	_mode = M_STONE
+	var bay := 0
+	for i in n:
+		var a := ring[i]
+		var b := ring[(i + 1) % n]
+		var out := _out(ring, a, b)
+		var length := a.distance_to(b)
+		var cuts := maxi(int(round(length / 7.0)), 1)
+		for k in cuts:
+			var p0 := a.lerp(b, float(k) / cuts)
+			var p1 := a.lerp(b, float(k + 1) / cuts)
+			var h := absi(int(floor(p0.x * 3.0 + p0.y * 7.0)))
+			_wall(p0, p1, g + 6.5, g + 21.8, out, LEGIA_PANELS[(bay * 3 + h) % LEGIA_PANELS.size()])
+			bay += 1
+		_wall(a, b, g + 21.8, g + 23.0, out, Color("#3a4047"))
+		_wall(a, b, g + 23.0, g + 23.4, out, LEGIA_RED)
+		_wall(a, b, g + 23.4, g + 25.0, out, LEGIA_GREEN)
+	# The roof rim: a white fascia, then the membrane down to the open middle.
+	var rim := _largest(Geometry2D.offset_polygon(ring, 0.4, Geometry2D.JOIN_MITER))
+	_prism(rim, g + 25.0, g + LEGIA_TOP + 1.0, Color("#f1f2f0"), none, M_STONE)
+	_collide(ring)
+	var hole: PackedVector2Array = oblong.call(80.0, 61.0, 4.0)
+	_mode = M_MEMBRANE
+	var roof_y := g + LEGIA_TOP + 1.0
+	var hole_y := g + 24.0
+	for k in n:
+		var k1 := (k + 1) % n
+		var p0 := Vector3(rim[k].x, roof_y, rim[k].y)
+		var p1 := Vector3(rim[k1].x, roof_y, rim[k1].y)
+		var p2 := Vector3(hole[k1].x, hole_y, hole[k1].y)
+		var p3 := Vector3(hole[k].x, hole_y, hole[k].y)
+		var g0 := p3 + (p0 - p3) * (5.0 / p0.distance_to(p3))
+		var g1 := p2 + (p1 - p2) * (5.0 / p1.distance_to(p2))
+		var nr := (p1 - p0).cross(p3 - p0).normalized()
+		if nr.y < 0.0:
+			nr = -nr
+		_quad(p0, p1, g1, g0, nr, Color("#f4f4f1") if k % 2 == 0 else Color("#e9eae7"))
+		_quad(g0, g1, p2, p3, nr, Color("#8f9aa3") if k % 2 == 0 else Color("#98a2aa"))
+	# The bowl, from the pitch out: boards, the lower tier, a gangway, the dark glass of the
+	# boxes, the upper tier up under the roof. Seats in blocks of white, green and red.
+	_mode = M_STONE
+	var seat_cols := [Color("#e9ebe8"), LEGIA_GREEN.lightened(0.18), LEGIA_RED.lightened(0.12), Color("#e9ebe8"), LEGIA_GREEN.lightened(0.18)]
+	var bowl := [
+		[oblong.call(58.0, 41.0, 8.0), pitch + 0.4, Color("#2d3138"), false],
+		[oblong.call(58.0, 41.0, 8.0), pitch + 1.2, Color("#d0d3d6"), true],
+		[oblong.call(78.0, 61.0, 6.0), pitch + 10.0, Color("#8e8a88"), false],
+		[oblong.call(81.0, 64.0, 6.0), pitch + 10.0, Color("#3d4652"), false],
+		[oblong.call(81.0, 64.0, 6.0), pitch + 14.0, Color("#d0d3d6"), true],
+		[scaled.call(0.9), pitch + 23.5, Color(), false]]
+	for t in range(1, bowl.size()):
+		var r0: PackedVector2Array = bowl[t - 1][0]
+		var y0: float = bowl[t - 1][1]
+		var col: Color = bowl[t - 1][2]
+		var seats: bool = bowl[t - 1][3]
+		var r1: PackedVector2Array = bowl[t][0]
+		var y1: float = bowl[t][1]
+		for k in n:
+			var k1 := (k + 1) % n
+			var p0 := Vector3(r0[k].x, y0, r0[k].y)
+			var p1 := Vector3(r0[k1].x, y0, r0[k1].y)
+			var p2 := Vector3(r1[k1].x, y1, r1[k1].y)
+			var p3 := Vector3(r1[k].x, y1, r1[k].y)
+			var nr := (p1 - p0).cross(p3 - p0).normalized()
+			if absf(nr.y) < 0.2:
+				var mid := (r0[k] + r0[k1]) * 0.5 - c
+				if Vector2(nr.x, nr.z).dot(mid) > 0.0:
+					nr = -nr
+			elif nr.y < 0.0:
+				nr = -nr
+			var tone := col
+			if seats:
+				tone = seat_cols[(k * 7 + t * 3) % seat_cols.size()]
+			_quad(p0, p1, p2, p3, nr, tone)
+	# The pitch: grass out to the boards, mown in stripes, white lines.
+	_cap(bowl[0][0], pitch + 0.4, Color("#4f8a3a"))
+	var flat := func(a: Vector2, b: Vector2, w: float, y: float, col: Color) -> void:
+		var s := (b - a).normalized().orthogonal() * w * 0.5
+		_quad(Vector3(a.x - s.x, y, a.y - s.y), Vector3(b.x - s.x, y, b.y - s.y), Vector3(b.x + s.x, y, b.y + s.y),
+				Vector3(a.x + s.x, y, a.y + s.y), Vector3.UP, col)
+	var at := func(x: float, y: float) -> Vector2: return c + axis * x + across * y
+	for b in 12:
+		if b % 2 == 0:
+			var x0 := -52.5 + b * 8.75
+			flat.call(at.call(x0, 0.0), at.call(x0 + 8.75, 0.0), 68.0, pitch + 0.43, Color("#5a9643"))
+	var line := Color("#f2f2ee")
+	var y_long := pitch + 0.47
+	var y_short := pitch + 0.50
+	for side: float in [-1.0, 1.0]:
+		flat.call(at.call(-52.5, side * 34.0), at.call(52.5, side * 34.0), 0.6, y_long, line)
+		flat.call(at.call(side * 52.5, -34.3), at.call(side * 52.5, 34.3), 0.6, y_short, line)
+	flat.call(at.call(0.0, -34.3), at.call(0.0, 34.3), 0.6, y_short, line)
+	# Four floodlight masts at the corners, with a lit head each.
+	var used: Array[Vector2] = []
+	for sx: float in [-1.0, 1.0]:
+		for sy: float in [-1.0, 1.0]:
+			var best := ring[0]
+			var score := -INF
+			for v in ring:
+				var d := v - c
+				var s := d.dot(across) * sx + d.dot(axis) * sy
+				if d.dot(across) * sx > 0.0 and d.dot(axis) * sy > 0.0 and s > score:
+					score = s
+					best = v
+			used.append(c + (best - c) * 0.97)
+	for p in used:
+		_beam(Vector3(p.x, g, p.y), Vector3(p.x, g + 46.0, p.y), 0.9, Color("#c9ccd0"))
+		_prism(_circle(p, 2.6, 6), g + 46.0, g + 49.0, Color("#8c9096"), Color("#fff1c9"), M_LAMP, M_LAMP)
+	# LEGUMINA in neon on the two fronts the game's camera sees most (the longest edge facing
+	# south, the longest facing east): the sign's width is 0.55 of the front's.
+	var word := "LEGUMINA"
+	for want: Vector2 in [Vector2(0.0, 1.0), Vector2(1.0, 0.0)]:
+		var best_i := -1
+		var best_len := 0.0
+		for i in n:
+			var a := ring[i]
+			var b := ring[(i + 1) % n]
+			var len := a.distance_to(b)
+			if len > best_len and _out(ring, a, b).dot(want) > 0.8:
+				best_len = len
+				best_i = i
+		if best_i < 0:
+			continue
+		var ea := ring[best_i]
+		var eb := ring[(best_i + 1) % n]
+		var eo := _out(ring, ea, eb)
+		var mid_e := (ea + eb) * 0.5 + eo * 0.6
+		signs.append([word, Vector3(mid_e.x, g + 13.0, mid_e.y), Vector3(eo.x, 0.0, eo.y),
+				minf(60.0, best_len * 0.55) / Neon.length_of(word), Color(0.35, 1.0, 0.55)])
 
 ## --- The church kit (F, 2026-11-01: "all the churches should be designed with best practices") ---
 ## One builder for the parish churches that had no model of their own (spec
