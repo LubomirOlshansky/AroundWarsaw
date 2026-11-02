@@ -84,7 +84,11 @@ func _check() -> int:
 				info["name"], tallest - ground, at.round(), ("it" + above) if tap == k else "id %d" % tap, hits])
 		# A bridge's pylon stands in the median between two carriageways: a car from along the
 		# deck passes beside it, so Most Świętokrzyski needs fewer stopped rays.
+		# A moored barge (barka_*, and the floating Dworzec Wodny) lies in the river: only the rays from the bank side meet a car's
+		# way, the others start over the water (2026-11-02, the first CI map run: 7-8 of 12).
 		var need := 6 if info["key"] == "swieto" else 10
+		if str(info["key"]).begins_with("barka_") or info["key"] == "dworzec_wodny":
+			need = 5  # Dworzec Wodny floats at the boulevard's edge like the barges
 		if tap != k or hits < need:
 			failures += 1
 	# Roof rescues that the landmarks' outlines now give (missions.gd's own search).
@@ -168,8 +172,8 @@ func _fly_checks() -> int:
 					if h > top:
 						top = h
 						top_at = Vector2(x, z)
-		if info["key"] in ["elektrownia", "stadion_pkp"]:
-			c = top_at  # open yards and platforms: the box's middle is air, aim at the tallest cell
+		if info["key"] in ["elektrownia", "stadion_pkp", "ostrogski"]:
+			c = top_at  # open yards and platforms (Ostrogski's courtyard between its two blocks): the box's middle is air, aim at the tallest cell
 		var alt := clampf(top * 0.5, 6.0, 45.0)
 		if info["key"] == "tr":
 			alt = 6.0  # a building site: the cranes are thin, the theatre's closed floors stand 9 m
@@ -177,6 +181,8 @@ func _fly_checks() -> int:
 			alt = 8.0  # the bell tower's trim (38 m) stands in the box but away from the nave the heli aims at
 		elif str(info["key"]).begins_with("church_"):
 			alt = 6.0  # the kit's towers (25-34 m) stand at the front, away from the nave the heli aims at (eave 7.5 m and up)
+		elif str(info["key"]).begins_with("barka_"):
+			alt = 4.0  # the decks stand 6.6-6.7 m: at the 6 m floor the heli skims over the rail
 		elif info["key"] == "dtc":
 			alt = 10.0  # the 17.5 m stores share roof cells with the Eastern Wall's 70 m slabs behind them
 		elif info["key"] == "syrenka_powisle" or info["key"] == "dworzec_wodny":
