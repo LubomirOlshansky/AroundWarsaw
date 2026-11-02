@@ -55,7 +55,12 @@
     "newonce",
     "zamieszanie",
     "zagrywki",
-    "quercus"
+    "quercus",
+    "mcdonald",
+    "mcdonald's",
+    "mcdonalds",
+    "maczek",
+    "big mac"
   ],
   "rejected": [
     "ciemna 1",
@@ -64,7 +69,6 @@
     "nocny marek",
     "hulajka",
     "tinderek",
-    "loretka",
     "manekinek"
   ],
   "allowed_in": {
@@ -74,6 +78,7 @@
     "tier": "game code and docs only (device tiers), never in on-screen text",
     "bolt": "game code and docs only, never in on-screen text",
     "zamieszanie": "never on screen: it is also the ordinary word for a stir; our bar is ZAMĘT",
+    "maczek": "never on screen: the slang name of the real chain (also a poppy); ours is WACZEK",
     "manekin": "never on screen: it is also the ordinary word for a shop dummy; our crêpe place is KUKŁA"
   }
 }

@@ -35,7 +35,7 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		# Dom Partii's roof sign (docs/design/gaulle-and-food-hype.md G2): the oak in Latin again.
 		"ROBUR",
 		# HOTEL PIURE's rooftop date bar (G3).
-		"LUŹNO",
+		"LORETKA",
 		# The railway (docs/design/railway.md, S2): the round pavilion's letters at Powiśle.
 		"WARSZAWA", "POWIŚLE",
 		# S3a: Warszawa Stadion's roof letters.
