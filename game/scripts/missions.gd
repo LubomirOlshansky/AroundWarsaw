@@ -111,6 +111,8 @@ var line_split := false
 var _flying := false
 ## G12 part 2: the next call is a helicopter's (the HELI list's "rescue call" request), once.
 var _want_heli := false
+## G12c: the next call is the peacock's (the HELI list's "Pan Paw" request), once.
+var _want_peacock := false
 
 
 func setup(map_node: Node3D, data: Dictionary, world: Node3D, hud_layer: CanvasLayer) -> void:
@@ -262,6 +264,21 @@ func request_call(heli := true) -> void:
 	_want_heli = heli
 	offer(number + 1)
 	_want_heli = false
+
+
+## G12c: the peacock is still on its roof this session (the HELI list offers its call).
+func peacock_open() -> bool:
+	return not _peacock.is_empty() and not _peacock_done
+
+
+## G12c: the HELI list's peacock request: Pan Paw's roof call on the card now, from anywhere on the
+## map (not only within PEACOCK_REACH), ACCEPT / SKIP / LATER as any call.
+func request_peacock() -> void:
+	if not can_request() or not peacock_open():
+		return
+	_want_peacock = true
+	offer(number + 1)
+	_want_peacock = false
 
 
 ## Loop 3h slice 4: the call on the card or under way can only be reached by the helicopter
@@ -508,8 +525,8 @@ func _make(n: int) -> Dictionary:
 	var fly := _flying or _want_heli
 	if line_split or _want_heli:
 		kind = Lines.kind_for(kind, fly)
-	if kind == Kind.ROOF and not _peacock.is_empty() and not _peacock_done \
-			and _flat(player, _peacock["pos"]) <= PEACOCK_REACH:
+	if (_want_peacock and peacock_open()) or (kind == Kind.ROOF and peacock_open() \
+			and _flat(player, _peacock["pos"]) <= PEACOCK_REACH):
 		var pm: Dictionary = _peacock.duplicate()
 		pm["hospital"] = _hospital_for(_peacock)
 		pm["who"] = PEACOCK_NAME
