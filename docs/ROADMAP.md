@@ -364,10 +364,11 @@ then the Launch gate.
 - [x] Gamepad support (2026-11-01, `gamepad.gd`, `check_gamepad`): Xbox, PlayStation and MFi
       pads for driving, the helicopter, the mission card, Settings, the full map and the title;
       touch unchanged. Follow-ups done the same day: the volume bars, the notebook, the garage
-      and the full map (stick pan, RT / LT zoom, A teleport). Left: real pads on the phone (beta),
-      glyphs, rumble (docs/store/mac-and-gamepad.md)
-      touch unchanged. Left: real pads on the phone (beta), the bars / notebook / garage focus,
-      the full map's stick pan (docs/store/mac-and-gamepad.md)
+      and the full map (stick pan, RT / LT zoom, A teleport). Button names per pad family
+      (PlayStation ×, R2 / L2; Nintendo B / A, ZR / ZL; Xbox and MFi A, RT / LT) in every pad hint
+      and the pad's rumble for every buzz while it is in use (2026-11-02, `Gamepad.fmt`,
+      haptics.gd; `check_gamepad` P14, `check_juice` J2). Left: real pads on the phone (beta),
+      the Nintendo layout guess (docs/store/mac-and-gamepad.md)
 - [x] Crash scenes (F, 2026-11-01, `crash_scenes.gd`, `check_crash_scenes`, PR "crash scenes"):
       every few minutes a fender bender ahead on a main road, two wrecks in the kerb lane, a
       police car with its lights and a yellow ambulance, the drivers arguing, people filming,
