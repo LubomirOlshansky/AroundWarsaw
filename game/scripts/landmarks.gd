@@ -15377,7 +15377,7 @@ func _find_monuments() -> void:
 	_mon_frame(UMSCHLAG, UMSCHLAG_A)
 	_add_site("umschlagplatz", [_rect(0.0, 0.0, 8.2, 5.2)])
 	_mon_frame(WSCHOD, WSCHOD_A)
-	_add_site("pomnik_wschod", [_rect(0.0, 0.0, 22.4, 2.3)])
+	_add_site("pomnik_wschod", [_rect(0.9, 0.0, 23.9, 4.6)])
 
 
 ## A standing bronze figure `h` tall from y in the current frame (u forward, +v his right), the
@@ -15646,7 +15646,7 @@ func _build_pomnik_wschod(_site: Dictionary) -> void:
 	_g = _ground_under(_rect(0.0, 0.0, 22.0, 2.0))
 	var g := _g
 	var bz := WSCHOD_BRONZE
-	_lbox(0.0, 0.0, 23.0, 3.4, g - 0.3, g + 0.05, Color("#77746f"), M_STONE, Color("#827f79"))
+	_lbox(0.9, 0.0, 23.9, 4.6, g - 0.3, g + 0.05, Color("#77746f"), M_STONE, Color("#827f79"))
 	_mode = M_STONE
 	_frustum(_rect(0.0, 0.0, 22.2, 2.0), g + 0.05, _rect(0.0, 0.0, 22.0, 1.5), g + 0.45, WSCHOD_STONE, WSCHOD_STONE.lightened(0.05))
 	# the 41 named sleepers west of the wagon, and the plain ones under it
@@ -15686,4 +15686,5 @@ func _build_pomnik_wschod(_site: Dictionary) -> void:
 	_frustum(_rect(16.0, -0.6, 0.08, 0.35), deck + 1.2, _rect(16.0, -0.6, 0.08, 0.18), deck + 1.42, bz.lightened(0.1), bz.lightened(0.1))
 	_lbox(21.2, 0.55, 0.08, 0.25, deck, deck + 1.0, bz.lightened(0.06))
 	_pyramid(_rect(21.2, 0.55, 0.08, 0.25), deck + 1.0, deck + 1.4, bz.lightened(0.06))
-	_collide(_rect(0.0, 0.0, 22.2, 2.1))
+	# the cobbled apron round it (4.6 m each side, 2 m past the buffers): the kerb a car meets
+	_collide(_rect(0.9, 0.0, 23.9, 4.6))
