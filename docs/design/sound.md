@@ -83,7 +83,7 @@ text makes, `dialogue.gd` `greeting`), the music ducked under her. Files go in
 
 Eight songs and three idents: slowed 80s pop and mall funk, warm detuned synths, tape wobble,
 pink-and-cyan Warsaw at sunset. Prompts and lyrics: `docs/MUSIC.md`, "The beta radio" (KB1 to
-KB8, KB-ID1 to KB-ID3). The idents are jingles and do say the station's name.
+KB8, KB-ID1 to KB-ID3). Nothing sung or spoken names a station (F, 2026-11-02): the name is only on screen.
 
 ## 5. MORDOR FM 108,8: minimal techno
 

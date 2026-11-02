@@ -42,6 +42,9 @@ already there stay until a station has its songs; delete them from radio.json th
 The sound: slowed 80s pop and mall funk, chopped samples, warm detuned synths, tape wobble,
 pink-and-cyan Warsaw at sunset. Half instrumental, half with dreamy Polish vocals.
 
+**Generic texts** (F, 2026-11-02): no song, jingle or voice line names a station, so any track
+can move between stations; the station's name is only on screen (the RADIO chip and the ticker).
+
 **KB1 · Palma de Gaulle'a** (vocal)
 Style: `vaporwave, dreamy synth pop, slowed disco bassline, female vocal, warm analog chords, sunset city, nostalgic, 98 bpm, polish`
 Lyrics: K1 above.
@@ -100,7 +103,7 @@ Style: `radio station ident, vaporwave jingle, dreamy female vocal, warm synth c
 ```
 [Intro]
 Dzień dobry, Warszawo!
-Kebab FM, osiemdziesiąt siedem i trzy.
+Zostańcie z nami.
 ```
 
 **KB-ID2 · Miłego dnia** (ident, 8 to 12 s)
@@ -108,7 +111,7 @@ Style: `radio station ident, future funk sting, chopped vocal, bright synth stab
 
 ```
 [Intro]
-Kebab FM. Życzymy miłego dnia!
+Życzymy miłego dnia!
 ```
 
 **KB-ID3 · Nocna zmiana** (ident, 8 to 12 s)
@@ -117,7 +120,7 @@ Style: `radio station ident, slowed vaporwave, whispered male vocal, deep reverb
 ```
 [Intro]
 Nie śpisz? My też nie.
-Kebab FM, osiemdziesiąt siedem i trzy.
+Gramy dalej.
 ```
 
 ### MORDOR FM 108,8: minimal techno (8 tracks + 2 idents)
@@ -166,12 +169,11 @@ Style: `instrumental minimal techno, glitchy clicks like keyboard typing, tight 
 **MD8 · Fajrant** (instrumental, the station's theme)
 Style: `instrumental melodic minimal techno, warm rising pads, rolling bassline, euphoric slow build, release, after work, 126 bpm`
 
-**MD-ID1 · Mordor FM** (ident, 8 to 12 s)
+**MD-ID1 · Pracujemy** (ident, 8 to 12 s)
 Style: `radio station ident, dark minimal techno sting, deep male voice, heavy reverb, kick drum hit, short, polish`
 
 ```
 [Spoken, deep voice]
-Mordor FM. Sto osiem i osiem.
 Pracujemy, żebyś ty nie musiał.
 ```
 
@@ -180,7 +182,7 @@ Style: `radio station ident, minimal techno sting, deadpan female voice, glitch 
 
 ```
 [Spoken, deadpan]
-Mordor FM. Znowu poniedziałek.
+Znowu poniedziałek.
 ```
 
 ### The host's greeting and the opening
@@ -236,7 +238,7 @@ Instrumental (no lyrics). Leave the Lyrics field empty or write `[Instrumental]`
 
 ```
 [Intro]
-Kebab FM! Osiemdziesiąt siedem przecinek trzy!
+Dzień dobry, Warszawo!
 Pachnie całe miasto, gdy gramy my!
 ```
 
