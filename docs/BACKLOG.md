@@ -14,6 +14,9 @@ Built: the club's furniture on the Atlas Tower crown (site `level26_club`); the 
 bass and hours were already there. Open: Mac look check (deck size against the real roof, the
 sign's side), the bass is a ground-level emitter (a rooftop one would reach the heli), laser beams
 at night were skipped (they read as poles by day).
+## Stadion Leguminy (F, 2026-11-01)
+- Built from the mapped outline only (spec legia.md). Left: Mac photo check (QUESTIONS), the real stands' shape and the concourse side, entrances and tickets booths, club shop, the car park on the east side, the 20 m west stand as its own mass.
+
 ## Language choice follow-ups (F, 2026-11-02)
 
 The game shows one language, Polish or English (`lang.gd`, Settings → DŹWIĘK → Język, the title's POLSKI / ENGLISH). Left:

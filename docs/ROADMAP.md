@@ -79,6 +79,8 @@ then the Launch gate.
 - [ ] Junction lines checked against photos; dark Jerozolimskie and Nowy Świat at night
 
 ### Left: landmarks and street details
+- [x] Stadion Leguminy (Legia's ground on Łazienkowska, F, 2026-11-01): modelled from the mapped bowl outline (site `legia`, spec legia.md); Mac photo check parked (QUESTIONS)
+
 - [x] All churches designed by one set of rules (F, 2026-11-01; rules and inventory in
       docs/design/churches.md): the church kit, 22 parish churches as models with a card each
       (spec churches.md); Zbawiciela (#226), św. Teresy (#225) and the older fronts already done.
