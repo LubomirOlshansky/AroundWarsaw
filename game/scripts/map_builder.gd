@@ -968,8 +968,17 @@ func ground_height(x: float, z: float) -> float:
 func drive_height(x: float, z: float, near_y: float) -> float:
 	var best := terrain_height(x, z)
 	var on_ground := true
-	for d in _decks_at(x, z):
-		if d <= near_y + 1.2 and d > best:
+	var feet := []
+	var hs := _decks_at(x, z, feet)
+	for k in hs.size():
+		var d := hs[k]
+		# G6: on a ramp's foot (its first DECK_FOOT metres from an end that stands on the ground)
+		# a car on the ground beside it climbs on even where that ground lies lower than the
+		# slab's step (it came in at an angle, off the approach's fill: it drove under the slab).
+		var reach := near_y + 1.2
+		if bool(feet[k]) and near_y >= d - DECK_FOOT_UP:
+			reach = d
+		if d <= reach and d > best:
 			best = d
 			on_ground = false
 	# Loop 3b: in a tunnel's corridor, a vehicle down at its floor drives the floor.
@@ -1181,8 +1190,9 @@ func nearest_dry(x: float, z: float) -> Vector2:
 	return best
 
 
-## Heights of the deck pieces whose corridor holds the point (usually none).
-func _decks_at(x: float, z: float) -> PackedFloat32Array:
+## Heights of the deck pieces whose corridor holds the point (usually none). With `feet`, also
+## whether each one is on a ramp's foot there (G6: `_index_deck_feet`), in the same order.
+func _decks_at(x: float, z: float, feet = null) -> PackedFloat32Array:
 	var out := PackedFloat32Array()
 	if _decks.is_empty():
 		return out
@@ -1223,6 +1233,13 @@ func _decks_at(x: float, z: float) -> PackedFloat32Array:
 		if lat >= -float(d["l"]) and lat <= float(d["r"]):
 			var hs: PackedFloat32Array = d["h"]
 			out.append(lerpf(hs[k], hs[k + 1], clampf(u, 0.0, 1.0)))
+			if feet != null:
+				if _deck_feet.is_empty():
+					_index_deck_feet()
+				var cum: PackedFloat32Array = d["cum"]
+				var s := cum[k] + clampf(u, 0.0, 1.0) * (cum[k + 1] - cum[k])
+				(feet as Array).append(((_deck_feet[i] & 1) != 0 and s <= DECK_FOOT)
+						or ((_deck_feet[i] & 2) != 0 and cum[cum.size() - 1] - s <= DECK_FOOT))
 	return out
 
 
@@ -1270,6 +1287,39 @@ const DECK_CELL := 16.0
 ## and per cell, every segment whose corridor reaches into it.
 var _deck_cells := {}
 var _deck_any := {}
+## G6 (F: "when I was entering the bridge I went down under it"): a road deck piece's end that is
+## no joint and stands within DECK_FOOT_STEP of the ground under its middle is a ramp's foot
+## (bit 1 the first end, 2 the last). The ground beside the approach's fill can lie 1.5-2.4 m
+## lower (Most Poniatowskiego's north ramps, Towarowa over the cutting, Wybrzeże Szczecińskie):
+## a car coming in at an angle there was more than 1.2 m under the slab and drove on under it.
+## On the first DECK_FOOT metres of a foot, a car up to DECK_FOOT_UP under the slab climbs on.
+## check_drive's entries pass drives onto every foot across the deck's width.
+var _deck_feet := PackedByteArray()
+const DECK_FOOT := 10.0
+const DECK_FOOT_UP := 3.0
+const DECK_FOOT_STEP := 1.2
+
+
+func _index_deck_feet() -> void:
+	if _deck_cells.is_empty():
+		_index_decks()
+	_deck_feet.resize(_decks.size())
+	_deck_feet.fill(0)
+	for i in _decks.size():
+		var d: Dictionary = _decks[i]
+		if String(d.get("k", "road")) != "road":
+			continue
+		var pts: PackedVector2Array = d["pts"]
+		var hs: PackedFloat32Array = d["h"]
+		var n := pts.size()
+		for end in 2:
+			var bit := 1 if end == 0 else 2
+			if (_deck_joints[i] & bit) != 0:
+				continue
+			var p := pts[0] if end == 0 else pts[n - 1]
+			var h := hs[0] if end == 0 else hs[n - 1]
+			if h - terrain_height(p.x, p.y) <= DECK_FOOT_STEP:
+				_deck_feet[i] |= bit
 
 
 func _index_decks() -> void:
