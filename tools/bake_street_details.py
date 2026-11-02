@@ -369,13 +369,14 @@ def platform_kits(pl, roads):
 # footway. A terrace is a row of café sets on that footway in front of a block: [x, z of the row's
 # middle, sets in the row]. The sets face outward (away from the ring), the row runs along the
 # ring's tangent, and a planter stands at each end. Spots come from the mapped outlines (no photo);
-# a spot the solids block (a tree, a lamp, a kerb) simply loses that set.
+# a spot the solids block (a tree, a lamp, a kerb) or off the shopfront (Placer.frontage, check_stops
+# K5) simply loses that set.
 SQUARE = (-411.0, 1566.0)
 TERRACES = [
-    (-372.0, 1578.0, 3),   # the south-east block's north-west face, towards Nowowiejska
+    (-371.5, 1578.5, 3),   # the south-east block's north-west face, towards Nowowiejska
     (-380.0, 1594.0, 3),   # the same block, round the corner on Marszałkowska
     (-382.0, 1530.0, 3),   # the north-east block's south-west face
-    (-373.0, 1546.0, 3),   # and its east end, by Nowowiejska
+    (-372.0, 1546.0, 3),   # and its east end, by Nowowiejska
     (-456.0, 1584.0, 3),   # the south-west arc, towards Mokotowska
     (-443.0, 1600.0, 2),   # and where it meets Marszałkowska
 ]
@@ -394,7 +395,7 @@ def square_terraces(pl):
         for j in range(sets):
             lat = first + 3.5 * j
             px, pz = x + tx * lat, z + tz * lat
-            if pl.clear("cafe", px, pz) and len(pl.items) < MAX_ITEMS:
+            if pl.frontage(px, pz) and pl.clear("cafe", px, pz) and len(pl.items) < MAX_ITEMS:
                 pl.add("cafe", px, pz, (nx, nz), pick(PARASOLS, "zb", k, j))
                 placed += 1
         if placed:
@@ -403,6 +404,61 @@ def square_terraces(pl):
                 if pl.clear("planter", px, pz) and len(pl.items) < MAX_ITEMS:
                     pl.add("planter", px, pz, (nx, nz), pick(FLOWERS, "zb", k, sd))
         n += placed
+    return n
+
+
+# Zielona Świętokrzyska (Krajobraz K4; RS Architektura Krajobrazu, 2018, Marszałkowska to Nowy
+# Świat): 194 trees along the street and, where a tree could not go (the metro, the utilities under
+# the pavement), big planters. The 2023 scan carries the trees (docs/design/krajobraz-places.md);
+# the planters go on the pavement where a stretch of the street has no tree within TREE_REACH m,
+# every PLANTER_STEP m along each side, as a pair of flower-filled concrete tubs.
+ZS_NAME = "Świętokrzyska"
+ZS_X = (-1100.0, -275.0)   # game x of the stretch: Marszałkowska on the west, Nowy Świat on the east
+ZS_STEP = 8.0              # walk the street's edge at this pitch
+ZS_TREE_REACH = 5.0        # no planter within this of a trunk (the trees stand in their own pits)
+ZS_GAP = 10.0              # planters stand at least this far apart on one side
+ZS_ENDS = 16.0             # keep this clear of the crossings' ends of a road piece
+
+
+def zielona_planters(pl):
+    """Planters on the pavements of ul. Świętokrzyska where the scanned trees leave a gap; returns the count."""
+    trees = pl.data.get("trees3d", [])
+    tp = [(trees[i], trees[i + 1]) for i in range(0, len(trees) - 5, 6)]
+    last = {}
+    n = 0
+    for r in pl.data["roads"]:
+        if r.get("name") != ZS_NAME or r.get("bridge") or r["k"] not in ROAD_KINDS:
+            continue
+        p = P.pairs(r["p"])
+        total = sum(math.hypot(b[0] - a[0], b[1] - a[1]) for a, b in zip(p, p[1:]))
+        run = 0.0
+        for a, b in zip(p, p[1:]):
+            ln = math.hypot(b[0] - a[0], b[1] - a[1])
+            if ln < 1.0:
+                continue
+            tx, tz = (b[0] - a[0]) / ln, (b[1] - a[1]) / ln
+            pos = ZS_STEP * 0.5
+            while pos < ln:
+                at = run + pos
+                x0, z0 = a[0] + tx * pos, a[1] + tz * pos
+                pos += ZS_STEP
+                if not ZS_X[0] <= x0 <= ZS_X[1] or at < ZS_ENDS or total - at < ZS_ENDS:
+                    continue
+                for side in (1, -1):
+                    nx, nz = -tz * side, tx * side
+                    got = pl.pavement("planter", x0, z0, 0.0, 0.0, nx, nz, r["w"] * 0.5, 0.0)
+                    if not got:
+                        continue
+                    x, z = got
+                    if any(abs(tx_ - x) < ZS_TREE_REACH and abs(tz_ - z) < ZS_TREE_REACH
+                           and math.hypot(tx_ - x, tz_ - z) < ZS_TREE_REACH for tx_, tz_ in tp):
+                        continue
+                    if any(math.hypot(x - qx, z - qz) < ZS_GAP for qx, qz in last.get(side, ())):
+                        continue
+                    pl.add("planter", x, z, (-nx, -nz), pick(FLOWERS, "zs", round(x), round(z)))
+                    last.setdefault(side, []).append((x, z))
+                    n += 1
+            run += ln
     return n
 
 
@@ -436,6 +492,7 @@ def bake(data):
             run += ln
     stops = stop_kits(pl, roads) + platform_kits(pl, roads)
     square_terraces(pl)
+    zielona_planters(pl)
     items = sorted(pl.items, key=lambda i: (i[1], i[2], i[0]))
     return items, stops
 
