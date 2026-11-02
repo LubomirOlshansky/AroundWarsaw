@@ -89,6 +89,9 @@ then the Launch gate.
 - [x] Marszałkowska street by street, pass 2 (F, 2026-11-01): commuters waiting on the street's
       12 tram platforms (rush hours, thin weekends, fuller in rain; check_crowds). Open: houses,
       shopfronts, crossings (BACKLOG "Marszałkowska street by street")
+- [x] Nowy Świat street by street (F, 2026-11-02), pass 1: eight neon shopfronts (pastry, ice cream,
+      bookshop café, antiquarian, boutique, wine bar, gallery, exchange). Open: houses, café
+      gardens, crowds, Mac look check (BACKLOG "Nowy Świat street by street")
 - [x] Old Town Market Square and its Syrenka (F, 2026-11-01): cobbled paving, 58 café umbrellas, the
       fountain's rim and the bronze mermaid with sword and shield, two cards (spec rynek.md);
       Mac photo check parked (QUESTIONS)

@@ -166,6 +166,13 @@ the Treasury palace's portico columns and wing pavilions; they now read in yello
   not modelled yet (OSM "Pałac Jabłonowskich", 39 points near (-990, -1185)); next to `teatr`.
 - Overlaps Za Żelazną Bramą (PR #215): none; it works west of Al. Jana Pawła II.
 
+## Nowy Świat street by street (F, 2026-11-02), pass 1
+Built (cloud, Sonnet): eight parody shopfronts (`Storefronts.NOWY_SWIAT`, check_parodies 68 venues). Open:
+- Mac look check of the eight signs (QUESTIONS); move them to real doors.
+- Houses: per-house plaster colours and the tenements' cornices against photos; the north end (Staszic Palace, Visitation) and the Palm end.
+- Café gardens (street_details cafés exist; no awnings or heaters), pavement setts, night lighting ("From map review B").
+- People: a lunch crowd on the cafés (crowds.gd `stop`/zone sites) and an evening one.
+
 ## Marszałkowska street by street (F, 2026-11-01)
 
 Order: plac Bankowy to plac Zbawiciela. Pass 1 (cloud, Sonnet): Kościół Najświętszego Zbawiciela

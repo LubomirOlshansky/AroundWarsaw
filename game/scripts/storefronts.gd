@@ -82,6 +82,11 @@ const KROWA_TUBE := Color(0.62, 0.86, 1.0)
 const CINEMA_TUBE := Color(1.0, 0.72, 0.25)
 const CINEMA_TUBE_B := Color(1.0, 0.25, 0.3)
 const CINEMA_TUBE_C := Color(0.75, 0.88, 1.0)
+## Nowy Świat's shopfront tubes (F's street-by-street pass, 2026-11-02): warm, soft shades, a café street.
+const NOWY_CREAM := Color(1.0, 0.82, 0.5)
+const NOWY_ROSE := Color(1.0, 0.55, 0.7)
+const NOWY_SKY := Color(0.62, 0.86, 1.0)
+const NOWY_WINE := Color(0.95, 0.3, 0.45)
 ## The venues' fascias (vision 3.0-3.2): place id -> [the lines of the sign, tube colour, metres
 ## up (the sign's bottom)]. The words are the parody names of places.json (Glon na Powiślu: GLON).
 const VENUES := {
@@ -144,6 +149,15 @@ const VENUES := {
 	"kino_elektronik": [["KINO", "ELEKTRONIK"], CINEMA_TUBE_B, 3.2],
 	"kino_kinoteka": [["KINOTEKA"], CINEMA_TUBE, 3.2],
 	# Zagłębie Kebabowe on Al. Solidarności (zaglebie.gd): Kino Femina's fascia and the five shops'.
+	# Nowy Świat's shopfronts (street-by-street pass, 2026-11-02): original names, no chains.
+	"nowy_paczki": [["PĄCZKARNIA", "TŁUSTE DNI"], NOWY_ROSE, 2.8],
+	"nowy_lody": [["LODY", "BEZ KOLEJKI"], NOWY_SKY, 2.8],
+	"nowy_ksiegarnia": [["KSIĘGARNIA", "PRZY KAWIE"], NOWY_CREAM, 2.8],
+	"nowy_antykwariat": [["ANTYKWARIAT", "MA CENĘ"], NOWY_CREAM, 2.8],
+	"nowy_butik": [["BUTIK", "ZOFIA"], NOWY_ROSE, 2.8],
+	"nowy_winiarnia": [["WINIARNIA", "POD GRUSZĄ"], NOWY_WINE, 2.8],
+	"nowy_galeria": [["GALERIA", "NIEPOJĘTA"], Color(1.0, 1.0, 1.0), 2.8],
+	"nowy_kantor": [["KANTOR", "DOBRY KURS"], Color(0.2, 1.0, 0.45), 2.8],
 	"zag_femina": [["KINO", "FEMINA"], Color(1.0, 0.3, 0.35), 4.6],
 	"zag_krol": [["KEBAB KRÓL", "MAZOWSZA"], Color(1.0, 0.72, 0.12), 2.8],
 	"zag_stambul": [["STAMBUŁ 24"], Color(0.1, 0.9, 1.0), 2.8],
@@ -225,6 +239,20 @@ static func zaglebie_table() -> Dictionary:
 	return t
 
 
+## Nowy Świat's shopfronts (F's street-by-street pass, 2026-11-02; docs/design/nowy-swiat.md):
+## eight small shops on the café street between the Palm and Karowa, alternating sides, ~60 m
+## apart, placed from the road line (the Mac look check moves them to real doors). Like the cafés,
+## not notebook places; same venue code, the nearest road snaps each sign to a wall in reach.
+const NOWY_SWIAT := {
+	"nowy_paczki": [52.23246, 21.02019],
+	"nowy_lody": [52.23296, 21.01953],
+	"nowy_ksiegarnia": [52.23346, 21.01948],
+	"nowy_antykwariat": [52.23424, 21.01879],
+	"nowy_winiarnia": [52.23477, 21.01884],
+	"nowy_butik": [52.23585, 21.01816],
+	"nowy_galeria": [52.23622, 21.01831],
+	"nowy_kantor": [52.23707, 21.01777],
+}
 ## A venue sign's letter pixel (m) and the smallest it shrinks to on a short wall.
 const VENUE_PX := 0.12
 const VENUE_PX_MIN := 0.08
@@ -332,7 +360,7 @@ func setup(data: Dictionary, places: Array) -> void:
 		if str(p.get("k", "")) == "kebab":
 			avoid.append(Vector2(float(p["x"]), float(p["z"])))
 	var with_cafes: Array = places.duplicate()
-	for table: Dictionary in [CAFES, LOUNGES, TRENDY, HYPE, CINEMAS, zaglebie_table()]:
+	for table: Dictionary in [CAFES, LOUNGES, TRENDY, HYPE, CINEMAS, NOWY_SWIAT, zaglebie_table()]:
 		for id: String in table:
 			var ll: Array = table[id]
 			with_cafes.append({"id": id, "at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})
