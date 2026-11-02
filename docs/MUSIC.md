@@ -15,182 +15,58 @@ Metatags in the lyrics (`[Verse]`, `[Chorus]`) are Suno syntax; keep them.
 
 ---
 
-## The beta radio (F, 2026-11-02): KEBAB FM + MORDOR FM
+## The beta radio (F, 2026-11-02): KEBAB FM + MORDOR FM, instrumental only
 
 The beta has two stations (`"lineup"` in `game/data/radio.json`; RONDO FM and PÓŁNOC FM are
 hidden until it is removed): **KEBAB FM** plays vaporwave, **MORDOR FM** plays minimal techno.
-Eight songs each, plus short station idents that play in the shuffle like a song. The host's
-spoken lines (the start-of-game greeting with the weather, the jokes between songs) are on the
-ticker as text; the idents below are the audio "wstawki".
+**Music only, no words** (F, 2026-11-02): eight instrumental tracks each, no vocals, no
+jingles, no voice clips. The vocal songs, idents and the announcer (`docs/design/sound.md`) wait
+for later. Nothing names a station: the name is only on screen (the RADIO chip, the ticker).
 
-**Which tool.** Both Suno and ElevenLabs free plans are non-commercial, and a song made on a free
-plan stays that way after an upgrade. Use a paid plan for the final takes: Suno Pro (about $10
-a month) or ElevenLabs Starter (about $6, often $1 for the first month), which covers music and
-speech. Write the plan in the song's sidecar `.txt` licence line, e.g. `licence: ElevenLabs
-Starter, commercial`.
-
-**ElevenLabs (Eleven Music).** It takes one prompt and optional lyrics: paste the **Style** line
-as the prompt, add "1:45 to 2:30 long", and paste the lyrics in the lyrics box (or write
-"instrumental"). **Suno**: Style into "Style of Music", lyrics into "Lyrics".
+**Tool.** ElevenLabs Creator (commercial licence; free plans are non-commercial and a free-plan
+file stays that way after an upgrade). In Eleven Music paste the prompt as it is; each already
+says "instrumental" and the length. Sidecar `.txt` licence line: `licence: ElevenLabs Creator,
+commercial`.
 
 **Adding them.** `data/raw/music/nocna_fm/` (KEBAB FM) or `data/raw/music/mordor_fm/` (MORDOR FM),
-then `python3 -I tools/add_music.py --station=nocna_fm` (README "Adding music"). The synth loops
-already there stay until a station has its songs; delete them from radio.json then.
+then `python3 -I tools/add_music.py --station=nocna_fm` (README "Adding music"). 64 kbps is
+enough for both (about 0.5 MB a minute; set `"encode": {"kbps": 64}` on the station); on the Mac
+`brew install vorbis-tools` first. Remove a station's old synth loop from radio.json once its
+tracks are in.
 
-### KEBAB FM 87,3: vaporwave (8 songs + 3 idents)
+### KEBAB FM 87,3: vaporwave (8 instrumentals)
 
-The sound: slowed 80s pop and mall funk, chopped samples, warm detuned synths, tape wobble,
-pink-and-cyan Warsaw at sunset. Half instrumental, half with dreamy Polish vocals.
+Slowed 80s pop and mall funk, chopped textures, warm detuned synths, tape wobble, pink-and-cyan
+Warsaw at sunset.
 
-**Generic texts** (F, 2026-11-02): no song, jingle or voice line names a station, so any track
-can move between stations; the station's name is only on screen (the RADIO chip and the ticker).
+| # | Title | Eleven Music prompt |
+| --- | --- | --- |
+| KB1 | Palma de Gaulle'a | `Instrumental vaporwave, dreamy synth pop, slowed disco bassline, warm analog chords, sunset city, nostalgic, no vocals, 98 bpm, 2:15 long` |
+| KB2 | Neon na Marszałkowskiej | `Instrumental future funk, filtered disco loop, slap bass, glossy synths, sidechained pads, neon night, no vocals, 112 bpm, 2:00 long` |
+| KB3 | Pałac o zachodzie | `Instrumental vaporwave, slowed smooth jazz, lush reverb, soft saxophone, tape hiss, golden hour, dreamy, no vocals, 84 bpm, 2:00 long` |
+| KB4 | Galeria 1995 | `Instrumental mallsoft, distant shopping mall ambience, muffled elevator music, fountain sounds, warm chords, nostalgic, no vocals, 78 bpm, 2:00 long` |
+| KB5 | Sos czosnkowy | `Instrumental vaporwave, slowed and reverbed disco house, hazy brass stabs, handclaps, late night, cheeky groove, no vocals, 96 bpm, 2:00 long` |
+| KB6 | Wisła w różu | `Instrumental chillwave, shimmering pads, gentle electric piano, slow drum machine, water reflections, pastel sunset, no vocals, 88 bpm, 2:00 long` |
+| KB7 | Rondo w pamięci | `Instrumental vaporwave dream pop, chorus guitar, vintage drum machine, wistful summer night, washed-out synths, no vocals, 92 bpm, 2:15 long` |
+| KB8 | 87,3 MHz | `Instrumental future funk, bright filtered disco loop, punchy kick, radio static effects, upbeat, no vocals, 118 bpm, 2:00 long` |
 
-**KB1 · Palma de Gaulle'a** (vocal)
-Style: `vaporwave, dreamy synth pop, slowed disco bassline, female vocal, warm analog chords, sunset city, nostalgic, 98 bpm, polish`
-Lyrics: K1 above.
+### MORDOR FM 108,8: minimal techno (8 instrumentals)
 
-**KB2 · Neon na Marszałkowskiej** (vocal)
-Style: `vaporwave, future funk, chopped 80s vocal, slap bass, glossy synths, sidechained pads, neon night, 112 bpm, polish female vocal`
+Dark, hypnotic minimal techno for the office towers at night: deep rolling kick, clicky hats,
+metallic percussion, long filter sweeps. No artist names in prompts (the tools refuse them).
 
-```
-[Verse]
-Neon na Marszałkowskiej mruga do mnie znów,
-różowy, niebieski, jak w osiemdziesiątym.
-Szyby w dół, w radiu szum,
-cała Warszawa na kasecie VHS.
+| # | Title | Eleven Music prompt |
+| --- | --- | --- |
+| MD1 | Open Space | `Instrumental minimal techno, hypnotic, deep rolling kick, clicky hi-hats, dark metallic percussion, slow filter sweep, no vocals, 128 bpm, 2:00 long` |
+| MD2 | Spotkanie mogło być mailem | `Instrumental minimal techno, dark hypnotic groove, deep kick, glitchy percussion, office phone blips as texture, reverb, no vocals, 127 bpm, 2:00 long` |
+| MD3 | Szklane biurowce | `Instrumental minimal techno, cold glassy synth stabs, sub bass, ticking hats, long reverb tails, night city towers, no vocals, 126 bpm, 2:00 long` |
+| MD4 | Deadline | `Instrumental driving minimal techno, relentless kick, acid bassline slowly opening, tense, metallic clicks, no vocals, 130 bpm, 2:00 long` |
+| MD5 | Winda na 30. piętro | `Instrumental minimal techno, hypnotic, elevator chime as texture, rolling bass, crisp percussion, no vocals, 125 bpm, 2:00 long` |
+| MD6 | Służewiec 3:00 | `Instrumental deep minimal techno, dark, sparse, heavy sub kick, distant city texture, dub chords, hypnotic loop, no vocals, 124 bpm, 2:00 long` |
+| MD7 | Arkusz | `Instrumental minimal techno, glitchy clicks like keyboard typing, tight groove, rubbery bass, dry percussion, playful, no vocals, 127 bpm, 2:00 long` |
+| MD8 | Fajrant | `Instrumental melodic minimal techno, warm rising pads, rolling bassline, euphoric slow build and release, after work, no vocals, 126 bpm, 2:00 long` |
 
-[Chorus]
-Neon, neon, nie gaśnij,
-świeć mi aż do rana.
-Neon, neon, nie gaśnij,
-Warszawa nagrana.
-```
-
-**KB3 · Pałac o zachodzie** (instrumental)
-Style: `instrumental vaporwave, slowed smooth jazz sample, lush reverb, soft saxophone, tape hiss, golden hour, dreamy, 84 bpm`
-
-**KB4 · Galeria 1995** (instrumental)
-Style: `instrumental mallsoft, distant shopping mall ambience, muffled elevator music, fountain sounds, warm chords, nostalgic, 78 bpm`
-
-**KB5 · Sos czosnkowy (Slowed)** (vocal)
-Style: `vaporwave, slowed and reverbed disco house, pitched-down party vocal, handclaps, hazy brass stabs, late night, 96 bpm, polish`
-Lyrics: K2 above.
-
-**KB6 · Wisła w różu** (instrumental)
-Style: `instrumental vaporwave, chillwave, shimmering pads, gentle electric piano, water reflections, slow drum machine, pastel sunset, 88 bpm`
-
-**KB7 · Rondo w Pamięci** (vocal)
-Style: `vaporwave, dream pop, washed-out vocals, chorus guitar, vintage drum machine, wistful, memory of a summer night, 92 bpm, polish`
-
-```
-[Verse]
-Pamiętam rondo, lato, ciepły wiatr,
-twój śmiech i światła, co zmieniały kolor.
-Taśma się zaciera, ale wciąż słychać,
-jak miasto nuci nam pod nosem.
-
-[Chorus]
-W pamięci rondo kręci się bez końca,
-w pamięci zawsze jest dziewiąta wieczorem.
-```
-
-**KB8 · 87,3 MHz** (instrumental, the station's theme)
-Style: `instrumental future funk, bright filtered disco loop, punchy kick, chopped vocal ahs, radio static fx, upbeat, 118 bpm`
-
-**KB-ID1 · Dzień dobry, Warszawo** (ident, 8 to 12 s)
-Style: `radio station ident, vaporwave jingle, dreamy female vocal, warm synth chord, tape stop at the end, short, polish`
-
-```
-[Intro]
-Dzień dobry, Warszawo!
-Zostańcie z nami.
-```
-
-**KB-ID2 · Miłego dnia** (ident, 8 to 12 s)
-Style: `radio station ident, future funk sting, chopped vocal, bright synth stab, cheerful, short, polish`
-
-```
-[Intro]
-Życzymy miłego dnia!
-```
-
-**KB-ID3 · Nocna zmiana** (ident, 8 to 12 s)
-Style: `radio station ident, slowed vaporwave, whispered male vocal, deep reverb, neon night, short, polish`
-
-```
-[Intro]
-Nie śpisz? My też nie.
-Gramy dalej.
-```
-
-### MORDOR FM 108,8: minimal techno (8 tracks + 2 idents)
-
-The sound: dark, hypnotic minimal techno for the glass towers of Służewiec at night: deep
-rolling kick, clicky hats, metallic percussion, long filter sweeps, sparse spoken-word vocal
-samples. No artist names in the prompt (the tools refuse them); the words below describe it.
-
-**MD1 · Open Space** (instrumental)
-Style: `instrumental minimal techno, hypnotic, deep rolling kick, clicky hi-hats, dark metallic percussion, slow filter sweep, 128 bpm, dark`
-
-**MD2 · Spotkanie mogło być mailem** (spoken samples)
-Style: `minimal techno, dark hypnotic groove, deep kick, glitchy percussion, deadpan spoken-word vocal samples, reverb, 127 bpm, polish`
-
-```
-[Spoken, deadpan, sparse]
-Spotkanie... mogło być mailem.
-Mogło być mailem.
-[Break]
-Synergia.
-[Drop]
-```
-
-**MD3 · Szklane biurowce** (instrumental)
-Style: `instrumental minimal techno, cold glassy synth stabs, sub bass, ticking hats, long reverb tails, night city towers, 126 bpm`
-
-**MD4 · Deadline** (instrumental)
-Style: `instrumental driving minimal techno, relentless kick, acid bassline slowly opening, tense, metallic clicks, 130 bpm, dark`
-
-**MD5 · Winda na 30. piętro** (spoken samples)
-Style: `minimal techno, hypnotic, robotic female voice sample, elevator chime fx, rolling bass, crisp percussion, 125 bpm, polish`
-
-```
-[Spoken, robotic elevator voice]
-Piętro trzydzieste.
-Drzwi się zamykają.
-Piętro trzydzieste.
-```
-
-**MD6 · Służewiec 3:00** (instrumental)
-Style: `instrumental deep minimal techno, dark, sparse, heavy sub kick, distant sirens texture, dub chords, hypnotic loop, 124 bpm`
-
-**MD7 · Arkusz** (instrumental)
-Style: `instrumental minimal techno, glitchy clicks like keyboard typing, tight groove, rubbery bass, dry percussion, playful, 127 bpm`
-
-**MD8 · Fajrant** (instrumental, the station's theme)
-Style: `instrumental melodic minimal techno, warm rising pads, rolling bassline, euphoric slow build, release, after work, 126 bpm`
-
-**MD-ID1 · Pracujemy** (ident, 8 to 12 s)
-Style: `radio station ident, dark minimal techno sting, deep male voice, heavy reverb, kick drum hit, short, polish`
-
-```
-[Spoken, deep voice]
-Pracujemy, żebyś ty nie musiał.
-```
-
-**MD-ID2 · Poniedziałek** (ident, 8 to 12 s)
-Style: `radio station ident, minimal techno sting, deadpan female voice, glitch fx, short, polish`
-
-```
-[Spoken, deadpan]
-Znowu poniedziałek.
-```
-
-### The host's greeting and the opening
-
-The announcer's voice, her greeting clips (no station name) and the opening theme (its own
-gentle piece with city sounds) are planned in `docs/design/sound.md` ("Music and voices").
-
----
+About 33 minutes in all, about 16 MB in the game at 64 kbps.
 
 ## KEBAB FM 87,3 (pink; vaporwave, Palm, kebab, summer in the city)
 

@@ -1,5 +1,9 @@
 # Music and voices
 
+**For now (F, 2026-11-02): music only, no words.** The beta ships the two stations' 16
+instrumentals (`docs/MUSIC.md`, "The beta radio"); the opening theme, the announcer's voice,
+jingles and vocal songs below are the plan for later.
+
 F (2026-11-02): the beta's sound. One place for every song, voice line and style, so they can
 be arranged first and generated in one go (ElevenLabs, with its MCP connector). The prompt
 library with the first ideas for every station is `docs/MUSIC.md`; this page is the plan the
@@ -81,16 +85,15 @@ text makes, `dialogue.gd` `greeting`), the music ducked under her. Files go in
 
 ## 4. KEBAB FM 87,3: vaporwave
 
-Eight songs and three idents: slowed 80s pop and mall funk, warm detuned synths, tape wobble,
-pink-and-cyan Warsaw at sunset. Prompts and lyrics: `docs/MUSIC.md`, "The beta radio" (KB1 to
-KB8, KB-ID1 to KB-ID3). Nothing sung or spoken names a station (F, 2026-11-02): the name is only on screen.
+Eight instrumentals: slowed 80s pop and mall funk, warm detuned synths, tape wobble,
+pink-and-cyan Warsaw at sunset. Prompts: `docs/MUSIC.md`, "The beta radio" (KB1 to
+KB8, instrumental). Nothing sung or spoken names a station (F, 2026-11-02): the name is only on screen.
 
 ## 5. MORDOR FM 108,8: minimal techno
 
-Eight tracks and two idents: dark, hypnotic minimal techno for the office towers at night,
-deep rolling kick, clicky hats, metallic percussion, sparse deadpan Polish voice samples. No
-artist names in prompts (the tools refuse them). Prompts: `docs/MUSIC.md` (MD1 to MD8, MD-ID1,
-MD-ID2).
+Eight instrumentals: dark, hypnotic minimal techno for the office towers at night,
+deep rolling kick, clicky hats, metallic percussion. No
+artist names in prompts (the tools refuse them). Prompts: `docs/MUSIC.md` (MD1 to MD8, instrumental).
 
 ## 6. Making them
 
