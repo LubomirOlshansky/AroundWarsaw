@@ -48,7 +48,7 @@ the milk bar, queues on Plater's Żelazna front (crowds.gd `MILK`); the chill cr
 climbers (no photo), the glass street's roof (the map's 2018 LoD2 halls stand on it).
 
 ## 7. Detail level and budget
-L2, triangle budget 4500 (2026-11-02: two blocks, 4382 tris built; one material set, no new draw call). Shots: `--solo=norblin --solo-look=lit`, then in the city.
+L2, triangle budget 4500 (an exception to the L2 limit: two office blocks in one site, 2026-11-02, 4382 tris built; one material set, no new draw call). Shots: `--solo=norblin --solo-look=lit`, then in the city.
 
 ## 8. Parts table
 
