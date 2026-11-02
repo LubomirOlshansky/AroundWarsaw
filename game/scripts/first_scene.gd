@@ -4,7 +4,8 @@ extends Node3D
 ## Eastern Wall's stores, from Junior to the pavilions under the towers): a newspaper kiosk, a
 ## flower stall, café tables under parasols, an advertising column and concrete planters.
 ## Built at runtime on both city paths (it isn't in the sector scenes) as one mesh in the actors'
-## material (models.gd), with R7's street plates, tram stop, bike dock and bollards: one draw call in view, no sun shadow below a metre (the planters). The
+## material (models.gd), with R7's street plates, tram stop, bike dock and bollards and items 4-5's
+## tram platform edge lines: one draw call in view, no sun shadow below a metre (the planters). The
 ## kiosk and the stall stop the car; the rest are drive-through like the map's benches.
 
 const Props := preload("res://scripts/props.gd")
@@ -66,6 +67,20 @@ const ON_PLATFORM := ["shelter", "stop", "ticket"]
 const PLATFORM_TOP := 1.0
 ## The middle of the street (the tram tracks), which every item faces.
 const STREET_T := 8.0
+## First-scene item 5 (2026-11-02): the track edges of the two tram platforms in the box
+## (centrum.json `platforms`, 0.9 m slabs: Centrum's south of Widok, the stop north of the museum)
+## get a light edge band and, PLATFORM_LINE m in, a yellow tactile strip, as Warsaw's tram stops
+## have. [polyline of [s, t] along the edge, the side the platform lies on (+1 = east, -1 =
+## west)]. Flat strips in this mesh, just over the platform's top: +0 draw calls.
+const PLATFORM_EDGES := [
+	[[[-231.0, 4.0], [-179.6, 4.4], [-167.4, 4.3], [-162.0, 4.2]], -1.0],
+	[[[246.0, 11.4], [328.0, 11.65]], 1.0],
+]
+const EDGE_BAND := 0.25
+const PLATFORM_LINE := 0.5
+const TACTILE_BAND := 0.4
+const EDGE_COL := Color("#e9e7e0")
+const TACTILE_COL := Color("#b89f58")
 ## The kiosk's and the stall's footprints for the car (half sizes).
 const SOLID := {"kiosk": Vector2(1.45, 1.1), "stall": Vector2(1.2, 0.9), "shelter": Vector2(2.15, 0.98)}
 
@@ -121,9 +136,43 @@ func build() -> void:
 			shape.transform = Transform3D(xf.basis, xf.origin + Vector3.UP * 1.2)
 			body.add_child(shape)
 		count += 1
+	for edge: Array in PLATFORM_EDGES:
+		_platform_edge(st, edge[0], float(edge[1]))
 	var mi := MeshInstance3D.new()
 	mi.name = "FirstSceneProps"
 	mi.mesh = st.commit()
 	mi.material_override = Models.material()
 	add_child(mi)
 	add_child(body)
+
+
+## A tram platform's edge: the light band at the edge, then the tactile strip, each a flat strip
+## along the polyline `edge` ([s, t] points), laid `side` of it (+1 east) on the platform's top.
+func _platform_edge(st: SurfaceTool, edge: Array, side: float) -> void:
+	# The platform's top is flat, its slab's height over the lowest ground under it (map_builder
+	# _build_platforms), so the strips take the lowest ground along the edge.
+	var y := INF
+	for q: Array in edge:
+		var g := FRAME_O + FRAME_S * float(q[0]) + FRAME_T * float(q[1])
+		y = minf(y, map.ground_height(g.x, g.y))
+	y += PLATFORM_TOP + 0.02
+	for i in edge.size() - 1:
+		var a := FRAME_O + FRAME_S * float(edge[i][0]) + FRAME_T * float(edge[i][1])
+		var b := FRAME_O + FRAME_S * float(edge[i + 1][0]) + FRAME_T * float(edge[i + 1][1])
+		# Into the platform: across the edge, on its `side` (FRAME_T points east).
+		var dir := (b - a).normalized()
+		var into := Vector2(-dir.y, dir.x)
+		if into.dot(FRAME_T) * side < 0.0:
+			into = -into
+		_flat_band(st, a, b, into, 0.0, EDGE_BAND, y, EDGE_COL)
+		_flat_band(st, a, b, into, PLATFORM_LINE, PLATFORM_LINE + TACTILE_BAND, y, TACTILE_COL)
+
+
+## A flat band from a to b at height y, between `d0` and `d1` m along `into`.
+func _flat_band(st: SurfaceTool, a: Vector2, b: Vector2, into: Vector2, d0: float, d1: float, y: float, col: Color) -> void:
+	var p := [a + into * d0, b + into * d0, b + into * d1, a + into * d1]
+	var v: Array[Vector3] = []
+	for q: Vector2 in p:
+		v.append(Vector3(q.x, y, q.y))
+	Props.tri(st, v[0], v[1], v[2], Vector3.UP, col)
+	Props.tri(st, v[0], v[2], v[3], Vector3.UP, col)
