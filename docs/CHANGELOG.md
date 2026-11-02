@@ -11,6 +11,8 @@ someone writes its lines.
 
 ## 2026-11-02
 - The first street of the game is busier: people at the café tables by the museum, at the kiosk and the flower stall, more walkers on both pavements of Marszałkowska, a tram rolling past with its bell in the first seconds, the hum of the square under the city's sound, and the radio's song from its first bar on a first launch.
+
+- KEBAB FM now jokes about the cinemas (Muranów, Atlantic, Luna, Kultura, Elektronik, the Kinoteka) and about the Kebab Basin's sauce war.
 - Nowy Świat gets three more neon shops: an old-fashioned confectioner (BLIKLINA OD 1869), a coffee spot at Chmielna and a vinyl bar at Foksal.
 - Two more Powiśle buildings look like themselves: Hortus on Topiel, glass offices round a garden with tenement-style flats on Drewniana, and Modernka on Zajęcza, an old tenement joined to a new glass wing.
 - Cringulo's cream van now carries CRINGULO TV in dark letters on both sides.
