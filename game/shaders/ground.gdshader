@@ -260,8 +260,13 @@ void fragment() {
 	} else if (id == 9 || id == 15) {
 		// Ballast gravel; along a track, concrete sleepers across it every 0.65 m.
 		shade = 0.86 + 0.24 * hash12(floor(wp * 7.0));
-		if (id == 9 && fract(street.x / 0.65) < 0.32) {
-			base = mix(base, srgb_to_linear(vec3(0.62, 0.6, 0.57)), 0.8);
+		if (id == 9) {
+			float sl = fract(street.x / 0.65);
+			if (sl > 0.18 && sl < 0.62) {
+				// A concrete sleeper (0.28 m wide), each a little different.
+				base = srgb_to_linear(vec3(0.66, 0.64, 0.6));
+				shade = 0.9 + 0.14 * hash12(vec2(floor(street.x / 0.65), 3.0));
+			}
 		}
 	} else if (id == 10) {
 		// Steps: a darker edge line on every tread.

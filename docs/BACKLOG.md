@@ -652,7 +652,7 @@ Built (cloud, Sonnet): eight shopfronts (`Storefronts.KRAKOWSKIE`, 93 venue sign
   `hortus.md`, `moderna.md`; Mac photo check: Hortus's glass and frame colours, its piers, the
   Drewniana flats' plaster and roof; which part of Moderna is the old tenement and their heights.)
 - `check_landmarks` stops in the cloud (no terrain data); run it on the Mac.
-- L1 track that reads as railway: sleepers, raised rails, ballast shoulders (no new draw calls).
+- ~~L1~~ done 2026-11-02: track that reads as railway: sleepers, raised rails, ballast shoulders (no new draw calls).
 - ~~L2 catenary, L3 the tunnel's mouths~~ Done 2026-11-01 (`map_builder` `_build_catenary`,
   `_build_rail_portals`, in the walls surface: +0 draw calls). Left: portal frames over the station
   fans; the museum sidings by Towarowa get wires too (real ones mostly have none); Mac check that
