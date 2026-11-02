@@ -656,6 +656,35 @@ func _check_garage(vp: SubViewport, hud: CanvasLayer, tag: String) -> int:
 		if verbose:
 			print("  %s: card %s, action %s" % [where, _pts(card, pt), _pts(rects["action"], pt)])
 		states += 1
+	# G13: the parts tab, with every cell's state (the TT to buy, short, owned; the nitro; a maxed part).
+	g.card.show_tab("parts")
+	w.zl = 12345
+	for pick in ["tt", "nitro", "tyres", "engine", "hatch", "tt", "tyres"]:
+		if pick == "tt" and states == 9:
+			w.zl = 100  # short
+		if pick == "tyres" and states == 10:
+			w.tune = {"tyres": 3, "engine": 1}  # maxed
+			w.nitro = true
+		g.card.pick_item(pick)
+		await process_frame
+		await process_frame
+		var where2 := "%s garage parts (%s)" % [tag, pick]
+		var rects2: Dictionary = g.card.ui_rects()
+		var card2: Rect2 = rects2["card"]
+		if not safe.grow(0.5).encloses(card2):
+			problems.append("%s: the card %s sticks out of the safe area %s" % [where2, _pts(card2, pt), _pts(safe, pt)])
+		var names2 := rects2.keys()
+		names2.erase("card")
+		for a in names2.size():
+			var ra2: Rect2 = rects2[names2[a]]
+			_check_touch("%s %s" % [where2, names2[a]], ra2, pt, safe)
+			if not card2.grow(0.5).encloses(ra2):
+				problems.append("%s: %s is outside the card" % [where2, names2[a]])
+			for b in range(a + 1, names2.size()):
+				if ra2.intersection(rects2[names2[b]]).get_area() > pt * pt:
+					problems.append("%s: %s overlaps %s" % [where2, names2[a], names2[b]])
+		_check_fonts(g.card, where2, pt)
+		states += 1
 	(g.card.get("_leave") as Button).pressed.emit()
 	await process_frame
 	if g.card.visible or g.is_open():

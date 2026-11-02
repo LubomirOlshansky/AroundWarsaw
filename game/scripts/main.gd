@@ -461,6 +461,9 @@ var paint_flag := ""
 var garage_flag := false
 ## --garage=ring: the car 16 m short of the ring (the ring in view, no card).
 var garage_ring_only := false
+## G13: --garage=parts opens the card on the parts tab; --upgrades=all|tt|nitro starts with them.
+var garage_parts := false
+var upgrades_flag := ""
 var garage_log := false
 var life_flag := 1
 var dogs_log := false
@@ -2144,7 +2147,15 @@ func _build_garage(world: Node3D) -> void:
 	if paint_flag != "":
 		garage.preset(paint_flag)
 	garage.force = garage_flag
+	if garage_parts:
+		garage.start_tab = "parts"
 	garage.setup(world)
+	if upgrades_flag != "":
+		garage.preset_upgrades(upgrades_flag)
+	garage.upgraded.connect(func(id: String) -> void:
+		if id == "nitro":
+			hud.toast("Nitro gotowe: przytrzymaj błyskawicę przy klaksonie (klawisz N).",
+					"Nitro fitted: hold the bolt by the horn (N key)."))
 	if garage_flag:
 		_put_at_garage()
 	garage.opened.connect(func() -> void:
@@ -3616,14 +3627,17 @@ func _parse_args() -> void:
 			free_roam = true
 		elif arg.begins_with("--paint="):
 			paint_flag = arg.trim_prefix("--paint=")  # the garage loop
-		elif arg == "--garage" or arg == "--garage=ring":
+		elif arg == "--garage" or arg == "--garage=ring" or arg == "--garage=parts":
 			garage_flag = true
 			garage_ring_only = arg == "--garage=ring"
+			garage_parts = arg == "--garage=parts"
 			garage_log = true
 			show_title = false
 			free_roam = true
 		elif arg == "--garage-log":
 			garage_log = true
+		elif arg.begins_with("--upgrades="):
+			upgrades_flag = arg.trim_prefix("--upgrades=")  # G13: all | tt | nitro, for this run
 		elif arg.begins_with("--egg="):
 			egg_flag = arg.trim_prefix("--egg=")
 		elif arg.begins_with("--district="):
@@ -5429,6 +5443,9 @@ func _read_input(dt: float) -> void:
 		stick = pad_stick
 		stick_on = true
 	controls.drive(car, stick, stick_on, keys, hud.gas or Gamepad.gas(), hud.brake or Gamepad.brake(), cam_yaw, dt)
+	# G13: the nitro (bought at the garage): the disc by the horn, N or Shift on a keyboard.
+	car.nitro_hold = car.nitro_owned and (hud.nitro_held or Input.is_physical_key_pressed(KEY_N) or Input.is_physical_key_pressed(KEY_SHIFT))
+	hud.set_nitro(car.nitro_owned, car.nitro_charge)
 	# Loop 3g-1: a pull-over holds the car; the police's test drivers (--police-auto, --trap with
 	# --pedal=gas, the soak's roaming autopilot) drive it.
 	if police != null and police.control_car(car, dt):
@@ -5915,13 +5932,13 @@ func _update_camera(dt: float) -> void:
 		_view_size = fcam.zoom_step(_view_size, heli_view, heli_zoom, dt)
 		focus_rate = 3.5
 	else:
-		var zoom := base_size * FollowCamera.SPEED_ZOOM * clampf(speed / car.max_speed, 0.0, 1.0)
+		var zoom := base_size * FollowCamera.SPEED_ZOOM * clampf(speed / (car.max_speed * car.top_mult), 0.0, 1.0)
 		size = base_size + zoom
 		_view_size = fcam.zoom_step(_view_size, base_size, zoom, dt)
 	# The look-ahead along the way it goes, and the dead zone's window (follow_camera.gd).
 	var forward := Vector3(-basis.z.x, 0.0, -basis.z.z).normalized() \
 			if follow and not flying and controls.scheme == Controls.CLASSIC else Vector3.ZERO
-	var lead := fcam.lead_step(heli.vel if flying else car.vel, Heli.MAX_SPEED if flying else car.max_speed,
+	var lead := fcam.lead_step(heli.vel if flying else car.vel, Heli.MAX_SPEED if flying else car.max_speed * car.top_mult,
 			_view_size, dt, forward)
 	cam_focus = fcam.focus_step(cam_focus, focus + lead, basis, _view_size, focus_rate, dt)
 
