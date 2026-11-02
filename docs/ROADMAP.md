@@ -99,6 +99,10 @@ then the Launch gate.
 - [x] Nowy Świat street by street (F, 2026-11-02), pass 1: eight neon shopfronts (pastry, ice cream,
       bookshop café, antiquarian, boutique, wine bar, gallery, exchange). Open: houses, café
       gardens, crowds, Mac look check (BACKLOG "Nowy Świat street by street")
+- [x] Marszałkowska street by street, pass 3 (F, 2026-11-02): street details on the whole street (planters,
+      bollards, kiosks and columns north of Świętokrzyska and south of the Rotunda; tram-island benches,
+      stop posts and ticket machines where no shelter is mapped). Open: facades and shopfronts house by
+      house, crossings against photos (BACKLOG "Marszałkowska street by street")
 - [x] Old Town Market Square and its Syrenka (F, 2026-11-01): cobbled paving, 58 café umbrellas, the
       fountain's rim and the bronze mermaid with sword and shield, two cards (spec rynek.md);
       Mac photo check parked (QUESTIONS)

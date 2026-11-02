@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-02
 - Nowy Świat gets eight neon shopfronts between the Palm and Karowa: a doughnut shop, ice cream with no queue, a bookshop café, an antiquarian, a boutique, a wine bar, an unfathomable gallery and an exchange office.
+- Marszałkowska has more street life: flower planters, bollards, kiosks and ad columns along the whole street, and tram stops with a bench, a stop sign and a ticket machine.
 - Level 26, the rooftop club on the Atlas Tower, is finally a club: a deck up on the roof with a glass balustrade, a glowing bar, a DJ booth under a lighting truss with an LED wall and speakers, lounge sofas, planters, warm festoon lamps and its name in violet neon, with the crowd dancing round it after 22:00
 - Pokorna 2, the tall block by Muranów, now reads as a block of flats: a window in every bay, a balcony and railing on every floor, warm plaster and a lift house on the roof.
 - Warsaw Spire has its real shape: a glass tower that widens upward from a lit lobby, a fin over its roof, the mirrored entrance canopy on V-shaped legs, its two curved 15-storey wings and the plaza in front.
