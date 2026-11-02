@@ -247,9 +247,11 @@ then the Launch gate.
   - [x] G1 the de Gaulle statue, 2026-11-01
   - [x] G2 Dom Partii: white stone, ROBUR, the courtyard fountain, 2026-11-01
   - [x] G2 part 2: Dom Partii's bars as neons, 2026-11-01
-  - [x] G3 HOTEL PIURE, the LUŹNO date bar and TIMBER jokes, 2026-11-01
+  - [x] G3 HOTEL PIURE, the LORETKA date bar and TIMBER jokes, 2026-11-01
   - [x] G4 KOSZTA COFFEE, GREEN CAFFE NERWO, KUKŁA and the queues, 2026-11-01
   - [x] G5 Cringulo: the "Mlask" job, his pizza, fans and news, 2026-11-01
+  - [x] LORETKA's summer terrace with couples, PRZEGRYWKI, WACZEK burger neons, 2026-11-01
+  - [ ] Leftovers (BACKLOG): Podwózka dates, "Kolejki" card, van fans and egg
 - [x] Zagłębie Kebabowe and Kino Femina (F, 2026-11-02; spec docs/design/zaglebie-kebabowe.md): five parody kebab shops on Al. Solidarności, Femina's neon, delivery twists, the craft kebab's choice, Szlak Szpili, 2026-11-02 (the Mac photo check of Femina's front is open)
   - [ ] Leftovers (BACKLOG): dates on LUŹNO's roof, Podwózka dates, "Kolejki" card, van fans and egg
 - [x] Gamepad support (2026-11-01, `gamepad.gd`, `check_gamepad`): Xbox, PlayStation and MFi
