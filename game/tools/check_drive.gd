@@ -21,7 +21,9 @@ extends SceneTree
 ##     routes across the bridges and tunnels (both ways over each deck group and tunnel: its
 ##     longest edge each way, ~150 m on either side by the straightest way) at 24 m/s: every
 ##     frame whose height jumps
-##     more than JUMP from the frame before.
+##     more than JUMP from the frame before, or (G6) on a deck's lane more than UNDER under it.
+##  3. G6: the car driven onto every ramp's foot across the deck's whole width, straight and
+##     turned ENTRY_TURN either way: a frame more than UNDER under the slab (it drove under it).
 ##
 ## Prints each finding (with its --at=) and `check_drive: OK` when there is none, else the
 ## counts and exit 1. ~20 s (6 of it building the city).
@@ -65,6 +67,10 @@ const SPOT_REACH := 8.0
 const ROUTE_REACH := 150.0 # each route runs this far on either side of its structure
 const FRAME := 0.4         # metres per frame on the autopilot (24 m/s at 60 fps)
 const JUMP := 0.3          # a height jump over this between two frames is a finding
+## G6 (F, 2026-11-01: "when I was entering the bridge I went down under it"): a car that never
+## climbs onto a deck has no jump, it drives on under it. A frame on a deck's lane whose own
+## height (lane_graph.gd `height`) is this far over the car's is a finding too ("under").
+const UNDER := 1.0
 const DEAD_END := 1.0      # a vehicle stops this short of a dead end's end
 ## The bus is swept on the roads buses drive (lane_graph.gd classes 0 and 1: main roads,
 ## links, tertiary): they spawn on main roads only and turn into a residential or living
@@ -87,7 +93,7 @@ var dump_path := ""
 var debug_at := Vector2.INF
 var _dump: PackedStringArray = []
 ## Loop 3d-1: tools/check_drive_allow.json, the places a finding is allowed (each with its reason:
-## structures loop 3e builds, docs/DEMO.md 4.6): [kind ("lane" or "jump"), centre, radius].
+## structures loop 3e builds, docs/DEMO.md 4.6): [kind ("lane", "jump" or "under"), centre, radius].
 var _allow: Array = []
 var allowed := 0
 ## Loop 3e: --no-allow (count every finding) and --routes=N (more routes than ROUTES).
@@ -150,6 +156,9 @@ func _physics_process(_delta: float) -> bool:
 		t = Time.get_ticks_msec()
 		var jumps := _routes()
 		print("check_drive: routes in %d ms" % (Time.get_ticks_msec() - t))
+		t = Time.get_ticks_msec()
+		jumps += _entries()
+		print("check_drive: entries in %d ms" % (Time.get_ticks_msec() - t))
 		if not dump_path.is_empty():
 			var f := FileAccess.open(dump_path, FileAccess.WRITE)
 			f.store_string("\n".join(_dump) + "\n")
@@ -157,7 +166,7 @@ func _physics_process(_delta: float) -> bool:
 		var bad := sweep + jumps
 		if allowed > 0:
 			print("check_drive: %d findings allowed (tools/check_drive_allow.json)" % allowed)
-		print("check_drive: %s" % ("OK" if bad == 0 else "%d FAILED (%d lane spots in collision, %d height jumps)" % [bad, sweep, jumps]))
+		print("check_drive: %s" % ("OK" if bad == 0 else "%d FAILED (%d lane spots in collision, %d height jumps or stretches under a deck)" % [bad, sweep, jumps]))
 		map.free()
 		quit(0 if bad == 0 else 1)
 	return false
@@ -276,6 +285,115 @@ func _places(list: Array) -> Array:
 	return out
 
 
+# --- 3. onto every deck, across its whole width (G6) -------------------------------------
+
+## G6 (F, 2026-11-01: "when I was entering the bridge I went down under it"): the player drives
+## anywhere across a ramp, not on its lanes. From every road deck piece's end that stands on the
+## ground (not a joint with the next piece of its deck), the car drives straight onto it from
+## ENTRY_RUN metres out, every ENTRY_STEP across the deck's width (and ENTRY_TURN either way),
+## its height from map.drive_height like car.gd's: a frame where this piece's slab stands more
+## than UNDER over the car is a finding ("under"). Ends whose slab stands over ENTRY_UP above
+## the ground are no entry (a cut-off deck at the rim, a slab over a street).
+const ENTRY_RUN := 24.0
+const ENTRY_IN := 40.0
+const ENTRY_STEP := 0.8
+const ENTRY_TURN := 0.35
+const ENTRY_UP := 1.2
+
+func _entries() -> int:
+	var decks: Array = map._decks
+	if map._deck_cells.is_empty():
+		map._index_decks()
+	var tried := 0
+	var found := 0
+	var allowed_here := 0
+	for i in decks.size():
+		var d: Dictionary = decks[i]
+		if String(d["k"]) != "road":
+			continue
+		var pts: PackedVector2Array = d["pts"]
+		var hs: PackedFloat32Array = d["h"]
+		var n := pts.size()
+		if n < 2:
+			continue
+		for end in 2:
+			if (map._deck_joints[i] & (1 if end == 0 else 2)) != 0:
+				continue
+			var p0 := pts[0] if end == 0 else pts[n - 1]
+			var h0 := hs[0] if end == 0 else hs[n - 1]
+			if not map.in_map(p0, -RIM - ENTRY_RUN):
+				continue
+			if h0 - map.terrain_height(p0.x, p0.y) > ENTRY_UP:
+				continue
+			var inward := ((pts[1] - pts[0]) if end == 0 else (pts[n - 2] - pts[n - 1])).normalized()
+			var side := Vector2(-inward.y, inward.x)   # the piece's left (lat < 0 is d["l"])
+			var lo := -float(d["l"]) if end == 0 else -float(d["r"])
+			var hi := float(d["r"]) if end == 0 else float(d["l"])
+			var worst: Array = []
+			var lat := lo + 0.4
+			while lat <= hi - 0.4:
+				for turn in [0.0, -ENTRY_TURN, ENTRY_TURN]:
+					var dir := inward.rotated(turn)
+					var at := p0 + side * lat
+					var start := at - dir * ENTRY_RUN
+					var y: float = map.drive_height(start.x, start.y, map.terrain_height(start.x, start.y))
+					var s := -ENTRY_RUN + FRAME
+					var entered := false
+					tried += 1
+					while s <= ENTRY_IN:
+						var p := at + dir * s
+						y = map.drive_height(p.x, p.y, y)
+						var want: float = _piece_height(d, p)
+						s += FRAME
+						if is_nan(want):
+							if entered:
+								break   # off the slab's side: what's under it after is not an entry
+							continue
+						if not entered and s > 3.0:
+							break   # met the slab from its side, not over its end
+						entered = true
+						if want - y > UNDER:
+							if worst.is_empty() or want - y > float(worst[1]):
+								worst = [p, want - y, y, want, lat, turn]
+							break
+				lat += ENTRY_STEP
+			if worst.is_empty():
+				continue
+			if _allowed("under", worst[0]):
+				allowed_here += 1
+				continue
+			found += 1
+			var q: Vector2 = worst[0]
+			print("  FINDING under entering deck %d (piece %d's %s end at (%.0f, %.0f)) at (%.0f, %.0f): the car at %.1f m, %.1f m under the slab (%.1f), %.1f m off its middle, turned %.0f°; the end %.1f over the ground %.1f, the ground there %.1f  [--at=%.0f,%.0f]" % [
+					int(d["g"]), i, "first" if end == 0 else "last", p0.x, p0.y, q.x, q.y, worst[2], worst[1], worst[3], worst[4], rad_to_deg(worst[5]),
+					hs[0] if end == 0 else hs[n - 1], map.terrain_height(p0.x, p0.y), map.terrain_height(q.x, q.y), q.x, q.y])
+	allowed += allowed_here
+	print("check_drive: entries: %d drives onto the road decks' ground ends, %d ends where the car goes under the slab" % [tried, found])
+	return found
+
+
+## This piece's slab height at p, or NAN where p is outside it (map_builder._decks_at for one piece).
+func _piece_height(d: Dictionary, p: Vector2) -> float:
+	var pts: PackedVector2Array = d["pts"]
+	var best := INF
+	var out := NAN
+	for k in pts.size() - 1:
+		var ab := pts[k + 1] - pts[k]
+		var l2 := maxf(ab.length_squared(), 0.000001)
+		var u := (p - pts[k]).dot(ab) / l2
+		if u < 0.0 or u > 1.0:
+			continue
+		var lat := ab.cross(p - pts[k]) / sqrt(l2)
+		if lat < -float(d["l"]) or lat > float(d["r"]):
+			continue
+		var d2 := p.distance_squared_to(pts[k] + ab * u)
+		if d2 < best:
+			best = d2
+			var hs: PackedFloat32Array = d["h"]
+			out = lerpf(hs[k], hs[k + 1], u)
+	return out
+
+
 # --- 2. the player's car over the bridges and tunnels -----------------------------------
 
 func _routes() -> int:
@@ -364,6 +482,7 @@ func _routes() -> int:
 			lanes[key + ", outer lane"] = graph.e_lanes[e0] - 1
 	var routes := 0
 	var jumps := 0
+	var unders := 0
 	var frames := 0
 	for key in keys:
 		if routes >= routes_max:
@@ -380,15 +499,26 @@ func _routes() -> int:
 				kept.append(j)
 		r[1] = kept
 		jumps += (r[1] as Array).size()
+		var kept_under: Array = []
+		for u: Array in r[2]:
+			if _allowed("under", u[0]):
+				allowed += 1
+			else:
+				kept_under.append(u)
+		unders += kept_under.size()
 		if verbose:
-			print("  route %d (%s): %d edges, %d frames, %d jumps" % [routes, key, path.size(), r[0], (r[1] as Array).size()])
+			print("  route %d (%s): %d edges, %d frames, %d jumps, %d under" % [routes, key, path.size(), r[0], (r[1] as Array).size(), kept_under.size()])
 		for j: Array in r[1]:
 			var p: Vector2 = j[0]
 			print("  FINDING jump on route %d (%s) at (%.0f, %.0f): %.2f m in one frame (%.1f -> %.1f)  [--at=%.0f,%.0f]" % [
 					routes, key, p.x, p.y, j[1], j[2], j[2] + j[1] * signf(j[3]), p.x, p.y])
-	print("check_drive: autopilot: %d routes over the bridges and tunnels, %d frames at %.0f m/s, %d height jumps over %.1f m" % [
-			routes, frames, FRAME * 60.0, jumps, JUMP])
-	return jumps
+		for u: Array in kept_under:
+			var p: Vector2 = u[0]
+			print("  FINDING under on route %d (%s) at (%.0f, %.0f): the car at %.1f m, %.1f m under its lane (%.1f)  [--at=%.0f,%.0f]" % [
+					routes, key, p.x, p.y, u[2], u[1], u[3], p.x, p.y])
+	print("check_drive: autopilot: %d routes over the bridges and tunnels, %d frames at %.0f m/s, %d height jumps over %.1f m, %d stretches under the lane's deck by over %.1f m" % [
+			routes, frames, FRAME * 60.0, jumps, JUMP, unders, UNDER])
+	return jumps + unders
 
 
 ## The edges of a route through edge e: back by the straightest way, e, then on.
@@ -438,6 +568,7 @@ func _route_through(e: int) -> Array[int]:
 ## traffic changes them at the junctions): [frames, [[p, jump, y, sign]]].
 func _drive(path: Array[int], first_lane := 0) -> Array:
 	var pts := PackedVector2Array()
+	var want := PackedFloat32Array()   # the lane's own height at each frame (NAN in a junction)
 	var lane := first_lane
 	for i in path.size():
 		var e: int = path[i]
@@ -445,6 +576,7 @@ func _drive(path: Array[int], first_lane := 0) -> Array:
 		var s := graph.e_s0[e]
 		while s < graph.e_s1[e]:
 			pts.append(graph.point_at(e, s, off))
+			want.append(graph.height(e, s) if graph.e_dk[e] >= 0 else NAN)   # only a deck's lanes
 			s += FRAME
 		if i + 1 < path.size():
 			var f: int = path[i + 1]
@@ -453,26 +585,37 @@ func _drive(path: Array[int], first_lane := 0) -> Array:
 			var n := maxi(1, ceili(LaneGraph.bezier_length(c) / FRAME))
 			for k in n:
 				pts.append(LaneGraph.bezier(c, float(k) / n))
+				want.append(NAN)
 			lane = nl
 	var jumps: Array = []
 	if pts.is_empty():
-		return [0, jumps]
+		return [0, jumps, []]
 	# The rim: a route starts and ends inside the map (past it a deck is cut off in the air).
 	# Map north: the map's shape (map_builder.in_map: the bounds without the corner left outside).
 	var keep := PackedVector2Array()
-	for p in pts:
-		if map.in_map(p, -RIM):
-			keep.append(p)
+	var keep_want := PackedFloat32Array()
+	for k in pts.size():
+		if map.in_map(pts[k], -RIM):
+			keep.append(pts[k])
+			keep_want.append(want[k])
 	pts = keep
+	want = keep_want
+	var unders: Array = []
 	if pts.is_empty():
-		return [0, jumps]
+		return [0, jumps, unders]
 	var y: float = map.drive_height(pts[0].x, pts[0].y, graph.height(path[0], graph.project(path[0], pts[0])))
-	for p in pts:
+	var below := false   # one finding per stretch under a deck
+	for k in pts.size():
+		var p := pts[k]
 		var ny: float = map.drive_height(p.x, p.y, y)
 		if debug_at != Vector2.INF and p.distance_to(debug_at) < 6.0:
 			print("debug: (%.1f, %.1f) from %.2f -> %.2f; terrain %.2f, decks %s, tunnel %.2f" % [p.x, p.y, y, ny,
 					map.terrain_height(p.x, p.y), map._decks_at(p.x, p.y), map.tunnel_floor(p.x, p.y, y)])
 		if absf(ny - y) > JUMP:
 			jumps.append([p, absf(ny - y), y, ny - y])
+		var under := not is_nan(want[k]) and ny < want[k] - UNDER
+		if under and not below:
+			unders.append([p, want[k] - ny, ny, want[k]])
+		below = under
 		y = ny
-	return [pts.size(), jumps]
+	return [pts.size(), jumps, unders]

@@ -1,10 +1,19 @@
-// The aroundwarsaw.app landing page: a Cloudflare Worker that only serves the static files in
-// public/ (no Worker script). `npx wrangler deploy` from this folder uploads them and attaches
-// the custom domains below (the aroundwarsaw.app zone must be in the same Cloudflare account).
+// The aroundwarsaw.app landing page: a Cloudflare Worker that serves the static files in
+// public/ and, through worker.js, counts the store-button links /go/ios and /go/android.
+// `npx wrangler deploy` from this folder uploads them and attaches the custom domains below
+// (the aroundwarsaw.app zone must be in the same Cloudflare account).
 {
   "name": "aroundwarsaw",
+  "main": "worker.js",
   "compatibility_date": "2026-10-01",
+  // Store links: put the App Store / Google Play URLs here once the apps are listed.
+  // Empty means /go/ios and /go/android send the visitor to the beta form instead.
+  "vars": { "IOS_URL": "", "ANDROID_URL": "" },
+  "analytics_engine_datasets": [{ "binding": "CLICKS", "dataset": "aroundwarsaw_clicks" }],
+  "observability": { "enabled": true },
   "assets": {
+    "binding": "ASSETS",
+    "run_worker_first": ["/go/*"],
     "directory": "./public",
     "not_found_handling": "404-page",
     "html_handling": "auto-trailing-slash"

@@ -10,6 +10,32 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- Warsaw's monuments are on the map: about 300 statues, busts, memorial stones and talking benches stand where the real ones do, Ogród Saski's sandstone statues stand at their real spots, and 520 Uprising memorial plaques hang on the walls with candles below them.
+- The quest list on the full map works with a gamepad (X switches between car and helicopter quests, the D-pad picks one, Y takes it) and lists more to do: the "Na czasie" trend deliveries, Cringulo's van, the Friday pistachio drop, the next rival on the ladder (the arrow follows them through traffic), Seba's night race and the peacock stuck on a roof. While something is on, it shows at the top of the list.
+- Driving onto a bridge ramp at an angle no longer drops you under the bridge: the car climbs onto the ramp, at Most Poniatowskiego, Towarowa and the Vistula boulevard road too.
+- The full map has a quest list: ZADANIA AUTO and ZADANIA HELI, each showing what you can start right now (a kebab stand, a jar station, the garage, a ride, a cassette on a roof, a helicopter rescue call) with how far it is and which way. Tap a place and an arrow leads you there; tap a ride or a rescue call and it starts.
+- With larger text on, the mission panel, the race banner and the ride app cards now fit the smaller phones and stay clear of your car.
+- Nowy Świat and Al. Jerozolimskie are no longer dark at night: Nowy Świat has street lamps on both pavements and the avenues have their lamps closer together, so the pools of light join up along the street.
+- Park your car at the supercar meet by Browary Warszawskie and the crowd will have a word about your ride.
+- The KRINGULA PIZZA queue now has its "queue for the queue" jokes: people waiting to join the line, a man queuing for the start-of-the-queue sign.
+- The roadworks at the city's edges now speak English too: ROAD WORKS and DETOUR when you play in English.
+- Fabryka Norblina's courtyard has its big spreading plane trees, and the yard of Browary Warszawskie has a garden of lindens, birches and maples.
+- The start of the game has a park strip in front of the museum: benches and slim lamps, and every zebra crossing now has a lowered kerb.
+- On match evenings friendly fans gather outside Stadion Leguminy: scarves up over their heads on the drum's beat, pink smoke, funny banners, a kid with a giant foam finger, and a police officer who just drinks a coffee. Honk and they start singing.
+- On match days the fans now walk to Stadion Leguminy in little bunches from the bus stops and along Łazienkowska and Czerniakowska, the last few running late for kick-off, and after full time they stream home: singing with their scarves up after a win, or telling each other "next time" after a draw.
+- The football fans now hop out of your car's way with their scarves up (and a friendly "easy, we'll let you through!"), walk round it when you stop, and during the match most of them go inside: only the drummer and a few without tickets stay out by the gate with a radio.
+- Loud cars: a meet of low, wide supercars in acid colours (no badges) on the square by the Browary Warszawskie gate, with people filming them on their phones, and a few of them out on the streets, revving and crackling as they pass. KEBAB FM reports that the neighbours are counting the revs again.
+- A kebab shop called MIESZANE MIESZANE glows on Al. Solidarności by the Kebab Basin, named after the only two answers you give at the counter ("Mięso?" "Mieszane." "Sos?" "Mieszane."), with a late-night queue of regulars, and the Skyliner at Rondo Daszyńskiego wears the NOSE AGENCY on its crown.
+- Warsaw's wellness crowd is out in the parks: sound healing round a gong ("DŹWIĘKOTERAPIA, wejście 80 zł"), techno yoga with hamsters in rolling balls, a women's 40+ club turning round a tree to wake the little girl inside, and a kung-fu school doing one very slow move in step. Walk up to a sound-healing ring and you hear the gong and the singing bowls; near a techno-yoga row, a muffled beat thumps from the speaker.
+- Pani Halina now always pulls up behind you to challenge you to the first race, never in front of you where she could block a narrow street.
+- Railway tracks now look like tracks: pale gravel shoulders, concrete sleepers and shiny rail heads.
+- A new pizzeria, KRINGULA PIZZA, with a huge queue of people who cry over the first bite, and longer morning queues at two hyped coffee chains.
+- A delivery order's GO button counts down the seconds until the order starts by itself, so it no longer seems to start without a tap.
+- Bike paths look like Warsaw's: cycle crossings have their rows of white squares down each side, and white bikes are painted on the red paths just past the crossings.
+- On wide phones the radio's line no longer slides in cut off at the screen edge, and the orange delivery marker stays under speech bubbles and banners, with its distance clear of its arrow.
+- The race card names where you are racing in full ("pod Palmę") instead of cutting it off, and tells you to drive there, with the pink arrow showing the way.
+- The first rescue call tells you which way to go: the card gives the distance and compass direction to the person who needs help.
+- The narrow one-way streets of the centre (Mokotowska, Wilcza, Hoża, Żurawia and about 280 more) are as wide as the real ones now, room for the parked cars, instead of a lane-wide strip, and the two-lane side streets are a metre wider, as on the aerial photo.
 - Złota 44 looks like itself: a white tower with fine grey stripes whose south-east corner sweeps out like a wing to a sharp tip, a dark glass crown on the roof and a garden on the low block at its feet.
 - The radio's jokes between songs no longer name KEBAB FM and come more rarely, every 4 to 5 minutes, as a surprise.
 - The Stadion Narodowy has its grounds: lime and plane trees line both sides of the entrance avenues, and groups of pollarded willows stand on the lawns between them.

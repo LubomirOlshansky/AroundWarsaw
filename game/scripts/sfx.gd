@@ -74,6 +74,9 @@ const SHOTS := {
 	# The vintage-tram loop (old_tram.gd, tools/make_sfx.py): the old set's creak (under the bell)
 	# and its own bell (set to land where tram_bell does, by the files' RMS).
 	"tram_creak": -8.0, "old_tram_bell": -9.5,
+	# City-life satire #1 (loud_cars.gd, tools/make_sfx.py): a loud car's rev and crackle as it
+	# passes (loud on purpose: a little over the horns by the files' RMS).
+	"loud_rev": -11.0,
 }
 ## Loop 3g-2: the siren loop (one positional voice) and its level there.
 const SIREN := "police_siren"
@@ -515,7 +518,7 @@ func sound_check() -> void:
 	await _meter("(beds and engine idling)", 2.0)
 	for n in SHOTS:
 		var at := focus + Vector3(15.0, 0.0, 0.0)
-		if n in ["tram_bell", "horn", "horn_double", "pigeons", "tram_creak", "old_tram_bell"]:
+		if n in ["tram_bell", "horn", "horn_double", "pigeons", "tram_creak", "old_tram_bell", "loud_rev"]:
 			_play3(n, at, 0.0)
 		elif n in ["birds_a", "birds_b", "siren_far", "dog_far"]:
 			_play2(n, 0.0, &"Ambience")

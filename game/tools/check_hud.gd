@@ -17,10 +17,13 @@ extends SceneTree
 ##     the safe area and no two of them overlap; no panel was left without room (the passing
 ##     ones, the ticker, notes, bubbles and the overlay, may wait for room: listed); the passing
 ##     panels keep off the car's spot in the middle of the screen;
-##   - the settings panel and the bench card fit without being shrunk.
+##   - the settings panel and the bench card fit without being shrunk;
+##   - at larger text (x1.25) the same holds, a panel that must show stepping its own text down
+##     to find room (hud.gd `_fit_text`), never below the normal size (each step listed).
 ## Prints a line per screen and state, then `check_hud: OK` (exit 0) or the problems (exit 1).
 ##   godot --headless --path game --script res://tools/check_hud.gd [-- --verbose]
 
+const Access := preload("res://scripts/access.gd")
 const Hud := preload("res://scripts/hud.gd")
 const Bubbles := preload("res://scripts/bubbles.gd")
 ## Loop 3g-1: the pull-over card (police.gd lays it out with the HUD's panels).
@@ -53,6 +56,8 @@ var _speakers := {}
 ## Passing panels (the radio ticker, the note and landmark cards) and the performance overlay
 ## that waited for room: allowed, they show once there is some.
 var _waits: Array[String] = []
+## Large text: the panels that stepped their text down to find room (hud.gd `fitted`).
+var _fitted: Array[String] = []
 
 
 func _initialize() -> void:
@@ -99,8 +104,12 @@ func _run() -> void:
 	_check_quiet_driving()
 	for w in _waits:
 		print("  waits for room: %s" % w)
+	# The x1.25 pass is a gate (2026-11-02): a panel that must show and has no room at the larger
+	# text steps its own text down (hud.gd `_fit_text`); listed here, never below the normal size.
+	for f in _fitted:
+		print("  text stepped down: %s" % f)
 	if problems.is_empty():
-		print("check_hud: OK (%d screens, %d states; a passing panel waited for room %d times)" % [SCREENS.size(), states, _waits.size()])
+		print("check_hud: OK (%d screens, %d states; a passing panel waited for room %d times; large text stepped down %d times)" % [SCREENS.size(), states, _waits.size(), _fitted.size()])
 		quit(0)
 	else:
 		for p in problems:
@@ -121,8 +130,7 @@ func _check_screen(screen: Vector2i) -> int:
 	var bubbles: Control = Bubbles.new()
 	bubbles.pt = hud.pt
 	bubbles.project = func(p: Vector3) -> Vector2: return Vector2(p.x, p.y)
-	hud.add_child(bubbles)
-	hud.move_child(bubbles, 1)
+	hud.add_speech(bubbles)  # above the target pointer, below the panels (PT-10)
 	var talk: Control = PoliceBalloon.new()
 	talk.pt = hud.pt
 	hud.add_panel(talk, "bottom")
@@ -136,6 +144,8 @@ func _check_screen(screen: Vector2i) -> int:
 	var count := 0
 	var at := func(fx: float, fy: float) -> Vector2: return Vector2(screen.x * fx, screen.y * fy)
 	_check_bubble_sweep(hud, bubbles, screen, tag)
+	_check_ticker_slide(hud, tag)
+	_check_target_pointer(hud, bubbles, screen, tag)
 	# The longest call the map gives (the longest hospital name), Polish over English as in missions.gd.
 	var call_pl := "Ranny rowerzysta: Aleksandra Krywulta. Wystarczy auto albo helikopter.\nSzpital: Samodzielny Szpital Kliniczny im. prof. Witolda Orłowskiego · czas 3:40"
 	var call_en := "A cyclist is hurt: the car or the helicopter will do. Get them to the hospital in 3:40."
@@ -145,7 +155,8 @@ func _check_screen(screen: Vector2i) -> int:
 	# Desktop: --no-touch (trailer loop, 2026-10-29): a third pass with the touch-only controls
 	# away; none may be left to press or take room.
 	# Accessibility (2026-11-01): a fourth pass in the left-handed layout (the pedals bottom left).
-	for mode in ["", "perf", "no-touch", "left-handed"]:
+	# Larger HUD text (2026-11-02): a fifth pass at Access.LARGE_TEXT (x1.25), the setting the phone's own text size will drive.
+	for mode in ["", "perf", "no-touch", "left-handed", "large-text"]:
 		var perf: bool = mode == "perf"
 		for state in ["car, Point", "car, Classic", "helicopter", "call came in", "call card", "rescued, paid",
 				"rescue, host, egg", "kebab offer", "kebab delivery", "race", "rival ahead", "landmark card", "note card", "tow toast",
@@ -158,6 +169,11 @@ func _check_screen(screen: Vector2i) -> int:
 			if mode == "left-handed" and not state in ["car, Point", "car, Classic", "helicopter", "rescue, host, egg", "kebab offer",
 					"landmark card", "police chase", "pull-over", "ride offer", "ride"]:
 				continue
+			if mode == "large-text" and not state in ["car, Point", "call came in", "call card", "rescue, host, egg", "kebab offer",
+					"kebab delivery", "race", "landmark card", "note card", "police chase", "pull-over", "ride offer", "ride", "ride result"]:
+				continue
+			Access.text_scale = Access.LARGE_TEXT if mode == "large-text" else 1.0
+			hud.apply_text_scale()
 			hud.set_left_handed(mode == "left-handed")
 			hud.clear_all()
 			bubbles.clear()
@@ -174,7 +190,7 @@ func _check_screen(screen: Vector2i) -> int:
 			match state:
 				"call came in":
 					hud.show_pill("WEZWANIE", "rescue call")
-					hud.toast("Wezwanie ratunkowe!", "A rescue call came in: tap WEZWANIE")
+					hud.toast("Wezwanie ratunkowe!", "A rescue call came in: tap the button at the top.")
 				"call card":
 					hud.show_card("WEZWANIE 1 · RATUNEK NA ULICY", call_pl, PackedStringArray(["ACCEPT", "SKIP", "LATER"]),
 							Color("#ffc23a"), false, "Call 1 · street rescue", call_en)
@@ -196,6 +212,10 @@ func _check_screen(screen: Vector2i) -> int:
 							"It cools on the way: the hotter, the bigger the tip. Across the river (\"basically the centre\"). Night pays ×1.5.")
 					hud.ticker("87,3 KEBAB FM  ·  Palma de Gaulle'a", Color("#ff5fc8"))
 					hud.toast("Jedziemy! Kasia czeka", "Go! Kasia is waiting")
+					# PT-13: the GO counts down to the order's own start (jobs.gd _count_down).
+					hud.set_card_button(0, "JEDZIEMY! · 9", "GO! · 9")
+					if not hud.card_button_text(0).ends_with("· 9"):
+						problems.append("%s %s PT-13: the order card's GO doesn't show its countdown (%s)" % [screen, state, hud.card_button_text(0)])
 					_say(bubbles, "Marek", at.call(0.12, 0.82), "Z ostrym czy łagodnym?", "Hot sauce or mild?")
 					# The vendor over the stand, mid-right, where shots/loop2e_kebab_offer_* see it.
 					_say(bubbles, "Kebab 24h", at.call(0.62, 0.52), "Mięso z rożna, sos z serca. Dowieź, zanim wystygnie.",
@@ -366,6 +386,8 @@ func _check_screen(screen: Vector2i) -> int:
 		count += 1
 	panel.close()
 	hud.set_left_handed(false)
+	Access.text_scale = 1.0
+	hud.apply_text_scale()
 	book.free()
 	egg_book.free()
 	tape.free()
@@ -428,6 +450,7 @@ func _check_full_map(hud: CanvasLayer, tag: String) -> int:
 	var fm: Control = hud.full_map
 	if not fm.rects().has("goal"):
 		problems.append("%s: no goal card for the main line" % where)
+	await _check_quest_card(fm, where, pt, safe)
 	# Loop 3h slice 3: the DRABINKA card (a ladder half way up, the longest rows).
 	var lw := Wallet.new()
 	lw.persistent = false
@@ -497,6 +520,131 @@ func _check_full_map(hud: CanvasLayer, tag: String) -> int:
 		print("  %s: ✕ %s, head %s, hint %s; pan %.0f px, pinch %.2f×" % [where, _pts(rs["close"], pt), _pts(rs["head"], pt),
 				_pts(rs["hint"], pt), moved, fm.ppm / ppm0])
 	return 1
+
+
+## G12 part 2: the ZADANIA card (full_map.gd `set_quests`) with the longest names: inside the safe
+## area, clear of the other cards, its tabs and rows MIN_TOUCH tall; the HELI tab lists only heli
+## quests; a tapped place becomes the pin and emits it, tapped again the pin goes; a request emits
+## and closes the map; the ≡ cards take its place.
+func _check_quest_card(fm: Control, where: String, pt: float, safe: Rect2) -> void:
+	const L := preload("res://scripts/quest_lines.gd")
+	var e: Array = [
+		L.entry("ride", "ride", L.Line.CAR, "Podwózka · poproś o kurs", "Podwózka · ask for a ride", Vector2.INF,
+				Color("#4fd8c4"), "ride"),
+		L.entry("garage", "garage", L.Line.CAR, "Warsztat u Mirka", "Mirek's garage", Vector2(400, 300), Color("#5aa0ff")),
+		L.entry("k", "kebab", L.Line.CAR, "Kebab · Zakwas I Rożen", "Kebab · Zakwas I Rożen", Vector2(-1800, -2400),
+				Color("#ff8a3d")),
+		L.entry("s", "sloik", L.Line.CAR, "Słoiki · Dworzec Gdański", "Jars · Dworzec Gdański", Vector2(-2000, -2700),
+				Color("#4fd8c4")),
+		L.entry("call", "call", L.Line.HELI, "Wezwanie · ratunek z helikoptera", "Rescue call · by helicopter",
+				Vector2.INF, L.HELI_COLOUR, "call"),
+		L.entry("c1", "cassette", L.Line.HELI, "Kaseta · Dach Pałacu Kultury", "Cassette · The Palace roof",
+				Vector2(900, -100), Color("#ff5fa2")),
+	]
+	fm.set_quests(e, L.Line.CAR)
+	await process_frame
+	var rs: Dictionary = fm.rects()
+	if not rs.has("quests"):
+		problems.append("%s: no ZADANIA card" % where)
+		return
+	if not safe.grow(0.5).encloses(rs["quests"]):
+		problems.append("%s: the ZADANIA card %s is outside the safe area %s" % [where, _pts(rs["quests"], pt), _pts(safe, pt)])
+	for k in rs:
+		if k != "quests" and (rs[k] as Rect2).intersects(rs["quests"]):
+			problems.append("%s: the ZADANIA card and %s overlap" % [where, k])
+	var tabs: Array = fm.get("_tab_buttons")
+	var rows: Array = fm.get("_quest_buttons")
+	if rows.size() != 4:
+		problems.append("%s: the car tab shows %d rows (want 4)" % [where, rows.size()])
+	for b: Button in tabs + rows:
+		if b.get_global_rect().size.y < MIN_TOUCH * pt - 0.5:
+			problems.append("%s: ZADANIA %s is %.0f pt tall (< %d)" % [where, b.name, b.get_global_rect().size.y / pt, MIN_TOUCH])
+	_check_fonts(fm.get("_quests"), where + " quests", pt)
+	(tabs[1] as Button).pressed.emit()
+	await process_frame
+	if fm.quest_line != L.Line.HELI or not fm.quest_rows.all(func(r: Dictionary) -> bool: return int(r["line"]) == L.Line.HELI):
+		problems.append("%s: the HELI tab lists car quests" % where)
+	var got: Array = []
+	var on_pick := func(x: Dictionary) -> void: got.append(x)
+	fm.quest_picked.connect(on_pick)
+	fm.pick_row(1)  # the cassette
+	if got.size() != 1 or str(got[0].get("id", "")) != "c1" or str(fm.quest_pick.get("id", "")) != "c1" \
+			or fm.centre.distance_to(Vector2(900, -100)) > 1.0:
+		problems.append("%s: a tapped place did not become the pin %s" % [where, got])
+	fm.pick_row(1)
+	if got.size() != 2 or not (got[1] as Dictionary).is_empty() or not fm.quest_pick.is_empty():
+		problems.append("%s: a second tap did not take the pin off" % where)
+	(fm.get("_cards") as Button).pressed.emit()
+	await process_frame
+	if fm.rects().has("quests"):
+		problems.append("%s: the ZADANIA card stays under the ≡ cards" % where)
+	(fm.get("_cards") as Button).pressed.emit()
+	await process_frame
+	fm.pick_row(0)  # the rescue call: a request closes the map
+	if got.size() != 3 or str(got[2].get("action", "")) != "call" or fm.visible:
+		problems.append("%s: a request did not emit and close the map" % where)
+	# G12b: the pad's way into the card: X switches the tab and picks its first row, the D-pad
+	# moves the pick (a place centres the map), Y takes it; the pad's words show on the card.
+	hud_pad(true)
+	(fm.hud as CanvasLayer).open_full_map(Vector2(10.0, 20.0), 0.5, PackedVector2Array([Vector2(100.0, 50.0)]))
+	fm.set_quests(e, L.Line.CAR)
+	await process_frame
+	if fm.get("_quests").find_child("pad_keys", true, false) == null:
+		problems.append("%s: the ZADANIA card shows no pad keys while the pad is used" % where)
+	var rs_pad: Dictionary = fm.rects()
+	if rs_pad.has("quests") and not safe.grow(0.5).encloses(rs_pad["quests"]):
+		problems.append("%s: the ZADANIA card with the pad's keys %s is outside the safe area" % [where, _pts(rs_pad["quests"], pt)])
+	_pad_press(fm, JOY_BUTTON_X)
+	if fm.quest_line != L.Line.HELI or fm.quest_pad != 0:
+		problems.append("%s: pad X did not switch to HELI with row 0 picked (%d, %d)" % [where, fm.quest_line, fm.quest_pad])
+	_pad_press(fm, JOY_BUTTON_DPAD_DOWN)
+	if fm.quest_pad != 1 or fm.centre.distance_to(Vector2(900, -100)) > 1.0:
+		problems.append("%s: pad down did not pick the cassette and look at it (%d)" % [where, fm.quest_pad])
+	var before := got.size()
+	_pad_press(fm, JOY_BUTTON_Y)
+	if got.size() != before + 1 or str(fm.quest_pick.get("id", "")) != "c1":
+		problems.append("%s: pad Y did not take the picked row" % where)
+	_pad_press(fm, JOY_BUTTON_DPAD_UP)
+	_pad_press(fm, JOY_BUTTON_DPAD_UP)
+	if fm.quest_pad != 1:
+		problems.append("%s: pad up did not wrap round (%d)" % [where, fm.quest_pad])
+	# G12c: the quest under way: one row, tapped it only looks at the target.
+	var now := L.entry("now", "now", L.Line.CAR, "Teraz · zlecenie na czasie", "Now · on-trend job", Vector2(-600, 200),
+			Color("#ff7ac8"), L.NOW)
+	fm.set_quests([now], L.Line.CAR)
+	await process_frame
+	var n0 := got.size()
+	fm.pick_row(0)
+	if got.size() != n0 or not fm.visible or fm.centre.distance_to(Vector2(-600, 200)) > 1.0:
+		problems.append("%s: the quest under way's row did not just look at its target" % where)
+	hud_pad(false)
+	fm.quest_picked.disconnect(on_pick)
+	fm.set_quests([], L.Line.CAR)
+	var hud: CanvasLayer = fm.hud
+	hud.open_full_map(Vector2(10.0, 20.0), 0.5, PackedVector2Array([Vector2(100.0, 50.0)]))
+	await process_frame
+	if verbose:
+		print("  %s: ZADANIA %s" % [where, _pts(rs["quests"], pt)])
+
+
+## G12b: a gamepad button press through the full map's input (as the pad sends it).
+func _pad_press(fm: Control, button: JoyButton) -> void:
+	var ev := InputEventJoypadButton.new()
+	ev.button_index = button
+	ev.pressed = true
+	fm._input(ev)
+
+
+## G12b: makes the pad (or a finger) the last input used (gamepad.gd `in_use`).
+func hud_pad(on: bool) -> void:
+	const Pad := preload("res://scripts/gamepad.gd")
+	if on:
+		var ev := InputEventJoypadButton.new()
+		ev.button_index = JOY_BUTTON_LEFT_SHOULDER
+		ev.pressed = true
+		Pad.note(ev)
+	else:
+		Pad.note(InputEventScreenTouch.new())
 
 
 ## F's ask (2026-10-31): the full map's hold to teleport. Held HOLD_S still, it emits `teleport`
@@ -768,6 +916,73 @@ func _check_bubble_sweep(hud: CanvasLayer, bubbles: Control, screen: Vector2i, t
 		problems.append("%s PT-6: the bubble sweep placed nothing" % tag)
 
 
+## PT-9 (2026-11-02, run 10 at 1266x585): the radio ticker slid in from off screen, so mid-slide
+## the screen edge cut its first words. Every step of its slide must stay inside the safe area.
+func _check_ticker_slide(hud: CanvasLayer, tag: String) -> void:
+	hud.clear_all()
+	hud.ticker("KEBAB FM · Dzień dobry, Warszawo! Dobre popołudnie, Warszawo!", Color("#ff5fc8"), "")
+	hud.panel_rects()
+	var safe: Rect2 = hud.safe_rect()
+	var box: Control = hud.get("_ticker")
+	for k in 11:
+		hud.call("_slide_ticker", k / 10.0)
+		if box.visible and box.position.x < safe.position.x - 0.5:
+			problems.append("%s PT-9: the ticker's slide puts it %.0f px past the safe area's left edge" % [
+					tag, safe.position.x - box.position.x])
+			break
+	hud.clear_all()
+
+
+## PT-10 (2026-11-02, run 10): the target pointer drew over speech bubbles and the banner, and at
+## the screen edge its distance ran into its arrow. Checks the draw order, that the edge label
+## stays clear of its arrow all round, and that the edge arrow gives way to a bubble in its spot.
+func _check_target_pointer(hud: CanvasLayer, bubbles: Control, screen: Vector2i, tag: String) -> void:
+	var overlay: Control = hud.get("_overlay")
+	var banner: Control = hud.get("_banner")
+	if not (overlay.get_index() < bubbles.get_index() and bubbles.get_index() < banner.get_index()):
+		problems.append("%s PT-10: draw order is pointer %d, bubbles %d, banner %d (want pointer under both)" % [
+				tag, overlay.get_index(), bubbles.get_index(), banner.get_index()])
+	hud.clear_all()
+	bubbles.clear()
+	hud.panel_rects()
+	var pt: float = hud.pt
+	var centre := Vector2(screen) * 0.5
+	var into := 0
+	for k in 72:
+		var dir := Vector2.from_angle(TAU * k / 72.0)
+		hud.set_target(centre + dir * float(screen.x) * 2.0, "1888 m", Color("#ff9a3c"), true)
+		var e: Dictionary = hud.edge_pointer()
+		if e.is_empty():
+			continue
+		var tip: Vector2 = e["tip"]
+		var d: Vector2 = e["dir"]
+		var label: Rect2 = e["label"]
+		var near := INF
+		for c in [label.position, Vector2(label.end.x, label.position.y), label.end, Vector2(label.position.x, label.end.y)]:
+			near = minf(near, (tip - c).dot(d))
+		if near < (hud.EDGE_ARROW + 2.5) * pt:
+			into += 1
+			if into <= 2:
+				problems.append("%s PT-10: the edge distance runs into its arrow pointing %d°" % [tag, k * 5])
+		if not Rect2(Vector2.ZERO, Vector2(screen)).encloses(label):
+			problems.append("%s PT-10: the edge distance %s leaves the screen pointing %d°" % [tag, _pts(label, pt), k * 5])
+	# A bubble right where the left edge arrow points: the arrow moves along the edge, clear of it.
+	hud.set_target(Vector2(-float(screen.x), centre.y), "297 m", Color("#ff9a3c"), true)
+	var before: Dictionary = hud.edge_pointer()
+	if not before.is_empty():
+		_say(bubbles, "Kierowca", (before["label"] as Rect2).get_center(), "Kierunkowskaz to nie opcja!", "The indicator isn't an optional extra!")
+		bubbles.layout()
+		var after: Dictionary = hud.edge_pointer()
+		var tip: Vector2 = after["tip"]
+		var box := (after["label"] as Rect2).merge(Rect2(tip, Vector2.ZERO).grow((hud.EDGE_ARROW + 3.0) * pt))
+		for r: Rect2 in bubbles.rects:
+			if r.intersects(box):
+				problems.append("%s PT-10: the edge arrow %s stays under a bubble %s" % [tag, _pts(box, pt), _pts(r, pt)])
+	hud.set_target(Vector2.ZERO, "", Color.WHITE, false)
+	bubbles.clear()
+	hud.clear_all()
+
+
 ## A speech bubble from a speaker standing at screen point `p`.
 func _say(bubbles: Control, who: String, p: Vector2, pl: String, en: String) -> void:
 	var anchor := func() -> Vector3: return Vector3(p.x, p.y, 0.0)
@@ -816,6 +1031,14 @@ func _check_state(hud: CanvasLayer, bubbles: Control, where: String) -> void:
 			problems.append("%s:   (the card %s pt)" % [where, hud._card.get_combined_minimum_size() / pt])
 	for n in hud.waiting():
 		_waits.append("%s in %s" % [n, where])
+	var fit: Dictionary = hud.fitted()
+	for n in fit:
+		if Access.text_scale <= 1.0:
+			problems.append("%s: %s shrank its text at the normal size" % [where, n])
+		elif float(fit[n]) < 1.0 - 0.001:
+			problems.append("%s: %s's text is below the normal size (x%.2f)" % [where, n, fit[n]])
+		else:
+			_fitted.append("%s x%.2f in %s" % [n, fit[n], where])
 	if bubbles.overlaps > 0:
 		_waits.append("%d speech bubble(s) in %s" % [bubbles.overlaps, where])
 	_check_fonts(hud, where, pt)

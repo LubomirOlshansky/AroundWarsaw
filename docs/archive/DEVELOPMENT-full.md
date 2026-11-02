@@ -3548,6 +3548,15 @@ the rail cutting on its 1 m level (the WKD 7 m under the grid) is 24,000 m² of 
 cut along a corridor (the trench floor drawn as one strip, the grid's triangles clipped round it)
 instead of sub-cells: BACKLOG.
 
+**G6, bridge entries off the lanes (2026-11-02).** `check_drive.gd` has a third pass, "entries": from
+every road deck piece's end that is no joint and stands within 1.2 m of the ground (a ramp's foot),
+the car drives straight onto the slab from 24 m out, every 0.8 m across the deck's width, at 0° and
+±20°, its height from `drive_height` like car.gd's; a frame more than `UNDER` 1 m under the slab is
+a finding (allowlist kind `under`). The routes flag the same on a deck's lanes. Before: 4 ends (the
+ground beside the fill 1.5-2.4 m lower than the slab's end); `drive_height` now lets a car up to
+`DECK_FOOT_UP` 3 m under the slab climb on over a foot's first `DECK_FOOT` 10 m (`_index_deck_feet`,
+lazy, both paths): 0. Gameplay only (no geometry, no bake): no bench needed.
+
 ## Moja Warszawa notebook (loop MW-1, 2026-10-30)
 
 MOJA WARSZAWA, the city notebook (docs/design/vision.md 4.1): the 72 places of
@@ -5248,6 +5257,16 @@ System Trace: the iPhone 11 at ×2 holds 60 at its lowest GPU clock, Loop G1 abo
 
 ## Map data
 
+**Bike markings (idea #9, 2026-11-02)**: `tools/bike_marks.py` (bake_osm after car_free, or as a
+CLI on a baked map) adds 660 `symbols` of kind `bike` marked `"on": "path"` on the cycle paths;
+`map_builder.gd` edges each `cyclecross` with P-11 squares (`CROSS_SQ`, `CROSS_EDGE`). No counted
+key changes. `tools/compare_cycleways.py` (reads only) measures how much of OSM's cycle network
+the map draws; it needs the raw export (`data/work/demo/osm_demo.json`).
+
+**Map review C (2026-11-02)**: one-lane one-way streets take `DEFAULT_WIDTH` (`bake_roads.py`
+`road_width`, `mark_split_legs`), two-way `lanes=2` ones at least 7 m (`TWO_LANE_STREET`); pois 4,572 (`tools/check_map_data.py` EXPECTED; the Centralny Leżak
+has its spot again). BACKLOG "From map review C".
+
 **Map north (2026-10-31)**: the box grew north on its west side by `bake_osm.py` `BBOX_NORTH`
 (Rondo Radosława, Arkadia, Forest; 1.04 km², 21.2 km² and 112 sectors in all): the map is the
 bounding rectangle without its north-east corner (`outside`, `tools/map_shape.py`); the extension's
@@ -5664,6 +5683,7 @@ Command-line options (after `--`):
 | `--settings` | loop 2a: open the settings panel at the start (screenshots) |
 | `--fullmap` | F's asks (2026-10-30): open the full-screen map at the start (the game paused; screenshots) |
 | `--fullmap=M` | 2026-10-31: the same, M metres across the screen's height (the game map's shots) |
+| `--quest-pick=N` | G12 part 2 (2026-11-02): open the full map at the start and tap row N of the ZADANIA tab shown (the vehicle's); a place's pick closes the map and becomes the quest pin |
 | `--map-jump=X,Z` | 2026-10-31: the full map's hold-to-teleport to X,Z at the start (prints the refusal, if any, and where the car went) |
 | `--settings-tab=N` | loop 2e: open the settings panel at tab N (0 Jazda · Driving, 1 Świat · World, 2 Obraz · Picture, 3 Dźwięk · Sound; loop MW-1: 4 Zeszyt · the notebook) |
 | `--notebook` / `--notebook=CHAPTER\|ID` | loop MW-1: open the settings card on MOJA WARSZAWA, the notebook (a chapter by id or number 1-9, or a place's card by its id; screenshots) |
@@ -5708,10 +5728,20 @@ Command-line options (after `--`):
 | `--packs=0` | packs (docs/design/packs.md): no running clubs, cycling packs or coffee raves (`--crowd=0` drops them too) |
 | `--packs-now` | packs: every club and every COFFEECHAIR café's rave on whatever the clock says; each pack whose loop passes within 300 m of the car's start is timed to stream past it a few seconds in (shots) |
 | `--packs-log` | packs: print `packs:` lines: the routes' lengths, each club setting off and going home, each rave with its booth's position, the minute's summary (where each pack's head is), every line and meeting |
+| `--fans=0` | the fans by Stadion Leguminy (fans.gd) off (also off with `--crowd=0`) |
+| `--fans-now` | fans: the three groups out on whatever the clock says (shots, checks); otherwise only on match evenings (Wed 17:00-21:30, Sat 15:00-21:30, Sun 14:00-20:30) |
+| `--fans-log` | fans: print `fans:` lines: out and home, each chant (and the horn's), every line |
+| `--fans-phase=arrive\|match\|leave` | fans: the match day's phase whatever the clock (its busy part: arrive at 0.75, leave at 0.15), so shots show the walkers |
+| `--fans-result=win\|draw` | fans: the result at full time instead of the roll (65 % win) |
+| `--wellness=0` | wellness circles (docs/design/wellness.md): no sound-healing rings, techno-yoga rows, 40+ circles or kung-fu schools (`--crowd=0` drops them too) |
+| `--wellness-now` | wellness: every spot on whatever the clock says (shots) |
+| `--wellness-log` | wellness: print `wellness:` lines: each spot starting and packing up, every line and meeting, the minute's summary |
 | `--tram-log` | vintage-tram loop: print `old tram:` lines: each run taken out of sight and turned modern, the follow count every 50 m and its resets, E39 |
 | `--bus-log` | night-buses loop: print `buses:` lines: the hub's bays and stops, each gathering and ring bus, the car at the ring, the race to the Palm, each honk and called bus, the stop lines, a summary every 20 s |
 | `--crash=now` / `--crash=X,Z` / `--crash=on` / `--crash=0` | crash scenes (`crash_scenes.gd`): a scene now 45-130 m ahead of the car (shots; it may be in view), or on the fitting road nearest X,Z; `on`: the 3-5 minute timer in a test run too (it runs in a normal launch only); `0`: none |
 | `--crash-log` | crash scenes: print `crash:` lines: the first scene's wait, each scene (where, street, lane, vehicles, distance, life), the radio line, every bubble line, each clear and the next wait |
+| `--loud=N` | loud cars (`loud_cars.gd`, city-life satire #1): at most N loud supercars in traffic at once (default 3, up to 16 for shots); `0`: none, and no car meet at Browary nor its crowd |
+| `--loud-log` | loud cars: print `loud:` lines: each rev (where), the meet's revs, KEBAB FM's line |
 | `--honk=F1,F2,...` | night-buses loop: the player honks on those frames (as the horn button; rate-limited) |
 | `--life-soak` | loop MW-4: a Friday dusk; the car is driven at the nearest dog walker or rider at 7 m/s, every frame counts a dog, walker or rider inside the car's footprint (`life: soak done … overlaps 0`); verify step `life-soak` |
 | `--paint=<id>` | garage loop: the car starts in that paint (`red`, `cream`, `green`, `blue`, `yellow`, `black`, `pink`, `gold`), owned for the run (use with `--nosave`) |
