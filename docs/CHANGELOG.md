@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-02
 - Zielona Świętokrzyska has its big flower planters on the pavement wherever the street's trees leave a gap.
+- The car no longer stops dead by the Centrum tram stop on Marszałkowska: raised tram and train platforms are solid now, and brushing a fence or a wall along the road keeps most of your speed.
 - A queue now forms outside the craft kebab ZAKWAS I ROŻEN, longest on Friday and Saturday evenings, with people grumbling about the wait.
 - Bracka, the short woonerf behind CeDeT by Aleje Jerozolimskie, is green as it is today: 22 more young planes, maples and cherries in its planted beds, 33 trees in all.
 - The first street of the game is busier: people at the café tables by the museum, at the kiosk and the flower stall, more walkers on both pavements of Marszałkowska, a tram rolling past with its bell in the first seconds, the hum of the square under the city's sound, and the radio's song from its first bar on a first launch.
