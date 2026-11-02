@@ -212,8 +212,12 @@ modelled (site `zbawiciela`, spec `zbawiciela.md`, 1029 tris).
   open on the street: facade, shopfront and roof polish house by house (needs photos), crossings
   against real photos, the island kits only fit where the slab is wide enough (most islands
   got no kit: a fence, wall or the tracks leave no room).
-- Next on the street: MDM's arcades, reliefs and corner towers (LANDMARKS 2.8), the church's
-  night lighting, Plac Zbawiciela's rotunda-side cafés, houses and roads street by street.
+- Pass 4 (cloud, Sonnet, 2026-11-02): eight neon shopfronts on mapped house numbers (`Storefronts.MARSZALKOWSKA`:
+  milk bar, dry cleaner, watchmaker, pastry shop, optician, florist, haberdashery, herbalist; check_parodies OK).
+  Needs F's photos / Mac look check (QUESTIONS): doors at the real shops, per-house plaster colours and
+  cornices, the crossings against real photos; Plac Bankowy's end.
+- Next on the street: the church's night lighting, Plac Zbawiciela's rotunda-side cafés, houses and
+  roads street by street.
 
 ## Old Town Market Square, the Syrenka and the decks (F, 2026-11-01)
 
@@ -373,6 +377,17 @@ Plan: docs/design/railway.md. One PR per item, in this order:
   `powisle`, specs in docs/landmarks/specs/). Left: Mac photo checks (Ochota's stripes, supports and
   stairs; Powiśle's arches, the saucer's profile, the canopies' length, the neon's letters); the
   stairs from the round pavilion up to the platforms; a WARSZAWA OCHOTA sign if the real one has it.
+
+## Powiśle street by street (F, 2026-11-01)
+- Built: Ostrogski Castle + Chopin Institute, the Teresy church, the boulevard Syrenka, Dworzec
+  Wodny, Kaskada, DALEJ DALLA GELATO (specs in docs/landmarks/specs/).
+- Mac look checks: the gelateria's door on Tamka (a guessed spot, 52.237885 21.027375) and its sign;
+  the castle's turret corner and entrance; the church's front, tower and colours; the Syrenka's
+  plinth against the flood wall (its corner touches the plinth in the cloud render); what Kaskada
+  is; a tree on Kaskada's deck.
+- Left: boulevard dressing (deck strips, bar containers), Piano House, Cube House, Hortus, Moderna
+  Powiśle, Tamka's and Dobra's tenements and street details.
+- `check_landmarks` stops in the cloud (no terrain data); run it on the Mac.
 - L1 track that reads as railway: sleepers, raised rails, ballast shoulders (no new draw calls).
 - ~~L2 catenary, L3 the tunnel's mouths~~ Done 2026-11-01 (`map_builder` `_build_catenary`,
   `_build_rail_portals`, in the walls surface: +0 draw calls). Left: portal frames over the station
