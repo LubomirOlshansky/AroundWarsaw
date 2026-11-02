@@ -6,6 +6,9 @@
 #   tools/setup_map.sh --full        also the GUGiK part first (the terrain and the LoD2
 #                                    buildings, from the raw downloads; ~2 min)
 #
+# A clone without the raw downloads gets lod2.bin, lod2.json and terrain.json from the map pack
+# (tools/map_pack.py fetch, a release asset; 2026-11-02), so the steps below work in CI and the cloud.
+#
 # Loop 3d-1 (the user's decision): game/map/lod2.bin, lod2.json and terrain.json come from
 # GUGiK's data alone (the LoD2 sheets, the 1 m and 10 m terrain) and are derived too, not
 # committed. They need the raw downloads (data/raw: tools/fetch_demo.py and the LoD2 package,
@@ -38,6 +41,13 @@ fi
 for f in lod2.bin lod2.json terrain.json; do
 	[[ -f $ROOT/game/map/$f ]] || full=1
 done
+# 2026-11-02: without the raw downloads (a clone, CI, a cloud thread) the three files come from the
+# map pack, a release asset of this repository (tools/map_pack.py; NW_MAP_PACK=off skips it).
+if (( full )) && [[ $1 != --full && ${NW_MAP_PACK:-on} != off && ! -d $ROOT/data/raw/demo/gugik/nmt1_box ]]; then
+	if python3 -I $ROOT/tools/map_pack.py fetch; then
+		full=0
+	fi
+fi
 if (( full )); then
 	if [[ ! -d $ROOT/data/raw/demo/gugik/nmt1_box || ! -d $ROOT/data/raw/gugik/sheets || ! -d $ROOT/data/raw/demo/gugik/sheets ]]; then
 		print -r -- "setup_map: game/map/lod2.* and terrain.json are built from GUGiK's raw data, which isn't here:"
