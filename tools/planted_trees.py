@@ -20,6 +20,14 @@ Trees are appended to `trees3d` (x, z, top, crown radius, crown base, kind 0) wi
 scale in `trees3d_crown` (bake_osm.crown_scales). A spot that already has a tree within
 SAME m is skipped, so running it twice adds nothing. Deterministic; standard library only.
 
+A PLACE may give a centre `line` (game x, z) and a `half` width instead of a `zone` polygon (ul.
+Chmielna, 2026-11-02): its zone is the band round the line, and its `mixes` pick the species
+by the distance along the line ([s0, s1, mix]). `bed_min` and `bed_two` lower BED_MIN and BED_TWO for a
+street of tree pits, `skip` names solids a trunk may touch (a bed's own low fence), `count_all` counts every tree in the zone towards the target (old trees that were kept;
+the project's number is the street's total), and `paving`, when set, re-tags the OSM pedestrian
+area surfaces (`surfaces` kind "paving") whose centre is in the zone, e.g. "granite" for the new
+slabs (map_builder.gd SURFACE_STYLE).
+
 Sources for Bracka: krajobraz.com.pl/projekt/ul-bracka/ (Al. Jerozolimskie to Krucza, 2023-24,
 for Zarząd Terenów Publicznych), whiteMAD 26.04.2024 (33 trees replacing a temporary car park:
 planes, bird cherry, cherries, maples), Architektura & Biznes (a woonerf, "nearly 40" trees,
@@ -53,7 +61,20 @@ SPECIES = {
     "maple": [7.0, 2.0, 2.4],         # klon
     "cherry": [5.6, 1.9, 1.9],        # wiśnia (ozdobna)
     "bird_cherry": [6.2, 1.8, 2.1],   # czeremcha
+    # Chmielna (2026-11-02): narrow-crowned street elms for the narrow stretches, a linden and a
+    # black locust as the project's single trees.
+    "elm": [7.8, 1.6, 2.6],           # wiąz (a narrow street cultivar)
+    "linden": [7.0, 2.0, 2.4],        # lipa
+    "robinia": [6.8, 2.0, 2.6],       # robinia
 }
+
+# ul. Chmielna, Nowy Świat to Pasaż Wiecha (RS Architektura Krajobrazu for ZTP, opened 2024): the
+# pedestrian street's centre (the OSM footway west of Plac Pięciu Rogów, the living street across
+# it, the footway east of it), west to east; s is metres along it from Pasaż Wiecha.
+CHMIELNA = [(-851.0, 253.2), (-809.3, 238.8), (-751.2, 218.7), (-703.5, 203.6), (-643.3, 184.9),
+            (-626.7, 179.7), (-580.1, 168.7), (-566.2, 163.8), (-532.4, 151.9), (-475.0, 131.7),
+            (-433.3, 117.0), (-389.8, 101.8), (-324.9, 79.0), (-312.3, 74.6)]
+
 
 PLACES = [
     {
@@ -80,7 +101,54 @@ PLACES = [
         "beds": ("park", "grass"),
         "mix": ["maple", "plane", "maple", "bird_cherry"],
     },
+    {
+        "id": "chmielna",
+        "name": "ul. Chmielna, Nowy Świat to Pasaż Wiecha (granite and elms, 2024)",
+        # Front to front along the street, from Pasaż Wiecha's corner (Ali's square, s 0) to
+        # the mouth on Nowy Świat (s 565).
+        "zone": None,
+        "line": CHMIELNA,
+        "half": 13.0,
+        # 95 trees (Architektura & Biznes), 88 of them in the city's list (Super Express: 57 elms,
+        # 24 planes, 5 cherries, a linden, a black locust), rows both sides ("szpalery") placed so
+        # the fronts stay in view and the café gardens fit. OSM has the new layout: a tree pit
+        # every few metres along both sides (2.4-8 m² beds) and the bigger beds of the squares by
+        # Kino Atlantic and Pasaż Wiecha; the scan has 20 trees in the zone, mostly the square's
+        # old ones, kept. One tree per pit; every tree in the zone counts towards the 95.
+        "target": 95,
+        "count_all": True,
+        "bed_min": 2.4,
+        "bed_two": 20.0,
+        # The squares' beds are edged with low fences (OSM barrier=fence round each bed).
+        "skip": ["fence"],
+        "paving": "granite",
+        "mix": ["elm"],
+        # [s0, s1, mix] along the line: planes on the two squares (Ali's by Pasaż Wiecha and
+        # Kino Atlantic's with the fountain), elms in two rows on the narrow stretches either
+        # side of Plac Pięciu Rogów, the odd cherry, linden and black locust.
+        "mixes": [
+            [0.0, 60.0, ["plane", "plane", "cherry", "plane"]],
+            [60.0, 146.0, ["plane", "plane", "linden", "plane", "plane", "cherry", "plane"]],
+            [146.0, 296.0, ["elm"]],
+            [296.0, 600.0, ["elm", "elm", "elm", "elm", "plane", "elm", "elm", "cherry", "elm", "robinia",
+                            "elm", "elm", "plane"]],
+        ],
+    },
 ]
+
+
+# ul. Chmielna's furniture (K2b, 2026-11-02): the project counts 64 pieces (urban chairs, benches
+# and long benches with flowing shapes); OSM maps 4 benches in the band. The game has one bench
+# model, so each piece is a bench, a seat every FURNITURE_STEP m along the street, alternate sides,
+# at the first pavement spot (not a bed, tree pit, café or lane) that is clear, turned to face the
+# street's middle. Kept FURNITURE_NS m off Nowy Świat's roads (the Chopin benches there are black
+# granite with the button).
+FURNITURE_TARGET = 64
+FURNITURE_STEP = 7.5
+FURNITURE_T = [2.6 + 0.6 * i for i in range(10)]   # metres off the centre line, nearest first
+FURNITURE_TREE_GAP = 2.3
+FURNITURE_BENCH_GAP = 3.6
+FURNITURE_NS = 16.0
 
 
 def _hash01(x, z, salt):
@@ -113,14 +181,68 @@ def _spots(bed, n):
     return [(cx + dx * 0.4, cz + dz * 0.4), (cx - dx * 0.4, cz - dz * 0.4)]
 
 
+class Line:
+    """A polyline with distance along it (s) and square to it (t, + up the map's side)."""
+
+    def __init__(self, pts):
+        self.segs = []
+        acc = 0.0
+        for (ax, az), (bx, bz) in zip(pts, pts[1:]):
+            n = math.hypot(bx - ax, bz - az)
+            self.segs.append((ax, az, (bx - ax) / n, (bz - az) / n, n, acc))
+            acc += n
+        self.length = acc
+
+    def at(self, s):
+        """(x, z, ux, uz) at s: the point and the line's direction there."""
+        for ax, az, ux, uz, n, a0 in self.segs:
+            if s <= a0 + n:
+                return ax + ux * (s - a0), az + uz * (s - a0), ux, uz
+        ax, az, ux, uz, n, _ = self.segs[-1]
+        return ax + ux * n, az + uz * n, ux, uz
+
+    def along(self, x, z):
+        """s of the line's nearest point to (x, z)."""
+        best = (1e18, 0.0)
+        for ax, az, ux, uz, n, a0 in self.segs:
+            u = max(0.0, min(n, (x - ax) * ux + (z - az) * uz))
+            d = (x - ax - ux * u) ** 2 + (z - az - uz * u) ** 2
+            if d < best[0]:
+                best = (d, a0 + u)
+        return best[1]
+
+    def zone(self, half):
+        """A polygon round the line, `half` m each side (mitred joints)."""
+        left, right = [], []
+        pts = [self.at(0.0)] + [self.at(a0 + n) for _, _, _, _, n, a0 in self.segs]
+        for i, (x, z, ux, uz) in enumerate(pts):
+            if 0 < i < len(pts) - 1:
+                _, _, vx, vz = self.at(self.segs[i][5] + 0.01)
+                ux, uz = (ux + vx), (uz + vz)
+                k = math.hypot(ux, uz)
+                ux, uz = ux / k, uz / k
+            nx, nz = uz, -ux
+            left.append((x + nx * half, z + nz * half))
+            right.append((x - nx * half, z - nz * half))
+        return left + right[::-1]
+
+
+def zone_of(place):
+    if place.get("zone"):
+        return place["zone"]
+    return Line(place["line"]).zone(place["half"])
+
+
 def plant(data, place, solids=None):
     """The new trees for one place, [x, z, top, radius, base, 0] each (not yet in the data)."""
-    zone = place["zone"]
+    zone = zone_of(place)
     trees = data.get("trees3d", [])
     near = [(trees[i], trees[i + 1], trees[i + 2]) for i in range(0, len(trees) - 5, 6)
             if _inside(trees[i], trees[i + 1], zone)]
-    young = sum(1 for _, _, h in near if h <= YOUNG_MAX)
-    want = place["target"] - young
+    have = len(near) if place.get("count_all") else sum(1 for _, _, h in near if h <= YOUNG_MAX)
+    want = place["target"] - have
+    bed_min = place.get("bed_min", BED_MIN)
+    line = Line(place["line"]) if place.get("line") else None
     if want <= 0:
         return []
     solids = solids or P.Solids(data)
@@ -135,14 +257,14 @@ def plant(data, place, solids=None):
         if not _inside(cx, cz, zone):
             continue
         size = _area(poly)
-        if size >= BED_MIN:
+        if size >= bed_min:
             beds.append((size, poly))
     # Biggest beds first: they read as the square's grove; the small ones along the street fill in.
     beds.sort(key=lambda b: (-b[0], b[1][0]))
     taken = [(x, z) for x, z, _ in near]
     out = []
     for size, poly in beds:
-        for x, z in _spots(poly, 2 if size >= BED_TWO else 1):
+        for x, z in _spots(poly, 2 if size >= place.get("bed_two", BED_TWO) else 1):
             if len(out) >= want:
                 return out
             if not _inside(x, z, poly):
@@ -151,15 +273,96 @@ def plant(data, place, solids=None):
                 continue
             if any(math.hypot(x - px, z - pz) < 1.5 for px, pz in pois):
                 continue
-            if solids.blocked(x, z, CLEAR, skip=("tree",)):
+            if solids.blocked(x, z, CLEAR, skip=("tree",) + tuple(place.get("skip", ()))):
                 continue
             mix = place["mix"]
-            kind = mix[int(_hash01(x, z, 1) * len(mix)) % len(mix)]
-            top, radius, base = SPECIES[kind]
-            k = 0.92 + _hash01(x, z, 2) * 0.16   # nursery stock varies a little
-            out.append([round(x, 1), round(z, 1), round(top * k, 1), round(radius * k, 1), round(base * k, 1), 0])
+            if line:
+                along = line.along(x, z)
+                mix = next((m for s0, s1, m in place["mixes"] if s0 <= along < s1), mix)
+            out.append(_tree(x, z, mix[int(_hash01(x, z, 1) * len(mix)) % len(mix)]))
             taken.append((x, z))
     return out
+
+
+def _tree(x, z, kind):
+    top, radius, base = SPECIES[kind]
+    k = 0.92 + _hash01(x, z, 2) * 0.16   # nursery stock varies a little
+    return [round(x, 1), round(z, 1), round(top * k, 1), round(radius * k, 1), round(base * k, 1), 0]
+
+
+def regrade(data, place):
+    """Re-tags the place's OSM pedestrian surfaces (its new paving); returns how many changed."""
+    kind = place.get("paving")
+    if not kind:
+        return 0
+    zone = zone_of(place)
+    n = 0
+    for srf in data.get("surfaces", []):
+        if srf["k"] != "paving":
+            continue
+        xs, zs = srf["p"][0::2], srf["p"][1::2]
+        if _inside(sum(xs) / len(xs), sum(zs) / len(zs), zone):
+            srf["k"] = kind
+            n += 1
+    return n
+
+
+def furnish(data, verbose=True):
+    """Adds Chmielna's benches to data["benches"] (x, z, yaw triples); returns how many were added.
+    Idempotent: once the band holds FURNITURE_TARGET benches nothing is added."""
+    place = next(p for p in PLACES if p["id"] == "chmielna")
+    line = Line(place["line"])
+    zone = zone_of(place)
+    bn = data.setdefault("benches", [])
+    have = [(bn[i], bn[i + 1]) for i in range(0, len(bn) - 2, 3) if _inside(bn[i], bn[i + 1], zone)]
+    solids = P.Solids(data)
+    trees = data.get("trees3d", [])
+    tree_pts = [(trees[i], trees[i + 1]) for i in range(0, len(trees) - 5, 6)]
+    pois = [(p["x"], p["z"]) for p in data.get("pois", []) if p.get("k") != "address"]
+    beds = []
+    for a in data.get("areas", []):
+        if a["k"] in ("park", "grass", "water"):
+            poly = list(zip(a["p"][0::2], a["p"][1::2]))
+            xs, zs = [q[0] for q in poly], [q[1] for q in poly]
+            beds.append((min(xs) - 0.8, min(zs) - 0.8, max(xs) + 0.8, max(zs) + 0.8, poly))
+    ns = [P.pairs(r["p"]) for r in data.get("roads", []) if r.get("name") == "Nowy Świat"]
+    added = 0
+    n = 0
+    s = FURNITURE_STEP * 0.5
+    while len(have) < FURNITURE_TARGET and s < line.length:
+        side = 1 if n % 2 == 0 else -1
+        n += 1
+        px, pz, ux, uz = line.at(s)
+        s += FURNITURE_STEP
+        for sd in (side, -side):
+            hit = None
+            for t in FURNITURE_T:
+                x, z = px + uz * t * sd, pz - ux * t * sd
+                if solids.blocked(x, z, 0.9):
+                    continue
+                if any(b[0] <= x <= b[2] and b[1] <= z <= b[3] and _inside(x, z, b[4]) for b in beds):
+                    continue
+                if any(math.hypot(x - tx, z - tz) < FURNITURE_TREE_GAP for tx, tz in tree_pts):
+                    continue
+                if any(math.hypot(x - hx, z - hz) < FURNITURE_BENCH_GAP for hx, hz in have):
+                    continue
+                if any(math.hypot(x - qx, z - qz) < 1.8 for qx, qz in pois):
+                    continue
+                if any(P.seg_dist(x, z, a, b) < FURNITURE_NS for pts in ns for a, b in zip(pts, pts[1:])):
+                    continue
+                hit = (x, z, sd)
+                break
+            if hit:
+                x, z, sg = hit
+                # The seat looks at the street's middle (snap_props: yaw = atan2(-nx, -nz), n the way it faces).
+                nx, nz = -uz * sg, ux * sg
+                bn.extend([round(x, 1), round(z, 1), round(math.atan2(-nx, -nz), 2)])
+                have.append((x, z))
+                added += 1
+                break
+    if verbose:
+        print(f"planted trees: chmielna furniture: {added} benches added, {len(have)} in the band")
+    return added
 
 
 def apply(data, verbose=True):
@@ -170,6 +373,9 @@ def apply(data, verbose=True):
     have = [(trees[i], trees[i + 1]) for i in range(0, len(trees) - 5, 6)]
     added = 0
     for place in PLACES:
+        paved = regrade(data, place)
+        if paved and verbose:
+            print(f"planted trees: {place['id']}: {paved} pedestrian surfaces re-tagged {place['paving']}")
         new = [t for t in plant(data, place)
                if not any(math.hypot(t[0] - x, t[1] - z) < SAME for x, z in have)]
         if not new:
@@ -184,6 +390,7 @@ def apply(data, verbose=True):
         added += len(new)
         if verbose:
             print(f"planted trees: {place['id']}: {len(new)} young trees added")
+    furnish(data, verbose)
     return added
 
 
@@ -200,8 +407,9 @@ def main(argv):
             path = arg
     with open(path, encoding="utf-8") as f:
         data = json.load(f)
+    before = json.dumps([data.get("surfaces", []), data.get("benches", [])])
     n = apply(data)
-    if n and not dry:
+    if (n or json.dumps([data.get("surfaces", []), data.get("benches", [])]) != before) and not dry:
         with open(path, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
         print(f"wrote {path}")

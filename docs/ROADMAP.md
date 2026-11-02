@@ -105,12 +105,14 @@ then the Launch gate.
 ### Left: landmarks and street details
 - [ ] Krajobraz places (F, 2026-11-02; docs/design/krajobraz-places.md, BACKLOG "Krajobraz places"): the newest public spaces as built
   - [x] K1 ul. Bracka's woonerf: its 22 missing young trees planted in the mapped beds (33 in all)
+  - [x] K2 ul. Chmielna: 65 young elms and planes in its tree pits (85 in all), granite paving, Ali's stone and plate
   - [x] K3 Varso Place: the sky garden of 16 hawthorns on the tower's 205 m roof, planted terraces on Varso 1 and 2, the VERSO PLACE sign and the erratic on the corner plaza, 6 young trees in Chmielna's bare beds (spec varso_place.md; Mac photo check in QUESTIONS)
   - [x] K7 Bulwary Wiślane: the splash pool and three fish (site `bulwary_basen`, spec bulwary_basen.md; the pavilions are the boulevard dressing lane)
   - [x] K8 Arkadia's playground: a rope course with trampolines, a bench-sculpture and cable lamps beside Arkadka (2026-11-02)
   - [x] K4 Zielona Świętokrzyska: 17 planters on the pavements where the scanned trees leave a gap (2026-11-02)
   - [x] K5 Rondo Daszyńskiego plazas: three tiers of planting and benches round Skyliner, Generation Park and Mennica Legacy Tower (2026-11-02)
-  - [ ] K2 Chmielna, K6 Browary/Norblin gardens, K9 the stadium's grounds; K10 Muzeum Historii Polski is off the map (QUESTIONS)
+  - [x] K2b Chmielna's 64 benches (2026-11-02; the Atlantic fountain's rim was already there)
+  - [ ] K6 Browary/Norblin gardens, K9 the stadium's grounds; K10 Muzeum Historii Polski is off the map (QUESTIONS)
 - [x] Stadion Leguminy (Legia's ground on Łazienkowska, F, 2026-11-01): modelled from the mapped bowl outline (site `legia`, spec legia.md); Mac photo check parked (QUESTIONS)
 
 - [x] All churches designed by one set of rules (F, 2026-11-01; rules and inventory in
@@ -192,8 +194,8 @@ then the Launch gate.
       in a white frame over a recessed ground floor on piers, the Drewniana flats as a tenement with
       a cornice and mansard; `moderna` 70 tris: a pre-war tenement front and a glass wing with a
       penthouse, card "Modernka Powiśle"); specs `hortus.md`, `moderna.md`, Mac photo check parked
-- [ ] Powiśle left: boulevard dressing (deck strips, bar containers), Dobra and Tamka's
-      tenements, the Mac photo checks (BACKLOG "Powiśle street by street")
+- [x] Dobra and Tamka tenements, 2026-11-02: per-house plasters, cornice, string course, shop fronts (`tenement_trim.gd`, spec `dobra_tamka.md`, `check_tenement_trim`); Mac photo check parked
+- [ ] Powiśle left: boulevard dressing (deck strips, bar containers), the Mac photo checks (BACKLOG "Powiśle street by street")
 - [x] Street furniture along the main line's route (Krakowskie Przedmieście, Nowy Świat, the Old
       Town's edge, Plac Zbawiciela, the boulevards, Rondo Daszyńskiego)
 - [x] Office crowds at Rondo Daszyńskiego, 2026-11-02 (F; BACKLOG "Rondo Daszyńskiego office crowd"):

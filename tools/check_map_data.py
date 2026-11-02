@@ -53,9 +53,12 @@ MAP = os.path.join(ROOT, "game", "map")
 # Generation Park and Mennica Legacy Tower; 18+21+12 beds in areas, 11 benches). Before: 269124 / 44854.
 # Krajobraz K3 (2026-11-02, planted_trees.py PLACE varso): 44,981 (+6 young trees in Chmielna's
 # bare beds by Varso Place). Before: 269850 / 44975.
-# Skwer Linearny na Złotej (F, 2026-11-02, tools/car_free.py): 45,017 (+36 young limes on Złota's
-# new park). Before: 269886 / 44981.
-EXPECTED = {"trees3d": 270102, "pois": 4571, "trees3d_crown": 45017}
+# Krajobraz K2 (2026-11-02, planted_trees.py PLACE chmielna): 45,046 (+65 young trees in ul.
+# Chmielna's tree pits, 85 in its band). Before: 269886 / 44981. Then 45,045: the K5 plaza tree
+# through a lying scooter by Skyliner taken out (plaza_gardens.py keeps POI_GAP from POIs now).
+# Skwer Linearny na Złotej (F, 2026-11-02, tools/car_free.py): 45,081 (+36 young limes on Złota's
+# new park). Before: 270270 / 45045.
+EXPECTED = {"trees3d": 270486, "pois": 4571, "trees3d_crown": 45081}
 # docs/DEMO.md 7 row 7: the lane graph's strongly connected share at least this.
 SCC_SHARE = 0.95
 
