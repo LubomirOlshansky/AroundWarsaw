@@ -671,6 +671,8 @@ func _find_sites() -> void:
 	_find_dtc()
 	# The Mac photo check (2026-11-01, specs C and D): the tower and the slabs behind the stores.
 	_find_behind()
+	# Pokorna 2 (F, 2026-11-01): the 57 m residential block by Muranów, a model with balconies.
+	_find_pokorna2()
 	# R5 of docs/design/start-area-real.md: the Cepelia pavilion and Zodiak.
 	_find_modern_pavilions()
 	# The railway (docs/design/railway.md, S1): Warszawa Ochota's hall and its saddle roof.
@@ -1078,6 +1080,9 @@ func build(surface, near := Rect2(), only := "") -> void:
 			"slabs":
 				_id = 0
 				_build_slabs(s)
+			"pokorna2":
+				_id = 0
+				_build_pokorna2(s)
 			"pawilony":
 				_build_pawilony(s)
 			"cepelia":
@@ -4921,6 +4926,85 @@ func _build_slabs(site: Dictionary) -> void:
 				_roof_frame(poly, face, top, 4.5, 5.5, SLAB_WORD, Color(1.0, 0.62, 0.15), minf(0.9, 25.0 / poly[face].distance_to(poly[(face + 1) % poly.size()])), Color("#1d3d6b"))
 		_collide(poly)
 		k += 1
+	_mode = M_STONE
+
+
+# --- Pokorna 2: the residential tower by Muranów ---------------------------------------------
+
+## F (2026-11-01): "Pokorna 2 looks strange, not as an apartment". OpenStreetMap has it as one
+## 57 m `apartments` outline (12 corners, a stepped 1970s block off Pokorna) and the plain
+## extrusion read as an office. Spec docs/landmarks/specs/pokorna2.md: the long faces take the
+## loggia skin S_SLAB (a window in every 3.6 m bay) plus a real balcony slab and railing on
+## every floor; the short faces stay plain; lift house and water tank on the flat roof. Unnamed.
+const POKORNA2_AT := Vector2(-2123.0, -2217.0)
+const POKORNA2_FLOOR := 2.85          # the S_SLAB shader's floor height
+const POKORNA2_PLASTER := Color("#d6c3ad")
+const POKORNA2_END := Color("#bda98f")
+const POKORNA2_SLAB := Color("#e8e2d6")
+const POKORNA2_RAIL := Color("#6f8f95")
+
+
+func _find_pokorna2() -> void:
+	var q := _outline_at(POKORNA2_AT)
+	if q.size() < 3:
+		return
+	_add_site("pokorna2", [_largest(Geometry2D.offset_polygon(q, 3.0, Geometry2D.JOIN_MITER))])
+	sites[-1]["outline"] = q
+
+
+func _build_pokorna2(site: Dictionary) -> void:
+	var poly := _simplify(site["outline"], 0.6)
+	if poly.size() < 3:
+		return
+	_g = _ground_under(poly)
+	var g := _g
+	var floors := 20
+	var top := g + POKORNA2_FLOOR * floors
+	for i in poly.size():
+		var a := poly[i]
+		var b := poly[(i + 1) % poly.size()]
+		var long_face := a.distance_to(b) >= 8.0
+		_mode = M_SKIN + float(S_SLAB) / 16.0 if long_face else M_STONE
+		_wall(a, b, g - 0.4, top, _out(poly, a, b), POKORNA2_PLASTER if long_face else POKORNA2_END)
+	_mode = M_STONE
+	_cap(poly, top, Color("#8c8a84"))
+	# A balcony slab with a railing on every floor above the first, along each long face, held
+	# 0.8 m short of the corners so neighbouring faces' balconies never cross.
+	for i in poly.size():
+		var a := poly[i]
+		var b := poly[(i + 1) % poly.size()]
+		var len := a.distance_to(b)
+		if len < 8.0:
+			continue
+		var d := (b - a) / len
+		var o := _out(poly, a, b)
+		var a2 := a + d * 0.8
+		var b2 := b - d * 0.8
+		var slab := PackedVector2Array([a2, b2, b2 + o * 1.0, a2 + o * 1.0])
+		if Geometry2D.is_polygon_clockwise(slab) != Geometry2D.is_polygon_clockwise(poly):
+			slab.reverse()
+		for n in range(1, floors):
+			var y := g + POKORNA2_FLOOR * n
+			_prism(slab, y, y + 0.15, POKORNA2_SLAB, POKORNA2_SLAB, M_STONE, M_STONE)
+			_wall(a2 + o * 1.0, b2 + o * 1.0, y + 0.15, y + 0.95, o, POKORNA2_RAIL)
+	# The roof: a lift house on the longest face's middle and a water tank beside it.
+	var best := 0
+	var longest := 0.0
+	for i in poly.size():
+		var el := poly[i].distance_to(poly[(i + 1) % poly.size()])
+		if el > longest:
+			longest = el
+			best = i
+	var e0 := poly[best]
+	var e1 := poly[(best + 1) % poly.size()]
+	var dd := (e1 - e0).normalized()
+	var oo := _out(poly, e0, e1)
+	var mid := (e0 + e1) * 0.5 - oo * 3.0
+	_prism(PackedVector2Array([mid - dd * 3.0 - oo * 2.0, mid + dd * 3.0 - oo * 2.0, mid + dd * 3.0 + oo * 2.0, mid - dd * 3.0 + oo * 2.0]),
+			top, top + 3.2, POKORNA2_PLASTER.darkened(0.06), Color("#7d7b75"), M_STONE, M_STONE)
+	var tank := mid + dd * 7.0
+	_prism(_square(tank, 1.6), top, top + 2.4, Color("#9aa3a8"), Color("#7d8388"), M_STONE, M_STONE)
+	_collide(poly)
 	_mode = M_STONE
 
 

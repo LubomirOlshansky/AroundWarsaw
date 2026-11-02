@@ -135,6 +135,8 @@ SITE_AREAS = [
     (-874.0, 149.0, -841.0, 215.0),
     (-826.0, 185.0, -800.0, 229.0),
     (-793.0, 287.0, -764.0, 333.0),
+    # Pokorna 2 (landmarks.gd _find_pokorna2): the 57 m residential block, found by the outline under POKORNA2_AT
+    (-2141.0, -2234.0, -2105.0, -2198.0),
 ]
 
 

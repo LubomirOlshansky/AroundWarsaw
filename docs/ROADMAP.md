@@ -28,6 +28,7 @@ then the Launch gate.
       the stadium, Plac Piłsudskiego, the start street's stores, many churches (Mac photo checks
       for some), the Ministry of Finance (2026-11-01, spec `mf.md`; Mac photo check parked)
 - [x] Flat-price jokes: radio, passengers, Podwózka, traffic, dog walkers and three developer billboards (F, 2026-11-01; text only, billboard spots need a Mac look)
+- [x] Pokorna 2 remodelled as a block of flats: loggia windows, balconies, warm plaster (F, 2026-11-02, site `pokorna2`; Mac look check in QUESTIONS)
 - [x] Retro vaporwave filter replaces the VHS tape look; the Styl obrazu picker removed, always Sharp (2026-11-01; phone look check parked in QUESTIONS)
 - [x] Day, dusk and night; rain; water; synthesised sound; puddles and night water (3i part)
 - [x] Landing page, design wiki and /progress/ live; store texts and privacy manifest drafted

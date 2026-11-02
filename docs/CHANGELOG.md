@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- Pokorna 2, the tall block by Muranów, now reads as a block of flats: a window in every bay, a balcony and railing on every floor, warm plaster and a lift house on the roof.
 - Getting wedged between traffic cars no longer ends the drive: push against them for a moment and your car slips through, and after eight seconds in a jam it is towed onto the road.
 
 ## 2026-11-01
