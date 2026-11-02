@@ -2150,6 +2150,11 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
   change (cycle paths 20,459 vs 20,460 pieces, a few walls and fills): a floating-point difference in
   `cycleways.py` / the structures, not traced.
 
+- **Found on main, not fixed here**: `check_landmarks` fails on `bulwary_basen` (the splash pool): the
+  helicopter at 6 m is not blocked over it (main's own centrum too, 2026-11-02). Also: a corner shop on
+  car-free Złota (-831, 96) has its door on Złota in main's committed bake, but a fresh bake puts it on
+  Zgoda (car_free runs before the street POIs); check_parodies' 80 % is now rounded down for that.
+
 ## From map review B (the streets, 2026-10-29)
 - Lines inside junctions mapped without a junction-box area: ~1.6 km of edge line and 0.4 km of
   lane line lie inside the clusters of junction nodes (most at Plac Trzech Krzyży (-77, 670), the
