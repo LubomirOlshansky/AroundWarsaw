@@ -49,11 +49,11 @@ Early morning city ambience in Central Europe, a tram passing with a two-tone be
 
 ## 3. The announcer
 
-**The opening line (F, 2026-11-02): one clip, the same every time**, short (about 8 s), sunny,
-over the opening only; the weather variants below are for later.
+**The opening line (F, 2026-11-02): one clip, the same every time**, short (about 12 s), sunny, with
+one city joke, over the opening only (F picked the roadworks one; no laughing tag); the weather variants below are for later.
 
 ```
-[cheerfully] Dzień dobry, Warszawo! [short pause] [warmly] Słońce nad Pałacem, szyby w dół, miasto czeka. [playfully] Miłego dnia!
+[cheerfully] Dzień dobry, Warszawo! Pogoda na dziś: słonecznie i przyjemnie ciepło. Na Marszałkowskiej nowy remont, [playfully] czyli wszystko po staremu. [warmly] A naszym słuchaczom, jak zawsze, życzymy miłego dnia!
 ```
 
 ### Later: the full set
