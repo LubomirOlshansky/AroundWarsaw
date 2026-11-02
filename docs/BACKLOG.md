@@ -227,14 +227,18 @@ west end: 90 → 93 draw calls (main 34 → 36, shadow 17 → 18), 0.39 → 0.41
 
 The free-play bug log is `docs/PLAYTEST.md` "The bug log" (PT-n ids, severity, status); fix
 threads take its confirmed rows one by one. After two runs: PT-1 fixed 2026-11-02 (a dead stop on
-Marszałkowska at Centrum's tram stop; every new PT spot joins `game/tools/check_stuck_spots.gd`), PT-2, PT-4 (Rondo Dmowskiego) and PT-5 (side
-streets west of Marszałkowska) suspects, PT-3 closed (low ground, not a bug). Run 3 (the Śródmieście grid): PT-6 the guide's bubble
+Marszałkowska at Centrum's tram stop; every new PT spot joins `game/tools/check_stuck_spots.gd`), PT-2 (NE of Plac Defilad) and PT-5 (side
+streets west of Marszałkowska) not reproduced by ~680 swept road lines, now guarded in the check (2026-11-02), PT-4 (Rondo Dmowskiego) not reproduced after the rebuild, PT-3 closed (low ground, not a bug). Run 3 (the Śródmieście grid): PT-6 the guide's bubble
 covers the minimap and +/- buttons (not reproduced on main: check_hud sweep clean; needs the frame, 2026-11-02). Design question for the driving lane: a hit from 108 km/h
 stops the car dead in 0.2-0.4 s with no slide; is that the arcade feel we want, or should it
 bounce or slide off a wall? Runs 4-8 (Krucza, Mokotowska,
 Świętokrzyska, Królewska): no wall bugs on the streets themselves (the on-road stops were bumps
 into traffic cars); PT-7 (the tow fires by the curved glass building) suspect, PT-8 (a 6 km/h crawl
 during Pani Halina's prompt: she was put in front of the car, fixed 2026-11-02); PT-9 HUD overlaps confirmed.
+- PT-11 follow-up (2026-11-02): the first race's start hold and GAZ! nudges are in (check_first10);
+  watch on the next P2 run that the nudge reads at phone size and that a red light mid-race (under
+  5 s) never triggers the stall line. The heli/tape/garage beats pass headless only; P2 by hand
+  (flying to the BUW roof, driving to Mirek) waits for an Autopilot run on the Mac.
 - Found with PT-1: a free spot (`main.gd _free_car_spot`, a tow) only tests the box against the
   wall faces, so a spot fully inside a solid outline (a building, now a 0.9 m platform) counts as
   free. Not seen in play; reject spots inside platforms and footprints if it shows up.
