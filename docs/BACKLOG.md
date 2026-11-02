@@ -268,8 +268,14 @@ Left:
 - Phone look and cost near the stadium (+5 draw calls in the cloud bench); banner readability at phone size.
 - The north groups stand between the pavement and the road edge on the forecourt; check against
   photos of the real gate (Mac photo check of the stadium is already parked).
-- Fans walking to the stadium from the tram stops before kick-off, and leaving after (only standing groups now).
-- A post-match evening variant (a win: louder chant; a draw: "następnym razem").
+- Match day built (2026-11-02): walkers in bunches on four routes (the bus stops by the Trasa,
+  Łazienkowska from the west, Czerniakowska from the south) to the groups before kick-off, late
+  runners, home the other way after full time; a win (chants twice as often, scarves up, `win`
+  lines, a toast) or a draw (`draw` lines). Left: the real stop names and whether trams or buses
+  serve the stadium (the map has no tram near it; QUESTIONS), a phone look of the walkers' size
+  and the cost on the phone (+1 draw call while they walk, 0.09 ms fans scripts in the cloud
+  probe, was 0.05), walkers dodging the car (they walk through it now, like the other crowds),
+  the standing groups thinning during the match (they stay out all evening now).
 
 ## Police chases and radiowozy (F, 2026-11-02)
 

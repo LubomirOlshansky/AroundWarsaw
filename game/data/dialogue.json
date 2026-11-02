@@ -4718,6 +4718,132 @@
       {
         "only": "kid"
       }
+    ],
+    [
+      "Idziemy na mecz! Kiełbasa czeka, drużyna też.",
+      "Off to the match! The sausage is waiting, and so is the team.",
+      {
+        "only": "walk"
+      }
+    ],
+    [
+      "Szalik jest, bilet jest, głos jeszcze jest.",
+      "Scarf: yes. Ticket: yes. Voice: still yes.",
+      {
+        "only": "walk"
+      }
+    ],
+    [
+      "Tata, a daleko jeszcze? Synku, słychać już bęben.",
+      "Dad, is it far? Son, you can already hear the drum.",
+      {
+        "only": "walk"
+      }
+    ],
+    [
+      "Wziąłem trzy kanapki. Mecz trwa dwa razy po czterdzieści pięć.",
+      "I packed three sandwiches. The match is two halves of forty-five.",
+      {
+        "only": "walk"
+      }
+    ],
+    [
+      "Z przystanku do bramy śpiewamy na rozgrzewkę.",
+      "From the stop to the gate we sing to warm up.",
+      {
+        "only": "walk"
+      }
+    ],
+    [
+      "Pani z kwiaciarni pyta, kto gra. My, proszę pani!",
+      "The florist asks who's playing. We are, madam!",
+      {
+        "only": "walk"
+      }
+    ],
+    [
+      "Biegiem! Już wychodzą na boisko!",
+      "Run! They're already walking out onto the pitch!",
+      {
+        "only": "late"
+      }
+    ],
+    [
+      "Zawsze wierni, czasem punktualni! Szybciej!",
+      "Always faithful, sometimes on time! Faster!",
+      {
+        "only": "late"
+      }
+    ],
+    [
+      "Mówiłem, żeby nie stać w kolejce po zapiekankę!",
+      "I told you not to queue for the zapiekanka!",
+      {
+        "only": "late"
+      }
+    ],
+    [
+      "Wygraliśmy! Jutro do pracy bez głosu, ale szczęśliwy.",
+      "We won! Tomorrow I'm at work with no voice, but happy.",
+      {
+        "only": "win"
+      }
+    ],
+    [
+      "Trzy punkty! I jeszcze trzy pierogi na kolację.",
+      "Three points! And three pierogi for dinner.",
+      {
+        "only": "win"
+      }
+    ],
+    [
+      "Tak się cieszę, że przytulę kierowcę autobusu.",
+      "I'm so happy I'll hug the bus driver.",
+      {
+        "only": "win"
+      }
+    ],
+    [
+      "Mamo, wygraliśmy! Tak, zjadłem coś ciepłego.",
+      "Mum, we won! Yes, I ate something warm.",
+      {
+        "only": "win"
+      }
+    ],
+    [
+      "Śpiewamy do samego przystanku, a potem w autobusie!",
+      "We sing all the way to the stop, and then on the bus!",
+      {
+        "only": "win"
+      }
+    ],
+    [
+      "Remis. Ale kiełbasa była na pięć punktów.",
+      "A draw. But the sausage was worth five points.",
+      {
+        "only": "draw"
+      }
+    ],
+    [
+      "Następnym razem! Zawsze jest następny raz.",
+      "Next time! There's always a next time.",
+      {
+        "only": "draw"
+      }
+    ],
+    [
+      "Jeden punkt to też punkt. Matematyka się zgadza.",
+      "One point is still a point. The maths checks out.",
+      {
+        "only": "draw"
+      }
+    ],
+    [
+      "Remis, ale za to jaki ładny remis.",
+      "A draw, but what a lovely draw.",
+      {
+        "only": "draw"
+      }
     ]
   ],
   "police_kibice": [
