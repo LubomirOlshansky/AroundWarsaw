@@ -17,6 +17,7 @@ One session per lane. Add a row when you start an item, remove it when the item 
 ## Waiting
 - **2026-11-02 · content · Nowy Świat shopfronts** — Mac look check for the eight signs (`Storefronts.NOWY_SWIAT`): each sits on a wall chosen from the road line, not a real door, so move any that land on a gap, a side street or the wrong side; are the pastel tubes readable at dusk beside the KUKŁA and NERWO signs? Still open (needs photos/orthophoto): per-house plaster colours, real shop awnings, café gardens, the Visitation and Staszic ends. Default built: neon only, no queues, no notebook cards.
 - **2026-11-02 · gameplay · Police chases** — Phone check: with chasers at 0.8 of your top speed and the escape at 100 m, does a flat-out run lose them in about 15 s without feeling free? (`CHASE_TOP` in `police/police_unit.gd`, `ESCAPE_DIST` in `police.gd`.) And a look at the new silver radiowóz estate and the silver police van against the photos: band height, checker strip, bonnet panel, the van's black mesh window. Built default: 24 m/s, 100 m.
+- **2026-11-02 · map · Marszałkowska shopfronts (pass 4)** — Mac look check of the eight neon signs (milk bar, dry cleaner, watchmaker, pastry shop, optician, florist, haberdashery, herbalist) on Marszałkowska 140, 124, 85, 83, 62, 58, 53, 43: on a wall, readable, at a plausible door? Also your own photos for per-house plaster colours, cornices and the zebras/cycle crossings (no free photos in the cloud). Default built: signs snapped to the mapped addresses.
 - **2026-11-02 · map · Marszałkowska street details** — Mac/phone look check: the new tram-island kits (a bench, a stop post, a ticket machine on the slab of the islands by Świętokrzyska and south of the Rotunda; are they on the slab, not sunk or floating, and facing the tracks?), the planters, bollards, kiosks and columns now on Marszałkowska north of Świętokrzyska and south of the Rotunda (C9, C10: clutter or life at camera size 80?). Also photos for the crossings (zebras and the cycle crossings against real Marszałkowska), the facades and shopfronts house by house. Default built: the bake's placement.
 - **2026-11-01 · landmarks · Stadion Leguminy** — Mac look check for the Legia ground on Łazienkowska (built in the cloud with no photo): facade colours (default: light-grey and graphite panels under a graphite band, a red line and a green band), the roof's opening size (default 160 x 122 m round the pitch), seat colours (default white, green, red blocks), where the four floodlight masts really stand, and whether the south and east LEGUMINA signs read at night. The 20 m west stand and the 5.4 m footprint are not modelled separately. Parody name chosen because the club name is a brand; say if the real place name should be used.
 
@@ -46,10 +47,16 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
-<<<<<<< HEAD
 - **2026-11-01 · map · Łazienki Królewskie** — The Palace on the Isle (about x 784, z 2101) and the Chopin monument (about x 307, z 2012) are 280-370 m south of the map's edge (z 1736). Default built: the three parks inside the map got their pieces; the `peacock` prop waits. Alternative: extend the map south (map-engineer, Opus), then add the palace, the monument, peacocks and squirrels.
 - **2026-11-01 · visuals · parks: Mac look check** — Built in the cloud on flat ground. Please look at the carousel (`--at=-1571,-1475`), the Park Ujazdowski pond with its swans and bridge (`--at=165,1450`), Saski's statues (`--at=-946,-627`): are the pieces' scale and the spots right, do the seated people read on the benches. Default built: as is.
-=======
+- **2026-11-01 · map · the start area's last two items need the Mac** — R8 and R3 part 2 of
+  docs/design/start-area-real.md can't be placed from the cloud (no photos, no orthophoto there).
+  R8: from refs/msn/2.jpg and 4.jpg, where the museum's mid-height dark ribbon runs and where it
+  breaks on each long face (metres from the north end), and how far and where the roofline steps
+  down near the south end. R3 part 2: from the orthophoto, the kerb line, Złota's sett street and
+  elm alley, the fountain at the old tunnel mouth and the three new crossings on Marszałkowska.
+  Default built: the ribbon all round, the flat roofline, today's kerbs and crossings. A Mac
+  session with the photos (model-from-photos skill) can measure and build both.
 - **2026-11-01 · landmarks · MDM arcades, towers, reliefs: Mac look check** — Built in the cloud
   (flat ground, no LoD2, no photo). Default built (`_build_mdm`, spec mdm.md): arcades with square
   piers every 5.4 m, 2.9 m deep, 6.7 m high on the facades that face the square or the axis; four
@@ -87,7 +94,6 @@ Newest first. One entry per question.
   a 3.4 m red M post, a glass lift on 3 in 5 (hash of the position, not a real lift list). For F on
   the Mac: do the canopies sit right on slopes, is the red M readable at the default zoom, should
   every canopy have a lift, are the 3 `u` passage-only entrances fine without a canopy.
->>>>>>> origin/main
 
 - **2026-11-01 · map · the land past the map's edge: Mac look check** — Built in the cloud,
   where the ground is flat. Default built (`scripts/map_edge.gd`): bare ground in the city's
