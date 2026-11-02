@@ -25,6 +25,14 @@ extends Node3D
 ##  - **Marszałkowska's tram platforms** (F, 2026-11-01): people waiting on every mapped platform
 ##    beside the street (`stop` sites, `stop_level`: the commute curve 7-9 and 15-18, thin on a
 ##    weekend, fuller in rain), standing figures in the same MultiMeshes;
+##  - **the office crowd at Rondo Daszyńskiego** (F, 2026-11-02): office workers (white shirts, navy,
+##    grey; a lanyard, a laptop bag and a coffee are the jokes of their lines, not meshes) in groups
+##    at the metro exits and zebra crossings (`OFFICE`, kind `office`: standing figures in the
+##    same cell MultiMeshes) and walking the footways, over the crossings, between the metro exits
+##    and the towers (the walkers of the dawn crowd, mode `office`: the same MultiMesh, +0 draw
+##    calls, routes found once by A* when the view comes near). Weekday rush hours (`office_level`),
+##    `amount` scales both; their lines are the `office` group (KPIs, OKRs, "spotkanie które mogło być
+##    mailem"), a bubble every 12-25 s on screen;
 ##  - **the dawn crowd** (Sat/Sun 05:00-09:00, Live or the Dawn look): 20-40 walkers in twos and
 ##    threes on footway routes from Lusterko, Smoła and Jasna 0 to the Palm, Metro Nowy
 ##    Świat-Uniwersytet, the nearest tram platforms and two kebab stands (A* over the footways
@@ -96,6 +104,29 @@ const DECKS := {
 	"forest_terrace": {"at": Vector2(-2947.0, -2407.0), "max": 14, "open": 11.0, "close": 23.0, "in": 2.6, "top": 27.4},
 }
 const ROOF_MAX := 16
+## F's ask (2026-11-02): the office crowd round Rondo Daszyńskiego (the Spire, the HUB and Plac
+## Europejski's towers). `OFFICE` is id -> [spot, most people, radius]: the standing groups at
+## the metro exits and at the zebra crossings' kerbs, read off centrum.json's `paths` (k "zebra")
+## and `pois` (subway_entrance) *guess*; the walkers use every subway exit within OFFICE_REACH of
+## OFFICE_AT and the towers' foyers in OFFICE_ENDS.
+const OFFICE := {
+	"office_metro_w": [Vector2(-2832.0, 470.0), 16, 14.0],
+	"office_metro_e": [Vector2(-2760.0, 458.0), 16, 14.0],
+	"office_zebra_n": [Vector2(-2752.0, 402.0), 14, 12.0],
+	"office_zebra_s": [Vector2(-2742.0, 445.0), 14, 12.0],
+	"office_zebra_e": [Vector2(-2650.0, 425.0), 14, 12.0],
+	"office_hub": [Vector2(-2672.0, 366.0), 14, 12.0],
+}
+const OFFICE_AT := Vector2(-2795.0, 442.0)
+const OFFICE_REACH := 230.0
+const OFFICE_ENDS := [["office_spire", Vector2(-2700.0, 195.0)], ["office_hub_b", Vector2(-2670.0, 565.0)]]
+## Most walkers at once (before `amount`), and how far from their box the view wakes them.
+const OFFICE_MAX := 56
+const OFFICE_NEAR := 450.0
+## A bubble from an office walker or group every OFFICE_GAP seconds on screen.
+const OFFICE_GAP := Vector2(12.0, 25.0)
+## Shirts, jackets and blouses: white, pale blue, grey, navy, beige, black.
+const OFFICE_SHIRTS := ["#f2efe8", "#bcd3e6", "#8c9199", "#1c2a45", "#d9c9ad", "#25272d", "#e8e4d8", "#6f8ea4"]
 ## F's ask (2026-11-01, Marszałkowska street by street): people waiting on the tram platforms of
 ## Marszałkowska. A platform (centrum.json `platforms`) within STOP_REACH m of a road named
 ## `STOP_STREET` gets a site; its most people = area / STOP_AREA, at most STOP_MAX.
@@ -325,6 +356,12 @@ var by_id := {}
 var routes: Array[Dictionary] = []
 var walkers: Array[Dictionary] = []
 var dawn_on := false
+## The office crowd (2026-11-02): its routes, whether it is out, and which crowd the walkers are
+## ("", "dawn" or "office"; `routes` stay the dawn's).
+var office_routes: Array[Dictionary] = []
+var office_on := false
+var walk_mode := ""
+var office_lines := 0
 var police_on := false
 ## The levels for the eggs (egg_book.gd `crowd`): name -> 0..1.
 var levels := {}
@@ -349,6 +386,12 @@ var _foot: Array[Dictionary] = []
 var _route_task := -1
 var _route_out: Array = []
 var _route_in := {}
+var _office_in := {}
+var _office_box := Rect2()
+var _route_mode := "dawn"
+var _dawn_asked := false
+var _office_asked := false
+var _office_bubble := 0.0
 var _night_key := -1
 var _last_hour := 0.0
 ## F's asks: Level 26's violet band (null until built: no tall roof there, or no map).
@@ -450,6 +493,39 @@ static func deck_level(hour: float, weekday: int, month: int, rain: bool, open: 
 
 static func deck_count(max_n: int, hour: float, weekday: int, month: int, rain: bool, open: float, close: float, k := 1.0) -> int:
 	return roundi(max_n * k * deck_level(hour, weekday, month, rain, open, close))
+## The office crowd's level 0..1: working days only, three waves (the morning rush 7-10, lunch
+## 11:30-14, the evening rush 16-19, all *guesses*); weekends are empty; rain thins it to 0.7
+## (umbrellas, taxis).
+static func office_level(hour: float, weekday: int, rain: bool) -> float:
+	if weekday > 5:
+		return 0.0
+	var h := fmod(hour + 24.0, 24.0)
+	var v := 0.0
+	if h >= 7.0 and h < 10.0:
+		v = 1.0 if h >= 8.0 and h < 9.5 else 0.6
+	elif h >= 11.5 and h < 14.0:
+		v = 0.8 if h >= 12.0 and h < 13.5 else 0.4
+	elif h >= 16.0 and h < 19.0:
+		v = 1.0 if h >= 16.5 and h < 18.0 else 0.6
+	return v * (0.7 if rain else 1.0)
+
+
+static func office_count(max_n: int, hour: float, weekday: int, rain: bool, k := 1.0) -> int:
+	return roundi(max_n * k * office_level(hour, weekday, rain))
+
+
+## The tag the office lines are drawn with (they also include the untagged ones): "rain" in the
+## rain, else `morning` (before 10:30), `lunch` (before 15:00) or `evening`.
+static func office_tag(hour: float, rain: bool) -> String:
+	if rain:
+		return "rain"
+	if hour < 10.5:
+		return "morning"
+	if hour < 15.0:
+		return "lunch"
+	return "evening"
+
+
 ## Marszałkowska's tram platforms: the commute curve, a weekend (Sat 0.6, Sun 0.4) and rain
 ## (people wait, so the platforms fill: x1.2, capped at 1).
 static func stop_level(hour: float, weekday: int, rain: bool) -> float:
@@ -671,6 +747,10 @@ func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
 		_add_site({"id": fid, "kind": "chill", "street": true, "sit": bool(fs[4]), "at": first_scene_at(float(fs[0]), float(fs[1])),
 				"max": int(fs[2]), "radius": float(fs[3])})
 	_add_stops(data)
+	for oid: String in OFFICE:
+		var os: Array = OFFICE[oid]
+		_add_site({"id": oid, "kind": "office", "at": os[0], "max": int(os[1]), "radius": float(os[2])})
+	_setup_office(data)
 	if at.has(PLAN_C_ID):
 		_add_site({"id": PLAN_C_ID, "kind": "plan_c", "at": at[PLAN_C_ID], "max": PLAN_C_MAX})
 	# The dawn crowd's ends: the palm, the metro, kebab stands and tram platforms near the clubs.
@@ -724,6 +804,39 @@ func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
 		kinds[s["kind"]] = int(kinds.get(s["kind"], 0)) + 1
 	print("crowds: %d sites %s, %d footways near them, the dawn crowd %d clubs → %d ends, amount %.2f" % [
 			sites.size(), kinds, _foot.size(), from.size(), ends.size(), amount])
+
+
+## The office walkers' routes' ends: every subway exit round the rondo (the `from` list) to the
+## other exits and the towers' foyers, and the box they walk in (the view wakes them near it).
+func _setup_office(data: Dictionary) -> void:
+	var exits: Array = []
+	for poi: Dictionary in data.get("pois", []):
+		if str(poi.get("k", "")) == "subway_entrance":
+			var q := Vector2(float(poi["x"]), float(poi["z"]))
+			if q.distance_to(OFFICE_AT) <= OFFICE_REACH:
+				exits.append(["office_exit_%d" % exits.size(), q])
+	if exits.is_empty():
+		return
+	var to: Array = exits.duplicate()
+	to.append_array(OFFICE_ENDS)
+	# Both kerbs of every zebra crossing round the rondo: a route from an exit to the far kerb
+	# has to cross the road, so the walkers use the crossings.
+	var zi := 0
+	for p: Dictionary in data.get("paths", []):
+		if str(p.get("k", "")) != "zebra":
+			continue
+		var flat: Array = p["p"]
+		var a := Vector2(float(flat[0]), float(flat[1]))
+		var b := Vector2(float(flat[flat.size() - 2]), float(flat[flat.size() - 1]))
+		if a.distance_to(OFFICE_AT) <= OFFICE_REACH + 40.0:
+			to.append(["office_zebra_%d_a" % zi, a])
+			to.append(["office_zebra_%d_b" % zi, b])
+			zi += 1
+	_office_in = {"from": exits, "to": to}
+	var box := Rect2(OFFICE_AT, Vector2.ZERO)
+	for e: Array in to:
+		box = box.expand(e[1])
+	_office_box = box.grow(80.0)
 
 
 ## First scene item 6: a point in first_scene.gd's Marszałkowska frame (`s` m north, `t` m east).
@@ -804,6 +917,11 @@ func _scan_paths(data: Dictionary, from: Array, ends: Array) -> void:
 		for x in range(floori(box.position.x / 128.0), floori(box.end.x / 128.0) + 1):
 			for z in range(floori(box.position.y / 128.0), floori(box.end.y / 128.0) + 1):
 				cells[Vector2i(x, z)] = true
+	if _office_box.size != Vector2.ZERO:
+		var ob := _office_box.grow(60.0)
+		for x in range(floori(ob.position.x / 128.0), floori(ob.end.x / 128.0) + 1):
+			for z in range(floori(ob.position.y / 128.0), floori(ob.end.y / 128.0) + 1):
+				cells[Vector2i(x, z)] = true
 	for p: Dictionary in data.get("paths", []):
 		var k := str(p.get("k", ""))
 		if k != "foot" and k != "zebra":
@@ -880,7 +998,7 @@ func _place_site(s: Dictionary) -> void:
 			s["line"] = _resample(line, QUEUE_GAP, int(s["max"]) * 2 + 2)
 		"steps":
 			_place_steps(s)
-		"plan_c", "chill":
+		"plan_c", "chill", "office":
 			_place_square(s)
 		"stop":
 			_place_stop(s)
@@ -982,6 +1100,7 @@ func _place_square(s: Dictionary) -> void:
 	var spots: Array = []
 	var radius := float(s.get("radius", 36.0))
 	var cap := int(s.get("max", PLAN_C_MAX))
+	var office := str(s["kind"]) == "office"
 	# First scene item 6: the street's standers at the kiosk and on the paving don't sit.
 	var chill := str(s["kind"]) == "chill" and bool(s.get("sit", true))
 	for f in _foot:
@@ -1008,11 +1127,18 @@ func _place_square(s: Dictionary) -> void:
 			var p := mid + Vector2.from_angle(a) * 0.55
 			# Chilling: a third of a group sits (on a step, a kerb, the ground), the rest lean and talk.
 			var pose := SIT if chill and rng.randf() < 0.35 else STAND
-			slots.append({"p": p, "pose": pose, "yaw": atan2(-(mid - p).x, -(mid - p).y), "shirt": BRIGHT[rng.randi() % BRIGHT.size()]})
+			var shirt: String = OFFICE_SHIRTS[rng.randi() % OFFICE_SHIRTS.size()] if office else BRIGHT[rng.randi() % BRIGHT.size()]
+			slots.append({"p": p, "pose": pose, "yaw": atan2(-(mid - p).x, -(mid - p).y), "shirt": shirt})
 	if slots.is_empty():
 		for i in cap:
 			var p := at + Vector2.from_angle(i * 2.4) * (2.0 + i * 0.3)
-			slots.append({"p": p, "pose": SIT if chill and i % 3 == 0 else STAND, "yaw": i * 1.3, "shirt": BRIGHT[i % BRIGHT.size()]})
+			slots.append({"p": p, "pose": SIT if chill and i % 3 == 0 else STAND, "yaw": i * 1.3,
+					"shirt": OFFICE_SHIRTS[i % OFFICE_SHIRTS.size()] if office else BRIGHT[i % BRIGHT.size()]})
+	if office and slots.size() < cap:
+		# Few footway points in reach (a median, a kerb): the rest stand in a ring on the spot.
+		for i in cap - slots.size():
+			var p := at + Vector2.from_angle(i * 2.4) * (1.5 + i * 0.35)
+			slots.append({"p": p, "pose": STAND, "yaw": i * 1.3, "shirt": OFFICE_SHIRTS[i % OFFICE_SHIRTS.size()]})
 	s["slots"] = slots
 	s["door"] = at
 
@@ -1279,7 +1405,7 @@ func _build_drawing() -> void:
 		buf.resize(int(cap[c]) * 16)
 		buf.fill(0.0)
 		_cells[c] = {"mmi": mmi, "mm": mm, "buf": buf, "cap": int(cap[c]), "dirty": false}
-	var wcap := ceili(DAWN_MAX * maxf(amount, 1.0)) + 4
+	var wcap := ceili(maxi(DAWN_MAX, OFFICE_MAX) * maxf(amount, 1.0)) + 4
 	_walk_mm = MultiMesh.new()
 	_walk_mm.transform_format = MultiMesh.TRANSFORM_3D
 	_walk_mm.use_custom_data = true
@@ -1370,7 +1496,7 @@ func _figures(s: Dictionary) -> Array:
 			if bool(s.get("guitar_on", false)):
 				var face: Vector2 = s["face"]
 				out.append([_ground(s["guitar"]), atan2(-face.x, -face.y), SIT, GUITAR_SHIRT, 0.0])
-		"plan_c", "roof", "terrace", "chill", "deck", "stop":
+		"plan_c", "roof", "terrace", "chill", "deck", "stop", "office":
 			var slots: Array = s["slots"]
 			for k in mini(n, slots.size()):
 				var sl: Dictionary = slots[k]
@@ -1435,7 +1561,7 @@ func _process(dt: float) -> void:
 		var step := _tick_t
 		_tick_t = 0.0
 		tick(step)
-	if dawn_on and not walkers.is_empty():
+	if (dawn_on or office_on) and not walkers.is_empty():
 		_walk_t += dt
 		if _walk_t >= WALK_TICK:
 			_walk_t = 0.0
@@ -1495,6 +1621,8 @@ func tick(step: float) -> void:
 				want = roundi(int(s["max"]) * k * lvl)
 			"stop":
 				want = roundi(int(s["max"]) * k * stop_level(hour, weekday, rain))
+			"office":
+				want = office_count(int(s["max"]), hour, weekday, rain, k)
 			"trend":
 				var q: Array = [0, ""]
 				if s["id"] == PISTACJA_ID:
@@ -1550,9 +1678,13 @@ func tick(step: float) -> void:
 			_chatter(s, step, veh)
 		elif near and kind == "trend":
 			_trend_talk(s, step)
+		elif near and kind == "office":
+			_office_talk(s, step, hour, rain)
 	_redraw()
 	_dawn(hour, weekday, live, look, step, eye2)
-	levels = {"dawn": 1.0 if dawn_on and not walkers.is_empty() else 0.0, "police_club": 1.0 if police_on else 0.0,
+	_office(hour, weekday, rain, step, eye2)
+	levels = {"dawn": 1.0 if dawn_on and not walkers.is_empty() else 0.0,
+			"office": 1.0 if office_on and not walkers.is_empty() else 0.0, "police_club": 1.0 if police_on else 0.0,
 			"steps": steps_lvl, "guitar": 1.0 if by_id.has(STEPS_ID) and bool(sites[by_id[STEPS_ID]].get("guitar_on", false)) else 0.0,
 			"plan_c": plan_lvl}
 	for s in sites:
@@ -1683,6 +1815,20 @@ func _trend_talk(s: Dictionary, step: float) -> void:
 	_say(_anchor(s, _rng.randi() % maxi(int(s["n"]), 1)), "", "viral", str(s["tag"]), BUBBLE, true)
 
 
+## An office group's overheard line every 12-25 s while it is on screen (the `office` lines).
+func _office_talk(s: Dictionary, step: float, hour: float, rain: bool) -> void:
+	if int(s["n"]) < 3:
+		return
+	if on_screen.is_valid() and not on_screen.call(_ground(s["door"]), 2.0):
+		return
+	s["chat_t"] = float(s["chat_t"]) - step
+	if float(s["chat_t"]) > 0.0:
+		return
+	s["chat_t"] = _rng.randf_range(OFFICE_GAP.x, OFFICE_GAP.y)
+	office_lines += 1
+	_say(_anchor(s, _rng.randi() % maxi(int(s["n"]), 1)), "", "office", office_tag(hour, rain), BUBBLE)
+
+
 ## A bubble anchor on figure `i` of site `s` (0: the bouncer at a queue).
 func _anchor(s: Dictionary, i: int) -> Callable:
 	return func() -> Vector3:
@@ -1753,6 +1899,12 @@ func _dawn(hour: float, weekday: int, live: bool, look: String, step: float, eye
 	var on: bool = dawn_time(hour, weekday, live, look) and not (_route_in.get("to", []) as Array).is_empty()
 	if on != dawn_on:
 		dawn_on = on
+		if on:
+			walkers.clear()  # the office crowd, if it was out
+			walk_mode = "dawn"
+			office_on = false
+		elif walk_mode == "dawn":
+			walk_mode = ""
 		if log_on:
 			print("night: the dawn crowd %s" % ("comes out" if on else "goes home"))
 		if not on:
@@ -1762,8 +1914,8 @@ func _dawn(hour: float, weekday: int, live: bool, look: String, step: float, eye
 	if not on:
 		return
 	if routes.is_empty():
-		if _route_task < 0 and _route_out.is_empty():
-			_start_routes()
+		if _route_task < 0 and not _dawn_asked:
+			_start_routes("dawn")
 		return
 	var want := dawn_count(hour, amount)
 	while walkers.size() < want:
@@ -1789,13 +1941,72 @@ func _dawn(hour: float, weekday: int, live: bool, look: String, step: float, eye
 			break
 
 
+# --- the office crowd ---------------------------------------------------------------------
+
+## Rondo Daszyńskiego's office workers walking between the metro exits and the towers, over the
+## zebra crossings: out while the view is within OFFICE_NEAR of their box, on a working day's
+## rush hours (`office_level`), and never over the dawn crowd. The walkers are the dawn crowd's
+## (one MultiMesh); the routes are found the first time the view comes near.
+func _office(hour: float, weekday: int, rain: bool, step: float, eye2: Vector2) -> void:
+	var count := office_count(OFFICE_MAX, hour, weekday, rain, amount)
+	var has_ends := not (_office_in.get("to", []) as Array).is_empty()
+	var on := has_ends and not dawn_on and count > 0 and _office_box.grow(OFFICE_NEAR).has_point(eye2)
+	if on != office_on:
+		office_on = on
+		if on:
+			walkers.clear()
+			walk_mode = "office"
+		elif walk_mode == "office":
+			walk_mode = ""
+			walkers.clear()
+			_walk_mm.visible_instance_count = 0
+			_walk_mmi.visible = false
+		if log_on:
+			print("night: the office crowd %s" % ("comes out" if on else "goes home"))
+	if not on:
+		return
+	if office_routes.is_empty():
+		if _route_task < 0 and not _office_asked:
+			_start_routes("office")
+		return
+	while walkers.size() < count:
+		_spawn_walkers(count - walkers.size(), true)
+	while walkers.size() > count:
+		walkers.pop_back()
+	for w in walkers:
+		if float(w["s"]) + float(w["v"]) * (t - float(w["t"])) >= float(office_routes[int(w["r"])]["len"]):
+			_restart(w)
+	_office_bubble -= step
+	if _office_bubble > 0.0:
+		return
+	for i in walkers.size():
+		var p := walker_pos(i)
+		if on_screen.is_valid() and not on_screen.call(p, 2.0):
+			continue
+		_office_bubble = _rng.randf_range(OFFICE_GAP.x, OFFICE_GAP.y) * 0.6
+		office_lines += 1
+		_say(func() -> Vector3: return walker_pos(i) + Vector3(0, 2.0, 0) if i < walkers.size() and walk_mode == "office" else Vector3.INF,
+				"", "office", office_tag(hour, rain), BUBBLE)
+		break
+
+
 ## The routes, found once in a worker thread (pure data: the footways near the clubs).
-func _start_routes() -> void:
+func _start_routes(mode := "dawn") -> void:
 	var paths: Array = []
+	var area := _office_box.grow(100.0)
 	for f in _foot:
+		# The office crowd's graph is only the footways near the rondo (the dawn crowd's is all).
+		if mode == "office" and not area.has_point((f["pts"] as PackedVector2Array)[0]):
+			continue
 		paths.append([f["pts"], int(f["dk"])])
-	var from: Array = _route_in["from"]
-	var to: Array = _route_in["to"]
+	var rin: Dictionary = _office_in if mode == "office" else _route_in
+	var from: Array = rin["from"]
+	var to: Array = rin["to"]
+	_route_mode = mode
+	if mode == "office":
+		_office_asked = true
+	else:
+		_dawn_asked = true
 	_route_out = [null]
 	var out := _route_out
 	_route_task = WorkerThreadPool.add_task(func() -> void: out[0] = build_routes(paths, from, to), false, "crowd routes")
@@ -1807,8 +2018,11 @@ func _start_routes() -> void:
 func _finish_routes() -> void:
 	var found: Variant = _route_out[0] if not _route_out.is_empty() else null
 	var raw: Array = found if found is Array else []
-	routes.clear()
+	var office := _route_mode == "office"
+	var made: Array[Dictionary] = []
 	for r: Dictionary in raw:
+		if office and (str(r["from"]) == str(r["to"])):
+			continue
 		var pts: PackedVector2Array = r["pts"]
 		var dk: PackedInt32Array = r["dk"]
 		var h := PackedFloat32Array()
@@ -1819,7 +2033,18 @@ func _finish_routes() -> void:
 				run += pts[i].distance_to(pts[i - 1])
 			cum.append(run)
 			h.append(map.deck_height(dk[i], pts[i].x, pts[i].y) if map != null else 0.0)
-		routes.append({"pts": pts, "h": h, "cum": cum, "len": run, "from": r["from"], "to": r["to"], "end": pts[pts.size() - 1]})
+		if office and run < 40.0:
+			continue
+		made.append({"pts": pts, "h": h, "cum": cum, "len": run, "from": r["from"], "to": r["to"], "end": pts[pts.size() - 1]})
+	if office:
+		office_routes = made
+		if log_on:
+			print("night: %d office routes" % made.size())
+		if made.is_empty():
+			_office_in["to"] = []  # nothing to walk: the office stays on the kerbs
+		_route_mode = "dawn"
+		return
+	routes = made
 	if log_on:
 		var lens := PackedStringArray()
 		for r in routes:
@@ -1833,18 +2058,29 @@ func _spawn_walkers(count: int, spread: bool) -> void:
 	var left := count
 	while left > 0:
 		var g := mini(_rng.randi_range(1, 3), left)
-		var r := _rng.randi() % routes.size()
-		var s0 := _rng.randf_range(0.0, float(routes[r]["len"]) * 0.9) if spread else 0.0
+		var r := _rng.randi() % _walk_routes().size()
+		var s0 := _rng.randf_range(0.0, float(_walk_routes()[r]["len"]) * 0.9) if spread else 0.0
 		var v := _rng.randf_range(0.9, 1.25)
 		for i in g:
 			walkers.append({"r": r, "s": s0 - i * 0.9, "t": t, "v": v, "off": (i - (g - 1) * 0.5) * 0.7 + _rng.randf_range(-0.1, 0.1),
-					"k": 0, "shirt": Color(DARK[_rng.randi() % DARK.size()] if _rng.randf() < 0.7 else BRIGHT[_rng.randi() % BRIGHT.size()]),
+					"k": 0, "shirt": _walker_shirt(),
 					"tr": _rng.randf() * 0.99})
 		left -= g
 
 
+## The routes the walkers walk now: the office crowd's in mode "office", else the dawn crowd's.
+func _walk_routes() -> Array[Dictionary]:
+	return office_routes if walk_mode == "office" else routes
+
+
+func _walker_shirt() -> Color:
+	if walk_mode == "office":
+		return Color(OFFICE_SHIRTS[_rng.randi() % OFFICE_SHIRTS.size()])
+	return Color(DARK[_rng.randi() % DARK.size()] if _rng.randf() < 0.7 else BRIGHT[_rng.randi() % BRIGHT.size()])
+
+
 func _restart(w: Dictionary) -> void:
-	w["r"] = _rng.randi() % routes.size()
+	w["r"] = _rng.randi() % _walk_routes().size()
 	w["s"] = -_rng.randf_range(0.0, 3.0)
 	w["t"] = t
 	w["k"] = 0
@@ -1853,7 +2089,7 @@ func _restart(w: Dictionary) -> void:
 ## Where walker `i` is now (its route, its distance along it, its side offset).
 func walker_pos(i: int) -> Vector3:
 	var w: Dictionary = walkers[i]
-	var r: Dictionary = routes[int(w["r"])]
+	var r: Dictionary = _walk_routes()[int(w["r"])]
 	var s := clampf(float(w["s"]) + float(w["v"]) * (t - float(w["t"])), 0.0, float(r["len"]))
 	var cum: PackedFloat32Array = r["cum"]
 	var pts: PackedVector2Array = r["pts"]
@@ -1872,7 +2108,8 @@ func walker_pos(i: int) -> Vector3:
 ## The walkers' figures, 10 times a second while the view is near their box.
 func _move_walkers() -> void:
 	var eye: Vector3 = focus.call() if focus.is_valid() else Vector3.ZERO
-	if not _walk_box.grow(ACTIVE_R).has_point(Vector2(eye.x, eye.z)):
+	var box_now := _office_box if walk_mode == "office" else _walk_box
+	if not box_now.grow(ACTIVE_R).has_point(Vector2(eye.x, eye.z)):
 		if _walk_mmi.visible:
 			_walk_mmi.visible = false
 		return
@@ -1881,7 +2118,7 @@ func _move_walkers() -> void:
 	for i in n:
 		var w: Dictionary = walkers[i]
 		var p := walker_pos(i)
-		var r: Dictionary = routes[int(w["r"])]
+		var r: Dictionary = _walk_routes()[int(w["r"])]
 		var k := int(w["k"])
 		var dir: Vector2 = (r["pts"][k + 1] - r["pts"][k]).normalized()
 		put(_walk_buf, i, p, atan2(-dir.x, -dir.y), STAND, w["shirt"], float(w["tr"]))
@@ -1955,15 +2192,37 @@ static func build_routes(paths: Array, from: Array, to: Array) -> Array:
 				near.append([d, i])
 		near.sort_custom(func(x: Array, y: Array) -> bool: return x[0] < y[0])
 		return near.slice(0, 6).map(func(x: Array) -> int: return x[1])
+	# Connected pieces of the graph: a start and a goal in different pieces never get an A* run
+	# (a failing search explores its whole piece, up to 36 times per pair).
+	var comp := PackedInt32Array()
+	comp.resize(pos.size())
+	comp.fill(-1)
+	var piece := 0
+	for root in pos.size():
+		if comp[root] >= 0:
+			continue
+		var stack := PackedInt32Array([root])
+		comp[root] = piece
+		while not stack.is_empty():
+			var u: int = stack[stack.size() - 1]
+			stack.resize(stack.size() - 1)
+			for v in adj[u]:
+				if comp[v] < 0:
+					comp[v] = piece
+					stack.append(v)
+		piece += 1
 	var out: Array = []
+	var goals_of := {}
 	for f: Array in from:
 		var starts: Array = nearest.call(f[1])
 		for e: Array in to:
-			var goals: Array = nearest.call(e[1])
+			if not goals_of.has(e[0]):
+				goals_of[e[0]] = nearest.call(e[1])
+			var goals: Array = goals_of[e[0]]
 			var route := PackedInt32Array()
 			for a: int in starts:
 				for b: int in goals:
-					if a != b:
+					if a != b and comp[a] == comp[b]:
 						route = _astar(pos, adj, a, b)
 					if route.size() >= 2:
 						break

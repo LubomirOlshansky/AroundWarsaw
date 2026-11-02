@@ -16,6 +16,7 @@ someone writes its lines.
 - KEBAB FM now jokes about the cinemas (Muranów, Atlantic, Luna, Kultura, Elektronik, the Kinoteka) and about the Kebab Basin's sauce war.
 - Nowy Świat gets three more neon shops: an old-fashioned confectioner (BLIKLINA OD 1869), a coffee spot at Chmielna and a vinyl bar at Foksal.
 - Two more Powiśle buildings look like themselves: Hortus on Topiel, glass offices round a garden with tenement-style flats on Drewniana, and Modernka on Zajęcza, an old tenement joined to a new glass wing.
+- Rondo Daszyńskiego fills with office workers on weekday rush hours and at lunch: groups in white shirts and navy jackets wait at the metro exits and zebra crossings, more stream across the crossings towards the towers, and they chat in bubbles about KPIs, OKRs, "let's circle back" and "spotkanie które mogło być mailem".
 - Cringulo's cream van now carries CRINGULO TV in dark letters on both sides.
 - Evening rides in Podwózka sometimes carry a first-date passenger from the dating app TIMBER, heading for the LORETKA roof bar. Cringulo's van now has a handful of fans standing behind it, chatting, and parking right by the van while he films finds a new easter egg.
 - Powiśle's Piano House now has a keyboard for a front, white keys and black window strips, and Cube House next door is a white cube with its bays stepping out floor by floor.

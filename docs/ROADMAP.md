@@ -180,6 +180,10 @@ then the Launch gate.
       tenements, the Mac photo checks (BACKLOG "Powiśle street by street")
 - [x] Street furniture along the main line's route (Krakowskie Przedmieście, Nowy Świat, the Old
       Town's edge, Plac Zbawiciela, the boulevards, Rondo Daszyńskiego)
+- [x] Office crowds at Rondo Daszyńskiego, 2026-11-02 (F; BACKLOG "Rondo Daszyńskiego office crowd"):
+      weekday rush-hour workers in business dress at the metro exits and zebras and walking over the
+      crossings (`crowds.gd` OFFICE, mode `office`, up to 56 walkers + 88 standing, scaled by
+      `amount`), 65 overheard corporate lines in `dialogue.json` "office"; phone look check parked
 - [ ] The estate, the halls and Jana Pawła II (F, 2026-11-01; BACKLOG section):
   - [x] Osiedle Za Żelazną Bramą: eleven blocks as a model with its own skin, 2026-11-01
   - [x] Hala Mirowska: market stalls on the square, 2026-11-01 (the hall itself was done)
