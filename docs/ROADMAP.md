@@ -99,7 +99,9 @@ then the Launch gate.
       Plac Zbawiciela as a model (spec zbawiciela.md; Mac photo check parked). Next on the street:
       MDM's arcades and corner towers (LANDMARKS 2.8) DONE as pass 2 (2026-11-01, spec mdm.md; Mac
       look check parked), then houses, roads and street life
-      MDM's arcades and corner towers (LANDMARKS 2.8), then houses, roads and street life
+- [x] Marszałkowska street by street, pass 5 (F, 2026-11-02): Plac Zbawiciela's four parody cafés
+      with parasol terraces and the church lit at night (gilt, stained rose, lanterns, floodlamps).
+      Open: Mac look check, heaters/awnings, a café crowd
 - [x] Marszałkowska street by street, pass 2 (F, 2026-11-01): commuters waiting on the street's
       12 tram platforms (rush hours, thin weekends, fuller in rain; check_crowds). Open: houses,
       shopfronts, crossings (BACKLOG "Marszałkowska street by street")
@@ -148,6 +150,8 @@ then the Launch gate.
 - [x] Norblin, Browary Warszawskie, Hala Koszyki, Elektrownia Powiśle as models, people chilling
       in their yards and KROWA 2.0, the milk bar queue in Norblin (F, 2026-11-01; specs
       `norblin.md`, `browary.md`, `koszyki.md`, `elektrownia.md`; Mac look check parked)
+- [ ] The landmark lane's remaining list (BACKLOG "Landmarks lane, hand-over": the Cathedral and
+      the Barbican DONE 2026-11-02, Old Town gables, PZU/JM Tower and the rest), and the parked Mac photo checks
 - [x] Powiśle street by street, 2026-11-01 (F): Zamek Ostrogskich with the Chopin Institute
       (`ostrogski`, 724 tris), the parish church of St Thérèse (`teresy`, 228), the boulevard's
       Syrenka statue, Dworzec Wodny and Kaskada (`syrenka_powisle`, `dworzec_wodny`, `kaskada`),
@@ -155,8 +159,6 @@ then the Launch gate.
       from November (`crowds.gd` GELATO; Mac look check parked)
 - [ ] Powiśle left: boulevard dressing (deck strips, bar containers), Piano House, Cube House,
       Hortus, Moderna, Dobra and Tamka's tenements, the Mac photo checks (BACKLOG "Powiśle street by street")
-- [ ] The landmark lane's remaining list (BACKLOG "Landmarks lane, hand-over": the Cathedral, the
-      Barbican, Old Town gables, PZU/JM Tower and the rest), and the parked Mac photo checks
 - [x] Street furniture along the main line's route (Krakowskie Przedmieście, Nowy Świat, the Old
       Town's edge, Plac Zbawiciela, the boulevards, Rondo Daszyńskiego)
 - [ ] The estate, the halls and Jana Pawła II (F, 2026-11-01; BACKLOG section):
@@ -185,6 +187,7 @@ then the Launch gate.
   - [x] K1-K5 the Carmelite church's front, Mickiewicz's monument, the University gate and Pałac
         Kazimierzowski's skin, Pałac Potockich and the Kordegarda, Bristol's corner dome, 2026-11-01
         (spots and heights estimated; Mac photo check)
+  - [x] KP street by street pass 1: eight neon shopfronts along the royal route, 2026-11-02 (Mac look check)
   - [x] K6 the black Chopin benches, Prus's and Wyszyński's statues, the granite setts on the
         carriageway, Pałac Czapskich's skin and card, 2026-11-01 (Mac look check)
 
@@ -227,8 +230,8 @@ then the Launch gate.
       verify step `rescues`. Phone check of both is open (below)
 - [ ] Loop 3i juice: sparks and dust (no particles yet), money pops, district ambiences,
       haptics working on the iPhone
-- [ ] DEMO 6.3 counts, rescues and słoiki: the second słoiki station (jobs.gd has one), the Old
-      Town tourist and the Łazienki peacock rescues (a "tourist fainted" street rescue exists; no peacocks)
+- [ ] DEMO 6.3 counts, rescues and słoiki: the second słoiki station is done (Dworzec Gdański,
+      `jobs.gd`); left: the Old Town tourist rescue (a "tourist fainted" street rescue exists)
 - [x] Crash sparks and dust, phone vibration fixed in code (2026-11-01, crash_fx.gd, haptics.gd;
       the feel on the iPhone and an Android phone still to check: QUESTIONS)
 - [x] Loop 3i juice leftovers (2026-11-01): money pops (`money_pop.gd`, a "+54 zł" over the vehicle and a coin ting; calm mode keeps it still) and district ambiences (`sfx.gd`: river, park, square, courtyard beds)
@@ -253,6 +256,7 @@ then the Launch gate.
   - [x] G5 Cringulo: the "Mlask" job, his pizza, fans and news, 2026-11-01
   - [x] LORETKA's summer terrace with couples, PRZEGRYWKI, WACZEK burger neons, 2026-11-01
   - [ ] Leftovers (BACKLOG): Podwózka dates, "Kolejki" card, van fans and egg
+- [x] Roof rescues never name a real chain (2026-11-02, `missions.gd` `ROOF_PARODIES`): Puro shows as Hotel Piure, Green Caffè Nero as Green Caffè Nerwo; headless check not run in the cloud (no Godot)
 - [x] Zagłębie Kebabowe and Kino Femina (F, 2026-11-02; spec docs/design/zaglebie-kebabowe.md): five parody kebab shops on Al. Solidarności, Femina's neon, delivery twists, the craft kebab's choice, Szlak Szpili, 2026-11-02 (the Mac photo check of Femina's front is open)
   - [ ] Leftovers (BACKLOG): dates on LUŹNO's roof, Podwózka dates, "Kolejki" card, van fans and egg
 - [x] Gamepad support (2026-11-01, `gamepad.gd`, `check_gamepad`): Xbox, PlayStation and MFi

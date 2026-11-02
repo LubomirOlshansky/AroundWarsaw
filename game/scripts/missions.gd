@@ -25,6 +25,9 @@ const CAR_STOPPED := StopAssist.STOP_SPEED  # ...going no faster than this (m/s)
 const HELI_REACH := 8.0      # hover or land this close...
 const HELI_LOW := 4.0        # ...with the skids no higher above the person than this
 const MIN_ROOF := 20.0       # a roof rescue is at least this high above the street
+## A rescue roof named after a real chain shows our parody instead (found 2026-11-01): lower-case
+## fragment of the OSM name, then the name the player reads. The landmark keeps its OSM name as the key.
+const ROOF_PARODIES := {"puro": "Hotel Piure", "caffè nero": "Green Caffè Nerwo", "caffe nero": "Green Caffè Nerwo"}
 const ROOF_LOW := 6.0        # cassettes.gd: a roof for a cassette is at least this high
 const OPEN_RADIUS := 4.5     # street spots need this much open sky for the helicopter
 ## Map north: rescue spots keep this far inside the map's outline (map_builder.gd `in_map`; it was
@@ -521,6 +524,15 @@ func _limit_for(m: Dictionary) -> float:
 
 # --- finding places -------------------------------------------------------------
 
+## The name a roof is shown under: the parody when the OSM name holds a real chain.
+static func roof_shown(name: String) -> String:
+	var low := name.to_lower()
+	for frag: String in ROOF_PARODIES:
+		if low.contains(frag):
+			return ROOF_PARODIES[frag]
+	return name
+
+
 func _find_roofs(landmarks: Array) -> void:
 	var best := {}
 	for l in landmarks:
@@ -533,10 +545,11 @@ func _find_roofs(landmarks: Array) -> void:
 		if spot == Vector3.INF or (best.has(name) and (best[name]["pos"] as Vector3).y >= spot.y):
 			continue
 		var up := roundi(spot.y - map.ground_height(spot.x, spot.z))
-		best[name] = {"kind": Kind.ROOF, "name": name, "short": "roof of " + name, "pos": spot, "heli": true, "child": false,
-				"short_pl": "dach: " + name, "gloss": "Someone is stuck on a roof %d m up: helicopter only." % up,
-				"text": "Someone is stranded on the roof of %s, %d m up. Only the helicopter can reach them." % [name, up],
-				"text_pl": "Ktoś utknął na dachu: %s, %d m nad ulicą. Dotrze tylko helikopter." % [name, up]}
+		var shown := roof_shown(name)
+		best[name] = {"kind": Kind.ROOF, "name": name, "short": "roof of " + shown, "pos": spot, "heli": true, "child": false,
+				"short_pl": "dach: " + shown, "gloss": "Someone is stuck on a roof %d m up: helicopter only." % up,
+				"text": "Someone is stranded on the roof of %s, %d m up. Only the helicopter can reach them." % [shown, up],
+				"text_pl": "Ktoś utknął na dachu: %s, %d m nad ulicą. Dotrze tylko helikopter." % [shown, up]}
 	_places[Kind.ROOF].append_array(best.values())
 
 
@@ -560,6 +573,7 @@ func _find_peacock() -> void:
 	if spot == Vector3.INF:
 		return
 	var up := roundi(spot.y - map.ground_height(spot.x, spot.z))
+	roof = roof_shown(roof)
 	_peacock = {"kind": Kind.ROOF, "name": PEACOCK_NAME, "short": "peacock on " + roof, "pos": spot, "heli": true,
 			"child": false, "peacock": true, "short_pl": "paw na dachu: " + roof,
 			"gloss": "A peacock escaped from Łazienki and sits on a roof %d m up: helicopter only." % up,

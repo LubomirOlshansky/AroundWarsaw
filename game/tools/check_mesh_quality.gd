@@ -47,6 +47,7 @@ const BUDGET := {
 	"church_zielonoswiatkowy": 320,
 	"church_zwycieska": 950,
 	"aleksander": 1460,
+	"barbakan": 900,
 	"ostrogski": 870,
 	"brama_uw": 550,
 	"bristol": 2450,

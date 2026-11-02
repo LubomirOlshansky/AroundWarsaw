@@ -220,8 +220,14 @@ modelled (site `zbawiciela`, spec `zbawiciela.md`, 1029 tris).
   2002 tris): ground-floor arcades on the facades facing the square and the axis, four corner
   towers with hipped attics and spires, a terracotta relief on each tower's square face. Mac look
   check parked (QUESTIONS): arcade rhythm and depth, tower heights, the real reliefs.
-- Next on the street: the church's night lighting, Plac Zbawiciela's rotunda-side cafés, the
-  reliefs' real subjects, Marszałkowska's houses, roads and street life street by street.
+- Pass 5 (cloud, Sonnet, 2026-11-02): Plac Zbawiciela's cafés and the church at night. Four neon cafés
+  (`Storefronts.ZBAWICIELA`: KAWA ZBAWIENIE, SZARLOTKA NA ROGU, PLAN Z, PO MSZY SPRITZ) and six parasol
+  terraces round the ring (`bake_street_details.py` TERRACES, 15 café sets, planters at the row ends);
+  the church gets lit gilt crosses and balls, a stained rose that glows, four porch lanterns and 12
+  floodlamps (1199 tris, budget 1250). Open: Mac look check (QUESTIONS), the signs on the real doors,
+  heaters and awnings on the terraces, a café crowd (crowds.gd zone), the floodlit plaster wash.
+- Next on the street: the reliefs' real subjects, Marszałkowska's houses, roads and street life
+  street by street.
 - Pass 2 (cloud, Sonnet): people waiting on Marszałkowska's 12 mapped tram platforms (`crowds.gd`
   `stop` sites, commute curve). Mac/phone look check: do the groups read as commuters at the
   stops, facing is random (not toward the track), the density on the narrow islands, and
@@ -238,8 +244,8 @@ modelled (site `zbawiciela`, spec `zbawiciela.md`, 1029 tris).
   milk bar, dry cleaner, watchmaker, pastry shop, optician, florist, haberdashery, herbalist; check_parodies OK).
   Needs F's photos / Mac look check (QUESTIONS): doors at the real shops, per-house plaster colours and
   cornices, the crossings against real photos; Plac Bankowy's end.
-- Next on the street: the church's night lighting, Plac Zbawiciela's rotunda-side cafés, houses and
-  roads street by street.
+- Next on the street: houses and roads street by street (the church's night lighting and the
+  square's cafés are done, pass 5).
 
 ## Nowy Świat (F, 2026-11-01)
 
@@ -431,6 +437,12 @@ Plan: docs/design/railway.md. One PR per item, in this order:
   stairs; Powiśle's arches, the saucer's profile, the canopies' length, the neon's letters); the
   stairs from the round pavilion up to the platforms; a WARSZAWA OCHOTA sign if the real one has it.
 
+## Krakowskie Przedmieście street by street (F, 2026-11-02), pass 1
+Built (cloud, Sonnet): eight shopfronts (`Storefronts.KRAKOWSKIE`, 93 venue signs in check_parodies), original names, at the mapped house numbers 20/22, 19, 27, 56, 45, 58/60, 64, 69. Open:
+- Mac look check of the eight signs (QUESTIONS); move them to real doors.
+- Shop awnings, café gardens (Bristol, Europejski, Czytelnik-style), a horse carriage rank, pavement details: need photos.
+- Left from K1-K6: the second Potocki guardhouse, Pałac Czapskich's own model (landmarks thread owns models).
+
 ## Powiśle street by street (F, 2026-11-01)
 - Built: Ostrogski Castle + Chopin Institute, the Teresy church, the boulevard Syrenka, Dworzec
   Wodny, Kaskada, DALEJ DALLA GELATO (specs in docs/landmarks/specs/).
@@ -613,9 +625,6 @@ real ones added to `brand_denylist.json`). One PR each:
       Podwózka `timber` passengers, a notebook card "Kolejki", fans standing by Cringulo's van, an
       egg (the car parked by the van while he films), the van's CRINGULO TV lettering, the egg
       card; phone checks of every sign's size, the queues and the job's legs.
-- [ ] Roof rescues name the roof by its OSM name, which can be a real brand (a hotel or café
-      chain: Puro, Green Caffè Nero, Hilton…): show a parody or a street name instead (missions.gd
-      `_find_roofs`; found 2026-11-01).
 - [ ] Mac checks: the statue's spot and facing against the orthophoto; Dom Partii's height and the
       skin on the LoD2 model; KUKŁA/KOSZTA/NERWO spots on the real streets.
 - [x] `Tinder` in a run-club line replaced by TIMBER (it would fail the new denylist entry).
@@ -855,7 +864,7 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   Town's and New Town's tenements split into their OSM houses' colours and tile roofs
   (`map_builder._tenement_facades`), brick Gothic for the Cathedral and the Barbican
   (`M_GOTHIC`), Sigismund's Column, map north (Arkadka with its lit sign, the Forest tower, the
-  flag on Rondo Radosława) and Most Świętokrzyski's pylon and stays. **Left, for fresh threads**:
+  flag on Rondo Radosława) and Most Świętokrzyski's pylon and stays. **Left, for fresh threads** (the Barbican DONE 2026-11-02: model, spec barbakan.md, Mac photo check parked: wall height, turret spots, gate):
   St Anne's classical facade (DONE 2026-11-01: `_build_anna`, spec anna.md, portico, wings and the bell tower's trim, Mac photo check parked: column count, door, tower cap; was: a portico of four columns and a pediment on its west face; it is
   a kept skin today, outline in `centrum.json` landmarks "Kościół pw. Świętej Anny", centre
   (−658, −1350), the free-standing bell tower is a separate building to its north-east), the other
