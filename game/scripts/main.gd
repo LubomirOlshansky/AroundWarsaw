@@ -318,6 +318,9 @@ var no_ao := false
 var prebuilt := false
 ## --no-map-edge: without the land past the map's edge (map_edge.gd), for a before/after probe.
 var _flag_no_map_edge := false
+## --no-edge-roadworks: without the roadworks closing the roads at the map's edge (edge_roadworks.gd;
+## their colliders go too, the edge wall stays), for a before/after probe.
+var _flag_no_edge_roadworks := false
 var _started := false
 ## Time of day (N / TIME / --time=), the radio (R / RADIO / --radio=), the VHS
 ## overlay (V / VHS / --vhs) and the title screen (skipped by the testing flags).
@@ -1082,6 +1085,10 @@ func _build_world() -> void:
 			var edge := map.get_node_or_null("MapEdge")
 			if edge != null:
 				edge.free()
+		if _flag_no_edge_roadworks:
+			var works := map.get_node_or_null("EdgeRoadworks")
+			if works != null:
+				works.free()
 	else:
 		map = MapBuilder.new()
 		world.add_child(map)
@@ -3530,6 +3537,8 @@ func _parse_args() -> void:
 			free_roam = true
 		elif arg == "--no-map-edge":
 			_flag_no_map_edge = true
+		elif arg == "--no-edge-roadworks":
+			_flag_no_edge_roadworks = true
 		elif arg.begins_with("--exp="):
 			_exp = arg.trim_prefix("--exp=").split(",")
 		elif arg.begins_with("--time="):

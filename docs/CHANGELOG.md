@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-02
 - The tenements of Dobra and Tamka each wear their own plaster now (sooty cream, ochre, faded rose, sage), with a cornice under the roof, a string course at the first floor and shop windows with a fascia board on the street side.
+- The first street's pavements are Warsaw grey instead of sand, every crossing ends in a strip of yellow tactile paving at the kerb, and the tram stops by the start have their edge line and tactile strip.
 - Varso Place is green on top and at its feet: a grove of round hawthorns in the tower's sky garden at 205 m, planted terraces with small trees on the two lower Varso buildings, young trees along Chmielna, and on the corner plaza a big glacial boulder and the VERSO PLACE name stone.
 - The new Vistula boulevards have their children's corner: a splash pool with jets and three leaping river fish (sturgeon, pike, perch) on stone plinths.
 - The squares round the Rondo Daszyńskiego towers are planted: a birch and pine grove with shrub beds and benches by Skyliner, linden courts between the Generation Park blocks, and a green forecourt in front of the Mennica Legacy Tower.
@@ -30,6 +31,7 @@ someone writes its lines.
 - Evening rides in Podwózka sometimes carry a first-date passenger from the dating app TIMBER, heading for the LORETKA roof bar. Cringulo's van now has a handful of fans standing behind it, chatting, and parking right by the van while he films finds a new easter egg.
 - Powiśle's Piano House now has a keyboard for a front, white keys and black window strips, and Cube House next door is a white cube with its bays stepping out floor by floor.
 - The police keep up with a tuned car: a bought Ołdi TT or a better engine no longer leaves every patrol behind, so the nitro is the way to open a gap. On a gamepad the nitro is LB or RB, and the right stick turns the view.
+- The city no longer just stops at an invisible wall: every road at the edge of the map is closed by Warsaw roadworks, with red-and-white barriers, ROBOTY DROGOWE and OBJAZD signs, cones, an excavator and a site fence, and amber lamps blinking at night.
 - The notebook MOJA WARSZAWA has a new card, "Kolejki" (The queues), found by the KUKŁA pancake window on Nowy Świat; it fills the "Queueing for the trend" chapter to ten.
 - Plac Zbawiciela comes alive: four neon cafés round the roundabout (Kawa Zbawienie, Szarlotka na rogu, Plan Z and Po mszy Spritz) with parasol terraces in front of the blocks, and the Church of the Holiest Saviour is lit at night: gilded crosses, a glowing stained-glass rose, lanterns at the porch and floodlamps up the front.
 - Krakowskie Przedmieście gets eight neon shopfronts along the royal route: an amber and silver shop, a chemist under the column, royal ice cream, sheet music and records, a reading café, pierogi at Bona's, mermaid souvenirs and an exchange office by the Castle.

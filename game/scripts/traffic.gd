@@ -53,6 +53,8 @@ const MAX_CARS := 140
 ## Spawn band beyond the view edge, in metres, and the spacing of spawn slots in it.
 const MARGIN := 45.0
 const SLOT := 8.0
+## The edge roadworks: room kept between a spawned car and a barrier line (m).
+const SHUT_ROOM := 10.0
 ## Intelligent driver model: comfortable acceleration and braking, time gap, standstill gap.
 const ACCEL := 2.2
 const DECEL := 3.5
@@ -651,7 +653,9 @@ func _count_target() -> int:
 				var at := graph.e_s0[e] + 4.0
 				while at < graph.e_s1[e] - 6.0:
 					var l := _local(graph.point_at(e, at))
-					if absf(l.x) <= reach.x and absf(l.y) <= reach.y:
+					# The edge roadworks: no car between a barrier line and the map's edge.
+					if absf(l.x) <= reach.x and absf(l.y) <= reach.y and not graph.closed_at(e, at + SHUT_ROOM) \
+							and not graph.closed_at(e, at - SHUT_ROOM) and not graph.in_works_band(graph.point_at(e, at)):
 						total += w
 						_slot_e.append(e)
 						_slot_s.append(at)
@@ -671,6 +675,8 @@ func _try_spawn(anywhere: bool) -> bool:
 	var cls := graph.e_class[e]
 	var lane := _rng.randi() % graph.e_lanes[e]
 	var s := clampf(_slot_s[k] + _rng.randf_range(-SLOT, SLOT) * 0.5, graph.e_s0[e] + 4.0, graph.e_s1[e] - 6.0)
+	if graph.closed_at(e, s + SHUT_ROOM) or graph.closed_at(e, s - SHUT_ROOM):
+		return false
 	var q := graph.point_at(e, s, graph.lane_offset(e, lane))
 	var kind := Kind.CAR
 	var r := _rng.randf()
@@ -1350,6 +1356,12 @@ func _register(d: Driver, lane_id: int) -> void:
 ## for bigger roads and going straight; a U-turn only at a dead end.
 func _choose_next(d: Driver) -> void:
 	var e := d.edge
+	if graph.e_shut[e] < INF:
+		# The edge roadworks: this road is closed at the map's edge; no U-turn past the barriers
+		# (the car stops at them, _drive).
+		d.next_edge = -1
+		d.next_reg = -1
+		return
 	var outs := graph.node_out[graph.e_b[e]]
 	var rev := graph.e_reverse[e]
 	var here := graph.direction(e, graph.e_s1[e])
@@ -1376,6 +1388,9 @@ func _choose_next(d: Driver) -> void:
 			var w := 0.0
 			if f != rev and not (d.core_only and graph.node_scc[graph.e_b[f]] == 0):
 				w = [3.0, 2.0, 1.0, 0.35][graph.e_class[f]]
+				# The edge roadworks: a road closed at the map's edge only when nothing else is open.
+				if graph.e_shut[f] < INF:
+					w *= 0.02
 				if d.kind == Kind.BUS and graph.e_class[f] >= 2:
 					w *= 0.05
 				if absf(here.angle_to(graph.direction(f, graph.e_s0[f]))) < 0.5:
@@ -1463,6 +1478,12 @@ func _drive(d: Driver, dt: float) -> void:
 			if stop < gap:
 				gap = stop
 				lead_v = 0.0
+			# The edge roadworks: the barrier line across a road that leaves the map.
+			if d.next_edge < 0 and graph.e_shut[e] < INF and not d.persistent:
+				var shut := graph.e_shut[e] - d.s - d.length * 0.5
+				if shut < gap:
+					gap = shut
+					lead_v = 0.0
 		if d.halt_e >= 0:
 			# The night-buses loop: a bus on its way to a stop (buses.gd).
 			var hg := _halt_gap(d, dt)
@@ -1552,6 +1573,17 @@ func _drive(d: Driver, dt: float) -> void:
 		# Checked before the junction curve: a fast car can cross the last metres in a frame.
 		if not d.route.is_empty() and graph.e_b[e] == d.finish and d.s >= graph.e_s1[e] - 3.0 and not d.chase:
 			d.arrived = true
+		if d.next_edge < 0 and d.s + d.length * 0.5 >= graph.e_shut[e] - 1.0:
+			# The edge roadworks: at the barriers. A rival or the autopilot takes the off-map link
+			# from here (as it did at the map's edge); a town car waits and goes once out of sight
+			# (it turned off into the detour).
+			if d.persistent:
+				if not _through_portal(d):
+					teleport(d, e, d.lane, maxf(graph.e_s0[e], graph.e_open[e]))
+				return
+			if not d.visible and d.v < 0.5:
+				_release(d)
+				return
 		if d.s >= graph.e_s1[e]:
 			if d.next_edge >= 0:
 				d.in_conn = true
@@ -1562,7 +1594,7 @@ func _drive(d: Driver, dt: float) -> void:
 				# Off the edge of the map.
 				if d.persistent:
 					if not _through_portal(d):
-						teleport(d, e, d.lane, graph.e_s0[e])
+						teleport(d, e, d.lane, maxf(graph.e_s0[e], graph.e_open[e]))
 				else:
 					_release(d)
 				return
@@ -1591,7 +1623,8 @@ func _through_portal(d: Driver) -> bool:
 	var route := d.route
 	var finish := d.finish
 	var run_red := d.run_red
-	teleport(d, best, mini(d.lane, graph.e_lanes[best] - 1), graph.e_s0[best])
+	# The edge roadworks: in past the barriers of the road it comes back on.
+	teleport(d, best, mini(d.lane, graph.e_lanes[best] - 1), maxf(graph.e_s0[best], graph.e_open[best] + d.length * 0.5))
 	if not route.is_empty():
 		race_to(d, finish, route)
 		d.run_red = run_red

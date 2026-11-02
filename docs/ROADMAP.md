@@ -53,8 +53,11 @@ then the Launch gate.
 - [x] Metro entrances modelled at the real M1/M2 stairs: vaulted glass canopies, stairwells, passage mouths, red M posts, lifts (F, 2026-11-01; Mac look check parked in QUESTIONS)
 - [x] Merge PR #115 (start facing the first stand, short first order, BUW roof cassette), then
       PR #121 (the opening flyover) (both on main; ticked 2026-11-01)
-- [ ] First-scene items 4-5: pavilions and towers behind the stores, Plac Defilad's paving, tram
-      stops and kerbs on Marszałkowska
+- [x] First-scene items 4-5, paving and kerbs (2026-11-02): grey pavements and paving round the
+      start (shader only), yellow tactile pads where crossings meet kerbs (city-wide), edge and
+      tactile lines on the two tram platforms by the start; +0 draw calls (phone look parked)
+- [ ] First-scene items 4-5, the rest: pavilions and towers behind the stores, the park strip in
+      front of the museum, lowered kerbs at the crossings
 - [x] First-scene items 6-7, life and sound at the start (2026-11-02): people standing at the
       start's cafés, kiosk and paving (crowds.gd `FIRST_SCENE`, a day-long street curve), denser
       walkers on Marszałkowska's two pavements (pedestrians.gd `set_busy`, +0 draw calls), the two
@@ -242,6 +245,7 @@ then the Launch gate.
   - [x] Parks come alive (2026-11-01, `park_details.gd`, `tools/bake_park_details.py`): Ogród Saski, Ogród Krasińskich, Park Ujazdowski and the castle's park get sandstone statues, a fountain, a carousel, a playground, a gazebo, pergolas, a sundial, a footbridge, ducks and swans, squirrels, people on the benches, picnics and a yoga class; the Mac look check parked
   - [ ] Łazienki Królewskie (Palace on the Isle, Chopin monument, peacocks): south of the map's edge, waits for a map extension (QUESTIONS)
   - [x] The map's edges: the land runs on past the outline (ground fading into the sky, a tree line, blocks beyond, the rails and roads running out), Wschodnia and Gdańska first, 2026-11-01; the Mac look check parked
+  - [x] Roadworks close every road at the map's edge (barriers, ROBOTY DROGOWE and OBJAZD boards, cones, an excavator, a tarp fence, blinking lamps; solid; traffic stops there), 2026-11-02; the Mac look check parked
   - [x] L4 Most Średnicowy's look: arch-truss spans on stone piers (after the Mac photo check)
   - [x] Probe spots on the line with a train in view (Powiśle, Most Średnicowy), 2026-11-01; the phone's numbers still to take
 

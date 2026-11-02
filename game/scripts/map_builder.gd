@@ -15,6 +15,7 @@ const CityMaps := preload("res://scripts/city_maps.gd")
 const Models := preload("res://scripts/models.gd")
 const Trains := preload("res://scripts/trains.gd")
 const MapEdge := preload("res://scripts/map_edge.gd")
+const EdgeRoadworks := preload("res://scripts/edge_roadworks.gd")
 ## Tile size for instanced things (trees, lamps, parked cars). Loop 2b: 512 m (was 256): one
 ## MultiMesh is one draw call, and the iPhone pays per draw call, not per instance.
 const INSTANCE_TILE := 512.0
@@ -56,6 +57,8 @@ const L_WET := 17.0
 const L_FOAM := 18.0
 ## Loop 3b-2: the tram bed's concrete track slabs (joints across it every 3 m).
 const L_TRAMBED := 19.0
+## First-scene item 5 (2026-11-02): the tactile warning pads where a crossing meets a kerb.
+const L_TACTILE := 20.0
 
 const Y_GROUND := 0.0
 const Y_AREA := 0.02
@@ -304,6 +307,10 @@ func setup_streamed(index: Dictionary, building_mat: ShaderMaterial, flat_mat: S
 	var edge: Node3D = MapEdge.build(self)
 	if edge != null:
 		add_child(edge)
+	# 2026-11-02: roadworks close every road that leaves the map (edge_roadworks.gd).
+	var works: Node3D = EdgeRoadworks.build(self)
+	if works != null:
+		add_child(works)
 
 
 ## Loop 3c: each sector's lowest ground (- 20 m: tunnels, the river bed) and its highest roof
@@ -544,6 +551,7 @@ func _build_parts(marks, roofs_only: bool) -> void:
 		_build_markings(flat)
 		_build_symbols(flat)
 		_build_crossings(flat)
+		_build_tactile(flat)
 		_drape_bias = 0.46
 		_build_trams(flat)
 		_build_rails(flat)
@@ -4244,6 +4252,58 @@ func _build_crossings(st) -> void:
 				_strip(st, PackedVector2Array([c - dir * 0.25, c + dir * 0.25]), 3.6, Y_MARK, COL["mark"], false)
 				t += 1.0
 	_dk = -1
+
+
+## First-scene item 5 (2026-11-02): Warsaw's crossings end in a strip of yellow tactile paving
+## on the pavement (and on the refuge islands) just past the kerb's granite top. Where a zebra's
+## end lies within TACTILE_REACH of a kerb line (the bake's kerbs and the islands' rims, the
+## index _index_raised keeps), a pad TACTILE_DEEP deep and as wide as the stripes is laid on the
+## far side of that kerb, KERB_W out. Ends with no kerb near (a crossing over a footway, a deck)
+## get none. Two triangles a pad in the flat mesh: +0 draw calls.
+const TACTILE_DEEP := 0.6
+const TACTILE_REACH := 2.6
+const TACTILE_WIDE := 3.6
+const TACTILE_COL := Color("#c6ad60")
+
+
+func _build_tactile(st) -> void:
+	if _kerb_segs.is_empty():
+		_index_raised()
+	_layer = L_TACTILE
+	for p in data["paths"]:
+		if p["k"] != "zebra" or int(p.get("dk", -1)) >= 0:
+			continue
+		var poly := _pts(p["p"])
+		var n := poly.size()
+		if n < 2 or poly[0].distance_to(poly[n - 1]) < 1.0:
+			continue
+		_tactile_pad(st, poly[0], (poly[0] - poly[1]).normalized())
+		_tactile_pad(st, poly[n - 1], (poly[n - 1] - poly[n - 2]).normalized())
+	_layer = L_GROUND
+
+
+## The pad at a zebra's end `end`, `out` pointing off the carriageway: on the kerb line nearest
+## the end along the zebra's line (from 1.5 m back inside to TACTILE_REACH beyond).
+func _tactile_pad(st, end: Vector2, out: Vector2) -> void:
+	var from := end - out * 1.5
+	var to := end + out * TACTILE_REACH
+	var best := INF
+	var hit := Vector2.ZERO
+	var c0 := Vector2i(floori(minf(from.x, to.x) / RAISE_CELL), floori(minf(from.y, to.y) / RAISE_CELL))
+	var c1 := Vector2i(floori(maxf(from.x, to.x) / RAISE_CELL), floori(maxf(from.y, to.y) / RAISE_CELL))
+	for cz in range(c0.y, c1.y + 1):
+		for cx in range(c0.x, c1.x + 1):
+			for id: int in _kerb_cells.get(Vector2i(cx, cz), PackedInt32Array()):
+				var x: Variant = Geometry2D.segment_intersects_segment(from, to, _kerb_segs[id * 2], _kerb_segs[id * 2 + 1])
+				if x != null and (x as Vector2).distance_to(end) < best:
+					best = (x as Vector2).distance_to(end)
+					hit = x
+	if best == INF:
+		return
+	var a := hit + out * KERB_W
+	var b := a + out * TACTILE_DEEP
+	var mid := (a + b) * 0.5
+	_strip(st, PackedVector2Array([a, b]), TACTILE_WIDE, Y_MARK + raise_at(mid.x, mid.y), TACTILE_COL, false)
 
 
 ## Painted lines (tools/bake_roads.py), already cut where other roads cross: edge
