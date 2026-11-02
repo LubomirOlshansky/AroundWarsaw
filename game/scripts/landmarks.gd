@@ -468,6 +468,12 @@ const INFO := {
 	"grob": ["Grób Nieznanego Żołnierza",
 			"Trzy łuki ocalałe z Pałacu Saskiego. Wieczny ogień i warta.",
 			"Three arches left of the Saxon Palace. An eternal flame, a guard."],
+	"polin": ["POLIN Muzeum Historii Żydów Polskich",
+			"Muzeum z 2013 roku: szklana bryła przecięta kanionem holu, naprzeciw Pomnika Bohaterów Getta.",
+			"The 2013 museum: a glass box split by the canyon of its hall, facing the Ghetto Heroes Monument."],
+	"getto": ["Pomnik Bohaterów Getta",
+			"Natan Rapaport, 1948: pomnik bojowników powstania w getcie warszawskim z 1943 roku.",
+			"Nathan Rapoport, 1948: the memorial to the fighters of the 1943 Warsaw Ghetto Uprising."],
 	"orly": ["Dom pod Orłami",
 			"Jasna 1, 1912–17: dwa orły na narożnych wieżach patrzą na nowy skwer na Złotej.",
 			"Jasna 1, 1912–17: two eagles on the corner towers look down on Złota's new park."],
@@ -830,6 +836,8 @@ func _find_sites() -> void:
 	_find_modern_pavilions()
 	# Skwer Linearny na Złotej (F's photo, 2026-11-02): Dom pod Orłami over the new square.
 	_find_orly()
+	# Muranów (2026-11-02, spec polin.md): POLIN and the Ghetto Heroes Monument before it.
+	_find_polin()
 	# The railway (docs/design/railway.md, S1): Warszawa Ochota's hall and its saddle roof.
 	_find_ochota()
 	# S2: Warszawa Powiśle's two pavilions and the platform canopies.
@@ -1302,6 +1310,10 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_zodiak(s)
 			"orly":
 				_build_orly(s)
+			"polin":
+				_build_polin(s)
+			"getto":
+				_build_getto(s)
 			"ochota":
 				_build_ochota(s)
 			"powisle":
@@ -15300,3 +15312,380 @@ func _bulwary_fish(u: float, v: float, flen: float, yaw: float, col: Color, g: f
 	# The dorsal fin over the shoulder, a small raised sail.
 	var sh: Vector3 = pt.call(0.4)
 	_beam(sh + Vector3.UP * flen * 0.06, sh + Vector3.UP * flen * 0.2 + (tail - head).normalized() * flen * 0.05, 0.025 * flen, col.darkened(0.15))
+
+
+# --- POLIN and the Ghetto Heroes Monument (Muranów, 2026-11-02) ----------------------------------
+
+## Muzeum Historii Żydów Polskich POLIN (Lahdelma & Mahlamäki, 2013; spec
+## docs/landmarks/specs/polin.md), from the Mac's reference set refs/polin/ (25 Commons photos,
+## the GUGiK ortho, REPORT.md) and the LoD2 roof: an 18 m box of grey-green glass fins with one
+## curved cut through it: the canyon, a tall wedge 15 m wide at the foot and 3.5 m at the top on
+## the east front, the glazed slot across the roof with its south lip lifted, and the big glazed
+## "lens" on the west front. Frame: u along the east front from the north corner southwards,
+## +v into the building; origin the canyon's centre on the front.
+const POLIN_O := Vector2(-2067.3, -1704.1)
+const POLIN_U := Vector2(0.508, 0.861)
+const POLIN_H := 18.0                     # photos and the ortho's shadows; LoD2 26.0 over ground 8.0
+const POLIN_DEPTH := 9.0                  # where the canyon's glass stands, from the front
+## The canyon's sides at the foot and at the roof (u at v = 0, 3, 6, 9): the north wall curves
+## and flares into the plaza, the south side is a straight plane leaning back.
+const POLIN_N_FOOT := [-7.5, -4.8, -3.2, -2.5]
+const POLIN_N_TOP := [-1.6, -1.5, -1.4, -1.2]
+const POLIN_S_FOOT := [7.5, 5.8, 4.2, 2.5]
+const POLIN_S_TOP := [1.9, 1.7, 1.4, 1.2]
+## The glazed slot across the roof (the ortho), on to ~7.5 m inside the west front.
+const POLIN_SLOT := [Vector2(-2075.0, -1699.5), Vector2(-2089.0, -1698.7), Vector2(-2100.0, -1692.0),
+		Vector2(-2111.0, -1684.4), Vector2(-2122.0, -1674.5)]
+const POLIN_SLOT_HW := 1.1
+const POLIN_LIP_UP := 2.5                 # the slot's south lip over the roof (LoD2 2.3, shadow 3-3.5)
+const POLIN_LIP_W := 11.0
+const POLIN_LENS := Vector2(-2132.0, -1680.0)
+const POLIN_LENS_HW := 18.5
+const POLIN_LENS_TOP := 13.5
+const POLIN_FINS := Color("#8a9ba0")      # grey-green glass fins (mid; lit #adb3ad, shade #566466)
+const POLIN_CANYON := Color("#a39378")    # warm sand cast concrete
+const POLIN_FLOOR := Color("#d6cfbf")     # pale travertine in the canyon's mouth
+const POLIN_ROOF := Color("#bcbcb6")
+const POLIN_TEAL := Color("#4f8584")      # the glass band crowning the roof edge
+const POLIN_PLINTH := Color("#a9a7a0")    # board-marked concrete under the west and north fronts
+const POLIN_DOOR := Color("#4a3f33")      # deep-set bronze-dark glazing, warm at night
+const POLIN_LENS_GLASS := Color("#6f8590")
+const POLIN_DARK := Color("#2b2f33")
+
+
+func _find_polin() -> void:
+	var q := _landmark("Muzeum Historii Żydów Polskich Polin")
+	if q.size() >= 3:
+		_add_site("polin", [_largest(Geometry2D.offset_polygon(q, 1.0, Geometry2D.JOIN_MITER))])
+		if not sites.is_empty() and sites[-1]["key"] == "polin":
+			sites[-1]["ring"] = _simplify(q, 0.6)
+	_o = GETTO_O
+	_a = GETTO_A
+	_b = GETTO_B
+	_add_site("getto", [_rect(0.0, 0.0, 15.0, 8.0)])
+
+
+## The canyon's side point k (0..3) at the foot or the roof, in the plan.
+func _polin_side(north: bool, top: bool, k: int) -> Vector2:
+	var us: Array = (POLIN_N_TOP if top else POLIN_N_FOOT) if north else (POLIN_S_TOP if top else POLIN_S_FOOT)
+	return _w(float(us[k]), POLIN_DEPTH * k / 3.0)
+
+
+func _polin_frame() -> void:
+	_o = POLIN_O
+	_a = POLIN_U
+	_b = Vector2(-0.861, 0.508)   # into the building (west-south-west)
+
+
+func _build_polin(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	_g = _ground_under(ring)
+	var g := _g
+	var top := g + POLIN_H
+	_polin_frame()
+	# The cut in plan: the canyon's foot from 3 m outside the front to its glass, then the slot.
+	var cut := PackedVector2Array([_w(-7.5, -3.0)])
+	for k in 4:
+		cut.append(_polin_side(true, false, k))
+	var left := PackedVector2Array()
+	var right := PackedVector2Array()
+	for i in range(1, POLIN_SLOT.size()):
+		var p: Vector2 = POLIN_SLOT[i]
+		var prev: Vector2 = POLIN_SLOT[i - 1]
+		var n := (p - prev).normalized()
+		var side := Vector2(-n.y, n.x)
+		if side.dot(Vector2(0.483, 0.876)) < 0.0:
+			side = -side   # towards the lip (south-east)
+		if i == 1:
+			left.append(prev - side * POLIN_SLOT_HW)
+			right.append(prev + side * POLIN_SLOT_HW)
+		left.append(p - side * POLIN_SLOT_HW)
+		right.append(p + side * POLIN_SLOT_HW)
+	var slot := left.duplicate()
+	for i in range(right.size() - 1, -1, -1):
+		slot.append(right[i])
+	var notch := cut.duplicate()
+	for k in range(3, -1, -1):
+		notch.append(_polin_side(false, false, k))
+	notch.append(_w(7.5, -3.0))
+	var hole := Geometry2D.merge_polygons(notch, slot)
+	var both: PackedVector2Array = _largest(hole)
+	var on_cut := func(p: Vector2) -> bool:
+		for i in both.size():
+			if Geometry2D.get_closest_point_to_segment(p, both[i], both[(i + 1) % both.size()]).distance_to(p) < 0.05:
+				return true
+		return false
+	var west := Vector2(-0.861, 0.508)
+	var north := Vector2(-0.478, -0.878)
+	for piece in Geometry2D.clip_polygons(ring, both):
+		if piece.size() < 3 or Geometry2D.is_polygon_clockwise(piece):
+			continue
+		var run := 0.0
+		for i in piece.size():
+			var a := piece[i]
+			var b := piece[(i + 1) % piece.size()]
+			var out := _out(piece, a, b)
+			var mid := (a + b) * 0.5
+			if on_cut.call(mid):
+				# the slot's walls show only down to its glass; the canyon's are drawn sloping below
+				if Geometry2D.is_point_in_polygon(mid, _grown(slot, 0.05)) and not Geometry2D.is_point_in_polygon(mid, _grown(notch, -0.05)):
+					_mode = M_STONE
+					_wall(a, b, top - 1.0, top, out, POLIN_ROOF.darkened(0.1))
+			else:
+				var foot := g - 0.4
+				if out.dot(west) > 0.7 or out.dot(north) > 0.7:
+					_mode = M_STONE
+					_wall(a, b, g - 0.4, g + 1.5, out, POLIN_PLINTH, run)
+					foot = g + 1.5
+				_mode = M_SKIN + S_FINS / 16.0
+				_wall(a, b, foot, top, out, POLIN_FINS, run)
+			run += a.distance_to(b)
+		_mode = M_STONE
+		_cap(piece, top, POLIN_ROOF)
+	_parapet(ring, top, 1.2, POLIN_TEAL)
+	_polin_canyon(g, top)
+	# the slot's glass, sunk a metre
+	_mode = M_PAVILION
+	var sunk := Geometry2D.clip_polygons(slot, notch)
+	for q in sunk:
+		if q.size() >= 3 and not Geometry2D.is_polygon_clockwise(q):
+			_cap(q, top - 1.0, POLIN_LENS_GLASS)
+	_polin_lip(g, top)
+	_polin_lens(ring, g)
+	_polin_roof_kit(top)
+	_collide(ring)
+
+
+## The canyon: its two leaning walls from the foot line to the roof line, the strips of roof over
+## them, the end faces on the front, the deep-set glass and the pale floor in its mouth.
+func _polin_canyon(g: float, top: float) -> void:
+	_polin_frame()
+	for north: bool in [true, false]:
+		for k in 3:
+			var f0 := _polin_side(north, false, k)
+			var f1 := _polin_side(north, false, k + 1)
+			var t0 := _polin_side(north, true, k)
+			var t1 := _polin_side(north, true, k + 1)
+			var a := Vector3(f0.x, g - 0.4, f0.y)
+			var b := Vector3(f1.x, g - 0.4, f1.y)
+			var c := Vector3(t1.x, top, t1.y)
+			var d := Vector3(t0.x, top, t0.y)
+			var nrm := (b - a).cross(d - a).normalized()
+			var gap := _w(0.0, POLIN_DEPTH * (k + 0.5) / 3.0)
+			if Vector2(nrm.x, nrm.z).dot(gap - (f0 + f1) * 0.5) < 0.0:
+				nrm = -nrm
+			_mode = M_STONE
+			_quad(a, b, c, d, nrm, POLIN_CANYON if k % 2 == 0 else POLIN_CANYON.darkened(0.04))
+			# the roof over the overhang
+			_quad(Vector3(f0.x, top, f0.y), Vector3(f1.x, top, f1.y), c, d, Vector3.UP, POLIN_ROOF)
+		# the wall's end on the front: the triangle the lean leaves, in fins
+		var ff := _polin_side(north, false, 0)
+		var tf := _polin_side(north, true, 0)
+		var out := -_b
+		_mode = M_SKIN + S_FINS / 16.0
+		_tri(Vector3(ff.x, g - 0.4, ff.y), Vector3(tf.x, top, tf.y), Vector3(ff.x, top, ff.y), Vector3(out.x, 0.0, out.y),
+				POLIN_FINS, Vector2(0, -0.4), Vector2(ff.distance_to(tf), POLIN_H), Vector2(0, POLIN_H), POLIN_H)
+	# the deep-set glazing across the canyon at its depth, and the end faces either side of it
+	var nf := _polin_side(true, false, 3)
+	var sf := _polin_side(false, false, 3)
+	var nt := _polin_side(true, true, 3)
+	var stt := _polin_side(false, true, 3)
+	var face := Vector3(-_b.x, 0.0, -_b.y)
+	_mode = M_PAVILION
+	_quad(Vector3(nf.x, g - 0.2, nf.y), Vector3(sf.x, g - 0.2, sf.y), Vector3(stt.x, top - 1.0, stt.y), Vector3(nt.x, top - 1.0, nt.y),
+			face, POLIN_DOOR)
+	# the floor of the mouth, from 3 m in front of the front to the glass
+	_mode = M_STONE
+	var floor_ring := PackedVector2Array([_w(-7.5, -3.0), _w(-7.5, 0.0)])
+	for k in range(1, 4):
+		floor_ring.append(_polin_side(true, false, k))
+	for k in range(3, 0, -1):
+		floor_ring.append(_polin_side(false, false, k))
+	floor_ring.append(_w(7.5, 0.0))
+	floor_ring.append(_w(7.5, -3.0))
+	_cap(floor_ring, g + 0.04, POLIN_FLOOR)
+
+
+## The slot's south lip: a ribbed grey wedge on the roof, POLIN_LIP_UP over it at the slot,
+## falling back to the roof over POLIN_LIP_W, its face over the slot in the same grey.
+func _polin_lip(g: float, top: float) -> void:
+	var inner: Array[Vector3] = []
+	var outer: Array[Vector3] = []
+	for i in range(1, POLIN_SLOT.size()):
+		var p: Vector2 = POLIN_SLOT[i]
+		var prev: Vector2 = POLIN_SLOT[i - 1]
+		var n := (p - prev).normalized()
+		var side := Vector2(-n.y, n.x)
+		if side.dot(Vector2(0.483, 0.876)) < 0.0:
+			side = -side
+		var w := POLIN_LIP_W * (0.55 if i == POLIN_SLOT.size() - 1 else 1.0)
+		if i == 1:
+			var q0 := prev + side * POLIN_SLOT_HW
+			inner.append(Vector3(q0.x, top + POLIN_LIP_UP, q0.y))
+			var o0 := q0 + side * w
+			outer.append(Vector3(o0.x, top, o0.y))
+		var q := p + side * POLIN_SLOT_HW
+		inner.append(Vector3(q.x, top + POLIN_LIP_UP, q.y))
+		var o := q + side * w
+		outer.append(Vector3(o.x, top, o.y))
+	var n := inner.size()
+	for i in n - 1:
+		var a := inner[i]
+		var b := inner[i + 1]
+		var c := outer[i + 1]
+		var d := outer[i]
+		var nrm := (b - a).cross(d - a).normalized()
+		if nrm.y < 0.0:
+			nrm = -nrm
+		_mode = M_STONE
+		_quad(a, b, c, d, nrm, POLIN_ROOF.darkened(0.05))
+		var a2 := Vector2(a.x, a.z)
+		var b2 := Vector2(b.x, b.z)
+		var e := (b2 - a2).normalized()
+		var face := Vector2(-e.y, e.x)
+		if face.dot(Vector2(d.x, d.z) - a2) > 0.0:
+			face = -face
+		_wall(a2, b2, top, top + POLIN_LIP_UP, face, POLIN_ROOF.darkened(0.15))
+	for k: int in [0, n - 1]:
+		var t := inner[k]
+		var foot := Vector3(t.x, top, t.z)
+		var far := outer[k]
+		var other := inner[1] if k == 0 else inner[n - 2]
+		var nrm := (far - foot).cross(t - foot).normalized()
+		if nrm.dot(t - other) < 0.0:
+			nrm = -nrm
+		_tri(foot, far, t, nrm, POLIN_ROOF.darkened(0.12), Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+
+
+## The west front's lens: where the cut comes out, a glazed eye about 37 m wide from near the
+## ground to 13.5 m, 10 cm proud of the fins, with a thin dark curved lip; warm-lit at night.
+func _polin_lens(ring: PackedVector2Array, g: float) -> void:
+	var best := INF
+	var at := Vector2.ZERO
+	var dir := Vector2.ZERO
+	var out := Vector2.ZERO
+	for i in ring.size():
+		var a := ring[i]
+		var b := ring[(i + 1) % ring.size()]
+		var c := Geometry2D.get_closest_point_to_segment(POLIN_LENS, a, b)
+		if c.distance_to(POLIN_LENS) < best and a.distance_to(b) > 10.0:
+			best = c.distance_to(POLIN_LENS)
+			at = c
+			dir = (b - a).normalized()
+			out = _out(ring, a, b)
+	var nrm := Vector3(out.x, 0.0, out.y)
+	var seg := 14
+	var curve := func(t: float) -> float:
+		return POLIN_LENS_TOP * sqrt(maxf(0.0, 1.0 - t * t))
+	for k in seg:
+		var t0 := (-1.0 + 2.0 * k / seg) * 0.985
+		var t1 := (-1.0 + 2.0 * (k + 1) / seg) * 0.985
+		var p0 := at + dir * t0 * POLIN_LENS_HW + out * 0.1
+		var p1 := at + dir * t1 * POLIN_LENS_HW + out * 0.1
+		var y0: float = g + 0.6
+		var h0: float = curve.call(t0)
+		var h1: float = curve.call(t1)
+		_mode = M_PAVILION
+		_quad(Vector3(p0.x, y0, p0.y), Vector3(p1.x, y0, p1.y), Vector3(p1.x, y0 + h1 - 0.35, p1.y),
+				Vector3(p0.x, y0 + h0 - 0.35, p0.y), nrm, POLIN_LENS_GLASS)
+		# the dark lip along the curve
+		var q0 := p0 + out * 0.05
+		var q1 := p1 + out * 0.05
+		_mode = M_STONE
+		_quad(Vector3(q0.x, y0 + h0 - 0.4, q0.y), Vector3(q1.x, y0 + h1 - 0.4, q1.y),
+				Vector3(q1.x, y0 + h1, q1.y), Vector3(q0.x, y0 + h0, q0.y), nrm, POLIN_DARK)
+
+
+## What stands on the roof (the ortho): the plant room with six round fans, the lift and plant
+## box, two groups of blue skylights.
+func _polin_roof_kit(top: float) -> void:
+	_polin_frame()
+	_o = Vector2(-2105.0, -1728.5)
+	_lbox(0.0, 0.0, 6.5, 3.5, top, top + 2.6, Color("#9c9e9a"), M_STONE, Color("#8f918d"))
+	for k in 6:
+		_prism(_circle(_w(-5.0 + 2.0 * k, 0.0), 0.8, 8), top + 2.6, top + 2.9, Color("#6d706e"), Color("#3f4241"), M_STONE, M_STONE)
+	_o = Vector2(-2096.0, -1702.0)
+	_lbox(0.0, 0.0, 3.6, 3.6, top, top + 3.0, Color("#a3a5a1"), M_STONE, Color("#959793"))
+	for c: Vector2 in [Vector2(-2111.5, -1715.0), Vector2(-2103.5, -1709.5)]:
+		_o = c
+		_lbox(0.0, 0.0, 2.2, 1.4, top, top + 0.5, Color("#3f4448"), M_STONE, Color("#4a6f96"))
+
+
+## Pomnik Bohaterów Getta (Natan Rapaport, 1948), from refs/polin/ (photos d00-d12, the ortho):
+## on a 30 x 16 m paved platform in the plaza before the canyon, a wall of dark grey-green
+## labradorite 9.5 m wide, 3 m deep and 11 m tall, leaning in a little, on a black plinth; the
+## fighters' bronze in a tall recess in a granite frame on its west face (towards the museum)
+## over five low black steps and a flower bed; the deportation relief in stone on the back;
+## menorahs on polished granite blocks at the ends of the steps and one with a flame at the
+## wall's foot. Frame: u along the platform's long axis, +v west-south-west to the museum.
+const GETTO_O := Vector2(-2031.0, -1741.0)
+const GETTO_A := Vector2(0.457, 0.889)
+const GETTO_B := Vector2(-0.889, 0.457)
+const GETTO_WALL_V := -0.5
+const GETTO_PAVE := Color("#a8a8a2")
+const GETTO_BORDER := Color("#7c7d79")
+const GETTO_BLACK := Color("#25272a")
+const GETTO_STONE := Color("#5a5e5d")      # labradorite, between lit #85868b and shade #4d5154
+const GETTO_FRAME := Color("#a8a8a2")
+const GETTO_BRONZE := Color("#3a3a36")
+const GETTO_RELIEF := Color("#8f8a80")
+
+
+func _build_getto(_site: Dictionary) -> void:
+	_o = GETTO_O
+	_a = GETTO_A
+	_b = GETTO_B
+	_g = _ground_under(_rect(0.0, 0.0, 15.0, 8.0))
+	var g := _g
+	# the platform: a darker border round lighter slabs
+	_lbox(0.0, 0.0, 15.0, 8.0, g - 0.4, g + 0.12, GETTO_BORDER, M_STONE, GETTO_BORDER)
+	_mode = M_STONE
+	_cap(_rect(0.0, 0.0, 13.8, 6.8), g + 0.14, GETTO_PAVE)
+	var base := g + 0.14
+	var front := GETTO_WALL_V + 1.5
+	# five low black steps on the west, then the flower bed along the lowest
+	for k in 5:
+		var reach := 4.6 - 0.9 * k
+		_lbox(0.0, front + reach * 0.5, 7.5, reach * 0.5, base, base + 0.16 * (k + 1), GETTO_BLACK, M_STONE, GETTO_BLACK.lightened(0.04))
+	_lbox(0.0, front + 5.0, 7.5, 0.4, base, base + 0.25, Color("#3f6a33"), M_STONE, Color("#58803f"))
+	var step_top := base + 0.8
+	# the plinth and the wall, leaning in a little
+	_lbox(0.0, GETTO_WALL_V, 5.0, 1.75, base, step_top + 0.5, GETTO_BLACK, M_STONE, GETTO_BLACK)
+	var y0 := step_top + 0.5
+	_mode = M_STONE
+	_frustum(_rect(0.0, GETTO_WALL_V, 4.75, 1.5), y0, _rect(0.0, GETTO_WALL_V, 4.5, 1.3), step_top + 11.0, GETTO_STONE, GETTO_STONE.darkened(0.05))
+	# the fighters: a granite frame round a tall bronze recess with the figures standing out
+	_lbox(0.0, front + 0.06, 1.9, 0.12, y0 + 0.9, y0 + 8.4, GETTO_FRAME, M_STONE, GETTO_FRAME)
+	_lbox(0.0, front + 0.2, 1.5, 0.06, y0 + 1.2, y0 + 8.1, GETTO_BRONZE, M_STONE, GETTO_BRONZE)
+	var figures := [[-1.1, 5.2], [-0.55, 6.4], [0.0, 6.8], [0.55, 6.0], [1.1, 4.8]]
+	for f: Array in figures:
+		_lbox(float(f[0]), front + 0.38, 0.22, 0.12, y0 + 1.3, y0 + 1.3 + float(f[1]), GETTO_BRONZE.lightened(0.08), M_STONE, GETTO_BRONZE)
+	# the deportation relief on the back: stone bas-relief in a rough frame
+	var back := GETTO_WALL_V - 1.5
+	_lbox(0.0, back - 0.08, 3.2, 0.12, y0 + 2.6, y0 + 6.6, GETTO_FRAME, M_STONE, GETTO_FRAME)
+	_lbox(0.0, back - 0.24, 3.0, 0.06, y0 + 2.8, y0 + 6.4, GETTO_RELIEF, M_STONE, GETTO_RELIEF)
+	# menorahs: two on polished blocks at the steps' ends, one with a flame at the wall's foot
+	for u: float in [-6.25, 6.25]:
+		_lbox(u, front + 4.6, 0.75, 0.75, base, base + 1.0, GETTO_BLACK, M_STONE, GETTO_BLACK.lightened(0.06))
+		_menorah(_w(u, front + 4.6), base + 1.0, 1.0)
+	_menorah(_w(0.0, front + 1.6), step_top, 0.7)
+	var fl := _w(0.0, front + 1.6)
+	_prism(_square(fl, 0.12), step_top + 1.35, step_top + 1.6, Color("#ffb347"), Color("#ffd27a"), M_LAMP, M_LAMP)
+	_collide(_rect(0.0, front - 1.0, 8.0, 4.8))
+
+
+## A seven-branched bronze candlestick standing at p on y, `s` its scale (1 = 2 m tall), the arms
+## across the frame's u.
+func _menorah(p: Vector2, y: float, s: float) -> void:
+	var foot := Vector3(p.x, y, p.y)
+	var up := Vector3.UP * s
+	var side := Vector3(_a.x, 0.0, _a.y) * s
+	_beam(foot, foot + up * 1.9, 0.12 * s, GETTO_BRONZE)
+	_beam(foot - side * 0.3, foot + side * 0.3, 0.14 * s, GETTO_BRONZE)
+	for k in 3:
+		var r := 0.28 * (k + 1)
+		var low := 0.95 - 0.22 * k
+		for sd: float in [-1.0, 1.0]:
+			var elbow := foot + up * low + side * sd * r
+			_beam(foot + up * low, elbow, 0.08 * s, GETTO_BRONZE)
+			_beam(elbow, foot + up * 1.9 + side * sd * r, 0.08 * s, GETTO_BRONZE)
