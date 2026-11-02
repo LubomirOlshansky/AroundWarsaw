@@ -184,7 +184,8 @@ then the Launch gate.
   - [ ] Mac photo checks for the estate and the stalls (QUESTIONS); then the boulevard street by street
 - [ ] Nowy Świat street by street (F, 2026-11-01; BACKLOG "Nowy Świat"):
   - [x] N1 café terraces along the whole street (about three times as many) and six named houses with skins and cards, 2026-11-01
-  - [ ] N2 Mac look check, Café Blikle-style pastry shop parody, Chmielna and Foksal corners, Pałac Staszica to the rondo's tenement fronts from photos
+  - [x] N2 three more neon shops (BLIKLINA OD 1869 pastry parody near no. 35, Chmielna, Foksal), 2026-11-02
+  - [ ] N2 Mac look check, Pałac Staszica to the rondo's tenement fronts from photos
 - [ ] Plac Bankowy as in real life (F, 2026-11-02): DONE the Blue Skyscraper in blue mirror glass
       (new skin S_MIRROR; the gold was its first copper cladding) and the palaces in their real
       colours (kept skins `ratusz`, `wojewodzki`, `gielda`, `arsenal`, `mniszchow`, `landau`, with
