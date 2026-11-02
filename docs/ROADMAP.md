@@ -181,6 +181,10 @@ then the Launch gate.
       tenements, the Mac photo checks (BACKLOG "Powiśle street by street")
 - [x] Street furniture along the main line's route (Krakowskie Przedmieście, Nowy Świat, the Old
       Town's edge, Plac Zbawiciela, the boulevards, Rondo Daszyńskiego)
+- [x] Office crowds at Rondo Daszyńskiego, 2026-11-02 (F; BACKLOG "Rondo Daszyńskiego office crowd"):
+      weekday rush-hour workers in business dress at the metro exits and zebras and walking over the
+      crossings (`crowds.gd` OFFICE, mode `office`, up to 56 walkers + 88 standing, scaled by
+      `amount`), 65 overheard corporate lines in `dialogue.json` "office"; phone look check parked
 - [ ] The estate, the halls and Jana Pawła II (F, 2026-11-01; BACKLOG section):
   - [x] Osiedle Za Żelazną Bramą: eleven blocks as a model with its own skin, 2026-11-01
   - [x] Hala Mirowska: market stalls on the square, 2026-11-01 (the hall itself was done)
@@ -281,7 +285,7 @@ then the Launch gate.
   - [x] The van's CRINGULO TV lettering, 2026-11-02
   - [ ] Still left (BACKLOG): Mac and phone look checks
 - [x] Roof rescues never name a real chain (2026-11-02, `missions.gd` `ROOF_PARODIES`): Puro shows as Hotel Piure, Green Caffè Nero as Green Caffè Nerwo; headless check not run in the cloud (no Godot)
-- [x] Zagłębie Kebabowe and Kino Femina (F, 2026-11-02; spec docs/design/zaglebie-kebabowe.md): five parody kebab shops on Al. Solidarności, Femina's neon, delivery twists, the craft kebab's choice, Szlak Szpili, 2026-11-02 (the Mac photo check of Femina's front is open)
+- [x] Zagłębie Kebabowe and Kino Femina (F, 2026-11-02; spec docs/design/zaglebie-kebabowe.md): five parody kebab shops on Al. Solidarności, Femina's neon, delivery twists, the craft kebab's choice, Szlak Szpili, 2026-11-02 (the Mac photo check of Femina's front is open; a queue outside ZAKWAS I ROŻEN, 2026-11-02)
   - [x] KEBAB FM lines about the seven cinemas and the Kebab Basin, 2026-11-02 (text only; headless checks not run in the cloud)
   - [ ] Leftovers (BACKLOG): dates on LUŹNO's roof, Podwózka dates, van fans and egg
 - [x] Gamepad support (2026-11-01, `gamepad.gd`, `check_gamepad`): Xbox, PlayStation and MFi
