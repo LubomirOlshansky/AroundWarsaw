@@ -114,7 +114,8 @@ then the Launch gate.
       look check parked), then houses, roads and street life
 - [x] Marszałkowska street by street, pass 5 (F, 2026-11-02): Plac Zbawiciela's four parody cafés
       with parasol terraces and the church lit at night (gilt, stained rose, lanterns, floodlamps).
-      Open: Mac look check, heaters/awnings, a café crowd
+      Open: Mac look check, heaters/awnings, a café crowd. Terrace sets kept on the shopfront strip
+      (verify `stops` K5 green again, 2026-11-02)
 - [x] Marszałkowska street by street, pass 2 (F, 2026-11-01): commuters waiting on the street's
       12 tram platforms (rush hours, thin weekends, fuller in rain; check_crowds). Open: houses,
       shopfronts, crossings (BACKLOG "Marszałkowska street by street")
