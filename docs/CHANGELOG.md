@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-02
 - Level 26, the rooftop club on the Atlas Tower, is finally a club: a deck up on the roof with a glass balustrade, a glowing bar, a DJ booth under a lighting truss with an LED wall and speakers, lounge sofas, planters, warm festoon lamps and its name in violet neon, with the crowd dancing round it after 22:00
+- Pokorna 2, the tall block by Muranów, now reads as a block of flats: a window in every bay, a balcony and railing on every floor, warm plaster and a lift house on the roof.
 - Warsaw Spire has its real shape: a glass tower that widens upward from a lit lobby, a fin over its roof, the mirrored entrance canopy on V-shaped legs, its two curved 15-storey wings and the plaza in front.
 - The Kebab Boost nitro now burns: two flames out of the tail, a whoosh and a short buzz when it lights.
 - You can now play in Polish or in English, not both at once: pick POLSKI or ENGLISH on the title screen or in Settings → Dźwięk → Język. The game remembers it and starts in your phone's language the first time.
@@ -31,6 +32,7 @@ someone writes its lines.
 - Getting wedged between traffic cars no longer ends the drive: push against them for a moment and your car slips through, and after eight seconds in a jam it is towed onto the road.
 
 ## 2026-11-01
+- Bus stops stand on the kerb now, turned to the road, and the buses really stop at them: about ten seconds, with passengers stepping off and the people waiting at the shelter getting on. Benches face the footpath, and café tables only stand against a shopfront.
 - Twenty-two more churches stand as real buildings with towers, steep roofs and a front door instead of plain boxes, and the houses round Plac Zamkowy are painted in Old Town pastels with a mix of gable shapes.
 
 

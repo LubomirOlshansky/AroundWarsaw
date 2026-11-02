@@ -18,6 +18,15 @@ extends Node
 ##   shelter on its right: `stop_from`); the STOPS_NEAR nearest within STOP_RANGE of the view get
 ##   1-2 waiting figures by day (06:00-22:00; pedestrians.gd's stop slots, +0 draw calls), the
 ##   hub's 2-3 at night while the ring stands; a `bus_stop` bubble when the car stops beside one.
+## - **Service (G8, 2026-11-01)**: the traffic's own buses serve the stops by day. A bus within
+##   SERVE_RANGE of the view, on a stop's edge with the stop SERVE_AHEAD m ahead, is sent there
+##   (traffic.gd `send_to_stop`: it takes the kerb lane, stands DWELL s, drives on); a stop
+##   never sees the same bus again within SERVE_GAP s. While it stands at a stop that has figures
+##   (a `session`), 1-3 passengers step off at the front door and walk away along the footway,
+##   then 1-2 of the people waiting walk to the door and board; the stop's waiting figures come
+##   back (new arrivals) BOARDED_BACK s after the bus leaves. Pedestrians.STOPS slots, +0 draw
+##   calls; a plain timer state machine (arrive, dwell, depart), Beehave not used: a bus has three
+##   states and there are crowds of them (docs/ADDONS.md).
 ## - **The horn** (`honk`: the HUD's horn and the B key): the player's own horn (sfx.gd
 ##   `horn_player`), the dogs bark (city_life.gd `horn`), walkers coming at the car turn round;
 ##   at most one honk per HORN_GAP s. Stopped at a stop, a honk calls a bus: the nearest one
@@ -86,6 +95,27 @@ const CALL_PULL := 0.9
 const CALL_NEAR := 30.0
 const CALL_MAX := 90.0
 const BUBBLE := Color("#ffd23f")
+## G8: service. A bus this near the view serves; a stop this far ahead of its front; the stand's
+## length (s); the same bus at the same stop no sooner than SERVE_GAP s; at most SERVE_MAX stand at
+## once; the pull towards the kerb; the people who got on are back after BOARDED_BACK s.
+const SERVE_RANGE := 260.0
+const SERVE_AHEAD := Vector2(14.0, 90.0)
+const DWELL := Vector2(8.0, 12.0)
+const SERVE_GAP := 150.0
+const SERVE_MAX := 5
+const SERVE_PULL := 0.9
+const BOARDED_BACK := 40.0
+## A session's figures: the pedestrian slots (the first WAIT_SLOTS wait, the rest are passengers
+## stepping off), how many step off, how many board, the walking pace (m/s), how far they walk.
+const WAIT_SLOTS := 10
+const ALIGHT := Vector2i(1, 3)
+const BOARD_MAX := 2
+const WALK_PACE := 1.5
+const WALK_AWAY := 7.0
+const SESSION_STEP := 0.1
+## The bus's front door: this far behind its front, this far out from its centre line.
+const DOOR_BACK := 3.0
+const DOOR_OUT := 1.5
 
 var traffic: Node3D
 var graph: LaneGraph
@@ -129,6 +159,19 @@ var _last_bubble := -100.0
 var _bubbled := {}
 var _near: Array[int] = []
 var _figures_sig := ""
+## G8: stop indexes by graph edge; {stop * 64 + bus slot: when served}; {stop: [people boarded,
+## back at]}; the waiting figures by stop [[slot, at (Vector2), yaw, shirt, trousers]...]; the
+## sessions {d, slot, stop, t0, off [figure], board [figure]} (a figure: {slot, from, to, t0, dur,
+## shirt, tr, clear}); the next free passenger slot is the lowest unused one.
+var _stops_on := {}
+var _served := {}
+var _gone := {}
+var _wait_fig := {}
+var sessions: Array[Dictionary] = []
+var served := 0
+var boarded := 0
+var alighted := 0
+var _step_t := 0.0
 var _stop_keys := {}
 var _roots := {}
 var _dist_cache := {}
@@ -202,14 +245,37 @@ static func standing(plan: Array, age: float) -> int:
 	return n
 
 
-## People waiting at stop `key` at `hour` by day: 1 or 2 (more often 2 at the rush hours).
+## People waiting at stop `key` at `hour` by day: 2-4, 3-5 at the rush hours (G8: "2-5 people wait").
 static func stop_people(key: int, hour: float) -> int:
 	if hour < DAY_FROM or hour >= DAY_TO:
 		return 0
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash(key * 31 + int(hour))
 	var rush := (hour >= 7.0 and hour < 9.5) or (hour >= 15.5 and hour < 18.5)
-	return 2 if rng.randf() < (0.7 if rush else 0.35) else 1
+	return (3 if rush else 2) + rng.randi_range(0, 2)
+
+
+## G8: how long a served stop's stand lasts (s, DWELL.x to DWELL.y), seeded by the stop and the bus.
+static func dwell_for(key: int, slot: int, visit: int) -> float:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(key * 131 + slot * 17 + visit) + 911
+	return rng.randf_range(DWELL.x, DWELL.y)
+
+
+## G8: a bus `ahead` m short of a stop (its front to the stop's line) is sent to it: inside the
+## window, the stop not served by it lately, by day.
+static func serve_ok(ahead: float, since: float, hour: float) -> bool:
+	return ahead >= SERVE_AHEAD.x and ahead <= SERVE_AHEAD.y and since >= SERVE_GAP and hour >= DAY_FROM and hour < DAY_TO
+
+
+## G8: how many step off a bus at stop `key` (ALIGHT) and how many of the `waiting` board (at most
+## BOARD_MAX, never everyone's last one when 3 or fewer wait).
+static func passengers(key: int, slot: int, visit: int, waiting: int) -> Vector2i:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(key * 977 + slot * 31 + visit) + 4411
+	var off := rng.randi_range(ALIGHT.x, ALIGHT.y)
+	var on := mini(BOARD_MAX, maxi(0, waiting - (1 if waiting <= 3 else 0)))
+	return Vector2i(off, on)
 
 
 ## A honk at `now` is allowed `last` s after the last one.
@@ -227,7 +293,7 @@ static func hub_moment(car_at: Vector2, flying: bool, standing_now: int) -> bool
 	return not flying and car_at.distance_to(HUB) <= HUB_NEAR and standing_now >= E23_BUSES
 
 
-## The stop on a bus road for a shelter at `p`: {at, e, s, side, key} or {} (not beside a class
+## The stop on a bus road for a shelter at `p`: {at, e, s, side, out (m past the kerb lane's edge), key} or {} (not beside a class
 ## 0-1 edge's kerb lane, on its right, STOP_SIDE m out).
 static func stop_from(g: LaneGraph, p: Vector2) -> Dictionary:
 	var best := {}
@@ -257,7 +323,7 @@ static func stop_from(g: LaneGraph, p: Vector2) -> Dictionary:
 					best_d = out
 					var lane_pt := g.point_at(e, s, kerb)
 					best = {"at": p, "e": e, "s": clampf(s + 6.0, g.e_s0[e] + 8.0, g.e_s1[e] - 4.0),
-							"side": (lane_pt - p).normalized(), "key": int(roundf(p.x)) * 100000 + int(roundf(p.y))}
+							"side": (lane_pt - p).normalized(), "out": out - g.e_lw[e] * 0.5, "key": int(roundf(p.x)) * 100000 + int(roundf(p.y))}
 	return best
 
 
@@ -394,6 +460,9 @@ func _add_stop(p: Vector2) -> void:
 	_stop_keys[key] = true
 	var st := stop_from(graph, p)
 	if not st.is_empty():
+		if not _stops_on.has(int(st["e"])):
+			_stops_on[int(st["e"])] = []
+		(_stops_on[int(st["e"])] as Array).append(stops.size())
 		stops.append(st)
 
 
@@ -404,6 +473,13 @@ func _process(dt: float) -> void:
 		return
 	_now += dt
 	_t += dt
+	if not sessions.is_empty():
+		_step_t += dt
+		if _step_t >= SESSION_STEP:
+			var s0 := Time.get_ticks_usec()
+			_session_tick()
+			_step_t = 0.0
+			spent_usec += Time.get_ticks_usec() - s0
 	if _t < TICK:
 		return
 	var t0 := Time.get_ticks_usec()
@@ -431,6 +507,7 @@ func tick(_dt: float) -> void:
 		_pick_stops(view)
 	if log_on and _tick_n % 40 == 0:
 		print(summary())
+	_serve_tick(hour, view)
 	_stop_figures(hour)
 	_stop_bubble(car, kmh, flying, hour)
 
@@ -813,14 +890,23 @@ func _stop_figures(hour: float) -> void:
 	var plan: Array = []
 	var used := 0
 	for i: int in _near:
-		var n := mini(people_at(i, hour), Pedestrians.STOPS - used)
+		var full := people_at(i, hour)
+		var here := full
+		var g: Array = _gone.get(i, [])
+		if not g.is_empty():
+			if _now < float(g[1]):
+				here = maxi(0, full - int(g[0]))
+			else:
+				_gone.erase(i)
+		var n := mini(here, WAIT_SLOTS - used)
 		if n > 0:
-			plan.append([i, n])
+			plan.append([i, n, full])
 			used += n
 			sig += "%d:%d," % [i, n]
 	if sig == _figures_sig:
 		return
 	_figures_sig = sig
+	_wait_fig.clear()
 	var slot := 0
 	for p: Array in plan:
 		var st: Dictionary = stops[int(p[0])]
@@ -829,14 +915,191 @@ func _stop_figures(hour: float) -> void:
 		var along := Vector2(-side.y, side.x)
 		var rng := RandomNumberGenerator.new()
 		rng.seed = int(st["key"])
+		var full := int(p[2])
+		var gap := minf(1.3, 3.6 / float(maxi(full, 1)))
+		var list: Array = []
 		for k in int(p[1]):
-			var q := at + side * rng.randf_range(0.9, 1.6) + along * (float(k) - 0.5 * (float(p[1]) - 1.0)) * 1.3
+			# The layout is the full crowd's: the people who boarded are the last ones, so the rest stay put.
+			var q := at + side * rng.randf_range(0.35, 0.9) + along * (float(k) - 0.5 * (float(full) - 1.0)) * gap
 			var y: float = map.ground_height(q.x, q.y) if map != null else 0.0
 			var shirt := Color(Pedestrians.SHIRTS[rng.randi() % Pedestrians.SHIRTS.size()])
-			walkers.set_stop(slot, Vector3(q.x, y, q.y), atan2(-side.x, -side.y) + rng.randf_range(-0.5, 0.5), shirt, rng.randf())
+			var yaw := atan2(-side.x, -side.y) + rng.randf_range(-0.5, 0.5)
+			var tr := rng.randf()
+			walkers.set_stop(slot, Vector3(q.x, y, q.y), yaw, shirt, tr)
+			list.append([slot, q, yaw, shirt, tr])
 			slot += 1
-	for k in range(slot, Pedestrians.STOPS):
+		_wait_fig[int(p[0])] = list
+	for k in range(slot, WAIT_SLOTS):
 		walkers.clear_stop(k)
+
+
+# --- G8: service (arrive, dwell, depart) -------------------------------------------------------
+
+## The traffic's buses by day: one on a stop's edge with the stop ahead is sent to stand there.
+func _serve_tick(hour: float, view: Vector2) -> void:
+	var standing := 0
+	for d: Traffic.Driver in traffic.buses():
+		if d.tag == "serve":
+			standing += 1
+	_sessions_sync()
+	if standing >= SERVE_MAX or hour < DAY_FROM or hour >= DAY_TO:
+		return
+	if _served.size() > 400:
+		_served.clear()
+	for d: Traffic.Driver in traffic.buses():
+		if standing >= SERVE_MAX:
+			return
+		if d.tag != "" or d.parked or d.halt_e >= 0 or d.in_conn or d.persistent or not d.active or d.edge < 0:
+			continue
+		if not _stops_on.has(d.edge) or Vector2(d.pos.x, d.pos.z).distance_to(view) > SERVE_RANGE:
+			continue
+		for i: int in _stops_on[d.edge]:
+			var st: Dictionary = stops[i]
+			var ahead: float = float(st["s"]) - (d.s + d.length * 0.5)
+			var key := i * 64 + d.slot
+			if not serve_ok(ahead, _now - float(_served.get(key, -1000.0)), hour):
+				continue
+			var visit := int(_served.get("v%d" % key, 0)) + 1
+			_served["v%d" % key] = visit
+			_served[key] = _now
+			var e: int = st["e"]
+			traffic.send_to_stop(d, e, float(st["s"]), _serve_route(graph.e_b[e]), dwell_for(int(st["key"]), d.slot, visit), SERVE_PULL)
+			d.tag = "serve"
+			standing += 1
+			served += 1
+			if log_on:
+				print("buses: bus %d goes to the stop at %.0f, %.0f (%.0f m ahead, stands %.0f s)" % [d.slot, st["at"].x, st["at"].y, ahead,
+						d.halt_wait])
+			break
+
+
+## Shortest ways to node n within reach, kept for a few stops (a served stop's bus is on its edge,
+## so the route only matters at a junction right before it).
+func _serve_route(n: int) -> PackedFloat32Array:
+	var key := -1 - n
+	if not _dist_cache.has(key):
+		if _dist_cache.size() > 24:
+			_dist_cache.clear()
+		_dist_cache[key] = graph.distances_to(n, 400.0)
+	return _dist_cache[key]
+
+
+## Sessions follow the buses: one begins when a served bus has stopped at a stop with figures, and
+## ends when it drives off (the boarded stay gone for BOARDED_BACK s).
+func _sessions_sync() -> void:
+	for k in range(sessions.size() - 1, -1, -1):
+		var ss: Dictionary = sessions[k]
+		var d: Traffic.Driver = ss["d"]
+		if not Traffic.same(d, Traffic.Kind.BUS, int(ss["slot"])) or d.tag != "serve" or not d.halting:
+			_end_session(k)
+	for d: Traffic.Driver in traffic.buses():
+		if d.tag != "serve" or not d.halting or d.halt_e < 0:
+			continue
+		var has := false
+		for ss: Dictionary in sessions:
+			if ss["d"] == d:
+				has = true
+		if has:
+			continue
+		var i := _stop_of(d)
+		if i < 0 or sessions.size() >= 3:
+			continue
+		_begin_session(d, i)
+
+
+## The stop this standing bus is at (its edge, nearest to its halt line), or -1.
+func _stop_of(d: Traffic.Driver) -> int:
+	var best := -1
+	var best_d := 6.0
+	for i: int in _stops_on.get(d.halt_e, []):
+		var dd := absf(float(stops[i]["s"]) - d.halt_s)
+		if dd < best_d:
+			best_d = dd
+			best = i
+	return best
+
+
+func _begin_session(d: Traffic.Driver, i: int) -> void:
+	var visit := int(_served.get("v%d" % (i * 64 + d.slot), 1))
+	var st: Dictionary = stops[i]
+	var waiting: Array = _wait_fig.get(i, [])
+	var pax := passengers(int(st["key"]), d.slot, visit, waiting.size())
+	if not _near.has(i) or walkers == null:
+		return  # nobody in sight: the stand is just a stand
+	var ss := {"d": d, "slot": d.slot, "stop": i, "t0": _now, "off": [], "board": [], "used": []}
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int(st["key"]) * 7 + visit
+	var along := Vector2(-(st["side"] as Vector2).y, (st["side"] as Vector2).x)
+	var away := along * (1.0 if rng.randf() < 0.5 else -1.0)
+	for k in pax.x:
+		var slot := WAIT_SLOTS + k
+		if slot >= Pedestrians.STOPS:
+			break
+		(ss["off"] as Array).append({"slot": slot, "t0": _now + 0.8 + 0.7 * k, "dur": WALK_AWAY / WALK_PACE, "away": away * (WALK_AWAY + rng.randf_range(-1.0, 2.0)),
+				"side": rng.randf_range(0.0, 0.8), "shirt": Color(Pedestrians.SHIRTS[rng.randi() % Pedestrians.SHIRTS.size()]), "tr": rng.randf(), "from": null})
+	# The last waiting figures board once the passengers are off (about 40% into the stand).
+	var begin := _now + maxf(3.0, d.halt_wait * 0.4)
+	for k in pax.y:
+		var f: Array = waiting[waiting.size() - 1 - k]
+		(ss["board"] as Array).append({"slot": int(f[0]), "from": f[1], "yaw": float(f[2]), "shirt": f[3], "tr": float(f[4]), "t0": begin + 0.6 * k, "dur": 0.0})
+	sessions.append(ss)
+	if log_on:
+		print("buses: session at stop %d: %d step off, %d board" % [i, pax.x, pax.y])
+
+
+func _end_session(k: int) -> void:
+	var ss: Dictionary = sessions[k]
+	sessions.remove_at(k)
+	if walkers == null:
+		return
+	for f: Dictionary in ss["off"]:
+		walkers.clear_stop(int(f["slot"]))
+	_figures_sig = ""
+
+
+## 10 Hz while a bus stands at a stop in sight: the passengers' steps.
+func _session_tick() -> void:
+	if walkers == null:
+		return
+	for ss: Dictionary in sessions:
+		var d: Traffic.Driver = ss["d"]
+		var fwd := Vector2(-sin(d.yaw), -cos(d.yaw))
+		var right := Vector2(-fwd.y, fwd.x)
+		var door := Vector2(d.pos.x, d.pos.z) + fwd * (d.length * 0.5 - DOOR_BACK) + right * DOOR_OUT
+		for f: Dictionary in ss["off"]:
+			var t := _now - float(f["t0"])
+			if t < 0.0:
+				continue
+			if f["from"] == null:
+				f["from"] = door
+				alighted += 1
+			var a: Vector2 = f["from"]
+			var to: Vector2 = a + (f["away"] as Vector2)
+			var u := t / float(f["dur"])
+			if u >= 1.0:
+				walkers.clear_stop(int(f["slot"]))
+				continue
+			var q := a.lerp(to, u)
+			var dir := (to - a).normalized()
+			walkers.set_stop(int(f["slot"]), Vector3(q.x, map.ground_height(q.x, q.y) if map != null else 0.0, q.y), atan2(-dir.x, -dir.y), f["shirt"], float(f["tr"]))
+		for f: Dictionary in ss["board"]:
+			var t := _now - float(f["t0"])
+			if t < 0.0 or bool(f.get("done", false)):
+				continue
+			var a: Vector2 = f["from"]
+			var dur := maxf(a.distance_to(door) / WALK_PACE, 0.5)
+			var u := t / dur
+			if u >= 1.0:
+				walkers.clear_stop(int(f["slot"]))
+				f["done"] = true
+				boarded += 1
+				var i := int(ss["stop"])
+				var prior: Array = _gone.get(i, [0, 0.0])
+				_gone[i] = [int(prior[0]) + 1, _now + BOARDED_BACK]
+				continue
+			var q := a.lerp(door, u)
+			var dir := (door - a).normalized()
+			walkers.set_stop(int(f["slot"]), Vector3(q.x, map.ground_height(q.x, q.y) if map != null else 0.0, q.y), atan2(-dir.x, -dir.y), f["shirt"], float(f["tr"]))
 
 
 func _stop_bubble(car: Vector2, kmh: float, flying: bool, hour: float) -> void:
