@@ -84,9 +84,13 @@ fresh thread per item; ul. Złota and Zgoda stay with the Skwer Linearny thread.
 - [x] K1 ul. Bracka (Al. Jerozolimskie to Krucza, the 2024 woonerf): 22 young trees planted in
   its mapped beds (`tools/planted_trees.py`, 33 young trees in all, as the article counts).
   Open for the Mac (QUESTIONS): the paving's colour, the beds' planting, a matched street photo.
-- [ ] K2 ul. Chmielna, Nowy Świat to Pasaż Wiecha (2024): granite slabs, 95 trees (two rows of
-  elms before Plac Pięciu Rogów), 64 benches and chairs, the small fountain by Kino Atlantic,
-  Ali's square (map, Opus spec; Sonnet build; a new PLACE in `planted_trees.py`).
+- [x] K2 ul. Chmielna, Nowy Świat to Pasaż Wiecha (2024): 65 young trees in its mapped tree pits
+  (85 in all with the 20 scanned; elms on the narrow stretches, planes on the two squares), its
+  pedestrian areas re-tagged as grey granite, Ali's memorial stone and a SKWER BROWNE'A plate at
+  Pasaż Wiecha (first_scene.gd). The fountain by Kino Atlantic was already in the OSM data.
+  Open for the Mac (QUESTIONS): orthophoto check of the trees, the granite's tone, the stone's spot.
+- [ ] K2b Chmielna's furniture: the 64 urban chairs, benches and long flowing benches (OSM has
+  only 2 benches on the street), and a stone rim for the Atlantic fountain (Sonnet, small).
 - [x] K3 Varso Place (spec docs/landmarks/specs/varso_place.md): the sky garden on the tower's
   205 m roof (16 hawthorns, dwarf pines, benches, glass balustrade), planted terraces on Varso 1's
   71 m and Varso 2's 80 and 72 m roofs (site `varso_place`), the VERSO PLACE name stone and the
