@@ -197,6 +197,10 @@ func _check_screen(screen: Vector2i) -> int:
 							"It cools on the way: the hotter, the bigger the tip. Across the river (\"basically the centre\"). Night pays ×1.5.")
 					hud.ticker("87,3 KEBAB FM  ·  Palma de Gaulle'a", Color("#ff5fc8"))
 					hud.toast("Jedziemy! Kasia czeka", "Go! Kasia is waiting")
+					# PT-13: the GO counts down to the order's own start (jobs.gd _count_down).
+					hud.set_card_button(0, "JEDZIEMY! · 9", "GO! · 9")
+					if not hud.card_button_text(0).ends_with("· 9"):
+						problems.append("%s %s PT-13: the order card's GO doesn't show its countdown (%s)" % [screen, state, hud.card_button_text(0)])
 					_say(bubbles, "Marek", at.call(0.12, 0.82), "Z ostrym czy łagodnym?", "Hot sauce or mild?")
 					# The vendor over the stand, mid-right, where shots/loop2e_kebab_offer_* see it.
 					_say(bubbles, "Kebab 24h", at.call(0.62, 0.52), "Mięso z rożna, sos z serca. Dowieź, zanim wystygnie.",
