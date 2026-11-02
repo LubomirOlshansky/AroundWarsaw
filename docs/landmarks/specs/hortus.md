@@ -64,8 +64,8 @@ L2, 488 triangles, budget 590. Shots: from Zajęcza (`--at=118,-494`), looking n
 | --- | --- | --- | --- | --- | --- |
 | lobby | prism | 0-4.5 m | outline pulled in 1.4 m | S_DARK | recessed ground floor |
 | offices | prism | 4.5-20.8 m | mapped outline | S_GRID | glass in a white frame |
-| parapet | prism | 0.6 m | mapped outline | M_STONE | |
-| piers | 0.5 m square | 0-4.5 m | street sides every ~7.5 m, in the recess | M_STONE | |
+| parapet | prism | 0.6 m | mapped outline | M_STONE | roof edge |
+| piers | 0.5 m square | 0-4.5 m | street sides every ~7.5 m, in the recess | M_STONE | 3 facade |
 | flats | prism | 17.9 m | Drewniana outline | M_MONUMENT | tenement look |
-| cornice | prism | 0.55 m | flats + 0.35 m | M_STONE | |
-| mansard | prism | 18.45-20.8 m | flats simplified 1 m, pulled in 1.2 m | M_STONE | |
+| cornice | prism | 0.55 m | flats + 0.35 m | M_STONE | 3 facade |
+| mansard | prism | 18.45-20.8 m | flats simplified 1 m, pulled in 1.2 m | M_STONE | 4 roof |

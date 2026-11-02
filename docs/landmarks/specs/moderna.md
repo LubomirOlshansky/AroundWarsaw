@@ -49,7 +49,7 @@ L2, 70 triangles, budget 90. Shots: from Zajęcza (`--at=306,-593`, size 50), lo
 
 | id | shape | size | position | material | feature |
 | --- | --- | --- | --- | --- | --- |
-| tenement | prism | 13.6 m | outline within 13.9 m of the front | M_MONUMENT | |
-| cornice | prism | 0.6 m | tenement + 0.3 m | M_STONE | |
-| wing | prism | 14.2 m | the rest of the outline | S_RIBBON | |
-| penthouse | prism | 14.2-17.4 m | wing pulled in 1.5 m | S_DARK | |
+| tenement | prism | 13.6 m | outline within 13.9 m of the front | M_MONUMENT | 2 massing |
+| cornice | prism | 0.6 m | tenement + 0.3 m | M_STONE | 3 facade |
+| wing | prism | 14.2 m | the rest of the outline | S_RIBBON | 2 massing |
+| penthouse | prism | 14.2-17.4 m | wing pulled in 1.5 m | S_DARK | 4 roof |

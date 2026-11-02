@@ -38,7 +38,7 @@ const OLD_LONG := ["Zamówienie dla pana Krzysztofa z Powiśla. W uwagach: „du
 		"Powiśle, kamienica bez windy. Klientka prosi: „tylko nie trąbić, sąsiedzi”."]
 ## The dialogue groups the parodies speak or show.
 const GROUPS := ["rechotka", "easter_rechotka", "pedzik", "lezak", "easter_lezak", "kebab_vendor", "kebab_order", "signs",
-		"column_posters", "cringulo_review", "cringulo_owner"]
+		"column_posters", "cringulo_review", "cringulo_owner", "office"]
 
 
 ## A stand-in for dialogue.gd: the real lines, records each one asked for.
