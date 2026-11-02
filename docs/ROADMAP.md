@@ -113,6 +113,8 @@ then the Launch gate.
       with its status (photo build, outline build, dress only, not done) in docs/CITY_INVENTORY.md, Part 2
       street by street from the map data (`tools/city_inventory.py`). Its Part 3 is the order of the next
       landmark threads
+- [x] Model progress page on the wiki (F, 2026-11-02): wiki.aroundwarsaw.app/models/, generated from docs/CITY_INVENTORY.md
+      Part 1 (stage per place: planned, researching, done from outline, done from photos), linked from Progress.
 - [ ] City inventory Part 3: the top not-done places, one thread each, photos first (Most Poniatowskiego,
       Muzeum Powstania, Pomnik Powstania, Hotel Warszawa and Cedet, Rondo ONZ towers, the monuments pass,
       Plac Bankowy, Świętokrzyska's NBP/Poczta/PAST-a, the outline builds' photo re-pass, Praga's faces)

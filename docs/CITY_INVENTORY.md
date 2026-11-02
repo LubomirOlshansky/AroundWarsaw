@@ -9,6 +9,9 @@ changes its status here in the same PR, like ROADMAP's v1.0 checklist). **Part 2
 places street by street, regenerated from the map data with `python3 -I tools/city_inventory.py`
 (it reads Part 1's statuses, so edit Part 1 and re-run). docs/LANDMARKS.md keeps the build detail
 of each model; this file only says what exists and what is next.
+The wiki's Model progress page (wiki.aroundwarsaw.app/models/) is generated from Part 1. A row counts as
+*researching* when its Next cell says "photos gathered" (or its status is ⏳): write that when the Mac's
+`refs/<slug>/` and REPORT exist, before the model is built.
 
 ## Why some places were rebuilt "outline only"
 
