@@ -594,6 +594,7 @@ func _build_parts(marks, roofs_only: bool) -> void:
 	_build_trees()
 	_build_street_furniture()
 	_build_props()
+	_bridge_pockets(keep, marks)
 
 
 ## Loop 3c: a chunked surface keeping only the sector's tiles while one is built.
@@ -4532,6 +4533,10 @@ const ARROW_LTR := [
 const BIKE := [
 	"....##..", "...#..#.", ".###....", "#..#.##.", "#..##..#", "#.#.#..#", ".#...##.",
 ]
+## The sharrow's two chevrons (P-27), pointing the way of travel.
+const CHEVRONS := [
+	"..##..", ".#..#.", "#....#", "..##..", ".#..#.", "#....#",
+]
 const BUS_TEXT := [
 	"###..#..#..###", "#..#.#..#.#...", "###..#..#..##.", "#..#.#..#....#", "###...##..###.",
 ]
@@ -4568,6 +4573,13 @@ func _build_symbols(st) -> void:
 				_pixel_shape(st, rows, at, fwd, minf(0.3, 2.7 / String(rows[0]).length()), 0.5, mirror)
 			"bike":
 				_pixel_shape(st, BIKE, at, fwd, 0.16, 0.2, false)
+				# Idea #9 (tools/bike_network.py): a contraflow street's bike has an arrow ahead
+				# of it (the riders' way, against the cars), a sharrow (P-27) two chevrons.
+				match String(m.get("on", "")):
+					"contra":
+						_pixel_shape(st, ARROW_T, at + fwd * 1.5, fwd, 0.16, 0.11, false)
+					"sharrow":
+						_pixel_shape(st, CHEVRONS, at + fwd * 1.4, fwd, 0.2, 0.2, false)
 			"bus":
 				_pixel_shape(st, BUS_TEXT, at, fwd, 0.19, 0.5, false)
 	_dk = -1
@@ -6626,6 +6638,286 @@ func _props(mesh: Mesh, material: Material, list: Array, solid: float, tints: Ar
 			var b: Vector3 = c[(k + 1) % 4]
 			var up := Vector3(0, 2.0, 0)
 			_wall_faces.append_array([a, b, b + up, a, b + up, a + up])
+
+
+## PT-7 (2026-11-02): the car pinned in the dents of a building block's ground outline. Where
+## two outlines stand under SLIT * 2 apart (the 0.5 m slit between two LoD2 buildings at Chmielna
+## and Bracka) or a block's front has a notch at most POCKET_MOUTH wide and POCKET_DEPTH deep
+## (the 3 m notch at its north-west corner, by Zgoda), a car sliding along the wall caught its
+## front corner in it, sat pinned and was towed. Each such gap gets a low collider wall across its
+## mouth (from under the ground to POCKET_WALL above it; nothing drawn), so the car slides past.
+## Not on a road's carriageway, in a `lod2_open` box or near a garage door.
+const SLIT := 0.45
+const POCKET_MOUTH := 4.5
+const POCKET_DEPTH := 3.0
+const POCKET_WALL := 2.4
+## How far a pocket's walls run beyond its mouth, at least: shorter is a corner, not a notch.
+const POCKET_DETOUR := 0.6
+## A step out of a block's front, STEP_MIN to STEP_MAX proud of the wall before it (the corner of
+## the next building, 0.3 m out at Chmielna and Bracka), caught the front corner of a car sliding
+## along that wall nose on: a collider wall fairs it in, STEP_TAPER times its height long (~9°).
+const STEP_MIN := 0.08
+const STEP_MAX := 0.6
+const STEP_TAPER := 6.0
+## The walls added so far, all builds (check_stuck_spots prints it): ~15,100 for the whole city,
+## ~300 ms of a sector's build in the cloud (none on the prebuilt path: baked in).
+var pocket_walls := 0
+
+
+func _bridge_pockets(keep: Array, marks) -> void:
+	var area := _sector_rect.grow(16.0) if _in_sector else Rect2(-1.0e6, -1.0e6, 2.0e6, 2.0e6)
+	var polys: Array[PackedVector2Array] = []
+	for f in _lod2_footprints:
+		var poly := _pts(f)
+		if poly.size() < 3:
+			continue
+		var box := _poly_box(poly)
+		if box.intersects(area) and not marks.replaces(box.get_center()):
+			polys.append(poly)
+	var list: Array = data["buildings"]
+	for index in (keep if _has_lod2 else range(list.size())):
+		var bld: Dictionary = list[int(index)]
+		if (bld["p"] as Array).size() < 6 or bld.has("br") or bld.has("cutd") or float(bld["mh"]) >= 0.5:
+			continue
+		if float(bld["h"]) <= float(bld["mh"]) or not marks.keeps_building(bld):
+			continue
+		var poly := _pts(bld["p"])
+		if _poly_box(poly).intersects(area):
+			polys.append(poly)
+	# Grown by SLIT, outlines that overlap are one block: clusters by their grown boxes.
+	var grown: Array[PackedVector2Array] = []
+	var boxes: Array[Rect2] = []
+	var grid := {}
+	for poly in polys:
+		var g := Geometry2D.offset_polygon(poly, SLIT, Geometry2D.JOIN_MITER)
+		if g.is_empty():
+			continue
+		grown.append(g[0])
+		boxes.append(_poly_box(g[0]))
+		_grid_add(grid, boxes[-1], grown.size() - 1)
+	var parent := PackedInt32Array()
+	for i in grown.size():
+		parent.append(i)
+	for cell in grid:
+		var ids: Array = grid[cell]
+		for a in ids.size():
+			for b in range(a + 1, ids.size()):
+				var i: int = ids[a]
+				var j: int = ids[b]
+				if boxes[i].intersects(boxes[j]):
+					var ri := _root(parent, i)
+					var rj := _root(parent, j)
+					if ri != rj:
+						parent[ri] = rj
+	var clusters := {}
+	for i in grown.size():
+		var r := _root(parent, i)
+		if not clusters.has(r):
+			clusters[r] = []
+		clusters[r].append(i)
+	var walls: Array[Vector2] = []
+	for r in clusters:
+		var ids: Array = clusters[r]
+		var outs: Array[PackedVector2Array] = []
+		for i: int in ids:
+			var p: PackedVector2Array = grown[i]
+			var merged := true
+			while merged:
+				merged = false
+				for k in outs.size():
+					if not _poly_box(outs[k]).intersects(_poly_box(p)) or Geometry2D.intersect_polygons(outs[k], p).is_empty():
+						continue
+					for m in Geometry2D.merge_polygons(outs[k], p):
+						if not Geometry2D.is_polygon_clockwise(m):
+							p = m
+					outs.remove_at(k)
+					merged = true
+					break
+			outs.append(p)
+		var originals: Array[PackedVector2Array] = []
+		for i: int in ids:
+			originals.append(polys[i])
+		for o in outs:
+			for ring in Geometry2D.offset_polygon(o, -SLIT, Geometry2D.JOIN_MITER):
+				if Geometry2D.is_polygon_clockwise(ring):
+					continue
+				_ring_bridges(ring, originals, walls)
+				_ring_fairings(ring, walls)
+				ring.reverse()
+				_ring_fairings(ring, walls, -1.0)
+	var open: Array = data.get("lod2_open", [])
+	var doors: Array = data.get("garage_doors", [])
+	var roads: Array = data.get("roads", [])
+	for w in range(0, walls.size(), 2):
+		var a := walls[w]
+		var b := walls[w + 1]
+		var mid := (a + b) * 0.5
+		if _in_sector and not _sector_rect.has_point(mid):
+			continue
+		if _open_wall(a, open) or _open_wall(b, open) or _open_wall(mid, open):
+			continue
+		var near_door := false
+		for d: Dictionary in doors:
+			var c: Array = d["c"]
+			near_door = near_door or mid.distance_to(Vector2(c[0], c[1])) < 8.0
+		if near_door or _on_road(a, b, roads):
+			continue
+		var ga := terrain_height(a.x, a.y)
+		var gb := terrain_height(b.x, b.y)
+		var p0 := Vector3(a.x, ga - 0.5, a.y)
+		var p1 := Vector3(b.x, gb - 0.5, b.y)
+		var q0 := Vector3(a.x, ga + POCKET_WALL, a.y)
+		var q1 := Vector3(b.x, gb + POCKET_WALL, b.y)
+		_wall_faces.append_array([p0, p1, q1, p0, q1, q0])
+		pocket_walls += 1
+
+
+static func _root(parent: PackedInt32Array, i: int) -> int:
+	while parent[i] != i:
+		parent[i] = parent[parent[i]]
+		i = parent[i]
+	return i
+
+
+## A block's closed outline (counter-clockwise): its edges over open ground (a slit it closed) and
+## the mouths of its notches, as pairs of points appended to `walls`.
+func _ring_bridges(ring: PackedVector2Array, originals: Array[PackedVector2Array], walls: Array[Vector2]) -> void:
+	var n := ring.size()
+	if n < 3:
+		return
+	var covered := PackedByteArray()
+	covered.resize(n)
+	# The notches: from vertex i the furthest j (up to 12 on) whose mouth is short, outside the
+	# block, with every vertex between on the block's side within POCKET_DEPTH of it.
+	var i := 0
+	while i < n:
+		var best := -1
+		for step in range(12, 1, -1):
+			if step >= n - 1:
+				continue
+			var j := (i + step) % n
+			var a := ring[i]
+			var b := ring[j]
+			var mouth := a.distance_to(b)
+			if mouth > POCKET_MOUTH or mouth < 0.3:
+				continue
+			var path := 0.0
+			var ok := true
+			var dir := (b - a) / mouth
+			for k in step:
+				var p := ring[(i + k) % n]
+				var q := ring[(i + k + 1) % n]
+				path += p.distance_to(q)
+				if k > 0:
+					# Counter-clockwise ring: the block lies to the left of a→b; a notch goes in there.
+					var side := dir.cross(p - a)
+					if side < -0.05 or side > POCKET_DEPTH:
+						ok = false
+						break
+			if not ok or path < mouth + POCKET_DETOUR:
+				continue
+			var inside := false
+			for t: float in [0.25, 0.5, 0.75]:
+				inside = inside or Geometry2D.is_point_in_polygon(a.lerp(b, t), ring)
+			if inside:
+				continue
+			best = j
+			break
+		if best >= 0:
+			walls.append_array([ring[i], ring[best]])
+			var k := i
+			while k != best:
+				covered[k] = 1
+				k = (k + 1) % n
+			i = i + ((best - i + n) % n)
+		else:
+			i += 1
+	# The slits it closed: an edge with open ground just inside it (in no original outline).
+	for e in n:
+		if covered[e]:
+			continue
+		var a := ring[e]
+		var b := ring[(e + 1) % n]
+		var length := a.distance_to(b)
+		if length < 0.05:
+			continue
+		var inward := -(b - a).orthogonal() / length  # left of a→b (the block's side)
+		# Open ground just inside it anywhere along it (the closed slit's mouth may share the
+		# edge with a corner of the wall beside it).
+		var open_ground := false
+		for t: float in [0.1, 0.3, 0.5, 0.7, 0.9]:
+			var probe := a.lerp(b, t) + inward * 0.12
+			var solid := false
+			for o in originals:
+				if Geometry2D.is_point_in_polygon(probe, o):
+					solid = true
+					break
+			if not solid:
+				open_ground = true
+				break
+		if open_ground:
+			walls.append_array([a, b])
+
+
+## The steps out of a block's front met by a car sliding along it (the ring's way; `turn` -1 for
+## the reversed ring, whose block lies to the right): a wall from the wall before the step,
+## STEP_TAPER times the step back, to the step's outermost corner.
+func _ring_fairings(ring: PackedVector2Array, walls: Array[Vector2], turn := 1.0) -> void:
+	var n := ring.size()
+	for i in n:
+		var a := ring[i]
+		var b := ring[(i + 1) % n]
+		var length := a.distance_to(b)
+		if length < 1.0:
+			continue
+		var d := (b - a) / length
+		var best := -1
+		var proud := 0.0
+		var path := 0.0
+		var prev := b
+		for k in range(1, 6):
+			var q := ring[(i + 1 + k) % n]
+			path += prev.distance_to(q)
+			prev = q
+			if path > 1.6:
+				break
+			var out := -turn * d.cross(q - a)  # out of the block
+			if out > STEP_MAX:
+				best = -1
+				break
+			var ahead := (q - b).dot(d)
+			if out >= STEP_MIN and out > proud and ahead > -0.2 and ahead < 1.5:
+				proud = out
+				best = (i + 1 + k) % n
+		if best < 0:
+			continue
+		var back := minf(proud * STEP_TAPER, length)
+		if back < proud * 3.0:
+			continue
+		walls.append_array([b - d * back, ring[best]])
+
+
+## Whether a→b crosses a road or comes within its carriageway (`roads`' polylines and widths,
+## with a 0.3 m margin): a service way into a yard or a gate is often flush with the walls.
+func _on_road(a: Vector2, b: Vector2, roads: Array) -> bool:
+	for r: Dictionary in roads:
+		var pts: Array = r["p"]
+		var half := float(r.get("w", 6.0)) * 0.5 + 0.3
+		var box := Rect2(a, Vector2.ZERO).expand(b).grow(half)
+		for k in range(0, pts.size() - 3, 2):
+			var p := Vector2(pts[k], pts[k + 1])
+			var q := Vector2(pts[k + 2], pts[k + 3])
+			if not box.intersects(Rect2(p, Vector2.ZERO).expand(q)):
+				continue
+			if Geometry2D.segment_intersects_segment(a, b, p, q) != null:
+				return true
+			var gap := minf(minf(Geometry2D.get_closest_point_to_segment(a, p, q).distance_to(a),
+					Geometry2D.get_closest_point_to_segment(b, p, q).distance_to(b)),
+					minf(Geometry2D.get_closest_point_to_segment(p, a, b).distance_to(p),
+					Geometry2D.get_closest_point_to_segment(q, a, b).distance_to(q)))
+			if gap < half:
+				return true
+	return false
 
 
 func _build_collision() -> void:
