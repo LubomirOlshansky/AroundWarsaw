@@ -95,6 +95,8 @@ const STATUS_W := 260.0
 const NOTE_W := 236.0
 const TICKER_W := 380.0
 const TOAST_W := 420.0
+## PT-9: how far (points) the ticker moves as it fades in and out; it stays inside the safe area.
+const TICKER_SLIDE := 18.0
 ## A long ticker line that finds no room at TICKER_W wraps this narrow and tries again.
 const TICKER_NARROW := 250.0
 ## Loop 2e: the passing panels that, when the screen is full, wait for room (their time on
@@ -225,6 +227,8 @@ var _status_badge: Label
 var _challenge: Button
 var _banner: Label
 var _overlay: Control
+## The speech bubbles, once `add_speech` has them (the edge arrow keeps off their rects).
+var speech: Control
 ## A short line (Polish, with its English gloss under it) at the bottom for 3 s.
 var _toast_box: PanelContainer
 var _toast: Label
@@ -1293,15 +1297,14 @@ func ticker(text: String, colour: Color, subtitle := "") -> void:
 	_slide_ticker(1.0)
 
 
-## Slides the ticker in from the left edge (or fades it, when it had to go elsewhere).
+## Eases the ticker in from the left (or just fades it, when it had to go elsewhere). PT-9: it
+## used to slide in from off screen, so mid-slide the screen edge cut its first words ("fternoon,
+## Warsaw!", at 2.16:1); now it moves a few points, never past the safe area, and fades.
 func _slide_ticker(slide: float) -> void:
 	var r: Rect2 = _placed.get(_ticker, Rect2())
-	if _ticker_slides:
-		_ticker.position.x = lerpf(r.position.x, -r.size.x - 8.0 * pt, slide)
-		_ticker.modulate.a = 1.0
-	else:
-		_ticker.position.x = r.position.x
-		_ticker.modulate.a = 1.0 - slide
+	var reach := clampf(r.position.x - _safe.position.x, 0.0, TICKER_SLIDE * pt) if _ticker_slides else 0.0
+	_ticker.position.x = r.position.x - reach * slide
+	_ticker.modulate.a = 1.0 - slide
 
 
 # --- the toast -------------------------------------------------------------------------------
@@ -1417,8 +1420,8 @@ func _build_mission_panels() -> void:
 	words.add_theme_constant_override("separation", 0)
 	top.add_child(words)
 	_status_title = _label(T_SUB, ACCENT)
-	_status_title.clip_text = true
-	_status_title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	# PT-11: a long goal wraps onto a second line instead of ending in "...".
+	_wrap(_status_title, STATUS_W - 70.0)
 	words.add_child(_status_title)
 	_status_clock = _label(T_CLOCK, Color.WHITE)
 	words.add_child(_status_clock)
@@ -1461,7 +1464,8 @@ func _build_mission_panels() -> void:
 	_banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(_banner)
 
-	# The target pointer draws above the panels.
+	# The target pointer: drawn under the speech bubbles and the panels (PT-10: their text wins;
+	# `add_speech` puts the bubbles above it), its edge arrow giving way along the edge.
 	_overlay = Control.new()
 	_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -1510,6 +1514,20 @@ func show_card(title: String, body: String, buttons: PackedStringArray, accent: 
 	_show(_status, false)
 	hide_pill()
 	_mark()
+
+
+## PT-13 (2026-11-02): new words on a showing card's button `index` (a job card's GO counts down
+## the seconds to the order's own start, so it no longer goes "without a tap" unexplained).
+func set_card_button(index: int, pl: String, en: String) -> void:
+	var b := _card_buttons.get_node_or_null("button%d" % index) as Button
+	if b != null and not b.is_queued_for_deletion():
+		_set_chip(b, pl, en)
+
+
+## The words on a showing card's button `index` ("" when there is none).
+func card_button_text(index: int) -> String:
+	var b := _card_buttons.get_node_or_null("button%d" % index) as Button
+	return "" if b == null else (b.get_child(0).get_child(0) as Label).text
 
 
 func hide_card() -> void:
@@ -1668,6 +1686,15 @@ func set_flying(on: bool) -> void:
 	_climb_index = -1
 	_pad.queue_redraw()
 	_mark()
+
+
+## The speech bubbles (bubbles.gd): above the target pointer, below the panels. PT-10: the
+## pointer used to draw over every bubble and the banner.
+func add_speech(b: Control) -> void:
+	speech = b
+	add_child(b)
+	move_child(b, 1)
+	move_child(_overlay, 1)
 
 
 ## The mission target as seen on screen (`at` in screen pixels); an arrow on the screen edge
@@ -3105,43 +3132,131 @@ func _draw_target() -> void:
 	if not _target_visible:
 		return
 	var o := _overlay
-	var margin := 28.0 * pt
 	var font := ThemeDB.fallback_font
 	var fs := _px(T_BODY)
 	var w := font.get_string_size(_target_label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-	var top := _row_bottom() + 24.0 * pt
-	if _status.visible:
-		# Keep the edge arrow off the status panel in the top right.
-		top = maxf(top, _status.get_global_rect().end.y + 8.0 * pt)
-	var inside := Rect2(_safe.position.x + margin, top, _safe.size.x - margin * 2.0, _safe.end.y - margin - top)
+	var inside := _target_inside()
 	if inside.size.x <= 0.0 or inside.size.y <= 0.0:
 		return  # no room to point (a headless run's tiny window)
 	var outline := _px(2.5)
 	if inside.has_point(_target_at):
 		var bob := sin(Time.get_ticks_msec() * 0.006) * 2.0 * pt
 		var m := _target_at - Vector2(0, 16.0 * pt + bob)
-		o.draw_colored_polygon(PackedVector2Array([m + Vector2(-8, -11) * pt, m + Vector2(8, -11) * pt, m + Vector2(0, 2.5) * pt]), OUTLINE)
-		o.draw_colored_polygon(PackedVector2Array([m + Vector2(-5.5, -9.5) * pt, m + Vector2(5.5, -9.5) * pt, m]), _target_colour)
 		var at := m + Vector2(-w * 0.5, -15.0 * pt)
-		o.draw_string_outline(font, at, _target_label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, outline, OUTLINE)
-		o.draw_string(font, at, _target_label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, _target_colour)
+		# PT-10: under a bubble or the banner the pointer goes faint, so their words read clean.
+		var box := Rect2(at - Vector2(0, fs), Vector2(w, fs)).merge(Rect2(m - Vector2(8, 11) * pt, Vector2(16, 14) * pt))
+		var fade := 0.3 if _blocks(true).any(func(r: Rect2) -> bool: return r.intersects(box)) else 1.0
+		var ink := Color(OUTLINE, OUTLINE.a * fade)
+		var tint := Color(_target_colour, _target_colour.a * fade)
+		o.draw_colored_polygon(PackedVector2Array([m + Vector2(-8, -11) * pt, m + Vector2(8, -11) * pt, m + Vector2(0, 2.5) * pt]), ink)
+		o.draw_colored_polygon(PackedVector2Array([m + Vector2(-5.5, -9.5) * pt, m + Vector2(5.5, -9.5) * pt, m]), tint)
+		o.draw_string_outline(font, at, _target_label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, outline, ink)
+		o.draw_string(font, at, _target_label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, tint)
 		return
-	var centre := inside.get_center()
-	var d := _target_at - centre
-	if d.length() < 1.0:
+	var e := edge_pointer()
+	if e.is_empty():
 		return
-	# Scale the line from the centre so it ends on the inset screen edge.
-	var t := minf((inside.size.x * 0.5) / maxf(absf(d.x), 0.001), (inside.size.y * 0.5) / maxf(absf(d.y), 0.001))
-	var tip := centre + d * t
-	var dir := d.normalized()
+	var tip: Vector2 = e["tip"]
+	var dir: Vector2 = e["dir"]
 	var side := Vector2(-dir.y, dir.x)
-	var a := 13.5 * pt
+	var a := EDGE_ARROW * pt
 	o.draw_colored_polygon(PackedVector2Array([tip + dir * 2.5 * pt, tip - dir * (a + 2.5 * pt) + side * (a * 0.7 + 2.0 * pt),
 			tip - dir * (a + 2.5 * pt) - side * (a * 0.7 + 2.0 * pt)]), OUTLINE)
 	o.draw_colored_polygon(PackedVector2Array([tip, tip - dir * a + side * a * 0.6, tip - dir * a - side * a * 0.6]), _target_colour)
-	var at := tip - dir * (a + 18.0 * pt) - Vector2(w * 0.5, -fs * 0.35)
+	var label: Rect2 = e["label"]
+	var at := Vector2(label.position.x, label.get_center().y + fs * 0.35)
 	o.draw_string_outline(font, at, _target_label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, outline, OUTLINE)
 	o.draw_string(font, at, _target_label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, _target_colour)
+
+
+## The edge arrow's length (points).
+const EDGE_ARROW := 13.5
+
+
+## Where the target pointer may stand: the safe area inset 28 pt, below the top row and the
+## status panel.
+func _target_inside() -> Rect2:
+	var margin := 28.0 * pt
+	var top := _row_bottom() + 24.0 * pt
+	if _status.visible:
+		# Keep the edge arrow off the status panel in the top right.
+		top = maxf(top, _status.get_global_rect().end.y + 8.0 * pt)
+	return Rect2(_safe.position.x + margin, top, _safe.size.x - margin * 2.0, _safe.end.y - margin - top)
+
+
+## The edge arrow for an off-screen target, as drawn (also for tools/check_hud.gd): {"tip",
+## "dir" (the way it points), "label" (the distance's box)}; empty while the target is on screen.
+func edge_pointer() -> Dictionary:
+	var inside := _target_inside()
+	if not _target_visible or inside.size.x <= 0.0 or inside.size.y <= 0.0 or inside.has_point(_target_at):
+		return {}
+	var centre := inside.get_center()
+	var d := _target_at - centre
+	if d.length() < 1.0:
+		return {}
+	var fs := _px(T_BODY)
+	var w := ThemeDB.fallback_font.get_string_size(_target_label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	var h := float(fs)
+	var a := EDGE_ARROW * pt
+	# Scale the line from the centre so it ends on the inset screen edge.
+	var t := minf((inside.size.x * 0.5) / maxf(absf(d.x), 0.001), (inside.size.y * 0.5) / maxf(absf(d.y), 0.001))
+	var tip := _edge_spot(centre + d * t, inside, w, h, a)
+	var dir := (_target_at - tip).normalized()
+	var c := _edge_label_centre(tip, dir, w, h, a)
+	return {"tip": tip, "dir": dir, "label": Rect2(c - Vector2(w, h) * 0.5, Vector2(w, h))}
+
+
+## PT-10: where the edge arrow's distance sits: behind the arrow by the arrow's length, a gap,
+## and the label's own half-extent along the arrow, so the number never runs into the arrow.
+func _edge_label_centre(tip: Vector2, dir: Vector2, w: float, h: float, a: float) -> Vector2:
+	return tip - dir * (a + 2.5 * pt + 6.0 * pt + absf(dir.x) * w * 0.5 + absf(dir.y) * h * 0.5)
+
+
+## PT-10: the rects the target pointer keeps clear of: the speech bubbles and the floating
+## panels on screen (only the banner, with `banner_only`, for the pointer over the target).
+func _blocks(banner_only: bool) -> Array[Rect2]:
+	var out: Array[Rect2] = []
+	for c: Control in _placed:
+		if c.visible and c != _status and (not banner_only or c == _banner):
+			out.append(_placed[c])
+	if speech != null and "rects" in speech:
+		# A bubble's tail reaches past its card (bubbles.gd TAIL).
+		for r: Rect2 in speech.rects:
+			out.append(r.grow(10.0 * pt))
+	return out
+
+
+## The box the edge arrow and its distance take, for the arrow's tip at `tip`.
+func _edge_box(tip: Vector2, w: float, h: float, a: float) -> Rect2:
+	var dir := (_target_at - tip).normalized()
+	var c := _edge_label_centre(tip, dir, w, h, a)
+	return Rect2(c - Vector2(w, h) * 0.5, Vector2(w, h)).merge(Rect2(tip, Vector2.ZERO).grow(a + 3.0 * pt))
+
+
+## PT-10: the edge arrow's tip, moved along the edge of `inside` to the nearest spot where the
+## arrow and its distance are clear of the floating panels (cards, banner, toast, ticker) and the
+## speech bubbles; with no clear spot within reach it stays where it pointed.
+func _edge_spot(tip: Vector2, inside: Rect2, w: float, h: float, a: float) -> Vector2:
+	var blocks := _blocks(false)
+	if blocks.is_empty():
+		return tip
+	# Along the left and right edges the tip moves up and down; along the top and bottom, sideways.
+	var along := Vector2(0, 1) if absf(tip.x - inside.position.x) < 0.5 or absf(tip.x - inside.end.x) < 0.5 else Vector2(1, 0)
+	var step := 12.0 * pt
+	for k in 25:
+		for sgn: float in ([1.0] if k == 0 else [1.0, -1.0]):
+			var p := tip + along * step * k * sgn
+			if not inside.grow(0.5).has_point(p):
+				continue
+			var box := _edge_box(p, w, h, a)
+			var clear := true
+			for r in blocks:
+				if r.intersects(box):
+					clear = false
+					break
+			if clear:
+				return p
+	return tip
 
 
 # --- loop 3g-1: the police -----------------------------------------------------------------------

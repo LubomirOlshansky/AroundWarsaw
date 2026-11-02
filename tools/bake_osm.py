@@ -201,6 +201,9 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
     def coords(ids):
         return [project(*nodes[i]) for i in ids if i in nodes]
 
+    split_legs = bake_roads.mark_split_legs(ways, coords, DRIVABLE)
+    print(f"widths (map review C): {split_legs} one-lane one-way legs of a split street kept one lane wide")
+
     def touches_bbox(ids):
         return any(i in nodes and in_bbox(*nodes[i]) for i in ids)
 

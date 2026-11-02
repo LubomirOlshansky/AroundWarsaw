@@ -5248,6 +5248,10 @@ System Trace: the iPhone 11 at ×2 holds 60 at its lowest GPU clock, Loop G1 abo
 
 ## Map data
 
+**Map review C (2026-11-02)**: one-lane one-way streets take `DEFAULT_WIDTH` (`bake_roads.py`
+`road_width`, `mark_split_legs`), two-way `lanes=2` ones at least 7 m (`TWO_LANE_STREET`); pois 4,572 (`tools/check_map_data.py` EXPECTED; the Centralny Leżak
+has its spot again). BACKLOG "From map review C".
+
 **Map north (2026-10-31)**: the box grew north on its west side by `bake_osm.py` `BBOX_NORTH`
 (Rondo Radosława, Arkadia, Forest; 1.04 km², 21.2 km² and 112 sectors in all): the map is the
 bounding rectangle without its north-east corner (`outside`, `tools/map_shape.py`); the extension's
