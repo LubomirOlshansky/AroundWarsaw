@@ -3,6 +3,18 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Loud cars at Browary (F, 2026-11-02)
+
+City-life satire #1 built (`loud_cars.gd`, `check_loud_cars`): seven generic supercars at the Browary
+gate square on Haberbuscha i Schielego, the `meet` crowd round them, up to three loud supercars in
+traffic (the taxis' MultiMesh, no draw call), the `loud_rev` one-shot, `car_meet` / `loud_driver`
+bubbles and KEBAB FM's "Sąsiedzi znów liczą obroty". Open:
+- Phone check: the rev's level next to the horns and the radio (set by RMS, -11 dB), the meet's look.
+- The meet's spot is the paved gate square read off the map's outlines; a photo check on the Mac.
+- A continuous loud-engine loop on a loud car while it is near (now one rev per pass, 7-12 s apart),
+  and exhaust flames on the overrun at night (the meet already has its headlights on).
+- The player driving into the meet: the cars are solid boxes; a crowd line when the player's car stops there.
+
 ## City inventory (F, 2026-11-02)
 
 docs/CITY_INVENTORY.md lists every characteristic place in the box, ranked, with its status; Part 3
