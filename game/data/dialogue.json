@@ -1,5 +1,5 @@
 {
-  "_about": "Original lines for Around Warsaw: affectionate Warsaw humour about the city and its stereotypes, never about real private people, no brand names. Each line is [Polish, English], optionally with a third element of notes for the game: {\"only\": tag or [tags]} limits it to one situation (kebab orders: \"powisle\", \"praga\" across the river, \"office\"; rescues: \"roof\", \"street\", \"river\", \"child\", \"square\"; słoiki: \"all\" jars intact, \"some\"; water_tow, loop 10a: \"river\", \"pond\"), {\"customer\": name} names who ordered. {\"poster\": [lines]} (column_posters, loop 1) is how the poster on an advertising column breaks the line: at most four lines of eight letters. Loop 3g-1 (police, docs/design/police.md section 6): police_warn \"speed\", \"red\", \"bump\"; police_chase \"start\", \"backup\", \"roadblock\" (untagged: every 10 to 12 s); police_lost \"escaped\", \"shift\", \"heli\"; police_stop \"routine\", \"roosters\", \"trap\", \"kebab\", \"sloik\" (untagged: the generic opener); police_reply \"trap\", \"kebab\" (untagged: always offered; at most 28 characters, they are buttons); police_caution \"police\", \"fifth\"; radio_host \"traps\" ({pl} / {en}: the day's three speed traps). Speech bubbles stay under 70 characters in Polish. Loop MW-0 (Moja Warszawa, docs/design/vision.md section 7): radio_polnoc (PÓŁNOC FM's host Kuba, \"south_gate\": entering the box from Plac Na Rozdrożu); radio_host (the Hyrax line); club_door (the bouncer: \"reject\", \"queue\", \"car\", \"car_black\", \"dawn\"); clubbers; dawn_crowd (\"palm\"); police_club (the units parked by the clubs, \"sober\"); schodki (\"sunset\", \"guitar\", \"fourth\"); viral (Wiralek: \"queue\", \"new\", \"gone\", \"glon\", \"late\"); runners (\"zajac\", \"hyrax\"); dog_walkers (\"horn\", \"influencer\"); cyclists (\"lane\"); metro_announce; bus_stop (\"night\"); podwozka_request and podwozka_passenger \"club\" (dawn rides from the club doors); notes (the notebook toasts: \"found\", \"chapter\", \"kadr\"); four signs and four column_posters. The notebook's place cards are in places.json and the tape's then cards in then_cards.json. Crash scenes (crash_scenes.gd, 2026-11-01): crash_scene \"driver\", \"officer\", \"medic\", \"gawker\" (bubbles at a fender bender); radio_host \"crash\" ({street}: the road's name, starting the line). Office crowds at Rondo Daszyńskiego (crowds.gd \"office\" sites and walkers, 2026-11-02): office (\"morning\" 07-10, \"lunch\" 11-14, \"evening\" 16-19, \"rain\"; untagged anywhere): overheard corporate jokes, no brand names. Beta radio (2026-11-02): the host's greeting when the game starts (dialogue.gd greeting) = radio_hello_morning / _day / _evening / _night + radio_weather_warm / _mild / _cold / _rain ({t}: the temperature, \"20 stopni\" / \"20 degrees\") + radio_bye (\"morning\", \"day\", \"evening\", \"night\").",
+  "_about": "Original lines for Around Warsaw: affectionate Warsaw humour about the city and its stereotypes, never about real private people, no brand names. Each line is [Polish, English], optionally with a third element of notes for the game: {\"only\": tag or [tags]} limits it to one situation (kebab orders: \"powisle\", \"praga\" across the river, \"office\"; rescues: \"roof\", \"street\", \"river\", \"child\", \"square\"; słoiki: \"all\" jars intact, \"some\"; water_tow, loop 10a: \"river\", \"pond\"), {\"customer\": name} names who ordered. {\"poster\": [lines]} (column_posters, loop 1) is how the poster on an advertising column breaks the line: at most four lines of eight letters. Loop 3g-1 (police, docs/design/police.md section 6): police_warn \"speed\", \"red\", \"bump\"; police_chase \"start\", \"backup\", \"roadblock\" (untagged: every 10 to 12 s); police_lost \"escaped\", \"shift\", \"heli\"; police_stop \"routine\", \"roosters\", \"trap\", \"kebab\", \"sloik\" (untagged: the generic opener); police_reply \"trap\", \"kebab\" (untagged: always offered; at most 28 characters, they are buttons); police_caution \"police\", \"fifth\"; radio_host \"traps\" ({pl} / {en}: the day's three speed traps). Speech bubbles stay under 70 characters in Polish. Loop MW-0 (Moja Warszawa, docs/design/vision.md section 7): radio_polnoc (PÓŁNOC FM's host Kuba, \"south_gate\": entering the box from Plac Na Rozdrożu); radio_host (the Hyrax line); club_door (the bouncer: \"reject\", \"queue\", \"car\", \"car_black\", \"dawn\"); clubbers; dawn_crowd (\"palm\"); police_club (the units parked by the clubs, \"sober\"); schodki (\"sunset\", \"guitar\", \"fourth\"); viral (Wiralek: \"queue\", \"new\", \"gone\", \"glon\", \"late\"); runners (\"zajac\", \"hyrax\"); dog_walkers (\"horn\", \"influencer\"); cyclists (\"lane\"); metro_announce; bus_stop (\"night\"); podwozka_request and podwozka_passenger \"club\" (dawn rides from the club doors); notes (the notebook toasts: \"found\", \"chapter\", \"kadr\"); four signs and four column_posters. The notebook's place cards are in places.json and the tape's then cards in then_cards.json. Crash scenes (crash_scenes.gd, 2026-11-01): crash_scene \"driver\", \"officer\", \"medic\", \"gawker\" (bubbles at a fender bender); radio_host \"crash\" ({street}: the road's name, starting the line). Office crowds at Rondo Daszyńskiego (crowds.gd \"office\" sites and walkers, 2026-11-02): office (\"morning\" 07-10, \"lunch\" 11-14, \"evening\" 16-19, \"rain\"; untagged anywhere): overheard corporate jokes, no brand names. Beta radio (2026-11-02): the host's greeting when the game starts (dialogue.gd greeting) = radio_hello_morning / _day / _evening / _night + radio_weather_warm / _mild / _cold / _rain ({t}: the temperature, \"20 stopni\" / \"20 degrees\") + radio_bye (\"morning\", \"day\", \"evening\", \"night\"). City-life satire #1, loud cars (loud_cars.gd, 2026-11-02): car_meet (the crowd at the Browary meet; \"rev\" when a parked car revs), loud_driver (a passing loud supercar's driver), radio_host \"loud\" (KEBAB FM: \"Sąsiedzi znów liczą obroty\").",
   "radio_host": [
     [
       "Na Marszałkowskiej znowu remont. Czyli wszystko po staremu.",
@@ -204,6 +204,34 @@
     [
       "Dom Wielkiego Kredytu zaprasza na dzień otwarty. Wstęp wolny, wyjście po trzydziestu latach.",
       "Dom Wielkiego Kredytu invites you to an open day. Free entry, exit after thirty years."
+    ],
+    [
+      "Sąsiedzi znów liczą obroty. Okolice Browarów: ktoś sprawdza, czy szyby w oknach są hartowane.",
+      "The neighbours are counting the revs again. Around the Browary: someone is testing whether the windows are tempered.",
+      {
+        "only": "loud"
+      }
+    ],
+    [
+      "Sąsiedzi znów liczą obroty. Mieszkańcy Woli proszą: obroty tak, ale nie o trzeciej w nocy.",
+      "The neighbours are counting the revs again. Wola's residents ask: revs, fine, but not at three in the morning.",
+      {
+        "only": "loud"
+      }
+    ],
+    [
+      "Pomiar hałasu na Grzybowskiej: start samolotu, tylko z gorszą muzyką. Sąsiedzi znów liczą obroty.",
+      "Noise reading on Grzybowska: a jet taking off, only with worse music. The neighbours are counting the revs again.",
+      {
+        "only": "loud"
+      }
+    ],
+    [
+      "Komunikat: na ulicach znów głośne auta. Policja mówi, że słyszy. Wszyscy słyszą.",
+      "Announcement: the loud cars are out again. The police say they can hear them. Everyone can hear them.",
+      {
+        "only": "loud"
+      }
     ]
   ],
   "kebab_order": [
@@ -3999,6 +4027,94 @@
       {
         "only": "night"
       }
+    ]
+  ],
+  "car_meet": [
+    [
+      "Nie dotykaj! Lakier ma więcej obserwujących niż ty.",
+      "Don't touch! The paint has more followers than you."
+    ],
+    [
+      "Ile pali? Nie pytaj. Pali głównie wypłatę.",
+      "Fuel economy? Don't ask. It mostly burns salaries."
+    ],
+    [
+      "Leasing na 96 rat, ale posłuchaj tego dźwięku!",
+      "A 96-month lease, but listen to that sound!"
+    ],
+    [
+      "Odpal jeszcze raz, nie nagrałem w pionie!",
+      "Rev it again, I didn't film it vertical!"
+    ],
+    [
+      "Najszybsze auto na Woli. Stoi tu od trzech godzin.",
+      "The fastest car in Wola. It's been standing here for three hours."
+    ],
+    [
+      "On nie jeździ. On się pokazuje.",
+      "He doesn't drive. He gets seen."
+    ],
+    [
+      "Ziomek ma dwa miejsca w aucie i trzy kamery.",
+      "The guy has two seats in the car and three cameras."
+    ],
+    [
+      "Prawdziwy fan poznaje silnik po kaszlu sąsiada.",
+      "A real fan knows the engine by the neighbour's cough."
+    ],
+    [
+      "Jeszcze raz! Jeszcze raz!",
+      "Again! Again!",
+      {
+        "only": "rev"
+      }
+    ],
+    [
+      "Słyszałeś te strzały z wydechu? Poezja.",
+      "Hear those pops from the exhaust? Poetry.",
+      {
+        "only": "rev"
+      }
+    ],
+    [
+      "Moje bębenki właśnie złożyły wypowiedzenie.",
+      "My eardrums just handed in their notice.",
+      {
+        "only": "rev"
+      }
+    ],
+    [
+      "Obok włączył się alarm w aucie. Z zazdrości.",
+      "A car alarm went off down the road. Out of jealousy.",
+      {
+        "only": "rev"
+      }
+    ]
+  ],
+  "loud_driver": [
+    [
+      "Słyszysz? To nie hałas, to charakter.",
+      "Hear that? That's not noise, that's character."
+    ],
+    [
+      "Tłumik? Oddałem na złom. Był za cichy.",
+      "The silencer? Scrapped it. It was too quiet."
+    ],
+    [
+      "Wkręcam do odcięcia, żeby sąsiedzi wiedzieli, że wróciłem.",
+      "I rev to the limiter so the neighbours know I'm home."
+    ],
+    [
+      "Zwalniam tylko przy witrynach. Żeby się w nich zobaczyć.",
+      "I only slow down at shop windows. To see myself in them."
+    ],
+    [
+      "Paliwo drogie, ale emocje bezcenne.",
+      "Fuel's dear, but the feelings are priceless."
+    ],
+    [
+      "Do Browarów po kawę. Dookoła Ronda Daszyńskiego. Trzy razy.",
+      "Off to the Browary for a coffee. Round Rondo Daszyńskiego. Three times."
     ]
   ]
 }

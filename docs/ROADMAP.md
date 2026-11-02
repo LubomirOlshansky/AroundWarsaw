@@ -311,6 +311,7 @@ then the Launch gate.
 - [x] Roof rescues never name a real chain (2026-11-02, `missions.gd` `ROOF_PARODIES`): Puro shows as Hotel Piure, Green Caffè Nero as Green Caffè Nerwo; headless check not run in the cloud (no Godot)
 - [x] Zagłębie Kebabowe and Kino Femina (F, 2026-11-02; spec docs/design/zaglebie-kebabowe.md): five parody kebab shops on Al. Solidarności, Femina's neon, delivery twists, the craft kebab's choice, Szlak Szpili, 2026-11-02 (the Mac photo check of Femina's front is open; a queue outside ZAKWAS I ROŻEN, 2026-11-02)
   - [x] KEBAB FM lines about the seven cinemas and the Kebab Basin, 2026-11-02 (text only; headless checks not run in the cloud)
+- [x] City-life satire #1, loud cars (F, 2026-11-02; docs/design/city-life-satire.md): a supercar meet with its crowd at the Browary gate square and up to three loud supercars in traffic that rev as they pass, KEBAB FM's "liczą obroty" line, 2026-11-02 (`check_loud_cars`; phone sound level and Mac look open)
   - [ ] Leftovers (BACKLOG): dates on LUŹNO's roof, Podwózka dates, van fans and egg
 - [x] Gamepad support (2026-11-01, `gamepad.gd`, `check_gamepad`): Xbox, PlayStation and MFi
       pads for driving, the helicopter, the mission card, Settings, the full map and the title;

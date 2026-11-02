@@ -68,6 +68,12 @@ const TRAFFIC := [
 			"paint": ["#f2f2ee", "#e9e9e6", "#d6d8da"]},
 		{"name": "podwozka", "share": 0.5, "size": Vector3(1.74, 2.0, 3.95),
 			"paint": ["#2b2c2f", "#6f7378", "#b8bcc0", "#e9e9e6", "#24324a"]},
+		# City-life satire #1 (loud_cars.gd): never a random taxi (share 0); traffic.gd makes a
+		# few of its cars loud ones in this shape. Loud paints, none of them the player's red
+		# and orange or the police's blue: lime, acid yellow, violet, matte black, teal, pearl,
+		# pink, mint.
+		{"name": "supercar", "share": 0.0, "size": Vector3(1.98, 1.2, 4.55),
+			"paint": ["#a6e22e", "#e8f03a", "#7b3fd1", "#1a1a1d", "#16a39a", "#f4f1ea", "#ff5fb4", "#7ef0c4"]},
 	],
 	[
 		{"name": "panel van", "share": 0.6, "size": Vector3(2.0, 2.45, 5.2),
@@ -513,6 +519,14 @@ static func spec(name: String) -> Dictionary:
 					"cowl_z": -0.5, "cowl_y": 0.86, "belt_z": 1.75, "belt_y": 0.9, "tail_y": 0.9, "tail_in": 0.12,
 					"roof_y": 1.22, "roof_z0": 0.15, "roof_z1": 0.85, "gw0": 0.84, "gw1": 0.66, "r": 0.31,
 					"axle_f": -1.4, "axle_r": 1.42, "bp": 0.55, "rear_pane": true}, true)
+		"supercar":
+			# City-life satire #1 (loud_cars.gd): the loud supercar, no marque: low, wide, a long
+			# nose, the cabin pushed back, a short glasshouse, big wheels (six-sided like the
+			# rest of its family: the taxis' MultiMesh).
+			p.merge({"L": 4.55, "W": 0.98, "sill": 0.16, "bump_f": 0.36, "bump_r": 0.42, "nose": 0.6, "nose_in": 0.28,
+					"cowl_z": -0.35, "cowl_y": 0.78, "belt_z": 1.3, "belt_y": 0.84, "tail_y": 0.86, "tail_in": 0.1,
+					"roof_y": 1.12, "roof_z0": 0.15, "roof_z1": 0.72, "gw0": 0.86, "gw1": 0.6, "r": 0.34,
+					"axle_f": -1.42, "axle_r": 1.4, "bp": 0.62}, true)
 		"city car":
 			p.merge({"L": 3.4, "W": 0.8, "sill": 0.3, "bump_f": 0.52, "bump_r": 0.52, "nose": 0.82, "nose_in": 0.14,
 					"cowl_z": -0.85, "cowl_y": 0.98, "belt_z": 1.48, "belt_y": 1.0, "tail_y": 0.98, "tail_in": 0.04,
@@ -605,7 +619,7 @@ static func traffic_mesh(kind: int) -> ArrayMesh:
 				shapes.append(s)
 			return family(shapes)
 		1:
-			return family([_taxi(true), _taxi(false)])
+			return family([_taxi(TAXI_CITY), _taxi(TAXI_APP), _taxi(TAXI_SUPERCAR)])
 		2:
 			return family([_van(false), _van(true)])
 	return bus_mesh()
@@ -613,14 +627,24 @@ static func traffic_mesh(kind: int) -> ArrayMesh:
 
 ## The city taxi (an invented livery: a white saloon with a yellow band of dark squares along
 ## the doors and a lit yellow roof sign) or Podwózka, the app taxi (parodies.md 3.1: a hatch
-## in its own paint with a phone standing on the roof, its screen lit).
-static func _taxi(city: bool) -> Shape:
+## in its own paint with a phone standing on the roof, its screen lit). City-life satire #1
+## (loud_cars.gd, 2026-11-02): `which` 2 is the loud supercar that shares the taxis' MultiMesh
+## (no draw call of its own): a low, wide wedge with no badge and no marque, a carbon wing on
+## two struts, four exhaust tips, black side intakes and a splitter. Every shape adds the same
+## parts in the same order (family() morphs between them): the roof sign, the phone, the
+## supercar's kit; a part another shape owns is hidden.
+const TAXI_CITY := 0
+const TAXI_APP := 1
+const TAXI_SUPERCAR := 2
+static func _taxi(which: int) -> Shape:
 	var s := Shape.new()
-	var p := spec("saloon" if city else "hatch")
+	var city := which == TAXI_CITY
+	var p := spec(["saloon", "hatch", "supercar"][which])
 	_vehicle(s, p, fin(Color.WHITE, PAINT))
 	var roof_y: float = p["roof_y"]
 	var mid := Vector3(0.0, roof_y - 0.2, (p["roof_z0"] + p["roof_z1"]) * 0.5)
 	var W: float = p["W"]
+	var L: float = p["L"]
 	var yellow := Color("#f3c72b")
 	s.keep_if(city, mid)
 	s.box(mid + Vector3(0.0, 0.31, -0.05), Vector3(0.72, 0.2, 0.3), fin(yellow, LIT_SIGN))
@@ -637,7 +661,7 @@ static func _taxi(city: bool) -> Shape:
 			var za := lerpf(z0, z1, float(k) / squares)
 			var zb := lerpf(z0, z1, float(k + 1) / squares)
 			s.side_rect(sgn * (W + 0.018), sgn, y0 + 0.02, y0 + 0.15, za, zb, fin(Color("#1f1f22")))
-	s.keep_if(not city, mid)
+	s.keep_if(which == TAXI_APP, mid)
 	# The phone: an upright dark bezel, its screen lit both sides, a row of five dark stars.
 	var phone := Vector3(0.0, roof_y + 0.28, mid.z + 0.1)
 	s.box(phone, Vector3(0.08, 0.5, 0.32), fin(Color("#1f1f22")))
@@ -647,6 +671,25 @@ static func _taxi(city: bool) -> Shape:
 		for k in 5:
 			var zc := phone.z - 0.1 + k * 0.05
 			s.side_rect(x + sgn * 0.004, sgn, phone.y - 0.15, phone.y - 0.11, zc - 0.016, zc + 0.016, fin(Color("#1f1f22")))
+	# The supercar's kit (the rest of the body is spec("supercar")): carbon in TRIM's dark.
+	var tail := Vector3(0.0, float(p["tail_y"]), L * 0.5)
+	s.keep_if(which == TAXI_SUPERCAR, tail)
+	var carbon := fin(Color("#1c1d20"))
+	var tail_y: float = p["tail_y"]
+	var sill: float = p["sill"]
+	for sgn: float in [-1.0, 1.0]:
+		s.box(Vector3(sgn * 0.52, tail_y + 0.12, L * 0.5 - 0.42), Vector3(0.05, 0.26, 0.14), carbon)
+	s.box(Vector3(0.0, tail_y + 0.27, L * 0.5 - 0.4), Vector3(W * 2.0 - 0.06, 0.05, 0.36), carbon)
+	for sgn: float in [-1.0, 1.0]:
+		s.box(Vector3(sgn * (W - 0.03), tail_y + 0.2, L * 0.5 - 0.4), Vector3(0.03, 0.2, 0.42), carbon)
+	for x: float in [-0.38, -0.22, 0.22, 0.38]:
+		s.box(Vector3(x, sill + 0.06, L * 0.5 + 0.02), Vector3(0.12, 0.1, 0.12), fin(Color("#7d8086")))
+		s.quad(Vector3(x - 0.04, sill + 0.025, L * 0.5 + 0.085), Vector3(x + 0.04, sill + 0.025, L * 0.5 + 0.085),
+				Vector3(x + 0.04, sill + 0.095, L * 0.5 + 0.085), Vector3(x - 0.04, sill + 0.095, L * 0.5 + 0.085),
+				fin(WELL), Vector3(0, 0, 1))
+	for sgn: float in [-1.0, 1.0]:
+		s.side_rect(sgn * (W + 0.012), sgn, sill + 0.24, sill + 0.5, 0.45, 0.95, fin(GRILLE))
+	s.box(Vector3(0.0, sill - 0.04, -L * 0.5 + 0.12), Vector3(W * 2.0 + 0.02, 0.04, 0.3), carbon)
 	s.show()
 	return s
 

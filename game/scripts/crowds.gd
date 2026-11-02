@@ -58,6 +58,7 @@ const InstanceBuffers := preload("res://scripts/instance_buffers.gd")
 const Notebook := preload("res://scripts/notebook.gd")
 const Storefronts := preload("res://scripts/storefronts.gd")
 const Zaglebie := preload("res://scripts/zaglebie.gd")
+const LoudCars := preload("res://scripts/loud_cars.gd")
 
 ## Seconds between two ticks of the logic.
 const TICK := 0.5
@@ -86,6 +87,12 @@ const POLICE_GAP := 45.0
 const FOOT_REACH := 40.0
 const STEPS_MAX := 80
 const PLAN_C_MAX := 40
+## City-life satire #1 (loud_cars.gd, 2026-11-02): the car meet at Browary's gate square, people
+## standing round the parked supercars with their phones (kind `meet`, loud_cars.gd meet_slots():
+## PER_CAR a car, facing it), on `meet_level`; their `car_meet` lines every CHAT_GAP s on screen.
+## Off (`meet_on` false) with --loud=0, as the cars are.
+const MEET_ID := "car_meet_browary"
+const MEET_MAX := 21
 ## F's asks (2026-11-01): the observation decks (Varso, St Anne's, PKiN). `at` is where the roof grid is read (Varso) or
 ## the terrace's centre (`top`: the deck's height over the ground, so a mast over it is
 ## flattened away; St Anne's: a square ring, `half` m from the centre along `axis`, at
@@ -341,6 +348,8 @@ var paint: Callable
 var egg: Callable
 ## --crowd=: 0 none (this node isn't built), 1 normal, 2 double; the Low tier halves it.
 var amount := 1.0
+## City-life satire #1: the car meet's crowd (main.gd: off with --loud=0).
+var meet_on := true
 ## --night-log: queues, rejections, the dawn walkers each minute and every event.
 var log_on := false
 ## Time spent in this script since the bench last read it (µs).
@@ -472,6 +481,24 @@ static func guitar_on(steps_n: int, hour: float) -> bool:
 
 
 ## Plac Zbawiciela's summer crowd: Fri/Sat nights 21:00-02:00, summer, dry (rain 0.1 *guess*).
+## City-life satire #1: the car meet's level 0..1 (*guesses*): a few by day, the most from 20:00
+## to 01:00, Friday and Saturday nights fuller, a third in the rain, nobody 04:00-10:00.
+static func meet_level(hour: float, weekday: int, rain: bool) -> float:
+	var h := int(floor(fmod(hour + 24.0, 24.0)))
+	var lvl := 0.0
+	if h >= 20 or h < 1:
+		lvl = 1.0
+	elif h >= 17:
+		lvl = 0.7
+	elif h >= 10:
+		lvl = 0.35
+	elif h < 4:
+		lvl = 0.6
+	if not night_day(hour, weekday) in [5, 6]:
+		lvl *= 0.75
+	return lvl * (0.3 if rain else 1.0)
+
+
 static func plan_c_level(hour: float, weekday: int, month: int, rain: bool) -> float:
 	if not night_day(hour, weekday) in [5, 6] or not month in [6, 7, 8]:
 		return 0.0
@@ -746,6 +773,14 @@ func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
 		var fs: Array = FIRST_SCENE[fid]
 		_add_site({"id": fid, "kind": "chill", "street": true, "sit": bool(fs[4]), "at": first_scene_at(float(fs[0]), float(fs[1])),
 				"max": int(fs[2]), "radius": float(fs[3])})
+	if meet_on:
+		var slots: Array = []
+		var mrng := RandomNumberGenerator.new()
+		mrng.seed = 2030
+		for sl: Dictionary in LoudCars.meet_slots():
+			var shirt: String = DARK[mrng.randi() % DARK.size()] if mrng.randf() < 0.5 else BRIGHT[mrng.randi() % BRIGHT.size()]
+			slots.append({"p": sl["p"], "yaw": float(sl["yaw"]) + mrng.randf_range(-0.3, 0.3), "pose": STAND, "shirt": shirt})
+		_add_site({"id": MEET_ID, "kind": "meet", "at": LoudCars.meet_centre(), "max": mini(MEET_MAX, slots.size()), "slots": slots})
 	_add_stops(data)
 	for oid: String in OFFICE:
 		var os: Array = OFFICE[oid]
@@ -1008,6 +1043,8 @@ func _place_site(s: Dictionary) -> void:
 			_place_terrace(s)
 		"deck":
 			_place_deck(s)
+		"meet":
+			s["door"] = s["at"]
 
 
 ## The points of a polyline from q (on segment j) one way along it, then straight on past its end.
@@ -1496,7 +1533,7 @@ func _figures(s: Dictionary) -> Array:
 			if bool(s.get("guitar_on", false)):
 				var face: Vector2 = s["face"]
 				out.append([_ground(s["guitar"]), atan2(-face.x, -face.y), SIT, GUITAR_SHIRT, 0.0])
-		"plan_c", "roof", "terrace", "chill", "deck", "stop", "office":
+		"plan_c", "roof", "terrace", "chill", "deck", "stop", "office", "meet":
 			var slots: Array = s["slots"]
 			for k in mini(n, slots.size()):
 				var sl: Dictionary = slots[k]
@@ -1623,6 +1660,8 @@ func tick(step: float) -> void:
 				want = roundi(int(s["max"]) * k * stop_level(hour, weekday, rain))
 			"office":
 				want = office_count(int(s["max"]), hour, weekday, rain, k)
+			"meet":
+				want = roundi(int(s["max"]) * k * meet_level(hour, weekday, rain))
 			"trend":
 				var q: Array = [0, ""]
 				if s["id"] == PISTACJA_ID:
@@ -1680,6 +1719,8 @@ func tick(step: float) -> void:
 			_trend_talk(s, step)
 		elif near and kind == "office":
 			_office_talk(s, step, hour, rain)
+		elif near and kind == "meet":
+			_meet_talk(s, step)
 	_redraw()
 	_dawn(hour, weekday, live, look, step, eye2)
 	_office(hour, weekday, rain, step, eye2)
@@ -1813,6 +1854,19 @@ func _trend_talk(s: Dictionary, step: float) -> void:
 		return
 	s["chat_t"] = _rng.randf_range(CHAT_GAP.x, CHAT_GAP.y)
 	_say(_anchor(s, _rng.randi() % maxi(int(s["n"]), 1)), "", "viral", str(s["tag"]), BUBBLE, true)
+
+
+## City-life satire #1: a line from the car meet's crowd every CHAT_GAP s while it is on screen.
+func _meet_talk(s: Dictionary, step: float) -> void:
+	if int(s["n"]) < 2:
+		return
+	if on_screen.is_valid() and not on_screen.call(_ground(s["door"]), 2.0):
+		return
+	s["chat_t"] = float(s["chat_t"]) - step
+	if float(s["chat_t"]) > 0.0:
+		return
+	s["chat_t"] = _rng.randf_range(CHAT_GAP.x, CHAT_GAP.y)
+	_say(_anchor(s, _rng.randi() % maxi(int(s["n"]), 1)), "", "car_meet", "", BUBBLE)
 
 
 ## An office group's overheard line every 12-25 s while it is on screen (the `office` lines).
