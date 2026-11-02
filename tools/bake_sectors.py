@@ -120,7 +120,10 @@ SITE_NAMES = ["Pałac Kultury i Nauki", "Złote Tarasy", "Lumen", "Skylight", "R
               "Atlas Tower",
               # Fabryka Norblina (landmarks.gd _find_works: its tall wing is found among the parts
               # under the outline OSM names "Modsen")
-              "Modsen"]
+              "Modsen",
+              # Hortus (2026-11-02): its tenement-style flats on Drewniana, unnamed in OSM, found
+              # by landmarks.gd HORTUS_FLATS_AT next to the outline
+              "Hortus"]
 SITE_PAD = 12.0
 # Building kinds landmarks.gd finds wherever they lie (the barges, 2026-11-01: _find_barges).
 SITE_KINDS = ("boat", "houseboat")

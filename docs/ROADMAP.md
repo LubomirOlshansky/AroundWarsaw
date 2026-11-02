@@ -162,8 +162,12 @@ then the Launch gate.
 - [x] Piano House and Cube House, 2026-11-02: models from their outlines (`piano_house` 152 tris,
       white keyboard facade, new skin `S_KEYS`, set-back glass top floor; `cube_house` 324 tris,
       white cube with a staircase of boxed bays); specs `piano_house.md`, `cube_house.md`, Mac photo check parked
-- [ ] Powiśle left: boulevard dressing (deck strips, bar containers), Hortus, Moderna, Dobra and
-      Tamka's tenements, the Mac photo checks (BACKLOG "Powiśle street by street")
+- [x] Hortus and Moderna, 2026-11-02: models from their outlines (`hortus` 488 tris: glass offices
+      in a white frame over a recessed ground floor on piers, the Drewniana flats as a tenement with
+      a cornice and mansard; `moderna` 70 tris: a pre-war tenement front and a glass wing with a
+      penthouse, card "Modernka Powiśle"); specs `hortus.md`, `moderna.md`, Mac photo check parked
+- [ ] Powiśle left: boulevard dressing (deck strips, bar containers), Dobra and Tamka's
+      tenements, the Mac photo checks (BACKLOG "Powiśle street by street")
 - [x] Street furniture along the main line's route (Krakowskie Przedmieście, Nowy Świat, the Old
       Town's edge, Plac Zbawiciela, the boulevards, Rondo Daszyńskiego)
 - [ ] The estate, the halls and Jana Pawła II (F, 2026-11-01; BACKLOG section):
