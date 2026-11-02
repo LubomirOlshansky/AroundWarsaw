@@ -4,7 +4,9 @@ extends SceneTree
 ##   J1 every buzz in scripts/ goes through access.gd / haptics.gd (no other Input.vibrate_handheld);
 ##   J2 a buzz is raised to the floor a hand feels and capped; a weaker one inside the gap or
 ##      while one plays is dropped, a stronger one goes; Settings' switch off sends nothing;
-##      a scrape (under 4 m/s) doesn't buzz, a hard crash buzzes long and full;
+##      a scrape (under 4 m/s) doesn't buzz, a hard crash buzzes long and full; with the pad in
+##      use (and plugged in) the buzz rumbles the pad instead of the phone, a touch brings it back
+##      to the phone, Vibration off rumbles nothing;
 ##   J3 a crash throws sparks out of the wall (along the normal) and dust, shows both pools,
 ##      and everything is gone and hidden (no draw call, no script) within 2 s;
 ##   J4 a slow knock throws nothing; a long scrape reuses the ring (no growth);
@@ -16,6 +18,7 @@ extends SceneTree
 ##   godot --headless --path game --script res://tools/check_juice.gd
 
 const Haptics := preload("res://scripts/haptics.gd")
+const Gamepad := preload("res://scripts/gamepad.gd")
 const Access := preload("res://scripts/access.gd")
 const CrashFx := preload("res://scripts/crash_fx.gd")
 const MoneyPop := preload("res://scripts/money_pop.gd")
@@ -62,6 +65,37 @@ func _initialize() -> void:
 	Haptics.knock(18.0)
 	if Haptics.count != n1 + 1 or Haptics.last_ms < 150 or Haptics.last_amp < 0.99:
 		fails.append("J2 a hard crash buzzed %d ms / %.2f" % [Haptics.last_ms, Haptics.last_amp])
+	# J2, the pad's rumble.
+	var press := InputEventJoypadButton.new()
+	press.button_index = JOY_BUTTON_A
+	press.pressed = true
+	Gamepad.note(press)
+	Gamepad.fake_connected = true
+	var r0 := Haptics.rumbles
+	var c0 := Haptics.count
+	Haptics._last_end_usec = 0
+	Haptics._last_usec = -Haptics.GAP_USEC
+	Haptics.last_amp = 0.0
+	Haptics.knock(18.0)
+	if Haptics.rumbles != r0 + 1 or Haptics.count != c0 + 1:
+		fails.append("J2 a crash with the pad in use didn't rumble the pad (%d rumbles)" % (Haptics.rumbles - r0))
+	Access.vibration = false
+	Haptics._last_end_usec = 0
+	Haptics.last_amp = 0.0
+	Haptics.knock(18.0)
+	if Haptics.rumbles != r0 + 1:
+		fails.append("J2 the pad rumbled with Vibration off")
+	Access.vibration = true
+	var touch := InputEventScreenTouch.new()
+	touch.pressed = true
+	Gamepad.note(touch)
+	Haptics._last_end_usec = 0
+	Haptics._last_usec = -Haptics.GAP_USEC
+	Haptics.last_amp = 0.0
+	Haptics.knock(18.0)
+	if Haptics.rumbles != r0 + 1 or Haptics.count != c0 + 2:
+		fails.append("J2 after a touch the buzz didn't go back to the phone")
+	Gamepad.fake_connected = false
 	print("haptics: floor %d ms / %.2f, cap %d ms, a hard crash %d ms / %.2f" % [
 			Haptics.FLOOR_MS, Haptics.FLOOR_AMP, Haptics.CEIL_MS, Haptics.last_ms, Haptics.last_amp])
 
