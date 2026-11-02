@@ -160,8 +160,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh spec lod2 drape ground drive drive-prebuilt stuckspots stuckspots-prebuilt steering handling stopassist questlines settings credits language tiers governor hud places edge roadworks eggs tape crowds life buses zaglebie crashes oldtram trains packs garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 rescues couriers rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram firstlife heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh spec drape drive stuckspots steering handling stopassist questlines settings credits language tiers governor hud places edge roadworks eggs tape crowds life buses zaglebie crashes oldtram trains packs garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 rescues couriers rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds police plain ram firstlife prebuilt)
+STEPS_ALL=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh spec lod2 drape ground drive drive-prebuilt stuckspots stuckspots-prebuilt steering handling stopassist questlines settings credits language tiers governor hud places edge roadworks eggs tape crowds life buses zaglebie crashes oldtram trains packs wellness garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 rescues couriers rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram firstlife heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh spec drape drive stuckspots steering handling stopassist questlines settings credits language tiers governor hud places edge roadworks eggs tape crowds life buses zaglebie crashes oldtram trains packs wellness garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 rescues couriers rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds police plain ram firstlife prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -744,6 +744,8 @@ for s in $want; do
 		trains) check trains '^check_trains:' --script res://tools/check_trains.gd ;;
 		# Packs: running clubs, cycling packs, coffee raves, the big guys with tiny dogs.
 		packs) check packs '^check_packs:' --script res://tools/check_packs.gd ;;
+		# Wellness circles (docs/design/city-life-satire.md): sound healing, techno yoga, the 40+ club, park kung-fu.
+		wellness) check wellness '^check_wellness:' --script res://tools/check_wellness.gd ;;
 		garage) check garage '^check_garage:' --script res://tools/check_garage.gd ;;
 		save) check save '^check_save:' --script res://tools/check_save.gd ;;
 		districts) check districts '^check_districts:' --script res://tools/check_districts.gd ;;

@@ -3544,12 +3544,21 @@ func _draped_wall(st, a: Vector2, b: Vector2, y0: float, y1: float, facing: Vect
 				st.add_vertex(w)
 
 
-## Railway ballast with sleepers (the WKD line in its cutting); the rails come later.
+## Railway track bed (L1 of docs/design/railway.md): a pale ballast shoulder 4.6 m wide, and on
+## it the dark bed 2.7 m wide that the shader (ground.gdshader, layer 9) cuts into concrete
+## sleepers every 0.65 m. Same mesh and material as before: no new draw call.
 func _build_rail_beds(st) -> void:
-	_layer = L_BALLAST
+	var bias := _drape_bias
 	for r in data.get("rails", []):
 		_dk = int(r.get("dk", -1))
-		_strip(st, _pts(r["p"]), 3.4, Y_PATH, Color("#857d72"))
+		var poly := _pts(r["p"])
+		_layer = L_GRAVEL
+		_drape_bias = bias - 0.02
+		_strip(st, poly, 4.6, Y_PATH, Color("#8d8579"))
+		_layer = L_BALLAST
+		_drape_bias = bias
+		_strip(st, poly, 2.7, Y_PATH, Color("#615b54"))
+	_drape_bias = bias
 	_dk = -1
 	_layer = L_GROUND
 
@@ -3564,7 +3573,9 @@ func _build_rails(st) -> void:
 			for i in poly.size():
 				var d: Vector2 = (poly[mini(i + 1, poly.size() - 1)] - poly[maxi(i - 1, 0)]).normalized()
 				rail.append(poly[i] + Vector2(-d.y, d.x) * side)
-			_strip(st, rail, 0.16, Y_MARK + 0.005, Color("#4a4744"))
+			_strip(st, rail, 0.2, Y_MARK + 0.005, Color("#3b3836"))
+			# The rail head: a thin worn-steel line along the top, so the pair reads as rails.
+			_strip(st, rail, 0.07, Y_MARK + 0.008, Color("#a29d94"))
 	_dk = -1
 	_layer = L_GROUND
 

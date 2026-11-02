@@ -132,6 +132,8 @@ var _addresses: Array[Dictionary] = []
 var _order: Dictionary = {}
 var _orders := 0
 var _t := 0.0
+## PT-13: the seconds the order card's GO last showed (-1: not counted yet).
+var _go_left := -1
 var _clock := 0.0
 var _heat := 1.0
 var _jars := JARS
@@ -772,6 +774,7 @@ func _begin_kebab(i: int, n: int) -> void:
 	state = State.ORDER
 	_t = 0.0
 	_order = o
+	_go_left = -1
 	_said_order = false
 	_claim()
 	var stand: Node3D = _stands[i]["node"]
@@ -832,8 +835,23 @@ func _order_tick() -> void:
 		elif _flat(car.global_position, at) > PULL_IN + 7.0:
 			_go()
 		return
-	if _flat(car.global_position, at) > PULL_IN + 7.0 or _t > (4.0 if autopilot else (14.0 if bool(_order.get("craft", false)) else 9.0)):
+	var craft := bool(_order.get("craft", false))
+	var limit := 4.0 if autopilot else (14.0 if craft else 9.0)
+	_count_down(ceili(limit - _t), craft)
+	if _flat(car.global_position, at) > PULL_IN + 7.0 or _t > limit:
 		_go()
+
+
+## PT-13 (2026-11-02): the order goes by itself after a few seconds, so the button that will
+## happen counts them down ("JEDZIEMY! · 7"; the craft kebab's ZWYKŁY), relabelled once a second.
+func _count_down(left: int, craft: bool) -> void:
+	if left == _go_left or left < 0:
+		return
+	_go_left = left
+	if craft:
+		hud.set_card_button(1, "ZWYKŁY · %d" % left, "PLAIN · %d" % left)
+	else:
+		hud.set_card_button(0, "JEDZIEMY! · %d" % left, "GO! · %d" % left)
 
 
 func _go() -> void:
@@ -1018,6 +1036,7 @@ func _begin_sloik(n: int) -> void:
 	state = State.ORDER
 	_t = 0.0
 	_order = pick
+	_go_left = -1
 	_order["customer"] = NEWCOMERS[rng.randi() % NEWCOMERS.size()]
 	_claim()
 	var person: Node3D = _station["person"]
