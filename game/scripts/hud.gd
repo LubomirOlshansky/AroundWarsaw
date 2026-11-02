@@ -571,7 +571,11 @@ var _scaled_labels: Array[Label] = []
 
 ## Re-apply `Access.text_scale` to every HUD label at once (no restart). Dead labels are dropped.
 func apply_text_scale() -> void:
-	_scaled_labels = _scaled_labels.filter(func(l: Label) -> bool: return is_instance_valid(l))
+	var alive: Array[Label] = []
+	for l in _scaled_labels:  # a freed label cannot be passed typed, so test it before use
+		if is_instance_valid(l):
+			alive.append(l)
+	_scaled_labels = alive
 	for l in _scaled_labels:
 		l.add_theme_font_size_override("font_size", _px(float(l.get_meta("base_pt")) * Access.text_scale))
 	_mark()

@@ -841,8 +841,14 @@ VHS pulse), colour-safe markers (drop-off beacon blue, patrol lights white/blue)
   and Classic's strip on the right, the credit line bottom right; `check_hud` runs a left-handed
   pass (10 states x 6 screens). Left: the feel on the phone; in this layout the bottom card can
   sit lower (nothing on the right pushes it up), so the radio ticker waits for room more often.
-- Text size that follows the phone's own setting (the toggle itself is live since 2026-11-01);
-  the panels with fixed layouts (cards, bubbles) need a check at x1.25 on the SE.
+- Text size that follows the phone's own setting (the toggle itself is live since 2026-11-01).
+  **Two parts found 2026-11-02.** (1) Reading iOS Dynamic Type / Android font scale needs a native
+  call; Godot 4.7 has no API for it, so it waits for a small iOS/Android plugin (Mac work).
+  (2) The HUD at x1.25: `check_hud` has a fifth pass (`large-text`), reported as WARN lines, not yet
+  a gate. On 844x390, 693x390 and 667x375 pt phones the status panel (rescue, kebab delivery), the
+  race banner and the ride offer/result cards find no room or sit over the car. Fix in hud.gd
+  `_layout` (wrap narrower or step the scale down per panel that fails), then make the pass a gate.
+  Also fixed: `apply_text_scale` errored on a freed label after a setting change.
 - Subtitles: nothing is voiced yet; revisit when speech or radio talk with words lands.
 - ~~Crash sparks buzz through `Access.buzz`~~ Done (2026-11-01: crash_fx.gd shakes nothing; the
   car's knock goes through haptics.gd, which keeps `Access.vibration`). ~~Colour-safe still to cover the HUD's green badges and the red fail colour.~~ Done

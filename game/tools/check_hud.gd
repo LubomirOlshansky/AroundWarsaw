@@ -21,6 +21,7 @@ extends SceneTree
 ## Prints a line per screen and state, then `check_hud: OK` (exit 0) or the problems (exit 1).
 ##   godot --headless --path game --script res://tools/check_hud.gd [-- --verbose]
 
+const Access := preload("res://scripts/access.gd")
 const Hud := preload("res://scripts/hud.gd")
 const Bubbles := preload("res://scripts/bubbles.gd")
 ## Loop 3g-1: the pull-over card (police.gd lays it out with the HUD's panels).
@@ -99,6 +100,15 @@ func _run() -> void:
 	_check_quiet_driving()
 	for w in _waits:
 		print("  waits for room: %s" % w)
+	# The x1.25 pass is a report, not yet a gate: the panels do not all fit the small landscape phones
+	# at that size (BACKLOG "Text size follows the phone"); its lines are warnings until they do.
+	var hard: Array[String] = []
+	for p in problems:
+		if " + large-text" in String(p) or "large-text:" in String(p):
+			print("  WARN " + String(p))
+		else:
+			hard.append(String(p))
+	problems = hard
 	if problems.is_empty():
 		print("check_hud: OK (%d screens, %d states; a passing panel waited for room %d times)" % [SCREENS.size(), states, _waits.size()])
 		quit(0)
@@ -146,7 +156,8 @@ func _check_screen(screen: Vector2i) -> int:
 	# Desktop: --no-touch (trailer loop, 2026-10-29): a third pass with the touch-only controls
 	# away; none may be left to press or take room.
 	# Accessibility (2026-11-01): a fourth pass in the left-handed layout (the pedals bottom left).
-	for mode in ["", "perf", "no-touch", "left-handed"]:
+	# Larger HUD text (2026-11-02): a fifth pass at Access.LARGE_TEXT (x1.25), the setting the phone's own text size will drive.
+	for mode in ["", "perf", "no-touch", "left-handed", "large-text"]:
 		var perf: bool = mode == "perf"
 		for state in ["car, Point", "car, Classic", "helicopter", "call came in", "call card", "rescued, paid",
 				"rescue, host, egg", "kebab offer", "kebab delivery", "race", "rival ahead", "landmark card", "note card", "tow toast",
@@ -159,6 +170,11 @@ func _check_screen(screen: Vector2i) -> int:
 			if mode == "left-handed" and not state in ["car, Point", "car, Classic", "helicopter", "rescue, host, egg", "kebab offer",
 					"landmark card", "police chase", "pull-over", "ride offer", "ride"]:
 				continue
+			if mode == "large-text" and not state in ["car, Point", "call came in", "call card", "rescue, host, egg", "kebab offer",
+					"kebab delivery", "race", "landmark card", "note card", "police chase", "pull-over", "ride offer", "ride", "ride result"]:
+				continue
+			Access.text_scale = Access.LARGE_TEXT if mode == "large-text" else 1.0
+			hud.apply_text_scale()
 			hud.set_left_handed(mode == "left-handed")
 			hud.clear_all()
 			bubbles.clear()
@@ -371,6 +387,8 @@ func _check_screen(screen: Vector2i) -> int:
 		count += 1
 	panel.close()
 	hud.set_left_handed(false)
+	Access.text_scale = 1.0
+	hud.apply_text_scale()
 	book.free()
 	egg_book.free()
 	tape.free()
