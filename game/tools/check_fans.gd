@@ -18,7 +18,11 @@ extends SceneTree
 ##   7. match day: the phases on synthetic clocks (walkers in before kick-off, none during the
 ##      match, out after full time, a few late runners), every route found on the real walkways,
 ##      ending at its group, off the roads except at a zebra; walkers drawn walking in, then home
-##      the other way after a win or a draw with its toast and lines.
+##      the other way after a win or a draw with its toast and lines;
+##   8. making way for the car: `dodge_target` (out of a moving car's path, round a stopped one,
+##      nothing for a car behind or well to the side), a walker stepping out of the way of a car
+##      coming at it and back after, a group fan stepping off a car driven onto the pavement, and
+##      the groups filing in during the match (MATCH_SHARE left outside, no smoke) and back out.
 ## Prints "check_fans: OK (...)" or the problems (exit 1).
 ##   godot --headless --path game --script res://tools/check_fans.gd [-- --verbose]
 
@@ -44,6 +48,7 @@ var problems: Array[String] = []
 var verbose := false
 var now := {"hour": 18.0, "weekday": 6}
 var eye := Vector3.ZERO
+var car_at := Vector3.INF
 
 
 func _initialize() -> void:
@@ -67,6 +72,7 @@ func _run() -> void:
 	_check_lines(digest)
 	_check_node(data, digest)
 	_check_match_day(data, digest)
+	_check_dodge(data, digest)
 	if problems.is_empty():
 		print("check_fans: OK (%s)" % "; ".join(digest))
 		quit(0)
@@ -195,7 +201,7 @@ func _check_lines(digest: PackedStringArray) -> void:
 	var never := ["legia", "legii", "legią", "polonia", "widzew", "lech", "wisła", "cracovia", "jagiellonia", "zgoda", "ustawka",
 			"kibol", "kibole", "chuligan", "chuligani", "bić", "bijemy", "wróg", "wrogów", "kosa", "petarda", "raca w ręku",
 			"hooligan", "fight", "enemy", "rivals"]
-	var want := {"kibice": {"": 10, "chant": 5, "honk": 3, "car": 4, "kid": 3, "walk": 5, "late": 2, "win": 4, "draw": 3},
+	var want := {"kibice": {"": 10, "chant": 5, "honk": 3, "car": 4, "kid": 3, "walk": 5, "late": 2, "win": 4, "draw": 3, "dodge": 4, "match": 4},
 			"police_kibice": {"": 5}}
 	var all_text := ""
 	var total := 0
@@ -239,6 +245,8 @@ func _check_node(data: Dictionary, digest: PackedStringArray) -> void:
 	f.vehicle = func() -> Array: return [Vector3.INF, 0.0, false]
 	root.add_child(f)
 	f.setup(data)
+	# A Saturday evening after the match (the groups all out, nobody walking).
+	now = {"hour": 20.0, "weekday": 6}
 	_expect(f.groups.size() == Fans.GROUPS.size(), "%d of %d groups set up" % [f.groups.size(), Fans.GROUPS.size()])
 	# Far: nothing.
 	eye = Vector3(-3000, 0, -3000)
@@ -514,3 +522,120 @@ static func _cum(pts: PackedVector2Array) -> PackedFloat32Array:
 	for j in range(1, pts.size()):
 		c.append(c[j - 1] + pts[j - 1].distance_to(pts[j]))
 	return c
+
+
+# 8. -------------------------------------------------------------------------------------------
+
+func _check_dodge(data: Dictionary, digest: PackedStringArray) -> void:
+	# The rule: a car coming at 10 m/s along +x.
+	var v := Vector2(10.0, 0.0)
+	var ahead := Fans.dodge_target(Vector2(8.0, 0.5), Vector2.ZERO, v)
+	_expect(ahead.y > 0.0 and absf(0.5 + ahead.y) >= Fans.DODGE_MISS and ahead.x == 0.0,
+			"a fan 8 m ahead of the car, 0.5 m left of its path, steps %s" % ahead)
+	_expect(Fans.dodge_target(Vector2(8.0, -0.3), Vector2.ZERO, v).y < 0.0, "a fan right of the path steps to the left")
+	_expect(Fans.dodge_target(Vector2(8.0, 4.0), Vector2.ZERO, v) == Vector2.ZERO, "a fan 4 m to the side steps")
+	_expect(Fans.dodge_target(Vector2(-6.0, 0.0), Vector2.ZERO, v) == Vector2.ZERO, "a fan behind the car steps")
+	_expect(Fans.dodge_target(Vector2(40.0, 0.0), Vector2.ZERO, v) == Vector2.ZERO, "a fan 40 m ahead steps already")
+	_expect(Fans.dodge_target(Vector2(1.0, 0.0), Vector2.ZERO, v).length() <= Fans.DODGE_MAX + 0.001, "a step longer than DODGE_MAX")
+	var round := Fans.dodge_target(Vector2(1.0, 0.0), Vector2.ZERO, Vector2.ZERO)
+	_expect(round.x > 0.0 and absf(1.0 + round.x - Fans.CAR_CLEAR) < 0.01, "a fan by a stopped car doesn't walk round it (%s)" % round)
+	_expect(Fans.dodge_target(Vector2(4.0, 0.0), Vector2.ZERO, Vector2.ZERO) == Vector2.ZERO, "a fan 4 m from a stopped car steps")
+	# The match's share outside.
+	_expect(Fans.group_share("arrive", 0.5) == 1.0 and Fans.group_share("leave", 0.2) == 1.0 and Fans.group_share("", 0.0) == 1.0,
+			"the groups thin out outside the match")
+	_expect(Fans.group_share("match", 0.0) == 1.0 and absf(Fans.group_share("match", 0.5) - Fans.MATCH_SHARE) < 0.001
+			and Fans.group_share("match", 0.999) > 0.9, "the match's share: %.2f, %.2f, %.2f" % [Fans.group_share("match", 0.0),
+			Fans.group_share("match", 0.5), Fans.group_share("match", 0.999)])
+	# A node before kick-off: a car comes at a walker head on at 12 m/s.
+	var map := FakeMap.new()
+	root.add_child(map)
+	var dlg := FakeDialogue.new()
+	root.add_child(dlg)
+	var f := Fans.new()
+	f.map = map
+	f.dialogue = dlg
+	f.clock = func() -> Dictionary: return now
+	f.focus = func() -> Vector3: return eye
+	f.vehicle = func() -> Array: return [car_at, 43.0, false]
+	root.add_child(f)
+	f.setup(data)
+	var kick := float(Fans.MATCHES[6][0]) + Fans.KICK_AFTER
+	now = {"hour": kick - 0.3, "weekday": 6}
+	eye = Vector3(Fans.STADIUM.x, 0, Fans.STADIUM.y - 100.0)
+	car_at = Vector3.INF
+	f.tick(0.5)
+	f.move(0.1)
+	var w := -1
+	for i in f.walker_count:
+		if f.w_show[i] == 1 and f.w_s[i] > 40.0 and f.w_s[i] < float(f.routes[f.w_route[i]]["len"]) - 60.0:
+			w = i
+			break
+	_expect(w >= 0, "no walker to drive at")
+	var closest := 99.0
+	if w >= 0:
+		var p0: Vector3 = f.walker_at(w)
+		var fwd := Vector2(-sin(f.w_yaw[w]), -cos(f.w_yaw[w]))
+		var c := Vector2(p0.x, p0.z) + fwd * 22.0
+		for k in 40:
+			c -= fwd * 1.2
+			car_at = Vector3(c.x, 0, c.y)
+			f.t += 0.1
+			f.move(0.1)
+			var b: Vector3 = f.walker_at(w)
+			var shown := Vector2(b.x, b.z) + f.w_off[w]
+			closest = minf(closest, shown.distance_to(c))
+		_expect(closest >= Fans.DODGE_MISS - 0.4, "a walker let the car come within %.1f m" % closest)
+		_expect(f.dodges >= 1, "no dodge counted")
+		# The car gone: back on the footway.
+		car_at = Vector3.INF
+		for k in 60:
+			f.t += 0.1
+			f.move(0.1)
+		_expect(f.w_off[w].length() < 0.05, "a walker still %.1f m off its way 6 s after the car" % f.w_off[w].length())
+	var said_dodge := 0
+	for l: Array in dlg.said:
+		said_dodge += 1 if l[2] == "dodge" else 0
+	# A car driven slowly through the gate's group.
+	var g: Dictionary = f.groups[0]
+	var a: Vector2 = g["at"]
+	var along: Vector2 = g["along"]
+	var slots: Array = g["slots"]
+	var s0: Dictionary = slots[mini(5, slots.size() - 1)]
+	var sp: Vector3 = s0["p"]
+	var cg := Vector2(sp.x, sp.z) - along * 12.0
+	var gclose := 99.0
+	_expect(a.distance_to(Vector2(sp.x, sp.z)) < 40.0, "the group's fan far from its anchor")
+	for k in 40:
+		cg += along * 0.6
+		car_at = Vector3(cg.x, 0, cg.y)
+		f.t += 0.1
+		f.move(0.1)
+		var o: Vector2 = s0["off"]
+		gclose = minf(gclose, (Vector2(sp.x, sp.z) + o).distance_to(cg))
+	_expect(gclose >= Fans.DODGE_MISS - 0.4, "a group's fan let the car come within %.1f m" % gclose)
+	car_at = Vector3.INF
+	# The match: most go in, no smoke; back out just before full time.
+	var full := f._fan_mm.visible_instance_count
+	now = {"hour": kick + 0.9, "weekday": 6}
+	f.tick(0.5)
+	f.move(0.1)
+	var inside := f._fan_mm.visible_instance_count
+	_expect(inside > 0 and inside < full * 0.35 and f._puff_mm.visible_instance_count == 0,
+			"during the match %d of %d fans outside, %d puffs" % [inside, full, f._puff_mm.visible_instance_count])
+	var match_lines := 0
+	var before := dlg.said.size()
+	eye = Vector3(a.x, 0, a.y)
+	for i in 240:
+		f.t += 0.5
+		f.tick(0.5)
+	for i in range(before, dlg.said.size()):
+		match_lines += 1 if dlg.said[i][2] == "match" else 0
+		_expect(dlg.said[i][2] != "kid", "the kid talks outside during the match")
+	_expect(match_lines >= 1, "no match lines from those left outside")
+	now = {"hour": kick + Fans.FULL_TIME - 0.01, "weekday": 6}
+	f.tick(0.5)
+	f.move(0.1)
+	_expect(f._fan_mm.visible_instance_count > inside * 2, "nobody back out by full time (%d)" % f._fan_mm.visible_instance_count)
+	digest.append("dodge: walker %.1f m, group %.1f m, %d dodge lines; match: %d of %d outside" % [closest, gclose, said_dodge,
+			inside, full])
+	f.queue_free()

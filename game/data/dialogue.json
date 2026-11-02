@@ -4872,6 +4872,76 @@
       {
         "only": "draw"
       }
+    ],
+    [
+      "Uwaga, auto! Spokojnie, przepuszczamy!",
+      "Car! Easy, we'll let you through!",
+      {
+        "only": "dodge"
+      }
+    ],
+    [
+      "Hop na bok! Kierowco, my tylko na mecz!",
+      "Hop aside! Driver, we're only off to the match!",
+      {
+        "only": "dodge"
+      }
+    ],
+    [
+      "Szaliki w górę, nogi w bok!",
+      "Scarves up, feet to the side!",
+      {
+        "only": "dodge"
+      }
+    ],
+    [
+      "Ej, wolniej! Tu się chodzi po kiełbasę!",
+      "Hey, slow down! People walk to the sausages here!",
+      {
+        "only": "dodge"
+      }
+    ],
+    [
+      "Przepuśćmy kierowcę, może też kibicuje.",
+      "Let the driver through, maybe they're a fan too.",
+      {
+        "only": "dodge"
+      }
+    ],
+    [
+      "Bez biletu, ale z radiem. Komentator krzyczy, my też.",
+      "No ticket, but we've got a radio. He shouts, we shout.",
+      {
+        "only": "match"
+      }
+    ],
+    [
+      "Słychać trybuny! Chyba rzut rożny. Albo przywieźli hot-dogi.",
+      "Hear the stands? Must be a corner. Or the hot dogs arrived.",
+      {
+        "only": "match"
+      }
+    ],
+    [
+      "Pilnujemy bębna, reszta ogląda. Ktoś musi.",
+      "We mind the drum, the rest are watching. Someone has to.",
+      {
+        "only": "match"
+      }
+    ],
+    [
+      "Mecz z ulicy też się liczy. Kiełbasa bliżej.",
+      "The match from the street counts too. The sausage is closer.",
+      {
+        "only": "match"
+      }
+    ],
+    [
+      "Radio się zacina, więc śpiewamy, aż wróci zasięg.",
+      "The radio keeps cutting out, so we sing till the signal's back.",
+      {
+        "only": "match"
+      }
     ]
   ],
   "police_kibice": [

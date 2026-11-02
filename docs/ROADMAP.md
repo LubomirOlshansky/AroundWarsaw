@@ -349,6 +349,7 @@ then the Launch gate.
   - [x] #5 more queues and #6 KRINGULA PIZZA: queues at KRINGULA, the coffee chains and MIESZANE were built earlier; the "queue for the queue" jokes added 2026-11-02 (four lines in dialogue.json, tag `kringula`; text only, Godot did not run)
   - [x] #7 friendly Legia fans near Stadion Leguminy, 2026-11-02 (PR #336, `fans.gd`; phone look and cost open)
   - [x] Kibice match day: fans walking in from the stops before kick-off and home after a win or a draw, 2026-11-02 (`fans.gd` ROUTES; stop names and phone look in QUESTIONS)
+  - [x] Kibice make way for the car (walkers and groups step or hop aside, walk round a stopped car, `dodge` lines) and the groups go in during the match (15 % stay out with a radio, `match` lines), 2026-11-02 (`fans.gd` dodge_target, group_share; phone feel open)
   - [ ] #9 bike-path network compared with the real one (Opus)
   - [ ] Leftovers (BACKLOG): dates on LUŹNO's roof, Podwózka dates, van fans and egg
 - [x] Gamepad support (2026-11-01, `gamepad.gd`, `check_gamepad`): Xbox, PlayStation and MFi

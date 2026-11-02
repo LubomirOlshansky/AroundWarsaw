@@ -27,6 +27,10 @@ extends Node3D
 ##    The result is a win or a draw (never a loss: the joke is warm), rolled at full time: a win
 ##    has the groups sing twice as often, scarves up on the way home and `win` lines; a draw has
 ##    "następnym razem" (`draw`). The routes are found once on the footways and zebras (AStar2D).
+##  - **Making way** (follow-up, 2026-11-02): walkers and the groups' fans step out of the player's
+##    car's path (`dodge_target`), hop aside with the scarves up when it is fast (a `dodge` line),
+##    walk round it when it stands, and step back after. During the match most of each group goes
+##    in (`group_share`): the drummer and a few stay out with a radio (`match` lines), no smoke.
 ## Drawing: the fans one MultiMesh (the pedestrians' person mesh), their props one (a four-shape
 ## family: a scarf held up, a scarf round the neck, the officer's coffee, the foam finger), the smoke
 ## puffs one, and the three groups' banners, drums and smoke sticks one mesh, the walkers one more
@@ -119,6 +123,28 @@ const RUN_V := 3.0
 const SIDE := 0.75
 ## Walkers' lines: one on screen within LINE_VIEW every WALK_LINE_GAP s.
 const WALK_LINE_GAP := Vector2(14.0, 26.0)
+## Making way for the car (follow-up, 2026-11-02): a fan (walking or in a group) whose spot the car
+## will pass within DODGE_MISS m in the next DODGE_T s steps out sideways to DODGE_MISS + 0.4 m off
+## its path (at most DODGE_MAX m) at STEP_OUT_V m/s, and back at STEP_BACK_V once it has gone; a
+## stopped car is walked round at CAR_CLEAR m. Above SCATTER_KMH they hop aside (HOP m) faster,
+## scarves up, and someone says a `dodge` line (at most one every DODGE_LINE_GAP s). Friendly: a
+## "whoa, easy", never a fall.
+const DODGE_T := 1.4
+const DODGE_MISS := 2.2
+const DODGE_MAX := 3.2
+const CAR_CLEAR := 2.6
+const CAR_BACK := 2.5
+const STEP_OUT_V := 3.5
+const STEP_BACK_V := 1.0
+const SCATTER_KMH := 30.0
+const HOP := 0.3
+const DODGE_LINE_GAP := 12.0
+## The match itself: the groups file in through the gate over the first MATCH_IN of it until only
+## MATCH_SHARE stay outside (the drummer and a few without tickets, a radio on), and come back out
+## over the last MATCH_OUT before full time. No smoke while they are in.
+const MATCH_SHARE := 0.15
+const MATCH_IN := 0.06
+const MATCH_OUT := 0.04
 ## Colours: the fans' shirts and jackets (white, red, green and dark), the smoke (from the stick's
 ## bright pink-red to a soft pink), the bubbles, Sierżant Bogdan's hi-vis.
 const SHIRTS := ["#f2efe8", "#f2efe8", "#c4262e", "#c4262e", "#2b6e3f", "#2b6e3f", "#1c2230", "#2b2c2f", "#e8e4d8"]
@@ -196,6 +222,12 @@ var w_prop := PackedFloat32Array()
 var w_ph := PackedFloat32Array()
 var w_yaw := PackedFloat32Array()
 var w_seg := PackedInt32Array()
+## Each walker's step aside from its route (m), easing towards `dodge_target`.
+var w_off := PackedVector2Array()
+## Steps aside so far (the check, the log) and the car as last seen by move() (its speed from that).
+var dodges := 0
+var _car_prev := Vector2.INF
+var _dodge_line_at := -99.0
 var walking := 0
 var _walk_line_t := 6.0
 var _clumps := 0
@@ -442,6 +474,40 @@ static func running(ph: String, p: float) -> bool:
 	return ph == "arrive" and p >= 1.0 - LATE
 
 
+## The share of a group outside (0..1) `p` into match-day phase `ph`: all of it but during the
+## match, when most file in (MATCH_SHARE stay) and come back out just before full time.
+static func group_share(ph: String, p: float) -> float:
+	if ph != "match":
+		return 1.0
+	if p < MATCH_IN:
+		return lerpf(1.0, MATCH_SHARE, p / MATCH_IN)
+	if p > 1.0 - MATCH_OUT:
+		return lerpf(MATCH_SHARE, 1.0, (p - (1.0 - MATCH_OUT)) / MATCH_OUT)
+	return MATCH_SHARE
+
+
+## Where a fan standing (or walking) at `p` wants to be, as an offset (m), with the car at `car`
+## moving at `vel` (m/s): out of its path (DODGE_MISS + 0.4 m to the side it is already on) when the
+## car will pass within DODGE_MISS in DODGE_T s, round it at CAR_CLEAR when it stands, else ZERO.
+static func dodge_target(p: Vector2, car: Vector2, vel: Vector2) -> Vector2:
+	var rel := p - car
+	var sp := vel.length()
+	if sp < 1.0:
+		var d := rel.length()
+		if d >= CAR_CLEAR:
+			return Vector2.ZERO
+		return (rel / d if d > 0.01 else Vector2.RIGHT) * (CAR_CLEAR - d)
+	var dir := vel / sp
+	var ahead := rel.dot(dir)
+	if ahead < -CAR_BACK or ahead > sp * DODGE_T + CAR_BACK:
+		return Vector2.ZERO
+	var side := Vector2(-dir.y, dir.x)
+	var lat := rel.dot(side)
+	if absf(lat) >= DODGE_MISS:
+		return Vector2.ZERO
+	return side * (1.0 if lat >= 0.0 else -1.0) * minf(DODGE_MISS + 0.4 - absf(lat), DODGE_MAX)
+
+
 ## The walkways (footways and zebras off decks) within `reach` m of `c`: [PackedVector2Array,
 ## width, zebra] each.
 static func walkways(data: Dictionary, c: Vector2, reach: float) -> Array:
@@ -575,8 +641,12 @@ func setup(data: Dictionary, seed_value := 1916) -> void:
 			elif role == "smoke":
 				shirt = HOLDER_SHIRT
 			var p := _ground(p2)
+			# Who stays outside during the match (ord < the share): the drummer always, then the fans
+			# in a random order; the kid and the smoke holders go in first.
+			var ord := 0.0 if role == "drum" else (_rng.randf_range(0.02, 0.98) if role == "fan" else 0.99)
 			slots.append({"p": p, "yaw": atan2(-look.x, -look.y), "shirt": shirt, "tr": _rng.randf() * 0.99, "role": role,
-					"ph": _rng.randf_range(-1.0, 1.0), "scarf": role == "fan" and _rng.randf() < 0.75})
+					"ph": _rng.randf_range(-1.0, 1.0), "scarf": role == "fan" and _rng.randf() < 0.75, "ord": ord,
+					"off": Vector2.ZERO})
 			if role == "smoke":
 				# The stick's top in the raised right hand (the figure faces -z: its right is +x).
 				var right := Vector2(-face.y, face.x)
@@ -586,7 +656,8 @@ func setup(data: Dictionary, seed_value := 1916) -> void:
 				"banner": lay["banner"], "back": float(lay["back"]), "half": float(lay["half"]), "text": spec["banner"],
 				"slots": slots, "tips": tips, "max": int(spec["n"]), "n": 0, "chant": 0.0,
 				"next": _rng.randf_range(2.0, 8.0), "honk_t": 0.0, "line_t": _rng.randf_range(3.0, 8.0),
-				"police": bool(spec["police"]), "officer": {}, "met": false, "smoke_ph": _rng.randf_range(0.0, SMOKE_CYCLE)})
+				"police": bool(spec["police"]), "officer": {}, "met": false, "smoke_ph": _rng.randf_range(0.0, SMOKE_CYCLE),
+				"share": 1.0, "dodging": false})
 	_setup_routes(data)
 	_build_drawing()
 	if sounds != null and sounds.has_method("add_crowd"):
@@ -657,6 +728,7 @@ func _setup_routes(data: Dictionary) -> void:
 				w_ph.append(_rng.randf_range(0.0, TAU))
 				w_yaw.append(0.0)
 				w_seg.append(0)
+				w_off.append(Vector2.ZERO)
 				walker_count += 1
 			made += size
 
@@ -883,6 +955,8 @@ func tick(step: float) -> void:
 	for g in groups:
 		g["n"] = mini(group_count(int(g["max"]), _hour, _weekday, amount, force), (g["slots"] as Array).size())
 	_match_day()
+	for g in groups:
+		g["share"] = group_share(phase, phase_p)
 	var nr := on and eye.distance_to(STADIUM) < ACTIVE_R
 	if nr != near:
 		near = nr
@@ -1093,11 +1167,15 @@ func _talk(g: Dictionary, step: float, eye: Vector2, car2: Vector2, kmh: float) 
 	g["line_t"] = _rng.randf_range(LINE_GAP.x, LINE_GAP.y)
 	var off: Dictionary = g["officer"]
 	var roll := _rng.randf()
+	var inside := float(g["share"]) < 1.0
 	if not off.is_empty() and roll < 0.25:
 		var op: Vector3 = off["p"]
 		_say(func() -> Vector3: return op + Vector3(0, 2.2, 0), "Sierżant Bogdan", "police_kibice", "", false, POLICE_BUBBLE)
 	elif slow:
 		_say(_anchor_of(g, -1), "", "kibice", "car", true)
+	elif inside:
+		# The few left outside during the match: the radio, the stands' roar.
+		_say(_anchor_of(g, -1), "", "kibice", "match")
 	elif roll < 0.45:
 		_say(_anchor_of(g, _role_index(g, "kid")), "", "kibice", "kid")
 	else:
@@ -1117,6 +1195,12 @@ func _anchor_of(g: Dictionary, i: int) -> Callable:
 	var slots: Array = g["slots"]
 	var n := mini(int(g["n"]), slots.size())
 	var k := i if i >= 0 else _rng.randi() % maxi(n, 1)
+	if i < 0 and float(g["share"]) < 1.0:
+		# During the match: one of the few still outside.
+		for j in n:
+			if float(slots[j]["ord"]) < float(g["share"]):
+				k = j
+				break
 	var p: Vector3 = slots[mini(k, slots.size() - 1)]["p"]
 	return func() -> Vector3: return p + Vector3(0, 2.3, 0)
 
@@ -1136,6 +1220,25 @@ func _say(anchor: Callable, speaker: String, group: String, tag: String, prefer 
 func move(step: float) -> void:
 	if not near:
 		return
+	# The car (not the heli) and its velocity from the last move (a jump of > 70 m/s is a respawn).
+	var car2 := Vector2.INF
+	var cv := Vector2.ZERO
+	if vehicle.is_valid():
+		var veh: Array = vehicle.call()
+		var vp: Vector3 = veh[0]
+		if vp != Vector3.INF and not bool(veh[2]):
+			car2 = Vector2(vp.x, vp.z)
+			if _car_prev != Vector2.INF and step > 0.0:
+				cv = (car2 - _car_prev) / step
+				if cv.length() > 70.0:
+					cv = Vector2.ZERO
+	_car_prev = car2
+	var has_car := car2 != Vector2.INF
+	var reach := DODGE_MISS + cv.length() * DODGE_T + CAR_BACK + 1.0
+	var reach2 := reach * reach
+	var scatter := cv.length() * 3.6 > SCATTER_KMH
+	var out_v := STEP_OUT_V * (1.6 if scatter else 1.0) * step
+	var back_v := STEP_BACK_V * step
 	var nf := 0
 	var np := 0
 	var nu := 0
@@ -1147,9 +1250,27 @@ func move(step: float) -> void:
 		var slots: Array = g["slots"]
 		var singing := float(g["chant"]) > 0.0
 		var secs := t - float(g.get("t0", 0.0))
+		var share := float(g["share"])
+		# The group makes way only while the car is by it (or someone is still stepping back).
+		var by_car := has_car and car2.distance_to(g["at"]) < float(g["half"]) + reach + 6.0
+		var dodging := false
 		for i in mini(int(g["n"]), slots.size()):
 			var s: Dictionary = slots[i]
+			if share < 1.0 and float(s["ord"]) >= share:
+				continue
 			var p: Vector3 = s["p"]
+			var hop := 0.0
+			if by_car or bool(g["dodging"]):
+				var o: Vector2 = s["off"]
+				var want := dodge_target(Vector2(p.x, p.z), car2, cv) if by_car else Vector2.ZERO
+				var fresh := o == Vector2.ZERO
+				o = o.move_toward(want, out_v if want != Vector2.ZERO else back_v)
+				s["off"] = o
+				if o != Vector2.ZERO:
+					dodging = true
+					p += Vector3(o.x, 0.0, o.y)
+					if want != Vector2.ZERO:
+						hop = _made_way(fresh, o, want, scatter, p)
 			var role: String = s["role"]
 			var ph := float(s["ph"])
 			var y := 0.0
@@ -1163,7 +1284,7 @@ func move(step: float) -> void:
 					y = absf(sin(t * JUMP_HZ * PI)) * 0.05
 				"kid":
 					y = jump_at(secs, ph) * 0.6 if singing else 0.0
-			var at := p + Vector3(0, y, 0)
+			var at := p + Vector3(0, maxf(y, hop), 0)
 			var scale := Vector3.ONE * (0.68 if role == "kid" else 1.0)
 			CityLife.put(_fan_buf, nf, at, yaw, scale, s["shirt"], s["tr"])
 			nf += 1
@@ -1173,7 +1294,7 @@ func move(step: float) -> void:
 			if role == "kid":
 				shape = FINGER
 			elif bool(s["scarf"]):
-				shape = SCARF_UP if singing else SCARF_NECK
+				shape = SCARF_UP if singing or hop > 0.0 else SCARF_NECK
 			if shape >= 0.0:
 				CityLife.put(_prop_buf, np, at, yaw, scale, s["shirt"], shape)
 				np += 1
@@ -1186,7 +1307,8 @@ func move(step: float) -> void:
 			nf += 1
 			np += 1
 			box = box.expand(op)
-		if int(g["n"]) == 0:
+		g["dodging"] = dodging
+		if int(g["n"]) == 0 or share < 1.0:
 			continue
 		var tips: Array = g["tips"]
 		for k in tips.size():
@@ -1243,13 +1365,26 @@ func move(step: float) -> void:
 			var at := _walker_on(i, pts, cum, ys)
 			var yaw := w_yaw[i]
 			at.y += absf(sin(t * bob_hz + w_ph[i])) * bob
+			var hop := 0.0
+			var o := w_off[i]
+			if has_car and (o != Vector2.ZERO or Vector2(at.x, at.z).distance_squared_to(car2) < reach2):
+				var want := dodge_target(Vector2(at.x, at.z), car2, cv)
+				var fresh := o == Vector2.ZERO
+				o = o.move_toward(want, out_v if want != Vector2.ZERO else back_v)
+				w_off[i] = o
+				if want != Vector2.ZERO:
+					hop = _made_way(fresh, o, want, scatter, at + Vector3(o.x, 0.0, o.y))
+			elif o != Vector2.ZERO:
+				o = o.move_toward(Vector2.ZERO, back_v)
+				w_off[i] = o
+			at += Vector3(o.x, hop, o.y)
 			var shape := w_prop[i]
 			var scale := kid_scale if shape == FINGER else Vector3.ONE
 			CityLife.put(_walk_buf, nw, at, yaw, scale, w_shirt[i], w_tr[i])
 			nw += 1
 			wbox = AABB(at, Vector3.ZERO) if wfirst else wbox.expand(at)
 			wfirst = false
-			if shape == SCARF_NECK and party and sin(t * 0.9 + w_ph[i] * 3.0) > 0.55:
+			if shape == SCARF_NECK and ((party and sin(t * 0.9 + w_ph[i] * 3.0) > 0.55) or hop > 0.0):
 				shape = SCARF_UP
 			if shape >= 0.0:
 				CityLife.put(_prop_buf, np, at, yaw, scale, w_shirt[i], shape)
@@ -1261,6 +1396,21 @@ func move(step: float) -> void:
 	_send(_fan_mm, _fan_mmi, _fan_buf, nf, box, 2.8)
 	_send(_prop_mm, _prop_mmi, _prop_buf, np, box, 3.2)
 	_send(_puff_mm, _puff_mmi, _puff_buf, nu, pbox, 1.2)
+
+
+## A fan stepping aside (at `o` of its `want` offset, now at `at`; `first` its first step): the hop
+## when the car is fast (m, 0 when only walking aside or once out), the count, a `dodge` line now
+## and then.
+func _made_way(first: bool, o: Vector2, want: Vector2, scatter: bool, at: Vector3) -> float:
+	if first:
+		dodges += 1
+		if scatter and t - _dodge_line_at > DODGE_LINE_GAP and _seen(at):
+			_dodge_line_at = t
+			var a := at + Vector3(0, 2.3, 0)
+			_say(func() -> Vector3: return a, "", "kibice", "dodge", true)
+	if not scatter or o.distance_squared_to(want) < 0.0001:
+		return 0.0
+	return absf(sin(t * 11.0 + at.x)) * HOP
 
 
 func _send(mm: MultiMesh, mmi: MultiMeshInstance3D, buf: PackedFloat32Array, n: int, box: AABB, up: float) -> void:
@@ -1277,6 +1427,6 @@ func summary() -> String:
 	var gs := PackedStringArray()
 	for g in groups:
 		gs.append("%s %d%s" % [g["id"], g["n"], " (singing)" if float(g["chant"]) > 0.0 else ""])
-	return "%02d:%02d day %d · %s%s · %s · %s%s, %d walking · chants %d · lines %d · meets %d" % [int(_hour),
+	return "%02d:%02d day %d · %s%s · %s · %s%s, %d walking · chants %d · lines %d · meets %d · dodges %d" % [int(_hour),
 			int(fmod(_hour, 1.0) * 60.0), _weekday, "out" if on else "home", ", near" if near else "", ", ".join(gs),
-			phase if phase != "" else "quiet", (" (%s)" % result) if result != "" else "", walking, chants, lines_said, meets]
+			phase if phase != "" else "quiet", (" (%s)" % result) if result != "" else "", walking, chants, lines_said, meets, dodges]
