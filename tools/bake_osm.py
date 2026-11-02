@@ -457,6 +457,12 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
     # their roads out, their graph edges car-free, a pedestrian zone, the new trees (tools/car_free.py).
     import car_free
     print("car_free: " + car_free.apply(out))
+    # Idea #9 (2026-11-02): the white bike pictograms on the cycle paths (tools/bike_marks.py).
+    import bike_marks
+    print("bike_marks: " + bike_marks.apply(out))
+    # Idea #9: contraflow, bus-lane and sharrow bikes from the tags (tools/bike_network.py).
+    import bike_network
+    print("bike_network: " + bike_network.apply(out, els))
     # Krajobraz places (2026-11-02): the young trees of the newest streets that the laser scan
     # predates (ul. Bracka's woonerf), before the content POIs, which keep clear of trees.
     import planted_trees
