@@ -462,8 +462,10 @@ Built (cloud, Sonnet): eight shopfronts (`Storefronts.KRAKOWSKIE`, 93 venue sign
   the castle's turret corner and entrance; the church's front, tower and colours; the Syrenka's
   plinth against the flood wall (its corner touches the plinth in the cloud render); what Kaskada
   is; a tree on Kaskada's deck.
-- Left: boulevard dressing (deck strips, bar containers), Piano House, Cube House, Hortus, Moderna
-  Powiśle, Tamka's and Dobra's tenements and street details.
+- Left: boulevard dressing (deck strips, bar containers), Hortus, Moderna Powiśle, Tamka's and
+  Dobra's tenements and street details. (Piano House and Cube House DONE 2026-11-02, specs
+  `piano_house.md`, `cube_house.md`; Mac photo check: Piano House's real facade rhythm and whether
+  its top floor is set back; where Cube House's real bays or loggias are and its colours.)
 - `check_landmarks` stops in the cloud (no terrain data); run it on the Mac.
 - L1 track that reads as railway: sleepers, raised rails, ballast shoulders (no new draw calls).
 - ~~L2 catenary, L3 the tunnel's mouths~~ Done 2026-11-01 (`map_builder` `_build_catenary`,
