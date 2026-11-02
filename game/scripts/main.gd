@@ -489,6 +489,8 @@ var pedzik_kerb := false
 var armchair_flag := false
 var start_sloik := -1
 var start_heat := -1.0
+## Testing (loop Zagłębie): --craft=plain, the autopilot takes the plain kebab at the craft shop.
+var craft_plain := false
 # --- loop 2d-1: Podwózka (rides.gd) and its testing flags ---
 var rides: Rides
 ## --ride=N: ride N's request, the car by its passenger; --ride-quirk=, --passenger=, --stars=X
@@ -1073,6 +1075,7 @@ func _build_world() -> void:
 	ped_zones = PedZones.new(data.get("ped_zones", []))
 	car = Car.new()
 	car.ground_height = map.drive_height
+	car.set_sensitivity(settings.sensitivity)
 	car.set_handling(settings.handling)  # G4: Cruise by default, Sport from Settings → Jazda
 	world.add_child(car)
 	_xray = TunnelXray.new()
@@ -1873,6 +1876,7 @@ func _build_side_jobs(data: Dictionary, world: Node3D) -> void:
 			"rivals": rivals, "graph": graph, "traffic": traffic, "map": map, "car": car, "tod": tod}
 	jobs = Jobs.new()
 	jobs.autopilot = autopilot
+	jobs.craft_plain = craft_plain
 	if start_heat >= 0.0:
 		jobs.start_heat = start_heat
 	add_child(jobs)
@@ -3460,6 +3464,8 @@ func _parse_args() -> void:
 			start_sloik = maxi(0, int(arg.trim_prefix("--sloik="))) if arg.contains("=") else 0
 		elif arg.begins_with("--heat="):
 			start_heat = clampf(float(arg.trim_prefix("--heat=")), 0.0, 1.0)
+		elif arg == "--craft=plain":
+			craft_plain = true
 		# --- loop 2d-1: Podwózka's flags ---
 		elif arg.begins_with("--ride="):
 			start_ride = maxi(0, int(arg.trim_prefix("--ride=")))
@@ -4021,7 +4027,7 @@ func _settings_state() -> Dictionary:
 			"auto": auto_name,
 			"master": settings.master, "music": settings.music, "effects": settings.effects, "perf": int(show_perf),
 			"fps": maxi(0, Settings.FPS.find(settings.fps)), "style": style_index, "vhs": int(vhs),
-			"weather": weather.state, "time": tod.mode, "wander": int(spacer != null and spacer.on), "zones": int(zone_cap_on), "handling": settings.handling,
+			"weather": weather.state, "time": tod.mode, "wander": int(spacer != null and spacer.on), "zones": int(zone_cap_on), "handling": settings.handling, "sensitivity": settings.sensitivity,
 			"text_large": int(settings.text_large), "calm": int(settings.calm), "color_safe": int(settings.color_safe),
 			"vibration": int(settings.vibration), "stop_assist": int(settings.stop_assist),
 			"left_handed": int(settings.left_handed), "lang": maxi(0, Lang.CODES.find(Lang.code))}
@@ -4113,6 +4119,9 @@ func _on_setting(key: String, value: Variant) -> void:
 			settings.wander = int(value) == 1
 			if spacer != null:
 				spacer.set_on(settings.wander)
+		"sensitivity":
+			settings.sensitivity = clampf(float(value), 0.0, 1.0)
+			car.set_sensitivity(settings.sensitivity)
 		"handling":
 			settings.handling = clampi(int(value), 0, 1)
 			car.set_handling(settings.handling)

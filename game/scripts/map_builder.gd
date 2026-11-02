@@ -5420,7 +5420,13 @@ const CANDELABRA_HEAD := Vector3(0, 8.5, 0)
 ## The landmarks loop (Old Town): the historic districts (x, z, radius), the Old Town and the
 ## New Town, where GUGiK models a whole block of tenements as one building (Rynek's sides are
 ## 49 and 84 OpenStreetMap houses in one model), so it stood in one colour like a modern block.
-const HISTORIC := [Vector3(-760.0, -1680.0, 200.0), Vector3(-830.0, -1920.0, 170.0)]
+const HISTORIC := [Vector3(-760.0, -1680.0, 200.0), Vector3(-830.0, -1920.0, 170.0), Vector3(-724.2, -1465.4, 105.0)]
+## Plac Zamkowy's houses (F, 2026-11-01): OpenStreetMap's colours there are muddy (olive,
+## mustard, brown), so within PLAC_PALETTE_R of the column a house takes one of these pastels
+## (the rebuilt Old Town's cream, apricot, rose, sage, powder blue, sand), a quarter of the
+## mapped colour left in for variety.
+const PLAC_PALETTE_R := 110.0
+const PLAC_PASTELS := ["#ecd9a4", "#e9bda8", "#e3b5b0", "#c6d3b3", "#bfd2e0", "#efe4cf", "#e6cba0", "#d9c6d6"]
 ## Mariensztat (the Mariensztat review, 2026-11-01): the 1948-49 estate under the escarpment
 ## (Rynek Mariensztacki, Mariensztat, Sowia, Garbarska, Furmańska and lower Bednarska), small
 ## pastel houses under steep red tile roofs with dormers, so it takes the Old Town's dress too.
@@ -5436,7 +5442,11 @@ const MARIENSZTAT := [Vector2(-546.7, -1395.0), Vector2(-333.3, -1395.0), Vector
 const TENEMENTS := ["#d9a441", "#e1968f", "#ebe1d1", "#c8733f", "#efd9a0", "#a9b98a", "#9fb6cf",
 		"#f0c1ab", "#9c4a43", "#e8c07a", "#cf8c59", "#dcc9a3"]
 ## Their pitched roofs' tiles, half mixed into the aerial photo's colour (which reads pale pink).
-const TILES := ["#9c4a35", "#a85a3e", "#8a4434", "#b0603f", "#94503c"]
+const TILES := ["#9c4a35", "#a85a3e", "#8a4434", "#b0603f", "#94503c", "#7a3b30", "#c0714a", "#b2663a",
+		"#84483a", "#a4503a", "#5f6168", "#6b6d73", "#8c9299", "#6e8f80"]
+## G7: how often each tile appears (same order): terracotta ones common, slate and zinc grey and
+## the odd green copper rare.
+const TILE_WEIGHTS := [10, 10, 8, 8, 8, 5, 5, 5, 5, 5, 3, 2, 2, 1]
 ## Kinds whose walls keep their own colour there (the churches: a skin or brick of their own).
 const NOT_TENEMENTS := ["church", "cathedral", "chapel", "monastery", "convent", "religious"]
 
@@ -5591,9 +5601,12 @@ func _tenement_facades(pos: PackedVector3Array, nrm: PackedVector3Array, col: Pa
 		var hsh := absi(int(poly[0].x * 73.0 + poly[0].y * 31.0))
 		var k := polys.size()
 		polys.append(poly)
-		looks.append(_osm_colour(bld["c"], Color(TENEMENTS[hsh % TENEMENTS.size()])))
+		var look := _osm_colour(bld["c"], Color(TENEMENTS[hsh % TENEMENTS.size()]))
+		if box.get_center().distance_to(OldTownRoofs.PLAC) < PLAC_PALETTE_R:
+			look = Color(PLAC_PASTELS[hsh % PLAC_PASTELS.size()]).lerp(look, 0.25)
+		looks.append(look)
 		seeds.append(fposmod(hsh * 0.6180339887, 1.0))
-		roofs.append(Color(TILES[hsh % TILES.size()]))
+		roofs.append(_tile_colour(hsh))
 		for gx in range(floori(box.position.x / cell), floori(box.end.x / cell) + 1):
 			for gz in range(floori(box.position.y / cell), floori(box.end.y / cell) + 1):
 				var key := Vector2i(gx, gz)
@@ -5635,6 +5648,22 @@ func _tenement_facades(pos: PackedVector3Array, nrm: PackedVector3Array, col: Pa
 	return [col, uv2, dress]
 
 
+## G7: a house's roof colour from its hash: a weighted pick from TILES, then a lightness shift of
+## up to +-9 per cent so neighbours of one tile still differ.
+func _tile_colour(hsh: int) -> Color:
+	var total := 0
+	for w: int in TILE_WEIGHTS:
+		total += w
+	var pick := (hsh * 7) % total
+	var i := 0
+	while pick >= TILE_WEIGHTS[i]:
+		pick -= TILE_WEIGHTS[i]
+		i += 1
+	var shade := (float((hsh / 11) % 100) / 99.0 - 0.5) * 0.18
+	var col := Color(TILES[i])
+	return col.lightened(shade) if shade > 0.0 else col.darkened(-shade)
+
+
 ## Appends `extra` ("pos", "nrm", "col") to `dress`. Packed arrays are copies when read out of
 ## a Dictionary, so they are written back.
 func _add_dress(dress: Dictionary, extra: Dictionary) -> void:
@@ -5669,7 +5698,10 @@ func _gable_ends(pos: PackedVector3Array, nrm: PackedVector3Array) -> Dictionary
 
 func _near_square(at: Vector2) -> bool:
 	var d := at.distance_to(OldTownRoofs.RYNEK)
-	return d > OldTownRoofs.GABLE_NEAR and d < OldTownRoofs.GABLE_FAR
+	if d > OldTownRoofs.GABLE_NEAR and d < OldTownRoofs.GABLE_FAR:
+		return true
+	var p := at.distance_to(OldTownRoofs.PLAC)
+	return p > OldTownRoofs.PLAC_NEAR and p < OldTownRoofs.PLAC_FAR
 
 
 ## Stepped gables (OldTownRoofs.gable) on the top edge of a wall triangle `t` of a house round
@@ -5690,10 +5722,15 @@ func _square_gables(pos: PackedVector3Array, nrm: PackedVector3Array, t: int, po
 			continue  # not a top edge
 		var mid := (p + q) * 0.5
 		var at := Vector2(mid.x, mid.z)
-		# East side only (right of the square's centre), the front turned towards the square.
-		if not _near_square(at) or at.x < OldTownRoofs.RYNEK.x + 8.0 or covered.has(_edge_key(p, q)):
+		if covered.has(_edge_key(p, q)) or not _near_square(at):
 			continue
-		if n.dot(Vector3(OldTownRoofs.RYNEK.x - mid.x, 0.0, OldTownRoofs.RYNEK.y - mid.z).normalized()) < 0.6:
+		# Rynek: the east side only (right of the square's centre), the front turned towards it.
+		# Plac Zamkowy: every front turned towards the column, in a mix of gable kinds.
+		var on_plac := at.distance_to(OldTownRoofs.PLAC) < OldTownRoofs.PLAC_FAR
+		var centre := OldTownRoofs.PLAC if on_plac else OldTownRoofs.RYNEK
+		if not on_plac and at.x < OldTownRoofs.RYNEK.x + 8.0:
+			continue
+		if n.dot(Vector3(centre.x - mid.x, 0.0, centre.y - mid.z).normalized()) < 0.6:
 			continue
 		var length := p.distance_to(q)
 		var bays := maxi(1, roundi(length / OldTownRoofs.GABLE_BAY))
@@ -5709,7 +5746,7 @@ func _square_gables(pos: PackedVector3Array, nrm: PackedVector3Array, t: int, po
 					wall = looks[h]
 					seed = seeds[h]
 					break
-			var extra := OldTownRoofs.gable(a, b, n, wall, seed)
+			var extra := OldTownRoofs.plac_gable(a, b, n, wall, seed) if on_plac else OldTownRoofs.gable(a, b, n, wall, seed)
 			if not extra.is_empty():
 				_add_dress(dress, extra)
 
