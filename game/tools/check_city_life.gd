@@ -227,8 +227,9 @@ func _check_trends() -> void:
 	for wd in range(1, 8):
 		spots[TrendJob.van_spot(wd)] = true
 	_expect(spots.size() == TrendJob.ML_SPOTS.size(), "Cringulo's van: %d spots over the week" % spots.size())
-	var vtris := TrendJob.van_mesh().surface_get_array_len(0) / 3
-	_expect(vtris <= 200, "Cringulo's van: %d triangles (budget 200)" % vtris)
+	var vm := TrendJob.van_mesh()
+	var vtris := (vm.surface_get_array_len(0) + vm.surface_get_array_len(1)) / 3
+	_expect(vtris <= 800, "Cringulo's van: %d triangles (budget 800, with the CRINGULO TV lettering)" % vtris)
 	_summary["mlask"] = "%d zł warm, %d cold, van %d tris" % [int(mp["zl"]), int(mc["zl"]), vtris]
 	# Each slot runs days 1-8 in turn, the queue by day, the word until WKRÓTCE.
 	for slot in 3:

@@ -2123,6 +2123,33 @@
         "culture"
       ],
       "district": "lazienki"
+    },
+    {
+      "id": "deski",
+      "chapter": "codziennie",
+      "name_pl": "Klub DESKA",
+      "name_en": "The DESKA club",
+      "osm": "WTS DESKA (parody of WTS DeSki), Zaruskiego 8: a closed tennis hall and one outdoor glass padel court by Most Łazienkowski (landmarks.gd DESKI)",
+      "near": [
+        52.22515,
+        21.04563
+      ],
+      "radius": 70,
+      "fact": [
+        "DESKA nad Wisłą od 40 lat: hala, squash, żagle. Padel pod chmurką.",
+        "DESKA has played by the Vistula for 40 years: hall, squash, sails. Padel in the open."
+      ],
+      "joke": [
+        "Tenis mówi: to nie to samo. Padel mówi: ściana mnie rozumie.",
+        "Tennis says: not the same. Padel says: the wall gets me."
+      ],
+      "tags": [
+        "venue",
+        "padel",
+        "tennis",
+        "vistula"
+      ],
+      "district": "lazienki"
     }
   ]
 }

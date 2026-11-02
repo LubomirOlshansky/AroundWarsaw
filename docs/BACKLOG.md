@@ -462,8 +462,10 @@ Built (cloud, Sonnet): eight shopfronts (`Storefronts.KRAKOWSKIE`, 93 venue sign
   the castle's turret corner and entrance; the church's front, tower and colours; the Syrenka's
   plinth against the flood wall (its corner touches the plinth in the cloud render); what Kaskada
   is; a tree on Kaskada's deck.
-- Left: boulevard dressing (deck strips, bar containers), Piano House, Cube House, Hortus, Moderna
-  Powiśle, Tamka's and Dobra's tenements and street details.
+- Left: boulevard dressing (deck strips, bar containers), Hortus, Moderna Powiśle, Tamka's and
+  Dobra's tenements and street details. (Piano House and Cube House DONE 2026-11-02, specs
+  `piano_house.md`, `cube_house.md`; Mac photo check: Piano House's real facade rhythm and whether
+  its top floor is set back; where Cube House's real bays or loggias are and its colours.)
 - `check_landmarks` stops in the cloud (no terrain data); run it on the Mac.
 - L1 track that reads as railway: sleepers, raised rails, ballast shoulders (no new draw calls).
 - ~~L2 catenary, L3 the tunnel's mouths~~ Done 2026-11-01 (`map_builder` `_build_catenary`,
@@ -635,10 +637,15 @@ real ones added to `brand_denylist.json`). One PR each:
       10-16); the board-game bar is PRZEGRYWKI (Zagrywki parody, was PIONEK); WACZEK ×5, the burger
       chain with an upside-down golden W, at the real chain's central restaurants, 2026-11-01.
 - [x] The notebook card "Kolejki" (place `kolejki`, chapter Kolejka po trend, at KUKŁA on Nowy Świat), 2026-11-02.
-- [ ] Left from G3-G5: the
-      Podwózka `timber` passengers, fans standing by Cringulo's van, an
-      egg (the car parked by the van while he films), the van's CRINGULO TV lettering, the egg
-      card; phone checks of every sign's size, the queues and the job's legs.
+- [x] Left from G3-G5, done 2026-11-02: Podwózka `timber` passengers (evenings 18-01, 20 % of
+      normal rides, 3 request and 4 ride lines; `rides.gd`), five fans behind Cringulo's van with
+      `viral` "cringulo" bubbles, and the egg `easter_mlask` (the car stopped within 9 m of the van
+      for 3 s while he is out; `trend_job.gd`, 48 cards now).
+- [x] The van's CRINGULO TV lettering (pixel font, dark, both flanks under the pink band; a second
+      surface, +424 tris, check budget 800), 2026-11-02.
+- [ ] Still left: Mac look check of the lettering's size and the fans' spot behind the van
+      (the side of the kerb), the egg's wording; phone checks of every sign's size, the queues and
+      the job's legs.
 - [ ] Mac checks: the statue's spot and facing against the orthophoto; Dom Partii's height and the
       skin on the LoD2 model; KUKŁA/KOSZTA/NERWO spots on the real streets.
 - [x] `Tinder` in a run-club line replaced by TIMBER (it would fail the new denylist entry).
@@ -657,7 +664,7 @@ neon fascias, twists), the craft kebab's choice card, Szlak Szpili, the welcome 
 Spec and sources: `docs/design/trends-2025-26.md`. Built: eight parody trend spots (`Storefronts.TRENDY`).
 - [ ] Wykop/X/TikTok skim (cloud could not fetch them); adjust the trend list.
 - [ ] Phone check of the PISTACJA queue (Friday 16:00-18:30 drop, 36 people) and the "Limitka" job (`--trend-job=4`): line on the footway, 5 s wait, 5 min delivery. Built 2026-11-01.
-- [ ] Padel thread (F, 2026-11-01; docs/design/padel.md): built: PADELNIA queue, 11 lines (Trener Dominik, Pani Basia, Prezes z Mokotowa speak in the queue), a notebook place, the "Czwarty" job (`--trend-job=5`). Still to build: more notebook lore, the roof court "Ściana Płaczu", the Pro Shop. Phone check of the queue and the job.
+- [ ] Padel thread (F, 2026-11-01; docs/design/padel.md): built: PADELNIA queue, 11 lines (Trener Dominik, Pani Basia, Prezes z Mokotowa speak in the queue), a notebook place, the "Czwarty" job (`--trend-job=5`). DESKA (2026-11-02, parody of WTS DeSki): built on Zaruskiego (a closed tennis hall over four mapped pitches, one outdoor glass padel court with 4 players, floodlights, DESKA neon, notebook place `deski`, 3 padel lines, "Czwarty" as a friend's phone call that sends you by car or helicopter to its gate, `--trend-job=7`); phone check of the look and of the gate offer, Mac photo check of the court colours and the clubhouse, the call rings after 150 s of play then every 20 min, 8:00-22:00 (feel open); the lane graph has no road at the gate. Still to build: more notebook lore, the roof court "Ściana Płaczu", the Pro Shop. Phone check of the queue and the job.
 - [ ] E-scooter 12 km/h zones: four discs built (Złota, Zgody, Bracka, Plac Centralny; `scooter_zones.gd`, centres *guess*, toast on entry, car not capped). Still open: check the centres against the real streets, scooter riders that slow down, a zone pill.
 - [x] Lines about matcha, padel, natural wine, queue, scooter rules: 8 column posters and 5 signs in dialogue.json (PL + EN).
 - [ ] Phone check: do the new column posters read (rows ≤ 8 letters)? Not run, no Godot in the cloud.
