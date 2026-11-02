@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- Bike paths look like Warsaw's: cycle crossings have their rows of white squares down each side, and white bikes are painted on the red paths just past the crossings.
 - On wide phones the radio's line no longer slides in cut off at the screen edge, and the orange delivery marker stays under speech bubbles and banners, with its distance clear of its arrow.
 - The race card names where you are racing in full ("pod Palmę") instead of cutting it off, and tells you to drive there, with the pink arrow showing the way.
 - The first rescue call tells you which way to go: the card gives the distance and compass direction to the person who needs help.

@@ -263,7 +263,10 @@ add it to the plan." Rules and the full inventory (39 named religious buildings,
 ## Bike paths (F, 2026-11-02)
 
 - Fixed: gaps under 3 m between cycle path ends, ways split into pieces, spikes and sharp corners (`tools/cycleways.py`; riders turned back at every gap).
-- Open: about 600 cycle path ends still stop 3-8 m from the next path (many are the two sides of a street: needs a crossing, not a snap); ride them on the Mac against OSM; the cyclecross ways (398) and the 19 deck paths are untouched; riders' side offset jumps at a join.
+- Fixed (idea #9, 2026-11-02): the cycle crossings get Warsaw's white square edges (P-11, `map_builder.gd` `_build_crossings`) and the paths 660 white bike pictograms (P-23), 282 just past a crossing facing the riders coming off it, the rest every ~110 m (`tools/bike_marks.py`, run by bake_osm after car_free, idempotent CLI).
+- Measured (2026-11-02): counting cycle crossings as joins, only 41 path ends stop 3-8 m from the next path (the old "600" counted paths only), 90 stop 8-20 m, 124 more than 20 m (map edge, or the path goes on as a footway).
+- Open (needs the raw OSM export, the Mac only): `python3 -I tools/compare_cycleways.py --list` gives the share of OSM's cycle network we draw by class (track, shared foot-and-bike path, painted lane, bus lane open to bikes, sharrows, contraflow, crossing) and the longest undrawn stretches; fix the missing links by data in the bake. Shared paths (`footway` + `bicycle=designated`) draw as footway today; Warsaw's are mostly grey pavers, but a `segregated=yes` one has a red half.
+- Open: more riders on the main routes (Wisłostrada, Marszałkowska, Świętokrzyska; city-life-satire.md #9); riders' side offset jumps at a join; the 19 deck paths untouched by cycleways.py.
 
 ## Gdański Business Center (F, 2026-11-02)
 
