@@ -88,6 +88,10 @@
 # synthetic clocks, the formation, the out-and-back loops on a grid and on the real footways and
 # cycle paths, the meshes' budgets, the lines (no real brand), a node drawing the packs only near
 # the view and its cost, the big guys with tiny dogs; centrum.json only (CI too).
+# Kibice (docs/design/city-life-satire.md 7): `fans` runs game/tools/check_fans.gd: the match
+# evenings, the chant's jump and the smoke, the three groups' room on the real pavements (off the
+# roads, out of the buildings), the meshes' budgets, the lines (no brand, no club, no rivals), a
+# node drawing the fans only near the stadium, the horn starting a chant; centrum.json only (CI too).
 # The garage loop: `garage` runs game/tools/check_garage.gd: Warsztat u Mirka's paints and rules,
 # buying and switching (10 seeded walks), the save, the car's paint, Mirek's lines, E01 and E21
 # once; no map at all (CI too).
@@ -160,8 +164,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh spec lod2 drape ground drive drive-prebuilt stuckspots stuckspots-prebuilt steering handling stopassist questlines settings credits language tiers governor hud places edge roadworks eggs tape crowds life buses zaglebie crashes oldtram trains packs garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 rescues couriers rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram firstlife heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh spec drape drive stuckspots steering handling stopassist questlines settings credits language tiers governor hud places edge roadworks eggs tape crowds life buses zaglebie crashes oldtram trains packs garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 rescues couriers rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds police plain ram firstlife prebuilt)
+STEPS_ALL=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh spec lod2 drape ground drive drive-prebuilt stuckspots stuckspots-prebuilt steering handling stopassist questlines settings credits language tiers governor hud places edge roadworks eggs tape crowds life buses zaglebie crashes oldtram trains packs fans garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 rescues couriers rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram firstlife heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh spec drape drive stuckspots steering handling stopassist questlines settings credits language tiers governor hud places edge roadworks eggs tape crowds life buses zaglebie crashes oldtram trains packs fans garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 rescues couriers rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds police plain ram firstlife prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -744,6 +748,8 @@ for s in $want; do
 		trains) check trains '^check_trains:' --script res://tools/check_trains.gd ;;
 		# Packs: running clubs, cycling packs, coffee raves, the big guys with tiny dogs.
 		packs) check packs '^check_packs:' --script res://tools/check_packs.gd ;;
+		# Kibice: the friendly fans by Stadion Leguminy on match evenings.
+		fans) check fans '^check_fans:' --script res://tools/check_fans.gd ;;
 		garage) check garage '^check_garage:' --script res://tools/check_garage.gd ;;
 		save) check save '^check_save:' --script res://tools/check_save.gd ;;
 		districts) check districts '^check_districts:' --script res://tools/check_districts.gd ;;

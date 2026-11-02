@@ -126,6 +126,8 @@ const OldTram := preload("res://scripts/old_tram.gd")
 const CrashScenes := preload("res://scripts/crash_scenes.gd")
 ## Packs (docs/design/packs.md): running clubs, cycling packs and coffee raves.
 const Packs := preload("res://scripts/packs.gd")
+## Kibice (docs/design/city-life-satire.md 7): friendly fans by Stadion Leguminy on match evenings.
+const Fans := preload("res://scripts/fans.gd")
 ## The garage loop: Warsztat u Mirka and its paint jobs (garage.gd, its card garage_card.gd).
 const Garage := preload("res://scripts/garage.gd")
 ## Loop 3h slice 4: the guided first 10 minutes and the end card.
@@ -466,6 +468,12 @@ var packs: Packs
 var packs_flag := 1
 var packs_now := false
 var packs_log := false
+## Kibice (fans.gd): the fans by Stadion Leguminy; flags --fans=0 (none), --fans-now (out whatever the
+## clock), --fans-log.
+var fans: Fans
+var fans_flag := 1
+var fans_now := false
+var fans_log := false
 ## The garage loop (garage.gd): Warsztat u Mirka on Brzeska; flags --paint=<id> (the car starts in
 ## that paint, owned for the run), --garage (the car in the garage's ring, the card open; the
 ## garage shown whatever the wallet), --garage-log (`garage:` lines).
@@ -1328,6 +1336,7 @@ func _build_world() -> void:
 	_build_crash_scenes()
 	_build_storefronts(data, world)
 	_build_packs(data, world)
+	_build_fans(data, world)
 	_build_first10()
 	_set_quality(quality_choice)
 	get_tree().root.size_changed.connect(_apply_style)
@@ -1592,6 +1601,8 @@ func _set_quality(choice: int) -> void:
 		crowds.refresh()
 	if packs != null:
 		packs.amount = _crowd_scale()
+	if fans != null:
+		fans.amount = _crowd_scale()
 	if life != null:
 		life.amount = float(life_flag) * (0.5 if quality == Tiers.LOW else 1.0)
 	RenderingServer.directional_shadow_atlas_set_size(qs["shadow_size"], true)
@@ -2186,6 +2197,36 @@ func _build_packs(data: Dictionary, world: Node3D) -> void:
 		packs.on_screen = traffic.on_screen
 	world.add_child(packs)
 	packs.setup(data, storefronts.venues if storefronts != null else [])
+
+
+## The fans by Stadion Leguminy (fans.gd), after the police (the patrol car by the gate) and the
+## city's sounds (the chant). None with --fans=0 or --crowd=0.
+func _build_fans(data: Dictionary, world: Node3D) -> void:
+	if fans_flag == 0 or crowd_flag == 0:
+		return
+	fans = Fans.new()
+	fans.name = "Fans"
+	fans.map = map
+	fans.dialogue = dialogue
+	fans.hud = hud
+	fans.police = police
+	fans.sounds = city_sounds
+	fans.log_on = fans_log
+	fans.amount = _crowd_scale()
+	fans.force = fans_now
+	fans.clock = tod.local_clock
+	fans.focus = func() -> Vector3: return cam_focus
+	fans.vehicle = func() -> Array:
+		if flying:
+			return [heli.global_position, heli.speed() * 3.6, true]
+		return [car.global_position, car.vel.length() * 3.6, false]
+	if traffic != null:
+		fans.on_screen = traffic.on_screen
+	world.add_child(fans)
+	fans.setup(data)
+	hud.horn_pressed.connect(func() -> void:
+		if fans != null and not flying:
+			fans.honk(car.global_position))
 
 
 func _build_first10() -> void:
@@ -3731,6 +3772,12 @@ func _parse_args() -> void:
 			packs_now = true
 		elif arg == "--packs-log":
 			packs_log = true
+		elif arg.begins_with("--fans="):
+			fans_flag = clampi(int(arg.trim_prefix("--fans=")), 0, 1)
+		elif arg == "--fans-now":
+			fans_now = true
+		elif arg == "--fans-log":
+			fans_log = true
 		elif arg.begins_with("--honk="):
 			for f in arg.trim_prefix("--honk=").split(",", false):
 				honk_frames.append(int(f))
@@ -5205,6 +5252,8 @@ func _make_stats() -> BenchStats:
 		b.systems["storefronts"] = [storefronts, "spent_usec", true]  # loop MW-2
 	if packs != null:
 		b.systems["packs"] = [packs, "spent_usec", true]  # running clubs, cycling packs, raves
+	if fans != null:
+		b.systems["fans"] = [fans, "spent_usec", true]  # the fans by Stadion Leguminy
 	if egg_book != null:
 		b.systems["eggs+tape+spacer"] = [self, "_moments_usec", false]  # loop MW-6
 	if districts != null:

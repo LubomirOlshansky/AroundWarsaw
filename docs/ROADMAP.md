@@ -291,6 +291,9 @@ then the Launch gate.
       `Hud.apply_text_scale`). Left to do: subtitles (BACKLOG)
 - [x] Packs (2026-11-01, `packs.gd`): running clubs, cycling packs with gear jokes, coffee raves
       at the COFFEECHAIR cafés, big guys with tiny dogs. Left: the phone's look and cost, a rave beat
+- [x] Kibice by Stadion Leguminy (F's idea 7, 2026-11-02, `fans.gd`): friendly fans on match
+      evenings with scarves, a drum, pink smoke and a foam finger; the horn starts a chant. Left: the
+      phone's look and cost
 - [x] Vistula boulevards full of life (F, 2026-11-01, `crowds.gd` BULWARY, `city_life.gd`): nine
       chill spots along the river edge (groups on the steps and benches, evening-heavy, summer,
       rain-thin), twice the dog walkers and runners-zone riders, twice the cyclists with 45 % riding
