@@ -661,7 +661,7 @@ Spec: `docs/design/zaglebie-kebabowe.md`. Built: five parody kebab shops by Kino
 neon fascias, twists), the craft kebab's choice card, Szlak Szpili, the welcome lore. Left:
 - Mac photo check: Femina's real front (colour, marquee) and the shops' real frontage; a marquee
   or poster board over Femina's door would make it read as a cinema from the car.
-- A queue outside ZAKWAS I ROŻEN (crowds.gd, like KROWA 2.0). (KEBAB FM lines about the basin done 2026-11-02.)
+- ~~A queue outside ZAKWAS I ROŻEN~~ Done 2026-11-02 (`crowds.gd` `zakwas_queue`: 12:00-24:00, 8 in line, 14-18 on evenings, tag `zakwas` with four bubble lines; the phone's look is open). (KEBAB FM lines about the basin done 2026-11-02.)
 - The phone: feel of the craft kebab's 6 s wait, the five stands' spacing (23 m apart).
 
 ## Trends 2025–26 (F, 2026-11-01)
