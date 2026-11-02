@@ -134,7 +134,8 @@ then the Launch gate.
   - [x] K5 Rondo Daszyńskiego plazas: three tiers of planting and benches round Skyliner, Generation Park and Mennica Legacy Tower (2026-11-02)
   - [x] K2b Chmielna's 64 benches (2026-11-02; the Atlantic fountain's rim was already there)
   - [x] K9 the stadium's grounds: tree rows on the four entrance avenues, pollarded willow groups (80 trees)
-  - [ ] K6 Browary/Norblin gardens; K10 Muzeum Historii Polski is off the map (QUESTIONS)
+  - [x] K6 Browary's Central Garden yard (12 young trees) and Norblin's court (5 candelabra planes), 2026-11-02 (Mac photo check of the places; wall climbers and upstairs terraces not modelled)
+  - [ ] K10 Muzeum Historii Polski is off the map (QUESTIONS)
 - [x] Stadion Leguminy (Legia's ground on Łazienkowska, F, 2026-11-01): modelled from the mapped bowl outline (site `legia`, spec legia.md); Mac photo check parked (QUESTIONS)
 
 - [x] All churches designed by one set of rules (F, 2026-11-01; rules and inventory in
