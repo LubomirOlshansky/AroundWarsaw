@@ -13,7 +13,7 @@ bubbles and KEBAB FM's "Sąsiedzi znów liczą obroty". Open:
 - The meet's spot is the paved gate square read off the map's outlines; a photo check on the Mac.
 - A continuous loud-engine loop on a loud car while it is near (now one rev per pass, 7-12 s apart),
   and exhaust flames on the overrun at night (the meet already has its headlights on).
-- The player driving into the meet: the cars are solid boxes; a crowd line when the player's car stops there.
+- Done 2026-11-02: when the player's car stands still within 16 m of the meet for 2.5 s the crowd says a `car_meet` line tagged "stop" (4 lines, once per 45 s; `loud_cars.gd` `_stop_step`). Left: the cars are solid boxes you can drive into.
 
 ## City inventory (F, 2026-11-02)
 
