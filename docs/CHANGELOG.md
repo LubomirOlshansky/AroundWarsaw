@@ -11,7 +11,6 @@ someone writes its lines.
 
 ## 2026-11-02
 - Złota is now the green linear park that opened this summer: no cars between Marszałkowska and Jasna, rows of young limes, lawns with pale stone blocks to sit on, a rock fountain, benches, café gardens, and Dom pod Orłami over it with its two bronze eagles on the corner towers.
-
 - KEBAB FM now jokes about the cinemas (Muranów, Atlantic, Luna, Kultura, Elektronik, the Kinoteka) and about the Kebab Basin's sauce war.
 - Nowy Świat gets three more neon shops: an old-fashioned confectioner (BLIKLINA OD 1869), a coffee spot at Chmielna and a vinyl bar at Foksal.
 - Two more Powiśle buildings look like themselves: Hortus on Topiel, glass offices round a garden with tenement-style flats on Drewniana, and Modernka on Zajęcza, an old tenement joined to a new glass wing.
