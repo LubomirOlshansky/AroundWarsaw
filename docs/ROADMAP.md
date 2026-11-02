@@ -109,6 +109,13 @@ then the Launch gate.
 - [ ] Junction lines checked against photos; dark Jerozolimskie and Nowy Świat at night
 
 ### Left: landmarks and street details
+- [x] City inventory, street by street (F, 2026-11-02): every characteristic place in the box ranked S/A/B
+      with its status (photo build, outline build, dress only, not done) in docs/CITY_INVENTORY.md, Part 2
+      street by street from the map data (`tools/city_inventory.py`). Its Part 3 is the order of the next
+      landmark threads
+- [ ] City inventory Part 3: the top not-done places, one thread each, photos first (Most Poniatowskiego,
+      Muzeum Powstania, Pomnik Powstania, Hotel Warszawa and Cedet, Rondo ONZ towers, the monuments pass,
+      Plac Bankowy, Świętokrzyska's NBP/Poczta/PAST-a, the outline builds' photo re-pass, Praga's faces)
 - [ ] Krajobraz places (F, 2026-11-02; docs/design/krajobraz-places.md, BACKLOG "Krajobraz places"): the newest public spaces as built
   - [x] K1 ul. Bracka's woonerf: its 22 missing young trees planted in the mapped beds (33 in all)
   - [x] K2 ul. Chmielna: 65 young elms and planes in its tree pits (85 in all), granite paving, Ali's stone and plate

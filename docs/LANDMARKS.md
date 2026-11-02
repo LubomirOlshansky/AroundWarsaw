@@ -7,6 +7,9 @@ the inventory taken from the code on 2026-10-31. How a model is made: the model-
 (reference photos and the orthophoto in `refs/<slug>/`, an Opus spec, `object-modeler` builds,
 `art-director` scores against the photos, the user picks last).
 
+**The whole city's list** (every characteristic place, ranked, street by street, with what is done
+and how) is docs/CITY_INVENTORY.md (2026-11-02); this file keeps each model's build detail.
+
 **Detail levels** (model-from-photos skill): L1 silhouette and colour · L2 facade articulation
 (base/middle/top, window rhythm, cornices, roof shape) · L3 every identity feature in 3D.
 
