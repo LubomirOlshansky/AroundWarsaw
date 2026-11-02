@@ -4,6 +4,11 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Bike paths (F, 2026-11-02)
+
+- Fixed: gaps under 3 m between cycle path ends, ways split into pieces, spikes and sharp corners (`tools/cycleways.py`; riders turned back at every gap).
+- Open: about 600 cycle path ends still stop 3-8 m from the next path (many are the two sides of a street: needs a crossing, not a snap); ride them on the Mac against OSM; the cyclecross ways (398) and the 19 deck paths are untouched; riders' side offset jumps at a join.
+
 ## Gdański Business Center (F, 2026-11-02)
 
 - Built (PR in this change, site `gbc`). Open: Mac photo check (QUESTIONS); the plaza's planters, the lit lobby's glazing detail and the KPMG-style second logo on the tower are not built. Found: `bake_city` failed on main for the church of the Saviour (its SITE_AREAS box was missing); fixed in `tools/bake_sectors.py`.
@@ -68,13 +73,6 @@ reproduce at the ramps of the Poniatowski, Świętokrzyski, Śląsko-Dąbrowski,
 graph's or the ground's height at the approach lets the car under the deck. Accept: the car stays
 on the ramp across every bridge entry in check_drive's bridge pass.
 
-**G7 · Old Town roofs repetitive (P2, Sonnet).** IMG 7135: every tenement carries the same brown
-tile, the same small dormers in the same rows, the same chimney pots. Task: vary tile colour (4-5
-related tones), dormer count, size and spacing by a per-building hash, some flat or tin roofs, a
-few skylights and chimneys of different heights; real landmarks' roofs stay. Both city paths.
-Accept: before/after shots of the Rynek and Piwna; no extra draw calls (shader or per-instance
-only); roof checks green. Files: old_town_roofs.gd, roof_dress.gd, shaders/building.gdshader.
-
 **G8 · Bus stops and buses (P2, Opus).** Stops sit off the kerb (IMG 7134: shelters in the lawn,
 BUS markers on the lane). Task: snap each shelter to the footway edge beside the bus lane, the bay
 to the lane; buses stop at the bay for about 10 s; 1-3 pedestrians step off, others board; 2-5
@@ -87,11 +85,6 @@ cafe terraces (the storefront's frontage, 1.5 m deep, on paving), benches on foo
 walk or park path, never within 1 m of a lane. Accept: a check lists every chair/bench and fails
 any on a lane, in water or inside a wall. Files: street_details.gd, props.gd, storefronts.gd.
 
-**G11 · Better map icons (P2, Sonnet).** The minimaps show identical black-and-yellow "?" squares
-and orange squares for everything (7138, 7134). Task: a distinct icon per kind (job, rider, food,
-garage, landmark, heli pad, bus, metro, quest star) by shape and colour (colour-safe mode kept),
-larger on the full map, with a legend. Accept: shots of both maps; one atlas (no extra draw
-calls). Files: map_icons.gd, full_map.gd, hud.gd minimap.
 
 **G13 · Upgrade shop (P2, Opus design, Sonnet content).** Today the garage (`garage.gd`, Warsztat
 u Mirka) sells paints only. Task: a second tab "Części i auta": (1) a faster car, a parody of the
@@ -119,7 +112,7 @@ Ujazdowski. One landmark thread: compare the castle's model and the park with th
 photos, per the landmark recipe in docs/LANDMARKS.md.
 
 Split for parallel threads: G4 (driving), G5 (collisions and flicker), G8+G9 (street life),
-G10+G12 (quests), G13 (shop, after G4), G7+G11 (visual content), G16 (text), G17 (traffic), G18 (Ujazdów). G1-G4, G14 and G15 are done by this thread.
+G10+G12 (quests), G13 (shop, after G4), G16 (text), G17 (traffic), G18 (Ujazdów). G1-G4, G14 and G15 are done by this thread.
 
 ## Plac Bankowy as in real life (F, 2026-11-02)
 
@@ -483,6 +476,15 @@ real ones added to `brand_denylist.json`). One PR each:
 - [ ] Mac checks: the statue's spot and facing against the orthophoto; Dom Partii's height and the
       skin on the LoD2 model; KUKŁA/KOSZTA/NERWO spots on the real streets.
 - [x] `Tinder` in a run-club line replaced by TIMBER (it would fail the new denylist entry).
+
+## Zagłębie Kebabowe and Kino Femina (F, 2026-11-02)
+
+Spec: `docs/design/zaglebie-kebabowe.md`. Built: five parody kebab shops by Kino Femina (stands,
+neon fascias, twists), the craft kebab's choice card, Szlak Szpili, the welcome lore. Left:
+- Mac photo check: Femina's real front (colour, marquee) and the shops' real frontage; a marquee
+  or poster board over Femina's door would make it read as a cinema from the car.
+- A queue outside ZAKWAS I ROŻEN (crowds.gd, like KROWA 2.0) and KEBAB FM lines about the basin.
+- The phone: feel of the craft kebab's 6 s wait, the five stands' spacing (23 m apart).
 
 ## Trends 2025–26 (F, 2026-11-01)
 
@@ -910,6 +912,14 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
   or three parody venues, e.g. **Kawa Zero** (a courtyard in Praga), **Flat Biały** (a
   Powiśle cafe with a terrace) and a pop-up on the Bulwary. Crowd: cargo bikes, oat-milk jokes,
   strollers with headphones, a queue for the barista rather than the door. Shut at night.
+- **Classic cinemas BUILT 2026-11-02** (F: "add all classic cinemas, Kino Muranów, Kino Atlantic and
+  others"): seven neon marquees (`Storefronts.CINEMAS`, same venue code as the cafés, `check_parodies`
+  counts them): Kino Muranów (Andersa), Atlantic (Chmielna), Luna (Marszałkowska), Kultura
+  (Krakowskie Przedmieście), Elektronik (Czerwonego Krzyża), Femina (Al. Solidarności, beside the
+  kebab district) and the Kinoteka at the Palace's west wing. Independent halls keep their real names
+  (place names, not brands); the multiplex chains stay out. Left: Iluzjon (Narbutta, Mokotów, south of
+  the map), Kino Wisła (location unverified), the evening queue and repertory board, notebook cards,
+  poster-board facades, dialogue lines.
 - **Arthouse cinemas** (kina studyjne): small screens in old halls, a bar, a repertory board.
   Parody names for the real ones: **Kino Muranek** (for Muranów), **Iluzja** (Iluzjon),
   **Kultura 24** (Kultura), **Elektroniczne** (Elektronik), **Kinoteka Pałacowa** (Kinoteka, in
@@ -1938,6 +1948,7 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
 - Build time: the monolithic build 58 → 75 s (the set fills' corridor tests in `terrain_height`).
 
 ## From map north (Rondo Radosława, Arkadia, Forest; 2026-10-31)
+- ~~Arkadia roof car park and the Forest's look~~ **Done 2026-11-01** (F's ask): Arkadka redesigned and its roof car park modelled (static cars), the Forest wears BANK PEPEO and has a roof terrace with a crowd (spec `arkadia.md`). Left: Mac photo check (colours, skylights, entrances); a drivable deck for DEMO 6.4; the terrace's bar kiosk and lounge.
 - **For the landmarks lane** (docs/DEMO.md 2.1 "Hand-over"): Rondo Radosława's flag mast (not in
   OpenStreetMap; the surface model has a 57.8 m column at (−2,850, −2,295)) and the island round it,
   Forest's tower (OSM part 923445779, 120 m; drawn today as OSM blocks), Arkadia (LoD2 today; its roof

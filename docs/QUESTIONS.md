@@ -15,6 +15,8 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | all | The audit beyond the landmarks: BACKLOG "Audit: what is verified beyond the landmarks", its P0 items handed out next | cloud thread "Audit what's left beyond landmarks" | 2026-11-01 |
 
 ## Waiting
+- **2026-11-02 · map · Cycle paths** — Phone look and ride check (the cloud has no GUGiK data, only the baked outlines): after `tools/cycleways.py` closed 195 gaps (ends within 3 m), put 52 ends on a neighbouring path, joined 218 split ways and rounded 68 corners, do the red paths draw smoothly and do riders carry on at the joins instead of turning back? Gaps of 3-8 m (about 600 ends, often the two sides of a street) were left on purpose; default kept. Compare the paths with OSM once on the Mac (`python3 -I tools/cycleways.py --dry` after a re-bake prints the same counts).
+- **2026-11-02 · content · Classic cinemas** — Mac look check for the seven cinema marquees (`Storefronts.CINEMAS`): is each sign on the right street and wall (positions are approximate, snapped to the nearest road and a wall within reach), readable by night? Also: where is Kino Wisła, and should Iluzjon (Narbutta, south of the map) get a pin on the full map? Default built: signs only, real names, no queue, no notebook card.
 - **2026-11-02 · landmarks · Plac Bankowy** — Mac look check (the cloud has no photos, LoD2 or terrain): is the Blue Skyscraper's blue right (default #5f94c6 mirror, silver spandrels, cool podium; real photos show sky-blue to steel-blue), is the Treasury palace's yellow right (#e6d8a0 with grey-green roof; real is a pale yellow with white columns), what colour the Voivodeship wing really is (built as palace yellow; OSM says teal), the Arsenal's plaster and roof, Landau's house. Prebuilt path not baked in the cloud (`bake_city` fails on main's known site mismatches); skins use the same landmark outlines on both paths.
 - **2026-11-02 · landmarks · Gdański Business Center** — Mac look check (site `gbc`, spec `gbc.md`): is this the right complex (tower at Inflancka, 74 m, two 45 m blocks, a 31 m block), the tower crown's slant direction and depth, the blocks' colour (pale blue-green here), logo boxes (AWIWA on the tower, NIELZEN on the blocks; the plaza between them is the map's own, unplanted extras not built). Default built from OSM and the four photos.
 - **2026-11-01 · landmarks · Ujazdowski Castle** — Mac look check for Zamek Ujazdowski (`ujazdowski`): the facade's real colour (built cream), the copper roofs and tower caps (spire to 26.5 m), the entrance side (built west, onto the park path), the courtyard (built open; OSM maps an 8.8 m roof patch in it), the east bay. Also the `--prebuilt` look and bench. Built: the model in cream with copper roofs; look shots in the thread. Phone: drive Al. Ujazdowskie south to the castle, stop in its ring for the notebook card.
@@ -78,6 +80,8 @@ Newest first. One entry per question.
   plaster colours, the statue's pose (sword hand, shield side, which way she faces), the rim
   wall against the mapped pond, whether Varso's visitors stand on the crown's roof. Photos of
   the square's four sides (one per house front) would let the plaster colours be set per house.
+- **2026-11-02 · content · the Zagłębie's names and Femina** — Default to build: KEBAB KRÓL MAZOWSZA, STAMBUŁ 24, DONER PASZA, U WUJKA ERDALA and the craft ZAKWAS I ROŻEN (spec `zaglebie-kebabowe.md`, section 2); Kino Femina keeps its real name with a red KINO / FEMINA fascia on the mapped building. Say if you want other names, or if the real shops' names should show instead. The Mac photo check of Femina's front is parked (BACKLOG).
+
 - **2026-11-01 · content · the Norblin milk bar's name** — Default to build: **KROWA 2.0** (a bar
   mleczny rebuilt as a start-up, sign "BAR MLECZNY / KROWA 2.0", pale-blue tube, open 8-18 with a
   long lunch line). Say if you want another name. Also parked: the Mac look check of the four
@@ -400,8 +404,8 @@ Newest first. One entry per question.
 - **2026-10-31 · map · map north** — Outdated 2018 LoD2 models under much taller mapped buildings
   give way to OSM map-wide (46 models, mostly Wola: low sheds become the mapped towers as plain
   blocks), or only in the new area? Default built: map-wide.
-- **2026-10-31 · map · map north** — Arkadia's roof car park is left out of the bake: keep it out,
-  or model it for DEMO 6.4's car-park race? Default built: left out.
+- **2026-10-31 · map · map north** — Arkadia's roof car park: ~~left out of the bake~~ modelled 2026-11-01 as parked-car boxes on the deck (no ramps, no drivable deck); DEMO 6.4's car-park race would still need a drivable deck. Default built: static cars.
+- **2026-11-01 · landmarks · Arkadia and Forest** — Mac photo check: Arkadia's real facade colours (cream/terracotta is a guess), whether the roof skylights are pyramids, where the real entrances are (canopies sit on the three longest faces); the Forest terrace: which wing really has it, its real size, BANK PEPEO's real height on the tower. Default built: that.
 - **2026-10-31 · map · map north** — The flag mast on Rondo Radosława isn't in OSM: no placeholder,
   left to the landmarks lane (spot in DEMO.md 2.1). Default built: none.
 - **2026-10-31 · map · 3e** — Ground under trenches: 1 m sub-cells only at tunnel portals and

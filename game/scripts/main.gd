@@ -486,6 +486,8 @@ var pedzik_kerb := false
 var armchair_flag := false
 var start_sloik := -1
 var start_heat := -1.0
+## Testing (loop Zagłębie): --craft=plain, the autopilot takes the plain kebab at the craft shop.
+var craft_plain := false
 # --- loop 2d-1: Podwózka (rides.gd) and its testing flags ---
 var rides: Rides
 ## --ride=N: ride N's request, the car by its passenger; --ride-quirk=, --passenger=, --stars=X
@@ -1870,6 +1872,7 @@ func _build_side_jobs(data: Dictionary, world: Node3D) -> void:
 			"rivals": rivals, "graph": graph, "traffic": traffic, "map": map, "car": car, "tod": tod}
 	jobs = Jobs.new()
 	jobs.autopilot = autopilot
+	jobs.craft_plain = craft_plain
 	if start_heat >= 0.0:
 		jobs.start_heat = start_heat
 	add_child(jobs)
@@ -3455,6 +3458,8 @@ func _parse_args() -> void:
 			start_sloik = maxi(0, int(arg.trim_prefix("--sloik="))) if arg.contains("=") else 0
 		elif arg.begins_with("--heat="):
 			start_heat = clampf(float(arg.trim_prefix("--heat=")), 0.0, 1.0)
+		elif arg == "--craft=plain":
+			craft_plain = true
 		# --- loop 2d-1: Podwózka's flags ---
 		elif arg.begins_with("--ride="):
 			start_ride = maxi(0, int(arg.trim_prefix("--ride=")))
