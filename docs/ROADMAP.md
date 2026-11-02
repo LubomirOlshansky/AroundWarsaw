@@ -269,6 +269,7 @@ then the Launch gate.
   - [ ] Łazienki Królewskie (Palace on the Isle, Chopin monument, peacocks): south of the map's edge, waits for a map extension (QUESTIONS)
   - [x] The map's edges: the land runs on past the outline (ground fading into the sky, a tree line, blocks beyond, the rails and roads running out), Wschodnia and Gdańska first, 2026-11-01; the Mac look check parked
   - [x] Roadworks close every road at the map's edge (barriers, ROBOTY DROGOWE and OBJAZD boards, cones, an excavator, a tarp fence, blinking lamps; solid; traffic stops there), 2026-11-02; the Mac look check parked
+  - [x] The roadworks' boards speak the player's language (ROAD WORKS / DETOUR → in English), 2026-11-02
   - [x] L4 Most Średnicowy's look: arch-truss spans on stone piers (after the Mac photo check)
   - [x] Probe spots on the line with a train in view (Powiśle, Most Średnicowy), 2026-11-01; the phone's numbers still to take
 

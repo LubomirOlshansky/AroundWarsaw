@@ -42,6 +42,7 @@ extends Node
 ## struggled (the ×2 fallback) or was calm (the sharp image), and writes nothing of it.
 
 const Lang := preload("res://scripts/lang.gd")  # one language at a time (2026-11-02)
+const EdgeRoadworks := preload("res://scripts/edge_roadworks.gd")  # rebuilt on a language change
 const Release := preload("res://scripts/release.gd")  # DEMO 3j: no flags in a release build
 const Access := preload("res://scripts/access.gd")
 const MapBuilder := preload("res://scripts/map_builder.gd")
@@ -4273,6 +4274,9 @@ func _set_language(code: String) -> void:
 	print("language: %s" % code)
 	if hud != null:
 		hud.language_changed(_settings_state())
+	# The roadworks' boards at the map's edge carry their words in the meshes (edge_roadworks.gd).
+	if map != null:
+		EdgeRoadworks.rebuild(map)
 
 
 func _close_settings() -> void:
