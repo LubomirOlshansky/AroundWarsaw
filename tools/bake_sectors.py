@@ -141,6 +141,30 @@ SITE_AREAS = [
     (-874.0, 149.0, -841.0, 215.0),
     (-826.0, 185.0, -800.0, 229.0),
     (-793.0, 287.0, -764.0, 333.0),
+    (-450.0, 1580.0, -385.0, 1670.0),       # Kościół Zbawiciela's nave and towers (landmarks.gd ZB_*; MDM's box ends at z 1620)
+    # the church kit (landmarks.gd CHURCHES): the outline under each church's `at` point
+    (-853, -1629, -749, -1525),   # church_sw_marcin
+    (-1019, -1461, -938, -1380),   # church_kapucyni
+    (-676, -1276, -610, -1210),   # church_niepokalanego
+    (-1210, -1693, -1121, -1604),   # church_katedra_polowa
+    (-1060, -1881, -968, -1789),   # church_duch
+    (-1048, -1993, -930, -1875),   # church_jacek
+    (-1253, -1036, -1133, -916),   # church_antoniego
+    (-1120, -1173, -1029, -1082),   # church_alberta
+    (-1805, -1165, -1706, -1066),   # church_reformowany
+    (936, 1286, 1031, 1381),   # church_jerozolimska
+    (-1942, 276, -1846, 373),   # church_zielonoswiatkowy
+    (-1869, 936, -1784, 1021),   # church_dzieciatka
+    (-2007, -1014, -1926, -933),   # church_narodzenia
+    (-2191, -510, -2100, -419),   # church_karol
+    (-2478, -1240, -2362, -1124),   # church_augustyn
+    (-2792, -733, -2704, -645),   # church_miloserdzie
+    (-1172, 772, -1064, 879),   # church_piotr_pawel
+    (1023, 229, 1102, 308),   # church_trojca_praga
+    (1081, 813, 1173, 906),   # church_czestochowska
+    (1914, -1434, 2018, -1330),   # church_zwycieska
+    (-1058, -1559, -985, -1487),   # church_cerkiew
+    (-1609, -268, -1529, -188),   # church_nozykow
     (1575.0, 1570.0, 1605.0, 1610.0),       # the sailing marina's club house (landmarks.gd MARINA_AT, unnamed in OSM)
 ]
 
