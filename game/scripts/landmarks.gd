@@ -53,6 +53,8 @@ const S_EASTWALL := 10  # the Eastern Wall stores: strong dark mullions every 1.
 const S_PUNCHED := 11   # a re-clad point block: light horizontal cladding, punched windows in bands
 const S_MIRROR := 13    # the Blue Skyscraper's blue reflective float glass
 const S_SLAB := 12      # a 1960s slab's long face: plaster and loggia bands
+const S_ESTATE := 14    # Osiedle Za Żelazną Bramą: large-panel bays, ribbon windows, coloured loggia stacks
+const S_KEYS := 15      # Piano House: white plaster, dark window strips in a keyboard's 2-and-3 rhythm
 
 ## The landmarks loop (2026-10-30): the skyline's towers, so each reads as itself and not as one
 ## more blue box. Each is built from its mapped building parts (the outline `osm` names; what
@@ -349,6 +351,9 @@ const INFO := {
 	"aleksander": ["Kościół Świętego Aleksandra",
 			"Rotunda na placu Trzech Krzyży.",
 			"The rotunda on Plac Trzech Krzyży."],
+	"zelazna": ["Osiedle Za Żelazną Bramą",
+			"Jedenaście bloków z wielkiej płyty, zaprojektowanych przez Skolimowskiego.",
+			"Eleven large-panel blocks of the 1960s-70s, designed by Jerzy Skolimowski."],
 	"norblin": ["Fabryka Norblina",
 			"Ceglane hale z szklanymi piętrami i komin. Tu się teraz siedzi.",
 			"Brick halls with glass storeys on top, and a chimney. People sit here now."],
@@ -400,6 +405,12 @@ const INFO := {
 	"dworzec_wodny": ["Dworzec Wodny",
 			"Niski pawilon na nabrzeżu: szkło i drewno nad samą Wisłą.",
 			"A low pavilion on the quay: glass and timber right over the Vistula."],
+	"piano_house": ["Piano House",
+			"Dom na Zajęczej, tuż pod Akademią Muzyczną. Elewacja jak klawiatura: białe klawisze, czarne okna.",
+			"Flats on Zajęcza, just below the music university. The front is a keyboard: white keys, black windows."],
+	"cube_house": ["Cube House",
+			"Biała kostka przy Topieli, z wykuszami jak wysunięte szuflady.",
+			"A white cube on Topiel, its bays sticking out like half-open drawers."],
 	"kaskada": ["Kaskada",
 			"Statek przycumowany do bulwarów. Zimą stoi, latem się kołysze.",
 			"A vessel moored to the boulevards. Still in winter, rocking in summer."],
@@ -621,6 +632,8 @@ static func tower_colour(key: String, fallback: Color) -> Color:
 		return KOP_WALL
 	if key == "mf":
 		return MF_WALL
+	if key == "barbakan":
+		return BARB_WALL
 	if key == "teresy":
 		return TERESY_BRICK
 	return fallback
@@ -766,12 +779,12 @@ func _find_sites() -> void:
 	# The museum and Plac Piłsudskiego loop (2026-10-31): the square's edges.
 	_find_plac()
 	_find_pawilony()
-	# G3 (gaulle-and-food-hype.md): LUŹNO, the date bar on HOTEL PIURE's roof, in pink, like
+	# G3 (gaulle-and-food-hype.md): LORETKA, the date bar on HOTEL PIURE's roof, in pink, like
 	# METROPOLKA: a 0.2 m zone at the roof's south-east corner keeps the hotel the map's.
 	var piure := _landmark("Puro Warszawa Centrum")
 	if piure.size() >= 3:
 		var pe := _box_of([piure]).end
-		_add_site("piure_sign", [PackedVector2Array([pe, pe + Vector2(0.2, 0), pe + Vector2(0.2, 0.2), pe + Vector2(0, 0.2)])])
+		_add_site("loretka", [PackedVector2Array([pe, pe + Vector2(0.2, 0), pe + Vector2(0.2, 0.2), pe + Vector2(0, 0.2)])])
 	# Level 26 (F, 2026-11-01): the rooftop club on the Atlas Tower, Al. Jerozolimskie 123A. The tower
 	# stays the map's own; a 0.2 m zone at its bounding box's corner makes it a site.
 	var atlas := _landmark("Atlas Tower")
@@ -791,6 +804,8 @@ func _find_sites() -> void:
 	_find_dtc()
 	# The Mac photo check (2026-11-01, specs C and D): the tower and the slabs behind the stores.
 	_find_behind()
+	# Osiedle Za Żelazną Bramą (2026-11-01): the eleven blocks between Żelazna and Jana Pawła II.
+	_find_zelazna()
 	# Pokorna 2 (F, 2026-11-01): the 57 m residential block by Muranów, a model with balconies.
 	_find_pokorna2()
 	# R5 of docs/design/start-area-real.md: the Cepelia pavilion and Zodiak.
@@ -812,6 +827,11 @@ func _find_sites() -> void:
 	_find_prezydencki()
 	# St Alexander's church (2026-11-01): a model instead of a skin.
 	_find_aleksander()
+	# The Barbican (2026-11-02): a model instead of a skin.
+	_find_barbakan()
+	# Powiśle's new flats (2026-11-02): Piano House and Cube House, models from their outlines.
+	_find_piano_house()
+	_find_cube_house()
 	# Plac Zbawiciela (Marszałkowska street by street, 2026-11-01): the basilica, a model.
 	_find_zbawiciela()
 	# F's ask (2026-11-01): every church designed by the same rules (the church kit).
@@ -1125,8 +1145,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_wiktoria(s)
 			"metropolsign":
 				_build_metropol_sign(s)
-			"piure_sign":
-				_build_piure_sign(s)
+			"loretka":
+				_build_loretka(s)
 			"level26_club":
 				_build_level26_club(s)
 			"msn":
@@ -1147,6 +1167,12 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_prezydencki(s)
 			"aleksander":
 				_build_aleksander(s)
+			"barbakan":
+				_build_barbakan(s)
+			"piano_house":
+				_build_piano_house(s)
+			"cube_house":
+				_build_cube_house(s)
 			"zbawiciela":
 				_build_zbawiciela(s)
 			"buw":
@@ -1225,6 +1251,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 			"slabs":
 				_id = 0
 				_build_slabs(s)
+			"zelazna":
+				_build_zelazna(s)
 			"pokorna2":
 				_id = 0
 				_build_pokorna2(s)
@@ -3045,7 +3073,6 @@ const ZAMEK_STONE := Color("#e2d8c4")
 const SKINS := [
 	{"key": "teatr", "osm": "Teatr Wielki", "mode": M_MONUMENT, "wall": "#ddd2b6", "roof": "#7fa894"},
 	{"key": "zamek", "osm": "Zamek Królewski", "mode": M_MONUMENT, "wall": ZAMEK_WALL, "roof": ZAMEK_ROOF},
-	{"key": "barbakan", "osm": "Barbakan", "mode": M_GOTHIC, "wall": "#ab5a42", "roof": "#6b4a3c"},
 	{"key": "archikatedra", "osm": "Archikatedra pw. Świętego Jana Chrzciciela", "mode": M_GOTHIC, "wall": "#9a4b38", "roof": "#6e3a2e"},
 	{"key": "sw_anna", "osm": "Kościół pw. Świętej Anny", "mode": M_MONUMENT, "wall": "#e6dcc4", "roof": "#8a5a44"},
 	{"key": "sw_krzyz", "osm": "Kościół pw. Świętego Krzyża", "mode": M_MONUMENT, "wall": "#e3d9c0", "roof": "#5d6e64"},
@@ -5908,6 +5935,103 @@ func _build_slabs(site: Dictionary) -> void:
 	_mode = M_STONE
 
 
+# --- Osiedle Za Żelazną Bramą: eleven large-panel blocks ---------------------------------------
+
+## F's ask (2026-11-01): the estate between Żelazna and Aleja Jana Pawła II (Jerzy Skolimowski's,
+## 1965-72) as a model, as the halls are. Eleven OpenStreetMap blocks, found by a point inside
+## each: five 43.9 m slabs in a row from Żelazna to Sienna, the 60.4 m high block among them, and
+## the five 37-41 m slabs with the saw-toothed long faces along Sienna's east end. Each is built
+## from its own outline and height in the estate's panel skin (S_ESTATE, spec zelazna.md): pale
+## concrete panels, ribbon windows, a coloured loggia stack in every fourth bay; blank end walls
+## with a dark stair slot; a canopy and door at each long face's middle; lift and stair houses.
+const ZELAZNA_AT := [Vector2(-2085.6, 304.2), Vector2(-2034.6, 287.2), Vector2(-1979.1, 270.5),
+		Vector2(-1927.2, 255.2), Vector2(-2045.6, 348.6), Vector2(-1995.5, 322.2), Vector2(-1857.0, 316.4),
+		Vector2(-1857.9, 260.4), Vector2(-1843.5, 217.7), Vector2(-1873.1, 382.1), Vector2(-1842.6, 377.0)]
+const ZELAZNA_PANELS := ["#d2cfc6", "#cbcdc6", "#d6cfc0", "#c8cbc9"]
+const ZELAZNA_END := Color("#b9b5aa")
+const ZELAZNA_ROOF := Color("#77777a")
+const ZELAZNA_SLOT := Color("#3b4650")
+const ZELAZNA_CANOPY := Color("#8d8b86")
+
+
+func _find_zelazna() -> void:
+	var zones: Array[PackedVector2Array] = []
+	var rings: Array[PackedVector2Array] = []
+	var heights: Array[float] = []
+	for at: Vector2 in ZELAZNA_AT:
+		for bld in data["buildings"]:
+			var q := _pts(bld["p"])
+			if q.size() >= 3 and float(bld["mh"]) < 0.5 and _box_of([q]).has_point(at) and Geometry2D.is_point_in_polygon(at, q):
+				zones.append(_largest(Geometry2D.offset_polygon(q, 3.0, Geometry2D.JOIN_MITER)))
+				rings.append(q)
+				heights.append(float(bld["h"]))
+				break
+	_add_site("zelazna", zones)
+	if not sites.is_empty() and sites[-1]["key"] == "zelazna":
+		sites[-1]["outlines"] = rings
+		sites[-1]["heights"] = heights
+
+
+func _build_zelazna(site: Dictionary) -> void:
+	var k := 0
+	for z: PackedVector2Array in site["outlines"]:
+		var poly := _simplify(z, 0.6)
+		var height: float = site["heights"][k]
+		var panel := Color(ZELAZNA_PANELS[k % ZELAZNA_PANELS.size()])
+		if height > 55.0:
+			panel = Color("#bfc4c6")  # the high block: a cooler grey
+		k += 1
+		if poly.size() < 3:
+			continue
+		_g = _ground_under(poly)
+		var g := _g
+		var top := g + height
+		var axis := Vector2.ZERO
+		for i in poly.size():
+			var e := poly[(i + 1) % poly.size()] - poly[i]
+			if e.length() > axis.length():
+				axis = e
+		axis = axis.normalized()
+		var run := 0.0
+		for i in poly.size():
+			var a := poly[i]
+			var b := poly[(i + 1) % poly.size()]
+			var o := _out(poly, a, b)
+			var len := a.distance_to(b)
+			var end_wall := absf(o.dot(axis)) > 0.8
+			_mode = M_STONE if end_wall else M_SKIN + float(S_ESTATE) / 16.0
+			_wall(a, b, g - 0.4, top, o, ZELAZNA_END if end_wall else panel, run)
+			run += len
+			var d := (b - a) / maxf(len, 0.01)
+			var mid := (a + b) * 0.5
+			if end_wall and len >= 6.0:
+				# the stair slot: a dark glazed strip up the blank end.
+				var p := mid + o * 0.05
+				_mode = M_GLASS
+				_wall(p - d * 0.5, p + d * 0.5, g + 3.2, top - 3.0, o, ZELAZNA_SLOT)
+			elif not end_wall and len >= 14.0:
+				# the entrance: a dark door and a flat canopy over it.
+				var p := mid + o * 0.06
+				_mode = M_GLASS
+				_wall(p - d * 1.3, p + d * 1.3, g, g + 2.4, o, ZELAZNA_SLOT)
+				_mode = M_STONE
+				var f := mid - o * 0.1
+				var c := mid + o * 1.8
+				_prism(PackedVector2Array([f - d * 2.2, f + d * 2.2, c + d * 2.2, c - d * 2.2]), g + 2.7, g + 2.95,
+						ZELAZNA_CANOPY, ZELAZNA_CANOPY.darkened(0.1), M_STONE, M_STONE)
+		_mode = M_STONE
+		_cap(poly, top, ZELAZNA_ROOF)
+		# lift and stair houses at a third and two thirds of the long axis.
+		var c0 := _centre(poly)
+		var span := 0.0
+		for q in poly:
+			span = maxf(span, absf((q - c0).dot(axis)))
+		var across := Vector2(-axis.y, axis.x)
+		for f: float in [-0.4, 0.4]:
+			var p := c0 + axis * span * f
+			_prism(PackedVector2Array([p - axis * 2.8 - across * 2.0, p + axis * 2.8 - across * 2.0, p + axis * 2.8 + across * 2.0,
+					p - axis * 2.8 + across * 2.0]), top, top + 3.0, panel.darkened(0.08), Color("#6a6a6d"), M_STONE, M_STONE)
+		_collide(poly)
 # --- Pokorna 2: the residential tower by Muranów ---------------------------------------------
 
 ## F (2026-11-01): "Pokorna 2 looks strange, not as an apartment". OpenStreetMap has it as one
@@ -6306,16 +6430,194 @@ func _build_metropol_sign(_site: Dictionary) -> void:
 	_crown_signs(outline, g + top + 3.0, "METROPOLKA", Color(0.18, 1.0, 0.36), 0.0, 0.7)
 
 
-## LUŹNO in bubblegum pink on HOTEL PIURE's roof (the rooftop bar's neon), on its long fronts.
-func _build_piure_sign(_site: Dictionary) -> void:
-	var outline := _landmark("Puro Warszawa Centrum")
+## LORETKA's summer terrace (F, 2026-11-01; the real rooftop bar's: a deck, greenery, low
+## seats, cocktails, pink neon). Colours: the deck's wood, the planters and their shrubs, the
+## poufs, the tables, the parasols, the bar's counter and its pink strip, the lift's housing,
+## the string lights' poles and bulbs.
+const LOR_DECK := Color("#8a6a4c")
+const LOR_PLANTER := Color("#3d3b38")
+const LOR_GREEN := Color("#4f7a3a")
+const LOR_POUF := Color("#e9dccb")
+const LOR_TABLE := Color("#f2efe8")
+const LOR_PARASOL := Color("#ff9fd6")
+const LOR_COUNTER := Color("#2b2a2c")
+const LOR_STRIP := Color("#ff6fc0")
+const LOR_HOUSING := Color("#e6e1d6")
+const LOR_POLE := Color("#202022")
+const LOR_BULB := Color("#ffd08a")
+const LOR_NAME := "Puro Warszawa Centrum"
+
+
+## LORETKA's terrace plan, read by this model and by crowds.gd's couples (one source, so they
+## sit on its poufs): from HOTEL PIURE's outline in `data` (empty without it, or under 15 m) the
+## frame (`o` a corner of the longest front, `a` along it, `b` inwards), the hotel's height `h`
+## over its lowest ground, the deck's span (`u0`..`u1` along, `v0`..`v1` across), the tables
+## (local [u, v]) and the seats [world point, yaw facing the table], two to a table, table by table.
+static func loretka_plan(data: Dictionary) -> Dictionary:
+	var outline := PackedVector2Array()
+	for l: Dictionary in data.get("landmarks", []):
+		if str(l.get("name", "")) == LOR_NAME:
+			var flat: Array = l["p"]
+			for i in range(0, flat.size() - 1, 2):
+				outline.append(Vector2(float(flat[i]), float(flat[i + 1])))
+	if outline.size() < 3:
+		return {}
+	var n := outline.size()
+	var best := 0
+	var longest := 0.0
+	var c := Vector2.ZERO
+	for i in n:
+		c += outline[i]
+		var l := outline[i].distance_to(outline[(i + 1) % n])
+		if l > longest:
+			longest = l
+			best = i
+	c /= float(n)
+	var o := outline[best]
+	var a := (outline[(best + 1) % n] - o).normalized()
+	var b := Vector2(-a.y, a.x)
+	if (c - o).dot(b) < 0.0:
+		b = -b
+	# The hotel's height: its tallest mapped part whose middle is inside the outline (the
+	# streamed city's index has the parts as `site_parts` only: bake_sectors.py SITE_NAMES).
+	var h := 0.0
+	for bld: Dictionary in data.get("buildings", data.get("site_parts", [])):
+		var flat: Array = bld["p"]
+		if flat.size() < 6:
+			continue
+		var m := Vector2.ZERO
+		for i in range(0, flat.size() - 1, 2):
+			m += Vector2(float(flat[i]), float(flat[i + 1]))
+		m /= float(flat.size() / 2)
+		if m.distance_to(c) < longest and Geometry2D.is_point_in_polygon(m, outline):
+			h = maxf(h, float(bld["h"]))
+	if h < 15.0:
+		return {}
+	# The deck on the front's first half, as deep as the slab is where it is thinnest there.
+	var u0 := 1.4
+	var u1 := minf(26.0, longest * 0.55)
+	var depth := INF
+	for u: float in [u0 + 0.5, (u0 + u1) * 0.5, u1 - 0.5]:
+		var from := o + a * u + b * 0.05
+		for i in n:
+			if i == best:
+				continue
+			var hit = Geometry2D.segment_intersects_segment(from, from + b * 60.0, outline[i], outline[(i + 1) % n])
+			if hit != null:
+				depth = minf(depth, from.distance_to(hit) + 0.05)
+	if depth == INF or depth < 8.0:
+		return {}
+	var v0 := 1.3
+	var v1 := depth - 1.3
+	var tables: Array = []
+	var seats: Array = []
+	var cols := 4
+	for k in cols:
+		var u := lerpf(u0 + 2.6, u1 - 4.6, float(k) / float(cols - 1))
+		for v: float in [lerpf(v0, v1, 0.3), lerpf(v0, v1, 0.72)]:
+			tables.append(Vector2(u, v))
+			for side: float in [-1.0, 1.0]:
+				var p := o + a * (u + side * 0.8) + b * v
+				var face := -a * side
+				seats.append([p, atan2(-face.x, -face.y)])
+	return {"o": o, "a": a, "b": b, "h": h, "outline": outline, "u0": u0, "u1": u1, "v0": v0, "v1": v1,
+			"tables": tables, "seats": seats}
+
+
+## LORETKA in bubblegum pink on HOTEL PIURE's roof (the rooftop bar's neon), on its long fronts,
+## and (F, 2026-11-01) its summer terrace on the roof: a wooden deck, planters of shrubs on its
+## three open edges, eight low tables with a pouf each side, four pink parasols, the bar's
+## counter with a pink strip, the lift's housing behind it, and string lights on six poles. Out
+## of the roof grid (the crowd stands on the hotel's roof height, not the poufs).
+func _build_loretka(_site: Dictionary) -> void:
+	var outline := _landmark(LOR_NAME)
 	var g := _ground_under(outline)
 	var top := 0.0
 	for bld in _parts_in(outline, func(_b: Dictionary) -> bool: return true):
 		top = maxf(top, float(bld["h"]))
 	if top < 15.0:
 		return
-	_crown_signs(outline, g + top + 2.2, "LUŹNO", Color(1.0, 0.45, 0.78), 0.0, 0.45)
+	_crown_signs(outline, g + top + 2.2, "LORETKA", Color(1.0, 0.45, 0.78), 0.0, 0.45)
+	var plan := loretka_plan(data)
+	if plan.is_empty():
+		return
+	_o = plan["o"]
+	_a = plan["a"]
+	_b = plan["b"]
+	var y := g + float(plan["h"])
+	var u0: float = plan["u0"]
+	var u1: float = plan["u1"]
+	var v0: float = plan["v0"]
+	var v1: float = plan["v1"]
+	var none := Color(0, 0, 0, 0)
+	var keep_roof := _no_roof
+	_no_roof = true
+	var d := y + 0.12  # the deck's top
+	_lbox((u0 + u1) * 0.5, (v0 + v1) * 0.5, (u1 - u0) * 0.5, (v1 - v0) * 0.5, y, d, LOR_DECK.darkened(0.2), M_STONE, LOR_DECK)
+	# Planters on the deck's open edges (the front, the back, the west end), shrubs on top.
+	var runs := [[u0 + 0.45, v0 + 0.4, u1 - 2.2, v0 + 0.4], [u0 + 0.45, v1 - 0.4, u1 - 2.2, v1 - 0.4],
+			[u0 + 0.4, v0 + 1.4, u0 + 0.4, v1 - 1.4]]
+	for r: Array in runs:
+		var along_u := absf(float(r[2]) - float(r[0])) > 0.1
+		var length := absf(float(r[2]) - float(r[0])) if along_u else absf(float(r[3]) - float(r[1]))
+		var pieces := maxi(1, roundi(length / 6.0))
+		var step := length / pieces
+		for k in pieces:
+			var cu := float(r[0]) + (step * (k + 0.5) if along_u else 0.0)
+			var cv := float(r[1]) + (0.0 if along_u else step * (k + 0.5))
+			var hu := step * 0.5 - 0.3 if along_u else 0.35
+			var hv := 0.35 if along_u else step * 0.5 - 0.3
+			_lbox(cu, cv, hu, hv, d, d + 0.55, LOR_PLANTER, M_STONE, LOR_PLANTER.darkened(0.2))
+			_lbox(cu, cv, hu - 0.08, hv - 0.08, d + 0.55, d + 1.05, LOR_GREEN, M_STONE, LOR_GREEN.lightened(0.08))
+	# The tables (a pedestal and a top) and their poufs.
+	for t: Vector2 in plan["tables"]:
+		_lbox(t.x, t.y, 0.1, 0.1, d, d + 0.42, LOR_POLE, M_STONE, none)
+		_lbox(t.x, t.y, 0.38, 0.38, d + 0.42, d + 0.48, LOR_TABLE, M_STONE, LOR_TABLE)
+		for side: float in [-1.0, 1.0]:
+			_lbox(t.x + side * 0.8, t.y, 0.24, 0.24, d, d + 0.36, LOR_POUF.darkened(0.08), M_STONE, LOR_POUF)
+	# Four parasols over the middle of each pair of tables: a pole and a low pink cone.
+	var tabs: Array = plan["tables"]
+	for k in range(0, tabs.size(), 2):
+		var m: Vector2 = (tabs[k] + tabs[k + 1]) * 0.5
+		var w := _w(m.x, m.y)
+		_beam(Vector3(w.x, d, w.y), Vector3(w.x, d + 2.55, w.y), 0.07, LOR_POLE)
+		_mode = M_STONE
+		_frustum(_circle(w, 1.7, 8), d + 2.2, _circle(w, 0.12, 8), d + 2.6, LOR_PARASOL.darkened(0.1), LOR_PARASOL)
+	# The bar: a counter across the deck's east end with a pink strip on its front, the lift's
+	# housing behind it (white render, a dark door).
+	var bu := u1 - 1.6
+	_lbox(bu, (v0 + v1) * 0.5, 0.4, (v1 - v0) * 0.5 - 2.0, d, d + 1.05, LOR_COUNTER, M_STONE, LOR_COUNTER.lightened(0.15))
+	_mode = M_LAMP
+	_lbox(bu - 0.44, (v0 + v1) * 0.5, 0.04, (v1 - v0) * 0.5 - 2.3, d + 0.75, d + 0.9, LOR_STRIP, M_LAMP, LOR_STRIP)
+	_mode = M_STONE
+	_lbox(u1 + 2.0, (v0 + v1) * 0.5, 2.0, 2.4, y, y + 3.1, LOR_HOUSING, M_STONE, LOR_HOUSING.darkened(0.1))
+	_lbox(u1 - 0.02, (v0 + v1) * 0.5, 0.04, 0.6, d, d + 2.2, LOR_COUNTER, M_STONE, none)
+	# String lights: three poles each side, a wire zig-zagging across between them, warm bulbs.
+	var ps: Array = []
+	for k in 3:
+		var u := lerpf(u0 + 1.2, u1 - 2.6, float(k) / 2.0)
+		ps.append([_w(u, v0 + 1.0), _w(u, v1 - 1.0)])
+	for pr: Array in ps:
+		for q: Vector2 in pr:
+			_beam(Vector3(q.x, d, q.y), Vector3(q.x, d + 3.0, q.y), 0.06, LOR_POLE)
+	var wires: Array = []
+	for k in 2:
+		wires.append([ps[k][0], ps[k + 1][1]])
+		wires.append([ps[k][1], ps[k + 1][0]])
+	for wr: Array in wires:
+		var p0: Vector2 = wr[0]
+		var p1: Vector2 = wr[1]
+		var a3 := Vector3(p0.x, d + 2.95, p0.y)
+		var b3 := Vector3(p1.x, d + 2.95, p1.y)
+		_beam(a3, b3, 0.025, LOR_POLE, false)
+		for j in range(1, 6):
+			var q := a3.lerp(b3, j / 6.0) + Vector3(0, -0.12, 0)
+			_mode = M_LAMP
+			_prism(PackedVector2Array([Vector2(q.x - 0.06, q.z - 0.06), Vector2(q.x + 0.06, q.z - 0.06),
+					Vector2(q.x + 0.06, q.z + 0.06), Vector2(q.x - 0.06, q.z + 0.06)]), q.y - 0.06, q.y + 0.1,
+					LOR_BULB, LOR_BULB, M_LAMP, M_LAMP)
+	_mode = M_STONE
+	_no_roof = keep_roof
 
 
 ## Level 26 (F, 2026-11-01), the rooftop club on the Atlas Tower: on the roof of the tower's crown
@@ -6960,6 +7262,8 @@ const MIROWSKA_TILE := Color("#a8493a")
 const MIROWSKA_GLASS := Color("#323a40")
 const MIROWSKA_DOOR := Color("#33271f")
 const MIROWSKA_SKY := Color("#a9bcc4")
+## The market stalls' awnings on the square (2026-11-01).
+const MIROWSKA_AWNINGS := ["#c8553a", "#3f7fa8", "#d6a53a", "#5c9a5a", "#b8607a"]
 
 
 func _find_mirowska() -> void:
@@ -7086,6 +7390,16 @@ func _build_mirowska(site: Dictionary) -> void:
 	_mode = M_GLASS_ROOF
 	_frustum(_rect(49.45, nave_v, 31.05, 5.5), g + 16.0, _rect(49.45, nave_v, 31.05, 0.3), g + 17.4, MIROWSKA_SKY, MIROWSKA_SKY)
 	_mode = M_STONE
+	# the market on the square (2026-11-01): ten trestle stalls under striped awnings in a row
+	# along the east front, a lane's width off the wall, a bench-high counter and a thin awning
+	# on each, in the stalls' mixed colours
+	for k in 10:
+		var sv := 3.4 + k * 4.1
+		var cl := Color(MIROWSKA_AWNINGS[k % MIROWSKA_AWNINGS.size()])
+		_lbox(hu + 5.0, sv, 0.8, 1.1, g + 0.0, g + 0.95, MIROWSKA_PLINTH.darkened(0.1), M_STONE, MIROWSKA_TRIM)
+		_lbox(hu + 5.0, sv, 1.0, 1.4, g + 2.2, g + 2.32, cl, M_STONE, cl.lightened(0.1))
+		for pv: float in [-1.2, 1.2]:
+			_lbox(hu + 5.9, sv + pv, 0.05, 0.05, g, g + 2.2, Color("#4a4d52"), M_STONE)
 	_collide(site["ring"])
 
 
@@ -7250,6 +7564,183 @@ func _build_zamek(site: Dictionary) -> void:
 			var b := p.lerp(q, float(k + 1) / steps) + out * 0.7
 			_g = minf(map.terrain_height(a.x, a.y), map.terrain_height(b.x, b.y))
 			_wall(a, b, _g - 1.0, _g + 2.2, out, ZAMEK_STONE, p.distance_to(a))
+
+
+## The Barbican (Barbakan; Gianbattista of Venice's brick outwork of 1548 in front of the Nowomiejska
+## gate, burned down in 1944 and rebuilt in 1952-1954): a model instead of a skin. The mapped
+## outline is a C of wall 3.5 m thick opening to the east; it is drawn as one brick-Gothic wall
+## (`M_GOTHIC`: buttresses and lancets) with a crenellated parapet and four octagonal turrets with
+## conical roofs on its curve. Spec docs/landmarks/specs/barbakan.md. Heights are estimates (no LoD2
+## in the cloud).
+const BARB_WALL := Color("#ab5a42")
+const BARB_ROOF := Color("#6b4a3c")
+const BARB_STONE := Color("#c4b69a")
+const BARB_HEIGHT := 9.5
+const BARB_TOWER_H := 13.0
+const BARB_TOWER_R := 2.6
+## The turrets' centres on the wall's mid-line, world x and z.
+const BARB_TOWERS := [Vector2(-940.9, -1841.4), Vector2(-953.0, -1841.2), Vector2(-950.8, -1832.0), Vector2(-941.9, -1828.3)]
+
+
+func _find_barbakan() -> void:
+	var outline := _landmark("Barbakan")
+	if outline.size() >= 3:
+		_add_site("barbakan", [outline])
+		if not sites.is_empty() and sites[-1]["key"] == "barbakan":
+			sites[-1]["ring"] = _simplify(outline, 0.35)
+
+
+func _build_barbakan(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	if ring.size() < 3:
+		return
+	_o = Vector2.ZERO
+	_a = Vector2(1, 0)
+	_b = Vector2(0, 1)
+	_g = _ground_under(ring)
+	var g := _g
+	var top := g + BARB_HEIGHT
+	# the curtain: brick Gothic to the walk, a stone top, then the crenellated parapet
+	_prism(ring, g - 1.5, top, BARB_WALL, BARB_STONE, M_GOTHIC, M_STONE)
+	_attic(ring, top, 1.5, BARB_WALL.darkened(0.04))
+	# the four turrets: an octagon above the wall, a corbel ring, a steep cone and a finial
+	for c: Vector2 in BARB_TOWERS:
+		var th := g + BARB_TOWER_H
+		_prism(_circle(c, BARB_TOWER_R, 8), g - 1.5, th, BARB_WALL, BARB_STONE, M_GOTHIC, M_STONE)
+		_prism(_circle(c, BARB_TOWER_R + 0.35, 8), th, th + 0.6, BARB_STONE, BARB_STONE, M_STONE, M_STONE)
+		_frustum(_circle(c, BARB_TOWER_R + 0.15, 8), th + 0.6, _circle(c, 0.25, 8), th + 6.8, BARB_ROOF, BARB_ROOF)
+		_lbox_at(c, 0.08, th + 6.8, th + 8.2, BARB_STONE)
+	_collide(ring)
+
+
+## A thin square post at world point c (a finial).
+func _lbox_at(c: Vector2, half: float, y0: float, y1: float, col: Color) -> void:
+	_prism(_circle(c, half, 4), y0, y1, col, col, M_STONE, M_STONE)
+
+
+## Piano House (Zajęcza by Topiel, Powiśle; flats of the 2010s below the music university): a model
+## instead of a plain block. The mapped outline (an L with a saw-toothed west front of 1-2 m
+## steps) rises to 17.8 m in white plaster with dark window strips in a piano keyboard's rhythm
+## (S_KEYS), a glazed ground floor; the top floor is set back 1.6 m in dark glass under a flat
+## roof. Spec docs/landmarks/specs/piano_house.md. Heights from OSM (20.8 m), the rest estimated.
+const PIANO_WHITE := Color("#eeece6")
+const PIANO_GLASS := Color("#3a4250")
+const PIANO_ROOF := Color("#8d9094")
+const PIANO_BODY := 17.8
+const PIANO_TOP := 20.8
+
+
+func _find_piano_house() -> void:
+	var outline := _landmark("Piano House")
+	if outline.size() >= 3:
+		# The L's centre (both the corner mean and the box centre) falls in its open corner, outside
+		# the outline, so the zone adds the hull: the plain block it replaces goes (nothing else
+		# stands in the corner).
+		_add_site("piano_house", [outline, Geometry2D.convex_hull(outline)])
+		if not sites.is_empty() and sites[-1]["key"] == "piano_house":
+			sites[-1]["ring"] = _simplify(outline, 0.35)
+
+
+func _build_piano_house(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	if ring.size() < 3:
+		return
+	_o = Vector2.ZERO
+	_a = Vector2(1, 0)
+	_b = Vector2(0, 1)
+	_g = _ground_under(ring)
+	var g := _g
+	_prism(ring, g - 1.5, g + PIANO_BODY, PIANO_WHITE, PIANO_ROOF, M_SKIN + float(S_KEYS) / 16.0, M_STONE)
+	# the set-back top floor: the outline pulled in 1.6 m (the saw teeth fall away), dark glass
+	var inner := Geometry2D.offset_polygon(_simplify(ring, 1.2), -1.6, Geometry2D.JOIN_MITER)
+	for q: PackedVector2Array in inner:
+		if q.size() >= 3 and absf(_area(q)) > 20.0:
+			_prism(q, g + PIANO_BODY, g + PIANO_TOP, PIANO_GLASS, PIANO_ROOF, M_SKIN + float(S_DARK) / 16.0, M_STONE)
+	_collide(ring)
+
+
+## Cube House (Topiel by Leszczyńska, Powiśle): a model instead of a plain block. A white
+## eight-storey cube (27.4 m, from OSM) with punched windows (S_PUNCHED), and on every face a
+## staircase of boxed bays, one per floor, stepping left and right (the "cubes"). The mapped
+## jog on one face (a full-height bay) is kept and carries its boxes on its front. Spec docs/landmarks/specs/cube_house.md.
+const CUBE_WHITE := Color("#e9e7e1")
+const CUBE_BAY := Color("#b3aca0")
+const CUBE_ROOF := Color("#86898c")
+const CUBE_HEIGHT := 27.4
+const CUBE_FLOOR := 2.95
+const CUBE_BAY_W := 2.8
+const CUBE_BAY_OUT := 1.1
+
+
+func _find_cube_house() -> void:
+	var outline := _landmark("Cube House")
+	if outline.size() >= 3:
+		_add_site("cube_house", [outline])
+		if not sites.is_empty() and sites[-1]["key"] == "cube_house":
+			sites[-1]["ring"] = _simplify(outline, 0.35)
+
+
+func _build_cube_house(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	if ring.size() < 3:
+		return
+	# the local frame: u along the longest edge, v across; the box of the outline in it
+	var longest := 0.0
+	for i in ring.size():
+		var e := ring[(i + 1) % ring.size()] - ring[i]
+		if e.length() > longest:
+			longest = e.length()
+			_a = e.normalized()
+	_b = Vector2(-_a.y, _a.x)
+	_o = _centre(ring)
+	var lo := Vector2(INF, INF)
+	var hi := Vector2(-INF, -INF)
+	for q in ring:
+		var l := _local(q)
+		lo = lo.min(l)
+		hi = hi.max(l)
+	_g = _ground_under(ring)
+	var g := _g
+	_prism(ring, g - 1.5, g + CUBE_HEIGHT, CUBE_WHITE, CUBE_ROOF, M_SKIN + float(S_PUNCHED) / 16.0, M_STONE)
+	# a thin plain parapet band round the roof
+	_prism(Geometry2D.offset_polygon(ring, 0.12, Geometry2D.JOIN_MITER)[0], g + CUBE_HEIGHT - 0.5, g + CUBE_HEIGHT + 0.6,
+			CUBE_WHITE.lightened(0.04), CUBE_WHITE, M_STONE, M_STONE)
+	# the bays: on each face one box per floor from the first, stepping between two spots along
+	# the face (on the jogged face, the entrance bay's front, the spots close in to stay on it)
+	var faces := [[Vector2(0, -1), lo.y, hi.x - lo.x], [Vector2(1, 0), hi.x, hi.y - lo.y], [Vector2(-1, 0), lo.x, hi.y - lo.y],
+			[Vector2(0, 1), hi.y, hi.x - lo.x]]
+	# a bay's half width, and its half depth with 0.5 m sunk into the wall (the faces lean a little
+	# off the frame)
+	var half := CUBE_BAY_W * 0.5
+	var depth := (CUBE_BAY_OUT + 0.5) * 0.5
+	for f: Array in faces:
+		var n: Vector2 = f[0]
+		var plane: float = f[1]
+		var span: float = f[2]
+		var spread := 0.25 if _cube_face_straight(ring, n, plane) else 0.15
+		for k in range(1, int(CUBE_HEIGHT / CUBE_FLOOR) - 1):
+			var t := span * spread * (1.0 if k % 2 == 0 else -1.0)
+			var along := Vector2(n.y, n.x).abs()
+			var mid := (lo + hi) * 0.5
+			var c := mid * along + along * t + n * (CUBE_BAY_OUT - depth) + n.abs() * plane
+			var y0 := g + k * CUBE_FLOOR + 0.15
+			_lbox(c.x, c.y, half if n.y != 0.0 else depth, depth if n.y != 0.0 else half, y0, y0 + CUBE_FLOOR - 0.3,
+					CUBE_BAY, M_SKIN + float(S_PUNCHED) / 16.0, CUBE_BAY.darkened(0.1))
+	_collide(ring)
+
+
+## Whether a face of the Cube House (normal n in its local frame, at `plane`) runs straight: every
+## corner on that side of the outline lies within 0.6 m of the plane.
+func _cube_face_straight(ring: PackedVector2Array, n: Vector2, plane: float) -> bool:
+	var near := 0
+	for q in ring:
+		var l := _local(q)
+		var d := l.dot(n) - plane * (n.x + n.y)
+		if absf(d) < 0.6:
+			near += 1
+		elif l.dot(n) > 0.0 and absf(d) < 2.5:
+			return false
+	return near >= 2
 
 
 func _build_teatr(_site: Dictionary) -> void:
@@ -7638,6 +8129,14 @@ const ZB_BASE := Color("#a8a08e")
 const ZB_COPPER := Color("#6f8c80")
 const ZB_DARK := Color("#3a3d40")
 const ZB_GOLD := Color("#c9a24a")
+## Night lighting (F's street-by-street, 2026-11-02): lit gilt, floodlamps and a stained rose.
+const ZB_LIT_GOLD := Color("#e8c05a")
+const ZB_LAMP := Color("#ffe9bd")
+const ZB_STAINED := Color("#7a5226")
+## Floodlamps on the paving, [u, v] in the front's frame: the porch's steps and sides, the towers'
+## fronts and outer faces, the transept's ends.
+const ZB_FLOODS := [[-3.5, 3.4], [3.5, 3.4], [-8.6, 2.4], [8.6, 2.4], [-11.0, -3.9], [11.0, -3.9],
+		[-14.4, -9.4], [14.4, -9.4], [-20.2, -29.0], [20.2, -29.0], [-6.0, -52.0], [6.0, -52.0]]
 ## The dome's profile above the drum: [radius, height above ground].
 const ZB_DOME := [[6.9, 38.0], [6.5, 40.4], [5.7, 42.6], [4.5, 44.4], [3.0, 45.7], [1.7, 46.3]]
 
@@ -7700,8 +8199,8 @@ func _build_zbawiciela(site: Dictionary) -> void:
 	_b = kb
 	var rose := _w(0.0, 0.1)
 	_disc(Vector3(rose.x, g + 13.0, rose.y), Vector3(_b.x, 0.0, _b.y), 1.6, 10, ZB_DARK)
-	_lbox(0.0, -1.5, 0.15, 0.15, g + 22.0, g + 25.4, ZB_GOLD, M_STONE, ZB_GOLD)
-	_lbox(0.0, -1.5, 0.15, 0.6, g + 23.6, g + 23.9, ZB_GOLD, M_STONE, ZB_GOLD)
+	_lbox(0.0, -1.5, 0.15, 0.15, g + 22.0, g + 25.4, ZB_LIT_GOLD, M_LAMP, ZB_LIT_GOLD)
+	_lbox(0.0, -1.5, 0.15, 0.6, g + 23.6, g + 23.9, ZB_LIT_GOLD, M_LAMP, ZB_LIT_GOLD)
 	# the two towers: a square shaft, a cornice with pinnacles, an octagonal belfry, a copper spire
 	for sd: float in [-1.0, 1.0]:
 		var tu := sd * ZB_TOWER_U
@@ -7715,9 +8214,9 @@ func _build_zbawiciela(site: Dictionary) -> void:
 		_prism(_circle(c, 3.4, 8), g + 32.0, g + 50.0, ZB_WALL, none, M_MONUMENT)
 		_prism(_circle(c, 3.9, 8), g + 50.0, g + 51.0, ZB_TRIM, ZB_TRIM, M_STONE, M_STONE)
 		_frustum(_circle(c, 3.5, 8), g + 51.0, _circle(c, 0.5, 8), g + 69.0, ZB_COPPER, ZB_COPPER)
-		_prism(_circle(c, 0.7, 6), g + 69.0, g + 70.2, ZB_GOLD, ZB_GOLD, M_STONE, M_STONE)
-		_lbox(tu, ZB_TOWER_V, 0.12, 0.12, g + 70.2, g + 76.0, ZB_GOLD, M_STONE, ZB_GOLD)
-		_lbox(tu, ZB_TOWER_V, 0.12, 0.7, g + 73.0, g + 73.3, ZB_GOLD, M_STONE, ZB_GOLD)
+		_prism(_circle(c, 0.7, 6), g + 69.0, g + 70.2, ZB_LIT_GOLD, ZB_LIT_GOLD, M_LAMP, M_LAMP)
+		_lbox(tu, ZB_TOWER_V, 0.12, 0.12, g + 70.2, g + 76.0, ZB_LIT_GOLD, M_LAMP, ZB_LIT_GOLD)
+		_lbox(tu, ZB_TOWER_V, 0.12, 0.7, g + 73.0, g + 73.3, ZB_LIT_GOLD, M_LAMP, ZB_LIT_GOLD)
 	# the dome over the crossing: a windowed drum, a cornice, the copper dome, a lantern, a cross
 	var dc := _w(ZB_DOME_C.x, ZB_DOME_C.y)
 	_prism(_circle(dc, 6.9, 16), g + 22.0, g + 36.0, ZB_WALL, none, M_MONUMENT)
@@ -7730,8 +8229,17 @@ func _build_zbawiciela(site: Dictionary) -> void:
 	_prism(_circle(dc, 1.9, 8), g + 46.3, g + 50.5, ZB_TRIM, none, M_MONUMENT)
 	_prism(_circle(dc, 2.4, 8), g + 50.5, g + 51.2, ZB_TRIM, ZB_TRIM, M_STONE, M_STONE)
 	_frustum(_circle(dc, 2.1, 8), g + 51.2, _circle(dc, 0.3, 8), g + 54.0, ZB_COPPER, ZB_COPPER)
-	_lbox(ZB_DOME_C.x, ZB_DOME_C.y, 0.12, 0.12, g + 54.0, g + 58.5, ZB_GOLD, M_STONE, ZB_GOLD)
-	_lbox(ZB_DOME_C.x, ZB_DOME_C.y, 0.6, 0.12, g + 56.2, g + 56.5, ZB_GOLD, M_STONE, ZB_GOLD)
+	_lbox(ZB_DOME_C.x, ZB_DOME_C.y, 0.12, 0.12, g + 54.0, g + 58.5, ZB_LIT_GOLD, M_LAMP, ZB_LIT_GOLD)
+	_lbox(ZB_DOME_C.x, ZB_DOME_C.y, 0.6, 0.12, g + 56.2, g + 56.5, ZB_LIT_GOLD, M_LAMP, ZB_LIT_GOLD)
+	# night: the rose window's stained glass (dark amber by day), lanterns at the pilasters and
+	# floodlamps in the paving that throw the light up the facade
+	var lit := _w(0.0, 0.2)
+	_mode = M_LAMP
+	_disc(Vector3(lit.x, g + 13.0, lit.y), Vector3(_b.x, 0.0, _b.y), 1.3, 10, ZB_STAINED)
+	for u: float in [-7.2, -3.4, 3.4, 7.2]:
+		_lbox(u, 0.55, 0.12, 0.12, g + 5.6, g + 6.3, ZB_LAMP, M_LAMP, ZB_LAMP)
+	for f: Array in ZB_FLOODS:
+		_lbox(f[0], f[1], 0.3, 0.3, g - 0.1, g + 0.3, ZB_LAMP, M_LAMP, ZB_LAMP)
 	# the car meets the walls
 	_collide(outline)
 	for sd: float in [-1.0, 1.0]:

@@ -62,10 +62,10 @@ DISCS = [(-852.0, 334.0, 40.0)]   # the Rotunda (jobs.gd FIRST_PAST); the Palm i
 LANDMARK_CLEAR = 6.0
 # Props: footprint radius (m), own-kind spacing (m), poster/awning colours.
 RADIUS = {"kiosk": 2.2, "stall": 1.9, "cafe": 1.7, "planter": 0.9, "column": 1.2, "bollards": 1.0,
-          "cart": 1.4, "post": 0.5, "ticket": 0.7, "bench": 1.0}
+          "cart": 1.4, "post": 0.5, "ticket": 0.7, "bench": 1.0, "heater": 0.45}
 SPACING = {"kiosk": 250.0, "stall": 250.0, "column": 150.0, "cart": 400.0}
 SOLID = ("kiosk", "stall", "cart")
-KINDS = ["kiosk", "stall", "cafe", "planter", "column", "bollards", "cart", "post", "ticket", "bench"]
+KINDS = ["kiosk", "stall", "cafe", "planter", "column", "bollards", "cart", "post", "ticket", "bench", "heater"]
 # A stop kit on a tram island (a platform with no mapped shelter) carries this colour: the prop
 # stands on the slab (street_details.gd lifts it PLATFORM_TOP). Marszałkowska pass, 2026-11-02.
 ON_PLATFORM = "platform"
@@ -250,6 +250,11 @@ def cluster(pl, ch, road, side, x0, z0, tx, tz, nx, nz, w, anchor_key, corner):
                 n = 1 + int(h01(*anchor_key, "n") * 2)   # a terrace between two planters, closer together
             first = -3.5 * (n - 1) * 0.5
             sets = [put("cafe", first + 3.5 * k, pick(PARASOLS, *anchor_key, "cafe", k)) for k in range(n)]
+            if any(sets) and road.get("name") == "Nowy Świat":
+                # Nowy Świat pass 2: the terraces are gardens, a patio heater between and beside the sets.
+                for k in range(n):
+                    put("heater", first + 3.5 * k + 1.75)
+                put("heater", first - 2.4)
             if any(sets):   # G9: the planters only flank a terrace that stands against a shopfront
                 put("planter", first - 4.0, pick(FLOWERS, *anchor_key, "pa"))
                 put("planter", first + 3.5 * (n - 1) + 4.0, pick(FLOWERS, *anchor_key, "pb"))
@@ -359,6 +364,48 @@ def platform_kits(pl, roads):
     return n
 
 
+# Plac Zbawiciela's café terraces (F's street-by-street, 2026-11-02; BACKLOG "Marszałkowska"): the
+# square is a roundabout (ring road centre, radius) and the MDM blocks stand back from it on a wide
+# footway. A terrace is a row of café sets on that footway in front of a block: [x, z of the row's
+# middle, sets in the row]. The sets face outward (away from the ring), the row runs along the
+# ring's tangent, and a planter stands at each end. Spots come from the mapped outlines (no photo);
+# a spot the solids block (a tree, a lamp, a kerb) simply loses that set.
+SQUARE = (-411.0, 1566.0)
+TERRACES = [
+    (-372.0, 1578.0, 3),   # the south-east block's north-west face, towards Nowowiejska
+    (-380.0, 1594.0, 3),   # the same block, round the corner on Marszałkowska
+    (-382.0, 1530.0, 3),   # the north-east block's south-west face
+    (-373.0, 1546.0, 3),   # and its east end, by Nowowiejska
+    (-456.0, 1584.0, 3),   # the south-west arc, towards Mokotowska
+    (-443.0, 1600.0, 2),   # and where it meets Marszałkowska
+]
+
+
+def square_terraces(pl):
+    """Café sets in a row on each TERRACES spot; returns how many sets stood."""
+    n = 0
+    for k, (x, z, sets) in enumerate(TERRACES):
+        dx, dz = x - SQUARE[0], z - SQUARE[1]
+        dl = math.hypot(dx, dz) or 1.0
+        nx, nz = dx / dl, dz / dl          # outward from the ring
+        tx, tz = -nz, nx                   # along the ring
+        first = -3.5 * (sets - 1) * 0.5
+        placed = 0
+        for j in range(sets):
+            lat = first + 3.5 * j
+            px, pz = x + tx * lat, z + tz * lat
+            if pl.clear("cafe", px, pz) and len(pl.items) < MAX_ITEMS:
+                pl.add("cafe", px, pz, (nx, nz), pick(PARASOLS, "zb", k, j))
+                placed += 1
+        if placed:
+            for sd, edge in ((-1, first - 3.8), (1, first + 3.5 * (sets - 1) + 3.8)):
+                px, pz = x + tx * edge, z + tz * edge
+                if pl.clear("planter", px, pz) and len(pl.items) < MAX_ITEMS:
+                    pl.add("planter", px, pz, (nx, nz), pick(FLOWERS, "zb", k, sd))
+        n += placed
+    return n
+
+
 def bake(data):
     pl = Placer(data)
     roads = corridor_roads(data)
@@ -388,6 +435,7 @@ def bake(data):
                 walked[side] = pos
             run += ln
     stops = stop_kits(pl, roads) + platform_kits(pl, roads)
+    square_terraces(pl)
     items = sorted(pl.items, key=lambda i: (i[1], i[2], i[0]))
     return items, stops
 

@@ -15,7 +15,7 @@ The repo is public.
 | `tools/` | Python bakes and helpers, `verify.sh`, `shots.sh`, `device_run.sh`, `check_map_data.py`, `export_ios.sh`, `hooks/guard_godot.py` (blocks game runs without `--nosave` or a quit flag) |
 | `docs/DEVELOPMENT.md` | short INDEX. The full reference is `docs/archive/DEVELOPMENT-full.md` (~490 KB): never read it whole, grep a section and read that range |
 | `docs/WORKFLOW.md` | the loop, owners, light/full definition of done, milestone gates |
-| `docs/BACKLOG.md` (issues, decisions) · `docs/QUESTIONS.md` (parked questions, lanes in progress) · `docs/ROADMAP.md` (order of work) · `docs/DEMO.md` · `docs/LANDMARKS.md` · `docs/ADDONS.md` | read only the section you need |
+| `docs/BACKLOG.md` (issues, decisions) · `docs/QUESTIONS.md` (parked questions, lanes in progress) · `docs/ROADMAP.md` (order of work) · `docs/DEMO.md` · `docs/LANDMARKS.md` · `docs/ADDONS.md` · `docs/PLAYTEST.md` (test plan, PT-n bug log) | read only the section you need |
 | `.claude/agents`, `.claude/skills` | agents and skills (their descriptions say when to use them) |
 | `data/raw/`, `build/`, `shots/`, `game_*/`, `refs/` | gitignored, never committed |
 | `game/map/index.*`, `sectors/`, `proxies.scn`, `shared/`, `lod2.*`, `terrain.json` | derived, gitignored; a fresh clone runs `tools/setup_map.sh` once (`--full` for GUGiK data) |

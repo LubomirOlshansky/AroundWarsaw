@@ -101,8 +101,16 @@
       "Pasaż Wiecha: a queue for green coffee. Yes, it's tea."
     ],
     [
-      "KEBAB FM. W TIMBER rekord: tysiąc dopasowań i jedna randka. W LUŹNO.",
-      "KEBAB FM. A TIMBER record: a thousand matches, one date. At LUŹNO."
+      "KEBAB FM. W TIMBER rekord: tysiąc dopasowań i jedna randka. W LORETCE.",
+      "KEBAB FM. A TIMBER record: a thousand matches, one date. At LORETKA."
+    ],
+    [
+      "KEBAB FM. Trzecia w nocy, WACZEK na Marszałkowskiej: cała Warszawa w jednej kolejce.",
+      "KEBAB FM. 3 a.m., WACZEK on Marszałkowska: all of Warsaw in one queue."
+    ],
+    [
+      "KEBAB FM. Gra planszowa w PRZEGRYWKACH: trzy godziny, jedna kłótnia, zero zwycięzców.",
+      "KEBAB FM. A board game at PRZEGRYWKI: three hours, one row, no winners."
     ],
     [
       "Kolejka pod KUKŁĄ sięga Królewskiej. Naleśniki podobno też są.",
@@ -459,6 +467,27 @@
     [
       "Uwagi: „do dewelopera, mam kredyt i zero rozsądku”.",
       "Note: \"to the developer's, I've got a mortgage and no sense\"."
+    ],
+    [
+      "Uwagi: „pierwsza randka z TIMBERA, proszę nie komentować”.",
+      "Note: \"first date from TIMBER, please don't comment\".",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "Uwagi: „jedziemy do LORETKI, ona napisała, że lubi dachy”.",
+      "Note: \"off to LORETKA, she wrote she likes rooftops\".",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "Uwagi: „mam 40 dopasowań i jedną randkę, nie psuj tego”.",
+      "Note: \"40 matches and one date, don't ruin it\".",
+      {
+        "only": "timber"
+      }
     ]
   ],
   "podwozka_pickup": [
@@ -594,6 +623,34 @@
     [
       "Czynsz mam tak wysoki, że sąsiad z góry to współlokator.",
       "My rent's so high the upstairs neighbour is basically a flatmate."
+    ],
+    [
+      "Rąbnęła w prawo! Pierwszy raz w życiu ktoś rąbnął w prawo.",
+      "She chopped right! First time in my life anyone has.",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "Jak wyglądam? Na zdjęciu miałem dziesięć lat mniej i psa.",
+      "How do I look? In the photo I had ten fewer years and a dog.",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "Jeśli zapyta o hobby, powiem: jazda po Warszawie.",
+      "If she asks about hobbies, I'll say: driving around Warsaw.",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "Można jechać wolniej? Napisała, że będzie za dwadzieścia minut.",
+      "Can we go slower? She texted she'll be twenty minutes.",
+      {
+        "only": "timber"
+      }
     ]
   ],
   "podwozka_rating": [
@@ -779,8 +836,8 @@
       "KWAŚNE WINO · IT IS NOT A BUG"
     ],
     [
-      "TIMBER · PIERWSZA RANDKA? LUŹNO",
-      "TIMBER · First date? Keep it casual (LUŹNO)"
+      "TIMBER · PIERWSZA RANDKA? LORETKA",
+      "TIMBER · First date? LORETKA, on the roof"
     ],
     [
       "KLATKA DEWELOPER · 12 M2 Z WIDOKIEM NA 12 M2",
@@ -2174,8 +2231,8 @@
       }
     ],
     [
-      "Trzecia randka w LUŹNO w tym tygodniu. Barman mi kibicuje.",
-      "Third date at LUŹNO this week. The barman's rooting for me.",
+      "Trzecia randka w LORETCE w tym tygodniu. Barman mi kibicuje.",
+      "Third date at LORETKA this week. The barman's rooting for me.",
       {
         "only": "timber"
       }
@@ -2216,7 +2273,7 @@
       }
     ],
     [
-      "Mówił „luźno”. Przyszedł w garniturze i z prezentacją.",
+      "Mówił „na luzie”. Przyszedł w garniturze i z prezentacją.",
       "He said \"casual\". Came in a suit with a slide deck.",
       {
         "only": "timber"

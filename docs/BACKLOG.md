@@ -3,6 +3,34 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## The estate, the halls and Jana Pawła II (F, 2026-11-01)
+
+F asked for Osiedle Za Żelazną Bramą, Hala Mirowska and every building along Aleja Jana Pawła II to
+be modelled, (Norblin, Browary, Koszyki and Elektrownia are the next section). Done 2026-11-01
+(cloud thread, spec `docs/landmarks/specs/zelazna.md`):
+- **Osiedle Za Żelazną Bramą**: site `zelazna`, eleven OpenStreetMap blocks (five 43.9 m slabs and
+  the 60.4 m high block between Żelazna and Sienna, five 37-41 m slabs with saw-toothed long faces
+  on Sienna's east end), the estate skin S_ESTATE (3 m panel bays, ribbon windows, coloured loggia
+  stacks), blank end walls with a stair slot, entrances with canopies, lift houses, a card. 855 tris.
+- **Hala Mirowska**: it was already a model; added ten market stalls with awnings on the square
+  side of the east front.
+- **Aleja Jana Pawła II**: every plain LoD2 building within 42 m of the boulevard takes a mid-century
+  plaster by its position (`map_builder._boulevard_dress`, both city paths). Towers and the
+  landmarks along it keep their own models.
+Left:
+- Mac photo checks, parked in QUESTIONS: the estate's real panel colours and loggia stacks (stack
+  or band), the slabs' heights against the photos, the high block's shape (its outline is a wedge),
+  the low pavilions between the slabs; the stalls' place on Plac Mirowski.
+- The boulevard's buildings are a palette, not models: next pass is street by street, the real
+  facade of each block along Jana Pawła II (Kaskada, the 1950s blocks near Rondo Daszyńskiego, the
+  Żelazna Brama corner) from the orthophoto and photos.
+## Playtest bugs (Autopilot, 2026-11-02)
+
+The free-play bug log is `docs/PLAYTEST.md` "The bug log" (PT-n ids, severity, status); fix
+threads take its confirmed rows one by one. After two runs: PT-1 confirmed (a dead stop on
+Marszałkowska just north of the start, in 3 runs), PT-2, PT-4 (Rondo Dmowskiego) and PT-5 (side
+streets west of Marszałkowska) suspects, PT-3 closed (low ground, not a bug).
+
 ## Pokorna 2 (F, 2026-11-02)
 
 - Pokorna 2 remodelled as flats (site `pokorna2`, spec pokorna2.md). Open: Mac look check (QUESTIONS); the Gdański Business Center thread works nearby (Dworzec Gdański), keep its site zone clear of the outline at (-2123, -2217).
@@ -140,9 +168,14 @@ levels 1-3 at 150-400 zł. Saved in the [garage] section (no version bump). Left
 - **G13a (P2, phone).** Is the pricing right (first part after a few jobs, the nitro after about 15
   minutes, the TT as the goal), does the nitro feel good and is the bolt easy to hit with the thumb,
   does the TT read as a coupe from the 80 m view? Tune `upgrades.gd` and car.gd `NITRO_*` after F's run.
-- **G13b (P3, Sonnet).** Done 2026-11-02: two tail flames (one see-through mesh, only while it burns), a `nitro_whoosh` and a buzz when it lights (`car.nitro_started`; `--pedal=nitro` for shots); the phone must judge the flame size and the buzz. Left:
-  gamepads have no nitro button (X is "secondary"); the police chase speeds were not retuned for
-  the TT's 130 km/h (a TT with the engine at level 3 outruns every patrol car).
+- **G13b (P3, Sonnet).** Done 2026-11-02: two tail flames (one see-through mesh, only while it burns), a `nitro_whoosh` and a buzz when it lights (`car.nitro_started`; `--pedal=nitro` for shots); the phone must judge the flame size and the buzz.
+- **G13c (done 2026-11-02).** The chasers and the escort drive at 0.8 of the player's own top
+  speed (police.gd `chase_top`: model x engine; was a fixed 24 m/s, which a TT at engine 3,
+  145 km/h, left standing); the nitro's lift is left out, so a burn opens a quick gap
+  (check_police "chase pace"). The pad's nitro is LB or RB held; the view's turn moved from the
+  shoulders to right-stick flicks (check_gamepad P9). The keyboard's nitro is Shift only: N also
+  switched the time of day. Left: the pad's nitro has no tank ring while the touch HUD is hidden
+  (pad mode); the phone feel of a TT chase (QUESTIONS).
 
 **G14 · Unstuck and reset easy to find (P0, quick win).** F: "in Settings there should be reset
 game, and unstuck: if the user is stuck in textures, click and move to the main road". POMOC
@@ -184,9 +217,10 @@ the Treasury palace's portico columns and wing pavilions; they now read in yello
 ## Nowy Świat street by street (F, 2026-11-02), pass 1
 Built (cloud, Sonnet): eight parody shopfronts (`Storefronts.NOWY_SWIAT`, check_parodies 68 venues). Open:
 - Mac look check of the eight signs (QUESTIONS); move them to real doors.
-- Houses: per-house plaster colours and the tenements' cornices against photos; the north end (Staszic Palace, Visitation) and the Palm end.
-- Café gardens (street_details cafés exist; no awnings or heaters), pavement setts, night lighting ("From map review B").
-- People: a lunch crowd on the cafés (crowds.gd `stop`/zone sites) and an evening one.
+- Pass 2 (cloud, Sonnet, 2026-11-02): per-house plaster (`NOWY_PASTELS` within 30 m of the street south of Jerozolimskie, walls only, both paths), patio heaters (13, `heater` kind), chill crowds at four terraces (`Crowds.NOWY_SWIAT`, 10-12 people each on the chill curve). Cloud shot checked the plain path only (no LoD2 in the cloud).
+- Houses: the plaster palette and the tenements' cornices against photos; the north end (Staszic Palace, Visitation) and the Palm end.
+- Café gardens: shop awnings (need photos), pavement setts, night lighting ("From map review B"); heaters have no glow yet.
+- People: the crowd spots are read off the café sets; no evening-only or rain behaviour beyond the chill curve.
 
 ## Marszałkowska street by street (F, 2026-11-01)
 
@@ -198,8 +232,14 @@ modelled (site `zbawiciela`, spec `zbawiciela.md`, 1029 tris).
   2002 tris): ground-floor arcades on the facades facing the square and the axis, four corner
   towers with hipped attics and spires, a terracotta relief on each tower's square face. Mac look
   check parked (QUESTIONS): arcade rhythm and depth, tower heights, the real reliefs.
-- Next on the street: the church's night lighting, Plac Zbawiciela's rotunda-side cafés, the
-  reliefs' real subjects, Marszałkowska's houses, roads and street life street by street.
+- Pass 5 (cloud, Sonnet, 2026-11-02): Plac Zbawiciela's cafés and the church at night. Four neon cafés
+  (`Storefronts.ZBAWICIELA`: KAWA ZBAWIENIE, SZARLOTKA NA ROGU, PLAN Z, PO MSZY SPRITZ) and six parasol
+  terraces round the ring (`bake_street_details.py` TERRACES, 15 café sets, planters at the row ends);
+  the church gets lit gilt crosses and balls, a stained rose that glows, four porch lanterns and 12
+  floodlamps (1199 tris, budget 1250). Open: Mac look check (QUESTIONS), the signs on the real doors,
+  heaters and awnings on the terraces, a café crowd (crowds.gd zone), the floodlit plaster wash.
+- Next on the street: the reliefs' real subjects, Marszałkowska's houses, roads and street life
+  street by street.
 - Pass 2 (cloud, Sonnet): people waiting on Marszałkowska's 12 mapped tram platforms (`crowds.gd`
   `stop` sites, commute curve). Mac/phone look check: do the groups read as commuters at the
   stops, facing is random (not toward the track), the density on the narrow islands, and
@@ -216,8 +256,8 @@ modelled (site `zbawiciela`, spec `zbawiciela.md`, 1029 tris).
   milk bar, dry cleaner, watchmaker, pastry shop, optician, florist, haberdashery, herbalist; check_parodies OK).
   Needs F's photos / Mac look check (QUESTIONS): doors at the real shops, per-house plaster colours and
   cornices, the crossings against real photos; Plac Bankowy's end.
-- Next on the street: the church's night lighting, Plac Zbawiciela's rotunda-side cafés, houses and
-  roads street by street.
+- Next on the street: houses and roads street by street (the church's night lighting and the
+  square's cafés are done, pass 5).
 
 ## Nowy Świat (F, 2026-11-01)
 
@@ -295,8 +335,15 @@ were already real; what they lacked was material and edge detail.
       2 m or more, not round plant boxes), RF3 chimney stacks on pre-war tenements (party-wall
       rows on flat roofs, one on some pitches; mansard dormers outside the Old Town were tried
       and dropped: they read as black holes) (`roof_dress.gd`, `check_roof_dress`; no new draw call).
-- [ ] RF4: OpenStreetMap-only buildings' hipped and gabled roofs, MDM's and the Royal Route's
-      copper and red sheet metal by district, Powiśle's roof terraces.
+- [x] RF4 (2026-11-01, `osm_roofs.gd`, `check_osm_roofs`): OpenStreetMap-only buildings (no LoD2)
+      that are small (30-520 m²), low (3.5-16 m), convex and not a hall/office/school/church get a
+      hip roof, or a gable on a plain rectangle (pitch ~29°, walls stop at the eave, the ridge is
+      where the flat lid was, so the roof grid is unchanged). Colour where OSM has none: Royal
+      Route aged copper (55 %) or red sheet, MDM (430 m round Plac Konstytucji) dark red sheet,
+      houses tile red, the rest tile / red sheet / grey. Same material, no new draw call.
+- [ ] RF4b: Powiśle's roof terraces (decking, planters) and concave footprints (L-shapes stay
+      flat; needs a straight skeleton); a Mac look at the phone size on real LoD2 coverage (in the
+      cloud there is no LoD2, so every small OSM house showed it).
 - [x] Mac check on today's bake (2026-11-01): 130 draw calls before and after, 0.61 → 0.62 M
       triangles, no shimmer; tile courses show close up and fade at the default zoom.
 - [ ] The phone bench and a look on the phone (needs F's yes for a device run).
@@ -402,6 +449,12 @@ Plan: docs/design/railway.md. One PR per item, in this order:
   stairs; Powiśle's arches, the saucer's profile, the canopies' length, the neon's letters); the
   stairs from the round pavilion up to the platforms; a WARSZAWA OCHOTA sign if the real one has it.
 
+## Krakowskie Przedmieście street by street (F, 2026-11-02), pass 1
+Built (cloud, Sonnet): eight shopfronts (`Storefronts.KRAKOWSKIE`, 93 venue signs in check_parodies), original names, at the mapped house numbers 20/22, 19, 27, 56, 45, 58/60, 64, 69. Open:
+- Mac look check of the eight signs (QUESTIONS); move them to real doors.
+- Shop awnings, café gardens (Bristol, Europejski, Czytelnik-style), a horse carriage rank, pavement details: need photos.
+- Left from K1-K6: the second Potocki guardhouse, Pałac Czapskich's own model (landmarks thread owns models).
+
 ## Powiśle street by street (F, 2026-11-01)
 - Built: Ostrogski Castle + Chopin Institute, the Teresy church, the boulevard Syrenka, Dworzec
   Wodny, Kaskada, DALEJ DALLA GELATO (specs in docs/landmarks/specs/).
@@ -409,8 +462,10 @@ Plan: docs/design/railway.md. One PR per item, in this order:
   the castle's turret corner and entrance; the church's front, tower and colours; the Syrenka's
   plinth against the flood wall (its corner touches the plinth in the cloud render); what Kaskada
   is; a tree on Kaskada's deck.
-- Left: boulevard dressing (deck strips, bar containers), Piano House, Cube House, Hortus, Moderna
-  Powiśle, Tamka's and Dobra's tenements and street details.
+- Left: boulevard dressing (deck strips, bar containers), Hortus, Moderna Powiśle, Tamka's and
+  Dobra's tenements and street details. (Piano House and Cube House DONE 2026-11-02, specs
+  `piano_house.md`, `cube_house.md`; Mac photo check: Piano House's real facade rhythm and whether
+  its top floor is set back; where Cube House's real bays or loggias are and its colours.)
 - `check_landmarks` stops in the cloud (no terrain data); run it on the Mac.
 - L1 track that reads as railway: sleepers, raised rails, ballast shoulders (no new draw calls).
 - ~~L2 catenary, L3 the tunnel's mouths~~ Done 2026-11-01 (`map_builder` `_build_catenary`,
@@ -512,8 +567,10 @@ the Mac and for gamepads, and the Mac in the beta plan. Built: gamepad support (
 Settings (focus ring, LB / RB tabs) and the full map; the title takes A / Y / B; the touch pedals
 hide while the pad is used and come back on a touch. Left:
 - Gamepad on real pads (iPhone and Mac): the button indices are checked on synthetic events only.
-- Gamepad gaps: Settings' volume bars, the notebook page and the garage card take no pad focus;
-  the full map has no stick pan / teleport; no per-family glyphs; no rumble.
+- Gamepad gaps: no per-family glyphs (A / cross) in the hints; no rumble. (The volume bars, the
+  notebook page, the garage card and the full map's stick pan / zoom / A teleport were done
+  2026-11-01, check_gamepad P9-P12; the map's pad hint is one line in the player's language
+  since the language work, 2026-11-02.)
 - Mac App Store version (post-v1.0 by default, QUESTIONS): macOS export preset, sandbox
   entitlements and signing, keyboard and mouse controls (a keys card, click-to-point, `--no-touch`
   by default), window and resolution settings, Mac store screenshots (2880 × 1800), the Mac's
@@ -563,8 +620,8 @@ real ones added to `brand_denylist.json`). One PR each:
       granite cone, the dark plinth, the marching bronze general, a card), 2026-11-01.
 - [x] G2 part 1: Dom Partii as a white stone skin with a card, ROBUR over the north-west corner,
       the courtyard's paving with its key border and the long fountain with five jets, 2026-11-01.
-- [x] G2 part 2: the bars NEWTWICE, ZAMĘT and PIONEK as neons (`Storefronts.HYPE`), 2026-11-01.
-- [x] G3 HOTEL PIURE's door neon, LUŹNO in pink on its roof (landmarks site `piure_sign`), the
+- [x] G2 part 2: the bars NEWTWICE, ZAMĘT and PRZEGRYWKI as neons (`Storefronts.HYPE`), 2026-11-01.
+- [x] G3 HOTEL PIURE's door neon, LORETKA in pink on its roof (landmarks site `loretka`), the
       evening line for the lift up to the date bar (crowds.gd, 10-16 people 18:00-01:00, tag
       `timber`), TIMBER on a billboard and a column poster, 10 date lines, radio lines, 2026-11-01.
 - [x] G4 KOSZTA COFFEE ×3, GREEN CAFFE NERWO ×2 (one on the mapped pavilion), KUKŁA ×2 with its
@@ -574,13 +631,19 @@ real ones added to `brand_denylist.json`). One PR each:
       card with a MLASK grade, the sticker back in 4 min, the place's queue at its longest for the
       day (crowds.gd `cringulo_boost`); 9 review lines, 4 owner lines, 6 fan lines, CRINGULO PIZZA
       sold out at Frogs (3 till lines, a poster), radio news; rules in `check_city_life.gd`, 2026-11-01.
-- [ ] Left from G3-G5: the dates on LUŹNO's roof itself (a roof crowd like Level 26's), the
-      Podwózka `timber` passengers, a notebook card "Kolejki", fans standing by Cringulo's van, an
-      egg (the car parked by the van while he films), the van's CRINGULO TV lettering, the egg
-      card; phone checks of every sign's size, the queues and the job's legs.
-- [ ] Roof rescues name the roof by its OSM name, which can be a real brand (a hotel or café
-      chain: Puro, Green Caffè Nero, Hilton…): show a parody or a street name instead (missions.gd
-      `_find_roofs`; found 2026-11-01).
+- [x] F's follow-up: the rooftop bar is LORETKA (was LUŹNO) with its summer terrace on the roof
+      (deck, planters, eight tables with poufs, pink parasols, the bar, string lights; landmarks
+      `loretka_plan`), couples on its poufs May-September on dry evenings (crowds.gd `terrace`,
+      10-16); the board-game bar is PRZEGRYWKI (Zagrywki parody, was PIONEK); WACZEK ×5, the burger
+      chain with an upside-down golden W, at the real chain's central restaurants, 2026-11-01.
+- [x] The notebook card "Kolejki" (place `kolejki`, chapter Kolejka po trend, at KUKŁA on Nowy Świat), 2026-11-02.
+- [x] Left from G3-G5, done 2026-11-02: Podwózka `timber` passengers (evenings 18-01, 20 % of
+      normal rides, 3 request and 4 ride lines; `rides.gd`), five fans behind Cringulo's van with
+      `viral` "cringulo" bubbles, and the egg `easter_mlask` (the car stopped within 9 m of the van
+      for 3 s while he is out; `trend_job.gd`, 48 cards now).
+- [ ] Still left: the van's CRINGULO TV lettering; Mac look check of the fans' spot behind the van
+      (the side of the kerb), the egg's wording; phone checks of every sign's size, the queues and
+      the job's legs.
 - [ ] Mac checks: the statue's spot and facing against the orthophoto; Dom Partii's height and the
       skin on the LoD2 model; KUKŁA/KOSZTA/NERWO spots on the real streets.
 - [x] `Tinder` in a run-club line replaced by TIMBER (it would fail the new denylist entry).
@@ -817,7 +880,7 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   Town's and New Town's tenements split into their OSM houses' colours and tile roofs
   (`map_builder._tenement_facades`), brick Gothic for the Cathedral and the Barbican
   (`M_GOTHIC`), Sigismund's Column, map north (Arkadka with its lit sign, the Forest tower, the
-  flag on Rondo Radosława) and Most Świętokrzyski's pylon and stays. **Left, for fresh threads**:
+  flag on Rondo Radosława) and Most Świętokrzyski's pylon and stays. **Left, for fresh threads** (the Barbican DONE 2026-11-02: model, spec barbakan.md, Mac photo check parked: wall height, turret spots, gate):
   St Anne's classical facade (DONE 2026-11-01: `_build_anna`, spec anna.md, portico, wings and the bell tower's trim, Mac photo check parked: column count, door, tower cap; was: a portico of four columns and a pediment on its west face; it is
   a kept skin today, outline in `centrum.json` landmarks "Kościół pw. Świętej Anny", centre
   (−658, −1350), the free-standing bell tower is a separate building to its north-east), the other
