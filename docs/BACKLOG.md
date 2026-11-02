@@ -3,6 +3,21 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Rondo Daszyńskiego office crowd (F, 2026-11-02)
+
+Built (`crowds.gd` OFFICE, `office_level`, `_office`; dialogue group `office`, 65 lines tagged
+morning, lunch, evening, rain; check_crowds step 10): the office crowd on weekday rush hours.
+Open:
+- Phone look check and a bench on the rondo at 08:30 (QUESTIONS).
+- Props: lanyards, laptop bags and coffee cups are only in the lines; a figure with a bag or cup
+  needs a variant of the shared person mesh (a mesh/draw-call decision, not done).
+- The walkers' routes end at a kerb and restart elsewhere (the dawn crowd's behaviour), so a pop
+  is possible in view; a looping or two-way route would hide it.
+- The Spire's and the HUB's foyers: no footway links the rondo's exits to the Spire's foyer in the
+  map data, so no route ends there (the HUB's does). A pass over the footways round Plac
+  Europejski would add it.
+- Office life elsewhere: Rondo ONZ and Rondo 1, Plac Europejski's lunch queues.
+
 ## The estate, the halls and Jana Pawła II (F, 2026-11-01)
 
 F asked for Osiedle Za Żelazną Bramą, Hala Mirowska and every building along Aleja Jana Pawła II to
