@@ -82,6 +82,8 @@ const KROWA_TUBE := Color(0.62, 0.86, 1.0)
 const MIESZANE_TUBE := Color(1.0, 0.45, 0.12)
 ## DALEJ DALLA GELATO, the Powiśle ice-cream parlour with the all-year queue: pistachio mint.
 const DALEJ_TUBE := Color(0.55, 1.0, 0.8)
+## KRINGULA PIZZA, the hyped pizzeria (a parody; F's ideas #6): a tomato red.
+const KRINGULA_TUBE := Color(1.0, 0.3, 0.22)
 ## The cinemas' marquee tubes: amber, a deep red and a cool white-blue, so a street of them is not one colour.
 const CINEMA_TUBE := Color(1.0, 0.72, 0.25)
 const CINEMA_TUBE_B := Color(1.0, 0.25, 0.3)
@@ -168,6 +170,8 @@ const VENUES := {
 	"kebab_mieszane": [["MIESZANE", "MIESZANE"], MIESZANE_TUBE, 2.8],
 	# The Powiśle gelateria (F, 2026-11-01): Poles queue for lody in winter too.
 	"dalej_gelato": [["DALEJ DALLA", "GELATO LODY"], DALEJ_TUBE, 2.8],
+	# F's ideas #6 (2026-11-02): the pizzeria everyone queues and cries for; the sign is final, the joke is not.
+	"kringula_pizza": [["KRINGULA", "PIZZA"], KRINGULA_TUBE, 3.0],
 	# Warsaw's classic and arthouse cinemas (F, 2026-11-02): the real independent halls under their
 	# own names (place names, not brands; the multiplex chains stay out), amber marquee tubes.
 	"kino_muranow": [["KINO", "MURANÓW"], CINEMA_TUBE, 3.2],
@@ -295,6 +299,8 @@ const HYPE := {
 	"kebab_mieszane": [52.24176, 20.99345],
 	# DALEJ DALLA GELATO on Tamka at Powiśle (the Mac look check parks the door).
 	"dalej_gelato": [52.237885, 21.027375],
+	# KRINGULA PIZZA on Poznańska, the street of the new places (corner approximate; Mac look check parked).
+	"kringula_pizza": [52.22725, 21.01575],
 }
 ## Warsaw's classic and arthouse cinemas (F, 2026-11-02; BACKLOG "Lore: coffee raves and arthouse
 ## cinemas"): Kino Muranów (Andersa 1), Atlantic (Chmielna 33), Luna (Marszałkowska 28), Kultura

@@ -9,15 +9,15 @@ except where a plan says otherwise, because they are crowd spots and single line
 
 | # | Idea | State | Plan in one line | Model |
 | --- | --- | --- | --- | --- |
-| 1 | Loud cars | BACKLOG | Sports-car meet at Browary Warszawskie, revving cars on the streets | Opus |
-| 2 | Sound healing | BACKLOG | Gongs and bowls session, satire; shares the wellness crowd spot with 3, 4, 8 | Sonnet |
-| 3 | Techno-yoga | BACKLOG | Yoga mats with techno and hamsters running; part of the same spot family | Sonnet |
-| 4 | Women's club 40+ | BACKLOG | Circle "waking the little girl inside"; circle crowd spot | Sonnet |
+| 1 | Loud cars | BUILT (#345) | Sports-car meet at Browary Warszawskie, revving cars on the streets | Opus |
+| 2 | Sound healing | BUILT (#343, docs/design/wellness.md) | Gongs and bowls session, satire; shares the wellness crowd spot with 3, 4, 8 | Sonnet |
+| 3 | Techno-yoga | BUILT (#343) | Yoga mats with techno and hamsters running; part of the same spot family | Sonnet |
+| 4 | Women's club 40+ | BUILT (#343) | Circle "waking the little girl inside"; circle crowd spot | Sonnet |
 | 5 | Huge queues | extend | Queues exist (KUKŁA, ZAKWAS, PIURE, clubs); add more venues, not a new system | Sonnet |
-| 6 | Pizzeria KRINGULA | extend | A brick pizzeria beside Cringulo's van lore; joke still to refine | Sonnet |
-| 7 | Legia fans | BACKLOG | Friendly scarf-and-song fans near Stadion Leguminy, harmless red smoke | Opus |
-| 8 | Park activities | BACKLOG | Yoga and kung-fu practice on park lawns (Łazienki, Pole Mokotowskie, Skaryszak) | Sonnet |
-| 9 | Bike paths | BACKLOG | Compare our cycleways with Warsaw's real network and fill the gaps | Opus |
+| 6 | Pizzeria KRINGULA | BUILT (#331) | A brick pizzeria beside Cringulo's van lore; joke still to refine | Sonnet |
+| 7 | Legia fans | BUILT (#336) | Friendly scarf-and-song fans near Stadion Leguminy, harmless red smoke | Opus |
+| 8 | Park activities | BUILT (#343) | Yoga and kung-fu practice on park lawns (Łazienki, Pole Mokotowskie, Skaryszak) | Sonnet |
+| 9 | Bike paths | BUILT (bike markings, #341) | Compare our cycleways with Warsaw's real network and fill the gaps | Opus |
 | 10 | Map edges: roadworks | DONE | PR #309 closed all 393 road ends (`edge_roadworks.gd`) | - |
 | 11 | Kebab "mieszane-mieszane" | BUILT | A neon kebab shop beside the Zagłębie | Sonnet |
 | 12 | The Nose Agency | BUILT | A big crown sign on the Skyliner at Rondo Daszyńskiego | Sonnet |
