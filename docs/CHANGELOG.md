@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- The KRINGULA PIZZA queue now has its "queue for the queue" jokes: people waiting to join the line, a man queuing for the start-of-the-queue sign.
 - The roadworks at the city's edges now speak English too: ROAD WORKS and DETOUR when you play in English.
 - Fabryka Norblina's courtyard has its big spreading plane trees, and the yard of Browary Warszawskie has a garden of lindens, birches and maples.
 - The start of the game has a park strip in front of the museum: benches and slim lamps, and every zebra crossing now has a lowered kerb.
