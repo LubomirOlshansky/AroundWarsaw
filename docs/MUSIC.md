@@ -183,14 +183,10 @@ Style: `radio station ident, minimal techno sting, deadpan female voice, glitch 
 Mordor FM. Znowu poniedziałek.
 ```
 
-### The host's greeting (in the game, text)
+### The host's greeting and the opening
 
-When the title goes, the host greets Warsaw on the ticker: a hello for the hour, the weather
-from the game (rain or not) with a temperature for the month and the hour, and a sign-off, e.g.
-"Dzień dobry, Warszawo! Tu KEBAB FM, 87,3. Pogoda na dziś: słonecznie, przyjemne 20 stopni.
-Życzymy miłego dnia!" The lines are `radio_hello_*`, `radio_weather_*` and `radio_bye` in
-`game/data/dialogue.json`. A spoken version would need a voice that reads the temperature
-(text to speech at run time), so for now the voice is the idents above.
+The announcer's voice, her greeting clips (no station name) and the opening theme (its own
+gentle piece with city sounds) are planned in `docs/design/sound.md` ("Music and voices").
 
 ---
 

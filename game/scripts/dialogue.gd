@@ -220,7 +220,7 @@ const WARSAW_HIGH := [1, 3, 8, 15, 20, 23, 25, 25, 19, 13, 7, 2]
 ## Beta radio: the host's hello when the game starts: a hello for the hour, the weather with a
 ## temperature for the month and the hour, and a sign-off (radio_hello_*, radio_weather_*,
 ## radio_bye in dialogue.json). [Polish, English].
-func greeting(hour: float, rain: bool, month: int, day: int, station := "KEBAB FM, 87,3") -> Array:
+func greeting(hour: float, rain: bool, month: int, day: int) -> Array:
 	var part := "night"
 	if hour >= 5.0 and hour < 11.0:
 		part = "morning"
@@ -240,9 +240,7 @@ func greeting(hour: float, rain: bool, month: int, day: int, station := "KEBAB F
 	for l: Array in [hello, weather, bye]:
 		for k in 2:
 			if l.size() > k:
-				var s := String(l[k]).replace("{t}", stopnie(t) if k == 0 else degrees(t))
-				s = s.replace("{station}", station if k == 0 else station.replace(",", "."))
-				out[k] = (String(out[k]) + " " + s).strip_edges()
+				out[k] = (String(out[k]) + " " + String(l[k]).replace("{t}", stopnie(t) if k == 0 else degrees(t))).strip_edges()
 	return out
 
 
@@ -265,8 +263,7 @@ static func degrees(t: int) -> String:
 func greet(hour: float, rain: bool, month: int, day: int) -> void:
 	if radio == null or radio.station < 0 or _host_group() != "radio_host":
 		return
-	var info: Dictionary = radio.stations[radio.station] if "stations" in radio else {}
-	var l := greeting(hour, rain, month, day, ("%s, %s" % [info["name"], info["freq"]]) if not info.is_empty() else "KEBAB FM, 87,3")
+	var l := greeting(hour, rain, month, day)
 	if String(l[0]) == "":
 		return
 	_host_t = 0.0

@@ -1188,7 +1188,12 @@ func _build_world() -> void:
 	hud.radio_pressed.connect(radio.next)
 	hud.radio_skip_pressed.connect(radio.next_track)
 	hud.perf_gesture.connect(func(): _set_perf(not show_perf); settings.perf = show_perf; settings.save())
-	radio.station_changed.connect(func(_i: int, _s: Dictionary): hud.set_radio_name(radio.label()); hud.set_radio_skip(radio.can_skip()))
+	radio.station_changed.connect(func(_i: int, s: Dictionary):
+		hud.set_radio_name(radio.label())
+		hud.set_radio_skip(radio.can_skip())
+	if radio.station >= 0:
+		hud.set_radio_colour(radio.stations[radio.station]["colour"])
+		hud.set_radio_colour(s.get("colour", Color.WHITE) if not s.is_empty() else Color("#c9c4d8")))
 	# Beta radio: DALEJ · NEXT under RADIO while the station has another song.
 	radio.track_changed.connect(func(_i: Dictionary, _t: Dictionary, _n: bool): hud.set_radio_skip(radio.can_skip()))
 	radio.track_unlocked.connect(func(_n: int, _t: Dictionary, _w: String): hud.set_radio_skip(radio.can_skip()))
