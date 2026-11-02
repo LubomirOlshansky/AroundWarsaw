@@ -300,6 +300,10 @@ then the Launch gate.
       Left-handed layout added 2026-11-01 (DOSTĘP, `--left-handed`); colour-safe now also covers the
       HUD's win green and fail red (2026-11-01, `Access.tint`). Text size now live (2026-11-01,
       `Hud.apply_text_scale`). Left to do: subtitles (BACKLOG)
+- [x] Wellness circles (F, 2026-11-02, `wellness.gd`, docs/design/wellness.md): sound healing (gong, bowls,
+      "80 zł" board), techno yoga with hamsters in rolling balls, the 40+ club "waking the little girl" turning
+      round a tree, kung-fu schools in the parks; eight lawn spots, 58 lines. Left: gong and beat sound, a Mac look
+      check, the phone's cost
 - [x] Packs (2026-11-01, `packs.gd`): running clubs, cycling packs with gear jokes, coffee raves
       at the COFFEECHAIR cafés, big guys with tiny dogs. Left: the phone's look and cost, a rave beat
 - [x] Vistula boulevards full of life (F, 2026-11-01, `crowds.gd` BULWARY, `city_life.gd`): nine

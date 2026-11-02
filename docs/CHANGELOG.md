@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- Warsaw's wellness crowd is out in the parks: sound healing round a gong ("DŹWIĘKOTERAPIA, wejście 80 zł"), techno yoga with hamsters in rolling balls, a women's 40+ club turning round a tree to wake the little girl inside, and a kung-fu school doing one very slow move in step.
 - A new pizzeria, KRINGULA PIZZA, with a huge queue of people who cry over the first bite, and longer morning queues at two hyped coffee chains.
 - A delivery order's GO button counts down the seconds until the order starts by itself, so it no longer seems to start without a tap.
 - On wide phones the radio's line no longer slides in cut off at the screen edge, and the orange delivery marker stays under speech bubbles and banners, with its distance clear of its arrow.

@@ -1294,6 +1294,19 @@ gear names (WĄWÓZ, CEGŁA, SPECJAŁ, GARNEK, SZPAN). Left:
 - A beat from the rave booth (sfx.gd positional voice), a rave notebook card or egg, a DJ crate
   courier job, a radio mention.
 
+## Wellness circles: sound healing, techno yoga, the 40+ club, park kung-fu (F, 2026-11-02)
+Built (`wellness.gd`, docs/design/wellness.md; ideas 2, 3, 4 and 8 of docs/design/city-life-satire.md): eight lawn
+spots (Park Świętokrzyski, Skwer Kościuszki, Rondo Daszyńskiego, Browary Warszawskie, Ogród Saski, Park Ujazdowski,
+Ogród Krasińskich) in daylight hours, 58 lines (`sound_healing`, `techno_yoga`, `club_40`, `park_kungfu`), check
+`wellness`. Left:
+- No sound yet: a soft gong when the car passes a sound-healing ring and a thump near a techno row
+  (sfx.gd positional voices, one new make_sfx.py sound each).
+- Mac look check (QUESTIONS): the spots are read off the baked lawns, not seen; Łazienki Królewskie, Pole
+  Mokotowskie and Skaryszak (the design doc's other park spots) lie outside the map.
+- Only the phone can show whether the 7-10 figures, the signs' text and the hamster balls read at the default
+  zoom and what they cost there (cloud: llvmpipe only).
+- Not rain-aware (the clock only); no notebook card or egg; the groups ignore the car (no scatter).
+
 ## Powiśle streets (F, 2026-11-02)
 Built: eight original-name neon shop signs (`Storefronts.POWISLE`, same venue code as the cinemas)
 on Tamka, Dobra, Browarna, Topiel and Solec. Left:
