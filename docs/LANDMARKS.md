@@ -50,7 +50,7 @@ batch's captions (towers, churches) come from Commons titles: check the angle be
 | 2.1 | Kościół św. Anny | DONE 2026-11-01 (L3 front with four-column portico, pediment, flanking wings, and the bell tower's trim on the kept skin, spec `anna.md`, 586 tris, heights estimated, Mac photo check parked: column count, door, tower cap). The bell tower's observation terrace DONE 2026-11-01: a stone balustrade round the cornice at 25 m and up to 8 visitors on it (`crowds.gd` DECKS `anna_deck`); Mac check parked: the real terrace's height (about 40 m) and its railing |
 | 2.2 | Teatr Wielki | the colonnade and the portico on Plac Teatralny |
 | 2.3 | Old Town and New Town tenements | dormers and chimneys DONE 2026-11-01; stepped attic gables on the market square's east side DONE 2026-11-01 (`OldTownRoofs.gable`); the New Town and the other sides stay open (map lane: `_tenement_facades`, the LoD2 roofs); Mariensztat joined the dress 2026-11-01 (`MARIENSZTAT` polygon, Mac look check parked) |
-| 2.4 | Archikatedra, Barbakan | the Cathedral's stepped gable; the Barbican's towers and walls |
+| 2.4 | Archikatedra, Barbakan | the Cathedral's stepped gable DONE (#167); the Barbican DONE 2026-11-02 (L2 model replacing the skin: curtain, crenellated parapet, four turrets, spec `barbakan.md`, 467 tris; Mac photo check parked: wall height, turret spots, the gate) |
 | 2.5 | Pałac Prezydencki | DONE 2026-10-31 (model, spec `docs/landmarks/specs/prezydencki.md`, 868 tris): wings round the forecourt, portico, Poniatowski's statue, lions, gate, guardhouses; photo check on the Mac |
 | 2.6 | Kościół Świętego Krzyża, Wszystkich Świętych, św. Aleksandra | Holy Cross DONE 2026-11-01 (L3 front and towers on the kept skin, spec `docs/landmarks/specs/krzyz.md`, 934 tris; Mac photo check parked: column and door count, helm shape, the crossing's dome). St Alexander DONE 2026-11-01 (L2 model replacing the skin: drum, windows, dome, lantern, two six-column porticoes, spec `aleksander.md`, 1218 tris, heights estimated, Mac photo check parked: which end has the portico, column count, the bell towers). All Saints DONE 2026-11-01 (L3 front and twin copper-domed towers on the kept skin, spec `wszystkich.md`, 788 tris, heights estimated, Mac photo check parked: tower height and dome shape, portal count) |
 | 2.6c | Kościół Wizytek (Krakowskie Przedmieście) | DONE 2026-11-01 (L3 facade, stepped wing and crossing turret on the kept skin, spec `wizytki.md`, 566 tris, heights estimated, Mac photo check parked: gable shape, towers or none, turret) |
@@ -167,7 +167,7 @@ All with a card; check_landmarks only (except where noted). Open issue common to
 |---|---|---|---|
 | Teatr Wielki | M_MONUMENT + portico model | #ddd2b6 / #7fa894 | 8-column portico, steps, attic (spec teatr.md, 2026-11-01; photo check on the Mac: column count, attic sculpture) |
 | Zamek Królewski | M_MONUMENT | #c87560 / #6e5a4e | no tower/clock |
-| Barbakan | M_GOTHIC | #ab5a42 / #6b4a3c | |
+| Barbakan | M_GOTHIC model | #ab5a42 / #6b4a3c | `_build_barbakan` (spec barbakan.md, 2026-11-02): curtain with crenellated parapet and four octagonal turrets with conical roofs, 467 tris, heights estimated; Mac photo check parked: wall height, turret count and spots, gate |
 | Archikatedra św. Jana | M_GOTHIC | #9a4b38 / #6e3a2e | |
 | Kościół św. Anny | M_MONUMENT | #e6dcc4 / #8a5a44 | `_build_anna` (spec anna.md, 2026-11-01): four-column portico, pediment, wings, bell-tower trim, terrace balustrade; 586 tris |
 | Pałac Prezydencki | M_MONUMENT | #ece3cc / #6a7a77 | facade to model |

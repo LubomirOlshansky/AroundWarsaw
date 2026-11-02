@@ -588,6 +588,8 @@ static func tower_colour(key: String, fallback: Color) -> Color:
 		return KOP_WALL
 	if key == "mf":
 		return MF_WALL
+	if key == "barbakan":
+		return BARB_WALL
 	return fallback
 
 
@@ -777,6 +779,8 @@ func _find_sites() -> void:
 	_find_prezydencki()
 	# St Alexander's church (2026-11-01): a model instead of a skin.
 	_find_aleksander()
+	# The Barbican (2026-11-02): a model instead of a skin.
+	_find_barbakan()
 	# Plac Zbawiciela (Marszałkowska street by street, 2026-11-01): the basilica, a model.
 	_find_zbawiciela()
 	# F's ask (2026-11-01): every church designed by the same rules (the church kit).
@@ -1106,6 +1110,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_prezydencki(s)
 			"aleksander":
 				_build_aleksander(s)
+			"barbakan":
+				_build_barbakan(s)
 			"zbawiciela":
 				_build_zbawiciela(s)
 			"buw":
@@ -2986,7 +2992,6 @@ const ZAMEK_STONE := Color("#e2d8c4")
 const SKINS := [
 	{"key": "teatr", "osm": "Teatr Wielki", "mode": M_MONUMENT, "wall": "#ddd2b6", "roof": "#7fa894"},
 	{"key": "zamek", "osm": "Zamek Królewski", "mode": M_MONUMENT, "wall": ZAMEK_WALL, "roof": ZAMEK_ROOF},
-	{"key": "barbakan", "osm": "Barbakan", "mode": M_GOTHIC, "wall": "#ab5a42", "roof": "#6b4a3c"},
 	{"key": "archikatedra", "osm": "Archikatedra pw. Świętego Jana Chrzciciela", "mode": M_GOTHIC, "wall": "#9a4b38", "roof": "#6e3a2e"},
 	{"key": "sw_anna", "osm": "Kościół pw. Świętej Anny", "mode": M_MONUMENT, "wall": "#e6dcc4", "roof": "#8a5a44"},
 	{"key": "sw_krzyz", "osm": "Kościół pw. Świętego Krzyża", "mode": M_MONUMENT, "wall": "#e3d9c0", "roof": "#5d6e64"},
@@ -6867,6 +6872,58 @@ func _build_zamek(site: Dictionary) -> void:
 			var b := p.lerp(q, float(k + 1) / steps) + out * 0.7
 			_g = minf(map.terrain_height(a.x, a.y), map.terrain_height(b.x, b.y))
 			_wall(a, b, _g - 1.0, _g + 2.2, out, ZAMEK_STONE, p.distance_to(a))
+
+
+## The Barbican (Barbakan; Gianbattista of Venice's brick outwork of 1548 in front of the Nowomiejska
+## gate, burned down in 1944 and rebuilt in 1952-1954): a model instead of a skin. The mapped
+## outline is a C of wall 3.5 m thick opening to the east; it is drawn as one brick-Gothic wall
+## (`M_GOTHIC`: buttresses and lancets) with a crenellated parapet and four octagonal turrets with
+## conical roofs on its curve. Spec docs/landmarks/specs/barbakan.md. Heights are estimates (no LoD2
+## in the cloud).
+const BARB_WALL := Color("#ab5a42")
+const BARB_ROOF := Color("#6b4a3c")
+const BARB_STONE := Color("#c4b69a")
+const BARB_HEIGHT := 9.5
+const BARB_TOWER_H := 13.0
+const BARB_TOWER_R := 2.6
+## The turrets' centres on the wall's mid-line, world x and z.
+const BARB_TOWERS := [Vector2(-940.9, -1841.4), Vector2(-953.0, -1841.2), Vector2(-950.8, -1832.0), Vector2(-941.9, -1828.3)]
+
+
+func _find_barbakan() -> void:
+	var outline := _landmark("Barbakan")
+	if outline.size() >= 3:
+		_add_site("barbakan", [outline])
+		if not sites.is_empty() and sites[-1]["key"] == "barbakan":
+			sites[-1]["ring"] = _simplify(outline, 0.35)
+
+
+func _build_barbakan(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	if ring.size() < 3:
+		return
+	_o = Vector2.ZERO
+	_a = Vector2(1, 0)
+	_b = Vector2(0, 1)
+	_g = _ground_under(ring)
+	var g := _g
+	var top := g + BARB_HEIGHT
+	# the curtain: brick Gothic to the walk, a stone top, then the crenellated parapet
+	_prism(ring, g - 1.5, top, BARB_WALL, BARB_STONE, M_GOTHIC, M_STONE)
+	_attic(ring, top, 1.5, BARB_WALL.darkened(0.04))
+	# the four turrets: an octagon above the wall, a corbel ring, a steep cone and a finial
+	for c: Vector2 in BARB_TOWERS:
+		var th := g + BARB_TOWER_H
+		_prism(_circle(c, BARB_TOWER_R, 8), g - 1.5, th, BARB_WALL, BARB_STONE, M_GOTHIC, M_STONE)
+		_prism(_circle(c, BARB_TOWER_R + 0.35, 8), th, th + 0.6, BARB_STONE, BARB_STONE, M_STONE, M_STONE)
+		_frustum(_circle(c, BARB_TOWER_R + 0.15, 8), th + 0.6, _circle(c, 0.25, 8), th + 6.8, BARB_ROOF, BARB_ROOF)
+		_lbox_at(c, 0.08, th + 6.8, th + 8.2, BARB_STONE)
+	_collide(ring)
+
+
+## A thin square post at world point c (a finial).
+func _lbox_at(c: Vector2, half: float, y0: float, y1: float, col: Color) -> void:
+	_prism(_circle(c, half, 4), y0, y1, col, col, M_STONE, M_STONE)
 
 
 func _build_teatr(_site: Dictionary) -> void:
