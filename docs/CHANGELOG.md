@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- Plac Zbawiciela comes alive: four neon cafés round the roundabout (Kawa Zbawienie, Szarlotka na rogu, Plan Z and Po mszy Spritz) with parasol terraces in front of the blocks, and the Church of the Holiest Saviour is lit at night: gilded crosses, a glowing stained-glass rose, lanterns at the porch and floodlamps up the front.
 - Marszałkowska gets eight neon shopfronts of old trades: a milk bar, a dry cleaner, a watchmaker, a pastry shop, an optician, a florist, a haberdashery and a herbalist.
 - Nowy Świat gets eight neon shopfronts between the Palm and Karowa: a doughnut shop, ice cream with no queue, a bookshop café, an antiquarian, a boutique, a wine bar, an unfathomable gallery and an exchange office.
 - Police chases can be escaped for real: the patrol cars are a little slower than you now, so a flat-out run opens a gap and the chase ends at 100 m. And the radiowozy look like the real ones: a silver Toyota-style estate with the blue POLICJA band, checker strips and a blue bonnet, and a silver police van.
