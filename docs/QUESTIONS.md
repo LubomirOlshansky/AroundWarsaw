@@ -46,6 +46,15 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-11-01 · landmarks · MDM arcades, towers, reliefs: Mac look check** — Built in the cloud
+  (flat ground, no LoD2, no photo). Default built (`_build_mdm`, spec mdm.md): arcades with square
+  piers every 5.4 m, 2.9 m deep, 6.7 m high on the facades that face the square or the axis; four
+  towers (east and west blocks' south ends, the two south-gate blocks) rising 19 m above the
+  roof plus a 6 m spire; a placeholder terracotta relief (sun and two figures) on each tower's
+  square face. For F on the Mac: does the arcade sit right on the LoD2 walls (no gap, no
+  z-fight), are the arcades round-headed or flat in the photos, how tall are the real towers,
+  what do the real reliefs show, which blocks really have arcades. Check `--prebuilt` too
+  (the cloud could not bake the sectors).
 - **2026-11-01 · landmarks · church kit and Plac Zamkowy: Mac look check** — Built in the cloud
   from outlines alone (docs/design/churches.md, spec churches.md). Defaults: the front is the
   outline's end nearest a street; towers, caps and colours by a guessed style per church
