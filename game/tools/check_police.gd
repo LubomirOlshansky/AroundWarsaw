@@ -40,6 +40,7 @@ const PedZones := preload("res://scripts/ped_zones.gd")
 const Guards := preload("res://scripts/police/guards.gd")
 const LaneGraph := preload("res://scripts/lane_graph.gd")
 const Settings := preload("res://scripts/settings.gd")
+const Upgrades := preload("res://scripts/upgrades.gd")
 const Dialogue := preload("res://scripts/dialogue.gd")
 const DIALOGUE_JSON := "res://data/dialogue.json"
 const FLOW := "res://dialogue/police.dialogue"
@@ -181,6 +182,8 @@ class FakeMap extends Node3D:
 
 class FakeCar extends CharacterBody3D:
 	var vel := Vector3.ZERO
+	var max_speed := 30.0
+	var top_mult := 1.0
 	var throttle := 0.0
 	var steer := 0.0
 	var braking := false
@@ -529,6 +532,25 @@ func _machine() -> void:
 		var cap: float = Police.CAPS[lvl - 1]
 		var ended: float = at["ended"]
 		_case("cap L%d" % lvl, ended > 0.0 and absf(ended - cap) < 0.1, "end of shift after %.2f s (cap %.0f)" % [ended, cap])
+	# G13 leftovers: the chasers drive at 0.8 of the player's top speed, the TT's with the engine
+	# at level 3 too (it outran every patrol at the fixed 24 m/s), re-read while the chase runs.
+	_fresh(true)
+	u = _patrol(470.0)
+	car.vel = Vector3(4.0, 0.0, 0.0)
+	p._start_chase(1, u, "check")
+	var hold := func() -> void:
+		if u.driver != null:
+			u.driver.pos = car.global_position - Vector3(30.0, 0.0, 0.0)
+	await _steps(1.0, hold)
+	var hatch_cap: float = u.driver.v_cap if u.driver != null else -1.0
+	var tt: Dictionary = Upgrades.stats("tt", {"engine": Upgrades.MAX_LEVEL})
+	car.top_mult = float(tt["top_mult"])
+	await _steps(1.0, hold)
+	var tt_cap: float = u.driver.v_cap if u.driver != null else -1.0
+	var want: float = 30.0 * float(tt["top_mult"]) * 0.8
+	_case("chase pace", absf(hatch_cap - 24.0) < 0.01 and absf(tt_cap - want) < 0.01 and absf(p.chase_top() - want) < 0.01,
+			"hatch %.1f m/s, TT engine 3 %.1f m/s (want %.1f)" % [hatch_cap, tt_cap, want])
+	car.top_mult = 1.0
 	# No level rises in the last 10 s of the cap; a ram raises once per 10 s before that.
 	_fresh(true)
 	u = _patrol(470.0)

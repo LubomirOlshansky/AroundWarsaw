@@ -12,7 +12,10 @@ extends SceneTree
 ##      B is NIE;
 ##   P7 the pad used last hides the touch pedals (in_use), a touch takes over again, a stick at
 ##      rest doesn't count;
-##   P8 the menus' ui_accept / ui_cancel / ui_up..ui_right carry the pad (A, B, the D-pad).
+##   P8 the menus' ui_accept / ui_cancel / ui_up..ui_right carry the pad (A, B, the D-pad);
+##   P9 (G13 leftovers) LB or RB held is the nitro and fed to the car in main.gd, no shoulder is a
+##      press-command; the right stick turns the view once per flick (either way), not while held,
+##      again after it comes back; a flick on the left stick turns nothing.
 ##   godot --headless --path game --script res://tools/check_gamepad.gd
 
 const Gamepad := preload("res://scripts/gamepad.gd")
@@ -26,7 +29,7 @@ func _initialize() -> void:
 	# P1
 	Gamepad.install()
 	var counts := {}
-	for a: String in Gamepad.STICK_ACTIONS.keys() + [Gamepad.GAS, Gamepad.BRAKE]:
+	for a: String in Gamepad.STICK_ACTIONS.keys() + [Gamepad.GAS, Gamepad.BRAKE, Gamepad.NITRO]:
 		if not InputMap.has_action(a):
 			fails.append("P1 no action %s" % a)
 		else:
@@ -164,6 +167,26 @@ func _initialize() -> void:
 		if not found:
 			fails.append("P8 %s has no pad button %d" % [action, want[action]])
 
+	# P9
+	for sh: int in [JOY_BUTTON_LEFT_SHOULDER, JOY_BUTTON_RIGHT_SHOULDER]:
+		_button(sh as JoyButton, true)
+		if not Gamepad.nitro():
+			fails.append("P9 shoulder %d held is not the nitro" % sh)
+		if Gamepad.command(_press(sh, true)) != "":
+			fails.append("P9 shoulder %d is also a press-command" % sh)
+		_button(sh as JoyButton, false)
+		if Gamepad.nitro():
+			fails.append("P9 the nitro held after shoulder %d was let go" % sh)
+	if not main_text.contains("Gamepad.nitro()") or not main_text.contains("Gamepad.view_flick(event)"):
+		fails.append("P9 main.gd doesn't read Gamepad.nitro() or Gamepad.view_flick()")
+	var turns: Array[int] = []
+	for v: float in [0.0, 0.4, 0.8, 1.0, 0.9, 0.5, 0.1, -0.7, -1.0, 0.0]:
+		turns.append(Gamepad.view_flick(_motion(JOY_AXIS_RIGHT_X, v)))
+	if turns != [0, 0, 1, 0, 0, 0, 0, -1, 0, 0]:
+		fails.append("P9 right-stick flicks turned %s (want one right, then one left)" % [turns])
+	if Gamepad.view_flick(_motion(JOY_AXIS_LEFT_X, 1.0)) != 0 or Gamepad.view_flick(_press(JOY_BUTTON_A, true)) != 0:
+		fails.append("P9 the left stick or a button turns the view")
+
 	print("gamepad: %d buttons, stick dead zone %.2f, trigger %.2f" % [Gamepad.BUTTONS.size(), Gamepad.DEAD, Gamepad.TRIGGER])
 	for f in fails:
 		print("  FAIL ", f)
@@ -178,6 +201,14 @@ func _axis(axis: JoyAxis, value: float) -> void:
 	m.axis_value = value
 	Input.parse_input_event(m)
 	Input.flush_buffered_events()
+
+
+func _motion(axis: JoyAxis, value: float) -> InputEventJoypadMotion:
+	var m := InputEventJoypadMotion.new()
+	m.device = 0
+	m.axis = axis
+	m.axis_value = value
+	return m
 
 
 func _button(button: JoyButton, pressed: bool) -> void:

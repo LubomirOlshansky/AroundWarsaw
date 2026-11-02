@@ -39,7 +39,8 @@ macOS, Windows and Android.
 | A (cross) | the mission card's first button (M) | same |
 | X (square) | the mission card's second button (K) | same |
 | Y (triangle) | car / helicopter (H) | land |
-| LB / RB | turn the view (Q / E) | same |
+| LB / RB held | the nitro, once bought at the garage (Shift) | |
+| Right stick flicked left / right | turn the view (Q / E), one step a flick | same |
 | R3 / L3 | follow camera (C) / horn (B) | |
 | D-pad | up / down zoom, right radio, left flash lights | same |
 | Back (View, Share) | the full map | same |
