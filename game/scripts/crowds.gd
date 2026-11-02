@@ -150,6 +150,7 @@ const PIURE_MAX := 16
 const LORETKA_ID := "loretka_terrace"
 const LORETKA_WEEKNIGHT := 10
 const Landmarks := preload("res://scripts/landmarks.gd")
+const FirstScene := preload("res://scripts/first_scene.gd")
 const ROOF_ID := "level_26"
 ## F's asks (2026-10-30): Level 26's queue at the tower's ground-floor door (a queue site of its
 ## own, not a places.json id), its longest line (short: the lift takes eight at a time), the
@@ -204,6 +205,19 @@ const NOWY_SWIAT := {
 	"chill_nowy_3": [Vector2(-386.0, -231.0), 10, 20.0],
 	"chill_nowy_4": [Vector2(-356.0, -72.0), 12, 22.0],
 }
+## First scene item 6 (docs/design/first-scene.md, 2026-11-02): the start's own street life, people at
+## first_scene.gd's furniture on Marszałkowska by Plac Defilad, so the first frame of play has
+## people standing on both pavements and not only walkers. id -> [s, t in first_scene.gd's frame
+## (s north along the street, t east of it), most people, radius (m), some sit]. The museum's café
+## tables and the pavilions' under the towers seat a third of theirs; the kiosk and flower stall
+## and the paving north of the museum have standers (a newspaper, a bunch of tulips, a chat). Same
+## machinery as CHILL, on the `street` curve (a city centre by day, never empty from 8 to 21).
+const FIRST_SCENE := {
+	"street_msn_cafes": [104.0, -19.0, 10, 9.0, true],
+	"street_kiosk": [145.0, -18.5, 7, 8.0, false],
+	"street_pavilions": [194.5, 31.0, 10, 10.0, true],
+	"street_north": [196.0, -26.0, 8, 10.0, false],
+}
 ## The boulevard's reach (m) round a BULWARY spot: the view this near it is "on the boulevards".
 const BULWARY_R := 90.0
 ## KROWA 2.0, the milk bar in Norblin (our parody; a bar mleczny rebuilt as a start-up): it opens
@@ -240,6 +254,10 @@ const CURVES := {
 	# *guess*: the commute, 7-9 and 15-18 on a working day, a thin shopping day on a weekend
 	"commute": {5: 0.15, 6: 0.4, 7: 0.9, 8: 1.0, 9: 0.7, 10: 0.4, 11: 0.35, 12: 0.4, 13: 0.4, 14: 0.5, 15: 0.8,
 			16: 1.0, 17: 1.0, 18: 0.8, 19: 0.5, 20: 0.35, 21: 0.25, 22: 0.2, 23: 0.1},
+	# *guess*: the first scene's pavements (FIRST_SCENE): a city centre by day, lunch and the
+	# after-work hours fullest, never empty from 8 to 21
+	"street": {7: 0.3, 8: 0.5, 9: 0.6, 10: 0.65, 11: 0.75, 12: 0.9, 13: 1.0, 14: 0.95, 15: 0.9, 16: 0.95, 17: 1.0,
+			18: 1.0, 19: 0.85, 20: 0.7, 21: 0.5, 22: 0.35, 23: 0.2, 0: 0.1},
 	# *guess*: 20 walkers at the edges of 05-09, 40 at the peak
 	"dawn": {5: 0.5, 6: 1.0, 7: 1.0, 8: 0.4},
 }
@@ -454,6 +472,12 @@ static func chill_level(hour: float, month: int, rain: bool) -> float:
 	return curve_at("chill", hour) * maxf(month_factor(month), 0.35) * (0.15 if rain else 1.0)
 
 
+## First scene item 6: the start's street level 0..1 (FIRST_SCENE): the `street` curve, winter keeps
+## 60 % (people still buy papers and coffee), rain a third *guess*.
+static func street_level(hour: float, month: int, rain: bool) -> float:
+	return curve_at("street", hour) * maxf(month_factor(month), 0.6) * (0.35 if rain else 1.0)
+
+
 ## KROWA 2.0's line now: [people, "kolejka"]. Open 8:00-18:00, 26 at lunch (12-15), 10 otherwise.
 static func milk_queue(hour: float, weekday: int) -> Array:
 	if hour < 8.0 or hour >= 18.0:
@@ -642,6 +666,10 @@ func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
 	for cid: String in yards:
 		var cs: Array = yards[cid]
 		_add_site({"id": cid, "kind": "chill", "at": cs[0], "max": int(cs[1]), "radius": float(cs[2])})
+	for fid: String in FIRST_SCENE:
+		var fs: Array = FIRST_SCENE[fid]
+		_add_site({"id": fid, "kind": "chill", "street": true, "sit": bool(fs[4]), "at": first_scene_at(float(fs[0]), float(fs[1])),
+				"max": int(fs[2]), "radius": float(fs[3])})
 	_add_stops(data)
 	if at.has(PLAN_C_ID):
 		_add_site({"id": PLAN_C_ID, "kind": "plan_c", "at": at[PLAN_C_ID], "max": PLAN_C_MAX})
@@ -696,6 +724,11 @@ func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
 		kinds[s["kind"]] = int(kinds.get(s["kind"], 0)) + 1
 	print("crowds: %d sites %s, %d footways near them, the dawn crowd %d clubs → %d ends, amount %.2f" % [
 			sites.size(), kinds, _foot.size(), from.size(), ends.size(), amount])
+
+
+## First scene item 6: a point in first_scene.gd's Marszałkowska frame (`s` m north, `t` m east).
+static func first_scene_at(s: float, t: float) -> Vector2:
+	return FirstScene.FRAME_O + FirstScene.FRAME_S * s + FirstScene.FRAME_T * t
 
 
 ## The tram platforms beside STOP_STREET: one `stop` site each (poly, centre, most people).
@@ -949,7 +982,8 @@ func _place_square(s: Dictionary) -> void:
 	var spots: Array = []
 	var radius := float(s.get("radius", 36.0))
 	var cap := int(s.get("max", PLAN_C_MAX))
-	var chill := str(s["kind"]) == "chill"
+	# First scene item 6: the street's standers at the kiosk and on the paving don't sit.
+	var chill := str(s["kind"]) == "chill" and bool(s.get("sit", true))
 	for f in _foot:
 		if f["k"] != "foot":
 			continue
@@ -1457,7 +1491,8 @@ func tick(step: float) -> void:
 				want = 0 if (s["slots"] as Array).is_empty() else deck_count(int(s["max"]), hour, weekday, month, rain,
 						float(s["open"]), float(s["close"]), k)
 			"chill":
-				want = roundi(int(s["max"]) * k * chill_level(hour, month, rain))
+				var lvl := street_level(hour, month, rain) if bool(s.get("street", false)) else chill_level(hour, month, rain)
+				want = roundi(int(s["max"]) * k * lvl)
 			"stop":
 				want = roundi(int(s["max"]) * k * stop_level(hour, weekday, rain))
 			"trend":

@@ -80,6 +80,18 @@ var _stops_new := false
 ## The crash scenes: the scene's people (SCENE × 16), after the stop figures.
 var _scene_buf := PackedFloat32Array()
 var _rng := RandomNumberGenerator.new()
+## First scene item 6 (docs/design/first-scene.md, 2026-11-02): busy pavements. While the view's
+## centre is inside `_busy_box`, the walkers' target is `limit` × BUSY_BOOST (never above MAX: the
+## same MultiMesh, +0 draw calls) and BUSY_SHARE of the spawns pick a point on the busy footways
+## (set_busy: Marszałkowska's two pavements by the start) instead of anywhere in the view, so the
+## first frame has people on both pavements.
+const BUSY_BOOST := 1.6
+const BUSY_SHARE := 0.6
+## Points on the busy footways every BUSY_STEP m: the footway and the distance along it.
+const BUSY_STEP := 3.0
+var _busy_box := Rect2()
+var _busy_i := PackedInt32Array()
+var _busy_s := PackedFloat32Array()
 
 
 func setup(map_node: Node3D, camera: Camera3D, traffic_node: Node3D, data: Dictionary) -> void:
@@ -252,6 +264,60 @@ func _at(i: int, s: float, off := 0.0) -> Vector2:
 	return a.lerp(b, clampf((s - _cum[k]) / seg, 0.0, 1.0) if seg > 0.0001 else 0.0) + Vector2(-dir.y, dir.x) * off
 
 
+## First scene item 6: the busy footways. `origin`, `s_axis` and `t_axis` make a street frame (s
+## along it, t across it, unit axes); every footway point whose (s, t) falls in one of `bands`
+## ([s0, s1, t0, t1] each) is a busy spawn point; `box` (world x, z) is where the boost applies.
+## Returns how many points it found. Looks only at the footways in the grid cells under the box.
+func set_busy(origin: Vector2, s_axis: Vector2, t_axis: Vector2, bands: Array, box: Rect2) -> int:
+	_busy_box = box
+	_busy_i.clear()
+	_busy_s.clear()
+	var seen := {}
+	var x := box.position.x
+	while x <= box.end.x + CELL:
+		var z := box.position.y
+		while z <= box.end.y + CELL:
+			for i: int in _grid.get(_cell(Vector2(x, z)), PackedInt32Array()):
+				if seen.has(i):
+					continue
+				seen[i] = true
+				if is_wet(i):
+					continue
+				var u := _lo[i]
+				while u <= _hi[i]:
+					var q := _at(i, u) - origin
+					var qs := q.dot(s_axis)
+					var qt := q.dot(t_axis)
+					for b: Array in bands:
+						if qs >= float(b[0]) and qs <= float(b[1]) and qt >= float(b[2]) and qt <= float(b[3]):
+							_busy_i.append(i)
+							_busy_s.append(u)
+							break
+					u += BUSY_STEP
+			z += CELL
+		x += CELL
+	return _busy_i.size()
+
+
+## First scene item 6: the view's centre is over the busy pavements (the walkers' boost is on).
+func busy_now() -> bool:
+	return not _busy_i.is_empty() and traffic != null and _busy_box.has_point(traffic.view_centre)
+
+
+## First scene item 6: how many walkers are within `reach` m (along their footway) of a busy
+## footway point: the people on the start's pavements, for the check and the log.
+func busy_count(reach := 4.0) -> int:
+	var n := 0
+	for k in MAX:
+		if _alive[k] == 0:
+			continue
+		for j in _busy_i.size():
+			if _busy_i[j] == _path[k] and absf(_busy_s[j] - _s[k]) <= reach:
+				n += 1
+				break
+	return n
+
+
 ## Loop 2b: how many people walk now (the bench).
 func alive_count() -> int:
 	return _alive_count
@@ -383,6 +449,9 @@ func _process(dt: float) -> void:
 	var half: Vector2 = traffic.view_half + Vector2.ONE * MARGIN
 	# Tiny people mean nothing in a wide view; fewer of them there.
 	var target := limit if cam.size < 160.0 else int(limit * 0.5)
+	var busy := busy_now() and cam.size < 160.0
+	if busy:
+		target = mini(MAX, roundi(limit * BUSY_BOOST))
 	for n in MAX:
 		if _alive[n] == 0:
 			continue
@@ -394,7 +463,10 @@ func _process(dt: float) -> void:
 	for k in tries:
 		if _alive_count >= target:
 			break
-		_try_spawn(centre, right, ahead, half, not _filled)
+		if busy and _rng.randf() < BUSY_SHARE:
+			_try_spawn_busy(centre, right, ahead, half, not _filled)
+		else:
+			_try_spawn(centre, right, ahead, half, not _filled)
 	_filled = true
 	for n in MAX:
 		if _alive[n] == 1:
@@ -441,7 +513,19 @@ func _try_spawn(centre: Vector2, right: Vector2, ahead: Vector2, half: Vector2, 
 	var i: int = list[_rng.randi() % list.size()]
 	if is_wet(i):
 		return
-	var s := _rng.randf_range(_lo[i], _hi[i])
+	_spawn_on(i, _rng.randf_range(_lo[i], _hi[i]), centre, right, ahead, half, anywhere)
+
+
+## First scene item 6: a spawn at a random busy footway point (set_busy), a metre or two either way.
+func _try_spawn_busy(centre: Vector2, right: Vector2, ahead: Vector2, half: Vector2, anywhere: bool) -> void:
+	var k := _rng.randi() % _busy_i.size()
+	var i := _busy_i[k]
+	_spawn_on(i, clampf(_busy_s[k] + _rng.randf_range(-1.5, 1.5), _lo[i], _hi[i]), centre, right, ahead, half, anywhere)
+
+
+## A walker on footway `i` at `s` m along it, if that is inside the view's band and (once the view
+## is filled) out of sight.
+func _spawn_on(i: int, s: float, centre: Vector2, right: Vector2, ahead: Vector2, half: Vector2, anywhere: bool) -> void:
 	var off := _rng.randf_range(-0.3, 0.3) * _width[i]
 	var q := _at(i, s, off)
 	var y := _height(i, s, q)
