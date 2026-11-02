@@ -8,7 +8,8 @@ extends SceneTree
 ## PT-1 (2026-11-02): at 24-30 m/s the car stopped dead on Marszałkowska's west kerb line north of
 ## the start. It had driven inside Centrum's 0.9 m tram platform (not solid, so the car rode in the
 ## slab) and hit the shelter on it end on; brushing the fence along the kerb cost 1.2/s of its whole
-## speed. Fixed: platforms that high are solid at their edges (map_builder.gd SOLID_PLATFORM) and
+## speed. Fixed: platforms that high are solid at their edges away from roads (map_builder.gd
+## SOLID_PLATFORM, PLATFORM_ROAD_CLEAR) and
 ## the scrape scales with how hard the car presses in (car.gd SCRAPE_PRESS).
 ##
 ## (Head on into the platform's 3 m end the car stops, as at any wall, and is turned out.)
