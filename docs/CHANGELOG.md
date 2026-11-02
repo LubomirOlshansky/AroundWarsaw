@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- Chmielna looks as it has since 2024: grey granite underfoot, two rows of young elms down the narrow stretches and planes on the squares, 85 trees from Nowy Świat to Pasaż Wiecha, and Ali's memorial stone with its square's name plate behind the Eastern Wall.
 - Bracka, the short woonerf behind CeDeT by Aleje Jerozolimskie, is green as it is today: 22 more young planes, maples and cherries in its planted beds, 33 trees in all.
 - The first street of the game is busier: people at the café tables by the museum, at the kiosk and the flower stall, more walkers on both pavements of Marszałkowska, a tram rolling past with its bell in the first seconds, the hum of the square under the city's sound, and the radio's song from its first bar on a first launch.
 - KEBAB FM now jokes about the cinemas (Muranów, Atlantic, Luna, Kultura, Elektronik, the Kinoteka) and about the Kebab Basin's sauce war.

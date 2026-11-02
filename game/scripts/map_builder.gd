@@ -3372,6 +3372,9 @@ func _build_carriageways(st) -> void:
 
 const SURFACE_STYLE := {
 	"paving": ["#ddd6c8", 4.0],
+	# Krajobraz K2 (2026-11-02): Chmielna's new granite slabs (tools/planted_trees.py re-tags its
+	# pedestrian areas), a cooler grey than the old concrete setts' warm paving.
+	"granite": ["#c9c7c1", 4.0],
 	"ballast": ["#8f887d", 15.0],
 	"flowerbed": ["#6c9844", 11.0],
 	"construction": ["#a48b6a", 12.0],

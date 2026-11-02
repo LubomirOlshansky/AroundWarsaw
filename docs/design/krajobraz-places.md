@@ -79,6 +79,34 @@ Chmielna", "ugliest pathway"), Eurobuild ("Nowe oblicze Chmielnej", 2024-12-30).
 scanned trees, then plant the missing ones with `planted_trees.py` (a new PLACE), add the
 fountain and Ali's square (a plate), and a granite paving tint. Opus spec (map), Sonnet build.
 
+**More facts (2026-11-02):** Super Express lists 88 trees from Pasaż Wiecha to Nowy Świat: 57
+elms, 24 planes, 5 cherries, a linden and a black locust, with 32 large shrubs and 7,500 plants;
+the trees placed so the fronts stay in view and the café gardens fit, rain kept for their roots.
+Ali's memorial stone (2019) stands "at the corner of Pasaż Wiecha and Chmielna" (dzieje.pl).
+
+**The game before.** OpenStreetMap already has the new layout: 72 beds in the band (`areas`
+kind "park"), most of them 2.4-8 m² tree pits along both sides every 8-10 m, and the bigger
+fenced beds of the two squares (Kino Atlantic's, 20-62 m², and the one at Pasaż Wiecha); the
+fountain by Kino Atlantic (an OSM `amenity=fountain` node, a 2.8 m pool); the two pedestrian
+areas drawn as the ordinary warm paving. The 2023 scan has 20 trees in the band, most of them
+the Atlantic square's old ones (10-15 m).
+
+**Built (2026-11-02).** `planted_trees.py` place `chmielna`, given by the street's centre line
+and a 13 m half-width: one young tree per tree pit of 2.4 m² or more, two in a square's bed of
+20 m² or more, the beds' low fences allowed; species by the distance along the street (planes
+and a cherry on Ali's square, planes with a linden and a cherry on Atlantic's, elms only from
+there to Plac Pięciu Rogów, elms with the odd plane, cherry and black locust east of it). 65
+trees, 85 in the band (the pits next to Plac Pięciu Rogów's carriageway and a passage stay
+empty); the street's two pedestrian areas re-tagged `granite` (map_builder.gd SURFACE_STYLE
+`#c9c7c1`, no new material or draw call). At the Pasaż Wiecha corner, in first_scene.gd: Ali's
+memorial stone (props.gd `add_memorial_stone`, a granite boulder with a bronze plaque) and two
+plate posts, PASAŻ WIECHA / CHMIELNA and SKWER BROWNE'A.
+
+**Not done:** the 64 benches and chairs (OSM maps 2 benches on the street; K2b), the fountain's
+stone rim, the shrub and perennial planting's colour in the beds, the lighting in the ground.
+For the Mac pass (QUESTIONS): the orthophoto against the trees, the granite's tone, the stone's
+spot and the square's official name on the plate.
+
 ## K3 Varso Place
 
 Chmielna 69-73 (HB Reavis; Foster + Partners, HRA, Benoy, Epstein), 2022, the deck 2024. The
