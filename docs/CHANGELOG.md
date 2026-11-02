@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- Złota 44 looks like itself: a white tower with fine grey stripes whose south-east corner sweeps out like a wing to a sharp tip, a dark glass crown on the roof and a garden on the low block at its feet.
 - The radio's jokes between songs no longer name KEBAB FM and come more rarely, every 4 to 5 minutes, as a surprise.
 - The Stadion Narodowy has its grounds: lime and plane trees line both sides of the entrance avenues, and groups of pollarded willows stand on the lawns between them.
 - Złota is now the green linear park that opened this summer: no cars between Marszałkowska and Jasna, rows of young limes, lawns with pale stone blocks to sit on, a rock fountain, benches, café gardens, and Dom pod Orłami over it with its two bronze eagles on the corner towers.

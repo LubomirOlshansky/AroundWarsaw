@@ -43,6 +43,7 @@ then the Launch gate.
 - [x] Beta radio: KEBAB FM + MORDOR FM lineup, DALEJ skip button, the host's start greeting with weather (F, 2026-11-02); Suno/ElevenLabs prompts in `docs/MUSIC.md`
 - [ ] Beta radio songs: 8 vaporwave for KEBAB FM, 8 minimal techno for MORDOR FM, idents (F generates on a paid plan; `tools/add_music.py`)
 - [x] Gdański Business Center (tower, two blocks, parody logos; 2026-11-02, spec `gbc.md`; Mac photo check parked)
+- [x] Złota 44 rebuilt from F's photos: the flaring wing, the sharp tip, the glass crown box, white banded cladding, the podium garden (2026-11-02, spec `zlota44.md`; Mac photo check parked)
 - [x] Flat-price jokes: radio, passengers, Podwózka, traffic, dog walkers and three developer billboards (F, 2026-11-01; text only, billboard spots need a Mac look)
 - [x] Pokorna 2 remodelled as a block of flats: loggia windows, balconies, warm plaster (F, 2026-11-02, site `pokorna2`; Mac look check in QUESTIONS)
 - [x] Retro vaporwave filter replaces the VHS tape look; the Styl obrazu picker removed, always Sharp (2026-11-01; phone look check parked in QUESTIONS)

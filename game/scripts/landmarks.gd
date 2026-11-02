@@ -36,7 +36,7 @@ const M_GLASS := 12.0     # curtain wall with mullions (Varso)
 const M_SKIN := 13.0      # a tower's own skin; fraction = style / 16 (S_*, building.gdshader skin())
 const M_GOTHIC := 14.0    # brick Gothic: buttresses and pointed lancets (the Cathedral, the Barbican)
 
-## The skins (building.gdshader S_*): Złota 44's white exoskeleton, Warsaw Spire's diamonds,
+## The skins (building.gdshader S_*): Złota 44's white banded cladding, Warsaw Spire's diamonds,
 ## silver floor bands, vertical fins, a white grid, balcony slabs, dark glass, gold glass,
 ## and an open frame (its panes cut away).
 const S_SAIL := 0
@@ -63,7 +63,7 @@ const S_KEYS := 15      # Piano House: white plaster, dark window strips in a ke
 ## crown); `mapped` keeps the parts' mapped colours. Colours from photographs, kept a step
 ## paler than life for the game's palette.
 const TOWERS := [
-	{"key": "zlota44", "osm": "Złota 44", "style": S_SAIL, "glass": "#b4c8d3", "roof": "#e4e8ea", "crest": "slope"},
+	{"key": "zlota44", "osm": "Złota 44", "style": S_SAIL, "glass": "#bccdd8", "roof": "#e4e8ea", "crest": "slope"},
 	{"key": "spire", "osm": "Warsaw Spire", "style": S_BANDS, "glass": "#5a8fb8", "roof": "#a3b6c4",
 			"with": [Vector2(-2672.0, 195.0), Vector2(-2745.0, 150.0)]},  # the two crescent wings
 	{"key": "q22", "osm": "Q22", "style": S_BANDS, "glass": "#8ba2b4", "roof": "#bcc4ca"},
@@ -144,8 +144,8 @@ const INFO := {
 			"Most otwarty w 1914 roku. Wieże strzegą wjazdów.",
 			"The bridge opened in 1914. Its towers guard the way on."],
 	"zlota44": ["Złota 44",
-			"192 m. Apartamentowiec Daniela Libeskinda: biały stalowy szkielet jak skrzydło.",
-			"192 m. Daniel Libeskind's apartment tower: a white steel frame like a wing."],
+			"192 m. Apartamentowiec Daniela Libeskinda, zwany Żaglem: biała wieża, której narożnik wygina się jak skrzydło orła aż po ostry szczyt.",
+			"192 m. Daniel Libeskind's apartment tower, called the Sail: a white tower whose corner sweeps out like an eagle's wing to a sharp tip."],
 	"spire": ["Warsaw Spire",
 			"220 m. Szklana wieża rozszerzająca się ku górze, z płetwą na dachu, lustrzanym zadaszeniem wejścia i dwoma łukowymi skrzydłami. Otwarta w 2016 roku.",
 			"220 m. A glass tower that widens upward, with a fin on its roof, a mirrored entrance canopy and two curved wings. Opened in 2016."],
@@ -2689,8 +2689,10 @@ func _build_tower(site: Dictionary) -> void:
 			top_h = float(b["h"])
 			top_poly = _pts(b["p"])
 	if spec["key"] == "zlota44":
-		# Złota 44: the tower is lofted (_zlota_sail); only the podium is built from its parts.
+		# Złota 44: the tower is lofted (_zlota_sail); only the podium is built from its parts,
+		# with its roof garden.
 		_zlota_sail(g, glass, roof, skin)
+		_zlota_garden(parts, g)
 	elif spec["key"] == "spire":
 		# Warsaw Spire: the leaf-shaped tower lofted and tapering (_spire); the two lower
 		# office buildings beside it are built from their parts.
@@ -2911,107 +2913,227 @@ func _slope_roof(poly: PackedVector2Array, hi: float, lo: float) -> Callable:
 	return func(q: Vector2) -> float: return lerpf(lo, hi, inverse_lerp(lo_d, hi_d, (q - c).dot(axis)))
 
 
-## Złota 44 (the landmarks loop, after the user's phone look: "like a rectangle, not curvy").
-## Its plan, from the mapped core: a straight west front, soft corners, and the east front a
-## curve that swells as it climbs (the "sail", 4 m out at the foot, 14 m at the crown), lofted
-## through ZLOTA_RINGS rings so it reads curved from the driving camera; the crown is cut on a
-## slope from ZLOTA_HI at its north end to ZLOTA_LO at the south, under the white exoskeleton
-## skin (S_SAIL).
+## Złota 44 (rebuilt 2026-11-02 from F's two photos, the street view from the east and the aerial
+## from the Palace; spec docs/landmarks/specs/zlota44.md). The plan is the mapped core (a
+## four-sided tower 30 x 37 m); what makes it Libeskind's "sail":
+##   - the WING: the south-east corner leans out as it climbs. It starts as a thin glass wedge
+##     at the foot (ZLOTA_WEDGE out), pinches in to the plain plan at ZLOTA_WAIST, then flares
+##     out ever faster to ZLOTA_FLARE at the top, so the corner draws a long concave curve; the
+##     east face is gently convex (ZLOTA_CURVE), as mapped;
+##   - the TIP: the roof is cut on one plane from the sharp south-east corner at ZLOTA_TIP down
+##     to ZLOTA_LOW at the north face, so the corner ends in a point;
+##   - the CROWN: a glazed box (ZLOTA_CROWN high) on the north and west part of the roof, set
+##     back from the east face, in dark glass with fine mullions (the crown screen);
+##   - the facade (S_SAIL): silver-white aluminium cassettes in floor bands with glass between,
+##     broken and staggered panel by panel (building.gdshader);
+##   - the podium's roof garden in front of the east face (`_zlota_garden`).
+## The tower is lofted through ZLOTA_RINGS (fractions of each corner's own height), so the
+## flare and the cut top stay one closed surface.
 const ZLOTA_NE := Vector2(-1469.5, 291.8)
 const ZLOTA_SE := Vector2(-1462.1, 325.6)
 const ZLOTA_SW := Vector2(-1488.5, 334.8)
 const ZLOTA_NW := Vector2(-1501.1, 298.5)
-const ZLOTA_HI := 192.0
-const ZLOTA_LO := 158.0
-const ZLOTA_RINGS := 8
-const ZLOTA_ARC := 12   # segments of the curved east front
-func _zlota_ring(t: float) -> PackedVector2Array:
+const ZLOTA_TIP := 192.0
+const ZLOTA_LOW := 150.0
+const ZLOTA_CROWN := 184.0
+const ZLOTA_CROWN_FROM := 0.45   # the crown box covers the roof from this share of the slope on
+const ZLOTA_CROWN_SET := 4.5     # and stands this far back from the east face
+const ZLOTA_WEDGE := 2.6
+const ZLOTA_WAIST := 64.0
+const ZLOTA_FLARE := 9.0
+const ZLOTA_CURVE := 2.5
+const ZLOTA_EAST_SEGS := 10
+const ZLOTA_SOUTH_SEGS := 6
+const ZLOTA_RINGS := [0.0, 0.04, 0.1, 0.17, 0.25, 0.33, 0.42, 0.52, 0.62, 0.72, 0.81, 0.89, 0.95, 1.0]
+const ZLOTA_CROWN_GLASS := Color("#58788c")
+## The podium's roof garden: smaller trees than Varso's sky garden, a lawn bed, a few benches.
+const ZLOTA_TERRACE := {"trees": 10, "h": 4.8, "r": 1.7, "pines": 6, "benches": 3, "step": 4.8}
+
+
+## How far the south-east corner stands out of the plan at height h (metres over the ground).
+func _zlota_flare(h: float) -> float:
+	if h < ZLOTA_WAIST:
+		return ZLOTA_WEDGE * (1.0 - smoothstep(0.0, ZLOTA_WAIST, h))
+	return ZLOTA_FLARE * pow((h - ZLOTA_WAIST) / (ZLOTA_TIP - ZLOTA_WAIST), 1.7)
+
+
+func _zlota_out(a: Vector2, b: Vector2, away: Vector2) -> Vector2:
+	var e := (b - a).normalized()
+	var o := Vector2(-e.y, e.x)
+	return -o if o.dot(away - a) > 0.0 else o
+
+
+## Point i of the plan at height h. The order: the east face from the north-east corner to the
+## sharp south-east one, the south face, the soft south-west corner, the straight west face, the
+## soft north-west corner, the north face back to the start.
+func _zlota_point(i: int, h: float) -> Vector2:
+	var e_out := _zlota_out(ZLOTA_NE, ZLOTA_SE, ZLOTA_NW)
+	var s_out := _zlota_out(ZLOTA_SE, ZLOTA_SW, ZLOTA_NE)
+	var flare := (e_out + s_out * 0.4) * _zlota_flare(h)
+	var r := 4.0
+	if i <= ZLOTA_EAST_SEGS:
+		var u := float(i) / float(ZLOTA_EAST_SEGS)
+		return ZLOTA_NE.lerp(ZLOTA_SE, u) + e_out * ZLOTA_CURVE * sin(PI * u) + flare * pow(u, 1.6)
+	i -= ZLOTA_EAST_SEGS
+	var v_end := 1.0 - r / ZLOTA_SE.distance_to(ZLOTA_SW)
+	if i <= ZLOTA_SOUTH_SEGS:
+		var v := v_end * float(i) / float(ZLOTA_SOUTH_SEGS)
+		return ZLOTA_SE.lerp(ZLOTA_SW, v) + flare * pow(1.0 - v, 1.6)
+	i -= ZLOTA_SOUTH_SEGS
+	var corners := [[ZLOTA_SE, ZLOTA_SW, ZLOTA_NW], [ZLOTA_SW, ZLOTA_NW, ZLOTA_NE]]
+	var k := 0 if i <= 2 else 1
+	var a: Vector2 = corners[k][0]
+	var c: Vector2 = corners[k][1]
+	var b: Vector2 = corners[k][2]
+	var p0 := c + (a - c).normalized() * r
+	var p1 := c + (b - c).normalized() * r
+	var j := i if k == 0 else i - 3  # the south face's last point is the south-west corner's first
+	match j:
+		0:
+			return p0
+		1:
+			return p0.lerp(c, 0.5).lerp(p1.lerp(c, 0.5), 0.5)
+		_:
+			return p1
+
+
+func _zlota_count() -> int:
+	return ZLOTA_EAST_SEGS + ZLOTA_SOUTH_SEGS + 2 + 3 + 1
+
+
+## The plan at height h (closed, ZLOTA_EAST_SEGS + ZLOTA_SOUTH_SEGS + 6 points).
+func _zlota_ring(h: float) -> PackedVector2Array:
 	var ring := PackedVector2Array()
-	var bulge := lerpf(4.0, 14.0, pow(t, 1.3))
-	var east := (ZLOTA_SE - ZLOTA_NE).normalized()
-	var out := Vector2(-east.y, east.x)
-	if out.dot(ZLOTA_NE - ZLOTA_NW) < 0.0:
-		out = -out
-	# The east front from north to south, swelling most a little south of its middle.
-	for i in ZLOTA_ARC + 1:
-		var u := float(i) / float(ZLOTA_ARC)
-		var swell := sin(PI * pow(u, 0.85))
-		ring.append(ZLOTA_NE.lerp(ZLOTA_SE, u) + out * bulge * swell)
-	# The soft south-west and north-west corners (three points each), the west front straight.
-	for corner: Array in [[ZLOTA_SE, ZLOTA_SW, ZLOTA_NW], [ZLOTA_SW, ZLOTA_NW, ZLOTA_NE]]:
-		var a: Vector2 = corner[0]
-		var c: Vector2 = corner[1]
-		var b: Vector2 = corner[2]
-		var r := 4.0
-		var p0 := c + (a - c).normalized() * r
-		var p1 := c + (b - c).normalized() * r
-		ring.append(p0)
-		ring.append(p0.lerp(c, 0.5).lerp(p1.lerp(c, 0.5), 0.5))
-		ring.append(p1)
+	for i in _zlota_count():
+		ring.append(_zlota_point(i, h))
 	return ring
 
 
 func _zlota_sail(g: float, glass: Color, roof: Color, skin: float) -> void:
-	var base := _zlota_ring(0.0)
-	var n := base.size()
-	var axis := Vector2(0, -1)  # the crown highest at the north
-	var lo_d := INF
-	var hi_d := -INF
-	for t in [0.0, 1.0]:
-		for q in _zlota_ring(t):
-			lo_d = minf(lo_d, q.dot(axis))
-			hi_d = maxf(hi_d, q.dot(axis))
-	var top := func(q: Vector2) -> float:
-		return g + lerpf(ZLOTA_LO, ZLOTA_HI, inverse_lerp(lo_d, hi_d, q.dot(axis)))
-	var y0 := g - 0.4
+	var n := _zlota_count()
+	# The cut roof: one plane, ZLOTA_TIP over the tip (the south-east corner at the top), falling
+	# to ZLOTA_LOW at the far side of the plan, towards the north face's middle.
+	var tip := _zlota_point(ZLOTA_EAST_SEGS, ZLOTA_TIP)
+	var axis := ((ZLOTA_NE + ZLOTA_NW) * 0.5 - tip).normalized()
+	var span := 0.0
+	for q in _zlota_ring(ZLOTA_LOW):
+		span = maxf(span, (q - tip).dot(axis))
+	var fall := (ZLOTA_TIP - ZLOTA_LOW) / span
+	var plane := func(q: Vector2) -> float: return ZLOTA_TIP - clampf((q - tip).dot(axis), 0.0, span) * fall
+	# Each point's own height: where its column meets the roof plane (two passes settle it).
+	var tops := PackedFloat32Array()
+	for i in n:
+		var h: float = plane.call(_zlota_point(i, 182.0))
+		h = plane.call(_zlota_point(i, h))
+		tops.append(plane.call(_zlota_point(i, h)))
 	var rings: Array[PackedVector2Array] = []
-	for k in ZLOTA_RINGS + 1:
-		rings.append(_zlota_ring(float(k) / float(ZLOTA_RINGS)))
+	for f: float in ZLOTA_RINGS:
+		var ring := PackedVector2Array()
+		for i in n:
+			ring.append(_zlota_point(i, f * tops[i]))
+		rings.append(ring)
+	var y0 := g - 0.4
 	var keep := _mode
 	_mode = skin
-	var cw := Geometry2D.is_polygon_clockwise(base)
-	for k in ZLOTA_RINGS:
+	var top_ring: PackedVector2Array = rings[-1]
+	var cw := Geometry2D.is_polygon_clockwise(top_ring)
+	for k in ZLOTA_RINGS.size() - 1:
+		var f0: float = ZLOTA_RINGS[k]
+		var f1: float = ZLOTA_RINGS[k + 1]
 		var r0 := rings[k]
 		var r1 := rings[k + 1]
-		var f0 := float(k) / float(ZLOTA_RINGS)
-		var f1 := float(k + 1) / float(ZLOTA_RINGS)
 		var run := 0.0
 		for i in n:
 			var j := (i + 1) % n
-			var a0 := r0[i]
-			var b0 := r0[j]
-			var a1 := r1[i]
-			var b1 := r1[j]
-			var length := a0.distance_to(b0)
-			var e := (b0 - a0).normalized()
-			var o := Vector2(e.y, -e.x)
-			if not cw:
-				o = -o
-			var ya0 := lerpf(y0, top.call(rings[ZLOTA_RINGS][i]), f0)
-			var yb0 := lerpf(y0, top.call(rings[ZLOTA_RINGS][j]), f0)
-			var ya1 := lerpf(y0, top.call(rings[ZLOTA_RINGS][i]), f1)
-			var yb1 := lerpf(y0, top.call(rings[ZLOTA_RINGS][j]), f1)
-			var hi := maxf(top.call(rings[ZLOTA_RINGS][i]), top.call(rings[ZLOTA_RINGS][j])) - _g
-			_quad(Vector3(a0.x, ya0, a0.y), Vector3(b0.x, yb0, b0.y), Vector3(b1.x, yb1, b1.y), Vector3(a1.x, ya1, a1.y),
-					Vector3(o.x, 0.0, o.y), glass, Vector2(run, ya0 - _g), Vector2(run + length, yb0 - _g),
-					Vector2(run + length, yb1 - _g), Vector2(run, ya1 - _g), hi)
+			var ya0 := g + f0 * tops[i] if k > 0 else y0
+			var yb0 := g + f0 * tops[j] if k > 0 else y0
+			var a0 := Vector3(r0[i].x, ya0, r0[i].y)
+			var b0 := Vector3(r0[j].x, yb0, r0[j].y)
+			var a1 := Vector3(r1[i].x, g + f1 * tops[i], r1[i].y)
+			var b1 := Vector3(r1[j].x, g + f1 * tops[j], r1[j].y)
+			var e := (r1[j] - r1[i]).normalized()
+			var o := Vector2(e.y, -e.x) if cw else Vector2(-e.y, e.x)
+			var nrm := (b0 - a0).cross(a1 - a0).normalized()
+			if Vector2(nrm.x, nrm.z).dot(o) < 0.0:
+				nrm = -nrm
+			var length := r0[i].distance_to(r0[j])
+			var hi := maxf(tops[i], tops[j])
+			_quad(a0, b0, b1, a1, nrm, glass, Vector2(run, ya0 - _g), Vector2(run + length, yb0 - _g),
+					Vector2(run + length, b1.y - _g), Vector2(run, a1.y - _g), hi)
 			run += length
+	# The sloped roof: glazed like the walls (a white slab facing the camera blew out).
 	_mode = M_SKIN
-	var crown := rings[ZLOTA_RINGS]
-	var idx := Geometry2D.triangulate_polygon(crown)
+	var up := Vector3(axis.x * fall, 1.0, axis.y * fall).normalized()
+	var idx := Geometry2D.triangulate_polygon(top_ring)
 	if idx.is_empty():
-		idx = Geometry2D.triangulate_delaunay(crown)
-	var up := Vector3(-axis.x * (ZLOTA_HI - ZLOTA_LO), absf(hi_d - lo_d), -axis.y * (ZLOTA_HI - ZLOTA_LO)).normalized()
-	for i in range(0, idx.size(), 3):
-		var a := crown[idx[i]]
-		var b := crown[idx[i + 1]]
-		var d := crown[idx[i + 2]]
-		# The sloped crown is glazed like the walls (a white slab facing the camera blew out).
-		_tri(Vector3(a.x, top.call(a), a.y), Vector3(b.x, top.call(b), b.y), Vector3(d.x, top.call(d), d.y), up,
-				glass.lerp(roof, 0.3), Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+		idx = Geometry2D.triangulate_delaunay(top_ring)
+	for t in range(0, idx.size(), 3):
+		var a := top_ring[idx[t]]
+		var b := top_ring[idx[t + 1]]
+		var d := top_ring[idx[t + 2]]
+		_tri(Vector3(a.x, g + tops[idx[t]], a.y), Vector3(b.x, g + tops[idx[t + 1]], b.y),
+				Vector3(d.x, g + tops[idx[t + 2]], d.y), up, glass.lerp(roof, 0.3),
+				Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+	# The crown: the roof's north and west part, set back from the east face, walled from the
+	# slope up to ZLOTA_CROWN in the crown screen's dark glass.
+	var far := 400.0
+	var side := Vector2(-axis.y, axis.x)
+	var start := tip + axis * span * ZLOTA_CROWN_FROM
+	var half := PackedVector2Array([start - side * far, start + side * far,
+			start + side * far + axis * far, start - side * far + axis * far])
+	var e_out := _zlota_out(ZLOTA_NE, ZLOTA_SE, ZLOTA_NW)
+	var east_line := ZLOTA_NE - e_out * ZLOTA_CROWN_SET
+	var along := (ZLOTA_SE - ZLOTA_NE).normalized()
+	var back := PackedVector2Array([east_line - along * far, east_line + along * far,
+			east_line + along * far - e_out * far, east_line - along * far - e_out * far])
+	var box := PackedVector2Array()
+	for p1 in Geometry2D.intersect_polygons(top_ring, half):
+		for p2 in Geometry2D.intersect_polygons(p1, back):
+			if p2.size() >= 3 and not Geometry2D.is_polygon_clockwise(p2) and _area(p2) > _area(box):
+				box = p2
+	if box.size() >= 3:
+		_mode = M_SKIN + float(S_FINS) / 16.0
+		var run := 0.0
+		for i in box.size():
+			var a := box[i]
+			var b := box[(i + 1) % box.size()]
+			var o := _out(box, a, b)
+			var length := a.distance_to(b)
+			var ya: float = g + plane.call(a)
+			var yb: float = g + plane.call(b)
+			_quad(Vector3(a.x, ya, a.y), Vector3(b.x, yb, b.y), Vector3(b.x, g + ZLOTA_CROWN, b.y),
+					Vector3(a.x, g + ZLOTA_CROWN, a.y), Vector3(o.x, 0.0, o.y), ZLOTA_CROWN_GLASS,
+					Vector2(run, ya - _g), Vector2(run + length, yb - _g), Vector2(run + length, ZLOTA_CROWN),
+					Vector2(run, ZLOTA_CROWN), ZLOTA_CROWN)
+			run += length
+		_mode = M_STONE
+		_cap(box, g + ZLOTA_CROWN, ZLOTA_CROWN_GLASS.lerp(roof, 0.6))
+		_aviation(box, func(_q: Vector2) -> float: return g + ZLOTA_CROWN)
+	# A red light on the tip itself.
+	var inward := tip + (_centre(top_ring) - tip).normalized() * 1.2
+	var tip_y: float = g + plane.call(inward)
+	_prism(_square(inward, 0.35), tip_y - 0.2, tip_y + 0.7, DUSK_RED, DUSK_RED, M_LAMP, M_LAMP)
 	_mode = keep
-	_collide(base)
-	_aviation(crown, func(q: Vector2) -> float: return top.call(q))
+	_collide(rings[0])
+
+
+## The podium's roof garden (the aerial photo: lawn, trees and benches on the low block in front
+## of the east face): every low part of the site (20 to 40 m, from the ground), its roof less
+## what the tower covers.
+func _zlota_garden(parts: Array, g: float) -> void:
+	for b: Dictionary in parts:
+		var h := float(b["h"])
+		if h < 20.0 or h > 40.0 or float(b["mh"]) > 0.5:
+			continue
+		var grown := Geometry2D.offset_polygon(_zlota_ring(h), 0.6)
+		var pieces: Array[PackedVector2Array] = [_pts(b["p"])]
+		if not grown.is_empty():
+			pieces = []
+			for q in Geometry2D.clip_polygons(_pts(b["p"]), grown[0]):
+				if q.size() >= 3 and not Geometry2D.is_polygon_clockwise(q) and _area(q) >= 60.0:
+					pieces.append(q)
+		for piece in pieces:
+			_varso_garden(piece, g + h, ZLOTA_TERRACE)
 
 
 ## Warsaw Spire (rebuilt 2026-11-02 from F's three photos; spec docs/landmarks/specs/spire.md).
