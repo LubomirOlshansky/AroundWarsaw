@@ -2274,6 +2274,7 @@ func _build_wellness(world: Node3D) -> void:
 	wellness.name = "Wellness"
 	wellness.map = map
 	wellness.dialogue = dialogue
+	wellness.sounds = city_sounds
 	wellness.hud = hud
 	wellness.log_on = wellness_log
 	wellness.amount = _crowd_scale()

@@ -311,8 +311,8 @@ then the Launch gate.
       `Hud.apply_text_scale`). Left to do: subtitles (BACKLOG)
 - [x] Wellness circles (F, 2026-11-02, `wellness.gd`, docs/design/wellness.md): sound healing (gong, bowls,
       "80 zł" board), techno yoga with hamsters in rolling balls, the 40+ club "waking the little girl" turning
-      round a tree, kung-fu schools in the parks; eight lawn spots, 58 lines. Left: gong and beat sound, a Mac look
-      check, the phone's cost
+      round a tree, kung-fu schools in the parks; eight lawn spots, 58 lines. Gong, bowls and beat sound done
+      (2026-11-02). Left: a Mac look and listen check, the phone's cost
 - [x] Packs (2026-11-01, `packs.gd`): running clubs, cycling packs with gear jokes, coffee raves
       at the COFFEECHAIR cafés, big guys with tiny dogs. Left: the phone's look and cost, a rave beat
 - [x] Vistula boulevards full of life (F, 2026-11-01, `crowds.gd` BULWARY, `city_life.gd`): nine
@@ -340,7 +340,7 @@ then the Launch gate.
   - [x] #11 kebab MIESZANE MIESZANE neon, its evening queue and the "Mięso? Mieszane. Sos? Mieszane." lines (`check_crowds`), and #12 NOSE AGENCY sign on the Skyliner, 2026-11-02 (Godot did not run; Mac look check open)
   - [x] #10 map-edge roadworks (PR #309)
   - [ ] #1 loud cars at Browary Warszawskie and revving traffic (Opus)
-  - [ ] #2 sound healing, #3 techno yoga with hamsters, #4 women's club 40+, #8 park yoga and kung-fu (Sonnet, one `circle` crowd spot thread)
+  - [x] #2 sound healing, #3 techno yoga with hamsters, #4 women's club 40+, #8 park yoga and kung-fu (PR #343, `wellness.gd`); gong and techno-thump sounds added 2026-11-02 (listen check parked)
   - [ ] #5 more queues and #6 KRINGULA PIZZA (extends the food-hype lane)
   - [x] #7 friendly Legia fans near Stadion Leguminy, 2026-11-02 (PR #336, `fans.gd`; phone look and cost open)
   - [ ] #9 bike-path network compared with the real one (Opus)
