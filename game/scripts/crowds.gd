@@ -286,6 +286,11 @@ const ZAKWAS_MAX := 18
 const KRINGULA := ["kringula_pizza"]
 const KRINGULA_MAX := 40
 const KRINGULA_MIN := 24
+## MIESZANE MIESZANE (F's #11, 2026-11-02): the kebab window beside the Zagłębie where the order is
+## the same word twice. A short evening line (18:00-04:00, longest after the clubs close, 3-4 am),
+## tag "mieszane" (the people in it say the two words; no new system, trend-queue machinery).
+const MIESZANE := ["kebab_mieszane"]
+const MIESZANE_MAX := 14
 ## The other hyped chains' morning lines (F's #5, huge queues everywhere): the green-café's pavilion
 ## and KOSZTA on Marszałkowska, 7:00-11:00 on a working day 16 and a half-length line later, tag "kolejka".
 const COFFEE := ["nerwo_pawilon", "koszta_marszalkowska"]
@@ -621,6 +626,18 @@ static func kringula_queue(hour: float, weekday: int) -> Array:
 	return [34 if dinner else KRINGULA_MIN, "kringula"]
 
 
+## MIESZANE MIESZANE's line now: [people, "mieszane"]. 18:00-04:00; fullest 02:00-04:00 and on
+## Friday/Saturday evenings, a handful otherwise.
+static func mieszane_queue(hour: float, weekday: int) -> Array:
+	if hour >= 4.0 and hour < 18.0:
+		return [0, ""]
+	if hour < 4.0 and hour >= 2.0:
+		return [MIESZANE_MAX, "mieszane"]
+	if weekday == 5 or weekday == 6:
+		return [MIESZANE_MAX * 2 / 3, "mieszane"]
+	return [MIESZANE_MAX / 3, "mieszane"]
+
+
 ## The hyped coffee chains' line now: [people, "kolejka"]. 7:00-18:00, the working-day morning rush
 ## fullest; half-length otherwise.
 static func coffee_queue(hour: float, weekday: int) -> Array:
@@ -765,7 +782,7 @@ func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
 		var ll: Array = Storefronts.TRENDY[vid]
 		_add_site({"id": vid, "kind": "trend", "max": PISTACJA_MAX if vid == PISTACJA_ID else PADEL_MAX, "tag": "",
 				"at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})
-	for vid: String in KUKLA + [PIURE_ID] + MILK + GELATO + KRINGULA + COFFEE:
+	for vid: String in KUKLA + [PIURE_ID] + MILK + GELATO + KRINGULA + MIESZANE + COFFEE:
 		var ll: Array = Storefronts.HYPE[vid]
 		var vmax := KUKLA_MAX
 		if vid == PIURE_ID:
@@ -776,6 +793,8 @@ func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
 			vmax = GELATO_MAX
 		elif vid in KRINGULA:
 			vmax = KRINGULA_MAX
+		elif vid in MIESZANE:
+			vmax = MIESZANE_MAX
 		elif vid in COFFEE:
 			vmax = COFFEE_MAX
 		_add_site({"id": vid, "kind": "trend", "max": vmax, "tag": "",
@@ -1719,6 +1738,8 @@ func tick(step: float) -> void:
 					q = gelato_queue(hour, weekday, month)
 				elif s["id"] in KRINGULA:
 					q = kringula_queue(hour, weekday)
+				elif s["id"] in MIESZANE:
+					q = mieszane_queue(hour, weekday)
 				elif s["id"] in COFFEE:
 					q = coffee_queue(hour, weekday)
 				elif s["id"] == PIURE_ID:

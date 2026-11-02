@@ -79,8 +79,9 @@ English (BACKLOG, small).
 "Mieszane" is what a Pole says when the kebab man asks about the meat and then the sauce:
 "mieszane" and "mieszane". A neon sign MIESZANE / MIESZANE on a small shop beside the Zagłębie
 Kebabowe, in the venue table `Storefronts.HYPE` (`kebab_mieszane`). It is not on the Szlak Szpili
-trail (the trail stays at five shops). Next: a vendor line "Mięso?" "Mieszane." "Sos?" "Mieszane."
-(BACKLOG).
+trail (the trail stays at five shops). Also built (crowds.gd `MIESZANE`): a short queue at the window, 18:00-04:00 and fullest 02:00-04:00
+(tag `mieszane`, five bubbles in dialogue.json `viral`), and a vendor line "Mięso? Mieszane. Sos?
+Mieszane." in `kebab_vendor`. Add-ons: not used, because it is a queue spot and single lines.
 
 ## 12 The Nose Agency (BUILT)
 A crown sign NOSE AGENCY on the Skyliner (195 m, Rondo Daszyńskiego) on its two long faces, warm

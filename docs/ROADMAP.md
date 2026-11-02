@@ -332,7 +332,7 @@ then the Launch gate.
   - [x] KEBAB FM lines about the seven cinemas and the Kebab Basin, 2026-11-02 (text only; headless checks not run in the cloud)
 - [x] City-life satire #1, loud cars (F, 2026-11-02; docs/design/city-life-satire.md): a supercar meet with its crowd at the Browary gate square and up to three loud supercars in traffic that rev as they pass, KEBAB FM's "liczą obroty" line, 2026-11-02 (`check_loud_cars`; phone sound level and Mac look open)
 - [ ] City-life satire ideas (F, 2026-11-02; plans docs/design/city-life-satire.md):
-  - [x] #11 kebab MIESZANE MIESZANE neon and #12 NOSE AGENCY sign on the Skyliner, 2026-11-02 (Godot did not run; Mac look check open)
+  - [x] #11 kebab MIESZANE MIESZANE neon, its evening queue and the "Mięso? Mieszane. Sos? Mieszane." lines (`check_crowds`), and #12 NOSE AGENCY sign on the Skyliner, 2026-11-02 (Godot did not run; Mac look check open)
   - [x] #10 map-edge roadworks (PR #309)
   - [ ] #1 loud cars at Browary Warszawskie and revving traffic (Opus)
   - [ ] #2 sound healing, #3 techno yoga with hamsters, #4 women's club 40+, #8 park yoga and kung-fu (Sonnet, one `circle` crowd spot thread)
