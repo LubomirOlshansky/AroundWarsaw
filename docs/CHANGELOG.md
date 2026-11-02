@@ -31,6 +31,7 @@ someone writes its lines.
 - Getting wedged between traffic cars no longer ends the drive: push against them for a moment and your car slips through, and after eight seconds in a jam it is towed onto the road.
 
 ## 2026-11-01
+- Bus stops stand on the kerb now, turned to the road, and the buses really stop at them: about ten seconds, with passengers stepping off and the people waiting at the shelter getting on. Benches face the footpath, and café tables only stand against a shopfront.
 - Twenty-two more churches stand as real buildings with towers, steep roofs and a front door instead of plain boxes, and the houses round Plac Zamkowy are painted in Old Town pastels with a mix of gable shapes.
 
 
