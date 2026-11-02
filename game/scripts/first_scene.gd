@@ -56,6 +56,11 @@ const ITEMS := [
 	["bikes", 66.0, -17.6, ""],
 	["bollards", 32.0, -7.2, ""], ["bollards", 47.0, -7.2, ""], ["bollards", 75.5, -7.2, ""],
 ]
+## First scene item 6 (2026-11-02): Marszałkowska's two pavements from Widok to the tram stop north
+## of the museum, [s0, s1, t0, t1] in the frame above: the west one between the museum's edge and the
+## tree row, the east one from the kerb to the stores' arcades. Walkers there are denser while the
+## view is on the start (pedestrians.gd set_busy).
+const BUSY_BANDS := [[-200.0, 330.0, -30.0, -13.0], [-200.0, 330.0, 22.0, 37.0]]
 ## The kinds that stand on a tram island (centrum.json `platforms`: 0.9 m slab + 0.1 m top).
 const ON_PLATFORM := ["shelter", "stop", "ticket"]
 const PLATFORM_TOP := 1.0

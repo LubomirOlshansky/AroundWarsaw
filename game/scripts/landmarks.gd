@@ -54,6 +54,7 @@ const S_PUNCHED := 11   # a re-clad point block: light horizontal cladding, punc
 const S_MIRROR := 13    # the Blue Skyscraper's blue reflective float glass
 const S_SLAB := 12      # a 1960s slab's long face: plaster and loggia bands
 const S_ESTATE := 14    # Osiedle Za Żelazną Bramą: large-panel bays, ribbon windows, coloured loggia stacks
+const S_KEYS := 15      # Piano House: white plaster, dark window strips in a keyboard's 2-and-3 rhythm
 
 ## The landmarks loop (2026-10-30): the skyline's towers, so each reads as itself and not as one
 ## more blue box. Each is built from its mapped building parts (the outline `osm` names; what
@@ -389,6 +390,9 @@ const INFO := {
 	"dom_partii": ["Dom Partii",
 			"Biały gmach z 1952 roku. Była partia, giełda, dziś biura i bary.",
 			"A white block from 1952. Once the Party, then the stock exchange, now offices and bars."],
+	"deski": ["WTS DESKA",
+			"Klub przy Zaruskiego nad Wisłą: hala tenisowa i jeden szklany kort do padla pod chmurką.",
+			"The club on Zaruskiego by the Vistula: a closed tennis hall and one open-air glass padel court."],
 	"gaulle": ["Pomnik generała de Gaulle'a",
 			"Maszeruje Alejami od 2005 roku. Kopia tego z Paryża.",
 			"Marching down the Avenues since 2005. A copy of the one in Paris."],
@@ -404,6 +408,18 @@ const INFO := {
 	"dworzec_wodny": ["Dworzec Wodny",
 			"Niski pawilon na nabrzeżu: szkło i drewno nad samą Wisłą.",
 			"A low pavilion on the quay: glass and timber right over the Vistula."],
+	"piano_house": ["Piano House",
+			"Dom na Zajęczej, tuż pod Akademią Muzyczną. Elewacja jak klawiatura: białe klawisze, czarne okna.",
+			"Flats on Zajęcza, just below the music university. The front is a keyboard: white keys, black windows."],
+	"cube_house": ["Cube House",
+			"Biała kostka przy Topieli, z wykuszami jak wysunięte szuflady.",
+			"A white cube on Topiel, its bays sticking out like half-open drawers."],
+	"hortus": ["Hortus",
+			"Biura i kamienica wokół ogrodu, tam gdzie stała fabryka cukierków. Hortus to po łacinie ogród.",
+			"Offices and a tenement-style block round a garden, where a sweet factory stood. Hortus is Latin for garden."],
+	"moderna": ["Modernka Powiśle",
+			"Od frontu odnowiona przedwojenna kamienica, z tyłu nowe szkło i penthouse'y. Wisła trzysta kroków stąd.",
+			"A restored pre-war tenement at the front, new glass and penthouses behind. The Vistula is three hundred steps away."],
 	"kaskada": ["Kaskada",
 			"Statek przycumowany do bulwarów. Zimą stoi, latem się kołysze.",
 			"A vessel moored to the boulevards. Still in winter, rocking in summer."],
@@ -763,6 +779,7 @@ func _find_sites() -> void:
 	_find_zygmunt()
 	_find_gaulle()
 	_find_rondo()
+	_find_deski()
 	_find_dom_partii()
 	_find_rynek()
 	_find_arkadia()
@@ -823,6 +840,12 @@ func _find_sites() -> void:
 	_find_aleksander()
 	# The Barbican (2026-11-02): a model instead of a skin.
 	_find_barbakan()
+	# Powiśle's new flats (2026-11-02): Piano House and Cube House, models from their outlines.
+	_find_piano_house()
+	_find_cube_house()
+	# Powiśle (2026-11-02): Hortus on Topiel and Moderna on Zajęcza, models from their outlines.
+	_find_hortus()
+	_find_moderna()
 	# Plac Zbawiciela (Marszałkowska street by street, 2026-11-01): the basilica, a model.
 	_find_zbawiciela()
 	# F's ask (2026-11-01): every church designed by the same rules (the church kit).
@@ -1108,6 +1131,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_zygmunt(s)
 			"gaulle":
 				_build_gaulle(s)
+			"deski":
+				_build_deski(s)
 			"dom_partii_extras":
 				_build_dom_partii(s)
 			"rynek":
@@ -1160,6 +1185,14 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_aleksander(s)
 			"barbakan":
 				_build_barbakan(s)
+			"piano_house":
+				_build_piano_house(s)
+			"cube_house":
+				_build_cube_house(s)
+			"hortus":
+				_build_hortus(s)
+			"moderna":
+				_build_moderna(s)
 			"zbawiciela":
 				_build_zbawiciela(s)
 			"buw":
@@ -7968,6 +8001,275 @@ func _lbox_at(c: Vector2, half: float, y0: float, y1: float, col: Color) -> void
 	_prism(_circle(c, half, 4), y0, y1, col, col, M_STONE, M_STONE)
 
 
+## Piano House (Zajęcza by Topiel, Powiśle; flats of the 2010s below the music university): a model
+## instead of a plain block. The mapped outline (an L with a saw-toothed west front of 1-2 m
+## steps) rises to 17.8 m in white plaster with dark window strips in a piano keyboard's rhythm
+## (S_KEYS), a glazed ground floor; the top floor is set back 1.6 m in dark glass under a flat
+## roof. Spec docs/landmarks/specs/piano_house.md. Heights from OSM (20.8 m), the rest estimated.
+const PIANO_WHITE := Color("#eeece6")
+const PIANO_GLASS := Color("#3a4250")
+const PIANO_ROOF := Color("#8d9094")
+const PIANO_BODY := 17.8
+const PIANO_TOP := 20.8
+
+
+func _find_piano_house() -> void:
+	var outline := _landmark("Piano House")
+	if outline.size() >= 3:
+		# The L's centre (both the corner mean and the box centre) falls in its open corner, outside
+		# the outline, so the zone adds the hull: the plain block it replaces goes (nothing else
+		# stands in the corner).
+		_add_site("piano_house", [outline, Geometry2D.convex_hull(outline)])
+		if not sites.is_empty() and sites[-1]["key"] == "piano_house":
+			sites[-1]["ring"] = _simplify(outline, 0.35)
+
+
+func _build_piano_house(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	if ring.size() < 3:
+		return
+	_o = Vector2.ZERO
+	_a = Vector2(1, 0)
+	_b = Vector2(0, 1)
+	_g = _ground_under(ring)
+	var g := _g
+	_prism(ring, g - 1.5, g + PIANO_BODY, PIANO_WHITE, PIANO_ROOF, M_SKIN + float(S_KEYS) / 16.0, M_STONE)
+	# the set-back top floor: the outline pulled in 1.6 m (the saw teeth fall away), dark glass
+	var inner := Geometry2D.offset_polygon(_simplify(ring, 1.2), -1.6, Geometry2D.JOIN_MITER)
+	for q: PackedVector2Array in inner:
+		if q.size() >= 3 and absf(_area(q)) > 20.0:
+			_prism(q, g + PIANO_BODY, g + PIANO_TOP, PIANO_GLASS, PIANO_ROOF, M_SKIN + float(S_DARK) / 16.0, M_STONE)
+	_collide(ring)
+
+
+## Cube House (Topiel by Leszczyńska, Powiśle): a model instead of a plain block. A white
+## eight-storey cube (27.4 m, from OSM) with punched windows (S_PUNCHED), and on every face a
+## staircase of boxed bays, one per floor, stepping left and right (the "cubes"). The mapped
+## jog on one face (a full-height bay) is kept and carries its boxes on its front. Spec docs/landmarks/specs/cube_house.md.
+const CUBE_WHITE := Color("#e9e7e1")
+const CUBE_BAY := Color("#b3aca0")
+const CUBE_ROOF := Color("#86898c")
+const CUBE_HEIGHT := 27.4
+const CUBE_FLOOR := 2.95
+const CUBE_BAY_W := 2.8
+const CUBE_BAY_OUT := 1.1
+
+
+func _find_cube_house() -> void:
+	var outline := _landmark("Cube House")
+	if outline.size() >= 3:
+		_add_site("cube_house", [outline])
+		if not sites.is_empty() and sites[-1]["key"] == "cube_house":
+			sites[-1]["ring"] = _simplify(outline, 0.35)
+
+
+func _build_cube_house(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	if ring.size() < 3:
+		return
+	# the local frame: u along the longest edge, v across; the box of the outline in it
+	var longest := 0.0
+	for i in ring.size():
+		var e := ring[(i + 1) % ring.size()] - ring[i]
+		if e.length() > longest:
+			longest = e.length()
+			_a = e.normalized()
+	_b = Vector2(-_a.y, _a.x)
+	_o = _centre(ring)
+	var lo := Vector2(INF, INF)
+	var hi := Vector2(-INF, -INF)
+	for q in ring:
+		var l := _local(q)
+		lo = lo.min(l)
+		hi = hi.max(l)
+	_g = _ground_under(ring)
+	var g := _g
+	_prism(ring, g - 1.5, g + CUBE_HEIGHT, CUBE_WHITE, CUBE_ROOF, M_SKIN + float(S_PUNCHED) / 16.0, M_STONE)
+	# a thin plain parapet band round the roof
+	_prism(Geometry2D.offset_polygon(ring, 0.12, Geometry2D.JOIN_MITER)[0], g + CUBE_HEIGHT - 0.5, g + CUBE_HEIGHT + 0.6,
+			CUBE_WHITE.lightened(0.04), CUBE_WHITE, M_STONE, M_STONE)
+	# the bays: on each face one box per floor from the first, stepping between two spots along
+	# the face (on the jogged face, the entrance bay's front, the spots close in to stay on it)
+	var faces := [[Vector2(0, -1), lo.y, hi.x - lo.x], [Vector2(1, 0), hi.x, hi.y - lo.y], [Vector2(-1, 0), lo.x, hi.y - lo.y],
+			[Vector2(0, 1), hi.y, hi.x - lo.x]]
+	# a bay's half width, and its half depth with 0.5 m sunk into the wall (the faces lean a little
+	# off the frame)
+	var half := CUBE_BAY_W * 0.5
+	var depth := (CUBE_BAY_OUT + 0.5) * 0.5
+	for f: Array in faces:
+		var n: Vector2 = f[0]
+		var plane: float = f[1]
+		var span: float = f[2]
+		var spread := 0.25 if _cube_face_straight(ring, n, plane) else 0.15
+		for k in range(1, int(CUBE_HEIGHT / CUBE_FLOOR) - 1):
+			var t := span * spread * (1.0 if k % 2 == 0 else -1.0)
+			var along := Vector2(n.y, n.x).abs()
+			var mid := (lo + hi) * 0.5
+			var c := mid * along + along * t + n * (CUBE_BAY_OUT - depth) + n.abs() * plane
+			var y0 := g + k * CUBE_FLOOR + 0.15
+			_lbox(c.x, c.y, half if n.y != 0.0 else depth, depth if n.y != 0.0 else half, y0, y0 + CUBE_FLOOR - 0.3,
+					CUBE_BAY, M_SKIN + float(S_PUNCHED) / 16.0, CUBE_BAY.darkened(0.1))
+	_collide(ring)
+
+
+## Whether a face of the Cube House (normal n in its local frame, at `plane`) runs straight: every
+## corner on that side of the outline lies within 0.6 m of the plane.
+func _cube_face_straight(ring: PackedVector2Array, n: Vector2, plane: float) -> bool:
+	var near := 0
+	for q in ring:
+		var l := _local(q)
+		var d := l.dot(n) - plane * (n.x + n.y)
+		if absf(d) < 0.6:
+			near += 1
+		elif l.dot(n) > 0.0 and absf(d) < 2.5:
+			return false
+	return near >= 2
+
+
+## Hortus (Topiel 12, Powiśle; 2009-2011 by the Naj studio, on the plot of a sweet factory): a
+## model instead of plain blocks. A closed block round a garden (its trees are the scanned
+## ones). The mapped outline, an L along Topiel and Zajęcza, is the office: six floors to 20.8 m
+## (OSM) of big glass panes in a white frame (S_GRID) over a recessed, dark-glazed ground floor
+## on slim piers along the streets. The flats along Drewniana (the unnamed 20.8 m outline at
+## HORTUS_FLATS_AT) are styled as a pre-war tenement: warm plaster, a cornice, a mansard floor.
+## Spec docs/landmarks/specs/hortus.md; colours and pier rhythm estimated (photo check).
+const HORTUS_GLASS := Color("#5c6f72")
+const HORTUS_ROOF := Color("#8a8d90")
+const HORTUS_PLASTER := Color("#dcc6a3")
+const HORTUS_MANSARD := Color("#5f6367")
+const HORTUS_TOP := 20.8
+const HORTUS_LOBBY := 4.5
+const HORTUS_RECESS := 1.4
+const HORTUS_PIER := 7.5
+const HORTUS_CORNICE := 17.9
+const HORTUS_FLATS_AT := Vector2(110.0, -580.0)
+
+
+func _find_hortus() -> void:
+	var outline := _landmark("Hortus")
+	if outline.size() < 3:
+		return
+	# The L's box centre is in the courtyard: the zone adds the hull (only the garden is in it).
+	var hull := Geometry2D.convex_hull(outline)
+	var flats := _tallest_at(HORTUS_FLATS_AT)
+	var zone := [outline, hull]
+	if flats.size() >= 3:
+		zone.append(flats)
+	_add_site("hortus", zone)
+	if not sites.is_empty() and sites[-1]["key"] == "hortus":
+		sites[-1]["ring"] = _simplify(outline, 0.35)
+		sites[-1]["hull"] = hull
+		sites[-1]["flats"] = _simplify(flats, 0.35) if flats.size() >= 3 else PackedVector2Array()
+
+
+func _build_hortus(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	if ring.size() < 3:
+		return
+	var hull: PackedVector2Array = site["hull"]
+	_o = Vector2.ZERO
+	_a = Vector2(1, 0)
+	_b = Vector2(0, 1)
+	_g = _ground_under(ring)
+	var g := _g
+	# the ground floor pulled in under the offices, dark glass (lit warm at night)
+	for q: PackedVector2Array in Geometry2D.offset_polygon(ring, -HORTUS_RECESS, Geometry2D.JOIN_MITER):
+		if q.size() >= 3 and absf(_area(q)) > 30.0:
+			_prism(q, g - 1.5, g + HORTUS_LOBBY, HORTUS_GLASS.darkened(0.2), HORTUS_ROOF, M_SKIN + float(S_DARK) / 16.0, M_STONE)
+	# the five office floors over it, glass in a white frame, a plain parapet band on top
+	_prism(ring, g + HORTUS_LOBBY, g + HORTUS_TOP, HORTUS_GLASS, HORTUS_ROOF, M_SKIN + float(S_GRID) / 16.0, M_STONE)
+	_prism(ring, g + HORTUS_TOP, g + HORTUS_TOP + 0.6, Color("#e6e4de"), HORTUS_ROOF, M_STONE, M_STONE)
+	# slim piers under the overhang on the street sides (the edges that face out of the block)
+	for i in ring.size():
+		var a := ring[i]
+		var b := ring[(i + 1) % ring.size()]
+		var length := a.distance_to(b)
+		if length < HORTUS_PIER:
+			continue
+		var n := _out(ring, a, b)
+		if Geometry2D.is_point_in_polygon((a + b) * 0.5 + n * 3.0, hull):
+			continue  # a courtyard side
+		var d := (b - a) / length
+		var count := int(length / HORTUS_PIER)
+		var step := length / float(count)
+		for k in range(1, count):
+			var p := a + d * (step * k) - n * (HORTUS_RECESS * 0.5)
+			_prism(PackedVector2Array([p + (d + n) * 0.25, p + (d - n) * 0.25, p - (d + n) * 0.25, p - (d - n) * 0.25]),
+					g - 0.5, g + HORTUS_LOBBY, Color("#e6e4de"), Color(0, 0, 0, 0), M_STONE, M_STONE)
+	_collide(ring)
+	# the flats on Drewniana, a pre-war tenement in looks: plaster, a cornice, a mansard floor
+	var flats: PackedVector2Array = site["flats"]
+	if flats.size() >= 3:
+		_prism(flats, g - 1.5, g + HORTUS_CORNICE, HORTUS_PLASTER, HORTUS_ROOF, M_MONUMENT, M_STONE)
+		var ledge := Geometry2D.offset_polygon(flats, 0.35, Geometry2D.JOIN_MITER)
+		if not ledge.is_empty():
+			_prism(ledge[0], g + HORTUS_CORNICE, g + HORTUS_CORNICE + 0.55, HORTUS_PLASTER.lightened(0.12), HORTUS_ROOF, M_STONE, M_STONE)
+		for q: PackedVector2Array in Geometry2D.offset_polygon(_simplify(flats, 1.0), -1.2, Geometry2D.JOIN_MITER):
+			if q.size() >= 3 and absf(_area(q)) > 30.0:
+				_prism(q, g + HORTUS_CORNICE + 0.55, g + HORTUS_TOP, HORTUS_MANSARD, HORTUS_ROOF, M_STONE, M_STONE)
+		_collide(flats)
+
+
+## Moderna Powiśle (Zajęcza 1A; shown as "Modernka", a parody of the developer's name): a model
+## instead of a plain block. The developer joined a restored pre-war tenement to a new glass
+## wing. The mapped outline (14.2 m, OSM) is split 13.9 m back from its long front on Zajęcza
+## (where the outline's notch says the street block ends): the front is the tenement (cream
+## plaster, tall windows between piers, a cornice), the back the new wing (glass in white floor
+## bands, S_RIBBON) under a set-back penthouse floor in dark glass to 17.4 m (the listing's
+## two-level penthouses). Spec docs/landmarks/specs/moderna.md; which part is old is a guess.
+const MODERNA_PLASTER := Color("#e2d5ba")
+const MODERNA_GLASS := Color("#4c5966")
+const MODERNA_ROOF := Color("#8b8e90")
+const MODERNA_BODY := 14.2
+const MODERNA_PENT := 17.4
+const MODERNA_FRONT := 13.9
+
+
+func _find_moderna() -> void:
+	var outline := _landmark("Moderna Powiśle")
+	if outline.size() >= 3:
+		_add_site("moderna", [outline, Geometry2D.convex_hull(outline)])
+		if not sites.is_empty() and sites[-1]["key"] == "moderna":
+			sites[-1]["ring"] = _simplify(outline, 0.35)
+
+
+func _build_moderna(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	if ring.size() < 3:
+		return
+	# the front: the longest edge (on Zajęcza); +v runs into the block
+	var front := 0
+	for i in ring.size():
+		if ring[(i + 1) % ring.size()].distance_to(ring[i]) > ring[(front + 1) % ring.size()].distance_to(ring[front]):
+			front = i
+	var p0 := ring[front]
+	var p1 := ring[(front + 1) % ring.size()]
+	_o = p0
+	_a = (p1 - p0).normalized()
+	_b = -_out(ring, p0, p1)
+	_g = _ground_under(ring)
+	var g := _g
+	var band := PackedVector2Array([_o - _a * 100.0 - _b * 5.0, _o + _a * 100.0 - _b * 5.0,
+			_o + _a * 100.0 + _b * MODERNA_FRONT, _o - _a * 100.0 + _b * MODERNA_FRONT])
+	# the tenement at the front, its cornice a little proud of the wall
+	for q: PackedVector2Array in Geometry2D.intersect_polygons(ring, band):
+		if q.size() < 3 or absf(_area(q)) < 20.0:
+			continue
+		_prism(q, g - 1.5, g + MODERNA_BODY - 0.6, MODERNA_PLASTER, MODERNA_ROOF, M_MONUMENT, M_STONE)
+		var ledge := Geometry2D.offset_polygon(q, 0.3, Geometry2D.JOIN_MITER)
+		if not ledge.is_empty():
+			_prism(ledge[0], g + MODERNA_BODY - 0.6, g + MODERNA_BODY, MODERNA_PLASTER.lightened(0.1), MODERNA_ROOF, M_STONE, M_STONE)
+	# the new wing behind, and its penthouse floor pulled in 1.5 m
+	for q: PackedVector2Array in Geometry2D.clip_polygons(ring, band):
+		if q.size() < 3 or absf(_area(q)) < 20.0 or Geometry2D.is_polygon_clockwise(q):
+			continue
+		_prism(q, g - 1.5, g + MODERNA_BODY, MODERNA_GLASS, MODERNA_ROOF, M_SKIN + float(S_RIBBON) / 16.0, M_STONE)
+		for t: PackedVector2Array in Geometry2D.offset_polygon(q, -1.5, Geometry2D.JOIN_MITER):
+			if t.size() >= 3 and absf(_area(t)) > 20.0:
+				_prism(t, g + MODERNA_BODY, g + MODERNA_PENT, MODERNA_GLASS.darkened(0.2), MODERNA_ROOF, M_SKIN + float(S_DARK) / 16.0, M_STONE)
+	_collide(ring)
+
+
 func _build_teatr(_site: Dictionary) -> void:
 	_o = TEATR
 	_a = TEATR_AXIS.normalized()
@@ -13091,6 +13393,160 @@ func _build_polonia(site: Dictionary) -> void:
 			"glass": Color("#353a40"), "name": "POLONIA PALACE", "name_w": 6.6, "board": Color("#3a1f24"),
 			"tube": Color(1.0, 0.85, 0.5), "whole": true, "canopy": Color("#6b2a2f")}, party)
 	_collide(ring)
+
+
+# --- WTS DeSki: the tennis club with the padel courts (F, 2026-11-01) -----------------------------
+
+## WTS DESKA, the parody of WTS DeSki (Zaruskiego 8, by Most Łazienkowski). F (2026-11-02): the real
+## club has closed tennis courts and one outdoor padel court. The model: a hipped-roof tennis hall
+## over the four western mapped pitches (OSM `pitch` quads), one outdoor glass padel court beside
+## it (blue, lit at night, four players, floodlights) and the DESKA neon on the clubhouse, which
+## keeps its mapped box. The other mapped pitches stay as the map draws them. docs/design/padel.md.
+const DESKI_PITCHES := [
+	[1508.6, 966.3, 1516.4, 963.7, 1521.8, 979.9, 1514.1, 982.5],
+	[1500.1, 979.7, 1507.4, 976.0, 1515.2, 991.3, 1508.0, 995.0],
+	[1500.4, 927.3, 1507.4, 923.1, 1516.3, 937.7, 1509.3, 942.0],
+	[1518.6, 963.5, 1526.3, 961.0, 1531.6, 977.3, 1523.8, 979.8],
+	[1467.8, 947.1, 1474.8, 942.9, 1483.8, 957.5, 1476.8, 961.8],
+	[1478.3, 941.0, 1485.3, 936.8, 1494.2, 951.4, 1487.3, 955.7],
+	[1489.5, 959.6, 1496.7, 955.8, 1504.7, 970.9, 1497.5, 974.7],
+	[1478.6, 965.5, 1485.8, 961.8, 1493.9, 976.9, 1486.6, 980.7],
+	[1510.5, 945.1, 1517.5, 940.8, 1526.5, 955.5, 1519.5, 959.7],
+]
+const DESKI_PADEL := Vector2(1519.0, 965.0)
+const DESKI_HALL_PITCHES := [4, 5, 6, 7]
+const DESKI_HALL_WALL := Color("#cfd4d8")
+const DESKI_HALL_ROOF := Color("#8d99a3")
+const DESKI_AXIS := Vector2(0.322, 0.947)
+const DESKI_CLUBHOUSE := [Vector2(1491.7, 913.2), Vector2(1498.8, 909.0), Vector2(1503.2, 920.8), Vector2(1499.3, 923.0),
+		Vector2(1491.5, 925.8), Vector2(1486.8, 917.4)]
+const DESKI_CLUBHOUSE_H := 7.6
+const DESKI_CLAY := Color("#b5573a")
+const DESKI_HARD := Color("#3e7396")
+const DESKI_PADEL_BLUE := Color("#2c68b0")
+const DESKI_LINE := Color("#f1efe6")
+const DESKI_GLASS := Color("#a9c7d4")
+const DESKI_FRAME := Color("#2b3138")
+const DESKI_SHIRTS := [Color("#e8e04a"), Color("#ef5a8a"), Color("#f4f4f0"), Color("#3fb6a8"), Color("#ff8a2a"), Color("#8a6ae0")]
+const DESKI_SKIN := Color("#d9a984")
+
+
+func _find_deski() -> void:
+	# A 0.2 m zone at the clubhouse's corner: the mapped box stays; the courts are only drawn on.
+	var c := Vector2(1503.2, 920.8)
+	_add_site("deski", [PackedVector2Array([c, c + Vector2(0.2, 0), c + Vector2(0.2, 0.2), c + Vector2(0, 0.2)])])
+	sites[-1]["box"] = Rect2(1460.0, 905.0, 85.0, 100.0)
+
+
+func _deski_frame(c: Vector2, axis: Vector2) -> void:
+	_o = c
+	_a = axis
+	_b = Vector2(-axis.y, axis.x)
+
+
+func _build_deski(_site: Dictionary) -> void:
+	_no_roof = true
+	_mode = M_STONE
+	# The closed tennis hall over the four western pitches: walls 7 m, a hipped roof.
+	var hall_c := Vector2.ZERO
+	for k in DESKI_HALL_PITCHES:
+		var q: Array = DESKI_PITCHES[k]
+		for j in 4:
+			hall_c += Vector2(q[j * 2], q[j * 2 + 1]) * (0.25 / DESKI_HALL_PITCHES.size())
+	_deski_frame(hall_c, DESKI_AXIS)
+	var lo := Vector2(INF, INF)
+	var hi := Vector2(-INF, -INF)
+	for k in DESKI_HALL_PITCHES:
+		var q: Array = DESKI_PITCHES[k]
+		for j in 4:
+			var l := _local(Vector2(q[j * 2], q[j * 2 + 1]))
+			lo = Vector2(minf(lo.x, l.x), minf(lo.y, l.y))
+			hi = Vector2(maxf(hi.x, l.x), maxf(hi.y, l.y))
+	var cu := (lo.x + hi.x) * 0.5
+	var cv := (lo.y + hi.y) * 0.5
+	var hu := (hi.x - lo.x) * 0.5 + 3.0
+	var hv := (hi.y - lo.y) * 0.5 + 3.0
+	var gh := _ground_under(_rect(cu, cv, hu, hv))
+	var wall := DESKI_HALL_WALL
+	_prism(_rect(cu, cv, hu, hv), gh - 0.3, gh + 7.0, wall, Color(0, 0, 0, 0), M_STONE)
+	# A dark window band under the eaves and a lit door bay on the south-east end.
+	_lbox(cu, cv, hu + 0.06, hv + 0.06, gh + 4.6, gh + 5.8, Color("#38424d"), M_STONE)
+	_frustum(_rect(cu, cv, hu + 0.4, hv + 0.4), gh + 7.0, _rect(cu, cv, hu * 0.55, hv * 0.55), gh + 9.6, DESKI_HALL_ROOF, DESKI_HALL_ROOF.lightened(0.05))
+	_lbox(cu + hu, cv, 0.3, 2.2, gh, gh + 3.2, Color("#ffe9b0"), M_LAMP)
+	var hall_ring := _rect(cu, cv, hu, hv)
+	_collide(hall_ring)
+	# The one outdoor padel court beside the hall, with four players and four floodlights.
+	_deski_frame(DESKI_PADEL, DESKI_AXIS)
+	var gp: float = map.terrain_height(DESKI_PADEL.x, DESKI_PADEL.y)
+	_deski_padel(gp, 0)
+	_collide(_rect(0.0, 0.0, 10.0, 5.0))
+	for su: float in [-1.0, 1.0]:
+		for sv: float in [-1.0, 1.0]:
+			var u := su * 11.2
+			var v := sv * 6.4
+			_lbox(u, v, 0.12, 0.12, gp, gp + 7.0, DESKI_FRAME.lightened(0.08), M_STONE)
+			_lbox(u, v - sv * 0.35, 0.5, 0.4, gp + 7.0, gp + 7.3, Color("#fff4cf"), M_LAMP)
+	# The club's tube on the clubhouse.
+	var ring := PackedVector2Array(DESKI_CLUBHOUSE)
+	var gc := _ground_under(ring)
+	_crown_signs(ring, gc + DESKI_CLUBHOUSE_H + 0.6, "DESKA", Color(0.25, 0.85, 1.0), 0.0, 0.6)
+	_no_roof = false
+
+
+## One padel court in the current frame: 10 x 20 m of blue, white lines, glass back walls and
+## glass on the first 4 m of the sides, a mesh fence between (posts and a top rail), the net.
+func _deski_padel(g: float, idx: int) -> void:
+	_lbox(0.0, 0.0, 10.3, 5.3, g - 0.2, g + 0.04, DESKI_PADEL_BLUE.darkened(0.3), M_STONE, DESKI_PADEL_BLUE.darkened(0.3))
+	# The surface is lit: the court is open round the clock, its floodlights glow at night.
+	_prism(_rect(0.0, 0.0, 10.0, 5.0), g + 0.04, g + 0.06, DESKI_PADEL_BLUE.darkened(0.25), DESKI_PADEL_BLUE.darkened(0.25), M_LAMP, M_LAMP)
+	var lc := DESKI_LINE
+	for sv: float in [-1.0, 1.0]:
+		_lbox(0.0, sv * 4.85, 9.9, 0.05, g + 0.06, g + 0.075, lc, M_STONE, lc)
+	for su: float in [-1.0, 1.0]:
+		_lbox(su * 9.85, 0.0, 0.05, 5.0, g + 0.06, g + 0.075, lc, M_STONE, lc)
+		_lbox(su * 6.95, 0.0, 0.04, 4.9, g + 0.06, g + 0.075, lc, M_STONE, lc)
+	_lbox(0.0, 0.0, 6.95, 0.04, g + 0.06, g + 0.075, lc, M_STONE, lc)
+	# The net.
+	_lbox(0.0, 0.0, 0.03, 5.0, g + 0.55, g + 0.95, Color("#4a525a"), M_STONE)
+	_lbox(0.0, 0.0, 0.04, 5.0, g + 0.93, g + 0.97, DESKI_LINE, M_STONE)
+	# Glass: the back walls (10 m), the sides' first 4 m at each end; 3 m high, a dark frame on top.
+	var gl := DESKI_GLASS
+	for su: float in [-1.0, 1.0]:
+		_lbox(su * 10.1, 0.0, 0.05, 5.2, g, g + 3.0, gl, M_STONE, DESKI_FRAME)
+		for sv: float in [-1.0, 1.0]:
+			_lbox(su * 8.0, sv * 5.2, 2.0, 0.04, g, g + 3.0, gl, M_STONE, DESKI_FRAME)
+			# the mesh above and between: three posts and a rail
+			_lbox(su * 3.5, sv * 5.2, 0.05, 0.05, g, g + 3.0, DESKI_FRAME, M_STONE)
+			_lbox(0.0, sv * 5.2, 5.0, 0.03, g + 2.9, g + 3.0, DESKI_FRAME, M_STONE)
+		_lbox(su * 10.1, 0.0, 0.07, 5.25, g + 3.0, g + 3.08, DESKI_FRAME, M_STONE)
+	# The players: padel court 0 has four, court 1 two.
+	var spots := [Vector2(-6.0, -2.4), Vector2(-5.5, 2.5), Vector2(6.0, -2.4), Vector2(5.5, 2.5)]
+	for k in (4 if idx == 0 else 2):
+		var sp: Vector2 = spots[k] if idx == 0 else spots[k * 2]
+		_deski_player(sp, 0.0 if sp.x < 0.0 else PI, g + 0.06, idx * 4 + k, true)
+
+
+## A player standing at local (u, v) facing the net (yaw 0: towards +u), racket arm out. 1.75 m,
+## about 50 triangles. `padel`: a short racket, otherwise a longer one.
+func _deski_player(at: Vector2, yaw: float, y: float, seed_n: int, padel: bool) -> void:
+	var fwd := _a * cos(yaw) + _b * sin(yaw)
+	var side := Vector2(-fwd.y, fwd.x)
+	var pos := _w(at.x, at.y)
+	var shirt: Color = DESKI_SHIRTS[seed_n % DESKI_SHIRTS.size()]
+	var shorts := Color("#232a3a")
+	for sd: float in [-1.0, 1.0]:
+		var foot := pos + side * 0.14 * sd + fwd * 0.1 * sd
+		_beam(Vector3(pos.x + side.x * 0.1 * sd, y + 0.95, pos.y + side.y * 0.1 * sd), Vector3(foot.x, y + 0.04, foot.y), 0.15, shorts)
+	var torso_c := pos + fwd * 0.05
+	_beam(Vector3(torso_c.x, y + 0.95, torso_c.y), Vector3(torso_c.x, y + 1.5, torso_c.y), 0.34, shirt)
+	_beam(Vector3(pos.x, y + 1.52, pos.y), Vector3(pos.x, y + 1.75, pos.y), 0.2, DESKI_SKIN)
+	# Arms: the left down, the right out front holding the racket.
+	var hand := pos + fwd * 0.55 + side * 0.25
+	_beam(Vector3(pos.x + side.x * 0.2, y + 1.45, pos.y + side.y * 0.2), Vector3(hand.x, y + 1.15, hand.y), 0.1, DESKI_SKIN)
+	var lh := pos - side * 0.3
+	_beam(Vector3(pos.x - side.x * 0.2, y + 1.45, pos.y - side.y * 0.2), Vector3(lh.x, y + 0.9, lh.y), 0.1, DESKI_SKIN)
+	var tip := hand + fwd * (0.3 if padel else 0.5)
+	_beam(Vector3(hand.x, y + 1.15, hand.y), Vector3(tip.x, y + 1.3, tip.y), 0.35 if padel else 0.28, Color("#e8483c") if padel else Color("#2b2f36"))
 
 
 # --- Stadion Leguminy (Legia's ground, Łazienkowska) -----------------------------------------

@@ -192,6 +192,11 @@ const VENUES := {
 	"nowy_winiarnia": [["WINIARNIA", "POD GRUSZĄ"], NOWY_WINE, 2.8],
 	"nowy_galeria": [["GALERIA", "NIEPOJĘTA"], Color(1.0, 1.0, 1.0), 2.8],
 	"nowy_kantor": [["KANTOR", "DOBRY KURS"], Color(0.2, 1.0, 0.45), 2.8],
+	# N2 (2026-11-02): the old confectioner's near no. 35 (a parody of the famous one, no real name)
+	# and the mouths of Chmielna and Foksal.
+	"nowy_cukiernia": [["BLIKLINA", "OD 1869"], NOWY_ROSE, 2.8],
+	"nowy_chmielna": [["CHMIELNA", "KAWA TUTAJ"], NOWY_CREAM, 2.8],
+	"nowy_foksal": [["FOKSAL", "PRZY WINYLU"], NOWY_SKY, 2.8],
 	# Marszałkowska's shopfronts (street-by-street pass 4, 2026-11-02): old-fashioned trades, original names.
 	"marsz_bar": [["BAR MLECZNY", "KOTLET DNIA"], MARSZ_GREEN, 2.8],
 	"marsz_pralnia": [["PRALNIA", "CHEMICZNA"], MARSZ_BLUE, 2.8],
@@ -321,7 +326,7 @@ static func zaglebie_table() -> Dictionary:
 
 
 ## Nowy Świat's shopfronts (F's street-by-street pass, 2026-11-02; docs/design/nowy-swiat.md):
-## eight small shops on the café street between the Palm and Karowa, alternating sides, ~60 m
+## eleven small shops (N2 added three) on the café street between the Palm and Karowa, alternating sides, ~60 m
 ## apart, placed from the road line (the Mac look check moves them to real doors). Like the cafés,
 ## not notebook places; same venue code, the nearest road snaps each sign to a wall in reach.
 const NOWY_SWIAT := {
@@ -333,6 +338,9 @@ const NOWY_SWIAT := {
 	"nowy_butik": [52.23585, 21.01816],
 	"nowy_galeria": [52.23622, 21.01831],
 	"nowy_kantor": [52.23707, 21.01777],
+	"nowy_cukiernia": [52.23377, 21.01911],
+	"nowy_chmielna": [52.23318, 21.01951],
+	"nowy_foksal": [52.23532, 21.01851],
 }
 ## Marszałkowska's shopfronts (F's street-by-street pass 4, 2026-11-02): eight old-fashioned trades
 ## (milk bar, dry cleaner, watchmaker, pastry shop, optician, florist, haberdashery, herbalist) at
