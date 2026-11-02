@@ -11,6 +11,8 @@ someone writes its lines.
 
 ## 2026-11-02
 - The roadworks at the city's edges now speak English too: ROAD WORKS and DETOUR when you play in English.
+- Fabryka Norblina's courtyard has its big spreading plane trees, and the yard of Browary Warszawskie has a garden of lindens, birches and maples.
+- The start of the game has a park strip in front of the museum: benches and slim lamps, and every zebra crossing now has a lowered kerb.
 - On match evenings friendly fans gather outside Stadion Leguminy: scarves up over their heads on the drum's beat, pink smoke, funny banners, a kid with a giant foam finger, and a police officer who just drinks a coffee. Honk and they start singing.
 - Loud cars: a meet of low, wide supercars in acid colours (no badges) on the square by the Browary Warszawskie gate, with people filming them on their phones, and a few of them out on the streets, revving and crackling as they pass. KEBAB FM reports that the neighbours are counting the revs again.
 - A kebab shop called MIESZANE MIESZANE glows on Al. Solidarności by the Kebab Basin, named after the only two answers you give at the counter ("Mięso?" "Mieszane." "Sos?" "Mieszane."), with a late-night queue of regulars, and the Skyliner at Rondo Daszyńskiego wears the NOSE AGENCY on its crown.
