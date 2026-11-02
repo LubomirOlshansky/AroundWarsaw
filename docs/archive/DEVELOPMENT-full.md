@@ -5285,6 +5285,11 @@ still hold, with the paths above.
    the young trees planted since into their mapped beds, per place in its `PLACES` (Krajobraz
    places, 2026-11-02: ul. Bracka's woonerf, +22 to its 11 scanned young trees, 33 in all;
    `trees3d` 268,992 → 269,124 values, `trees3d_crown` 44,832 → 44,854).
+   `tools/plaza_gardens.py` (same hook, right after it; K5, 2026-11-02, spec
+   docs/design/rondo-plazas.md) plants the open ground round Skyliner, Generation Park and Mennica
+   Legacy Tower: +121 young trees (`trees3d` → 269,850 values, `trees3d_crown` → 44,975), 51
+   "park" beds in `areas`, 11 benches; `plaza_gardens` in the map lists the places done, so it
+   is idempotent.
 1. OpenStreetMap (Overpass) → `data/raw/osm_wide.json` (the whole map: roads, trees, lamps,
    traffic lights, car parks, street furniture), then
    `W=data/raw/osm_wide.json && python3 -I tools/bake_osm.py $W $W game/map/centrum.json $W $W`.
