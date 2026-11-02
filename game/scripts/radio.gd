@@ -369,7 +369,9 @@ func announce(text: String, subtitle := "") -> void:
 		var gap := "first" if _last_host_s < 0.0 else "+%.1f s" % (_play_s - _last_host_s)
 		_last_host_s = _play_s
 		_log("host (%s, %s): %s" % [gap, info.get("name", "off"), text])
-	var head := "%s %s:  " % [info["freq"], info["name"]] if station >= 0 else ""
+	# F (2026-11-02): the lines between songs are notes from the city, not a radio host talking:
+	# no "87,3 KEBAB FM:" in front (PÓŁNOC FM keeps it, Kuba is a real host there).
+	var head := "%s %s:  " % [info["freq"], info["name"]] if station >= 0 and station == polnoc_index() else ""
 	ticker.emit(head + Lang.pick(text, subtitle), info["colour"] if station >= 0 else Color("#c9c4d8"), "")
 
 
