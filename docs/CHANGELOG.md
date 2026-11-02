@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- In your first race Pani Halina waits at the start until you move, and if you sit still she tells you to step on it and follow the pink arrow, with a finger showing how to drive.
 - Warsaw's monuments are on the map: about 300 statues, busts, memorial stones and talking benches stand where the real ones do, Ogród Saski's sandstone statues stand at their real spots, and 520 Uprising memorial plaques hang on the walls with candles below them.
 - The quest list on the full map works with a gamepad (X switches between car and helicopter quests, the D-pad picks one, Y takes it) and lists more to do: the "Na czasie" trend deliveries, Cringulo's van, the Friday pistachio drop, the next rival on the ladder (the arrow follows them through traffic), Seba's night race and the peacock stuck on a roof. While something is on, it shows at the top of the list.
 - Driving onto a bridge ramp at an angle no longer drops you under the bridge: the car climbs onto the ramp, at Most Poniatowskiego, Towarowa and the Vistula boulevard road too.
