@@ -255,6 +255,14 @@ PT-9 (bubbles) fixed 2026-11-02: the tail of a bubble kept clear of the HUD ende
 PT-13 (the order card went away without a tap) fixed 2026-11-02: it was the order's designed start after 9 s, unexplained; the card's GO now counts those seconds down.
 PT-10 (the order tracker over bubbles) fixed 2026-11-02: the target pointer draws under the speech bubbles and the panels and goes faint under the banner or a bubble; the edge arrow slides along the edge clear of bubbles and panels, and its distance sits past the arrow by the label's own size (`check_hud`: draw order, 72 directions, a bubble in the arrow's spot). Phone look open.
 
+## POLIN and the Ghetto Heroes Monument (F, 2026-11-02)
+Built from photos gathered on the Mac (`refs/polin/`) and the LoD2 roof, spec `polin.md`. Found and left:
+- The east front's two long dark band windows (~10 m, 4-5 m up) and the small lit slot south of the canyon are not drawn.
+- The fins' letter frit and their 1.35 m rows: no skin draws them (S_FINS is the nearest; the 16 skins are full).
+- The canyon's interior (the main hall, the bridge) and the lens's mullions are not modelled; the plaza's dark inlay line, the yellow bollards and the sunken SE service stair are the map's or missing.
+- The monument's lions under the menorahs and the plaques at the relief's foot are not modelled.
+- LoD2 shows a 3 m hump over the west roof that the ortho does not: a LoD2 artefact, not built.
+
 ## Skwer Linearny na Złotej and Dom pod Orłami (F, 2026-11-02)
 
 - Built: Złota between Marszałkowska and Jasna is the linear park that opened on 3 August 2026
@@ -1097,7 +1105,7 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   `check_water`), tuned on the flat test ground; the corner slip, the shove and the stop assist were
   never felt on the phone ("From the driving-feel loop", QUESTIONS 2026-10-31). Comes with F's
   playthrough above.
-- The NaN car is unexplained (once in ~10 replays; "From loop 3h slice 4"; PR #115 adds a log).
+- ~~The NaN car is unexplained~~ (2026-11-02: not reproduced, guarded and checked by `check_finite`; "From loop 3h slice 4").
 - On the phone: Fotka by a wall for a minute leaves the car where it stood, and JAZDA's POMOC
   DROGOWA tows it onto the road (fixed and checked headless 2026-11-01; QUESTIONS). Every hold of
   the car (title, Fotka, flying, police) now parks it, so none reverses at 7 m/s any more.
@@ -3476,6 +3484,19 @@ first rescue, the boulevard tape and its song, the Powiśle arrow, the garage at
   now also prints the state the physics step began with (transform, velocity, target_dir, steer,
   steer_now, yaw_rate, throttle, braking, parked, collision mask, in water): a NaN going in means
   another script wrote it, a finite one means car.gd's own step made it.
+  2026-11-02 (NaN car thread): 5 more replays clean, and the replay is now frame-for-frame the same
+  each run (same beats to the tenth of a second, the car's collision off from 19 s), so the ~1 in 10
+  of 2026-10-31 came from code since changed or from a source a fixed replay no longer varies.
+  `check_finite` (verify step `finite`, quick set and CI map job, ~2 min) found no source in the
+  data: 950k height samples (terrain, ground, drive height at street, deck and tunnel level, tunnel
+  floors) on an 8 m grid and densely in every deck, tunnel, fill and apron corridor; every lane and
+  junction curve; the car's step at every input. It did find a hole in the safety net: one NaN in
+  the stick, the steering, the pedal or the speed left `steer_now` NaN, so every later step went NaN
+  and the car was put back at the same spot every frame, frozen for good. Now car.gd
+  `_clean_inputs` drops a NaN input before the step and `_keep_finite` clears the steering state;
+  the check poisons four cars and wants each driving on. Left: if `car: state not a number` or
+  `car: an input was not a number` ever shows in a log, its `_pre_step` is the lead (the traffic
+  ghosts the autopilots ride were read, not swept: a NaN there would show as a position going in).
 - The end card first didn't show at all: its four Polish lines plus English were taller than the
   HUD's room, so the layout left it unplaced. Now two Polish lines (the credits and the repo as one
   shared line) and the English paragraph; a layout assertion in check_end_card would catch it again.
