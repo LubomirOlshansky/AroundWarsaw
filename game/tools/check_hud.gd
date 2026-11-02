@@ -135,6 +135,7 @@ func _check_screen(screen: Vector2i) -> int:
 			safe.position.y / pt, safe.end.y / pt])
 	var count := 0
 	var at := func(fx: float, fy: float) -> Vector2: return Vector2(screen.x * fx, screen.y * fy)
+	_check_bubble_sweep(hud, bubbles, screen, tag)
 	# The longest call the map gives (the longest hospital name), Polish over English as in missions.gd.
 	var call_pl := "Ranny rowerzysta: Aleksandra Krywulta. Wystarczy auto albo helikopter.\nSzpital: Samodzielny Szpital Kliniczny im. prof. Witolda Orłowskiego · czas 3:40"
 	var call_en := "A cyclist is hurt: the car or the helicopter will do. Get them to the hospital in 3:40."
@@ -717,6 +718,44 @@ func _check_radio_hold(hud: CanvasLayer) -> void:
 		var want := "station" if held < hold_ms else "skip"
 		if got != [want]:
 			problems.append("radio held %d ms: %s, want [%s]" % [held, got, want])
+
+
+## PT-6 (2026-11-02): a speech bubble never covers the minimap or its +/- buttons, wherever its
+## speaker stands on screen (the jogger's "On your left!" sat on them for ~4 s in the first drive).
+## Sweeps a speaker over the screen and well past its edges (a speaker off screen pushes its bubble
+## into the corner), in the car and the helicopter, with a short and a long
+## line, and checks every bubble that gets a place against the minimap, the zoom buttons, the
+## wallet and the top row.
+func _check_bubble_sweep(hud: CanvasLayer, bubbles: Control, screen: Vector2i, tag: String) -> void:
+	var lines := [["Lewa wolna! Lewa! No dobra, chodnik jest jeden.", "On your left! Left! Fine, there's only one pavement."],
+			["Tak.", ""]]
+	var n := 0
+	var bad := 0
+	for flying in [false, true]:
+		hud.set_flying(flying)
+		hud.clear_all()
+		var keep: Array[Rect2] = []
+		var named: Dictionary = hud.named_rects()
+		for k in ["minimap", "zoom_in", "zoom_out", "wallet", "gear"]:
+			if named.has(k):
+				keep.append(named[k])
+		for line in lines:
+			for ix in 41:
+				for iy in 41:
+					bubbles.clear()
+					_say(bubbles, "Biegacz", Vector2(screen.x * (ix - 10) / 20.0, screen.y * (iy - 10) / 20.0), line[0], line[1])
+					for r in bubbles.layout().map(func(item: Array) -> Rect2: return item[2]):
+						n += 1
+						for k in keep:
+							if (r as Rect2).intersection(k).get_area() > 1.0:
+								bad += 1
+								if bad <= 3:
+									problems.append("%s PT-6: a bubble %s covers %s with the speaker at %d,%d" % [
+											tag, _pts(r, hud.pt), _pts(k, hud.pt), screen.x * (ix - 10) / 20, screen.y * (iy - 10) / 20])
+	bubbles.clear()
+	hud.set_flying(false)
+	if n == 0:
+		problems.append("%s PT-6: the bubble sweep placed nothing" % tag)
 
 
 ## A speech bubble from a speaker standing at screen point `p`.

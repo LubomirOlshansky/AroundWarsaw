@@ -77,6 +77,7 @@ then the Launch gate.
 ### Left: map and roads
 - [ ] Free-play playtest plan P1-P10 run with Autopilot and every confirmed PT bug fixed
       (F, 2026-11-02; docs/PLAYTEST.md; setup and Autopilot plugin done 2026-11-02)
+  - [x] PT-1 dead stop at Centrum's tram stop on Marszałkowska, 2026-11-02 (PR #289)
 - [ ] A full `tools/verify.sh` and `--ios` on the Mac on today's main, both city paths
 - [ ] Map checks in GitHub CI (the derived map pack as a release asset)
 - [x] check_streaming's look pass green on the Mac (a look pre-loads what each of its views
@@ -95,6 +96,9 @@ then the Launch gate.
 - [ ] Junction lines checked against photos; dark Jerozolimskie and Nowy Świat at night
 
 ### Left: landmarks and street details
+- [ ] Krajobraz places (F, 2026-11-02; docs/design/krajobraz-places.md, BACKLOG "Krajobraz places"): the newest public spaces as built
+  - [x] K1 ul. Bracka's woonerf: its 22 missing young trees planted in the mapped beds (33 in all)
+  - [ ] K2 Chmielna, K3 Varso Place, K4 Świętokrzyska, K5 Rondo Daszyńskiego plazas, K6 Browary/Norblin gardens, K7 the boulevards' pavilions, K8 Arkadia's playground, K9 the stadium's grounds; K10 Muzeum Historii Polski is off the map (QUESTIONS)
 - [x] Stadion Leguminy (Legia's ground on Łazienkowska, F, 2026-11-01): modelled from the mapped bowl outline (site `legia`, spec legia.md); Mac photo check parked (QUESTIONS)
 
 - [x] All churches designed by one set of rules (F, 2026-11-01; rules and inventory in
@@ -179,6 +183,10 @@ then the Launch gate.
       tenements, the Mac photo checks (BACKLOG "Powiśle street by street")
 - [x] Street furniture along the main line's route (Krakowskie Przedmieście, Nowy Świat, the Old
       Town's edge, Plac Zbawiciela, the boulevards, Rondo Daszyńskiego)
+- [x] Office crowds at Rondo Daszyńskiego, 2026-11-02 (F; BACKLOG "Rondo Daszyńskiego office crowd"):
+      weekday rush-hour workers in business dress at the metro exits and zebras and walking over the
+      crossings (`crowds.gd` OFFICE, mode `office`, up to 56 walkers + 88 standing, scaled by
+      `amount`), 65 overheard corporate lines in `dialogue.json` "office"; phone look check parked
 - [ ] The estate, the halls and Jana Pawła II (F, 2026-11-01; BACKLOG section):
   - [x] Osiedle Za Żelazną Bramą: eleven blocks as a model with its own skin, 2026-11-01
   - [x] Hala Mirowska: market stalls on the square, 2026-11-01 (the hall itself was done)
@@ -279,7 +287,7 @@ then the Launch gate.
   - [x] The van's CRINGULO TV lettering, 2026-11-02
   - [ ] Still left (BACKLOG): Mac and phone look checks
 - [x] Roof rescues never name a real chain (2026-11-02, `missions.gd` `ROOF_PARODIES`): Puro shows as Hotel Piure, Green Caffè Nero as Green Caffè Nerwo; headless check not run in the cloud (no Godot)
-- [x] Zagłębie Kebabowe and Kino Femina (F, 2026-11-02; spec docs/design/zaglebie-kebabowe.md): five parody kebab shops on Al. Solidarności, Femina's neon, delivery twists, the craft kebab's choice, Szlak Szpili, 2026-11-02 (the Mac photo check of Femina's front is open)
+- [x] Zagłębie Kebabowe and Kino Femina (F, 2026-11-02; spec docs/design/zaglebie-kebabowe.md): five parody kebab shops on Al. Solidarności, Femina's neon, delivery twists, the craft kebab's choice, Szlak Szpili, 2026-11-02 (the Mac photo check of Femina's front is open; a queue outside ZAKWAS I ROŻEN, 2026-11-02)
   - [x] KEBAB FM lines about the seven cinemas and the Kebab Basin, 2026-11-02 (text only; headless checks not run in the cloud)
   - [ ] Leftovers (BACKLOG): dates on LUŹNO's roof, Podwózka dates, van fans and egg
 - [x] Gamepad support (2026-11-01, `gamepad.gd`, `check_gamepad`): Xbox, PlayStation and MFi
