@@ -413,6 +413,20 @@ and the first scene's authored cafe tables are unchanged; night service (N buses
 the Centralny hub.
 
 
+**G12 part 2 · The two quest lists: done (2026-11-02).** The full map's ZADANIA card (right, under
+✕ and ≡; the ≡ cards take its place): tabs ZADANIA AUTO / ZADANIA HELI, the vehicle's own first,
+at most four 44 pt rows (quest_lines.gd `rows`: requests first, then places nearest first, one per
+group, three cassettes). AUTO: the nearest kebab stand, słoiki station and Leżak depot (night),
+Warsztat u Mirka, "Podwózka · ask for a ride" (PODWÓZKA's rule). HELI: "a rescue call by
+helicopter" (missions.gd `request_call`: a roof or sandbar call on the card now) and the three
+nearest cassettes not taken. A tapped place becomes the quest pin (main.gd `quest_pin`: the arrow
+and minimap dot in its colour while nothing else is on; gone within 25 m, a cassette when taken);
+tapped again it goes. Empty while a race, job or rescue is on. `--quest-pick=N` for runs. Left:
+- **G12b (P2).** The pad has no way into the card (A is the teleport hold): X to switch tabs and the
+  d-pad to pick a row. Phone look: are four rows enough, is the card in the way of the map.
+- **G12c (P3).** More quest kinds on the lists: the ladder's next rival (they challenge in traffic,
+  no fixed place), the "Na czasie" queue, the Mlask job, the peacock; the active quest as a row.
+
 **G13 · Upgrade shop: done (2026-11-02).** Warsztat u Mirka's card has a second tab, "Części i auta":
 the Ołdi TT (2,500 zł, faster, a lower coupe model), the nitro "Kebab Boost" (600 zł; a bolt disc left
 of the horn or the N key: 3.5 s of boost, 20 s refill), tyres (grip) and engine (top speed and pull),
