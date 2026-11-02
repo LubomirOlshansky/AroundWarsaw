@@ -72,10 +72,18 @@ const CZ_FROM := 400.0
 const CZ_TO := 1500.0
 const CZ_MIN_QUEUE := 10
 const CZ_COLOUR := Color("#2fd0e0")
-## The same request at WTS DeSki's padel courts (landmarks.gd DESKI, docs/design/padel.md): the club's
-## gate on the Zaruskiego service road, open 7:00-23:00; Pani Basia's friends play there.
+## "Czwarty" at WTS DeSki (landmarks.gd DESKI, docs/design/padel.md): a friend phones from the court
+## by the Vistula: the fourth player broke a leg at pole dance, come at once (drive or fly) and play.
+## Once the player has driven a while, 8:00-22:00, then every DESKI_COOL s of play. No pickup: the
+## beacon is the club's gate; a helicopter within DESKI_FLY_R m of it counts.
 const DESKI_GATE := Vector2(1475.0, 985.0)
-const DESKI_HOURS := [7.0, 23.0]
+const DESKI_HOURS := [8.0, 22.0]
+const DESKI_FIRST := 150.0
+const DESKI_COOL := 1200.0
+const DESKI_LIMIT := 480.0
+const DESKI_FLY_R := 28.0
+const DESKI_CALLERS := ["Kuba", "Zuzia", "Bartek", "Iga", "Olek", "Magda"]
+const DESKI_INJURED := ["Marta", "Ola", "Michał od Excela", "Prezes z Mokotowa"]
 const CZ_PLAYERS := ["Prezes z Mokotowa", "Pani Basia", "Trener Dominik", "kuzyn Kuby", "Ola z recepcji", "Michał od Excela"]
 ## "Mlask" (G5): the van's spots (places.json ids) by weekday, its hours, the offer's reach, the
 ## legs' limits, the pay *guess*.
@@ -141,6 +149,10 @@ var _hold := 0.0
 var _beacon: Node3D
 var _rng := RandomNumberGenerator.new()
 var _session := 0.0
+## Set by the game each frame: where the player is (the car, or the helicopter in the air).
+var player_pos := Vector3.ZERO
+## When the DeSki call may ring next (_session seconds).
+var _deski_at := DESKI_FIRST
 ## "Mlask": the places' points (setup), the van {spot, at: Vector3, ring: Vector3, yaw} or {}, its node.
 var _places := {}
 var van := {}
@@ -304,9 +316,9 @@ func _look() -> void:
 			_cool[-1] = _session + SLOT_COOL
 			if offer_drop():
 				return
-	if hour >= DESKI_HOURS[0] and hour < DESKI_HOURS[1] and p.distance_to(DESKI_GATE) <= OFFER_R and _session >= float(_cool.get(-4, 0.0)):
-		_cool[-4] = _session + SLOT_COOL
-		if offer_czwarty(true):
+	if hour >= DESKI_HOURS[0] and hour < DESKI_HOURS[1] and _session >= _deski_at:
+		_deski_at = _session + DESKI_COOL
+		if offer_deski_call():
 			return
 	if crowds != null and crowds.by_id.has(Crowds.PADEL_ID) and int(Crowds.padel_queue(hour, life.weekday_now())[0]) >= CZ_MIN_QUEUE:
 		var psite: Dictionary = crowds.sites[crowds.by_id[Crowds.PADEL_ID]]
@@ -390,31 +402,17 @@ func offer_drop() -> bool:
 
 ## The "Czwarty" request at PADELNIA (--trend-job=5 too): the pickup is the player's door, the
 ## delivery the court's kerb. False if no kerb or door fits.
-func offer_czwarty(deski := false) -> bool:
-	var door := DESKI_GATE
-	var out := Vector2(-1.0, 0.0)
-	var venue := "WTS DeSki"
-	if not deski:
-		if crowds == null or not crowds.by_id.has(Crowds.PADEL_ID):
-			return false
-		var site: Dictionary = crowds.sites[crowds.by_id[Crowds.PADEL_ID]]
-		door = site["door"]
-		out = site["out"]
-		venue = "PADELNIA"
-	var k: Dictionary = {}
-	var kerb := door
-	if deski:
-		# The club's service road is not in the lane graph: the gate itself is the stop, the
-		# nearest lane (the bridge deck at worst) anchors the road length of the fetch.
-		var hit := graph.snap(door, 80.0, Vector2.ZERO, false, false)
-		if hit.is_empty():
-			return false
-		k = {"edge": int(hit[0]), "s": float(hit[2])}
-	else:
-		k = jobs._kerb(door, door - out * 4.0, 3.5, [1.4, 2.2, 3.0])
-		if k.is_empty():
-			return false
-		kerb = (k["centre"] as Vector2) + (k["side"] as Vector2) * 2.0
+func offer_czwarty() -> bool:
+	if crowds == null or not crowds.by_id.has(Crowds.PADEL_ID):
+		return false
+	var site: Dictionary = crowds.sites[crowds.by_id[Crowds.PADEL_ID]]
+	var door: Vector2 = site["door"]
+	var out: Vector2 = site["out"]
+	var venue := "PADELNIA"
+	var k: Dictionary = jobs._kerb(door, door - out * 4.0, 3.5, [1.4, 2.2, 3.0])
+	if k.is_empty():
+		return false
+	var kerb: Vector2 = (k["centre"] as Vector2) + (k["side"] as Vector2) * 2.0
 	var rng := RandomNumberGenerator.new()
 	rng.seed = done * 4001 + 29
 	var from: Dictionary = jobs._pick_address(k["edge"], k["s"], kerb, CZ_FROM, CZ_TO, rng, func(_a: Dictionary) -> bool: return true)
@@ -423,7 +421,7 @@ func offer_czwarty(deski := false) -> bool:
 			print("trend job: no door %.0f-%.0f m from %s" % [CZ_FROM, CZ_TO, venue])
 		return false
 	order = {"kind": "czwarty", "slot": -1, "word": "PADEL", "day": 0, "ring": from["ring"],
-			"door_ring": Vector3(kerb.x, map.terrain_height(kerb.x, kerb.y) if deski else graph.surface(k["edge"], kerb), kerb.y),
+			"door_ring": Vector3(kerb.x, graph.surface(k["edge"], kerb), kerb.y),
 			"road": float(from["road"]), "name": venue, "customer": CZ_PLAYERS[rng.randi() % CZ_PLAYERS.size()], "from": str(from["name"])}
 	state = State.OFFER
 	_t = 0.0
@@ -433,6 +431,32 @@ func offer_czwarty(deski := false) -> bool:
 	hud.ticker_out()
 	if log_on:
 		print("trend job: czwarty offer at %s: %s from %s, %.0f m by road" % [venue, order["customer"], order["from"], order["road"]])
+	return true
+
+
+## The DeSki call (--trend-job=7 too): a friend phones, the club is short of a fourth. Accepting
+## sets the gate as the target at once (no pickup). False in the air or with a job on.
+func offer_deski_call(force := false) -> bool:
+	if not force and not _free():
+		return false
+	var rng := RandomNumberGenerator.new()
+	rng.seed = done * 7001 + 53 + roundi(_session)
+	var who: String = DESKI_CALLERS[rng.randi() % DESKI_CALLERS.size()]
+	var hurt: String = DESKI_INJURED[rng.randi() % DESKI_INJURED.size()]
+	var gy: float = map.terrain_height(DESKI_GATE.x, DESKI_GATE.y)
+	var dist := Vector2(player_pos.x, player_pos.z).distance_to(DESKI_GATE)
+	order = {"kind": "czwarty", "call": true, "slot": -1, "word": "PADEL", "day": 0, "ring": Vector3(DESKI_GATE.x, gy, DESKI_GATE.y),
+			"door_ring": Vector3(DESKI_GATE.x, gy, DESKI_GATE.y), "road": dist * 1.3,
+			"name": "WTS DeSki", "customer": who, "from": "", "hurt": hurt}
+	state = State.OFFER
+	_t = 0.0
+	hud.show_side_card("📞 %s DZWONI" % who.to_upper(),
+			"„Halo? Gramy na DeSkach w padla, a jedno z nas ma nogę w gipsie po pole dance (%s) i wypadło z gry! Brakuje czwartego. Dojedź albo doleć na kort przy Zaruskiego, 8 minut!”" % hurt,
+			PackedStringArray(["PRZYJEDŹ", "NIE TERAZ"]), CZ_COLOUR, "%s is calling" % who,
+			"\"Hello? We're playing padel at DeSki, but one of us has a leg in plaster after pole dance (%s) and dropped out! We need a fourth. Drive or fly to the court on Zaruskiego, 8 minutes!\"" % hurt)
+	hud.ticker_out()
+	if log_on:
+		print("trend job: DeSki call from %s: %s broke a leg, %.0f m away" % [who, hurt, dist])
 	return true
 
 
@@ -683,6 +707,9 @@ func _on_card(index: int) -> void:
 
 
 func _accept() -> void:
+	if bool(order.get("call", false)):
+		_accept_call()
+		return
 	state = State.PICKUP
 	_t = 0.0
 	_hold = 0.0
@@ -704,6 +731,23 @@ func _accept() -> void:
 		hud.toast("Na czasie: odbiór przy kolejce", "On trend: pick up by the queue")
 	if log_on:
 		print("trend job: accepted")
+
+
+func _accept_call() -> void:
+	state = State.DELIVER
+	_clock = 0.0
+	_t = 0.0
+	hud.hide_card()
+	missions.close()
+	missions.paused = true
+	hud.hide_pill()
+	hud.hide_challenge()
+	_beacon.recolour(CZ_COLOUR)
+	_beacon.waving = true
+	_beacon.place(order["door_ring"], ARRIVE - 0.5)
+	hud.toast("Czwarty: na kort DeSki, jedź albo leć", "Fourth player: to the DeSki court, drive or fly")
+	if log_on:
+		print("trend job: DeSki call accepted")
 
 
 func _pickup_tick(dt: float) -> void:
@@ -752,7 +796,11 @@ func _pickup_tick(dt: float) -> void:
 
 func _deliver_tick(dt: float) -> void:
 	_clock += dt
-	var d := _flat(car.global_position, order["door_ring"])
+	var is_call := bool(order.get("call", false))
+	var d := _flat(player_pos if is_call else car.global_position, order["door_ring"])
+	if is_call and flying and d < DESKI_FLY_R:
+		_arrive()
+		return
 	if d < ARRIVE and car.vel.length() < ARRIVE_SPEED and not flying:
 		_arrive()
 		return
@@ -761,11 +809,11 @@ func _deliver_tick(dt: float) -> void:
 		return
 	var drop := _is_drop()
 	var cz := _is_cz()
-	var limit := DROP_LIMIT if drop else (CZ_LIMIT if cz else LIMIT)
+	var limit := DROP_LIMIT if drop else ((DESKI_LIMIT if is_call else CZ_LIMIT) if cz else LIMIT)
 	var tint := DROP_COLOUR if drop else (CZ_COLOUR if cz else COLOUR)
 	var left := limit - _clock
 	var clock := ("%d:%02d" % [int(left) / 60, int(left) % 60]) if left > 0.0 else "+%d:%02d" % [int(-left) / 60, int(-left) % 60]
-	var hint := (["Jedź do turkusowego światła", "Head for the teal beacon"] if cz else ["Jedź do zielonego światła", "Head for the green beacon"] if drop else ["Jedź do różowego światła", "Head for the pink beacon"]) if d > 40.0 else ["Stań pod drzwiami", "Stop at the door"]
+	var hint := (["Jedź lub leć do turkusowego światła", "Drive or fly to the teal beacon"] if is_call else ["Jedź do turkusowego światła", "Head for the teal beacon"] if cz else ["Jedź do zielonego światła", "Head for the green beacon"] if drop else ["Jedź do różowego światła", "Head for the pink beacon"]) if d > 40.0 else ["Stań pod drzwiami", "Stop at the door"]
 	if left <= 0.0:
 		hint = ["Spóźnione, ale dowieź", "Late, but deliver it"]
 	hud.show_status(("CZWARTY → %s" if cz else "LIMITKA → %s" if drop else "NA CZASIE → %s") % order["name"], clock, "%d m" % roundi(d), hint[0],
@@ -825,13 +873,15 @@ func _arrive() -> void:
 
 
 func _arrive_cz() -> void:
-	var on_time := _clock <= CZ_LIMIT
+	var on_time := _clock <= (DESKI_LIMIT if bool(order.get("call", false)) else CZ_LIMIT)
 	var r := cz_pay(float(order["road"]), on_time)
 	wallet.pay(int(r["zl"]), int(r["respect"]), "trend")
 	done += 1
 	var line := ["Jesteśmy w czterech! Ściana nas nie zje.", "Four of us! The wall won't eat us."]
-	if str(order["name"]) == "WTS DeSki":
-		line = ["Czwarty jest! Pani Basia wpisała nas na kort przy Wiśle. Ściana nie ucieknie.", "The fourth is here! Pani Basia booked us the court by the Vistula. The wall isn't going anywhere."]
+	if bool(order.get("call", false)):
+		line = ["Czwarty jest! Gramy do dwóch setów. %s kibicuje z gipsem." % order["hurt"], "The fourth is here! We play two sets. %s cheers from the bench in a cast." % order["hurt"]]
+		if not on_time:
+			line = ["Zagraliśmy w trzech, ale piłka i tak wróciła. Dzięki, że dojechałeś.", "We played three-a-side, the ball came back anyway. Thanks for coming."]
 	if not on_time:
 		line = ["Zagraliśmy w trzech. Piłka i tak wróciła.", "We played three-a-side. The ball came back anyway."]
 	var head := "CZWARTY · +%d zł" % int(r["zl"])
