@@ -228,8 +228,8 @@ then the Launch gate.
       verify step `rescues`. Phone check of both is open (below)
 - [ ] Loop 3i juice: sparks and dust (no particles yet), money pops, district ambiences,
       haptics working on the iPhone
-- [ ] DEMO 6.3 counts, rescues and słoiki: the second słoiki station (jobs.gd has one), the Old
-      Town tourist and the Łazienki peacock rescues (a "tourist fainted" street rescue exists; no peacocks)
+- [ ] DEMO 6.3 counts, rescues and słoiki: the second słoiki station is done (Dworzec Gdański,
+      `jobs.gd`); left: the Old Town tourist rescue (a "tourist fainted" street rescue exists)
 - [x] Crash sparks and dust, phone vibration fixed in code (2026-11-01, crash_fx.gd, haptics.gd;
       the feel on the iPhone and an Android phone still to check: QUESTIONS)
 - [x] Loop 3i juice leftovers (2026-11-01): money pops (`money_pop.gd`, a "+54 zł" over the vehicle and a coin ting; calm mode keeps it still) and district ambiences (`sfx.gd`: river, park, square, courtyard beds)
@@ -254,6 +254,7 @@ then the Launch gate.
   - [x] G5 Cringulo: the "Mlask" job, his pizza, fans and news, 2026-11-01
   - [x] LORETKA's summer terrace with couples, PRZEGRYWKI, WACZEK burger neons, 2026-11-01
   - [ ] Leftovers (BACKLOG): Podwózka dates, "Kolejki" card, van fans and egg
+- [x] Roof rescues never name a real chain (2026-11-02, `missions.gd` `ROOF_PARODIES`): Puro shows as Hotel Piure, Green Caffè Nero as Green Caffè Nerwo; headless check not run in the cloud (no Godot)
 - [x] Zagłębie Kebabowe and Kino Femina (F, 2026-11-02; spec docs/design/zaglebie-kebabowe.md): five parody kebab shops on Al. Solidarności, Femina's neon, delivery twists, the craft kebab's choice, Szlak Szpili, 2026-11-02 (the Mac photo check of Femina's front is open)
   - [ ] Leftovers (BACKLOG): dates on LUŹNO's roof, Podwózka dates, "Kolejki" card, van fans and egg
 - [x] Gamepad support (2026-11-01, `gamepad.gd`, `check_gamepad`): Xbox, PlayStation and MFi
