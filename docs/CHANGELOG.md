@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-02
 - Złota is now the green linear park that opened this summer: no cars between Marszałkowska and Jasna, rows of young limes, lawns with pale stone blocks to sit on, a rock fountain, benches, café gardens, and Dom pod Orłami over it with its two bronze eagles on the corner towers.
+- Speech bubbles point at whoever is talking even when the screen is busy, and a line no longer jumbles its words while it types.
 - Chmielna has its benches: 64 along the street, on both sides between the young trees, facing the walk.
 - Chmielna looks as it has since 2024: grey granite underfoot, two rows of young elms down the narrow stretches and planes on the squares, 85 trees from Nowy Świat to Pasaż Wiecha, and Ali's memorial stone with its square's name plate behind the Eastern Wall.
 - The tenements of Dobra and Tamka each wear their own plaster now (sooty cream, ochre, faded rose, sage), with a cornice under the roof, a string course at the first floor and shop windows with a fascia board on the street side.
