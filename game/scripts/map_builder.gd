@@ -4318,6 +4318,31 @@ func _tactile_pad(st, end: Vector2, out: Vector2) -> void:
 	var b := a + out * TACTILE_DEEP
 	var mid := (a + b) * 0.5
 	_strip(st, PackedVector2Array([a, b]), TACTILE_WIDE, Y_MARK + raise_at(mid.x, mid.y), TACTILE_COL, false)
+	_lowered_kerb(st, hit, out)
+
+
+## First-scene item 5, lowered kerbs (2026-11-02): a crossing's kerb is dropped. A concrete wedge
+## TACTILE_WIDE wide climbs from the road, RAMP_RUN before the kerb line, to the granite top, so
+## the kerb's dark face is covered where the zebra meets it and the line of the kerb breaks. It
+## lies in front of the face, flat on the granite to the tactile pad. Four triangles a pad in the
+## flat mesh: +0 draw calls. Only where a pad is (a kerb line within TACTILE_REACH of the end).
+const RAMP_RUN := 0.55
+const RAMP_COL := Color("#aeaca5")
+
+
+func _lowered_kerb(st, hit: Vector2, out: Vector2) -> void:
+	var side := Vector2(-out.y, out.x) * (TACTILE_WIDE * 0.5)
+	var foot := hit - out * RAMP_RUN
+	var top := hit + out * KERB_W
+	var keep := _layer
+	_layer = L_GROUND
+	_quad(st, Vector3(foot.x - side.x, Y_ROAD + 0.01, foot.y - side.y), Vector3(foot.x + side.x, Y_ROAD + 0.01, foot.y + side.y),
+			Vector3(hit.x + side.x, KERB_UP + 0.01, hit.y + side.y), Vector3(hit.x - side.x, KERB_UP + 0.01, hit.y - side.y),
+			Vector3.UP, RAMP_COL)
+	_quad(st, Vector3(hit.x - side.x, KERB_UP + 0.01, hit.y - side.y), Vector3(hit.x + side.x, KERB_UP + 0.01, hit.y + side.y),
+			Vector3(top.x + side.x, KERB_UP + 0.01, top.y + side.y), Vector3(top.x - side.x, KERB_UP + 0.01, top.y - side.y),
+			Vector3.UP, RAMP_COL)
+	_layer = keep
 
 
 ## Painted lines (tools/bake_roads.py), already cut where other roads cross: edge

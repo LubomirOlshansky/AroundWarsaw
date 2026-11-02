@@ -58,8 +58,12 @@ then the Launch gate.
 - [x] First-scene items 4-5, paving and kerbs (2026-11-02): grey pavements and paving round the
       start (shader only), yellow tactile pads where crossings meet kerbs (city-wide), edge and
       tactile lines on the two tram platforms by the start; +0 draw calls (phone look parked)
-- [ ] First-scene items 4-5, the rest: pavilions and towers behind the stores, the park strip in
-      front of the museum, lowered kerbs at the crossings
+- [x] First-scene items 4-5, the park strip and lowered kerbs (2026-11-02): four larch benches and
+      three park lamps on the museum's strip (first_scene.gd), a concrete ramp wedge at every
+      crossing's kerb (map_builder.gd `_lowered_kerb`, city-wide); +0 draw calls (phone look parked)
+- [ ] First-scene items 4-5, the pavilions and towers behind the stores: the block east of
+      Marszałkowska (s 184-246) is solid OSM boxes under the camera's blind side; wait for Mac photos
+      (refs/, landmarks-from-photos rule)
 - [x] First-scene items 6-7, life and sound at the start (2026-11-02): people standing at the
       start's cafés, kiosk and paving (crowds.gd `FIRST_SCENE`, a day-long street curve), denser
       walkers on Marszałkowska's two pavements (pedestrians.gd `set_busy`, +0 draw calls), the two
