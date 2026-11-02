@@ -5937,10 +5937,6 @@ func _pad_command(what: String) -> void:
 			_secondary()
 		"vehicle":
 			_toggle_vehicle()
-		"rotate_left":
-			_rotate_camera(-1)
-		"rotate_right":
-			_rotate_camera(1)
 		"follow":
 			_toggle_follow()
 		"horn":

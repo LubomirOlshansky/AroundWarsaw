@@ -24,6 +24,13 @@ Left:
 - The boulevard's buildings are a palette, not models: next pass is street by street, the real
   facade of each block along Jana Pawła II (Kaskada, the 1950s blocks near Rondo Daszyńskiego, the
   Żelazna Brama corner) from the orthophoto and photos.
+## Playtest bugs (Autopilot, 2026-11-02)
+
+The free-play bug log is `docs/PLAYTEST.md` "The bug log" (PT-n ids, severity, status); fix
+threads take its confirmed rows one by one. After two runs: PT-1 confirmed (a dead stop on
+Marszałkowska just north of the start, in 3 runs), PT-2, PT-4 (Rondo Dmowskiego) and PT-5 (side
+streets west of Marszałkowska) suspects, PT-3 closed (low ground, not a bug).
+
 ## Pokorna 2 (F, 2026-11-02)
 
 - Pokorna 2 remodelled as flats (site `pokorna2`, spec pokorna2.md). Open: Mac look check (QUESTIONS); the Gdański Business Center thread works nearby (Dworzec Gdański), keep its site zone clear of the outline at (-2123, -2217).
@@ -558,8 +565,10 @@ the Mac and for gamepads, and the Mac in the beta plan. Built: gamepad support (
 Settings (focus ring, LB / RB tabs) and the full map; the title takes A / Y / B; the touch pedals
 hide while the pad is used and come back on a touch. Left:
 - Gamepad on real pads (iPhone and Mac): the button indices are checked on synthetic events only.
-- Gamepad gaps: Settings' volume bars, the notebook page and the garage card take no pad focus;
-  the full map has no stick pan / teleport; no per-family glyphs; no rumble.
+- Gamepad gaps: no per-family glyphs (A / cross) in the hints; no rumble. (The volume bars, the
+  notebook page, the garage card and the full map's stick pan / zoom / A teleport were done
+  2026-11-01, check_gamepad P9-P12; the map's pad hint is one line in the player's language
+  since the language work, 2026-11-02.)
 - Mac App Store version (post-v1.0 by default, QUESTIONS): macOS export preset, sandbox
   entitlements and signing, keyboard and mouse controls (a keys card, click-to-point, `--no-touch`
   by default), window and resolution settings, Mac store screenshots (2880 × 1800), the Mac's
@@ -625,8 +634,9 @@ real ones added to `brand_denylist.json`). One PR each:
       `loretka_plan`), couples on its poufs May-September on dry evenings (crowds.gd `terrace`,
       10-16); the board-game bar is PRZEGRYWKI (Zagrywki parody, was PIONEK); WACZEK ×5, the burger
       chain with an upside-down golden W, at the real chain's central restaurants, 2026-11-01.
+- [x] The notebook card "Kolejki" (place `kolejki`, chapter Kolejka po trend, at KUKŁA on Nowy Świat), 2026-11-02.
 - [ ] Left from G3-G5: the
-      Podwózka `timber` passengers, a notebook card "Kolejki", fans standing by Cringulo's van, an
+      Podwózka `timber` passengers, fans standing by Cringulo's van, an
       egg (the car parked by the van while he films), the van's CRINGULO TV lettering, the egg
       card; phone checks of every sign's size, the queues and the job's legs.
 - [ ] Mac checks: the statue's spot and facing against the orthophoto; Dom Partii's height and the

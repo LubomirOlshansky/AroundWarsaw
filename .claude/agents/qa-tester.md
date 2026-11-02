@@ -28,6 +28,12 @@ flags given and paste the table and RESULT line; anything else goes under Open Q
 Device runs are device-gated work and run on Opus; if you are asked for one on a lower tier,
 don't start it: say so under Open Questions.
 
+## Autopilot playtests (Mac only)
+
+For a free-play bug hunt, follow `.claude/skills/autopilot-playtest/SKILL.md` and the plan in
+`docs/PLAYTEST.md`. The bug log rows are the one doc you may write: add findings as `suspect`,
+never fix them.
+
 ## Rules
 
 - Every game run: `--nosave` and a way to quit (`--quit-after N` or `--shots=`); autopilot runs

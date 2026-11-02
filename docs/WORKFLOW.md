@@ -64,6 +64,17 @@ backlog-loop skill (`.claude/skills/backlog-loop/SKILL.md`).
 - **The end**: every item done, blocked on a parked question, or in another session's lane;
   then one report with what landed, what to try on the phone and the whole parked list.
 
+## Playtesting and the bug log
+
+Free play is tested with **Autopilot** (an AI player in the Godot editor on the Mac; skill
+`autopilot-playtest`), by the plan in `docs/PLAYTEST.md`: one area row per run, 10 minutes,
+its findings into that file's bug log as `PT-<n>` (suspect → confirmed → fixing → fixed →
+verified). The playtest thread only finds, confirms and logs; each confirmed bug (or one
+street's small batch) goes to the coordinator, who starts **one fix thread per bug**. A fix
+proves the cause first, adds the spot to a check where one fits, and names its PT id in the PR;
+the next run of that row verifies it. Runs cost Aura credit: ask the user before more than
+three rows at once.
+
 ## Who owns what
 
 | Area | Agent | Files |
@@ -74,7 +85,7 @@ backlog-loop skill (`.claude/skills/backlog-loop/SKILL.md`).
 | Design, tuning, jokes, text, 2D art (PixelLab) | `game-designer` | design docs, `game/data`, `game/art` |
 | Applying an approved spec to landmarks, facades, signs, props | `object-modeler` (Sonnet) | the named object code |
 | Look and readability review | `art-director` | none (read-only) |
-| Running checks, shots, device runs | `qa-tester` | none in the project |
+| Running checks, shots, device runs, Autopilot playtests (Mac) | `qa-tester` | none in the project; the bug log in `docs/PLAYTEST.md` |
 | Lookups, counts, log crunching | `scout` | none |
 | Planning, briefs, verification, docs that tie it together, talking to the user | the main session | `CLAUDE.md`, `docs/WORKFLOW.md`, ROADMAP/BACKLOG updates |
 
