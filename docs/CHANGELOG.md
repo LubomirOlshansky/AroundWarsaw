@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- The tenements of Dobra and Tamka each wear their own plaster now (sooty cream, ochre, faded rose, sage), with a cornice under the roof, a string course at the first floor and shop windows with a fascia board on the street side.
 - The first street's pavements are Warsaw grey instead of sand, every crossing ends in a strip of yellow tactile paving at the kerb, and the tram stops by the start have their edge line and tactile strip.
 - Varso Place is green on top and at its feet: a grove of round hawthorns in the tower's sky garden at 205 m, planted terraces with small trees on the two lower Varso buildings, young trees along Chmielna, and on the corner plaza a big glacial boulder and the VERSO PLACE name stone.
 - The new Vistula boulevards have their children's corner: a splash pool with jets and three leaping river fish (sturgeon, pike, perch) on stone plinths.
