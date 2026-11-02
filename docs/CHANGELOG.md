@@ -35,9 +35,8 @@ someone writes its lines.
 - Getting wedged between traffic cars no longer ends the drive: push against them for a moment and your car slips through, and after eight seconds in a jam it is towed onto the road.
 
 ## 2026-11-01
-<<<<<<< HEAD
 - Getting paid now pops a gold "+54 zł" over your car with a coin ting, and each district has its own quiet background sound: the river at Powiśle, trees in the park, a square's chatter in the Old Town and on the Royal Route, courtyard wind and far trams in Praga and Muranów.
-=======
+- St John's Cathedral in the Old Town has its brick front: a stepped gable with a tall pointed window, stone pinnacles and a small gabled porch.
 - MDM on Plac Konstytucji looks like the socialist-realist district now: arcades along the ground floor of the blocks facing the square and Marszałkowska, and four stone towers with pointed roofs at the corners, each with a terracotta relief.
 - Most Śląsko-Dąbrowski's "find it" spot now sits on the bridge itself, where a car can reach it.
 - The football ground on Łazienkowska is a real stadium now (as "Stadion Leguminy"): a panelled facade under a red and green band, a white roof round an open middle, white, green and red stands round a striped pitch, floodlight masts at the corners and LEGUMINA in green neon, with a card.
@@ -107,7 +106,6 @@ someone writes its lines.
 - Footpaths are now grey concrete pavers like Warsaw's pavements.
 - Plac Centralny by the museum is paved like the real square: the outlines of the lost pre-war houses in red and grey stone, their courtyards and the old streets in granite setts.
 - Ordinary buildings now look like their kind: old tenements get cornices, window surrounds and a rusticated shop floor, communist-era blocks get panel joints and loggias, offices get ribbon windows.
->>>>>>> origin/main
 - Crashes throw sparks and dust (they glow at night), scraping along a barrier at speed trails sparks, and the phone's vibration is now strong enough to feel.
 - Nine more mixtapes lie on roofs round the city (Kopernik, the Palace terrace, the Opera, Arkadka, the modern art museum, Polin, the Sejm, the defence ministry and the National Bank): fly the helicopter over one to pick it up. The first five open the next locked PÓŁNOC FM song; the rest give respect and a card.
 - The website now shows the design wiki link on phones too: in the top bar, as a button under the hero and in the footer.
