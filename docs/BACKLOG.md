@@ -27,6 +27,20 @@ Small problems that agents reported or that showed up in screenshots. They are f
   check: GitHub Settings → Rules → a ruleset on main requiring `quick` and `map`, so a PR can't merge
   on red or before its run ends (#261 did). After a full bake that changes lod2 or terrain:
   `python3 -I tools/map_pack.py make`, publish, commit `tools/map_pack.json`.
+## Rondo Daszyńskiego office crowd (F, 2026-11-02)
+
+Built (`crowds.gd` OFFICE, `office_level`, `_office`; dialogue group `office`, 65 lines tagged
+morning, lunch, evening, rain; check_crowds step 10): the office crowd on weekday rush hours.
+Open:
+- Phone look check and a bench on the rondo at 08:30 (QUESTIONS).
+- Props: lanyards, laptop bags and coffee cups are only in the lines; a figure with a bag or cup
+  needs a variant of the shared person mesh (a mesh/draw-call decision, not done).
+- The walkers' routes end at a kerb and restart elsewhere (the dawn crowd's behaviour), so a pop
+  is possible in view; a looping or two-way route would hide it.
+- The Spire's and the HUB's foyers: no footway links the rondo's exits to the Spire's foyer in the
+  map data, so no route ends there (the HUB's does). A pass over the footways round Plac
+  Europejski would add it.
+- Office life elsewhere: Rondo ONZ and Rondo 1, Plac Europejski's lunch queues.
 ## Krajobraz places (F, 2026-11-02)
 
 F's ask: research the RS Architektura Krajobrazu projects inside the map (krajobraz.com.pl
@@ -715,7 +729,7 @@ Spec: `docs/design/zaglebie-kebabowe.md`. Built: five parody kebab shops by Kino
 neon fascias, twists), the craft kebab's choice card, Szlak Szpili, the welcome lore. Left:
 - Mac photo check: Femina's real front (colour, marquee) and the shops' real frontage; a marquee
   or poster board over Femina's door would make it read as a cinema from the car.
-- A queue outside ZAKWAS I ROŻEN (crowds.gd, like KROWA 2.0). (KEBAB FM lines about the basin done 2026-11-02.)
+- ~~A queue outside ZAKWAS I ROŻEN~~ Done 2026-11-02 (`crowds.gd` `zakwas_queue`: 12:00-24:00, 8 in line, 14-18 on evenings, tag `zakwas` with four bubble lines; the phone's look is open). (KEBAB FM lines about the basin done 2026-11-02.)
 - The phone: feel of the craft kebab's 6 s wait, the five stands' spacing (23 m apart).
 
 ## Trends 2025–26 (F, 2026-11-01)
