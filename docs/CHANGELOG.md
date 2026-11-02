@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- The radio for the beta: KEBAB FM and MORDOR FM only, a DALEJ button next to RADIO to skip a song, and the host says good morning to Warsaw with the weather and the temperature when the game starts.
 - Rondo Dmowskiego looks like the real one: grey paving round the tram cross with four curved flower beds in red and purple, the blue 1990s tube canopies over every underpass stair and the metro entrances by the Patelnia, a colourful mural on the Patelnia's wall, and a kiosk, an ice-cream cart and a tram shelter round it.
 - Arkadka, the mall by Rondo Radosława, gets its playground: a ribbon-like rope course, three trampolines, a long wooden bench and lamps hung on a cable.
 - Zielona Świętokrzyska has its big flower planters on the pavement wherever the street's trees leave a gap.

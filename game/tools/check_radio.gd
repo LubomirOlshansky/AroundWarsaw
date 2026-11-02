@@ -92,6 +92,7 @@ func _initialize() -> void:
 
 	await _check_radio(problems)
 	await _check_polnoc(problems)
+	await _check_greeting(problems)
 	var summary := "%d stations, %d tracks, %.2f MB of Ogg in game/audio/radio" % [
 			(data["stations"] as Array).size(), tracks, total_bytes / 1048576.0]
 	print("radio: ", summary)
@@ -127,6 +128,40 @@ func _check_radio(problems: Array[String]) -> void:
 			radio._orders.append(radio._shuffled(3, radio.stations.size() - 1))
 			radio._pos.append(0)
 			break
+	# Beta radio (2026-11-02): the lineup from radio.json is what R and RADIO cycle (KEBAB FM,
+	# MORDOR FM, Off), a station tuned by a flag goes to its first, and DALEJ shows only with more
+	# than one song. Then every station is put in the lineup for the rules below.
+	var ids: Array = []
+	for i: int in radio.lineup:
+		ids.append(radio.stations[i]["id"])
+	var json: Variant = JSON.parse_string(FileAccess.get_file_as_string(Radio.PATH))
+	var want_ids: Array = json.get("lineup", []) if json is Dictionary else []
+	if not want_ids.is_empty() and ids != want_ids:
+		problems.append("lineup %s (radio.json says %s)" % [ids, want_ids])
+	if not radio.lineup.is_empty():
+		radio.tune(-1, true)
+		var seen: Array = []
+		for k in radio.lineup.size() + 1:
+			radio.next()
+			seen.append(radio.station)
+		var want: Array = radio.lineup.duplicate()
+		want.append(-1)
+		if seen != want:
+			problems.append("lineup: next() went %s (want %s)" % [seen, want])
+		var outside := -1
+		for i in radio.stations.size():
+			if not radio.lineup.has(i):
+				outside = i
+				break
+		if outside >= 0:
+			radio.tune(outside, true)
+			radio.next()
+			if radio.station != radio.lineup[0]:
+				problems.append("lineup: next() from %s went to %d (want the lineup's first)" % [radio.stations[outside]["id"], radio.station])
+		radio.tune(-1, true)
+		if radio.can_skip():
+			problems.append("lineup: can_skip() with the radio off")
+	radio.lineup.assign(range(radio.stations.size()))
 	# Tune through every station and Off, the way the RADIO button does.
 	radio.tune(-1, true)
 	for i in radio.stations.size():
@@ -234,6 +269,7 @@ func _check_polnoc(problems: Array[String]) -> void:
 	var radio := Radio.new()
 	root.add_child(radio)
 	await process_frame
+	radio.lineup.assign(range(radio.stations.size()))  # beta radio: every station, PÓŁNOC FM too
 	var si := radio.polnoc_index()
 	if si < 0:
 		problems.append("PÓŁNOC FM: no station '%s' in radio.json" % Radio.POLNOC)
@@ -425,3 +461,33 @@ func _host_run(radio: Node, si: int, look: Array, seconds: float) -> Array:
 	radio.ticker.disconnect(take)
 	d.free()
 	return heard
+
+
+## Beta radio (2026-11-02): the host's greeting at the start: a hello for each part of the day,
+## the weather with the temperature in good Polish ("1 stopień", "22 stopnie", "20 stopni"), a
+## sign-off, nothing left as {t}; the Polish fits the ticker (at most 160 characters).
+func _check_greeting(problems: Array[String]) -> void:
+	for pair: Array in [[1, "1 stopień"], [2, "2 stopnie"], [5, "5 stopni"], [12, "12 stopni"], [22, "22 stopnie"], [25, "25 stopni"], [-3, "minus 3 stopnie"]]:
+		if Dialogue.stopnie(pair[0]) != pair[1]:
+			problems.append("stopnie(%d) = '%s' (want '%s')" % [pair[0], Dialogue.stopnie(pair[0]), pair[1]])
+	var d := Dialogue.new()
+	root.add_child(d)
+	await process_frame
+	var cases := [[8.0, false, 7, "Dzień dobry"], [14.0, true, 11, "Dzień dobry"], [20.0, false, 5, "Dobry wieczór"], [2.0, false, 1, ""]]
+	for c: Array in cases:
+		for day in [1, 2, 3, 4, 5]:
+			var l: Array = d.greeting(c[0], c[1], c[2], day)
+			var pl := String(l[0])
+			var en := String(l[1])
+			if pl == "" or en == "" or pl.contains("{") or en.contains("{") or not pl.contains("stop") or not en.contains("degree"):
+				problems.append("greeting at %s h: '%s' / '%s'" % [c[0], pl, en])
+				break
+			if String(c[3]) != "" and not pl.contains(String(c[3])):
+				problems.append("greeting at %s h doesn't say '%s': '%s'" % [c[0], c[3], pl])
+				break
+			if pl.length() > 160:
+				problems.append("greeting too long for the ticker (%d): '%s'" % [pl.length(), pl])
+			if c[1] and not (pl.contains("pada") or pl.contains("deszcz")):
+				problems.append("greeting in the rain says no rain: '%s'" % pl)
+	print("radio: greeting e.g. '%s'" % d.greeting(9.0, false, 6, 2)[0])
+	d.queue_free()
