@@ -137,6 +137,20 @@ PLACES = [
 ]
 
 
+# ul. Chmielna's furniture (K2b, 2026-11-02): the project counts 64 pieces (urban chairs, benches
+# and long benches with flowing shapes); OSM maps 4 benches in the band. The game has one bench
+# model, so each piece is a bench, a seat every FURNITURE_STEP m along the street, alternate sides,
+# at the first pavement spot (not a bed, tree pit, café or lane) that is clear, turned to face the
+# street's middle. Kept FURNITURE_NS m off Nowy Świat's roads (the Chopin benches there are black
+# granite with the button).
+FURNITURE_TARGET = 64
+FURNITURE_STEP = 7.5
+FURNITURE_T = [2.6 + 0.6 * i for i in range(10)]   # metres off the centre line, nearest first
+FURNITURE_TREE_GAP = 2.3
+FURNITURE_BENCH_GAP = 3.6
+FURNITURE_NS = 16.0
+
+
 def _hash01(x, z, salt):
     """A stable 0..1 from a position (never Python's hash)."""
     return (math.sin(x * 12.9898 + z * 78.233 + salt * 37.719) * 43758.5453) % 1.0
@@ -293,6 +307,64 @@ def regrade(data, place):
     return n
 
 
+def furnish(data, verbose=True):
+    """Adds Chmielna's benches to data["benches"] (x, z, yaw triples); returns how many were added.
+    Idempotent: once the band holds FURNITURE_TARGET benches nothing is added."""
+    place = next(p for p in PLACES if p["id"] == "chmielna")
+    line = Line(place["line"])
+    zone = zone_of(place)
+    bn = data.setdefault("benches", [])
+    have = [(bn[i], bn[i + 1]) for i in range(0, len(bn) - 2, 3) if _inside(bn[i], bn[i + 1], zone)]
+    solids = P.Solids(data)
+    trees = data.get("trees3d", [])
+    tree_pts = [(trees[i], trees[i + 1]) for i in range(0, len(trees) - 5, 6)]
+    pois = [(p["x"], p["z"]) for p in data.get("pois", []) if p.get("k") != "address"]
+    beds = []
+    for a in data.get("areas", []):
+        if a["k"] in ("park", "grass", "water"):
+            poly = list(zip(a["p"][0::2], a["p"][1::2]))
+            xs, zs = [q[0] for q in poly], [q[1] for q in poly]
+            beds.append((min(xs) - 0.8, min(zs) - 0.8, max(xs) + 0.8, max(zs) + 0.8, poly))
+    ns = [P.pairs(r["p"]) for r in data.get("roads", []) if r.get("name") == "Nowy Świat"]
+    added = 0
+    n = 0
+    s = FURNITURE_STEP * 0.5
+    while len(have) < FURNITURE_TARGET and s < line.length:
+        side = 1 if n % 2 == 0 else -1
+        n += 1
+        px, pz, ux, uz = line.at(s)
+        s += FURNITURE_STEP
+        for sd in (side, -side):
+            hit = None
+            for t in FURNITURE_T:
+                x, z = px + uz * t * sd, pz - ux * t * sd
+                if solids.blocked(x, z, 0.9):
+                    continue
+                if any(b[0] <= x <= b[2] and b[1] <= z <= b[3] and _inside(x, z, b[4]) for b in beds):
+                    continue
+                if any(math.hypot(x - tx, z - tz) < FURNITURE_TREE_GAP for tx, tz in tree_pts):
+                    continue
+                if any(math.hypot(x - hx, z - hz) < FURNITURE_BENCH_GAP for hx, hz in have):
+                    continue
+                if any(math.hypot(x - qx, z - qz) < 1.8 for qx, qz in pois):
+                    continue
+                if any(P.seg_dist(x, z, a, b) < FURNITURE_NS for pts in ns for a, b in zip(pts, pts[1:])):
+                    continue
+                hit = (x, z, sd)
+                break
+            if hit:
+                x, z, sg = hit
+                # The seat looks at the street's middle (snap_props: yaw = atan2(-nx, -nz), n the way it faces).
+                nx, nz = -uz * sg, ux * sg
+                bn.extend([round(x, 1), round(z, 1), round(math.atan2(-nx, -nz), 2)])
+                have.append((x, z))
+                added += 1
+                break
+    if verbose:
+        print(f"planted trees: chmielna furniture: {added} benches added, {len(have)} in the band")
+    return added
+
+
 def apply(data, verbose=True):
     """Plants every PLACE into the finished map data; returns how many trees were added."""
     import bake_osm
@@ -318,6 +390,7 @@ def apply(data, verbose=True):
         added += len(new)
         if verbose:
             print(f"planted trees: {place['id']}: {len(new)} young trees added")
+    furnish(data, verbose)
     return added
 
 
@@ -334,9 +407,9 @@ def main(argv):
             path = arg
     with open(path, encoding="utf-8") as f:
         data = json.load(f)
-    before = json.dumps(data.get("surfaces", []))
+    before = json.dumps([data.get("surfaces", []), data.get("benches", [])])
     n = apply(data)
-    if (n or json.dumps(data.get("surfaces", [])) != before) and not dry:
+    if (n or json.dumps([data.get("surfaces", []), data.get("benches", [])]) != before) and not dry:
         with open(path, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
         print(f"wrote {path}")
