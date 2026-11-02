@@ -80,6 +80,8 @@ var vibration := true
 var stop_assist := true
 ## Accessibility (2026-11-01): the pedals on the left, the stick on the right (hud.gd).
 var left_handed := false
+## The language (lang.gd): "" until the player picks one (then the phone decides), "pl" or "en".
+var lang := ""
 ## Loop G1b: Auto's sharp-image state (tiers.gd sharp_state: fallback, calm, wait, trial, why).
 var auto_image := Tiers.sharp_state()
 ## False with --nosave: nothing is read or written.
@@ -127,6 +129,9 @@ func load_file() -> void:
 	vibration = bool(cfg.get_value("access", "vibration", vibration))
 	stop_assist = bool(cfg.get_value("access", "stop_assist", stop_assist))
 	left_handed = bool(cfg.get_value("access", "left_handed", left_handed))
+	lang = str(cfg.get_value("game", "lang", lang))
+	if lang != "" and not lang in ["pl", "en"]:
+		lang = ""
 	var image := {}
 	for key in auto_image:
 		image[key] = cfg.get_value("auto_image", key, auto_image[key])
@@ -162,6 +167,8 @@ func save() -> void:
 	cfg.set_value("access", "vibration", vibration)
 	cfg.set_value("access", "stop_assist", stop_assist)
 	cfg.set_value("access", "left_handed", left_handed)
+	if lang != "":
+		cfg.set_value("game", "lang", lang)
 	for key in auto_image:
 		cfg.set_value("auto_image", key, auto_image[key])
 	cfg.save(path)

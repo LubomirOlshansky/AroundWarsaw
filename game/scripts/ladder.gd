@@ -18,6 +18,8 @@ extends RefCounted
 ##   the save's [ladder] section, wallet.gd). The final's win is `ladder["trzy_mosty"]`
 ##   (`final_won`), for the end card of the next slice.
 
+const Lang := preload("res://scripts/lang.gd")
+
 ## The rungs: id (the save's key), the rival's name as rivals.gd RIVALS has it, the short name for
 ## the locked prompt, the stake (zł, as RIVALS), the respect it needs, and the race pace.
 const RUNGS := [
@@ -171,19 +173,19 @@ func rows(night: bool) -> Array:
 		if beaten(i):
 			out.append(["★ " + text, "won"])
 		elif i == nxt:
-			out.append(["→ %s · %s" % [text, "otwarty · open" if is_open(i) else "szacunek · respect %d" % threshold(i)], "next"])
+			out.append(["→ %s · %s" % [text, Lang.pick("otwarty", "open") if is_open(i) else "%s %d" % [Lang.pick("szacunek", "respect"), threshold(i)]], "next"])
 		else:
 			out.append(["· " + text, "locked"])
-	var fin := "Finał · Trzy mosty · %d zł" % FINAL_ZL
+	var fin := Lang.pick("Finał · Trzy mosty · %d zł", "Final · Three Bridges · %d zł") % FINAL_ZL
 	if final_won():
 		out.append(["★ " + fin, "won"])
 	elif nxt == FINAL:
 		if not is_open(FINAL):
-			out.append(["→ %s · szacunek · respect %d" % [fin, FINAL_RESPECT], "next"])
+			out.append(["→ %s · %s %d" % [fin, Lang.pick("szacunek", "respect"), FINAL_RESPECT], "next"])
 		elif night:
 			out.append(["→ %s · Rondo Daszyńskiego" % fin, "next"])
 		else:
-			out.append(["→ %s · w nocy · at night" % fin, "next"])
+			out.append(["→ %s · %s" % [fin, Lang.pick("w nocy", "at night")], "next"])
 	else:
-		out.append(["· " + fin + " · w nocy · at night", "locked"])
+		out.append(["· " + fin + " · " + Lang.pick("w nocy", "at night"), "locked"])
 	return out

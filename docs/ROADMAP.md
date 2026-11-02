@@ -227,6 +227,7 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [x] G12 Separate quest lines: helicopter quests and car quests, each with its own list and map colour (Opus) · 2026-11-02, first pass: rescue calls follow the vehicle, heli colour, car arrows hide while flying; the notebook list and the car/heli split of mixed rescues are parked
 - [ ] G13 Upgrade shop: Audi TT parody (faster car), nitro, tuning, paid in zł (Opus design, Sonnet content)
 - [x] G14 POMOC DROGOWA (unstuck) and NOWA GRA (two-tap reset) at the top of Settings → Jazda (quick win)
+- [x] Language choice (F, 2026-11-02): POLSKI / ENGLISH on the title screen and in Settings → DŹWIĘK → Język; the whole game shows one language, saved in settings, the phone's language by default (`lang.gd`, `check_language`; the phone look check is parked in QUESTIONS)
 - [x] G15 Stop assist works better: bigger quest start and end rings, looser "stopped", longer look-ahead (quick win; phone check)
 - [x] G16 Fewer text popups while driving on the road: ambient bubbles muted above 40 km/h, ambient toasts one per 20 s, traffic is a slider (2026-11-01, Sonnet)
 - [x] G17 Car stuck against other cars: held against traffic 1.5 s it ghosts through them for 3 s, tow after 8 s among cars (2026-11-02, check_steering `car_sandwich`)

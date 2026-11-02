@@ -4,6 +4,12 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Language choice follow-ups (F, 2026-11-02)
+
+The game shows one language, Polish or English (`lang.gd`, Settings → DŹWIĘK → Język, the title's POLSKI / ENGLISH). Left:
+- Polish-only text that has no English yet shows as it is in English mode: mission-status titles beyond `Lang.TITLE_WORDS`, the drawn pedal words in Polish-only tests, the Polish world signs (shop names are places, meant to stay).
+- The notebook page, the pedals' words and the full map's labels are drawn text: `check_language` does not read them; look at them on the phone (QUESTIONS).
+- A new `hud.show_*` call must pass both languages (Polish, English); `Lang.pick` shows one. A text with an inline "A · B" pair is a bug.
 ## All churches and Plac Zamkowy's houses (F, 2026-11-01)
 
 F: "improve the houses near the plac; all the churches should be designed with best practices;

@@ -6,6 +6,8 @@ extends Control
 ## name, the price or "masz" / "na aucie"), then the action for the swatch picked (buy, switch,
 ## or why not) and WYJAZD · Drive off. Polish over English throughout. Built at the first open.
 
+const Lang := preload("res://scripts/lang.gd")
+
 signal closed
 
 ## The swatches' size in points (at least 44 tall: the touch rule).
@@ -68,7 +70,7 @@ func _build() -> void:
 	_title.text = str(garage.NAME[0]).to_upper()
 	names.add_child(_title)
 	_title_en = hud._label(hud.T_LABEL, hud.SUB)
-	_title_en.text = "%s · %s, Praga" % [garage.NAME[1], garage.STREET]
+	_title_en.text = "%s, Praga" % garage.STREET
 	names.add_child(_title_en)
 	_money = hud._label(hud.T_BODY, hud.ACCENT)
 	_money.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -124,7 +126,7 @@ func _swatch(p: Dictionary) -> Button:
 	stripe.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(stripe)
 	var name_l: Label = hud._label(hud.T_LABEL, hud.INK)
-	name_l.text = str(p["name"][0])
+	name_l.text = Lang.pick(str(p["name"][0]), str(p["name"][1]))
 	name_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_l.clip_text = true
 	name_l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
@@ -186,8 +188,9 @@ func _say(tag: String) -> void:
 	var l: Array = garage.line(tag)
 	if str(l[0]) == "" and tag in ["black", "green"]:
 		l = garage.line("buy")
-	_line.text = str(l[0])
-	_line_en.text = str(l[1])
+	_line.text = Lang.pick(str(l[0]), str(l[1]))
+	_line_en.text = ""
+	_line_en.visible = false
 
 
 func _refresh() -> void:
@@ -202,14 +205,14 @@ func _refresh() -> void:
 		var price := b.find_child("price", true, false) as Label
 		match r:
 			"on":
-				price.text = "na aucie · on"
+				price.text = Lang.pick("na aucie", "on the car")
 			"switch":
-				price.text = "masz · yours" if not (p.has("eggs") or p.has("syrenki")) or w.paints.has(id) else "gratis · free"
+				price.text = Lang.pick("masz", "yours") if not (p.has("eggs") or p.has("syrenki")) or w.paints.has(id) else Lang.pick("gratis", "free")
 			"locked":
 				if p.has("syrenki"):
-					price.text = "%d/%d Syrenek" % [garage.syrenki_now(), int(p["syrenki"])]
+					price.text = Lang.pick("%d/%d Syrenek", "%d/%d Mermaids") % [garage.syrenki_now(), int(p["syrenki"])]
 				else:
-					price.text = "%d/%d sekretów" % [garage.eggs_now(), int(p["eggs"])]
+					price.text = Lang.pick("%d/%d sekretów", "%d/%d easter eggs") % [garage.eggs_now(), int(p["eggs"])]
 			_:
 				price.text = w.money(int(p["price"]))
 		var lit := id == picked

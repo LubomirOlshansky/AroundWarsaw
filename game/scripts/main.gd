@@ -41,6 +41,7 @@ extends Node
 ## Loop G1b: --last-session=struggled|calm starts Auto as if the last session at the sharp image
 ## struggled (the ×2 fallback) or was calm (the sharp image), and writes nothing of it.
 
+const Lang := preload("res://scripts/lang.gd")  # one language at a time (2026-11-02)
 const Release := preload("res://scripts/release.gd")  # DEMO 3j: no flags in a release build
 const Access := preload("res://scripts/access.gd")
 const MapBuilder := preload("res://scripts/map_builder.gd")
@@ -296,6 +297,8 @@ var start_in_tunnel := false
 var ghost_debug := 0
 ## --left-handed: the left-handed layout for this run (Settings → DOSTĘP keeps it otherwise).
 var _flag_left_handed := false
+## --lang=pl|en: the language for this run (not saved), over the saved choice and the phone's.
+var _flag_lang := ""
 ## --lift=M: aim the camera M metres above the vehicle (close-ups of tall landmarks).
 var cam_lift := 0.0
 ## The ghosted footprint's sunlight: given back in full above GHOST_SUN_HIGH degrees of
@@ -704,6 +707,7 @@ func _ready() -> void:
 	if show_title:
 		title = Title.new()
 		title.touch_off = no_touch  # desktop: --no-touch
+		title.language_chosen.connect(_on_language_chosen)
 		add_child(title)
 	else:
 		loading = _loading_card()
@@ -762,7 +766,7 @@ func _ready() -> void:
 		title.dismissed.connect(_on_title_dismissed)
 		title.new_game.connect(_on_new_game)
 		title.can_resume = (wallet.has_progress() and wallet.persistent and not wallet.newer) or title_choice in ["ask", "new"] or not resume_flag.is_empty()
-		title.resume_line = "%s · respekt %d" % [Wallet.money(wallet.zl), wallet.respect]
+		title.resume_line = _resume_line()
 		title.auto_go = _new_game_pending
 		_new_game_pending = false
 		# The loading fix: "tap to drive" once the sectors round the start are in (_title_frame).
@@ -1782,7 +1786,7 @@ func _start_phone_bench() -> void:
 		if hit.is_empty():
 			busy = "Brak trasy · No route"
 	if busy != "":
-		hud.toast(busy)
+		hud.toast(Lang.split(busy))
 		return
 	_phone_saved = {"at": car.global_transform, "mask": car.collision_mask, "size": base_size,
 			"wallet": [wallet.zl, wallet.respect, wallet.jobs.duplicate(true), wallet.best.duplicate(true),
@@ -3309,6 +3313,8 @@ func _parse_args() -> void:
 	for arg in game_args():
 		if arg == "--demo":
 			demo = true
+		elif arg.begins_with("--lang="):
+			_flag_lang = arg.trim_prefix("--lang=")  # pl or en, for shots and checks
 		elif arg == "--left-handed":
 			_flag_left_handed = true  # accessibility (2026-11-01): the mirrored controls, for shots
 		elif arg.begins_with("--shots="):
@@ -3765,6 +3771,7 @@ func _parse_args() -> void:
 func _load_settings() -> void:
 	settings.persistent = not no_save
 	settings.load_file()
+	Lang.set_code(_flag_lang if _flag_lang in Lang.CODES else Lang.resolve(settings.lang))
 	Access.apply(settings)
 	if _flag_left_handed:
 		Access.left_handed = true
@@ -4023,7 +4030,31 @@ func _settings_state() -> Dictionary:
 			"weather": weather.state, "time": tod.mode, "wander": int(spacer != null and spacer.on), "zones": int(zone_cap_on), "handling": settings.handling, "sensitivity": settings.sensitivity,
 			"text_large": int(settings.text_large), "calm": int(settings.calm), "color_safe": int(settings.color_safe),
 			"vibration": int(settings.vibration), "stop_assist": int(settings.stop_assist),
-			"left_handed": int(settings.left_handed)}
+			"left_handed": int(settings.left_handed), "lang": maxi(0, Lang.CODES.find(Lang.code))}
+
+
+## The save's line on the title screen: "1 240 zł · respekt 87" in the chosen language.
+func _resume_line() -> String:
+	return "%s · %s %d" % [Wallet.money(wallet.zl), Lang.pick("respekt", "respect"), wallet.respect]
+
+
+## The title's POLSKI / ENGLISH buttons: keep the choice (a --nosave run keeps it for the session
+## only) and renew the line under the prompt.
+func _on_language_chosen(code: String) -> void:
+	_set_language(code)
+	if title != null and wallet != null:
+		title.resume_line = _resume_line()
+
+
+## One language at a time (lang.gd): the choice is saved and every surface that was built in the
+## old language is made again (the settings panel at once; the full map when it next opens).
+func _set_language(code: String) -> void:
+	Lang.set_code(code)
+	settings.lang = code
+	settings.save()
+	print("language: %s" % code)
+	if hud != null:
+		hud.language_changed(_settings_state())
 
 
 func _close_settings() -> void:
@@ -4103,6 +4134,8 @@ func _on_setting(key: String, value: Variant) -> void:
 			Access.apply(settings)
 			hud.set_left_handed(Access.left_handed)
 			hud.apply_text_scale()
+		"lang":
+			_set_language(Lang.CODES[clampi(int(value), 0, Lang.CODES.size() - 1)])
 		"master", "music", "effects":
 			settings.set(key, float(value))
 			Sfx.set_levels(settings.master, settings.music, settings.effects)

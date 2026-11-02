@@ -20,6 +20,7 @@ extends SceneTree
 ##   godot --headless --path game --script res://tools/check_districts.gd
 
 const Districts := preload("res://scripts/districts.gd")
+const Lang := preload("res://scripts/lang.gd")
 const Notebook := preload("res://scripts/notebook.gd")
 const Wallet := preload("res://scripts/wallet.gd")
 const FullMap := preload("res://scripts/full_map.gd")
@@ -97,7 +98,12 @@ func _data(d: Districts) -> void:
 			heroes.append(id)
 		var card := d.card_text(id)
 		_expect(card[0].length() <= 70 and card[0].begins_with("Odkryto: "), "%s: card title %s" % [id, card[0]])
-		_expect(card[1].begins_with("%s discovered" % x["name_en"]), "%s: card's English %s" % [id, card[1].get_slice("\n", 0)])
+		# One language at a time (lang.gd): the Polish card has the Polish line, the English one the English.
+		_expect(card[1].begins_with(str(line[0])), "%s: card's Polish %s" % [id, card[1].get_slice("\n", 0)])
+		Lang.set_code("en")
+		var card_en := d.card_text(id)
+		Lang.set_code("pl")
+		_expect(card_en[0] == "Discovered: %s" % x["name_en"] and card_en[1].begins_with(str(line[1])), "%s: card in English %s" % [id, card_en])
 	heroes.sort()
 	var want := HEROES.duplicate()
 	want.sort()
@@ -153,7 +159,7 @@ func _flow(points: Dictionary) -> void:
 	_expect(d.is_discovered("powisle") and hud.notes.size() == 1 and w.respect == Districts.DISCOVER_RESPECT,
 			"Powiśle discovered: cards %d, respect %d" % [hud.notes.size(), w.respect])
 	if hud.notes.size() == 1:
-		_expect(hud.notes[0][0] == "Odkryto: Powiśle" and str(hud.notes[0][1]).begins_with("Powiśle discovered"), "the card: %s / %s" % hud.notes[0])
+		_expect(hud.notes[0][0] == "Odkryto: Powiśle" and str(hud.notes[0][1]).begins_with(str(d.districts[d.by_id["powisle"]]["line"][0])), "the card: %s / %s" % hud.notes[0])
 	d.tick(KNOWN["kopernik"][0])
 	d.tick(KNOWN["spawn"][0])
 	d.tick(KNOWN["kopernik"][0])

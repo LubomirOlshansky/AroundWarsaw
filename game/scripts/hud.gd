@@ -29,6 +29,7 @@ extends CanvasLayer
 var spent_usec := 0
 
 const Access := preload("res://scripts/access.gd")
+const Lang := preload("res://scripts/lang.gd")  # one language at a time: every pl/en pair below shows one
 const SettingsPanel := preload("res://scripts/settings_panel.gd")
 const FullMap := preload("res://scripts/full_map.gd")
 const MapArt := preload("res://scripts/map_art.gd")
@@ -477,7 +478,7 @@ func _ready() -> void:
 			pill_pressed.emit()
 		context_pressed.emit(pill_owner))
 	_pill.visible = false
-	_radio_button = _chip(self, "RADIO", "wył. · off")
+	_radio_button = _chip(self, Lang.pick("RADIO wył.", "RADIO off"), "")
 	_radio_button.button_down.connect(func():
 		_radio_down_ms = Time.get_ticks_msec()
 		_radio_skipped = false)
@@ -486,7 +487,7 @@ func _ready() -> void:
 		if not _radio_skipped:
 			radio_pressed.emit()
 		_radio_skipped = false)
-	_vehicle_button = _chip(self, "HELI", "helicopter")
+	_vehicle_button = _chip(self, "HELI", "HELI")
 	_vehicle_button.pressed.connect(func(): vehicle_pressed.emit())
 	# G3 (F, 2026-11-01): pinch is hard to discover, so − and + sit beside the speed (the car's
 	# view only: the helicopter has its own height pads).
@@ -615,6 +616,8 @@ func _chip(parent: Node, pl: String, en: String, accent := Color(0, 0, 0, 0)) ->
 
 ## New words on a chip; its width follows them (at least 64 pt).
 func _set_chip(b: Button, pl: String, en: String, min_width := 64.0) -> void:
+	pl = Lang.pick(pl, en)
+	en = ""
 	var words := b.get_child(0)
 	var top := words.get_child(0) as Label
 	var low := words.get_child(1) as Label
@@ -973,7 +976,23 @@ func set_speed(kmh: int, metres := -1) -> void:
 
 
 func set_radio_name(station_name: String) -> void:
-	_set_chip(_radio_button, "RADIO", "wył. · off" if station_name == "OFF" else station_name)
+	_radio_name = station_name
+	# One line: the station (its own name is the same in both languages), or RADIO off.
+	_set_chip(_radio_button, Lang.pick("RADIO wył.", "RADIO off") if station_name == "OFF" else station_name, "")
+
+
+## The station the radio button shows (renewed when the language changes).
+var _radio_name := "OFF"
+
+
+## Settings → JĘZYK (or the title's buttons): every surface the HUD built once is made again in
+## the chosen language (lang.gd). The settings panel is rebuilt at once, on its open tab; the full
+## map when it next opens.
+func language_changed(state: Dictionary) -> void:
+	set_radio_name(_radio_name)
+	_set_chip(_vehicle_button, "AUTO" if flying else "HELI", "CAR" if flying else "HELI")
+	if settings_panel != null:
+		settings_panel.rebuild.call_deferred(state)
 
 
 ## The context button: a call came in (Polish, English under it); pressing it emits pill_pressed.
@@ -1086,10 +1105,10 @@ func _build_bench_card() -> void:
 	words.add_theme_constant_override("separation", 0)
 	head.add_child(words)
 	var title := _label(T_TITLE, ACCENT)
-	title.text = "TEST WYDAJNOŚCI"
+	title.text = Lang.pick("TEST WYDAJNOŚCI", "PERFORMANCE TEST")
 	words.add_child(title)
 	var sub := _label(T_SUB, SUB)
-	sub.text = "Benchmark · wklej to w czacie, paste it into the chat"
+	sub.text = Lang.pick("Benchmark · wklej to w czacie", "Benchmark · paste it into the chat")
 	words.add_child(sub)
 	_bench_copy = _chip(head, "KOPIUJ", "copy")
 	_bench_copy.name = "copy"
@@ -1165,6 +1184,8 @@ func _build_ticker() -> void:
 ## Shows a line on the now-playing ticker for a few seconds: the radio's station changes, and
 ## the radio host's lines with an English subtitle (held longer and wrapped to a readable width).
 func ticker(text: String, colour: Color, subtitle := "") -> void:
+	text = Lang.pick(text, subtitle)
+	subtitle = ""
 	colour = Access.tint(colour)  # colour-safe (access.gd)
 	var font := ThemeDB.fallback_font
 	var room := minf(TICKER_W * pt, _safe.size.x * 0.5)
@@ -1236,6 +1257,8 @@ func ambient_toast(text: String, gloss := "") -> void:
 
 
 func toast(text: String, gloss := "") -> void:
+	text = Lang.pick(text, gloss)
+	gloss = ""
 	# A long line wraps at TOAST_W points rather than running off a phone's screen.
 	var font := ThemeDB.fallback_font
 	for pair: Array in [[_toast, text, T_TITLE], [_toast_gloss, gloss, T_SUB]]:
@@ -1368,6 +1391,10 @@ func _build_mission_panels() -> void:
 func show_card(title: String, body: String, buttons: PackedStringArray, accent: Color, bottom := false,
 		title_en := "", body_en := "") -> void:
 	accent = Access.tint(accent)  # colour-safe (access.gd)
+	title = Lang.pick(title, title_en)
+	body = Lang.pick(body, body_en)
+	title_en = ""
+	body_en = ""
 	# Loop 2d-1: any other card is the centred one again.
 	if _card_side and not _side_call:
 		_card_side = false
@@ -1411,6 +1438,9 @@ func hide_card() -> void:
 func show_status(title: String, clock: String, distance: String, hint: String, progress: float, accent: Color,
 		badge := "", icons := {}, hint_en := "") -> void:
 	accent = Access.tint(accent)  # colour-safe (access.gd)
+	hint = Lang.pick(hint, hint_en)
+	hint_en = ""
+	title = Lang.title(title)
 	if icons != _icons:
 		if icons.is_empty() != _icons.is_empty():
 			_mark()
@@ -1545,7 +1575,7 @@ func _frame(dt: float) -> void:
 func set_flying(on: bool) -> void:
 	flying = on
 	_mark()
-	_set_chip(_vehicle_button, "AUTO" if on else "HELI", "car" if on else "helicopter")
+	_set_chip(_vehicle_button, "AUTO" if on else "HELI", "CAR" if on else "HELI")
 	brake = false
 	_brake_index = -1
 	gas = false
@@ -1919,6 +1949,8 @@ func _tri_star(at: Vector2, r: float, colour: Color) -> void:
 
 ## The main line's marker (map x, z; INF: none) and its goal line (main.gd, a few times a second).
 func set_main_line(at: Vector2, pl: String, en: String) -> void:
+	pl = Lang.pick(pl, en)
+	en = ""
 	_main_at = at
 	main_goal = PackedStringArray([pl, en])
 	if full_map != null and full_map.is_open():
@@ -2227,10 +2259,13 @@ func show_note(title: String, body: String, colour: Color) -> void:
 ## v0.8: a landmark's info card (it was tapped): the name, a Polish line or two and the
 ## English under it. It takes the note card's place for eight seconds.
 func show_info(title: String, polish: String, english: String) -> void:
+	polish = Lang.pick(polish, english)
+	english = ""
 	_set_note_width()  # landmark card fix
 	_info_title.text = title
 	_info_pl.text = polish
 	_info_en.text = english
+	_info_en.visible = english != ""
 	_show(_note, false)
 	_note_left = 0.0
 	_info_card.reset_size()
@@ -2700,6 +2735,8 @@ func _pinch_angle() -> float:
 
 ## Polish over English, centred on a pedal (the Polish word smaller if it would not fit).
 func _pad_words(c: Vector2, r: float, pl: String, en: String) -> void:
+	pl = Lang.pick(pl, en.to_upper())
+	en = ""
 	var font := ThemeDB.fallback_font
 	var fs := _px(T_SUB)
 	if font.get_string_size(pl, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x > r * 2.0 - 10.0 * pt:
@@ -3045,12 +3082,15 @@ func _koguty_tris() -> void:
 
 ## The police pill at the top centre (Polish over English); empty words hide it.
 func police_pill(pl: String, en: String) -> void:
+	pl = Lang.pick(pl, en)
+	en = ""
 	if pl == "":
 		_show(_police_pill, false)
 		return
 	if _police_pl.text != pl or _police_en.text != en:
 		_police_pl.text = pl
 		_police_en.text = en
+		_police_en.visible = en != ""
 		_police_pill.reset_size()
 	_show(_police_pill, true)
 
