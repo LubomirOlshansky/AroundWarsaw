@@ -17,7 +17,9 @@ extends SceneTree
 ##     the safe area and no two of them overlap; no panel was left without room (the passing
 ##     ones, the ticker, notes, bubbles and the overlay, may wait for room: listed); the passing
 ##     panels keep off the car's spot in the middle of the screen;
-##   - the settings panel and the bench card fit without being shrunk.
+##   - the settings panel and the bench card fit without being shrunk;
+##   - at larger text (x1.25) the same holds, a panel that must show stepping its own text down
+##     to find room (hud.gd `_fit_text`), never below the normal size (each step listed).
 ## Prints a line per screen and state, then `check_hud: OK` (exit 0) or the problems (exit 1).
 ##   godot --headless --path game --script res://tools/check_hud.gd [-- --verbose]
 
@@ -54,6 +56,8 @@ var _speakers := {}
 ## Passing panels (the radio ticker, the note and landmark cards) and the performance overlay
 ## that waited for room: allowed, they show once there is some.
 var _waits: Array[String] = []
+## Large text: the panels that stepped their text down to find room (hud.gd `fitted`).
+var _fitted: Array[String] = []
 
 
 func _initialize() -> void:
@@ -100,17 +104,12 @@ func _run() -> void:
 	_check_quiet_driving()
 	for w in _waits:
 		print("  waits for room: %s" % w)
-	# The x1.25 pass is a report, not yet a gate: the panels do not all fit the small landscape phones
-	# at that size (BACKLOG "Text size follows the phone"); its lines are warnings until they do.
-	var hard: Array[String] = []
-	for p in problems:
-		if " + large-text" in String(p) or "large-text:" in String(p):
-			print("  WARN " + String(p))
-		else:
-			hard.append(String(p))
-	problems = hard
+	# The x1.25 pass is a gate (2026-11-02): a panel that must show and has no room at the larger
+	# text steps its own text down (hud.gd `_fit_text`); listed here, never below the normal size.
+	for f in _fitted:
+		print("  text stepped down: %s" % f)
 	if problems.is_empty():
-		print("check_hud: OK (%d screens, %d states; a passing panel waited for room %d times)" % [SCREENS.size(), states, _waits.size()])
+		print("check_hud: OK (%d screens, %d states; a passing panel waited for room %d times; large text stepped down %d times)" % [SCREENS.size(), states, _waits.size(), _fitted.size()])
 		quit(0)
 	else:
 		for p in problems:
@@ -906,6 +905,14 @@ func _check_state(hud: CanvasLayer, bubbles: Control, where: String) -> void:
 			problems.append("%s:   (the card %s pt)" % [where, hud._card.get_combined_minimum_size() / pt])
 	for n in hud.waiting():
 		_waits.append("%s in %s" % [n, where])
+	var fit: Dictionary = hud.fitted()
+	for n in fit:
+		if Access.text_scale <= 1.0:
+			problems.append("%s: %s shrank its text at the normal size" % [where, n])
+		elif float(fit[n]) < 1.0 - 0.001:
+			problems.append("%s: %s's text is below the normal size (x%.2f)" % [where, n, fit[n]])
+		else:
+			_fitted.append("%s x%.2f in %s" % [n, fit[n], where])
 	if bubbles.overlaps > 0:
 		_waits.append("%d speech bubble(s) in %s" % [bubbles.overlaps, where])
 	_check_fonts(hud, where, pt)
