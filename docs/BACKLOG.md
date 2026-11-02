@@ -29,7 +29,10 @@ Left:
 The free-play bug log is `docs/PLAYTEST.md` "The bug log" (PT-n ids, severity, status); fix
 threads take its confirmed rows one by one. After two runs: PT-1 confirmed (a dead stop on
 Marszałkowska just north of the start, in 3 runs), PT-2, PT-4 (Rondo Dmowskiego) and PT-5 (side
-streets west of Marszałkowska) suspects, PT-3 closed (low ground, not a bug).
+streets west of Marszałkowska) suspects, PT-3 closed (low ground, not a bug). Run 3 (the Śródmieście grid): PT-6 the guide's bubble
+covers the minimap and +/- buttons. Design question for the driving lane: a hit from 108 km/h
+stops the car dead in 0.2-0.4 s with no slide; is that the arcade feel we want, or should it
+bounce or slide off a wall?
 
 ## Pokorna 2 (F, 2026-11-02)
 
@@ -462,10 +465,12 @@ Built (cloud, Sonnet): eight shopfronts (`Storefronts.KRAKOWSKIE`, 93 venue sign
   the castle's turret corner and entrance; the church's front, tower and colours; the Syrenka's
   plinth against the flood wall (its corner touches the plinth in the cloud render); what Kaskada
   is; a tree on Kaskada's deck.
-- Left: boulevard dressing (deck strips, bar containers), Hortus, Moderna Powiśle, Tamka's and
-  Dobra's tenements and street details. (Piano House and Cube House DONE 2026-11-02, specs
-  `piano_house.md`, `cube_house.md`; Mac photo check: Piano House's real facade rhythm and whether
-  its top floor is set back; where Cube House's real bays or loggias are and its colours.)
+- Left: boulevard dressing (deck strips, bar containers), Tamka's and Dobra's tenements and street
+  details. (Piano House and Cube House DONE 2026-11-02, specs `piano_house.md`, `cube_house.md`;
+  Mac photo check: Piano House's real facade rhythm and whether its top floor is set back; where
+  Cube House's real bays or loggias are and its colours. Hortus and Moderna DONE 2026-11-02, specs
+  `hortus.md`, `moderna.md`; Mac photo check: Hortus's glass and frame colours, its piers, the
+  Drewniana flats' plaster and roof; which part of Moderna is the old tenement and their heights.)
 - `check_landmarks` stops in the cloud (no terrain data); run it on the Mac.
 - L1 track that reads as railway: sleepers, raised rails, ballast shoulders (no new draw calls).
 - ~~L2 catenary, L3 the tunnel's mouths~~ Done 2026-11-01 (`map_builder` `_build_catenary`,

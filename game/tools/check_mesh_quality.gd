@@ -50,6 +50,8 @@ const BUDGET := {
 	"barbakan": 900,
 	"piano_house": 180,
 	"cube_house": 390,
+	"hortus": 590,
+	"moderna": 90,
 	"ostrogski": 870,
 	"brama_uw": 550,
 	"bristol": 2450,
