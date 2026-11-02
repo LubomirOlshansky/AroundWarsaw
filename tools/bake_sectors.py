@@ -116,6 +116,8 @@ SITE_NAMES = ["Pałac Kultury i Nauki", "Złote Tarasy", "Lumen", "Skylight", "R
               "Zamek Ujazdowski",
               # HOTEL PIURE's rooftop sign LUŹNO (landmarks.gd _build_piure_sign reads its parts' height)
               "Puro Warszawa Centrum",
+              # Level 26, the rooftop club on the Atlas Tower (landmarks.gd _build_level26_club reads its crown)
+              "Atlas Tower",
               # Fabryka Norblina (landmarks.gd _find_works: its tall wing is found among the parts
               # under the outline OSM names "Modsen")
               "Modsen"]
@@ -127,6 +129,7 @@ SITE_AREAS = [
     (-1520.0, 472.5, -1320.0, 672.5),       # Warszawa Centralna (CENTRALNA ± its 146 x 92 m zone)
     (910.0, -165.0, 950.0, -105.0),         # Most Poniatowskiego's towers (the fallback search)
     (1398.0, -332.0, 1443.0, -267.0),
+    (1085.0, 1470.0, 1120.0, 1515.0),       # Stadion Leguminy's bowl (landmarks.gd LEGIA_AT, the 27 m outline: its vertices average near 1100, 1492)
     (-7.0, 235.0, 13.0, 255.0),             # Muzeum Narodowe (its outline's centre, by landmarks.gd MUZEUM)
     (-680.0, 1180.0, -350.0, 1620.0),       # MDM (Plac Konstytucji to Plac Zbawiciela, landmarks.gd _find_mdm)
     (-2690.0, 170.0, -2655.0, 215.0),       # Warsaw Spire's east wing (landmarks.gd TOWERS spire "with")
@@ -143,6 +146,8 @@ SITE_AREAS = [
     (-874.0, 149.0, -841.0, 215.0),
     (-826.0, 185.0, -800.0, 229.0),
     (-793.0, 287.0, -764.0, 333.0),
+    # Pokorna 2 (landmarks.gd _find_pokorna2): the 57 m residential block, found by the outline under POKORNA2_AT
+    (-2141.0, -2234.0, -2105.0, -2198.0),
     (-450.0, 1580.0, -385.0, 1670.0),       # Kościół Zbawiciela's nave and towers (landmarks.gd ZB_*; MDM's box ends at z 1620)
     # the church kit (landmarks.gd CHURCHES): the outline under each church's `at` point
     (-853, -1629, -749, -1525),   # church_sw_marcin
