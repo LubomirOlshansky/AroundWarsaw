@@ -17,6 +17,10 @@ extends SceneTree
 ##   7. the levels the eggs read, and the eggs E03 E04 E10 E14 E15 firing on synthetic inputs
 ##      only with their crowd (E15 on its third different day), each reward once;
 ##   8. the tick's cost;
+##  10. first scene item 6 (2026-11-02): the start's street sites (FIRST_SCENE) by its furniture,
+##      every figure on a footway within the site's reach and inside main.gd's FIRST_SCENE box, the
+##      `street` curve never empty from 8 to 21, thinner in rain and winter, people there at the
+##      Day look's 14:00, the café sites with sitters and the kiosk's all standing;
 ##   9. F's asks (2026-10-30): Level 26 stands on the tower (its place inside a building part of
 ##      100 m or more in the map data), its door queue on a footway, the roof ring on a synthetic
 ##      tower (every ray on the facade or at most a cell outside it, one height).
@@ -86,10 +90,12 @@ func _run() -> void:
 	root.add_child(dlg)
 	var c: Crowds = _make(book.places, data, dlg, 1.0)
 	_check_sites(c)
+	_check_first_scene(c)
 	_check_decks(c, data)
 	_check_level26(c, book, data)
 	_check_door(c, dlg)
 	var cost := _check_dawn(c, data)
+	_check_office(c, data, dlg)
 	_check_grid_routes()
 	_check_eggs(c, book)
 	var n_sites := c.sites.size()
@@ -98,8 +104,8 @@ func _run() -> void:
 	dlg.queue_free()
 	await process_frame
 	if problems.is_empty():
-		print("check_crowds: OK (clock and Dawn, queues on synthetic clocks, steps, Plan C, police, dawn window; %d sites; door %d rejections in 300 s; dawn routes %d; walkers 30; eggs E03 E04 E10 E14 E15; tick %.1f µs)" % [
-				n_sites, _rejections, _routes, cost])
+		print("check_crowds: OK (clock and Dawn, queues on synthetic clocks, steps, Plan C, police, dawn window; %d sites; door %d rejections in 300 s; dawn routes %d; office routes %d; walkers 30; eggs E03 E04 E10 E14 E15; tick %.1f µs)" % [
+				n_sites, _rejections, _routes, _office_routes, cost])
 		quit(0)
 	else:
 		for p in problems:
@@ -340,6 +346,10 @@ func _check_sites(c: Crowds) -> void:
 		if not sl.is_empty():
 			_expect(float(sl[0]["y"]) > 20.0, "LORETKA's terrace: seats at %.1f m (on the roof?)" % float(sl[0]["y"]))
 	_expect(c.by_id.has(Crowds.GELATO[0]), "no crowd at DALEJ DALLA GELATO")
+	_expect(c.by_id.has(Crowds.ZAKWAS_ID), "no crowd at ZAKWAS I ROŻEN")
+	_expect(Crowds.zakwas_queue(11.0, 2)[0] == 0 and Crowds.zakwas_queue(13.0, 2) == [8, "zakwas"]
+			and Crowds.zakwas_queue(20.0, 5) == [Crowds.ZAKWAS_MAX, "zakwas"]
+			and Crowds.zakwas_queue(20.0, 2) == [14, "zakwas"], "ZAKWAS I ROŻEN: its line by hour")
 	_expect(c.by_id.has(Crowds.PADEL_ID), "no crowd at PADELNIA")
 	_expect(c.by_id.has(Crowds.PISTACJA_ID), "no crowd at PISTACJA")
 	if c.by_id.has(Crowds.PISTACJA_ID):
@@ -371,6 +381,55 @@ func _check_sites(c: Crowds) -> void:
 
 
 # 5. -------------------------------------------------------------------------------------------
+
+# 10. -------------------------------------------------------------------------------------------
+
+## The first frame's box (main.gd FIRST_SCENE: Plac Defilad and Marszałkowska by the start).
+const START_BOX := Rect2(-1080.0, -160.0, 200.0, 420.0)
+
+func _check_first_scene(c: Crowds) -> void:
+	for h in range(8, 22):
+		_expect(Crowds.street_level(float(h), 7, false) >= 0.5, "first scene: the street at %d:00 is %.2f (want 0.5+ from 8 to 21)" % [h, Crowds.street_level(float(h), 7, false)])
+	_expect(Crowds.street_level(14.0, 1, false) < Crowds.street_level(14.0, 7, false)
+			and Crowds.street_level(14.0, 1, false) >= 0.5, "first scene: January at 14:00 %.2f (want under July, 0.5+)" % Crowds.street_level(14.0, 1, false))
+	_expect(Crowds.street_level(14.0, 7, true) < Crowds.street_level(14.0, 7, false) * 0.5, "first scene: rain thins the street")
+	_expect(Crowds.street_level(3.0, 7, false) == 0.0, "first scene: nobody standing at 3:00")
+	var saved_now := now.duplicate()
+	var saved_cal := cal.duplicate()
+	# The Day look: Friday 14:00, July, dry.
+	now = {"hour": 14.0, "weekday": 5}
+	cal = {"live": false, "month": 7, "date": 0, "look": "Day", "rain": false, "sunset": 19.5}
+	_run_ticks(c, 2.0)
+	var people := 0
+	for fid: String in Crowds.FIRST_SCENE:
+		if not c.by_id.has(fid):
+			problems.append("first scene: no site %s" % fid)
+			continue
+		var s: Dictionary = c.sites[int(c.by_id[fid])]
+		var at: Vector2 = s["at"]
+		_expect(START_BOX.has_point(at), "first scene: %s at %s is outside the start box" % [fid, at])
+		var slots: Array = s["slots"]
+		_expect(slots.size() >= int(s["max"]), "first scene: %s has %d spots for %d people" % [fid, slots.size(), int(s["max"])])
+		var sitters := 0
+		for sl: Dictionary in slots:
+			var p: Vector2 = sl["p"]
+			sitters += int(int(sl.get("pose", Crowds.STAND)) == Crowds.SIT)
+			if p.distance_to(at) > float(s["radius"]) + 1.0:
+				problems.append("first scene: %s has a figure %.1f m out (reach %.0f)" % [fid, p.distance_to(at), float(s["radius"])])
+				break
+			if c.nearest_foot(p, 1.0).is_empty():
+				problems.append("first scene: %s has a figure off the footways at %s" % [fid, p])
+				break
+		var sits: bool = Crowds.FIRST_SCENE[fid][4]
+		_expect(sitters > 0 if sits else sitters == 0, "first scene: %s has %d sitters (sits: %s)" % [fid, sitters, sits])
+		_expect(int(s["want"]) >= 4, "first scene: %s wants %d people on a July Friday at 14:00 (want 4+)" % [fid, int(s["want"])])
+		people += int(s["want"])
+	if verbose:
+		print("first scene: %d people standing at the start's furniture at 14:00" % people)
+	now = saved_now
+	cal = saved_cal
+	_run_ticks(c, 2.0)
+
 
 func _run_ticks(c: Crowds, seconds: float) -> void:
 	var n := int(seconds / Crowds.TICK)
@@ -526,6 +585,118 @@ func _check_dawn(c: Crowds, _data: Dictionary) -> float:
 	_run_ticks(c, 1.0)
 	_expect(c.dawn_on and c.walkers.size() == 40, "the dawn crowd on a Live Sunday at 06:00: %d (want 40)" % c.walkers.size())
 	return cost
+
+
+## 10. F's ask (2026-11-02): the office crowd round Rondo Daszyńskiego. Its rules on weekdays and
+## weekends, its standing groups on the rondo's kerbs, its routes over the real footways (the
+## zebra crossings among them), its walkers on a Wednesday morning (the dawn crowd's MultiMesh,
+## none at night, on a Sunday, or far from the rondo), and its lines.
+func _check_office(c: Crowds, data: Dictionary, dlg: FakeDialogue) -> void:
+	_expect(Crowds.office_level(8.5, 3, false) == 1.0 and Crowds.office_level(12.5, 3, false) > 0.5
+			and Crowds.office_level(17.0, 5, false) == 1.0, "office level at rush hours on a working day")
+	_expect(Crowds.office_level(8.5, 6, false) == 0.0 and Crowds.office_level(8.5, 7, false) == 0.0, "no office crowd on a weekend")
+	_expect(Crowds.office_level(3.0, 3, false) == 0.0 and Crowds.office_level(22.0, 3, false) == 0.0, "no office crowd at night")
+	_expect(Crowds.office_level(8.5, 3, true) < Crowds.office_level(8.5, 3, false), "rain thins the office crowd")
+	_expect(Crowds.office_tag(8.0, false) == "morning" and Crowds.office_tag(12.5, false) == "lunch"
+			and Crowds.office_tag(17.0, false) == "evening" and Crowds.office_tag(8.0, true) == "rain", "office line tags")
+	var offices: Array = c.sites.filter(func(s: Dictionary) -> bool: return s["kind"] == "office")
+	_expect(offices.size() == Crowds.OFFICE.size(), "office sites: %d (want %d)" % [offices.size(), Crowds.OFFICE.size()])
+	for s: Dictionary in offices:
+		_expect(not (s["slots"] as Array).is_empty(), "office site %s has no slots" % s["id"])
+		_expect(int((s["slots"] as Array).size()) >= int(s["max"]), "office site %s: %d slots for %d people" % [s["id"], (s["slots"] as Array).size(), s["max"]])
+	# The routes over the real footways: metro exits to exits and towers, with the crossings.
+	var oin: Dictionary = c.get("_office_in")
+	_expect(not oin.is_empty() and (oin["from"] as Array).size() >= 4, "office: subway exits near the rondo: %d" % (oin["from"] as Array).size() if not oin.is_empty() else 0)
+	if oin.is_empty():
+		return
+	var paths: Array = []
+	var area: Rect2 = (c.get("_office_box") as Rect2).grow(100.0)
+	for f in c.get("_foot"):
+		if area.has_point((f["pts"] as PackedVector2Array)[0]):
+			paths.append([f["pts"], int(f["dk"])])
+	var t0 := Time.get_ticks_msec()
+	var found: Array = Crowds.build_routes(paths, oin["from"], oin["to"])
+	if verbose:
+		print("  %d office routes in %d ms (%d footways)" % [found.size(), Time.get_ticks_msec() - t0, paths.size()])
+	c.set("_route_mode", "office")
+	c.set("_route_out", [found])
+	c.call("_finish_routes")
+	var n_routes := (c.office_routes as Array).size()
+	_expect(n_routes >= 10, "office routes: %d (want 10 or more)" % n_routes)
+	if verbose:
+		for r: Dictionary in c.office_routes:
+			print("  office route %s → %s %.0f m, %d corners" % [r["from"], r["to"], r["len"], (r["pts"] as PackedVector2Array).size()])
+	var crossing := 0
+	var zebras: Array = []
+	for p: Dictionary in data.get("paths", []):
+		if str(p.get("k", "")) == "zebra":
+			var flat: Array = p["p"]
+			zebras.append([Vector2(float(flat[0]), float(flat[1])), Vector2(float(flat[flat.size() - 2]), float(flat[flat.size() - 1]))])
+	for r: Dictionary in c.office_routes:
+		var pts: PackedVector2Array = r["pts"]
+		for z: Array in zebras:
+			var ia := -1
+			var ib := -1
+			for k in pts.size():
+				if ia < 0 and pts[k].distance_to(z[0]) < 1.5:
+					ia = k
+				if ib < 0 and pts[k].distance_to(z[1]) < 1.5:
+					ib = k
+			if ia >= 0 and ib >= 0 and absi(ia - ib) <= 3:
+				crossing += 1
+				break
+	_expect(crossing >= 3, "office: %d routes cross a zebra (want 3 or more)" % crossing)
+	# A Wednesday morning with the view at the rondo.
+	eye = Vector3(Crowds.OFFICE_AT.x, 0.0, Crowds.OFFICE_AT.y)
+	cal = {"live": false, "month": 7, "date": 0, "look": "Day", "rain": false, "sunset": 19.5}
+	now = {"hour": 8.5, "weekday": 3}
+	seen = true
+	c.refresh()
+	dlg.said.clear()
+	_run_ticks(c, 40.0)
+	var want := Crowds.office_count(Crowds.OFFICE_MAX, 8.5, 3, false)
+	_expect(c.office_on and c.walk_mode == "office" and c.walkers.size() == want, "office walkers on a Wednesday at 08:30: %d (want %d)" % [c.walkers.size(), want])
+	_expect(float(c.levels.get("office", 0.0)) == 1.0, "the office level for the eggs")
+	for s: Dictionary in offices:
+		_expect(int(s["n"]) >= int(s["max"]) - 1, "office site %s holds %d at 08:30 (max %d)" % [s["id"], s["n"], s["max"]])
+	var said := 0
+	for l: Array in dlg.said:
+		said += int(l[1] == "office")
+	_expect(said >= 4, "office lines in 40 s: %d (want 4 or more)" % said)
+	for i in c.walkers.size():
+		var p := c.walker_pos(i)
+		var r: Dictionary = c.office_routes[int(c.walkers[i]["r"])]
+		var near := INF
+		var pts: PackedVector2Array = r["pts"]
+		for k in pts.size() - 1:
+			near = minf(near, Geometry2D.get_closest_point_to_segment(Vector2(p.x, p.z), pts[k], pts[k + 1]).distance_to(Vector2(p.x, p.z)))
+		if near > 1.5:
+			problems.append("office walker %d is %.1f m off its route" % [i, near])
+	# None far away, on a Sunday, at night, or when the dawn crowd is out.
+	eye = Vector3(0.0, 0.0, 0.0)
+	_run_ticks(c, 1.0)
+	_expect(not c.office_on and c.walkers.is_empty(), "no office walkers away from the rondo: %d" % c.walkers.size())
+	eye = Vector3(Crowds.OFFICE_AT.x, 0.0, Crowds.OFFICE_AT.y)
+	now = {"hour": 8.5, "weekday": 7}
+	_run_ticks(c, 1.0)
+	_expect(not c.office_on and c.walkers.is_empty(), "no office walkers on a Sunday: %d" % c.walkers.size())
+	now = {"hour": 2.0, "weekday": 3}
+	_run_ticks(c, 1.0)
+	_expect(not c.office_on and c.walkers.is_empty(), "no office walkers at 02:00: %d" % c.walkers.size())
+	# The lines: 60 or more, none longer than 70 characters (check_parodies.gd checks the words).
+	var lines: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/dialogue.json"))
+	var office: Array = (lines as Dictionary).get("office", []) if lines is Dictionary else []
+	_expect(office.size() >= 60, "office lines: %d (want 60 or more)" % office.size())
+	var tags := {}
+	for l: Array in office:
+		var notes: Dictionary = l[2] if l.size() > 2 and l[2] is Dictionary else {}
+		tags[str(notes.get("only", ""))] = int(tags.get(str(notes.get("only", "")), 0)) + 1
+	for tag: String in ["", "morning", "lunch", "evening", "rain"]:
+		_expect(int(tags.get(tag, 0)) >= 3, "office lines tagged \"%s\": %d (want 3 or more)" % [tag, int(tags.get(tag, 0))])
+	_office_routes = n_routes
+
+
+var _office_routes := 0
 
 
 func _check_grid_routes() -> void:

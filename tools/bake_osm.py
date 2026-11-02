@@ -454,6 +454,10 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
     # their roads out, their graph edges car-free, a pedestrian zone, the new trees (tools/car_free.py).
     import car_free
     print("car_free: " + car_free.apply(out))
+    # Krajobraz places (2026-11-02): the young trees of the newest streets that the laser scan
+    # predates (ul. Bracka's woonerf), before the content POIs, which keep clear of trees.
+    import planted_trees
+    planted_trees.apply(out)
     # Loop "content POIs" (2026-10-31): the corner shops, metro entrances, city bike docks, the
     # places' missing addresses and the Leżaks with their zones, appended after every older poi
     # on the finished data (they keep clear of its solids; tools/bake_street_pois.py).
