@@ -3,6 +3,19 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Pokorna 2 (F, 2026-11-02)
+
+- Pokorna 2 remodelled as flats (site `pokorna2`, spec pokorna2.md). Open: Mac look check (QUESTIONS); the Gdański Business Center thread works nearby (Dworzec Gdański), keep its site zone clear of the outline at (-2123, -2217).
+
+
+## Level 26 rooftop club (F, 2026-11-01)
+
+Built: the club's furniture on the Atlas Tower crown (site `level26_club`); the crowd, band, queue,
+bass and hours were already there. Open: Mac look check (deck size against the real roof, the
+sign's side), the bass is a ground-level emitter (a rooftop one would reach the heli), laser beams
+at night were skipped (they read as poles by day).
+## Stadion Leguminy (F, 2026-11-01)
+- Built from the mapped outline only (spec legia.md). Left: Mac photo check (QUESTIONS), the real stands' shape and the concourse side, entrances and tickets booths, club shop, the car park on the east side, the 20 m west stand as its own mass.
 
 ## Language choice follow-ups (F, 2026-11-02)
 
@@ -105,17 +118,16 @@ reproduce at the ramps of the Poniatowski, Świętokrzyski, Śląsko-Dąbrowski,
 graph's or the ground's height at the approach lets the car under the deck. Accept: the car stays
 on the ramp across every bridge entry in check_drive's bridge pass.
 
-**G8 · Bus stops and buses (P2, Opus).** Stops sit off the kerb (IMG 7134: shelters in the lawn,
-BUS markers on the lane). Task: snap each shelter to the footway edge beside the bus lane, the bay
-to the lane; buses stop at the bay for about 10 s; 1-3 pedestrians step off, others board; 2-5
-people wait at the shelter. A small state machine in buses.gd (arrive, dwell, depart) is enough:
-write "Beehave not used, because ..." in the PR. Accept: a new check puts every stop within 1.5 m
-of the kerb; a bus dwells 8-12 s; draw calls unchanged. Files: buses.gd, pedestrians.gd, props.gd.
-
-**G9 · Chairs and benches (P2, Sonnet).** Furniture appears in odd places. Task: chairs only at
-cafe terraces (the storefront's frontage, 1.5 m deep, on paving), benches on footways facing the
-walk or park path, never within 1 m of a lane. Accept: a check lists every chair/bench and fails
-any on a lane, in water or inside a wall. Files: street_details.gd, props.gd, storefronts.gd.
+**G8/G9 · Bus stops, buses and street furniture (done 2026-11-01).** Cause found: the OSM shelters
+got their yaw from the road's direction, so roofs ran across the road (half with their glass back to
+the lane) and many stood on the lawn. Now tools/snap_props.py (run by bake_osm after structures)
+puts each bus-road shelter 1.7 m past its kerb lane, roof along the road, and turns the benches to
+face the footway; buses.gd serves the stops by day (8-12 s stand, 1-3 step off, up to 2 board,
+2-5 wait); cafe sets stand only against a shopfront. Open: look check on the phone (do the
+people read as passengers, is 10 s right with Low traffic); 11 shelters had no clear spot and stay
+where they were (turned only), 7 inside a lane or a building were left out; tram-stop shelters
+and the first scene's authored cafe tables are unchanged; night service (N buses) is still only
+the Centralny hub.
 
 
 **G13 · Upgrade shop: done (2026-11-02).** Warsztat u Mirka's card has a second tab, "Części i auta":
