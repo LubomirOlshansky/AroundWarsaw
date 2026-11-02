@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- Nowy Świat and Al. Jerozolimskie are no longer dark at night: Nowy Świat has street lamps on both pavements and the avenues have their lamps closer together, so the pools of light join up along the street.
 - Loud cars: a meet of low, wide supercars in acid colours (no badges) on the square by the Browary Warszawskie gate, with people filming them on their phones, and a few of them out on the streets, revving and crackling as they pass. KEBAB FM reports that the neighbours are counting the revs again.
 - A kebab shop called MIESZANE MIESZANE glows on Al. Solidarności by the Kebab Basin, named after the only two answers you give at the counter ("Mięso?" "Mieszane." "Sos?" "Mieszane."), with a late-night queue of regulars, and the Skyliner at Rondo Daszyńskiego wears the NOSE AGENCY on its crown.
 - Warsaw's wellness crowd is out in the parks: sound healing round a gong ("DŹWIĘKOTERAPIA, wejście 80 zł"), techno yoga with hamsters in rolling balls, a women's 40+ club turning round a tree to wake the little girl inside, and a kung-fu school doing one very slow move in step.

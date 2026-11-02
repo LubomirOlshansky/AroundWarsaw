@@ -979,8 +979,8 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   streets were 3 m strips (505 ways, 31 km: Mokotowska, Wilcza, Hoża, Żurawia, Noakowskiego...) and are
   now the street's default width, 5.5 m (6.5 m tertiary), split legs round an island kept at one lane;
   two-lane two-way streets 6 → 7 m (423 ways, F's yes).
-- Already listed and still open: lines inside junctions not checked against photos and the dark
-  Jerozolimskie / Nowy Świat at night ("From map review B"); the loop 3e structures (Łazienkowski's
+- Already listed and still open: lines inside junctions not checked against photos ("From map
+  review B"; the dark Jerozolimskie / Nowy Świat at night fixed 2026-11-02); the loop 3e structures (Łazienkowski's
   Praga end R8, the rail cutting, Rozdroże's tubes, Nowy Zjazd's wall, deck 4); Most Łazienkowski
   cut by the east edge ("From loop 3d-1", a decision).
 
@@ -2227,10 +2227,16 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
   lane line lie inside the clusters of junction nodes (most at Plac Trzech Krzyży (-77, 670), the
   Poniatowski ramps (1381, -344), Wał Miedzeszyński (1514, -147)); measured, not yet checked
   against the photo one by one (many are a real edge line along a wide junction's side).
-- At night Al. Jerozolimskie at (-615, 394) and Nowy Świat at (-331, 18) read much darker than
-  Marszałkowska and Świętokrzyska, though lamps are mapped along them (one per 42 m and 22 m of
-  way): not judged in review B (the pools in `lights.bin` there, sodium or LED, cut by the
-  buildings?); shots `shots/review_roads/after/n2_*`, `n4_*` (local).
+- ~~At night Al. Jerozolimskie at (-615, 394) and Nowy Świat at (-331, 18) read much darker than
+  Marszałkowska.~~ Fixed 2026-11-02 in `tools/bake_lights.py`: the lamps it adds on unlit stretches
+  stood 34 m apart a side, so the pools (lit bands 9-12 m) left gaps on the wide avenues; primary and
+  secondary streets now get one every 26 m (gap 16 m), Nowy Świat and Krakowskie Przedmieście are lit
+  from both pavements (Nowy Świat was one side, the other side's spots fell inside the 22 m gap of
+  the lamp across), and a kerb spot on asphalt steps out up to 4 m (Nowy Świat's parking bays).
+  2004 → 2455 added street lamps (lamp posts are one MultiMesh: +0 draw calls). Share of the
+  carriageway in a lit band at the review spots: Nowy Świat 52 → 88 %, Jerozolimskie 32 → 48 %.
+  Open: a phone look at night on both streets; Jerozolimskie's far pavements stay dimmer than the
+  carriageway (lamps stand at the kerb, 30 m dual carriageway).
 - `check_streets` S3 also counts real median noses at a junction's edge (Świętokrzyska by Mariańska,
   18 cross-sections): reported, not failed.
 
