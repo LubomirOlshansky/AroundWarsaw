@@ -38,6 +38,9 @@
 # The L-shaped map loop: `edge` runs game/tools/check_edge.gd: the helicopter's clamp along the
 # map's outline (random moves, four flights past the inner corner), the rescue spots inside the
 # outline, the minimap's mesh over the corner left outside; centrum.json only (CI too).
+# The edge roadworks (2026-11-02): `roadworks` runs game/tools/check_edge_roadworks.gd: every road
+# leaving the map closed by roadworks, the traffic shut there, rays through the barriers, the budget;
+# centrum.json only (CI too).
 # Loop MW-5: `radio` also checks PÓŁNOC FM (its 7 tracks and seams, the hours, reruns, the host,
 # the unlocks); `sounds` runs game/tools/check_city_sounds.gd: the city's sounds at the notebook's
 # places (the emitters, the hours, the cap of 8, the bells, the 02:00 beat); centrum.json only (CI too).
@@ -157,8 +160,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh spec lod2 drape ground drive drive-prebuilt stuckspots stuckspots-prebuilt steering handling stopassist questlines settings credits language tiers governor hud places edge eggs tape crowds life buses zaglebie crashes oldtram trains packs garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 rescues couriers rides cost landmarks oldtownroofs roofdress osmroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram firstlife heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh spec drape drive stuckspots steering handling stopassist questlines settings credits language tiers governor hud places edge eggs tape crowds life buses zaglebie crashes oldtram trains packs garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 rescues couriers rides cost landmarks oldtownroofs roofdress osmroofs sites meshq sfx juice gamepad radio sounds police plain ram firstlife prebuilt)
+STEPS_ALL=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh spec lod2 drape ground drive drive-prebuilt stuckspots stuckspots-prebuilt steering handling stopassist questlines settings credits language tiers governor hud places edge roadworks eggs tape crowds life buses zaglebie crashes oldtram trains packs garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 rescues couriers rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram firstlife heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh spec drape drive stuckspots steering handling stopassist questlines settings credits language tiers governor hud places edge roadworks eggs tape crowds life buses zaglebie crashes oldtram trains packs garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 rescues couriers rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds police plain ram firstlife prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -711,6 +714,8 @@ for s in $want; do
 		hud) check hud '^check_hud:' --script res://tools/check_hud.gd ;;
 		places) check places '^check_places:' --script res://tools/check_places.gd ;;
 		edge) check edge '^check_edge:' --script res://tools/check_edge.gd ;;
+		# The edge roadworks (2026-11-02): every road leaving the map closed, traffic stopped there, solid.
+		roadworks) check roadworks '^check_edge_roadworks:' --script res://tools/check_edge_roadworks.gd ;;
 		# Loop MW-6: the egg cards and their triggers; KASETA's then cards and ghosts.
 		eggs) check eggs '^check_eggs:' --script res://tools/check_eggs.gd ;;
 		tape) check tape '^check_tape:' --script res://tools/check_tape.gd ;;
@@ -757,6 +762,8 @@ for s in $want; do
 		oldtownroofs) check oldtownroofs '^check_old_town_roofs:' --script res://tools/check_old_town_roofs.gd ;;
 		# The roofs lane (scripts/roof_dress.gd): parapets on outer edges only, tenement chimneys, the budget.
 		roofdress) check roofdress '^check_roof_dress:' --script res://tools/check_roof_dress.gd ;;
+		# Dobra and Tamka's tenement trim (scripts/tenement_trim.gd): cornice, string course, shop fronts, on the wall, within budget.
+		tenementtrim) check tenementtrim '^check_tenement_trim:' --script res://tools/check_tenement_trim.gd ;;
 		# RF4 (scripts/osm_roofs.gd): pitched roofs for small OSM-only houses: shapes, cover, what stays flat.
 		osmroofs) check osmroofs '^check_osm_roofs:' --script res://tools/check_osm_roofs.gd ;;
 		landmarks) check landmarks '^landmark check:' --script res://tools/check_landmarks.gd ;;

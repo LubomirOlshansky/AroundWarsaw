@@ -990,6 +990,8 @@ def page_radio(site: Site) -> int:
                     f'<p class="meta">{len(tracks)} tracks · {mins:.1f} minutes · {edit_link(rel, ln)}</p>'
                     + table(["Track", "Artist", "Length", "Licence"],
                             [[esc(t["title"]), esc(t.get("artist", "")), f'{int(t.get("seconds", 0)) // 60}:{int(t.get("seconds", 0)) % 60:02d}', esc(t.get("licence", ""))] for t in tracks]))
+    body.insert(0, '<p>The plan for the beta\'s songs, the opening theme and the announcer\'s voice: '
+                '<a href="/docs/sound/">Music and voices</a>; every prompt: <a href="/docs/music/">Music prompts</a>.</p>')
     body.append('<h2 id="host">The radio host</h2>' + lines_block([g for g in dialogue() if g.startswith(("radio", "polnoc"))], 40))
     toc.append((2, "host", "The radio host"))
     body.append('<h2 id="music">Adding music</h2><p>Drop a song in <code>data/raw/music/&lt;station&gt;/</code> and run <code>tools/add_music.py</code>; '
@@ -1114,6 +1116,8 @@ DOC_PAGES = [
     ("police", "Police design", "docs/design/police.md"),
     ("parodies", "Parodies design", "docs/design/parodies.md"),
     ("graphics", "Graphics", "docs/design/graphics.md"),
+    ("sound", "Music and voices", "docs/design/sound.md"),
+    ("music", "Music prompts", "docs/MUSIC.md"),
     ("workflow", "How the work is run", "docs/WORKFLOW.md"),
     ("development", "Development (every detail)", "docs/archive/DEVELOPMENT-full.md"),
 ]

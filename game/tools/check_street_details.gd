@@ -7,7 +7,7 @@ extends SceneTree
 
 const StreetDetails := preload("res://scripts/street_details.gd")
 const MAX_TRIS_CELL := 25000
-const KINDS := ["kiosk", "stall", "cafe", "planter", "column", "bollards", "cart", "post", "ticket", "bench", "heater"]
+const KINDS := ["kiosk", "stall", "cafe", "planter", "column", "bollards", "cart", "post", "ticket", "bench", "heater", "shelter"]
 
 var _problems := 0
 

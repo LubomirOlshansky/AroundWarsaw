@@ -86,6 +86,32 @@ the game-designer. Pitfalls from the landmarks lane apply (BACKLOG "Landmarks la
 a site found in `data["buildings"]` needs its box in `bake_sectors.py` `SITE_AREAS`; rebuild the
 prebuilt sectors with a renderer; check both city paths.
 
+### Items 4 and 5 as built: paving and kerbs (2026-11-02)
+
+- **Grey pavements round the start** (ground.gdshader `start_frame`, `START_BOX`): in
+  Marszałkowska's frame from Rondo Dmowskiego to the tram stop north of the museum (s -265..365,
+  t -80..95: both pavements, the paving round the museum, Pasaż Wiecha behind the stores) the
+  plazas, the `paving` surfaces and the bare ground draw as Warsaw's grey concrete (bare ground
+  as 0.5 m slabs laid along the street), a touch cooler than R3's footways so they read grey in
+  the warm day light; the grey fades out over 12 m at the box's edge. Before, the stores'
+  frontage and the square south of the museum were sand-coloured bare ground and the museum's
+  paving beige. Plac Centralny keeps R2's stones. Shader only: +0 draw calls, +0 triangles.
+- **Tactile pads at the crossings** (map_builder.gd `_build_tactile`, layer 20 `L_TACTILE`):
+  where a zebra's end lies within 2.6 m of a kerb line (the bake's kerbs, the islands' rims), a
+  yellow pad 0.6 m deep and as wide as the stripes (3.6 m) lies just past the kerb's granite top,
+  on the pavement or the refuge; the ground shader draws its studs. City-wide, not only in the
+  box (every Warsaw crossing has them): two triangles a pad in the flat mesh, +0 draw calls.
+- **The tram platforms' edges** (first_scene.gd `PLATFORM_EDGES`): Centrum's platform south of
+  Widok and the stop north of the museum get a light edge band and, 0.5 m in, a yellow tactile
+  line along the track side. Flat strips in the first-scene mesh: +0 draw calls. The platforms'
+  colliders (PT-1, PR #289) are untouched.
+- The crossings themselves were already in the map: the three new ones (Rondo Dmowskiego, in line
+  with Złota, Sienkiewicza/Fangora) are mapped zebras with cycle crossings.
+- Left: the pavilions and towers behind the stores, the park strip in front of the museum (its
+  trees, benches and lamps come from the map), lowered kerbs at the crossings, Złota's setts and
+  the fountain at the old tunnel mouth (R3 part 2, the orthophoto on the Mac). Only the phone
+  shows whether the pads and the platform lines read at the default zoom.
+
 ### Items 6 and 7 as built (2026-11-02)
 
 - **People standing** at the start's furniture (`crowds.gd` `FIRST_SCENE`, the chill machinery):
