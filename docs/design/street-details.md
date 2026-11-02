@@ -87,7 +87,7 @@ mapped shelter within 25 m gets a `bench` in the middle, a `post` and a `ticket`
 along the slab, colour field `platform` (the runtime lifts them 1 m onto the slab), each at least
 0.7 m inside the outline and clear of everything but the island's own kerb, ballast and tracks.
 
-**Budget:** at most 900 items in all, 70 per 512 m sector; ~250 triangles average, 25 k per
+**Budget:** at most 900 items in all, 85 per 512 m sector (100 with the stop kits); ~250 triangles average, 25 k per
 sector. Runtime `game/scripts/street_details.gd`, built per sector on load on both city paths
 like storefronts.gd `_build_props` (not baked into sector scenes, so `bake_city.gd` is untouched):
 one MeshInstance3D a sector in the actors' material (`Models.material()`), **one draw call a

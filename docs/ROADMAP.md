@@ -155,6 +155,9 @@ then the Launch gate.
       Barbican, Old Town gables, PZU/JM Tower and the rest), and the parked Mac photo checks
 - [x] Street furniture along the main line's route (Krakowskie Przedmieście, Nowy Świat, the Old
       Town's edge, Plac Zbawiciela, the boulevards, Rondo Daszyńskiego)
+- [ ] Nowy Świat street by street (F, 2026-11-01; BACKLOG "Nowy Świat"):
+  - [x] N1 café terraces along the whole street (about three times as many) and six named houses with skins and cards, 2026-11-01
+  - [ ] N2 Mac look check, Café Blikle-style pastry shop parody, Chmielna and Foksal corners, Pałac Staszica to the rondo's tenement fronts from photos
 - [ ] Plac Bankowy as in real life (F, 2026-11-02): DONE the Blue Skyscraper in blue mirror glass
       (new skin S_MIRROR; the gold was its first copper cladding) and the palaces in their real
       colours (kept skins `ratusz`, `wojewodzki`, `gielda`, `arsenal`, `mniszchow`, `landau`, with
