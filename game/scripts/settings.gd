@@ -69,6 +69,8 @@ var wander_offered := false
 var zone_cap := false
 ## G4: car.gd Handling (0 Cruise, the default; 1 Sport, the loop 2a feel). Settings → Jazda, key "handling".
 var handling := 0
+## Steering sensitivity 0..1 (0.5 = the profile as is; car.gd set_sensitivity). Settings → Jazda, key "sensitivity".
+var sensitivity := 0.5
 ## Accessibility (access.gd, Settings → ŁATWOŚĆ): larger HUD text, calm (no flashing or shaking),
 ## colour-safe markers, the phone's vibration, and the quest stop assist.
 var text_large := false
@@ -78,6 +80,8 @@ var vibration := true
 var stop_assist := true
 ## Accessibility (2026-11-01): the pedals on the left, the stick on the right (hud.gd).
 var left_handed := false
+## The language (lang.gd): "" until the player picks one (then the phone decides), "pl" or "en".
+var lang := ""
 ## Loop G1b: Auto's sharp-image state (tiers.gd sharp_state: fallback, calm, wait, trial, why).
 var auto_image := Tiers.sharp_state()
 ## False with --nosave: nothing is read or written.
@@ -118,12 +122,16 @@ func load_file() -> void:
 	wander_offered = bool(cfg.get_value("game", "wander_offered", wander_offered))
 	zone_cap = bool(cfg.get_value("game", "zone_cap", zone_cap))
 	handling = clampi(int(cfg.get_value("game", "handling", handling)), 0, 1)
+	sensitivity = clampf(float(cfg.get_value("game", "sensitivity", sensitivity)), 0.0, 1.0)
 	text_large = bool(cfg.get_value("access", "text_large", text_large))
 	calm = bool(cfg.get_value("access", "calm", calm))
 	color_safe = bool(cfg.get_value("access", "color_safe", color_safe))
 	vibration = bool(cfg.get_value("access", "vibration", vibration))
 	stop_assist = bool(cfg.get_value("access", "stop_assist", stop_assist))
 	left_handed = bool(cfg.get_value("access", "left_handed", left_handed))
+	lang = str(cfg.get_value("game", "lang", lang))
+	if lang != "" and not lang in ["pl", "en"]:
+		lang = ""
 	var image := {}
 	for key in auto_image:
 		image[key] = cfg.get_value("auto_image", key, auto_image[key])
@@ -152,21 +160,24 @@ func save() -> void:
 	cfg.set_value("game", "wander_offered", wander_offered)
 	cfg.set_value("game", "zone_cap", zone_cap)
 	cfg.set_value("game", "handling", handling)
+	cfg.set_value("game", "sensitivity", snappedf(sensitivity, 0.05))
 	cfg.set_value("access", "text_large", text_large)
 	cfg.set_value("access", "calm", calm)
 	cfg.set_value("access", "color_safe", color_safe)
 	cfg.set_value("access", "vibration", vibration)
 	cfg.set_value("access", "stop_assist", stop_assist)
 	cfg.set_value("access", "left_handed", left_handed)
+	if lang != "":
+		cfg.set_value("game", "lang", lang)
 	for key in auto_image:
 		cfg.set_value("auto_image", key, auto_image[key])
 	cfg.save(path)
 
 
 func summary() -> String:
-	return "controls %d, classic camera %s, traffic %s, quality %s, volume %.0f/%.0f/%.0f %%, perf %s, %d fps, style %d, vhs %s, zone cap %s, handling %d, access large %s calm %s colour-safe %s vibration %s assist %s left-handed %s, auto image %s" % [
+	return "controls %d, classic camera %s, traffic %s, quality %s, volume %.0f/%.0f/%.0f %%, perf %s, %d fps, style %d, vhs %s, zone cap %s, handling %d sens %.2f, access large %s calm %s colour-safe %s vibration %s assist %s left-handed %s, auto image %s" % [
 			controls, "follow" if classic_follow else "fixed", TRAFFIC_NAMES[traffic], "auto" if quality == AUTO else str(quality),
-			master * 100.0, music * 100.0, effects * 100.0, perf, fps, style, vhs, zone_cap, handling, text_large, calm, color_safe, vibration, stop_assist, left_handed, image_summary()]
+			master * 100.0, music * 100.0, effects * 100.0, perf, fps, style, vhs, zone_cap, handling, sensitivity, text_large, calm, color_safe, vibration, stop_assist, left_handed, image_summary()]
 
 
 ## Loop G1b: "sharp", "sharp, on trial 1/4" or "fallback, calm 1/2 (GPU extras down 74 s)".

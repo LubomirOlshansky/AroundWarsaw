@@ -71,6 +71,14 @@ var eggs_total := 0
 ## default) and the paints bought (id -> the day, yyyymmdd; the factory red is never listed).
 var paint := "red"
 var paints := {}
+## G13 (the upgrade shop, upgrades.gd): the car on the road ("hatch" by default, "tt" the Ołdi TT),
+## the cars bought (id -> the day), the parts' levels (tyres, engine: 1-3) and whether the nitro is
+## owned. The same [garage] section (keys car, ownc_<id>, tune_<part>, nitro); a save without them
+## loads as the hatch, untuned, no nitro, so no version bump (an older build ignores the keys).
+var car := "hatch"
+var cars := {}
+var tune := {}
+var nitro := false
 ## Loop 3h slice 1 (save v2): the districts discovered (districts.gd: id -> the day, yyyymmdd),
 ## the jobs done in each (id -> count; `pay` counts a job in `district`, the one the vehicle is in),
 ## and the Syrenki found (the later slice's collectibles: id -> the day).
@@ -170,6 +178,14 @@ func load_save() -> void:
 	for key in (cfg.get_section_keys("garage") if cfg.has_section("garage") else PackedStringArray()):
 		if key.begins_with("own_"):
 			paints[key.trim_prefix("own_")] = int(cfg.get_value("garage", key, 1))
+		elif key.begins_with("ownc_"):
+			cars[key.trim_prefix("ownc_")] = int(cfg.get_value("garage", key, 1))
+		elif key.begins_with("tune_"):
+			tune[key.trim_prefix("tune_")] = clampi(int(cfg.get_value("garage", key, 0)), 0, 3)
+	car = str(cfg.get_value("garage", "car", "hatch"))
+	if car != "hatch" and not cars.has(car):
+		car = "hatch"  # a car not owned (an edited file): back to the hatch
+	nitro = bool(cfg.get_value("garage", "nitro", false))
 	for key in (cfg.get_section_keys("districts") if cfg.has_section("districts") else PackedStringArray()):
 		districts[key] = int(cfg.get_value("districts", key, 1))
 	for key in (cfg.get_section_keys("district_jobs") if cfg.has_section("district_jobs") else PackedStringArray()):
@@ -247,6 +263,12 @@ func save() -> void:
 	cfg.set_value("garage", "paint", paint)
 	for key in paints:
 		cfg.set_value("garage", "own_" + str(key), int(paints[key]))
+	cfg.set_value("garage", "car", car)
+	for key in cars:
+		cfg.set_value("garage", "ownc_" + str(key), int(cars[key]))
+	for key in tune:
+		cfg.set_value("garage", "tune_" + str(key), int(tune[key]))
+	cfg.set_value("garage", "nitro", nitro)
 	for key in districts:
 		cfg.set_value("districts", key, int(districts[key]))
 	for key in district_jobs:
@@ -287,6 +309,10 @@ func reset() -> void:
 	kadr_photos.clear()
 	paint = "red"
 	paints.clear()
+	car = "hatch"
+	cars.clear()
+	tune.clear()
+	nitro = false
 	districts.clear()
 	district_jobs.clear()
 	syrenki.clear()
@@ -308,7 +334,7 @@ func previous_path() -> String:
 func has_progress() -> bool:
 	return zl != 0 or respect != 0 or not (jobs.is_empty() and eggs.is_empty() and notes.is_empty()
 			and districts.is_empty() and syrenki.is_empty() and ladder.is_empty() and intro.is_empty()
-			and paints.is_empty() and kadr.is_empty() and tapes.is_empty() and session.is_empty())
+			and paints.is_empty() and cars.is_empty() and tune.is_empty() and not nitro and kadr.is_empty() and tapes.is_empty() and session.is_empty())
 
 
 ## Save and resume: "NOWA GRA" confirmed. The old file is copied to previous_path() first (one
@@ -370,7 +396,7 @@ func jobs_done() -> int:
 	return n
 
 
-## The garage loop: pays `amount` złoty out of the wallet (a paint job) and saves; false (nothing
+## The garage loop: pays `amount` złoty out of the wallet (a paint job, a car or a part) and saves; false (nothing
 ## paid) when there are not that many.
 func spend(amount: int) -> bool:
 	if amount < 0 or amount > zl:
