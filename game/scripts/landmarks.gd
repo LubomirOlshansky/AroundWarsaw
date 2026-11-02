@@ -414,6 +414,12 @@ const INFO := {
 	"cube_house": ["Cube House",
 			"Biała kostka przy Topieli, z wykuszami jak wysunięte szuflady.",
 			"A white cube on Topiel, its bays sticking out like half-open drawers."],
+	"hortus": ["Hortus",
+			"Biura i kamienica wokół ogrodu, tam gdzie stała fabryka cukierków. Hortus to po łacinie ogród.",
+			"Offices and a tenement-style block round a garden, where a sweet factory stood. Hortus is Latin for garden."],
+	"moderna": ["Modernka Powiśle",
+			"Od frontu odnowiona przedwojenna kamienica, z tyłu nowe szkło i penthouse'y. Wisła trzysta kroków stąd.",
+			"A restored pre-war tenement at the front, new glass and penthouses behind. The Vistula is three hundred steps away."],
 	"kaskada": ["Kaskada",
 			"Statek przycumowany do bulwarów. Zimą stoi, latem się kołysze.",
 			"A vessel moored to the boulevards. Still in winter, rocking in summer."],
@@ -836,6 +842,9 @@ func _find_sites() -> void:
 	# Powiśle's new flats (2026-11-02): Piano House and Cube House, models from their outlines.
 	_find_piano_house()
 	_find_cube_house()
+	# Powiśle (2026-11-02): Hortus on Topiel and Moderna on Zajęcza, models from their outlines.
+	_find_hortus()
+	_find_moderna()
 	# Plac Zbawiciela (Marszałkowska street by street, 2026-11-01): the basilica, a model.
 	_find_zbawiciela()
 	# F's ask (2026-11-01): every church designed by the same rules (the church kit).
@@ -1179,6 +1188,10 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_piano_house(s)
 			"cube_house":
 				_build_cube_house(s)
+			"hortus":
+				_build_hortus(s)
+			"moderna":
+				_build_moderna(s)
 			"zbawiciela":
 				_build_zbawiciela(s)
 			"buw":
@@ -7747,6 +7760,150 @@ func _cube_face_straight(ring: PackedVector2Array, n: Vector2, plane: float) -> 
 		elif l.dot(n) > 0.0 and absf(d) < 2.5:
 			return false
 	return near >= 2
+
+
+## Hortus (Topiel 12, Powiśle; 2009-2011 by the Naj studio, on the plot of a sweet factory): a
+## model instead of plain blocks. A closed block round a garden (its trees are the scanned
+## ones). The mapped outline, an L along Topiel and Zajęcza, is the office: six floors to 20.8 m
+## (OSM) of big glass panes in a white frame (S_GRID) over a recessed, dark-glazed ground floor
+## on slim piers along the streets. The flats along Drewniana (the unnamed 20.8 m outline at
+## HORTUS_FLATS_AT) are styled as a pre-war tenement: warm plaster, a cornice, a mansard floor.
+## Spec docs/landmarks/specs/hortus.md; colours and pier rhythm estimated (photo check).
+const HORTUS_GLASS := Color("#5c6f72")
+const HORTUS_ROOF := Color("#8a8d90")
+const HORTUS_PLASTER := Color("#dcc6a3")
+const HORTUS_MANSARD := Color("#5f6367")
+const HORTUS_TOP := 20.8
+const HORTUS_LOBBY := 4.5
+const HORTUS_RECESS := 1.4
+const HORTUS_PIER := 7.5
+const HORTUS_CORNICE := 17.9
+const HORTUS_FLATS_AT := Vector2(110.0, -580.0)
+
+
+func _find_hortus() -> void:
+	var outline := _landmark("Hortus")
+	if outline.size() < 3:
+		return
+	# The L's box centre is in the courtyard: the zone adds the hull (only the garden is in it).
+	var hull := Geometry2D.convex_hull(outline)
+	var flats := _tallest_at(HORTUS_FLATS_AT)
+	var zone := [outline, hull]
+	if flats.size() >= 3:
+		zone.append(flats)
+	_add_site("hortus", zone)
+	if not sites.is_empty() and sites[-1]["key"] == "hortus":
+		sites[-1]["ring"] = _simplify(outline, 0.35)
+		sites[-1]["hull"] = hull
+		sites[-1]["flats"] = _simplify(flats, 0.35) if flats.size() >= 3 else PackedVector2Array()
+
+
+func _build_hortus(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	if ring.size() < 3:
+		return
+	var hull: PackedVector2Array = site["hull"]
+	_o = Vector2.ZERO
+	_a = Vector2(1, 0)
+	_b = Vector2(0, 1)
+	_g = _ground_under(ring)
+	var g := _g
+	# the ground floor pulled in under the offices, dark glass (lit warm at night)
+	for q: PackedVector2Array in Geometry2D.offset_polygon(ring, -HORTUS_RECESS, Geometry2D.JOIN_MITER):
+		if q.size() >= 3 and absf(_area(q)) > 30.0:
+			_prism(q, g - 1.5, g + HORTUS_LOBBY, HORTUS_GLASS.darkened(0.2), HORTUS_ROOF, M_SKIN + float(S_DARK) / 16.0, M_STONE)
+	# the five office floors over it, glass in a white frame, a plain parapet band on top
+	_prism(ring, g + HORTUS_LOBBY, g + HORTUS_TOP, HORTUS_GLASS, HORTUS_ROOF, M_SKIN + float(S_GRID) / 16.0, M_STONE)
+	_prism(ring, g + HORTUS_TOP, g + HORTUS_TOP + 0.6, Color("#e6e4de"), HORTUS_ROOF, M_STONE, M_STONE)
+	# slim piers under the overhang on the street sides (the edges that face out of the block)
+	for i in ring.size():
+		var a := ring[i]
+		var b := ring[(i + 1) % ring.size()]
+		var length := a.distance_to(b)
+		if length < HORTUS_PIER:
+			continue
+		var n := _out(ring, a, b)
+		if Geometry2D.is_point_in_polygon((a + b) * 0.5 + n * 3.0, hull):
+			continue  # a courtyard side
+		var d := (b - a) / length
+		var count := int(length / HORTUS_PIER)
+		var step := length / float(count)
+		for k in range(1, count):
+			var p := a + d * (step * k) - n * (HORTUS_RECESS * 0.5)
+			_prism(PackedVector2Array([p + (d + n) * 0.25, p + (d - n) * 0.25, p - (d + n) * 0.25, p - (d - n) * 0.25]),
+					g - 0.5, g + HORTUS_LOBBY, Color("#e6e4de"), Color(0, 0, 0, 0), M_STONE, M_STONE)
+	_collide(ring)
+	# the flats on Drewniana, a pre-war tenement in looks: plaster, a cornice, a mansard floor
+	var flats: PackedVector2Array = site["flats"]
+	if flats.size() >= 3:
+		_prism(flats, g - 1.5, g + HORTUS_CORNICE, HORTUS_PLASTER, HORTUS_ROOF, M_MONUMENT, M_STONE)
+		var ledge := Geometry2D.offset_polygon(flats, 0.35, Geometry2D.JOIN_MITER)
+		if not ledge.is_empty():
+			_prism(ledge[0], g + HORTUS_CORNICE, g + HORTUS_CORNICE + 0.55, HORTUS_PLASTER.lightened(0.12), HORTUS_ROOF, M_STONE, M_STONE)
+		for q: PackedVector2Array in Geometry2D.offset_polygon(_simplify(flats, 1.0), -1.2, Geometry2D.JOIN_MITER):
+			if q.size() >= 3 and absf(_area(q)) > 30.0:
+				_prism(q, g + HORTUS_CORNICE + 0.55, g + HORTUS_TOP, HORTUS_MANSARD, HORTUS_ROOF, M_STONE, M_STONE)
+		_collide(flats)
+
+
+## Moderna Powiśle (Zajęcza 1A; shown as "Modernka", a parody of the developer's name): a model
+## instead of a plain block. The developer joined a restored pre-war tenement to a new glass
+## wing. The mapped outline (14.2 m, OSM) is split 13.9 m back from its long front on Zajęcza
+## (where the outline's notch says the street block ends): the front is the tenement (cream
+## plaster, tall windows between piers, a cornice), the back the new wing (glass in white floor
+## bands, S_RIBBON) under a set-back penthouse floor in dark glass to 17.4 m (the listing's
+## two-level penthouses). Spec docs/landmarks/specs/moderna.md; which part is old is a guess.
+const MODERNA_PLASTER := Color("#e2d5ba")
+const MODERNA_GLASS := Color("#4c5966")
+const MODERNA_ROOF := Color("#8b8e90")
+const MODERNA_BODY := 14.2
+const MODERNA_PENT := 17.4
+const MODERNA_FRONT := 13.9
+
+
+func _find_moderna() -> void:
+	var outline := _landmark("Moderna Powiśle")
+	if outline.size() >= 3:
+		_add_site("moderna", [outline, Geometry2D.convex_hull(outline)])
+		if not sites.is_empty() and sites[-1]["key"] == "moderna":
+			sites[-1]["ring"] = _simplify(outline, 0.35)
+
+
+func _build_moderna(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	if ring.size() < 3:
+		return
+	# the front: the longest edge (on Zajęcza); +v runs into the block
+	var front := 0
+	for i in ring.size():
+		if ring[(i + 1) % ring.size()].distance_to(ring[i]) > ring[(front + 1) % ring.size()].distance_to(ring[front]):
+			front = i
+	var p0 := ring[front]
+	var p1 := ring[(front + 1) % ring.size()]
+	_o = p0
+	_a = (p1 - p0).normalized()
+	_b = -_out(ring, p0, p1)
+	_g = _ground_under(ring)
+	var g := _g
+	var band := PackedVector2Array([_o - _a * 100.0 - _b * 5.0, _o + _a * 100.0 - _b * 5.0,
+			_o + _a * 100.0 + _b * MODERNA_FRONT, _o - _a * 100.0 + _b * MODERNA_FRONT])
+	# the tenement at the front, its cornice a little proud of the wall
+	for q: PackedVector2Array in Geometry2D.intersect_polygons(ring, band):
+		if q.size() < 3 or absf(_area(q)) < 20.0:
+			continue
+		_prism(q, g - 1.5, g + MODERNA_BODY - 0.6, MODERNA_PLASTER, MODERNA_ROOF, M_MONUMENT, M_STONE)
+		var ledge := Geometry2D.offset_polygon(q, 0.3, Geometry2D.JOIN_MITER)
+		if not ledge.is_empty():
+			_prism(ledge[0], g + MODERNA_BODY - 0.6, g + MODERNA_BODY, MODERNA_PLASTER.lightened(0.1), MODERNA_ROOF, M_STONE, M_STONE)
+	# the new wing behind, and its penthouse floor pulled in 1.5 m
+	for q: PackedVector2Array in Geometry2D.clip_polygons(ring, band):
+		if q.size() < 3 or absf(_area(q)) < 20.0 or Geometry2D.is_polygon_clockwise(q):
+			continue
+		_prism(q, g - 1.5, g + MODERNA_BODY, MODERNA_GLASS, MODERNA_ROOF, M_SKIN + float(S_RIBBON) / 16.0, M_STONE)
+		for t: PackedVector2Array in Geometry2D.offset_polygon(q, -1.5, Geometry2D.JOIN_MITER):
+			if t.size() >= 3 and absf(_area(t)) > 20.0:
+				_prism(t, g + MODERNA_BODY, g + MODERNA_PENT, MODERNA_GLASS.darkened(0.2), MODERNA_ROOF, M_SKIN + float(S_DARK) / 16.0, M_STONE)
+	_collide(ring)
 
 
 func _build_teatr(_site: Dictionary) -> void:
