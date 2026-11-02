@@ -168,9 +168,14 @@ levels 1-3 at 150-400 zł. Saved in the [garage] section (no version bump). Left
 - **G13a (P2, phone).** Is the pricing right (first part after a few jobs, the nitro after about 15
   minutes, the TT as the goal), does the nitro feel good and is the bolt easy to hit with the thumb,
   does the TT read as a coupe from the 80 m view? Tune `upgrades.gd` and car.gd `NITRO_*` after F's run.
-- **G13b (P3, Sonnet).** Done 2026-11-02: two tail flames (one see-through mesh, only while it burns), a `nitro_whoosh` and a buzz when it lights (`car.nitro_started`; `--pedal=nitro` for shots); the phone must judge the flame size and the buzz. Left:
-  gamepads have no nitro button (X is "secondary"); the police chase speeds were not retuned for
-  the TT's 130 km/h (a TT with the engine at level 3 outruns every patrol car).
+- **G13b (P3, Sonnet).** Done 2026-11-02: two tail flames (one see-through mesh, only while it burns), a `nitro_whoosh` and a buzz when it lights (`car.nitro_started`; `--pedal=nitro` for shots); the phone must judge the flame size and the buzz.
+- **G13c (done 2026-11-02).** The chasers and the escort drive at 0.8 of the player's own top
+  speed (police.gd `chase_top`: model x engine; was a fixed 24 m/s, which a TT at engine 3,
+  145 km/h, left standing); the nitro's lift is left out, so a burn opens a quick gap
+  (check_police "chase pace"). The pad's nitro is LB or RB held; the view's turn moved from the
+  shoulders to right-stick flicks (check_gamepad P9). The keyboard's nitro is Shift only: N also
+  switched the time of day. Left: the pad's nitro has no tank ring while the touch HUD is hidden
+  (pad mode); the phone feel of a TT chase (QUESTIONS).
 
 **G14 · Unstuck and reset easy to find (P0, quick win).** F: "in Settings there should be reset
 game, and unstuck: if the user is stuck in textures, click and move to the main road". POMOC

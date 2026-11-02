@@ -525,6 +525,16 @@ func pull_out(u) -> void:
 			_officer(t, false)
 
 
+## G13 leftovers (2026-11-02): the chasers' and the escort's top speed, Unit.CHASE_SHARE of the
+## player's own (car.gd max_speed x top_mult: the Ołdi TT and the engine levels), so a bought car
+## never outruns every patrol at a walk. The nitro's lift is left out on purpose: a burn is the one
+## way to open a quick gap. A stand-in car without the fields gets the hatch's CHASE_TOP.
+func chase_top() -> float:
+	if car == null or not ("top_mult" in car and "max_speed" in car):
+		return Unit.CHASE_TOP
+	return float(car.max_speed) * float(car.top_mult) * Unit.CHASE_SHARE
+
+
 func chasing() -> bool:
 	return phase == Phase.CHASE or phase == Phase.SEARCH
 
@@ -1919,7 +1929,7 @@ func _escort_tick() -> void:
 	u.escort_node = route[0]
 	u.escort_route = route[1]
 	u.tree.blackboard.set_value("escort_wait", false)
-	u.tree.blackboard.set_value("escort_v", Unit.CHASE_TOP)
+	u.tree.blackboard.set_value("escort_v", chase_top())
 	u.set_role("escort")
 	missions.add_time(ESCORT_BONUS)
 	sfx_cue("whoop")
@@ -1960,7 +1970,7 @@ func _escort_pace() -> void:
 	bb.set_value("escort_wait", wait)
 	# It sets the pace (ESCORT_PACE, or a little over the player's): slower while the player is more
 	# than 25 m back, faster while closer than 15 m.
-	var pace := Unit.CHASE_TOP
+	var pace := chase_top()
 	if _escort_state == "lead":
 		if lead < ESCORT_LEAD.x:
 			pace = maxf(v + 5.0, ESCORT_PACE + 2.0)
@@ -1968,7 +1978,7 @@ func _escort_pace() -> void:
 			pace = maxf(v - 3.0, 3.0)
 		else:
 			pace = maxf(v + 2.0, ESCORT_PACE)
-		pace = clampf(pace, 2.0, Unit.CHASE_TOP)
+		pace = clampf(pace, 2.0, chase_top())
 	bb.set_value("escort_v", pace)
 	_escort_lead = lead
 	if log_on and _frame % 300 < 12:
