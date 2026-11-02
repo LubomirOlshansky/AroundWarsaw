@@ -54,8 +54,9 @@ MAP = os.path.join(ROOT, "game", "map")
 # Krajobraz K3 (2026-11-02, planted_trees.py PLACE varso): 44,981 (+6 young trees in Chmielna's
 # bare beds by Varso Place). Before: 269850 / 44975.
 # Krajobraz K2 (2026-11-02, planted_trees.py PLACE chmielna): 45,046 (+65 young trees in ul.
-# Chmielna's tree pits, 85 in its band). Before: 269886 / 44981.
-EXPECTED = {"trees3d": 270276, "pois": 4571, "trees3d_crown": 45046}
+# Chmielna's tree pits, 85 in its band). Before: 269886 / 44981. Then 45,045: the K5 plaza tree
+# through a lying scooter by Skyliner taken out (plaza_gardens.py keeps POI_GAP from POIs now).
+EXPECTED = {"trees3d": 270270, "pois": 4571, "trees3d_crown": 45045}
 # docs/DEMO.md 7 row 7: the lane graph's strongly connected share at least this.
 SCC_SHARE = 0.95
 

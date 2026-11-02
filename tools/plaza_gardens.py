@@ -33,6 +33,7 @@ sys.path.insert(0, TOOLS)
 import bake_street_pois as P  # noqa: E402
 
 MAP = os.path.join(ROOT, "game", "map", "centrum.json")
+POI_GAP = 1.6       # a new trunk keeps this far from a map POI (scooters lie beside their spot)
 TREE_GAP = 4.2      # a new trunk keeps this far from every other trunk (scanned or ours)
 CLEAR = 1.1         # the trunk's disc that must be clear of the solids (carriageway edges, kerbs, buildings)
 BED_CLEAR = 0.5     # a bed's rim keeps this clear of the solids
@@ -135,6 +136,9 @@ def plan(data, place, solids, trunks):
     step = place["spacing"]
     mix = place["mix"]
     taken = [t for t in trunks if min(xs) - 8 < t[0] < max(xs) + 8 and min(zs) - 8 < t[1] < max(zs) + 8]
+    # The map's scooters, zones and shops keep their spots: no trunk on one (check_pois Q4; a lying
+    # scooter by Skyliner had a new tree through it, 2026-11-02).
+    pois = [(p["x"], p["z"]) for p in data.get("pois", []) if p.get("k") != "address"]
     mine = []
     trees = []
     z = min(zs)
@@ -148,6 +152,8 @@ def plan(data, place, solids, trunks):
             if not _in_any(jx, jz, zones):
                 continue
             if solids.blocked(jx, jz, CLEAR, skip=("tree",)):
+                continue
+            if any(math.hypot(jx - px, jz - pz) < POI_GAP for px, pz in pois):
                 continue
             if any(math.hypot(jx - tx, jz - tz) < TREE_GAP for tx, tz in taken + mine):
                 continue
