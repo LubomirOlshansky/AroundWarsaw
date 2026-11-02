@@ -7,6 +7,35 @@ Small problems that agents reported or that showed up in screenshots. They are f
 
 - PÓŁNOC FM is out of the beta lineup, but the tape, the cassettes and eggs still unlock "a PÓŁNOC FM track" the player can't tune to (QUESTIONS, default: leave it).
 - KEBAB FM and MORDOR FM still play one synth loop each until F's songs arrive (docs/MUSIC.md "The beta radio"); remove the loops from radio.json then.
+## Rondo Dmowskiego and the metro entrances (F, 2026-11-02)
+
+F sent two aerials, a night aerial and the city's traffic plan of Rondo Dmowskiego and asked for the
+roundabout and the metro entrances round it. Done 2026-11-02 (cloud thread, site `rondo`, spec
+`docs/landmarks/specs/rondo-dmowskiego.md`):
+- **The island**: grey granite paving in concentric bands over the four mapped lawns between the tram
+  cross, a crescent flower bed per quarter (red or purple in a yellow rim) and a shrub bed in an
+  orange rim; the laser scan's trees on it removed (`tree_free`); the PRASA kiosk and two planters the
+  street-details bake had put on the island moved off (`DISCS`).
+- **The underpass stairs**: Metro Centrum's blue polycarbonate "tubes" over all twelve walled
+  stairwells (blue arches, closed deep end, red M post at the mouth glowing at night), and the same
+  `tube` form for the three Centrum `subway_entrance` stairs by the Patelnia (`Props`, storefronts).
+- **The Patelnia mural**: an original colourful pattern on the north face of its 1.9 m south wall.
+- **Street furniture**: a PRASA kiosk by the Patelnia stairs, an ice-cream cart in the south-west and
+  a tram shelter on the east Jerozolimskie island (`bake_street_details.py` RONDO; new kind `shelter`).
+- **Drive test**: the ring's four sides and Marszałkowska by the south-east stairs (playtest suspect
+  PT-4) are SPOTS in `check_drive.gd`.
+Left:
+- Mac look check (QUESTIONS): bed colours and sizes against the orthophoto, the tubes' height and
+  blue, whether every stairwell really has a tube (some may be open stairs), the mural's place.
+- The underpass itself (shops, the passage to the metro) is not modelled: the camera never sees it.
+- The crossings the city added in 2022 at the four arms are the road bake's; a zebra check against
+  the plan (Widok, Poznańska, Nowogrodzka, Parkingowa) belongs with "Roads against real Warsaw".
+- The occlusion ghost cuts the island's paving and beds on the camera's side when a tower hides the car
+  (they are in the building material, like every landmark): the lawn shows through in the ghost's
+  circle. A ground-level exemption in `building.gdshader` (by UV2.y, the height above ground) would
+  fix it for every site's ground dressing (Dom Partii's court, Plac Defilad).
+- The stairwell walls are the map's 1.9 m walls (`lines` k wall): real balustrades are about 1 m.
+  Lowering them is a map-builder change for every mapped wall, not done here.
 ## Map checks in GitHub CI (2026-11-02)
 
 - Done: the `map` job in `.github/workflows/verify.yml`. The GUGiK-derived files (lod2.bin, lod2.json,
@@ -61,16 +90,20 @@ fresh thread per item; ul. Złota and Zgoda stay with the Skwer Linearny thread.
 - [ ] K3 Varso Place: street planting on Chmielna's side, roof terraces on Varso 1/2, trees on
   the tower's deck, and a parody name sign (default VERSO PLACE; never the real mark). Opus spec
   from photos, Sonnet build.
-- [ ] K4 Zielona Świętokrzyska (2018): count the scanned trees against the 194 planted, add the
-  big planters (Sonnet, small).
+- [x] K4 Zielona Świętokrzyska (2018): built, see docs/design/krajobraz-places.md (open for the Mac: a street photo
+  compare of the planters' places; trees stay as scanned).
 - [ ] K5 Rondo Daszyńskiego plazas: Skyliner's green passage (forest-like three tiers, wooden
   benches on terraces), Generation Park's and Mennica Legacy Tower's plazas (Sonnet, Opus spec).
 - [ ] K6 Browary Warszawskie's Central Garden over the Leżakownia and Norblin's candelabra
   planes and climbers (Sonnet; with "Norblin, Browary" below).
 - [ ] K7 Bulwary Wiślane stages 1-2: the 6 floating pavilions, the splash pool, the Vistula fish,
   the amphitheatre and trampolines, checked against the orthophoto (Sonnet).
-- [ ] K8 Arkadia's playground (Al. Jana Pawła II 82, 2018): the ribbon rope course, trampolines,
-  the wooden bench-sculpture, lamps on cables (Sonnet, small).
+- [x] K8 Arkadia's playground (Al. Jana Pawła II 82, 2018), 2026-11-02: one new park piece
+  `ropecourse` (ribbon rope course, three flush trampolines, timber bench-sculpture, three lamps on
+  a cable; ~520 tris, solid) in the green strip west of Arkadka (new park "arkadia" in
+  `bake_park_details.py`, 207 park items). Left: the real layout (slide, climbing frame, swings,
+  the water-play corner) is not modelled, only the rope course's look; position is a guess at the
+  strip, check against the orthophoto on the Mac (QUESTIONS).
 - [ ] K9 Stadion Narodowy's grounds: entrance avenues, tree rows, pollarded willows (Sonnet, small).
 - [ ] K10 Muzeum Historii Polski (Cytadela) lies ~0.7 km north of the map's north edge: parked
   in QUESTIONS (grow the map or a skyline stand-in).
@@ -314,10 +347,13 @@ modelled (site `zbawiciela`, spec `zbawiciela.md`, 1029 tris).
   check parked (QUESTIONS): arcade rhythm and depth, tower heights, the real reliefs.
 - Pass 5 (cloud, Sonnet, 2026-11-02): Plac Zbawiciela's cafés and the church at night. Four neon cafés
   (`Storefronts.ZBAWICIELA`: KAWA ZBAWIENIE, SZARLOTKA NA ROGU, PLAN Z, PO MSZY SPRITZ) and six parasol
-  terraces round the ring (`bake_street_details.py` TERRACES, 15 café sets, planters at the row ends);
+  terraces round the ring (`bake_street_details.py` TERRACES, 16 café sets, planters at the row ends);
   the church gets lit gilt crosses and balls, a stained rose that glows, four porch lanterns and 12
   floodlamps (1199 tris, budget 1250). Open: Mac look check (QUESTIONS), the signs on the real doors,
   heaters and awnings on the terraces, a café crowd (crowds.gd zone), the floodlit plaster wash.
+  Fixed 2026-11-02: verify `stops` failed on main since this pass (K5, a set 5 m off the east-end
+  shopfront). #282 added the shopfront test (two sets dropped); #302 uses `Placer.frontage` and moves
+  two rows 1 m in, so all 16 sets stand again.
 - Next on the street: the reliefs' real subjects, Marszałkowska's houses, roads and street life
   street by street.
 - Pass 2 (cloud, Sonnet): people waiting on Marszałkowska's 12 mapped tram platforms (`crowds.gd`
