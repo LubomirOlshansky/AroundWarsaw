@@ -35,9 +35,8 @@ someone writes its lines.
 - Getting wedged between traffic cars no longer ends the drive: push against them for a moment and your car slips through, and after eight seconds in a jam it is towed onto the road.
 
 ## 2026-11-01
-<<<<<<< HEAD
 - The parks are alive: Ogród Saski, Ogród Krasińskich and Park Ujazdowski have statues, a carousel, a playground, a gazebo, swans and ducks on the ponds, squirrels, picnics, a yoga class and people sitting on the benches.
-=======
+- St John's Cathedral in the Old Town has its brick front: a stepped gable with a tall pointed window, stone pinnacles and a small gabled porch.
 - MDM on Plac Konstytucji looks like the socialist-realist district now: arcades along the ground floor of the blocks facing the square and Marszałkowska, and four stone towers with pointed roofs at the corners, each with a terracotta relief.
 - Most Śląsko-Dąbrowski's "find it" spot now sits on the bridge itself, where a car can reach it.
 - The football ground on Łazienkowska is a real stadium now (as "Stadion Leguminy"): a panelled facade under a red and green band, a white roof round an open middle, white, green and red stands round a striped pitch, floodlight masts at the corners and LEGUMINA in green neon, with a card.
@@ -70,7 +69,6 @@ someone writes its lines.
 - The metro stations' street entrances look like the real thing now: glass-vaulted canopies, stairwells with railings and steps leading down, passage mouths, tall red lit M signs, and glass lifts beside many of them.
 - The Old Town has hotels: Kasztel Inn by Castle Square, Hotel Canaletto and the Rezydencja Starówka on the Market now have a door with a lit entrance, a canopy, a neon name and flags, and a card when you tap them.
 - ROWERILO city-bike docks now stand at the real station spots across the city: a row of mint bikes and a glowing terminal on the pavement.
->>>>>>> origin/main
 - The city no longer ends in blue sky at its edges: past Warszawa Wschodnia, Dworzec Gdański and all round the map the land runs on, with a tree line, blocks of flats beyond and the tracks and roads heading out, all fading into the distance.
 - Warszawa Stadion's ticket hall no longer reads as a white box: its roof sweeps up into a taller white sail over the forecourt, with bigger red STADION letters.
 - Krakowskie Przedmieście's carriageway is granite setts now, and Bolesław Prus and Cardinal Wyszyński stand in bronze at the street's north end; the Czapski palace has its own cream stone and a card.
