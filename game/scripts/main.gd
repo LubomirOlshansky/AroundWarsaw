@@ -2364,8 +2364,8 @@ func _build_garage(world: Node3D) -> void:
 		garage.preset_upgrades(upgrades_flag)
 	garage.upgraded.connect(func(id: String) -> void:
 		if id == "nitro":
-			hud.toast("Nitro gotowe: przytrzymaj błyskawicę przy klaksonie (Shift, LB / RB na padzie).",
-					"Nitro fitted: hold the bolt by the horn (Shift, LB / RB on a pad)."))
+			hud.toast(Gamepad.fmt("Nitro gotowe: przytrzymaj błyskawicę przy klaksonie (Shift, {lb} / {rb} na padzie)."),
+					Gamepad.fmt("Nitro fitted: hold the bolt by the horn (Shift, {lb} / {rb} on a pad).")))
 	if garage_flag:
 		_put_at_garage()
 	garage.opened.connect(func() -> void:
@@ -6077,7 +6077,7 @@ func _toggle_vehicle() -> void:
 	if not flying:
 		_take_off(Heli.CRUISE)
 		if Gamepad.in_use():
-			hud.toast("Helikopter: lewa gałka kieruje, RT / LT to wysokość", "Helicopter: steer with the left stick, RT / LT for height")
+			hud.toast(Gamepad.fmt("Helikopter: lewa gałka kieruje, {rt} / {lt} to wysokość"), Gamepad.fmt("Helicopter: steer with the left stick, {rt} / {lt} for height"))
 		else:
 			hud.toast("Helikopter: kieruj palcem, ▲ ▼ to wysokość", "Helicopter: steer with the stick, ▲ ▼ (Space / Shift) for height")
 		return

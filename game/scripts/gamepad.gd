@@ -19,6 +19,18 @@ extends RefCounted
 ##
 ## Pure functions over InputEvents and an action strength table so game/tools/check_gamepad.gd
 ## can drive them with synthetic events (no controller in CI).
+##
+## Glyphs and rumble (2026-11-02, the gamepad gaps in BACKLOG): the hints name the buttons the way
+## the pad in the player's hands prints them. `note` reads the pad's name (Input.get_joy_name)
+## and sorts it into a family: PlayStation (× / Circle / Square / Triangle, R2 / L2, R1 / L1),
+## Nintendo (the labels sit swapped: the bottom button reads B, the right one A; ZR / ZL) or Xbox,
+## which also covers MFi and unknown pads (the labels the button indices are named after). Hint
+## text carries tokens, `fmt("Hold {a} to jump")`, filled per family and language by `key`.
+## The HUD's font (Open Sans) has × but no ○ □ △, so the other PlayStation faces are words.
+## Haptics.buzz sends the buzz to the pad (Input.start_joy_vibration) instead of the phone while
+## the pad is in use: the hands are on the pad, the phone may sit on a stand.
+
+const Lang := preload("res://scripts/lang.gd")
 
 ## The left stick's dead zone (a share of its throw; worn sticks rest up to ~0.15 off centre).
 const DEAD := 0.2
@@ -64,6 +76,76 @@ static var last_pad := 0
 static var last_other := 0
 ## The right stick is back near the centre, so the next flick turns the view.
 static var _flick_armed := true
+
+## The pad families whose button faces differ (`family_of`).
+const XBOX := "xbox"
+const PLAYSTATION := "playstation"
+const NINTENDO := "nintendo"
+## Words in the pad's name that give its family away (lower case), checked in this order. iOS's
+## Game Controller framework names Sony pads "DualSense Wireless Controller" / "DUALSHOCK 4 ...",
+## SDL's mapping "PS4 Controller", "PS5 Controller", "Sony ..."; Nintendo's "Pro Controller",
+## "Joy-Con", "Nintendo Switch ...".
+const FAMILY_WORDS := [
+	[PLAYSTATION, ["dualsense", "dualshock", "playstation", "sony", "ps3", "ps4", "ps5"]],
+	[NINTENDO, ["nintendo", "switch", "pro controller", "joy-con", "joycon"]],
+]
+## Each button token's face per family: one text, or [Polish, English] for a word.
+const FACES := {
+	XBOX: {
+		"a": "A", "b": "B", "x": "X", "y": "Y", "rt": "RT", "lt": "LT", "rb": "RB", "lb": "LB",
+		"l3": "L3", "r3": "R3", "back": "View", "start": "Menu",
+	},
+	PLAYSTATION: {
+		"a": "×", "b": ["kółko", "Circle"], "x": ["kwadrat", "Square"], "y": ["trójkąt", "Triangle"],
+		"rt": "R2", "lt": "L2", "rb": "R1", "lb": "L1", "l3": "L3", "r3": "R3",
+		"back": "Create", "start": "Options",
+	},
+	# Godot's indices are by place (A = the bottom button); a Nintendo pad prints B there.
+	NINTENDO: {
+		"a": "B", "b": "A", "x": "Y", "y": "X", "rt": "ZR", "lt": "ZL", "rb": "R", "lb": "L",
+		"l3": "L3", "r3": "R3", "back": "-", "start": "+",
+	},
+}
+## The family of the pad used last, and its device id (the rumble's target).
+static var family := XBOX
+static var device := 0
+
+
+## The family a pad's name belongs to (anything not Sony or Nintendo reads as Xbox, as MFi pads do).
+static func family_of(pad_name: String) -> String:
+	var n := pad_name.to_lower()
+	for entry: Array in FAMILY_WORDS:
+		for w: String in entry[1]:
+			if n.contains(w):
+				return entry[0]
+	return XBOX
+
+
+## How the pad in use prints the button `token` ("a", "b", "x", "y", "rt", "lt", "rb", "lb", "l3",
+## "r3", "back", "start"), in the player's language; the token itself for an unknown one.
+static func key(token: String) -> String:
+	var face: Variant = (FACES[family] as Dictionary).get(token, token)
+	if face is Array:
+		return Lang.pick(face[0], face[1])
+	return face
+
+
+## `text` with every {token} filled by `key` (hint lines: "Przytrzymaj {a}, by ...").
+static func fmt(text: String) -> String:
+	for token: String in FACES[XBOX]:
+		var t := "{%s}" % token
+		if text.contains(t):
+			text = text.replace(t, key(token))
+	return text
+
+
+## Whether a pad is still plugged in to take a rumble (a check's synthetic device 0 isn't).
+static func connected() -> bool:
+	return fake_connected or device in Input.get_connected_joypads()
+
+
+## check_gamepad / check_juice: count a synthetic pad as plugged in (the rumble's path).
+static var fake_connected := false
 
 
 ## Adds the pad's actions once (main.gd `_ready`; the check calls it too). Device -1: any pad.
@@ -182,6 +264,10 @@ static func note(event: InputEvent) -> void:
 	if event is InputEventJoypadButton or (event is InputEventJoypadMotion and absf((event as InputEventJoypadMotion).axis_value) > DEAD):
 		_seq += 1
 		last_pad = _seq
+		if event is InputEventJoypadButton or event.device != device:
+			# A press or another pad: read the name again (a pad swapped on the same id).
+			device = event.device
+			family = family_of(Input.get_joy_name(device))
 	elif event is InputEventScreenTouch or event is InputEventKey or event is InputEventMouseButton:
 		_seq += 1
 		last_other = _seq

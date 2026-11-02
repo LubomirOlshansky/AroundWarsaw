@@ -17,8 +17,14 @@ extends RefCounted
 ## KEEP_WARM seconds while the car is driving (main.gd calls tick()).
 ##
 ## Static, no node. Game code calls Access.buzz(ms, strength); car.gd calls knock().
+##
+## Rumble (2026-11-02): while the gamepad is the input in use (gamepad.gd `in_use`), the same buzz
+## goes to the pad instead (Input.start_joy_vibration: the weak motor at the amplitude, the strong
+## one at its square, so a bump hums and a crash thumps). The floor, the cap, the gap and the
+## Vibration switch are the same; the phone stays still, since the hands are on the pad.
 
 const Access := preload("res://scripts/access.gd")
+const Gamepad := preload("res://scripts/gamepad.gd")
 
 ## The shortest and softest buzz a hand notices on both phones (iPhone 11 / 16 Pro Max's Taptic
 ## Engine as a continuous event; Android's amplitude is this × 255).
@@ -38,6 +44,8 @@ static var count := 0
 ## The last buzz that went out (ms, amplitude), for checks and the log.
 static var last_ms := 0
 static var last_amp := 0.0
+## How many of those went to a pad instead of the phone (check_juice reads it).
+static var rumbles := 0
 static var _last_usec := -GAP_USEC
 static var _last_end_usec := 0
 static var _warm_in := 0.0
@@ -60,8 +68,12 @@ static func buzz(duration_ms: int, amplitude: float = 0.6) -> void:
 	last_ms = ms
 	last_amp = amp
 	count += 1
-	Input.vibrate_handheld(ms, amp)
 	_warm_in = KEEP_WARM
+	if Gamepad.in_use() and Gamepad.connected():
+		rumbles += 1
+		Input.start_joy_vibration(Gamepad.device, amp, amp * amp, ms / 1000.0)
+		return
+	Input.vibrate_handheld(ms, amp)
 
 
 ## A knock of the car at `speed` m/s lost or closing (car.gd): a tap for a bump, a thud for a
