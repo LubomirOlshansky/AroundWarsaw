@@ -29,7 +29,10 @@ Left:
 The free-play bug log is `docs/PLAYTEST.md` "The bug log" (PT-n ids, severity, status); fix
 threads take its confirmed rows one by one. After two runs: PT-1 confirmed (a dead stop on
 Marszałkowska just north of the start, in 3 runs), PT-2, PT-4 (Rondo Dmowskiego) and PT-5 (side
-streets west of Marszałkowska) suspects, PT-3 closed (low ground, not a bug).
+streets west of Marszałkowska) suspects, PT-3 closed (low ground, not a bug). Run 3 (the Śródmieście grid): PT-6 the guide's bubble
+covers the minimap and +/- buttons. Design question for the driving lane: a hit from 108 km/h
+stops the car dead in 0.2-0.4 s with no slide; is that the arcade feel we want, or should it
+bounce or slide off a wall?
 
 ## Pokorna 2 (F, 2026-11-02)
 
