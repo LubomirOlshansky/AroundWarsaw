@@ -298,7 +298,8 @@ func _ui() -> void:
 	await process_frame
 	var fm: Control = hud.full_map
 	var hint: PanelContainer = fm.get("_hint")
-	if not ((hint.get_child(0).get_child(1) as Label).text.contains("Hold A")):
+	# One line in the player's language (main's Lang.pick card); both name the triggers.
+	if not ((hint.get_child(0).get_child(0) as Label).text.contains("RT / LT")):
 		fails.append("P12 the full map's hint doesn't speak of the pad")
 	var c0: Vector2 = fm.centre
 	_axis(JOY_AXIS_LEFT_X, 1.0)

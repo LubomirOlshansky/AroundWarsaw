@@ -352,13 +352,13 @@ func open(at: Vector2, yaw: float) -> void:
 
 ## The hint card's words: the fingers', or the pad's while the pad is used (gamepad.gd).
 func _hint_words() -> void:
-	var box: VBoxContainer = _hint.get_child(0)
+	# One line in the player's language (Lang.pick, as _build makes it).
+	var label := (_hint.get_child(0) as VBoxContainer).get_child(0) as Label
 	if Gamepad.in_use():
-		(box.get_child(0) as Label).text = "Przytrzymaj A, by się przenieść pod krzyżyk"
-		(box.get_child(1) as Label).text = "Hold A to jump to the cross · left stick pans · RT / LT zoom"
+		label.text = Lang.pick("Przytrzymaj A, by się przenieść pod krzyżyk · lewa gałka przesuwa · RT / LT przybliża",
+				"Hold A to jump to the cross · left stick pans · RT / LT zoom")
 	else:
-		(box.get_child(0) as Label).text = "Przytrzymaj miejsce, by się tam przenieść"
-		(box.get_child(1) as Label).text = "Hold a spot to jump there · drag · pinch"
+		label.text = Lang.pick("Przytrzymaj miejsce, by się tam przenieść", "Hold a spot to jump there")
 
 
 ## Shows or hides the districts' and the ladder's cards (the ≡ button).
