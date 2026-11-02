@@ -106,6 +106,10 @@ then the Launch gate.
 - [x] Nowy Świat street by street (F, 2026-11-02), pass 1: eight neon shopfronts (pastry, ice cream,
       bookshop café, antiquarian, boutique, wine bar, gallery, exchange). Open: houses, café
       gardens, crowds, Mac look check (BACKLOG "Nowy Świat street by street")
+- [x] Nowy Świat street by street, pass 2 (F, 2026-11-02): per-house plaster colours (map_builder
+      `NOWY_PASTELS`, both city paths), patio heaters on the café terraces (street details kind
+      `heater`), chill crowds at four terraces (`Crowds.NOWY_SWIAT`). Open: real awnings, houses
+      and the north end against photos (BACKLOG "Nowy Świat street by street")
 - [x] Marszałkowska street by street, pass 3 (F, 2026-11-02): street details on the whole street (planters,
       bollards, kiosks and columns north of Świętokrzyska and south of the Rotunda; tram-island benches,
       stop posts and ticket machines where no shelter is mapped). Open: facades and shopfronts house by
