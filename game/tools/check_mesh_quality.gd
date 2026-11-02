@@ -90,7 +90,7 @@ const BUDGET := {
 	"skysawa": 170,
 	"slabs": 270,
 	"spektrum": 990,
-	"spire": 1290,
+	"spire": 2700,
 	"tr": 500,
 	"tower75": 220,
 	"cepelia": 900,
