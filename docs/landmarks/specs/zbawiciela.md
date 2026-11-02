@@ -58,9 +58,14 @@ dome, on the square that took its name from it." Open *(photo check)*: the real 
 roof colours, the towers' stage heights and tops (belfry shape, spire or dome), the dome's
 height, the porch (portico or recess).
 
+Night lighting (2026-11-02, M_LAMP, no new material): the gilt crosses and balls (#e8c05a) glow;
+the rose window is stained glass (#7a5226, dark amber by day) that glows; four lanterns on the
+porch pilasters and 12 floodlamps (`ZB_FLOODS`) on the paving at the porch, the towers and the
+transept ends. Open *(photo check)*: whether the real church is floodlit and in what colour.
+
 ## 7. Detail level and budget
 
-L3 for the porch and towers, L2 for the body; 1029 triangles measured, budget 1250
+L3 for the porch and towers, L2 for the body; 1199 triangles measured (with the night lamps), budget 1250
 (`check_mesh_quality.gd`). Shot: `--at=-417,1590 --heading=340 --time=day --size=45 --nohud`.
 
 ## 8. Parts table

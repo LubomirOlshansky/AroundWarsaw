@@ -210,6 +210,11 @@ const VENUES := {
 	"kp_pamiatki": [["PAMIĄTKI", "Z SYRENKĄ"], KP_BLUE, 2.8],
 	"kp_kantor": [["KANTOR", "ZAMKOWY"], Color(0.2, 1.0, 0.45), 2.8],
 	"marsz_zielarnia": [["ZIELARNIA", "NA WSZYSTKO"], MARSZ_GREEN, 2.8],
+	# Plac Zbawiciela's four (F's street-by-street, 2026-11-02): the terraces' own names.
+	"zb_zbawienie": [["KAWA", "ZBAWIENIE"], CAFE_TUBE, 2.8],
+	"zb_szarlotka": [["SZARLOTKA", "NA ROGU"], Color(1.0, 0.62, 0.3), 2.8],
+	"zb_plan_z": [["PLAN Z", "BAR NA PLACU"], Color(0.1, 0.9, 1.0), 2.8],
+	"zb_po_mszy": [["PO MSZY", "SPRITZ"], Color(1.0, 0.45, 0.75), 2.8],
 	"zag_femina": [["KINO", "FEMINA"], Color(1.0, 0.3, 0.35), 4.6],
 	"zag_krol": [["KEBAB KRÓL", "MAZOWSZA"], Color(1.0, 0.72, 0.12), 2.8],
 	"zag_stambul": [["STAMBUŁ 24"], Color(0.1, 0.9, 1.0), 2.8],
@@ -357,6 +362,16 @@ const KRAKOWSKIE := {
 	"kp_pamiatki": [52.24547, 21.01448],
 	"kp_kantor": [52.24575, 21.01334],
 }
+## Plac Zbawiciela's cafés (F's street-by-street, 2026-11-02): the roundabout's blocks carry four
+## terraces (tools/bake_street_details.py TERRACES): KAWA ZBAWIENIE (coffee as salvation), SZARLOTKA
+## NA ROGU (the apple-pie bakery on the corner), PLAN Z (the bar with the plan after the plan) and
+## PO MSZY SPRITZ (the one for after the service). Like the cafés, not notebook places.
+const ZBAWICIELA := {
+	"zb_zbawienie": [52.21957, 21.01848],
+	"zb_szarlotka": [52.21971, 21.01863],
+	"zb_plan_z": [52.22013, 21.01848],
+	"zb_po_mszy": [52.21967, 21.01722],
+}
 ## A venue sign's letter pixel (m) and the smallest it shrinks to on a short wall.
 const VENUE_PX := 0.12
 const VENUE_PX_MIN := 0.08
@@ -464,7 +479,7 @@ func setup(data: Dictionary, places: Array) -> void:
 		if str(p.get("k", "")) == "kebab":
 			avoid.append(Vector2(float(p["x"]), float(p["z"])))
 	var with_cafes: Array = places.duplicate()
-	for table: Dictionary in [CAFES, LOUNGES, TRENDY, HYPE, CINEMAS, NOWY_SWIAT, POWISLE, MARSZALKOWSKA, KRAKOWSKIE, zaglebie_table()]:
+	for table: Dictionary in [CAFES, LOUNGES, TRENDY, HYPE, CINEMAS, NOWY_SWIAT, POWISLE, MARSZALKOWSKA, KRAKOWSKIE, ZBAWICIELA, zaglebie_table()]:
 		for id: String in table:
 			var ll: Array = table[id]
 			with_cafes.append({"id": id, "at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})

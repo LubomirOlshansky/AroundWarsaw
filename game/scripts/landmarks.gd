@@ -7990,6 +7990,14 @@ const ZB_BASE := Color("#a8a08e")
 const ZB_COPPER := Color("#6f8c80")
 const ZB_DARK := Color("#3a3d40")
 const ZB_GOLD := Color("#c9a24a")
+## Night lighting (F's street-by-street, 2026-11-02): lit gilt, floodlamps and a stained rose.
+const ZB_LIT_GOLD := Color("#e8c05a")
+const ZB_LAMP := Color("#ffe9bd")
+const ZB_STAINED := Color("#7a5226")
+## Floodlamps on the paving, [u, v] in the front's frame: the porch's steps and sides, the towers'
+## fronts and outer faces, the transept's ends.
+const ZB_FLOODS := [[-3.5, 3.4], [3.5, 3.4], [-8.6, 2.4], [8.6, 2.4], [-11.0, -3.9], [11.0, -3.9],
+		[-14.4, -9.4], [14.4, -9.4], [-20.2, -29.0], [20.2, -29.0], [-6.0, -52.0], [6.0, -52.0]]
 ## The dome's profile above the drum: [radius, height above ground].
 const ZB_DOME := [[6.9, 38.0], [6.5, 40.4], [5.7, 42.6], [4.5, 44.4], [3.0, 45.7], [1.7, 46.3]]
 
@@ -8052,8 +8060,8 @@ func _build_zbawiciela(site: Dictionary) -> void:
 	_b = kb
 	var rose := _w(0.0, 0.1)
 	_disc(Vector3(rose.x, g + 13.0, rose.y), Vector3(_b.x, 0.0, _b.y), 1.6, 10, ZB_DARK)
-	_lbox(0.0, -1.5, 0.15, 0.15, g + 22.0, g + 25.4, ZB_GOLD, M_STONE, ZB_GOLD)
-	_lbox(0.0, -1.5, 0.15, 0.6, g + 23.6, g + 23.9, ZB_GOLD, M_STONE, ZB_GOLD)
+	_lbox(0.0, -1.5, 0.15, 0.15, g + 22.0, g + 25.4, ZB_LIT_GOLD, M_LAMP, ZB_LIT_GOLD)
+	_lbox(0.0, -1.5, 0.15, 0.6, g + 23.6, g + 23.9, ZB_LIT_GOLD, M_LAMP, ZB_LIT_GOLD)
 	# the two towers: a square shaft, a cornice with pinnacles, an octagonal belfry, a copper spire
 	for sd: float in [-1.0, 1.0]:
 		var tu := sd * ZB_TOWER_U
@@ -8067,9 +8075,9 @@ func _build_zbawiciela(site: Dictionary) -> void:
 		_prism(_circle(c, 3.4, 8), g + 32.0, g + 50.0, ZB_WALL, none, M_MONUMENT)
 		_prism(_circle(c, 3.9, 8), g + 50.0, g + 51.0, ZB_TRIM, ZB_TRIM, M_STONE, M_STONE)
 		_frustum(_circle(c, 3.5, 8), g + 51.0, _circle(c, 0.5, 8), g + 69.0, ZB_COPPER, ZB_COPPER)
-		_prism(_circle(c, 0.7, 6), g + 69.0, g + 70.2, ZB_GOLD, ZB_GOLD, M_STONE, M_STONE)
-		_lbox(tu, ZB_TOWER_V, 0.12, 0.12, g + 70.2, g + 76.0, ZB_GOLD, M_STONE, ZB_GOLD)
-		_lbox(tu, ZB_TOWER_V, 0.12, 0.7, g + 73.0, g + 73.3, ZB_GOLD, M_STONE, ZB_GOLD)
+		_prism(_circle(c, 0.7, 6), g + 69.0, g + 70.2, ZB_LIT_GOLD, ZB_LIT_GOLD, M_LAMP, M_LAMP)
+		_lbox(tu, ZB_TOWER_V, 0.12, 0.12, g + 70.2, g + 76.0, ZB_LIT_GOLD, M_LAMP, ZB_LIT_GOLD)
+		_lbox(tu, ZB_TOWER_V, 0.12, 0.7, g + 73.0, g + 73.3, ZB_LIT_GOLD, M_LAMP, ZB_LIT_GOLD)
 	# the dome over the crossing: a windowed drum, a cornice, the copper dome, a lantern, a cross
 	var dc := _w(ZB_DOME_C.x, ZB_DOME_C.y)
 	_prism(_circle(dc, 6.9, 16), g + 22.0, g + 36.0, ZB_WALL, none, M_MONUMENT)
@@ -8082,8 +8090,17 @@ func _build_zbawiciela(site: Dictionary) -> void:
 	_prism(_circle(dc, 1.9, 8), g + 46.3, g + 50.5, ZB_TRIM, none, M_MONUMENT)
 	_prism(_circle(dc, 2.4, 8), g + 50.5, g + 51.2, ZB_TRIM, ZB_TRIM, M_STONE, M_STONE)
 	_frustum(_circle(dc, 2.1, 8), g + 51.2, _circle(dc, 0.3, 8), g + 54.0, ZB_COPPER, ZB_COPPER)
-	_lbox(ZB_DOME_C.x, ZB_DOME_C.y, 0.12, 0.12, g + 54.0, g + 58.5, ZB_GOLD, M_STONE, ZB_GOLD)
-	_lbox(ZB_DOME_C.x, ZB_DOME_C.y, 0.6, 0.12, g + 56.2, g + 56.5, ZB_GOLD, M_STONE, ZB_GOLD)
+	_lbox(ZB_DOME_C.x, ZB_DOME_C.y, 0.12, 0.12, g + 54.0, g + 58.5, ZB_LIT_GOLD, M_LAMP, ZB_LIT_GOLD)
+	_lbox(ZB_DOME_C.x, ZB_DOME_C.y, 0.6, 0.12, g + 56.2, g + 56.5, ZB_LIT_GOLD, M_LAMP, ZB_LIT_GOLD)
+	# night: the rose window's stained glass (dark amber by day), lanterns at the pilasters and
+	# floodlamps in the paving that throw the light up the facade
+	var lit := _w(0.0, 0.2)
+	_mode = M_LAMP
+	_disc(Vector3(lit.x, g + 13.0, lit.y), Vector3(_b.x, 0.0, _b.y), 1.3, 10, ZB_STAINED)
+	for u: float in [-7.2, -3.4, 3.4, 7.2]:
+		_lbox(u, 0.55, 0.12, 0.12, g + 5.6, g + 6.3, ZB_LAMP, M_LAMP, ZB_LAMP)
+	for f: Array in ZB_FLOODS:
+		_lbox(f[0], f[1], 0.3, 0.3, g - 0.1, g + 0.3, ZB_LAMP, M_LAMP, ZB_LAMP)
 	# the car meets the walls
 	_collide(outline)
 	for sd: float in [-1.0, 1.0]:
