@@ -30,8 +30,9 @@ wing, west wing) is the plan, simplified at 0.3 m; the zone is the outline grown
 | Upper floors | the outline | 7.0 to 24.0 m (four floors of 3.9 m, attic band 22-24 m) |
 | Cornice | the outline grown 0.45 m | 23.5 to 24.0 m, parapet to 24.6 m, roof at 24.08 m |
 | Towers | centres u = ±15.6, v = 0 (the outline's round corners) | drums r 3.7 / 3.0 / 2.3 / 1.3 m from 24.0 to 27.4 m |
-| Eagles | on the top drum | 27.4 to 29.7 m, wings 4.2 m across |
-| Pediment | u -11 to 11 on the cornice line | 24.0 to 25.7 m; flagpole to 32.2 m |
+| Eagles | on the top drum | 27.4 to 30.1 m, wings 5.4 m across |
+| Front | a slab to v 4.3 between the towers (the outline wavers 3.2-4.4 m there) | the same floors |
+| Pediment | u -11 to 11, v 4.66 | 24.0 to 25.7 m; flagpole to 32.2 m |
 
 Heights come from the photo's proportions (the towers' centres 31 m apart), not from LoD2 (20.8 m).
 
@@ -39,11 +40,12 @@ Heights come from the photo's proportions (the towers' centres 31 m apart), not 
 
 - Windows (`_bays`, M_GLASS, #353b42): ground floor 1.0-6.0 m, 2.2 m wide; upper floors 2.5 m tall,
   1.9 m wide; 3.5 m bays. Three per floor round each tower's outer quarter, on the outline.
-- The front's ground floor by hand: windows at u -7, 0, 7 (2.5 m wide), portals at u ±3.5 (stone
-  frames 3.1 x 5.4 m, dark doors 2 x 4.4 m).
-- Attic panels at u ±10.6 (3.4 x 1.9 m, darker stone) with round windows (r 0.82 stone, 0.62 glass).
-- Letters (the landmark signs, lit day and night, dim warm grey): KRAJOWA / RADA SPÓŁDZIELNI ORŁÓW,
-  0.72 m tall, at 22.5 and 21.55 m. A parody of the real name (the council of the eagles' coops).
+- The front by hand, seven bays at u -10.5 to 10.5: upper windows 1.9 m wide; on the ground floor
+  windows at u ±10.5, ±7, 0 (2.3 m wide) and portals at u ±3.5 (stone frames 3.1 x 5.4 m, dark
+  doors 2 x 4.4 m).
+- Attic panels at u ±10.5 (3.2 x 1.5 m, darker stone) with round windows (r 0.66 stone, 0.5 glass).
+- Letters (the landmark signs, lit day and night, so dark metal grey): KRAJOWA / RADA SPÓŁDZIELNI
+  ORŁÓW, 0.65 m tall, at 22.75 and 21.95 m. A parody of the real name (the council of the eagles' coops).
 
 ## 4. Colour and material
 
@@ -59,7 +61,8 @@ bronze #5e5548. Card "Dom pod Orłami".
 - **Furniture** (`skwer_zlota.gd`, one mesh, both city paths): 19 pale stone blocks (7 round the
   rock fountain's pool, the rest loose on the lawns; solid), two water jets, 10 larch benches
   between the limes, a curved bench of five pieces facing the fountain on the old tunnel ramp, 12
-  café sets under the limes by the facades, retractable bollards across the Jasna end.
+  café sets under the limes by the facades, 11 slim lamps (heads lit at night, no light pool:
+  lights.bin is baked), retractable bollards across the Jasna end.
 
 ## 6. Open (Mac look check, docs/QUESTIONS.md)
 
