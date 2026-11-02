@@ -1188,16 +1188,11 @@ func _build_world() -> void:
 	hud.radio_pressed.connect(radio.next)
 	hud.radio_skip_pressed.connect(radio.next_track)
 	hud.perf_gesture.connect(func(): _set_perf(not show_perf); settings.perf = show_perf; settings.save())
-	radio.station_changed.connect(func(_i: int, s: Dictionary):
-		hud.set_radio_name(radio.label())
-		hud.set_radio_skip(radio.can_skip())
-	if radio.station >= 0:
-		hud.set_radio_colour(radio.stations[radio.station]["colour"])
-		hud.set_radio_colour(s.get("colour", Color.WHITE) if not s.is_empty() else Color("#c9c4d8")))
-	# Beta radio: DALEJ · NEXT under RADIO while the station has another song.
+	radio.station_changed.connect(_on_station_changed)
+	# Beta radio: the next key beside RADIO while the station has another song.
 	radio.track_changed.connect(func(_i: Dictionary, _t: Dictionary, _n: bool): hud.set_radio_skip(radio.can_skip()))
 	radio.track_unlocked.connect(func(_n: int, _t: Dictionary, _w: String): hud.set_radio_skip(radio.can_skip()))
-	hud.set_radio_skip(radio.can_skip())
+	_on_station_changed(radio.station, radio.stations[radio.station] if radio.station >= 0 else {})
 	radio.ticker.connect(hud.ticker)
 	hud.set_radio_name(radio.label())
 	hud.visible = not hide_hud
@@ -2885,6 +2880,13 @@ func _apply_spacer(on: bool) -> void:
 		rivals.quiet = on
 	if police != null:
 		police.gentle = on
+
+
+## Beta radio: the RADIO chip follows the station: its name, its colour, the next key.
+func _on_station_changed(_index: int, info: Dictionary) -> void:
+	hud.set_radio_name(radio.label())
+	hud.set_radio_skip(radio.can_skip())
+	hud.set_radio_colour(info.get("colour", Color.WHITE) if not info.is_empty() else Color("#c9c4d8"))
 
 
 ## Beta radio (2026-11-02): when the title goes, the host says good morning (or evening) to
