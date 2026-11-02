@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- The new Vistula boulevards have their children's corner: a splash pool with jets and three leaping river fish (sturgeon, pike, perch) on stone plinths.
 - The squares round the Rondo Daszyńskiego towers are planted: a birch and pine grove with shrub beds and benches by Skyliner, linden courts between the Generation Park blocks, and a green forecourt in front of the Mennica Legacy Tower.
 - The radio for the beta: KEBAB FM and MORDOR FM only, a DALEJ button next to RADIO to skip a song, and the host says good morning to Warsaw with the weather and the temperature when the game starts.
 - Rondo Dmowskiego looks like the real one: grey paving round the tram cross with four curved flower beds in red and purple, the blue 1990s tube canopies over every underpass stair and the metro entrances by the Patelnia, a colourful mural on the Patelnia's wall, and a kiosk, an ice-cream cart and a tram shelter round it.

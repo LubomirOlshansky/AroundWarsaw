@@ -829,6 +829,7 @@ func _find_sites() -> void:
 	# The river's bar barges and houseboats (2026-11-01, spec docs/landmarks/specs/barki.md).
 	_find_barges()
 	_find_marina()
+	_find_bulwary_pool()
 	_find_srodmiescie()
 	# Plac Małachowskiego and the Presidential Palace (2026-10-31): models instead of skins.
 	_find_trojca()
@@ -1298,6 +1299,9 @@ func build(surface, near := Rect2(), only := "") -> void:
 			"houseboats":
 				_id = 0  # private homes: no card, not on the picking grid
 				_build_houseboats(s)
+			"bulwary_basen":
+				_id = 0  # the children's corner: no card, not on the picking grid
+				_build_bulwary_pool(s)
 			"srodmiescie":
 				_build_srodmiescie(s)
 			"ostrogski":
@@ -14276,3 +14280,94 @@ func _build_sobieski(site: Dictionary) -> void:
 
 func _magenta_dark() -> Color:
 	return SOBIESKI_MAGENTA.darkened(0.15)
+
+
+# --- Bulwary Wiślane, stage 2: the splash pool and the fish (K7) ---------------------------------
+## Krajobraz places K7 (docs/design/krajobraz-places.md, 2026-11-02; spec docs/landmarks/specs/bulwary_basen.md).
+## The 2017 stage of the boulevards has a children's corner by the plaza between the third and
+## fourth bar pavilions: a splash pool with jets and Vistula fish sculptures. (The pavilions
+## themselves are `bulwary_pawilony`, the boulevard dressing lane.) Built here: the pool, its
+## paving and three fish (sturgeon, pike, perch) leaping from stone plinths. No building
+## stands there, so the site is its own paving. No photo in the cloud: the Mac look check
+## settles the exact spot and colours. No new draw call (the city's one surface).
+const BULWARY_POOL := Vector2(-124.0, -1365.0)
+const BULWARY_AXIS := Vector2(0.665, 0.747)  # along the boulevard there
+const BULWARY_POOL_HALF := Vector2(4.2, 2.6)
+const BULWARY_STONE := Color("#8d8f8c")
+const BULWARY_WATER := Color("#2fb3dd")
+const BULWARY_JET := Color("#e3f6fa")
+const BULWARY_PAVING := Color("#cfc7b2")
+const BULWARY_FISH := [Color("#a97a45"), Color("#8fa2ab"), Color("#6f9a8a")]
+
+
+func _find_bulwary_pool() -> void:
+	var pa := BULWARY_AXIS
+	var pb := Vector2(-pa.y, pa.x)
+	_add_site("bulwary_basen", [PackedVector2Array([BULWARY_POOL - pa * 6.4 - pb * 4.6, BULWARY_POOL + pa * 6.4 - pb * 4.6,
+			BULWARY_POOL + pa * 6.4 + pb * 4.6, BULWARY_POOL - pa * 6.4 + pb * 4.6])])
+
+
+## The splash pool: a paved apron, a low granite rim, shallow water, a row of jets, and three
+## Vistula fish leaping on plinths round it (the children's corner of the 2017 stage).
+func _build_bulwary_pool(_site: Dictionary) -> void:
+	var axis := BULWARY_AXIS
+	_o = BULWARY_POOL
+	_a = axis
+	_b = Vector2(-axis.y, axis.x)
+	_walls.clear()
+	_caps.clear()
+	var ring := _rect(0.0, 0.0, 6.4, 4.6)
+	_g = _ground_under(ring)
+	var g := _g
+	_mode = M_STONE
+	_cap(ring, g + 0.04, BULWARY_PAVING)
+	var hp := BULWARY_POOL_HALF
+	var rim := _rect(0.0, 0.0, hp.x + 0.4, hp.y + 0.4)
+	# The rim is four boxes round the water (a solid slab would cover it).
+	var rl := BULWARY_STONE.lightened(0.1)
+	_lbox(0.0, -hp.y - 0.2, hp.x + 0.4, 0.2, g - 0.2, g + 0.32, BULWARY_STONE, M_STONE, rl)
+	_lbox(0.0, hp.y + 0.2, hp.x + 0.4, 0.2, g - 0.2, g + 0.32, BULWARY_STONE, M_STONE, rl)
+	_lbox(-hp.x - 0.2, 0.0, 0.2, hp.y, g - 0.2, g + 0.32, BULWARY_STONE, M_STONE, rl)
+	_lbox(hp.x + 0.2, 0.0, 0.2, hp.y, g - 0.2, g + 0.32, BULWARY_STONE, M_STONE, rl)
+	_prism(_rect(0.0, 0.0, hp.x, hp.y), g - 0.2, g + 0.2, BULWARY_WATER, BULWARY_WATER, M_STONE, M_STONE)
+	for k in 7:
+		var u := lerpf(-hp.x + 0.9, hp.x - 0.9, float(k) / 6.0)
+		for v: float in [-0.9, 0.9]:
+			var j := _w(u, v)
+			var jh := 0.7 + 0.5 * float((k + (1 if v > 0.0 else 0)) % 3) / 2.0
+			_beam(Vector3(j.x, g + 0.2, j.y), Vector3(j.x, g + 0.2 + jh, j.y), 0.07, BULWARY_JET)
+	_collide(rim)
+	# The fish: a leaping sturgeon at the east end, a pike and a perch at the other corners.
+	_bulwary_fish(-(hp.x + 1.9), 0.0, 3.4, 0.0, BULWARY_FISH[0], g)
+	_bulwary_fish(hp.x + 1.7, 0.9, 2.2, PI, BULWARY_FISH[1], g)
+	_bulwary_fish(0.4, hp.y + 1.6, 1.7, -PI * 0.5, BULWARY_FISH[2], g)
+
+
+## One fish leaping from a stone plinth at a local spot: a beam chain along an arc, thick at
+## the shoulder, a head, a forked tail and a dorsal fin. `len` its length, `yaw` where it heads
+## (0 is local +u), the arc rising over its first half and falling.
+func _bulwary_fish(u: float, v: float, flen: float, yaw: float, col: Color, g: float) -> void:
+	_lbox(u, v, 0.45, 0.45, g - 0.2, g + 0.55, BULWARY_STONE, M_STONE, BULWARY_STONE.lightened(0.1))
+	var dir := _a * cos(yaw) + _b * sin(yaw)
+	var pt := func(t: float) -> Vector3:
+		var w := _w(u, v) + dir * (t - 0.5) * flen
+		var rise := sin(t * PI) * flen * 0.28 + (1.0 - t) * flen * 0.05
+		return Vector3(w.x, g + 1.05 + rise, w.y)
+	# A stem from the plinth to the belly, so the leap rests on its stand.
+	var belly: Vector3 = pt.call(0.45)
+	_beam(Vector3(belly.x, g + 0.55, belly.z), belly, 0.1 * flen, BULWARY_STONE)
+	var width := [0.12, 0.34, 0.42, 0.34, 0.2, 0.1]
+	for k in 5:
+		_beam(pt.call(float(k) / 5.0), pt.call(float(k + 1) / 5.0), width[k] * flen * 0.8, col if k % 2 == 0 else col.darkened(0.12))
+	# The head, a blunt snout past the last joint, and the tail's two flukes.
+	var head: Vector3 = pt.call(1.0)
+	var fore: Vector3 = pt.call(0.92)
+	_beam(fore, head + (head - fore) * 0.9, 0.1 * flen, col.lightened(0.1))
+	var tail: Vector3 = pt.call(0.0)
+	var side := Vector3(-dir.y, 0.0, dir.x)
+	var back: Vector3 = (tail - (pt.call(0.1) as Vector3)).normalized()
+	for sd: float in [-1.0, 1.0]:
+		_beam(tail, tail + back * flen * 0.16 + side * sd * flen * 0.1 + Vector3.UP * flen * 0.06 * sd, 0.035 * flen, col.darkened(0.08))
+	# The dorsal fin over the shoulder, a small raised sail.
+	var sh: Vector3 = pt.call(0.4)
+	_beam(sh + Vector3.UP * flen * 0.06, sh + Vector3.UP * flen * 0.2 + (tail - head).normalized() * flen * 0.05, 0.025 * flen, col.darkened(0.15))
