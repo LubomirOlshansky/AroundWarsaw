@@ -187,6 +187,7 @@ then the Launch gate.
 - [x] Norblin, Browary Warszawskie, Hala Koszyki, Elektrownia Powiśle as models, people chilling
       in their yards and KROWA 2.0, the milk bar queue in Norblin (F, 2026-11-01; specs
       `norblin.md`, `browary.md`, `koszyki.md`, `elektrownia.md`; Mac look check parked)
+- [x] KRINGULA PIZZA, 2026-11-02 (F's ideas #5 and #6): the hyped pizzeria parody on Poznańska with a 24-40 person line, ecstatic fans' lines, and morning lines at the NERWO pavilion and KOSZTA on Marszałkowska (`crowds.gd` KRINGULA, COFFEE; the joke itself is placeholder, QUESTIONS)
 - [ ] The landmark lane's remaining list (BACKLOG "Landmarks lane, hand-over": the Cathedral and
       the Barbican DONE 2026-11-02, Old Town gables, PZU/JM Tower and the rest), and the parked Mac photo checks
 - [x] Powiśle street by street, 2026-11-01 (F): Zamek Ostrogskich with the Chopin Institute
