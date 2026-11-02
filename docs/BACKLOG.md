@@ -29,7 +29,9 @@ fresh thread per item; ul. Złota and Zgoda stay with the Skwer Linearny thread.
   the amphitheatre and trampolines, checked against the orthophoto (Sonnet).
 - [ ] K8 Arkadia's playground (Al. Jana Pawła II 82, 2018): the ribbon rope course, trampolines,
   the wooden bench-sculpture, lamps on cables (Sonnet, small).
-- [ ] K9 Stadion Narodowy's grounds: entrance avenues, tree rows, pollarded willows (Sonnet, small).
+- [x] K9 Stadion Narodowy's grounds: 80 young trees (lime and plane rows down both sides of the
+  four entrance avenues, groups of pollarded willows on the lawns between them), `planted_trees.py`
+  place `stadion`; shrub belts and the avenues' paving colour left for the Mac look check.
 - [ ] K10 Muzeum Historii Polski (Cytadela) lies ~0.7 km north of the map's north edge: parked
   in QUESTIONS (grow the map or a skyline stand-in).
 
