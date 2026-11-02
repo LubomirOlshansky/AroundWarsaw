@@ -24,6 +24,7 @@ signal closed
 ## The hold's spot (map metres), when the hold was held to the end.
 signal teleport(at: Vector2)
 
+const Lang := preload("res://scripts/lang.gd")
 const MapArt := preload("res://scripts/map_art.gd")
 const MapIcons := preload("res://scripts/map_icons.gd")
 const MainLine := preload("res://scripts/main_line.gd")
@@ -89,6 +90,8 @@ var main_pl := ""
 var main_en := ""
 var side_spots := PackedVector2Array()
 var side_colours := PackedColorArray()
+## G11: each place's shape (hud.gd POI_*), parallel to side_spots.
+var side_shapes := PackedInt32Array()
 ## The minimap's night (kept for hud.gd; the full map has one look day and night).
 var night := 0.0
 ## Loop 3h slice 1: districts.gd `view()` (names, label point, polygons, found, pct) and the total %.
@@ -100,6 +103,8 @@ var centre := Vector2.ZERO
 var ppm := 1.0
 
 var _built := false
+## The language the cards were built in (lang.gd).
+var _built_lang := ""
 var _paper: ColorRect
 var _land: Node2D
 var _content: Node2D
@@ -127,8 +132,9 @@ var _legend_icons: Array[Control] = []
 ## The legend's icons are drawn here, on top of its card (the overlay is under the cards).
 var _legend_art: Control
 ## The legend's rows: [Polish · English]; their icons in order: the star, the ringed dot, the
-## square, the "?".
-const LEGEND := ["główny wątek · main line", "zlecenie · side job", "start zlecenia · job spot", "nieodkryte · not found yet"]
+## kebab stand's badge, the station's triangle, the garage's diamond, the metro's pin, the "?".
+const LEGEND := ["główny wątek · main line", "zlecenie · side job", "kebab · kebab stand", "stacja · job station",
+		"warsztat · garage", "metro · underground", "nieodkryte · not found yet"]
 ## For checks: the last spot teleported to (INF: none).
 var last_teleport := Vector2.INF
 var _overlay: Control
@@ -167,6 +173,7 @@ func _px(points: float) -> int:
 
 func _build() -> void:
 	_built = true
+	_built_lang = Lang.code
 	var t0 := Time.get_ticks_usec()
 	if outline.size() < 3 and bounds.has_area():
 		outline = PackedVector2Array([bounds.position, Vector2(bounds.end.x, bounds.position.y), bounds.end,
@@ -179,6 +186,7 @@ func _build() -> void:
 	_minor_mesh = m["minor"]
 	_edge_mesh = m["edge"]
 	icons = MapIcons.place(landmarks, data.get("palm", []), prepared["bridges"])
+	icons.append_array(MapIcons.place_extras(data.get("pois", [])))
 	prepared = {}  # its arrays are in the meshes now
 	print("full map: built in %.0f ms, %d icons" % [(Time.get_ticks_usec() - t0) / 1000.0, icons.size()])
 	_paper = ColorRect.new()
@@ -208,7 +216,7 @@ func _build() -> void:
 	_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_overlay.draw.connect(_paint)
 	add_child(_overlay)
-	_head = _card(["MAPA WARSZAWY", "map of Warsaw · north up"], [T_TITLE, T_SUB])
+	_head = _card([Lang.pick("MAPA WARSZAWY", "MAP OF WARSAW")], [T_TITLE])
 	_head.name = "head"
 	add_child(_head)
 	_goal = _card(["", ""], [T_SUB, T_SUB])
@@ -229,7 +237,7 @@ func _build() -> void:
 		row.add_child(icon)
 		_legend_icons.append(icon)
 		var l := Label.new()
-		l.text = text
+		l.text = Lang.split(text)
 		l.add_theme_font_size_override("font_size", _px(T_SUB - 1.0))
 		l.add_theme_color_override("font_color", Color("#fbf7ee"))
 		row.add_child(l)
@@ -240,7 +248,7 @@ func _build() -> void:
 	_legend_art.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_legend_art.draw.connect(_paint_legend)
 	add_child(_legend_art)
-	_hint = _card(["Przytrzymaj miejsce, by się tam przenieść", "Hold a spot to jump there · drag · pinch"], [T_SUB, T_SUB])
+	_hint = _card([Lang.pick("Przytrzymaj miejsce, by się tam przenieść", "Hold a spot to jump there")], [T_SUB])
 	_hint.name = "hint"
 	add_child(_hint)
 	_close = Button.new()
@@ -309,6 +317,13 @@ func _card(lines: Array, sizes: Array) -> PanelContainer:
 
 ## Opens on the car, START_M across the screen's height.
 func open(at: Vector2, yaw: float) -> void:
+	if _built and _built_lang != Lang.code:
+		# The language changed since the cards were made (Settings): make them again.
+		for c in get_children():
+			c.queue_free()
+		_legend_icons.clear()
+		_built = false
+		_tint_key = -1
 	if not _built:
 		_build()
 		var keep := [main_pl, main_en]
@@ -454,7 +469,7 @@ func rects() -> Dictionary:
 
 ## The legend's icons, in its rows' order, on top of its card (one batch of their own).
 func _paint_legend() -> void:
-	if not _legend.visible or _legend_icons.size() != 4:
+	if not _legend.visible or _legend_icons.size() != LEGEND.size():
 		return
 	var ic: Array[Vector2] = []
 	for c in _legend_icons:
@@ -462,10 +477,11 @@ func _paint_legend() -> void:
 	hud._tri_begin()
 	hud.main_star(ic[0], 1.2)
 	hud.side_pin(ic[1], 1.2, Color("#ff8a3d"))  # jobs.gd KEBAB_COLOUR
-	var half := 3.4 * pt
-	hud._tri_rect(Rect2(ic[2] - Vector2.ONE * (half + 1.2 * pt), Vector2.ONE * (half + 1.2 * pt) * 2.0), hud.OUTLINE)
-	hud._tri_rect(Rect2(ic[2] - Vector2.ONE * half, Vector2.ONE * half * 2.0), Color("#ff8a3d"))
-	hud._tri_question(ic[3], 1.3)
+	hud.poi_mark(ic[2], 5.4 * pt, Color("#ff8a3d"), MapIcons.POI_KEBAB)
+	hud.poi_mark(ic[3], 5.4 * pt, Color("#4fd8c4"), MapIcons.POI_STATION)  # jobs.gd SLOIK_COLOUR
+	hud._tri_diamond(ic[4], 4.6 * pt, Color("#5aa0ff"))  # garage.gd GARAGE_COLOUR
+	MapIcons.paint(hud, "metro", MapIcons.METRO, ic[5] + Vector2(0.0, 8.0 * pt), 6.2 * pt)
+	hud._tri_question(ic[6], 1.3)
 	hud._tri_flush(_legend_art)
 
 
@@ -492,8 +508,9 @@ func set_main_line(at: Vector2, pl: String, en: String) -> void:
 	if not _built or not changed:
 		return
 	var box: VBoxContainer = _goal.get_child(0)
-	(box.get_child(0) as Label).text = "★ " + pl
-	(box.get_child(1) as Label).text = en
+	(box.get_child(0) as Label).text = "★ " + Lang.pick(pl, en)
+	(box.get_child(1) as Label).text = ""
+	(box.get_child(1) as Label).visible = false
 	_goal.visible = pl != ""
 	_fit()
 
@@ -507,14 +524,14 @@ func set_ladder(rows: Array) -> void:
 	for c in box.get_children():
 		box.remove_child(c)
 		c.queue_free()
-	var lines: Array = [["DRABINKA", ""], ["rival ladder", ""]]
+	var lines: Array = [[Lang.pick("DRABINKA", "RIVAL LADDER"), ""]]
 	lines.append_array(rows)
 	for i in lines.size():
 		var l := Label.new()
 		l.text = str(lines[i][0])
 		l.add_theme_font_size_override("font_size", _px(T_TITLE if i == 0 else T_SUB))
 		l.add_theme_color_override("font_color", Color("#ffd23f") if i == 0 else
-				(Color("#c9c2d8") if i == 1 else LADDER_COLOURS.get(str(lines[i][1]), Color.WHITE)))
+				LADDER_COLOURS.get(str(lines[i][1]), Color.WHITE))
 		box.add_child(l)
 	_has_ladder = not rows.is_empty()
 	_ladder.visible = _has_ladder and cards_shown
@@ -552,15 +569,15 @@ func set_districts(view: Array[Dictionary], total: int, syrenki_found := 0, syre
 					_fog.append(part[i])
 	if not _built:
 		return
-	var lines := ["DZIELNICE", "districts"]
-	var sizes := [T_TITLE, T_SUB]
+	var lines := [Lang.pick("DZIELNICE", "DISTRICTS")]
+	var sizes := [T_TITLE]
 	for d in districts:
-		lines.append("%s · %d%%" % [d["name_pl"], d["pct"]] if d["found"] else "? ? ?")
+		lines.append("%s · %d%%" % [Lang.pick(d["name_pl"], d["name_en"]), d["pct"]] if d["found"] else "? ? ?")
 		sizes.append(T_SUB)
 	if syrenki_total > 0:
 		lines.append("Syrenki %d/%d" % [syrenki_found, syrenki_total])
 		sizes.append(T_SUB)
-	lines.append("Razem · in all %d%%" % total)
+	lines.append(Lang.pick("Razem %d%%", "In all %d%%") % total)
 	sizes.append(T_SUB)
 	var rows: VBoxContainer = _list.get_child(0)
 	for c in rows.get_children():
@@ -570,9 +587,9 @@ func set_districts(view: Array[Dictionary], total: int, syrenki_found := 0, syre
 		var l := Label.new()
 		l.text = lines[i]
 		l.add_theme_font_size_override("font_size", _px(sizes[i]))
-		var found: bool = i < 2 or i >= 2 + districts.size() or districts[i - 2]["found"]
+		var found: bool = i < 1 or i >= 1 + districts.size() or districts[i - 1]["found"]
 		l.add_theme_color_override("font_color", Color("#ffd23f") if i == 0 else
-				(Color("#fbf7ee") if found and i >= 2 else Color("#c9c2d8")))
+				(Color("#fbf7ee") if found and i >= 1 else Color("#c9c2d8")))
 		rows.add_child(l)
 	_has_list = not districts.is_empty()
 	_list.visible = _has_list and cards_shown
@@ -613,10 +630,8 @@ func _paint() -> void:
 	for i in side_spots.size():
 		var at := to_screen(side_spots[i])
 		if view.has_point(at):
-			var half := 3.6 * pt
-			hud._tri_rect(Rect2(at - Vector2.ONE * (half + 1.2 * pt), Vector2.ONE * (half + 1.2 * pt) * 2.0), hud.OUTLINE)
-			hud._tri_rect(Rect2(at - Vector2.ONE * half, Vector2.ONE * half * 2.0),
-					side_colours[i] if i < side_colours.size() else Color.WHITE)
+			hud.poi_mark(at, 5.2 * pt, side_colours[i] if i < side_colours.size() else Color.WHITE,
+					side_shapes[i] if i < side_shapes.size() else MapIcons.POI_SQUARE)
 	for q in found:
 		var at := to_screen(q)
 		if view.has_point(at):
@@ -788,8 +803,9 @@ func _finish_hold() -> void:
 ## The note card above the hint: [pl, en], for 2.5 s.
 func _say(lines: Array) -> void:
 	var box: VBoxContainer = _note.get_child(0)
-	(box.get_child(0) as Label).text = str(lines[0])
-	(box.get_child(1) as Label).text = str(lines[1]) if lines.size() > 1 else ""
+	(box.get_child(0) as Label).text = Lang.pick(str(lines[0]), str(lines[1]) if lines.size() > 1 else "")
+	(box.get_child(1) as Label).text = ""
+	(box.get_child(1) as Label).visible = false
 	_note.visible = true
 	_note_t = 2.5
 	_fit()
