@@ -121,8 +121,7 @@ func _check_screen(screen: Vector2i) -> int:
 	var bubbles: Control = Bubbles.new()
 	bubbles.pt = hud.pt
 	bubbles.project = func(p: Vector3) -> Vector2: return Vector2(p.x, p.y)
-	hud.add_child(bubbles)
-	hud.move_child(bubbles, 1)
+	hud.add_speech(bubbles)  # above the target pointer, below the panels (PT-10)
 	var talk: Control = PoliceBalloon.new()
 	talk.pt = hud.pt
 	hud.add_panel(talk, "bottom")
@@ -136,6 +135,8 @@ func _check_screen(screen: Vector2i) -> int:
 	var count := 0
 	var at := func(fx: float, fy: float) -> Vector2: return Vector2(screen.x * fx, screen.y * fy)
 	_check_bubble_sweep(hud, bubbles, screen, tag)
+	_check_ticker_slide(hud, tag)
+	_check_target_pointer(hud, bubbles, screen, tag)
 	# The longest call the map gives (the longest hospital name), Polish over English as in missions.gd.
 	var call_pl := "Ranny rowerzysta: Aleksandra Krywulta. Wystarczy auto albo helikopter.\nSzpital: Samodzielny Szpital Kliniczny im. prof. Witolda Orłowskiego · czas 3:40"
 	var call_en := "A cyclist is hurt: the car or the helicopter will do. Get them to the hospital in 3:40."
@@ -766,6 +767,73 @@ func _check_bubble_sweep(hud: CanvasLayer, bubbles: Control, screen: Vector2i, t
 	hud.set_flying(false)
 	if n == 0:
 		problems.append("%s PT-6: the bubble sweep placed nothing" % tag)
+
+
+## PT-9 (2026-11-02, run 10 at 1266x585): the radio ticker slid in from off screen, so mid-slide
+## the screen edge cut its first words. Every step of its slide must stay inside the safe area.
+func _check_ticker_slide(hud: CanvasLayer, tag: String) -> void:
+	hud.clear_all()
+	hud.ticker("KEBAB FM · Dzień dobry, Warszawo! Dobre popołudnie, Warszawo!", Color("#ff5fc8"), "")
+	hud.panel_rects()
+	var safe: Rect2 = hud.safe_rect()
+	var box: Control = hud.get("_ticker")
+	for k in 11:
+		hud.call("_slide_ticker", k / 10.0)
+		if box.visible and box.position.x < safe.position.x - 0.5:
+			problems.append("%s PT-9: the ticker's slide puts it %.0f px past the safe area's left edge" % [
+					tag, safe.position.x - box.position.x])
+			break
+	hud.clear_all()
+
+
+## PT-10 (2026-11-02, run 10): the target pointer drew over speech bubbles and the banner, and at
+## the screen edge its distance ran into its arrow. Checks the draw order, that the edge label
+## stays clear of its arrow all round, and that the edge arrow gives way to a bubble in its spot.
+func _check_target_pointer(hud: CanvasLayer, bubbles: Control, screen: Vector2i, tag: String) -> void:
+	var overlay: Control = hud.get("_overlay")
+	var banner: Control = hud.get("_banner")
+	if not (overlay.get_index() < bubbles.get_index() and bubbles.get_index() < banner.get_index()):
+		problems.append("%s PT-10: draw order is pointer %d, bubbles %d, banner %d (want pointer under both)" % [
+				tag, overlay.get_index(), bubbles.get_index(), banner.get_index()])
+	hud.clear_all()
+	bubbles.clear()
+	hud.panel_rects()
+	var pt: float = hud.pt
+	var centre := Vector2(screen) * 0.5
+	var into := 0
+	for k in 72:
+		var dir := Vector2.from_angle(TAU * k / 72.0)
+		hud.set_target(centre + dir * float(screen.x) * 2.0, "1888 m", Color("#ff9a3c"), true)
+		var e: Dictionary = hud.edge_pointer()
+		if e.is_empty():
+			continue
+		var tip: Vector2 = e["tip"]
+		var d: Vector2 = e["dir"]
+		var label: Rect2 = e["label"]
+		var near := INF
+		for c in [label.position, Vector2(label.end.x, label.position.y), label.end, Vector2(label.position.x, label.end.y)]:
+			near = minf(near, (tip - c).dot(d))
+		if near < (hud.EDGE_ARROW + 2.5) * pt:
+			into += 1
+			if into <= 2:
+				problems.append("%s PT-10: the edge distance runs into its arrow pointing %d°" % [tag, k * 5])
+		if not Rect2(Vector2.ZERO, Vector2(screen)).encloses(label):
+			problems.append("%s PT-10: the edge distance %s leaves the screen pointing %d°" % [tag, _pts(label, pt), k * 5])
+	# A bubble right where the left edge arrow points: the arrow moves along the edge, clear of it.
+	hud.set_target(Vector2(-float(screen.x), centre.y), "297 m", Color("#ff9a3c"), true)
+	var before: Dictionary = hud.edge_pointer()
+	if not before.is_empty():
+		_say(bubbles, "Kierowca", (before["label"] as Rect2).get_center(), "Kierunkowskaz to nie opcja!", "The indicator isn't an optional extra!")
+		bubbles.layout()
+		var after: Dictionary = hud.edge_pointer()
+		var tip: Vector2 = after["tip"]
+		var box := (after["label"] as Rect2).merge(Rect2(tip, Vector2.ZERO).grow((hud.EDGE_ARROW + 3.0) * pt))
+		for r: Rect2 in bubbles.rects:
+			if r.intersects(box):
+				problems.append("%s PT-10: the edge arrow %s stays under a bubble %s" % [tag, _pts(box, pt), _pts(r, pt)])
+	hud.set_target(Vector2.ZERO, "", Color.WHITE, false)
+	bubbles.clear()
+	hud.clear_all()
 
 
 ## A speech bubble from a speaker standing at screen point `p`.

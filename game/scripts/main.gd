@@ -1226,8 +1226,7 @@ func _build_world() -> void:
 	bubbles.pt = hud.pt
 	bubbles.kmh = func() -> float: return absf(car.forward_speed) * 3.6
 	bubbles.project = func(p: Vector3) -> Vector2: return cam.unproject_position(p) * float(view.stretch_shrink)
-	hud.add_child(bubbles)
-	hud.move_child(bubbles, 1)
+	hud.add_speech(bubbles)  # above the target pointer, below the panels (PT-10)
 	bubbles.process_mode = Node.PROCESS_MODE_PAUSABLE
 	dialogue = Dialogue.new()
 	dialogue.host_first = host_in
