@@ -86,16 +86,20 @@ fresh thread per item; ul. Złota and Zgoda stay with the Skwer Linearny thread.
 - [ ] K3 Varso Place: street planting on Chmielna's side, roof terraces on Varso 1/2, trees on
   the tower's deck, and a parody name sign (default VERSO PLACE; never the real mark). Opus spec
   from photos, Sonnet build.
-- [ ] K4 Zielona Świętokrzyska (2018): count the scanned trees against the 194 planted, add the
-  big planters (Sonnet, small).
+- [x] K4 Zielona Świętokrzyska (2018): built, see docs/design/krajobraz-places.md (open for the Mac: a street photo
+  compare of the planters' places; trees stay as scanned).
 - [ ] K5 Rondo Daszyńskiego plazas: Skyliner's green passage (forest-like three tiers, wooden
   benches on terraces), Generation Park's and Mennica Legacy Tower's plazas (Sonnet, Opus spec).
 - [ ] K6 Browary Warszawskie's Central Garden over the Leżakownia and Norblin's candelabra
   planes and climbers (Sonnet; with "Norblin, Browary" below).
 - [ ] K7 Bulwary Wiślane stages 1-2: the 6 floating pavilions, the splash pool, the Vistula fish,
   the amphitheatre and trampolines, checked against the orthophoto (Sonnet).
-- [ ] K8 Arkadia's playground (Al. Jana Pawła II 82, 2018): the ribbon rope course, trampolines,
-  the wooden bench-sculpture, lamps on cables (Sonnet, small).
+- [x] K8 Arkadia's playground (Al. Jana Pawła II 82, 2018), 2026-11-02: one new park piece
+  `ropecourse` (ribbon rope course, three flush trampolines, timber bench-sculpture, three lamps on
+  a cable; ~520 tris, solid) in the green strip west of Arkadka (new park "arkadia" in
+  `bake_park_details.py`, 207 park items). Left: the real layout (slide, climbing frame, swings,
+  the water-play corner) is not modelled, only the rope course's look; position is a guess at the
+  strip, check against the orthophoto on the Mac (QUESTIONS).
 - [ ] K9 Stadion Narodowy's grounds: entrance avenues, tree rows, pollarded willows (Sonnet, small).
 - [ ] K10 Muzeum Historii Polski (Cytadela) lies ~0.7 km north of the map's north edge: parked
   in QUESTIONS (grow the map or a skyline stand-in).
