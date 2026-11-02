@@ -11,6 +11,8 @@ extends RefCounted
 ## streak), respect, the cancel rule, the player's rating (the last 20 rides, a new save counting
 ## as 4,87) and the cards' words (Polish over English), which tools/check_hud.gd lays out too.
 
+const Lang := preload("res://scripts/lang.gd")
+
 ## The live rating's events (thresholds milder than the słoiki's 16 / 14 m/s²).
 const START := 5.0
 const DRIVE_STEP := 0.5
@@ -255,7 +257,9 @@ static func offer_text(o: Dictionary) -> Array:
 	var body := "%s ★ %s · %d m · %s" % [o["name"], num(o["their"]), roundi(o["away"]), km(o["road"])]
 	if not note.is_empty():
 		body += "\n" + String(note[0])
-	var body_en := String(note[1]) if not note.is_empty() else ""
+	var body_en := "%s ★ %s · %d m · %s" % [o["name"], num(o["their"], 1, false), roundi(o["away"]), km(o["road"], false)]
+	if not note.is_empty():
+		body_en += "\n" + String(note[1])
 	var title := ("PODWÓZKA · MNOŻNIK ×" + num(mult)) if surge_pl != "" else "PODWÓZKA · NOWY KURS"
 	return [title, body, ("New ride · surge " + surge_en) if surge_en != "" else "New ride", body_en]
 

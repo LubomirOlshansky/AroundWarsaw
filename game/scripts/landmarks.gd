@@ -315,6 +315,9 @@ const INFO := {
 	"ujazdowski": ["Zamek Ujazdowski",
 			"Z 1624 roku, zburzony w 1944, odbudowany. Dziś sztuka współczesna.",
 			"Built 1624, razed 1944, rebuilt. Now a centre for modern art."],
+	"sobieski": ["Radysław Blu",
+			"Hotel przy placu Zawiszy, w kolorowych pasach.",
+			"A hotel on Plac Zawiszy, in colourful bands."],
 	"mariensztat": ["Rynek Mariensztacki",
 			"Osiedle odbudowane w 1949 roku; bohater filmu „Przygoda na Mariensztacie” z 1954 roku.",
 			"The estate rebuilt in 1949, and the star of the 1954 film \"Przygoda na Mariensztacie\"."],
@@ -447,6 +450,28 @@ const INFO := {
 	"mdm": ["MDM",
 			"Marszałkowska Dzielnica Mieszkaniowa, socrealizm z lat 1950–1952.",
 			"The socialist-realist housing district of 1950–1952."],
+	"church_sw_marcin": ["Kościół św. Marcina", "Kościół przy Piwnej na Starym Mieście.", "A church on Piwna, in the Old Town."],
+	"church_kapucyni": ["Kościół Kapucynów", "Barokowy kościół Przemienienia Pańskiego na Miodowej.", "The baroque Church of the Transfiguration on Miodowa."],
+	"church_niepokalanego": ["Kościół Niepokalanego Poczęcia NMP", "Mała świątynia przy Krakowskim Przedmieściu.", "A small church by Krakowskie Przedmieście."],
+	"church_katedra_polowa": ["Katedra Polowa Wojska Polskiego", "Barokowy kościół dawnych pijarów, dziś katedra wojskowa.", "A baroque former Piarist church, now the army's cathedral."],
+	"church_duch": ["Kościół Świętego Ducha", "Barokowy kościół paulinów na Nowym Mieście.", "A baroque Pauline church in the New Town."],
+	"church_jacek": ["Kościół św. Jacka", "Kościół dominikanów na Nowym Mieście.", "The Dominicans' church in the New Town."],
+	"church_antoniego": ["Kościół św. Antoniego Padewskiego", "Kościół franciszkanów na Senatorskiej.", "The Franciscans' church on Senatorska."],
+	"church_alberta": ["Kościół św. Brata Alberta", "Kościół parafialny.", "A parish church."],
+	"church_reformowany": ["Kościół Ewangelicko-Reformowany", "Kościół ewangelicko-reformowany z cegły.", "A brick Reformed church."],
+	"church_jerozolimska": ["Kościół Matki Bożej Jerozolimskiej", "Kościół parafialny.", "A parish church."],
+	"church_zielonoswiatkowy": ["Kościół Zielonoświątkowy", "Zbór zielonoświątkowy.", "A Pentecostal church."],
+	"church_dzieciatka": ["Kościół Dzieciątka Jezus", "Kościół parafialny z wysoką wieżą.", "A parish church with a tall tower."],
+	"church_narodzenia": ["Kościół Narodzenia NMP", "Kościół parafialny.", "A parish church."],
+	"church_karol": ["Kościół św. Karola Boromeusza", "Kościół przy Cmentarzu Powązkowskim.", "The church by Powązki Cemetery."],
+	"church_augustyn": ["Kościół św. Augustyna", "Kościół parafialny z cegły.", "A brick parish church."],
+	"church_miloserdzie": ["Kościół Miłosierdzia Bożego", "Kościół parafialny.", "A parish church."],
+	"church_piotr_pawel": ["Kościół Świętych Piotra i Pawła", "Kościół parafialny z cegły.", "A brick parish church."],
+	"church_trojca_praga": ["Kościół Świętej Trójcy", "Kościół parafialny.", "A parish church."],
+	"church_czestochowska": ["Kościół Matki Bożej Częstochowskiej", "Kościół parafialny.", "A parish church."],
+	"church_zwycieska": ["Kościół Matki Boskiej Zwycięskiej", "Kościół parafialny z dwiema wieżami.", "A parish church with two towers."],
+	"church_cerkiew": ["Cerkiew Zaśnięcia Matki Bożej", "Cerkiew prawosławna.", "An Orthodox church."],
+	"church_nozykow": ["Synagoga Nożyków", "Synagoga przy Twardej.", "The synagogue on Twarda."],
 }
 
 var map  # map_builder.gd: terrain, roof grid, wall faces
@@ -741,6 +766,8 @@ func _find_sites() -> void:
 	_find_aleksander()
 	# Plac Zbawiciela (Marszałkowska street by street, 2026-11-01): the basilica, a model.
 	_find_zbawiciela()
+	# F's ask (2026-11-01): every church designed by the same rules (the church kit).
+	_find_churches()
 	# The University Library (2026-10-31): a model instead of a skin.
 	_find_buw()
 	# The Copernicus Science Centre and its planetarium (2026-11-01): a model instead of a skin.
@@ -1117,6 +1144,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_polonia(s)
 			"ujazdowski":
 				_build_ujazdowski(s)
+			"sobieski":
+				_build_sobieski(s)
 			"bristol":
 				_mark_zone(s)  # the mass stays LoD2's, in its skin; the corner tower is ours
 				_build_bristol(s)
@@ -1159,7 +1188,9 @@ func build(surface, near := Rect2(), only := "") -> void:
 			"krolewska":
 				pass  # a skin with no card: drawn by the builder, not on the picking grid
 			_:
-				if s.has("tower"):
+				if key.begins_with("church_"):
+					_build_church(s)
+				elif s.has("tower"):
 					_build_tower(s)
 				elif s.has("skin"):
 					_mark_zone(s)
@@ -11178,6 +11209,11 @@ func _find_hotels() -> void:
 		_add_site("polonia", [polonia])
 		if not sites.is_empty() and sites[-1]["key"] == "polonia":
 			sites[-1]["ring"] = _simplify(polonia, 0.7)
+	var sobieski := _landmark("Radisson Blu Sobieski")
+	if sobieski.size() >= 3:
+		_add_site("sobieski", [sobieski])
+		if not sites.is_empty() and sites[-1]["key"] == "sobieski":
+			sites[-1]["ring"] = _simplify(sobieski, 1.2)
 	for h: Dictionary in HOTELS:
 		_o = h["o"]
 		_b = h["out"]
@@ -11421,6 +11457,299 @@ func _build_polonia(site: Dictionary) -> void:
 	_collide(ring)
 
 
+## --- The church kit (F, 2026-11-01: "all the churches should be designed with best practices") ---
+## One builder for the parish churches that had no model of their own (spec
+## docs/landmarks/specs/churches.md, rules in docs/design/churches.md). Each church is found by
+## the OpenStreetMap outline under its `at` point and read as a long box (found offline, a
+## constant: the box's front-end middle `o`, the way out `out`, half length `L`, half width
+## `W`, `fill` = outline area / box area). The front is the end nearest a street. Built by the
+## rules every church here follows:
+##   * orientation: the entrance faces the street, the apse (the outline's far end) the other way;
+##   * the body is the mapped outline on a plinth, a windowed storey and a cornice, so every
+##     transept, aisle and apse the map has stays;
+##   * one steep gabled nave roof along the long axis, pitch by style (gothic steepest);
+##   * a facade with a portal, steps, a window or a rose above it and a pediment or a gable;
+##   * towers by count: one on the axis or two flanking, a shaft, a belfry with dark louvres
+##     and a cap by type (helm, dome, pyramid, spire, onion, ridge turret); every cap is
+##     crowned with a gilt cross;
+##   * buttresses (gothic) and lesenes (baroque, romanesque) along the long walls.
+## Heights, towers and caps are estimates (no photos in the cloud): the Mac photo check waits in
+## QUESTIONS. All in the city's one building surface: no new material or draw call.
+const CHURCH_STYLES := {
+	"baroque": {"eave": 1.1, "pitch": 0.62, "tower": 2.3, "lesene": true, "buttress": false},
+	"neoclassical": {"eave": 1.1, "pitch": 0.45, "tower": 2.0, "lesene": true, "buttress": false},
+	"romanesque": {"eave": 1.25, "pitch": 0.6, "tower": 2.6, "lesene": true, "buttress": false},
+	"neogothic": {"eave": 1.4, "pitch": 1.0, "tower": 3.0, "lesene": false, "buttress": true},
+	"modern": {"eave": 0.95, "pitch": 0.4, "tower": 2.4, "lesene": false, "buttress": false},
+	"orthodox": {"eave": 1.1, "pitch": 0.5, "tower": 0.0, "lesene": true, "buttress": false},
+}
+const CHURCH_TRIM := Color("#ece4d2")
+const CHURCH_BASE := Color("#a39b8a")
+const CHURCH_DARK := Color("#3a3d40")
+const CHURCH_GOLD := Color("#c9a24a")
+const CHURCH_COPPER := Color("#6f8c80")
+## A cap's profile: [radius / tower half-width, height / tower half-width], from the belfry up.
+const CHURCH_CAPS := {
+	"helm": [[1.0, 0.0], [1.2, 0.9], [0.5, 2.6], [0.32, 3.0]],
+	"dome": [[1.0, 0.0], [1.08, 0.4], [0.85, 1.2], [0.42, 1.9], [0.3, 2.2]],
+	"onion": [[1.0, 0.0], [1.4, 0.9], [1.1, 1.9], [0.4, 3.1], [0.12, 3.9]],
+}
+const CHURCHES := [
+	{"key": "church_sw_marcin", "at": Vector2(-801.1, -1577.0), "o": Vector2(-822.8, -1556.1), "out": Vector2(-0.7270, 0.6866), "L": 27.8, "W": 11.6,
+			"fill": 0.86, "style": "baroque", "wall": "#e6d8b8", "roof": "#8a5a44", "towers": 0, "cap": "turret"},
+	{"key": "church_kapucyni", "at": Vector2(-978.6, -1420.2), "o": Vector2(-967.4, -1438.7), "out": Vector2(0.6149, -0.7886), "L": 16.5, "W": 13.4,
+			"fill": 0.88, "style": "baroque", "wall": "#e2d3b0", "roof": "#7a5a48", "towers": 0, "cap": "none"},
+	{"key": "church_niepokalanego", "at": Vector2(-642.8, -1242.9), "o": Vector2(-654.5, -1239.1), "out": Vector2(-0.9519, 0.3064), "L": 9.2, "W": 4.4,
+			"fill": 0.97, "style": "baroque", "wall": "#e7dcc4", "roof": "#6f8a7c", "towers": 1, "cap": "helm"},
+	{"key": "church_katedra_polowa", "at": Vector2(-1165.4, -1648.4), "o": Vector2(-1175.4, -1655.8), "out": Vector2(-0.7809, -0.6247), "L": 20.2, "W": 13.8,
+			"fill": 0.83, "style": "baroque", "wall": "#e4d7b6", "roof": "#6f8a7c", "towers": 2, "cap": "dome"},
+	{"key": "church_duch", "at": Vector2(-1013.7, -1834.9), "o": Vector2(-1005.6, -1848.8), "out": Vector2(0.5283, -0.8491), "L": 22.0, "W": 12.0,
+			"fill": 0.89, "style": "baroque", "wall": "#e9e0c8", "roof": "#7b5a4a", "towers": 1, "cap": "helm"},
+	{"key": "church_jacek", "at": Vector2(-988.8, -1933.8), "o": Vector2(-974.1, -1949.7), "out": Vector2(0.6805, -0.7328), "L": 35.0, "W": 16.0,
+			"fill": 0.83, "style": "baroque", "wall": "#e3d3ae", "roof": "#8a5a44", "towers": 2, "cap": "helm"},
+	{"key": "church_antoniego", "at": Vector2(-1193.0, -976.1), "o": Vector2(-1234.0, -998.3), "out": Vector2(-0.7251, -0.6886), "L": 36.0, "W": 28.6,
+			"fill": 0.43, "style": "baroque", "wall": "#e5d9bd", "roof": "#7a5a48", "towers": 1, "cap": "helm"},
+	{"key": "church_alberta", "at": Vector2(-1074.4, -1127.9), "o": Vector2(-1058.3, -1139.9), "out": Vector2(0.8077, -0.5896), "L": 21.5, "W": 9.2,
+			"fill": 0.95, "style": "modern", "wall": "#e8e1d2", "roof": "#6b4f45", "towers": 1, "cap": "pyramid"},
+	{"key": "church_reformowany", "at": Vector2(-1755.4, -1115.8), "o": Vector2(-1763.5, -1131.3), "out": Vector2(-0.4551, -0.8904), "L": 25.6, "W": 10.9,
+			"fill": 0.84, "style": "romanesque", "wall": "#a9553f", "roof": "#725f58", "towers": 1, "cap": "pyramid"},
+	{"key": "church_jerozolimska", "at": Vector2(983.6, 1333.5), "o": Vector2(985.0, 1300.7), "out": Vector2(0.0905, -0.9959), "L": 23.3, "W": 14.4,
+			"fill": 0.77, "style": "neogothic", "wall": "#a44b38", "roof": "#6e5d58", "towers": 1, "cap": "spire"},
+	{"key": "church_zielonoswiatkowy", "at": Vector2(-1893.9, 324.7), "o": Vector2(-1902.4, 350.9), "out": Vector2(-0.3881, 0.9216), "L": 24.3, "W": 16.6,
+			"fill": 0.71, "style": "modern", "wall": "#e6e0d2", "roof": "#6a5a52", "towers": 0, "cap": "none"},
+	{"key": "church_dzieciatka", "at": Vector2(-1826.5, 978.4), "o": Vector2(-1806.5, 971.8), "out": Vector2(0.9353, -0.3539), "L": 18.7, "W": 9.3,
+			"fill": 0.74, "style": "modern", "wall": "#ddd6c8", "roof": "#6a6560", "towers": 1, "cap": "pyramid"},
+	{"key": "church_narodzenia", "at": Vector2(-1966.9, -973.5), "o": Vector2(-1975.7, -990.6), "out": Vector2(-0.4758, -0.8795), "L": 16.5, "W": 13.1,
+			"fill": 0.95, "style": "baroque", "wall": "#e3d6b8", "roof": "#7a5a48", "towers": 1, "cap": "helm"},
+	{"key": "church_karol", "at": Vector2(-2145.5, -464.5), "o": Vector2(-2127.0, -475.4), "out": Vector2(0.8643, -0.5029), "L": 21.2, "W": 10.7,
+			"fill": 0.74, "style": "baroque", "wall": "#e5d8b8", "roof": "#7a5a48", "towers": 1, "cap": "helm"},
+	{"key": "church_augustyn", "at": Vector2(-2419.7, -1182.2), "o": Vector2(-2430.0, -1202.4), "out": Vector2(-0.4548, -0.8906), "L": 33.9, "W": 18.6,
+			"fill": 0.77, "style": "romanesque", "wall": "#b0603f", "roof": "#725f58", "towers": 1, "cap": "pyramid"},
+	{"key": "church_miloserdzie", "at": Vector2(-2748.1, -688.9), "o": Vector2(-2754.0, -711.9), "out": Vector2(-0.2703, -0.9628), "L": 19.7, "W": 9.1,
+			"fill": 0.76, "style": "modern", "wall": "#e8e2d4", "roof": "#6a5a52", "towers": 1, "cap": "pyramid"},
+	{"key": "church_piotr_pawel", "at": Vector2(-1118.0, 825.3), "o": Vector2(-1097.4, 819.0), "out": Vector2(0.9412, -0.3379), "L": 29.8, "W": 16.6,
+			"fill": 0.73, "style": "neogothic", "wall": "#a44b38", "roof": "#6e5d58", "towers": 1, "cap": "spire"},
+	{"key": "church_trojca_praga", "at": Vector2(1062.7, 268.0), "o": Vector2(1077.3, 252.8), "out": Vector2(0.6905, -0.7234), "L": 15.5, "W": 8.4,
+			"fill": 0.63, "style": "neoclassical", "wall": "#e7dfcb", "roof": "#6f7a76", "towers": 0, "cap": "none"},
+	{"key": "church_czestochowska", "at": Vector2(1126.9, 859.8), "o": Vector2(1148.1, 878.9), "out": Vector2(0.7634, 0.6459), "L": 22.3, "W": 13.1,
+			"fill": 0.63, "style": "modern", "wall": "#e6dfcf", "roof": "#6a5a52", "towers": 1, "cap": "pyramid"},
+	{"key": "church_zwycieska", "at": Vector2(1966.0, -1382.0), "o": Vector2(1963.6, -1358.3), "out": Vector2(-0.0905, 0.9959), "L": 28.2, "W": 18.7,
+			"fill": 0.75, "style": "neogothic", "wall": "#a8503c", "roof": "#6e5d58", "towers": 2, "cap": "spire"},
+	{"key": "church_cerkiew", "at": Vector2(-1021.4, -1523.2), "o": Vector2(-1027.9, -1513.5), "out": Vector2(-0.5623, 0.8269), "L": 12.2, "W": 7.9,
+			"fill": 0.96, "style": "orthodox", "wall": "#ece4d2", "roof": "#4a6a5a", "towers": 0, "cap": "onion"},
+	{"key": "church_nozykow", "at": Vector2(-1569.1, -228.0), "o": Vector2(-1546.1, -229.5), "out": Vector2(0.9975, -0.0712), "L": 16.4, "W": 11.6,
+			"fill": 0.78, "style": "romanesque", "wall": "#d9c9a3", "roof": "#6f7a76", "towers": 0, "cap": "none"},
+]
+
+
+func _find_churches() -> void:
+	for ch: Dictionary in CHURCHES:
+		var outline := _outline_at(ch["at"])
+		if outline.size() < 3:
+			continue
+		var zone: Array = [_largest(Geometry2D.offset_polygon(outline, 3.0, Geometry2D.JOIN_MITER))]
+		_add_site(ch["key"], zone)
+		if not sites.is_empty() and sites[-1]["key"] == ch["key"]:
+			sites[-1]["outline"] = outline
+
+
+func _near_any(spots: Array[Vector2], p: Vector2, r: float) -> bool:
+	for q in spots:
+		if q.distance_to(p) < r:
+			return true
+	return false
+
+
+func _church_spec(key: String) -> Dictionary:
+	for ch: Dictionary in CHURCHES:
+		if ch["key"] == key:
+			return ch
+	return {}
+
+
+func _build_church(site: Dictionary) -> void:
+	var ch := _church_spec(site["key"])
+	if ch.is_empty():
+		return
+	var style: Dictionary = CHURCH_STYLES[ch["style"]]
+	_o = ch["o"]
+	_b = ch["out"]
+	_a = Vector2(-_b.y, _b.x)
+	var outline: PackedVector2Array = _simplify(site["outline"], 0.6)
+	_g = _ground_under(outline)
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	var w_half: float = ch["W"]
+	var l_half: float = ch["L"]
+	var wall := Color(ch["wall"])
+	var roof := Color(ch["roof"])
+	var trim := CHURCH_TRIM if wall.get_luminance() > 0.55 else wall.lightened(0.28)
+	var brick := wall.get_luminance() < 0.5
+	var eave := clampf(w_half * float(style["eave"]), 7.5, 15.0)
+	var rise := w_half * float(style["pitch"])
+	_mode = M_STONE
+	# The body: plinth, a windowed storey, a cornice with the flat deck behind the gable.
+	var plinth := _largest(Geometry2D.offset_polygon(outline, 0.3, Geometry2D.JOIN_MITER))
+	_prism(plinth, g - 0.6, g + 1.2, CHURCH_BASE, CHURCH_BASE.lightened(0.05), M_STONE, M_STONE)
+	_prism(outline, g + 1.2, g + eave, wall, none, M_MONUMENT)
+	var cornice := _largest(Geometry2D.offset_polygon(outline, 0.45, Geometry2D.JOIN_MITER))
+	_prism(cornice, g + eave, g + eave + 0.7, trim, roof.lerp(Color("#76726e"), 0.45), M_STONE, M_STONE)
+	# The nave's roof: a gable along the long axis over the box (a narrower one where the plan
+	# is a cross, so the transepts' flat decks stay below it).
+	var nave_w: float = w_half if float(ch["fill"]) >= 0.8 else w_half * 0.62
+	var y_roof := g + eave + 0.7
+	_church_roof(nave_w, l_half, y_roof, rise, wall, roof)
+	# Lesenes (baroque, romanesque) or buttresses (gothic) along the long walls.
+	if bool(style["lesene"]) or bool(style["buttress"]):
+		var placed: Array[Vector2] = []
+		var n := outline.size()
+		for i in n:
+			var p := outline[i]
+			var q := outline[(i + 1) % n]
+			var e := q - p
+			var elen := e.length()
+			if elen < 6.0 or absf(e.normalized().dot(_b)) < 0.94:
+				continue
+			var out := _out(outline, p, q)
+			var cnt := int(elen / 4.8)
+			for k in range(1, cnt + 1):
+				var m := p + e * (float(k) / (cnt + 1))
+				var lm := _local(m + out * 0.22)
+				if lm.y > -1.5 or _near_any(placed, lm, 1.2):
+					continue  # the front has its own pilasters; never two on one spot
+				placed.append(lm)
+				if bool(style["buttress"]):
+					_lbox(lm.x, lm.y, 0.3, 0.3, g + 0.9, g + eave - 1.5, trim, M_STONE, trim)
+					_lbox(lm.x + out.dot(_a) * 0.1, lm.y, 0.22, 0.22, g + eave - 1.5, g + eave - 0.2, trim, M_STONE, trim)
+				else:
+					_lbox(lm.x, lm.y, 0.2, 0.2, g + 0.9, g + eave, trim, M_STONE, trim)
+	# The front: a portal with steps, a window above it, pilasters at the corners.
+	_church_front(ch, style, g, eave, w_half, trim, wall, roof, brick)
+	# The towers.
+	var ts := clampf(w_half * 0.3, 2.0, 3.6)
+	var tw: int = ch["towers"]
+	var ht := clampf(eave * float(style["tower"]), eave + 4.0, 34.0)
+	var tv := 0.2 - ts
+	var spots: Array[float] = []
+	if tw == 1:
+		spots.append(0.0)
+	elif tw >= 2:
+		spots.append(-(w_half - ts - 0.15))
+		spots.append(w_half - ts - 0.15)
+	for tu: float in spots:
+		_church_tower(tu, tv, ts, g, ht, ch, wall, trim, roof)
+		_collide(_rect(tu, tv, ts, ts))
+	if ch["cap"] == "turret":
+		_church_tower(0.0, -2.0 * l_half * 0.28, 1.1, g, eave + rise + 2.0, ch, wall, trim, roof, true)
+	if ch["cap"] == "onion":
+		_church_onion(g, eave + rise + 0.7, l_half, ch)
+	if tw == 0 and ch["cap"] != "onion":
+		_lbox(0.0, -0.6, 0.14, 0.14, g + eave + rise, g + eave + rise + 3.4, CHURCH_GOLD, M_STONE, CHURCH_GOLD)
+		_lbox(0.0, -0.6, 0.7, 0.14, g + eave + rise + 2.2, g + eave + rise + 2.5, CHURCH_GOLD, M_STONE, CHURCH_GOLD)
+	_collide(outline)
+
+
+## The nave's gable roof along the long axis: front and back gable triangles in the wall's
+## colour, two slopes. In the swapped frame `_gable` expects (see _build_zbawiciela).
+func _church_roof(hw: float, l_half: float, y: float, rise: float, wall: Color, roof: Color) -> void:
+	var ka := _a
+	var kb := _b
+	_a = kb
+	_b = ka
+	_gable(0.05, -2.0 * l_half + 0.05, 0.0, hw, y, rise, wall, roof, true)
+	_a = ka
+	_b = kb
+
+
+func _church_front(ch: Dictionary, style: Dictionary, g: float, eave: float, hw: float, trim: Color, wall: Color,
+		roof: Color, brick: bool) -> void:
+	_mode = M_STONE
+	var pw := clampf(hw * 0.2, 1.1, 2.0)
+	# Corner pilasters and a string course under the gable.
+	for sd: float in [-1.0, 1.0]:
+		_lbox(sd * (hw - 0.62), 0.12, 0.4, 0.14, g + 1.05, g + eave, trim, M_STONE, trim)
+	_lbox(0.0, 0.1, hw + 0.2, 0.18, g + eave - 0.6, g + eave + 0.2, trim, M_STONE, trim)
+	# The portal: a dark door, a hood on two jambs, steps.
+	_mode = M_GLASS
+	_wall(_w(-pw, 0.08), _w(pw, 0.08), g + 1.2, g + 1.2 + pw * 2.6, _b, CHURCH_DARK)
+	_mode = M_STONE
+	for sd: float in [-1.0, 1.0]:
+		_lbox(sd * (pw + 0.18), 0.2, 0.18, 0.2, g + 1.0, g + 1.2 + pw * 2.6, trim, M_STONE, trim)
+	_lbox(0.0, 0.25, pw + 0.5, 0.3, g + 1.2 + pw * 2.6, g + 1.5 + pw * 2.6, trim, M_STONE, trim)
+	for k in 3:
+		_lbox(0.0, 0.9 + 0.5 * k, pw + 0.6 - 0.25 * k, 0.5 + 0.5 * (2 - k), g - 0.6, g + 0.1 + 0.4 * (2 - k), CHURCH_BASE, M_STONE,
+				CHURCH_BASE.lightened(0.04))
+	# A window (a rose in the gable for gothic and romanesque) over the portal.
+	var wy := g + eave * 0.62
+	if ch["style"] == "neogothic" or ch["style"] == "romanesque":
+		var rose := _w(0.0, 0.1)
+		_disc(Vector3(rose.x, g + eave + 1.6, rose.y), Vector3(_b.x, 0.0, _b.y), minf(hw * 0.28, 2.0), 12, CHURCH_DARK)
+	_mode = M_GLASS
+	_wall(_w(-0.6, 0.09), _w(0.6, 0.09), wy, wy + 3.0, _b, CHURCH_DARK)
+	_mode = M_STONE
+
+
+func _church_tower(tu: float, tv: float, ts: float, g: float, ht: float, ch: Dictionary, wall: Color, trim: Color,
+		roof: Color, small := false) -> void:
+	var none := Color(0, 0, 0, 0)
+	var c := _w(tu, tv)
+	_mode = M_STONE
+	if not small:
+		_lbox(tu, tv, ts + 0.2, ts + 0.2, g - 0.6, g + 1.2, CHURCH_BASE, M_STONE, CHURCH_BASE.lightened(0.05))
+	var y0 := g + (1.2 if not small else ht - 2.0)
+	_prism(_rect(tu, tv, ts, ts), y0, g + ht, wall, none, M_MONUMENT)
+	_lbox(tu, tv, ts + 0.3, ts + 0.3, g + ht, g + ht + 0.7, trim, M_STONE, trim)
+	# The belfry: a stage of dark louvres between corner piers, then its own cornice.
+	var bh := maxf(ts * 1.5, 3.0)
+	var by := g + ht + 0.7
+	_lbox(tu, tv, ts - 0.2, ts - 0.2, by, by + bh, wall, M_STONE, wall)
+	_mode = M_GLASS
+	for sd: float in [-1.0, 1.0]:
+		_wall(_w(tu - ts * 0.55, tv + sd * (ts - 0.18)), _w(tu + ts * 0.55, tv + sd * (ts - 0.18)), by + 0.6, by + bh - 0.5, _b * sd, CHURCH_DARK)
+		_wall(_w(tu + sd * (ts - 0.18), tv - ts * 0.55), _w(tu + sd * (ts - 0.18), tv + ts * 0.55), by + 0.6, by + bh - 0.5, _a * sd, CHURCH_DARK)
+	_mode = M_STONE
+	_lbox(tu, tv, ts + 0.1, ts + 0.1, by + bh, by + bh + 0.5, trim, M_STONE, trim)
+	var cy := by + bh + 0.5
+	var cap: String = ch["cap"]
+	if small:
+		cap = "helm"
+	var top := cy
+	if CHURCH_CAPS.has(cap):
+		var prof: Array = CHURCH_CAPS[cap]
+		for k in prof.size() - 1:
+			var da: Array = prof[k]
+			var db: Array = prof[k + 1]
+			var col := CHURCH_COPPER if cap != "onion" else CHURCH_GOLD
+			col = col.lerp(col.lightened(0.12), float(k) / prof.size())
+			_frustum(_circle(c, ts * float(da[0]), 8), cy + ts * float(da[1]), _circle(c, ts * float(db[0]), 8), cy + ts * float(db[1]), col)
+		top = cy + ts * float((prof[prof.size() - 1] as Array)[1])
+	elif cap == "spire":
+		_frustum(_circle(c, ts * 0.95, 8), cy, _circle(c, 0.12, 8), cy + ts * 6.5, CHURCH_COPPER)
+		top = cy + ts * 6.5
+	else:  # pyramid (and the default): four steep faces
+		_frustum(_rect(tu, tv, ts + 0.15, ts + 0.15), cy, _rect(tu, tv, 0.1, 0.1), cy + ts * 3.0, roof.darkened(0.1))
+		top = cy + ts * 3.0
+	_lbox(tu, tv, 0.12, 0.12, top, top + 3.0, CHURCH_GOLD, M_STONE, CHURCH_GOLD)
+	_lbox(tu, tv, 0.55, 0.12, top + 1.7, top + 2.0, CHURCH_GOLD, M_STONE, CHURCH_GOLD)
+
+
+## A Orthodox church's onion dome: a drum on the ridge's middle, a gold onion and a cross.
+func _church_onion(g: float, y: float, l_half: float, ch: Dictionary) -> void:
+	var c := _w(0.0, -l_half)
+	var r := clampf(float(ch["W"]) * 0.32, 1.6, 3.0)
+	var none := Color(0, 0, 0, 0)
+	_mode = M_STONE
+	_prism(_circle(c, r, 8), g + y - 0.7, g + y + r * 1.2, Color(ch["wall"]), none, M_MONUMENT)
+	var prof: Array = CHURCH_CAPS["onion"]
+	var base := g + y + r * 1.2
+	for k in prof.size() - 1:
+		var da: Array = prof[k]
+		var db: Array = prof[k + 1]
+		_frustum(_circle(c, r * float(da[0]), 8), base + r * float(da[1]), _circle(c, r * float(db[0]), 8), base + r * float(db[1]), CHURCH_GOLD.lerp(CHURCH_GOLD.lightened(0.15), float(k) / prof.size()))
+	var top := base + r * float((prof[prof.size() - 1] as Array)[1])
+	_lbox(0.0, -l_half, 0.1, 0.1, top, top + 2.6, CHURCH_GOLD, M_STONE, CHURCH_GOLD)
+	_lbox(0.0, -l_half, 0.5, 0.1, top + 1.5, top + 1.75, CHURCH_GOLD, M_STONE, CHURCH_GOLD)
+
 # --- Zamek Ujazdowski ---------------------------------------------------------------------------
 
 ## Ujazdowski Castle (F, 2026-11-01: "improve Ujazdów and the castle on it"). Baroque, built for
@@ -11561,3 +11890,81 @@ func _dormers(g: float) -> void:
 			_hip(u, -2.2, 0.7, 0.75, y + 2.1, 0.8, UJ_COPPER.lightened(0.05))
 			_mode = M_GLASS
 			_wall(_w(u - 0.32, -1.59), _w(u + 0.32, -1.59), y + 0.4, y + 1.7, out, Color("#353a40"))
+const SOBIESKI_H := 31.0
+## The postmodern bands of the hotel on Plac Zawiszy: salmon, butter yellow, mint, teal, one magenta stripe.
+const SOBIESKI_BANDS := [Color("#e59a86"), Color("#f0d27a"), Color("#8fd0b4"), Color("#2f8f9a")]
+const SOBIESKI_MAGENTA := Color("#c2287a")
+
+
+## Radisson Blu Sobieski (Plac Zawiszy 1) as "Radysław Blu": the OSM outline is a plain extrusion,
+## the real hotel is a block in colourful postmodern bands. Built whole from the outline's `ring`:
+## three set-back tiers in salmon, yellow and mint under a teal crown, a magenta stripe, coloured
+## fins on every public front, and a canopy with the name on the longest one. Spec sobieski.md.
+func _build_sobieski(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	var g := _ground_under(ring)
+	_g = g
+	var none := Color(0, 0, 0, 0)
+	var n := ring.size()
+	var salmon: Color = SOBIESKI_BANDS[0]
+	var yellow: Color = SOBIESKI_BANDS[1]
+	var mint: Color = SOBIESKI_BANDS[2]
+	var teal: Color = SOBIESKI_BANDS[3]
+	var glass := Color("#3a4650")
+	_mode = M_STONE
+	_prism(_inset_ring(ring, -0.3), g - 0.6, g + 4.6, teal.darkened(0.25), none, M_STONE)  # the plinth
+	_bays(ring, 0.9, 4.0, 4.0, 2.2, glass, PackedVector2Array())
+	_prism(ring, g + 4.6, g + 13.0, salmon, none, M_MONUMENT)
+	_prism(_inset_ring(ring, -0.35), g + 13.0, g + 13.7, _magenta_dark(), none, M_STONE)  # the stripe
+	var t2 := _inset_ring(ring, 1.4)
+	_prism(t2, g + 13.7, g + 22.0, yellow, none, M_MONUMENT)
+	_prism(_inset_ring(t2, -0.3), g + 22.0, g + 22.6, SOBIESKI_MAGENTA, none, M_STONE)
+	var t3 := _inset_ring(ring, 2.8)
+	_prism(t3, g + 22.6, g + SOBIESKI_H - 2.2, mint, none, M_MONUMENT)
+	_prism(_inset_ring(t3, -0.25), g + SOBIESKI_H - 2.2, g + SOBIESKI_H, teal, teal.lightened(0.1), M_STONE, M_STONE)  # the crown
+	var avoid_front := -1
+	var front_len := 0.0
+	for i in n:
+		var a := ring[i]
+		var b := ring[(i + 1) % n]
+		var el := a.distance_to(b)
+		if el > front_len:
+			front_len = el
+			avoid_front = i
+		if el < 10.0:
+			continue
+		_o = a
+		_b = _out(ring, a, b)
+		_a = (b - a) / el
+		var cnt := floori((el - 3.0) / 6.0)
+		var u0 := (el - (cnt - 1) * 6.0) * 0.5
+		for j in cnt:  # coloured fins up the salmon and yellow tiers
+			var u := u0 + j * 6.0
+			var col: Color = SOBIESKI_BANDS[(j + i) % 4]
+			_lbox(u, 0.2, 0.28, 0.3, g + 4.6, g + 13.0, col.darkened(0.08), M_STONE, col)
+			_lbox(u, -1.2, 0.28, 0.3, g + 13.7, g + 22.0, col.lightened(0.05), M_STONE, col)
+	if avoid_front < 0 or front_len < 16.0:
+		_collide(ring)
+		return
+	var a2 := ring[avoid_front]
+	var b2 := ring[(avoid_front + 1) % n]
+	var out := _out(ring, a2, b2)
+	_o = (a2 + b2) * 0.5
+	_b = out
+	_a = (b2 - a2) / front_len
+	_mode = M_PAVILION
+	_wall(_w(-3.2, 0.62), _w(3.2, 0.62), g + 0.05, g + 4.0, out, Color("#f3d9a8"))
+	_mode = M_STONE
+	_lbox(0.0, 2.2, 4.2, 1.6, g + 4.2, g + 4.5, SOBIESKI_MAGENTA, M_STONE, SOBIESKI_MAGENTA.lightened(0.12))
+	for sd: float in [-1.0, 1.0]:
+		_column(sd * 3.8, 3.4, 0.14, g - 0.2, g + 4.2, Color("#f2ebd8"))
+	_lbox(0.0, 0.55, 5.0, 0.12, g + 4.8, g + 6.4, Color("#1f2a33"), M_STONE, Color("#2a3844"))
+	var word := "RADYSŁAW BLU"
+	var face := _w(0.0, 0.7)
+	signs.append([word, Vector3(face.x, g + 5.05, face.y), Vector3(out.x, 0.0, out.y),
+			minf(0.2, 8.6 / Neon.length_of(word)), Color(0.3, 0.85, 1.0)])
+	_collide(ring)
+
+
+func _magenta_dark() -> Color:
+	return SOBIESKI_MAGENTA.darkened(0.15)

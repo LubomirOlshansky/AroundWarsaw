@@ -126,8 +126,8 @@ func _flow() -> void:
 	c.tick(roof + Vector3(2.0, 9.0, 1.0), true)
 	_expect(c.is_taken(First10.CASSETTE_ID), "the helicopter low over it takes it")
 	_expect(int(w.respect) == r0 + c.respect, "+%d respect (%d -> %d)" % [c.respect, r0, w.respect])
-	_expect(hud.notes.size() == 1 and str(hud.notes[0][0]).contains("KASETA") and str(hud.notes[0][1]).contains(str(c.entries[i]["line"][1])),
-			"the card with both lines: %s" % [hud.notes])
+	_expect(hud.notes.size() == 1 and str(hud.notes[0][0]).contains("KASETA") and str(hud.notes[0][1]).contains(str(c.entries[i]["line"][0])) and not str(hud.notes[0][1]).contains(str(c.entries[i]["line"][1])),
+			"the card with the Polish line only: %s" % [hud.notes])
 	_expect(radio.opened == [3], "the next locked PÓŁNOC FM track opened: %s" % [radio.opened])
 	_expect(not c.take(First10.CASSETTE_ID), "a repeat does nothing")
 	c.tick(roof + Vector3(2.0, 9.0, 1.0), true)

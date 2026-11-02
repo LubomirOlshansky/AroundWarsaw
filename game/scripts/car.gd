@@ -97,6 +97,27 @@ var handling := Handling.CRUISE
 const SENS_MIN := 0.6
 const SENS_MAX := 1.4
 var steer_gain := 1.0
+## G13 (the upgrade shop, garage.gd / upgrades.gd): the model on the road ("hatch", or "tt", the
+## "Ołdi TT" parody), the tuning multipliers (engine: top speed and pull, tyres: grip) and nitro.
+## All 1.0 / off by default, so a car nobody has tuned drives exactly as before.
+var model := "hatch"
+var top_mult := 1.0
+var accel_mult := 1.0
+var grip_mult := 1.0
+## NITRO ("Kebab Boost"): bought at the garage. Held, it opens the gas fully and lifts the top speed by
+## NITRO_TOP and the pull by NITRO_ACCEL for NITRO_SECONDS of a full tank; the tank refills in
+## NITRO_REFILL s once released, and one that ran dry waits for the button to be let go.
+const NITRO_TOP := 1.3
+const NITRO_ACCEL := 2.2
+const NITRO_SECONDS := 3.5
+const NITRO_REFILL := 20.0
+const NITRO_MIN := 0.25
+var nitro_owned := false
+## The button (hud.gd's, or the N key) is held.
+var nitro_hold := false
+var nitro_on := false
+var nitro_charge := 1.0
+var _nitro_dry := false
 ## Point-to-steer: heading error (rad) to yaw rate (rad/s), and the yaw damping.
 @export var point_gain := 6.0
 @export var yaw_damping := 0.4
@@ -401,7 +422,10 @@ func _step(dt: float) -> void:
 	var speed := vel.dot(fwd)
 	var gas := clampf(throttle, 0.0, 1.0)
 	# The speed the gas asks for (a share of top speed); a big point-to-steer turn caps it.
-	var top := minf(max_speed, zone_cap) * gas
+	_nitro_tick(dt)
+	if nitro_on:
+		gas = 1.0
+	var top := minf(top_speed(), zone_cap) * gas
 	var brake_now := braking
 	var turn := max_turn(absf(speed), gas)
 	# Moving backwards the car turns the other way for the same steering.
@@ -470,12 +494,12 @@ func _step(dt: float) -> void:
 	elif gas > 0.0:
 		# The gas sets a speed to drive at; a light push accelerates gently.
 		if speed < top:
-			speed = minf(top, speed + accel * (onset + (1.0 - onset) * gas) * dt * (1.0 - 0.6 * clampf(speed / max_speed, 0.0, 1.0)))
+			speed = minf(top, speed + accel * accel_mult * (NITRO_ACCEL if nitro_on else 1.0) * (onset + (1.0 - onset) * gas) * dt * (1.0 - 0.6 * clampf(speed / top_speed(), 0.0, 1.0)))
 		else:
 			speed = move_toward(speed, top, 4.0 * dt)
 	else:
 		speed = move_toward(speed, 0.0, 5.0 * dt)
-	speed = minf(speed, max_speed)
+	speed = minf(speed, max_speed * top_mult * NITRO_TOP)
 	var cap := _assist_cap(speed, fwd, dt)
 	if speed > cap:
 		speed = move_toward(speed, cap, brake_decel * dt)
@@ -747,6 +771,53 @@ func set_handling(h: int) -> void:
 	var p: Dictionary = PROFILES[handling]
 	for k: String in p:
 		set(k, p[k])
+	grip *= grip_mult
+	drift_grip *= grip_mult
+
+
+## G13: the car's top speed now (m/s): the model's and the engine's, with nitro on top.
+func top_speed() -> float:
+	return max_speed * top_mult * (NITRO_TOP if nitro_on else 1.0)
+
+
+## G13: the shop's tuning (upgrades.gd `stats`): multipliers on top speed, pull and grip. Grip goes
+## on the handling profile's numbers (Cruise or Sport still decides how the car steers).
+func set_tuning(top: float, pull: float, grip_x: float) -> void:
+	top_mult = top
+	accel_mult = pull
+	grip_mult = grip_x
+	set_handling(handling)
+
+
+## G13: the model on the road: the three body meshes are made again once (a swap, no new node).
+func set_model(id: String) -> void:
+	model = "tt" if id == "tt" else "hatch"
+	if _body != null and _body.get_child_count() >= 3:
+		var m := Models.player_meshes(Models.fin(paint, Models.HERO, paint_glow),
+				Models.fin(stripe, Models.HERO, stripe_glow), _kind())
+		(_body.get_child(0) as MeshInstance3D).mesh = m[0]
+		(_body.get_child(1) as MeshInstance3D).mesh = m[1]
+		(_body.get_child(2) as MeshInstance3D).mesh = m[2]
+
+
+func _kind() -> String:
+	return "player_tt" if model == "tt" else "player"
+
+
+## NITRO's tank: drains while it burns, refills when it does not (see NITRO_*).
+func _nitro_tick(dt: float) -> void:
+	if not nitro_hold:
+		_nitro_dry = false
+	var want := nitro_owned and nitro_hold and not _nitro_dry and not parked and not in_water \
+			and nitro_charge > 0.0 and (nitro_on or nitro_charge >= NITRO_MIN)
+	if want:
+		nitro_on = true
+		nitro_charge = maxf(0.0, nitro_charge - dt / NITRO_SECONDS)
+		if nitro_charge <= 0.0:
+			_nitro_dry = true
+	else:
+		nitro_on = false
+		nitro_charge = minf(1.0, nitro_charge + dt / NITRO_REFILL)
 
 
 ## The most the car turns (rad/s) at `v` m/s: turn_cap when slow, turn_pull / v + turn_floor
@@ -859,7 +930,7 @@ func _make_body() -> Node3D:
 	# The garage loop: the paint and the stripes are the car's (`set_paint`).
 	var root := Node3D.new()
 	var meshes := Models.player_meshes(Models.fin(paint, Models.HERO, paint_glow),
-			Models.fin(stripe, Models.HERO, stripe_glow))
+			Models.fin(stripe, Models.HERO, stripe_glow), _kind())
 	_part(root, meshes[0], Models.material(), true)
 	_body_mesh = root.get_child(0) as MeshInstance3D
 	var lamp := StandardMaterial3D.new()
@@ -890,7 +961,7 @@ func set_paint(body: Color, stripes: Color, body_glow := HERO_PAINT, stripes_glo
 	stripe_glow = stripes_glow
 	if _body_mesh != null:
 		_body_mesh.mesh = Models.player_meshes(Models.fin(paint, Models.HERO, paint_glow),
-				Models.fin(stripe, Models.HERO, stripe_glow))[0]
+				Models.fin(stripe, Models.HERO, stripe_glow), _kind())[0]
 
 
 ## Light thrown on the road ahead while flashing: two pale fans, drawn after the

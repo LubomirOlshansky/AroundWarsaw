@@ -15,6 +15,8 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | all | The audit beyond the landmarks: BACKLOG "Audit: what is verified beyond the landmarks", its P0 items handed out next | cloud thread "Audit what's left beyond landmarks" | 2026-11-01 |
 
 ## Waiting
+- **2026-11-02 · content · Language choice** — Phone look check for the new Polish / English choice (title buttons top right, Settings → DŹWIĘK → Język): is the text the right size now that each screen has one line, not two (cards, toasts, the ticker, the pull-over card), do the title buttons clear the notch, and does anything still show both languages? Not covered by `check_language` (drawn text): the notebook page, the pedals' words, the full map's labels. Default built: the phone's language until the player picks one (Polish phone: Polish, any other: English); a text with no English (street, parody and place names) stays as it is in both.
+- **2026-11-02 · map · Cycle paths** — Phone look and ride check (the cloud has no GUGiK data, only the baked outlines): after `tools/cycleways.py` closed 195 gaps (ends within 3 m), put 52 ends on a neighbouring path, joined 218 split ways and rounded 68 corners, do the red paths draw smoothly and do riders carry on at the joins instead of turning back? Gaps of 3-8 m (about 600 ends, often the two sides of a street) were left on purpose; default kept. Compare the paths with OSM once on the Mac (`python3 -I tools/cycleways.py --dry` after a re-bake prints the same counts).
 - **2026-11-02 · content · Classic cinemas** — Mac look check for the seven cinema marquees (`Storefronts.CINEMAS`): is each sign on the right street and wall (positions are approximate, snapped to the nearest road and a wall within reach), readable by night? Also: where is Kino Wisła, and should Iluzjon (Narbutta, south of the map) get a pin on the full map? Default built: signs only, real names, no queue, no notebook card.
 - **2026-11-02 · landmarks · Plac Bankowy** — Mac look check (the cloud has no photos, LoD2 or terrain): is the Blue Skyscraper's blue right (default #5f94c6 mirror, silver spandrels, cool podium; real photos show sky-blue to steel-blue), is the Treasury palace's yellow right (#e6d8a0 with grey-green roof; real is a pale yellow with white columns), what colour the Voivodeship wing really is (built as palace yellow; OSM says teal), the Arsenal's plaster and roof, Landau's house. Prebuilt path not baked in the cloud (`bake_city` fails on main's known site mismatches); skins use the same landmark outlines on both paths.
 - **2026-11-02 · landmarks · Gdański Business Center** — Mac look check (site `gbc`, spec `gbc.md`): is this the right complex (tower at Inflancka, 74 m, two 45 m blocks, a 31 m block), the tower crown's slant direction and depth, the blocks' colour (pale blue-green here), logo boxes (AWIWA on the tower, NIELZEN on the blocks; the plaza between them is the map's own, unplanted extras not built). Default built from OSM and the four photos.
@@ -31,6 +33,18 @@ One session per lane. Add a row when you start an item, remove it when the item 
   the neon readable at night. Canaletto's front was not seen in the cloud render.
 
 Newest first. One entry per question.
+
+- **2026-11-01 · landmarks · church kit and Plac Zamkowy: Mac look check** — Built in the cloud
+  from outlines alone (docs/design/churches.md, spec churches.md). Defaults: the front is the
+  outline's end nearest a street; towers, caps and colours by a guessed style per church
+  (`CHURCHES` in landmarks.gd). Check on the Mac: for each of the 22 kit churches, which end is
+  the real front, how many towers and which cap, the plaster or brick colour; fix the entry in
+  `CHURCHES` (`out` flips the front, `towers`, `cap`, `wall`, `roof`). Plac Zamkowy: do the new
+  gables (stepped, pediment, curved) stand on the right houses' top edges on the real LoD2 walls,
+  and do the pastels look right next to the Castle's brick. Phone: frame cost of the Old Town with
+  the extra gables.
+
+- **2026-11-01 · gameplay pass · phone checks** — F's six screenshots drive BACKLOG "Gameplay pass" G1-G13. Phone checks: (G1) a fresh save shows HELI at 0:00 and the map hold teleports; (G2) the Low default feels calm and the slider moves it; (G3) the zoom buttons clear the minimap and the pill; (G4) is Cruise easy enough (grip 16, turn pull 10, steer 0.14 s, soft gas; lane change at 50 km/h slides under 1.1 m/s), is Sport still wanted, and do Settings → Jazda → Prowadzenie and the moved Tryb gry (now in Świat) read well; (G5) which wall-like blocks F meant (a photo of one helps). Defaults built: heli and teleport free, Low traffic, Cruise handling.
 
 - **2026-11-01 · gameplay pass · phone checks** — F's six screenshots drive BACKLOG "Gameplay pass" G1-G13. Phone checks: (G1) a fresh save shows HELI at 0:00 and the map hold teleports; (G2) the Low default feels calm and the slider moves it; (G3) the zoom buttons clear the minimap and the pill; (G4) is Cruise easy enough (grip 16, turn pull 10, steer 0.14 s, soft gas; lane change at 50 km/h slides under 1.1 m/s), is Sport still wanted, how the Czułość slider (0.6x to 1.4x turn rate, middle = as is) feels at both ends, and do Settings → Jazda → Prowadzenie and the moved Tryb gry (now in Świat) read well; (G5) which wall-like blocks F meant (a photo of one helps). Defaults built: heli and teleport free, Low traffic, Cruise handling.
 

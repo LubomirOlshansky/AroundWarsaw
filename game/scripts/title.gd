@@ -17,11 +17,15 @@ signal new_game
 
 ## The game's name as the title shows it (the rename to Around Warsaw, 2026-10-30; it was
 ## "NOCNA WARSZAWA"). The one place to change it.
+const Lang := preload("res://scripts/lang.gd")
 const WORDMARK := "AROUND WARSAW"
 ## The tagline under the wordmark, Polish above English (the rename, 2026-10-30). "Jeźdź" is
 ## the standard imperative of "jeździć" (the spoken "jeździj" is the common slip).
 const TAGLINE_PL := "Jeźdź, lataj i odkrywaj prawdziwą Warszawę"
 const TAGLINE_EN := "Drive, fly and discover the real Warsaw"
+
+## The player picked a language here (POLSKI / ENGLISH, top right): main.gd keeps it (settings.gd `lang`).
+signal language_chosen(code: String)
 
 var ready_to_drive := false
 ## Desktop: --no-touch (trailer loop, 2026-10-29): no "tap to drive" prompt once the city is
@@ -48,6 +52,8 @@ var auto_go := false
 enum {CHOICE, CONFIRM}
 var screen := CHOICE
 var _new_btn: Label
+## The language buttons, top right: one language is shown at a time (lang.gd).
+var _lang_btns: Array[Label] = []
 var _yes_btn: Label
 var _no_btn: Label
 var _line: Label
@@ -98,6 +104,11 @@ func _ready() -> void:
 	_new_btn = _make_button()
 	_yes_btn = _make_button()
 	_no_btn = _make_button()
+	for code in Lang.CODES:
+		var lb := _make_button()
+		lb.visible = true
+		lb.name = "lang_%s" % code
+		_lang_btns.append(lb)
 	_start_sound = AudioStreamPlayer.new()
 	_start_sound.volume_db = -8.0
 	if ResourceLoader.exists("res://audio/ui/start.wav"):
@@ -165,14 +176,14 @@ func _layout() -> void:
 	# (h / 420 is about a point on the phones), each with a dark outline over the sun.
 	var ts := int(maxf(h * 0.034, 13.0))
 	var tag_top := h * 0.05 + fs * 1.22  # under the caps' pink shadow; both lines clear the Palace's spire
-	_tag_pl.text = TAGLINE_PL
+	_tag_pl.text = Lang.pick(TAGLINE_PL, TAGLINE_EN)
 	_tag_pl.add_theme_font_size_override("font_size", ts)
 	_tag_pl.add_theme_color_override("font_color", Color("#7ff6ff"))
 	_tag_pl.add_theme_color_override("font_outline_color", Color("#14053a"))
 	_tag_pl.add_theme_constant_override("outline_size", maxi(3, int(ts * 0.24)))
 	_tag_pl.position = Vector2(_safe.position.x, tag_top)
 	_tag_pl.size = Vector2(_safe.size.x, ts * 1.4)
-	_tag_en.text = TAGLINE_EN
+	_tag_en.text = ""  # one language (lang.gd)
 	_tag_en.add_theme_font_size_override("font_size", int(ts * 0.84))
 	_tag_en.add_theme_color_override("font_color", Color("#ffb3e6"))
 	_tag_en.add_theme_color_override("font_outline_color", Color("#14053a"))
@@ -219,6 +230,14 @@ func _layout() -> void:
 	var row := _yes_btn.size.x + gap + _no_btn.size.x
 	_yes_btn.position = Vector2(size.x * 0.5 - row * 0.5, by)
 	_no_btn.position = Vector2(_yes_btn.position.x + bw + gap, by)
+	# The language buttons, top right, inside the safe area: each at least 44 px tall.
+	var lw := maxf(bs * 7.0, 96.0)
+	for k in _lang_btns.size():
+		var lb := _lang_btns[k]
+		lb.add_theme_font_size_override("font_size", bs)
+		lb.add_theme_constant_override("outline_size", maxi(2, int(bs * 0.16)))
+		lb.size = Vector2(lw, bh)
+		lb.position = Vector2(_safe.end.x - (lw + h * 0.02) * float(_lang_btns.size() - k) - h * 0.02, _safe.position.y + h * 0.03)
 	_set_prompt()
 	_palm.queue_redraw()
 
@@ -230,28 +249,30 @@ func _set_prompt() -> void:
 	_yes_btn.visible = choosing and screen == CONFIRM
 	_no_btn.visible = choosing and screen == CONFIRM
 	_line.visible = choosing and screen == CHOICE and resume_line != ""
-	_new_btn.text = "NOWA GRA\nnew game"
-	_yes_btn.text = "TAK, OD NOWA\nyes, start over"
-	_no_btn.text = "NIE\nno"
+	_new_btn.text = Lang.pick("NOWA GRA", "NEW GAME")
+	_yes_btn.text = Lang.pick("TAK, OD NOWA", "YES, START OVER")
+	_no_btn.text = Lang.pick("NIE", "NO")
 	_line.text = resume_line
+	_tag_pl.text = Lang.pick(TAGLINE_PL, TAGLINE_EN)
+	for k in _lang_btns.size():
+		var code: String = Lang.CODES[k]
+		_lang_btns[k].text = Lang.NAMES[code]
+		var on: bool = code == Lang.code
+		_lang_btns[k].add_theme_color_override("font_color", Color("#ffd23f") if on else Color("#7ff6ff"))
+		_lang_btns[k].modulate.a = 1.0 if on else 0.7
+	_prompt_pl.text = ""  # one language at a time (lang.gd): the small second line is gone
 	if choosing and screen == CONFIRM:
-		_prompt.text = "ZACZĄĆ OD NOWA?"
-		_prompt_pl.text = "start over? the money, jobs and finds are wiped"
+		_prompt.text = Lang.pick("ZACZĄĆ OD NOWA? Pieniądze, zlecenia i znaleziska znikną", "START OVER? The money, jobs and finds are wiped")
 	elif choosing:
-		_prompt.text = "KONTYNUUJ"
-		_prompt_pl.text = "tap to continue"
+		_prompt.text = Lang.pick("KONTYNUUJ", "CONTINUE")
 	elif ready_to_drive and auto_go:
-		_prompt.text = "NOWA GRA"
-		_prompt_pl.text = "new game"
+		_prompt.text = Lang.pick("NOWA GRA", "NEW GAME")
 	elif ready_to_drive and touch_off:
 		_prompt.text = ""  # desktop: --no-touch
-		_prompt_pl.text = ""
 	elif ready_to_drive:
-		_prompt.text = "DOTKNIJ, BY JECHAĆ"
-		_prompt_pl.text = "tap to drive"
+		_prompt.text = Lang.pick("DOTKNIJ, BY JECHAĆ", "TAP TO DRIVE")
 	else:
-		_prompt.text = "budujemy miasto…"
-		_prompt_pl.text = "building the city…"
+		_prompt.text = Lang.pick("budujemy miasto…", "building the city…")
 
 
 ## The city is built: the prompt changes and a tap or a key starts the game.
@@ -296,6 +317,13 @@ func _input(event: InputEvent) -> void:
 			return  # a stick click or a shoulder: not a pick
 	if not go:
 		return
+	# The language buttons work from the first frame, and never start the game.
+	if at != Vector2.INF or key == KEY_L:
+		var picked := _lang_at(at, key)
+		if picked != "":
+			get_viewport().set_input_as_handled()
+			choose_language(picked)
+			return
 	get_viewport().set_input_as_handled()
 	if not ready_to_drive:
 		return
@@ -303,6 +331,25 @@ func _input(event: InputEvent) -> void:
 		dismiss()
 		return
 	choose(_pick(key, at))
+
+
+## Which language button a tap at `at` hits (or L, which switches), "" if none.
+func _lang_at(at: Vector2, key: Key) -> String:
+	if key == KEY_L:
+		return Lang.EN if Lang.code == Lang.PL else Lang.PL
+	for k in _lang_btns.size():
+		if at != Vector2.INF and _lang_btns[k].get_global_rect().grow(6.0).has_point(at):
+			return Lang.CODES[k]
+	return ""
+
+
+## Shows the title in `code` (the player's pick; check_language.gd calls it too) and tells main.gd.
+func choose_language(code: String) -> void:
+	if code == Lang.code:
+		return
+	Lang.set_code(code)
+	language_chosen.emit(code)  # main.gd saves it and renews the save line
+	_layout()
 
 
 ## The gamepad loop: the key a pad button stands for on the title (KEY_NONE: no job here). On

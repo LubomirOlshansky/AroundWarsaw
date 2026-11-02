@@ -498,6 +498,14 @@ static func spec(name: String) -> Dictionary:
 					"cowl_z": -0.74, "cowl_y": 0.96, "belt_z": 1.66, "belt_y": 1.0, "tail_y": 0.98, "tail_in": 0.1,
 					"roof_y": 1.44, "roof_z0": -0.06, "roof_z1": 1.42, "gw0": 0.85, "gw1": 0.69, "r": 0.32,
 					"axle_f": -1.3, "axle_r": 1.3, "bp": 0.5, "sides": 8}, true)
+		"player_tt":
+			# G13: the shop's "Ołdi TT" (a parody of a certain Bavarian-Ingolstadt coupe): the
+			# player's footprint (the collision box is shared) but a lower, wider, rounder
+			# coupe, a short glasshouse, bigger wheels.
+			p.merge({"L": 4.1, "W": 0.94, "sill": 0.22, "bump_f": 0.44, "bump_r": 0.46, "nose": 0.7, "nose_in": 0.2,
+					"cowl_z": -0.55, "cowl_y": 0.88, "belt_z": 1.5, "belt_y": 0.92, "tail_y": 0.9, "tail_in": 0.12,
+					"roof_y": 1.24, "roof_z0": 0.05, "roof_z1": 0.95, "gw0": 0.86, "gw1": 0.66, "r": 0.34,
+					"axle_f": -1.28, "axle_r": 1.26, "bp": 0.55, "sides": 8}, true)
 		"coupe":
 			p.merge({"L": 4.4, "W": 0.92, "sill": 0.22, "bump_f": 0.44, "bump_r": 0.46, "nose": 0.66, "nose_in": 0.2,
 					"cowl_z": -0.5, "cowl_y": 0.86, "belt_z": 1.75, "belt_y": 0.9, "tail_y": 0.9, "tail_in": 0.12,
@@ -861,9 +869,10 @@ static func renew_parked(nodes: Array[Node]) -> bool:
 ## calls). The body takes `paint` and `stripes` (the hero part and its glow) and keeps its
 ## twin white stripes over the bonnet, the roof and the tailgate; black bumpers, a roof
 ## spoiler, round head lamps and light hub caps make it the one retro hot hatch in town.
-static func player_meshes(paint: Array, stripes: Array) -> Array[ArrayMesh]:
+## G13: `kind` "player" (the hatch) or "player_tt" (the shop's coupe, no roof spoiler).
+static func player_meshes(paint: Array, stripes: Array, kind := "player") -> Array[ArrayMesh]:
 	var s := Shape.new()
-	var p := spec("player")
+	var p := spec(kind)
 	_vehicle(s, p, paint, [], fin(Color("#2f3f52")), false)
 	var lower := _lower(p)
 	var W: float = p["W"]
@@ -885,7 +894,11 @@ static func player_meshes(paint: Array, stripes: Array) -> Array[ArrayMesh]:
 		s.pane(nose, (sx.x + W) / (2.0 * W), (sx.y + W) / (2.0 * W), 0.0, 1.0, stripes, 0.01)
 	# A roof spoiler over the tailgate (no mirrors: at the 80 m view they'd be one pixel).
 	var roof_y: float = p["roof_y"]
-	s.box(Vector3(0.0, roof_y - 0.01, p["roof_z1"] + 0.1), Vector3(1.3, 0.06, 0.3), fin(TRIM))
+	if kind == "player":
+		s.box(Vector3(0.0, roof_y - 0.01, p["roof_z1"] + 0.1), Vector3(1.3, 0.06, 0.3), fin(TRIM))
+	else:
+		# The coupe's spoiler is a thin lip on the boot lid instead.
+		s.box(Vector3(0.0, p["tail_y"] + 0.04, p["L"] * 0.5 - p["tail_in"] - 0.12), Vector3(1.5, 0.05, 0.22), fin(TRIM))
 	# Light hub caps over the plain ones (retro steel wheels).
 	var r: float = p["r"]
 	var wc := r * cos(PI / 8.0)

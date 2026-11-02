@@ -18,6 +18,7 @@ extends Control
 ## under the top row; a bubble that finds no free spot above or below where it wanted to be
 ## keeps that spot (`overlaps` counts them, for tools/check_hud.gd).
 
+const Lang := preload("res://scripts/lang.gd")
 const Access := preload("res://scripts/access.gd")
 
 ## Loop 2b: time spent in this script's per-frame work since the bench last read it (µs).
@@ -79,6 +80,8 @@ func _px(points: float) -> int:
 func say(anchor: Variant, speaker: String, line: String, subtitle := "", seconds := 4.0,
 		accent := Color("#ffd23f"), height := 2.6) -> void:
 	accent = Access.tint(accent)  # colour-safe (access.gd)
+	line = Lang.pick(line, subtitle)  # one language (lang.gd)
+	subtitle = ""
 	hush(anchor)
 	var typing := line.length() / TYPE_RATE
 	var b := {"anchor": anchor, "speaker": speaker, "line": line, "sub": subtitle, "age": 0.0,

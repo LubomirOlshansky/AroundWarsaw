@@ -20,6 +20,7 @@ extends Control
 ## "Performance budgets"); nothing is drawn while the panel is closed. Sized in points like
 ## the panel; every target at least 44 pt.
 
+const Lang := preload("res://scripts/lang.gd")  # one language at a time
 const INK := Color("#fbf7ee")
 const SUB := Color("#c9c2d8")
 const ACCENT := Color("#ffd23f")
@@ -55,7 +56,7 @@ const ICONS := {
 	"tape": ["#######", "#.###.#", "#######", "##...##", "#######"],
 	"kadr": ["..##...", "#######", "###.###", "##...##", "#######"],
 }
-const SECTIONS := [["eggs", "SEKRETY", "easter eggs"], ["tape", "KASETA", "then and now"], ["kadr", "KADR", "photo spots"]]
+const SECTIONS := [["eggs", "SEKRETY", "EASTER EGGS"], ["tape", "KASETA", "TAPE"], ["kadr", "KADR", "PHOTO SPOTS"]]
 ## Polish day names to English ones, for the hours' gloss.
 const DAYS := {"PN": "Mon", "WT": "Tue", "ŚR": "Wed", "CZ": "Thu", "PT": "Fri", "SB": "Sat", "ND": "Sun"}
 
@@ -247,6 +248,11 @@ func _draw() -> void:
 	_flush()
 
 
+## A [Polish, English] pair in the chosen language (lang.gd): the page shows one language.
+static func _l(pair: Array) -> String:
+	return Lang.pick(str(pair[0]), str(pair[1]) if pair.size() > 1 else "")
+
+
 func _chapters_row() -> void:
 	var extra := _sections()
 	var n: int = book.chapters.size() + extra.size()
@@ -268,12 +274,12 @@ func _chapters_row() -> void:
 func _grid_view() -> void:
 	var c: Dictionary = book.chapters[chapter]
 	var top := (ROW + GAP) * pt
-	var title := str(c["name_pl"]).to_upper()
+	var title := Lang.pick(str(c["name_pl"]), str(c["name_en"])).to_upper()
 	_word(Vector2(0, top), title, T_SUB, ACCENT)
 	var font := ThemeDB.fallback_font
 	var tw := font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, _px(T_SUB)).x
 	var list: Array = book.chapter_places(chapter)
-	_word(Vector2(tw + 8.0 * pt, top + 2.0 * pt), "%s · %d/%d" % [c["name_en"], book.found_in(chapter), list.size()], T_LABEL, SUB)
+	_word(Vector2(tw + 8.0 * pt, top + 2.0 * pt), "%d/%d" % [book.found_in(chapter), list.size()], T_LABEL, SUB)
 	# Map north: a chapter of 9 or 10 (Notebook.MAX_PER_CHAPTER) takes 5 columns, still 2 rows.
 	var cols := 4 if list.size() <= 8 else 5
 	var cw := (W - GAP * (cols - 1)) / cols
@@ -288,7 +294,7 @@ func _grid_view() -> void:
 		if book.is_found(id):
 			_box(r, DIM, EDGE, 0.5)
 			var y := r.position.y + 8.0 * pt
-			var pl := str(place["name_pl"])
+			var pl := Lang.pick(str(place["name_pl"]), str(place["name_en"]))
 			var lines := _lines(pl, T_SUB, inner, 3)
 			_word(Vector2(r.position.x + 6.0 * pt, y), pl, T_SUB, INK, inner, HORIZONTAL_ALIGNMENT_LEFT, 3)
 			y += lines * _line_h(T_SUB)
@@ -303,7 +309,7 @@ func _grid_view() -> void:
 			for f in foot.size():
 				_word(Vector2(r.position.x + 6.0 * pt, foot_y + f * _line_h(T_LABEL)), foot[f], T_LABEL,
 						ACCENT if f == 0 and place.has("hours") else SUB, inner)
-			var en := str(place["name_en"])
+			var en := pl  # one language: no second name line
 			if en != pl and y + _line_h(T_LABEL) < foot_y:
 				_word(Vector2(r.position.x + 6.0 * pt, y), en, T_LABEL, SUB, inner, HORIZONTAL_ALIGNMENT_LEFT,
 						maxi(1, int((foot_y - y) / _line_h(T_LABEL))))
@@ -311,7 +317,7 @@ func _grid_view() -> void:
 			_box(r, SHUT, EDGE, 0.5)
 			_word(Vector2(r.position.x, r.position.y + r.size.y * 0.5 - _line_h(T_BIG) * 0.75), "?", T_BIG, SUB,
 					r.size.x, HORIZONTAL_ALIGNMENT_CENTER)
-			_word(Vector2(r.position.x, r.end.y - _line_h(T_LABEL) - 5.0 * pt), "rozdz. %d · ch. %d" % [chapter + 1, chapter + 1],
+			_word(Vector2(r.position.x, r.end.y - _line_h(T_LABEL) - 5.0 * pt), Lang.pick("rozdz. %d", "ch. %d") % (chapter + 1),
 					T_LABEL, SUB, r.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 
 
@@ -320,36 +326,30 @@ func _card_view(place: Dictionary) -> void:
 	var top := (ROW + GAP) * pt
 	var back := Rect2(Vector2(0, top), Vector2(BACK_W, ROW) * pt)
 	_box(back, DIM, EDGE, 0.5)
-	_word(back.position + Vector2(0, 4.0 * pt), "WRÓĆ", T_BODY, INK, back.size.x, HORIZONTAL_ALIGNMENT_CENTER)
-	_word(back.position + Vector2(0, 24.0 * pt), "back", T_LABEL, SUB, back.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	_word(back.position + Vector2(0, 14.0 * pt), Lang.pick("WRÓĆ", "BACK"), T_BODY, INK, back.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 	_hits.append([back, "back", 0])
 	var x := (BACK_W + 10.0) * pt
 	var wide := W * pt - x
 	var id := str(place["id"])
 	var list: Array = book.chapter_places(chapter)
-	var where := "%d/%d · %s · %s" % [list.find(place) + 1, list.size(), c["name_pl"], c["name_en"]]
+	var where := "%d/%d · %s" % [list.find(place) + 1, list.size(), Lang.pick(c["name_pl"], c["name_en"])]
 	if not book.is_found(id):
 		_word(Vector2(x, top + 2.0 * pt), "?", T_BIG, ACCENT, wide)
 		_word(Vector2(x, top + 28.0 * pt), where, T_LABEL, SUB, wide)
 		var y := top + (ROW + 14.0) * pt
-		_word(Vector2(0, y), "Jeszcze nie w zeszycie. Szukaj „?” na minimapie.", T_SUB, INK, W * pt)
-		_word(Vector2(0, y + _line_h(T_SUB)), "Not in the notebook yet. Look for the ? on the minimap.", T_LABEL, SUB, W * pt)
+		_word(Vector2(0, y), Lang.pick("Jeszcze nie w zeszycie. Szukaj „?” na minimapie.", "Not in the notebook yet. Look for the ? on the minimap."), T_SUB, INK, W * pt)
 		return
-	_word(Vector2(x, top + 2.0 * pt), str(place["name_pl"]), T_BODY, ACCENT, wide, HORIZONTAL_ALIGNMENT_LEFT, 1)
-	var en := str(place["name_en"])
-	_word(Vector2(x, top + 24.0 * pt), (en + " · " if en != str(place["name_pl"]) else "") + where, T_LABEL, SUB, wide,
-			HORIZONTAL_ALIGNMENT_LEFT, 1)
+	_word(Vector2(x, top + 2.0 * pt), Lang.pick(str(place["name_pl"]), str(place["name_en"])), T_BODY, ACCENT, wide, HORIZONTAL_ALIGNMENT_LEFT, 1)
+	_word(Vector2(x, top + 24.0 * pt), where, T_LABEL, SUB, wide, HORIZONTAL_ALIGNMENT_LEFT, 1)
 	var y := top + (ROW + 12.0) * pt
 	var full := W * pt
 	for pair in [place.get("fact", ["", ""]), place.get("joke", ["", ""])]:
 		var a: Array = pair
-		_word(Vector2(0, y), str(a[0]), T_SUB, INK, full, HORIZONTAL_ALIGNMENT_LEFT, 2)
-		y += _lines(str(a[0]), T_SUB, full, 2) * _line_h(T_SUB)
-		_word(Vector2(0, y), str(a[1]), T_LABEL, SUB, full, HORIZONTAL_ALIGNMENT_LEFT, 2)
-		y += _lines(str(a[1]), T_LABEL, full, 2) * _line_h(T_LABEL) + 8.0 * pt
+		var fact := _l(a)
+		_word(Vector2(0, y), fact, T_SUB, INK, full, HORIZONTAL_ALIGNMENT_LEFT, 2)
+		y += _lines(fact, T_SUB, full, 2) * _line_h(T_SUB) + 8.0 * pt
 	var meta := meta_lines(place, int(book.wallet.notes.get(id, 0)) if book.wallet != null else 0)
-	_word(Vector2(0, y), meta[0], T_LABEL, ACCENT, full, HORIZONTAL_ALIGNMENT_LEFT, 1)
-	_word(Vector2(0, y + _line_h(T_LABEL)), meta[1], T_LABEL, SUB, full, HORIZONTAL_ALIGNMENT_LEFT, 1)
+	_word(Vector2(0, y), _l(meta), T_LABEL, ACCENT, full, HORIZONTAL_ALIGNMENT_LEFT, 1)
 
 
 ## A card's last two lines, Polish over English: the address of a place that is not a venue
@@ -415,11 +415,12 @@ func _extra_grid(name: String) -> void:
 	var top := (ROW + GAP) * pt
 	var t := _section_title(name)
 	var font := ThemeDB.fallback_font
-	_word(Vector2(0, top), t[0], T_SUB, ACCENT)
-	var tw := font.get_string_size(t[0], HORIZONTAL_ALIGNMENT_LEFT, -1, _px(T_SUB)).x
-	var sub := "%s · %d/%d" % [t[1], _found_count(name), list.size()]
+	var head := _l(t)
+	_word(Vector2(0, top), head, T_SUB, ACCENT)
+	var tw := font.get_string_size(head, HORIZONTAL_ALIGNMENT_LEFT, -1, _px(T_SUB)).x
+	var sub := "%d/%d" % [_found_count(name), list.size()]
 	if pages > 1:
-		sub += " · str. %d/%d · page %d/%d" % [page + 1, pages, page + 1, pages]
+		sub += Lang.pick(" · str. %d/%d", " · page %d/%d") % [page + 1, pages]
 	_word(Vector2(tw + 8.0 * pt, top + 2.0 * pt), sub, T_LABEL, SUB)
 	var area_top := ROW + GAP + TITLE_H
 	var grid_w := W
@@ -449,7 +450,7 @@ func _extra_grid(name: String) -> void:
 		var num := _number(name, it)
 		if _item_found(name, it) > 0:
 			_box(r, DIM, EDGE, 0.5)
-			_word(Vector2(r.position.x + 5.0 * pt, r.position.y + 5.0 * pt), _fit(_item_name(name, it)[0], T_LABEL, inner, 2),
+			_word(Vector2(r.position.x + 5.0 * pt, r.position.y + 5.0 * pt), _fit(_l(_item_name(name, it)), T_LABEL, inner, 2),
 					T_LABEL, INK, inner, HORIZONTAL_ALIGNMENT_LEFT, 2)
 			_word(Vector2(r.position.x + 5.0 * pt, r.end.y - _line_h(T_LABEL) - 3.0 * pt), num, T_LABEL, GOLD, inner)
 		else:
@@ -498,27 +499,24 @@ func _extra_card(name: String, id: String) -> void:
 	var top := (ROW + GAP) * pt
 	var back := Rect2(Vector2(0, top), Vector2(BACK_W, ROW) * pt)
 	_box(back, DIM, EDGE, 0.5)
-	_word(back.position + Vector2(0, 4.0 * pt), "WRÓĆ", T_BODY, INK, back.size.x, HORIZONTAL_ALIGNMENT_CENTER)
-	_word(back.position + Vector2(0, 24.0 * pt), "back", T_LABEL, SUB, back.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	_word(back.position + Vector2(0, 14.0 * pt), Lang.pick("WRÓĆ", "BACK"), T_BODY, INK, back.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 	_hits.append([back, "back", 0])
 	var x := (BACK_W + 10.0) * pt
 	var wide := W * pt - x
 	var t := _section_title(name)
 	var found := _item_found(name, it)
 	var nm := _item_name(name, it)
-	var where := "%s · %s · %d/%d" % [_number(name, it), t[0], list.find(it) + 1, list.size()]
+	var where := "%s · %s · %d/%d" % [_number(name, it), _l(t), list.find(it) + 1, list.size()]
 	var full := W * pt
 	var y := top + (ROW + 12.0) * pt
 	if found <= 0:
-		_word(Vector2(x, top + 2.0 * pt), "?" if name == "eggs" else str(nm[0]), T_BODY, ACCENT, wide, HORIZONTAL_ALIGNMENT_LEFT, 1)
+		_word(Vector2(x, top + 2.0 * pt), "?" if name == "eggs" else _l(nm), T_BODY, ACCENT, wide, HORIZONTAL_ALIGNMENT_LEFT, 1)
 		_word(Vector2(x, top + 24.0 * pt), where, T_LABEL, SUB, wide, HORIZONTAL_ALIGNMENT_LEFT, 1)
 		var hint := _hint(name, it)
-		_word(Vector2(0, y), hint[0], T_SUB, INK, full, HORIZONTAL_ALIGNMENT_LEFT, 2)
-		_word(Vector2(0, y + _lines(hint[0], T_SUB, full, 2) * _line_h(T_SUB)), hint[1], T_LABEL, SUB, full, HORIZONTAL_ALIGNMENT_LEFT, 2)
+		_word(Vector2(0, y), _l(hint), T_SUB, INK, full, HORIZONTAL_ALIGNMENT_LEFT, 2)
 		return
-	_word(Vector2(x, top + 2.0 * pt), str(nm[0]), T_BODY, ACCENT, wide, HORIZONTAL_ALIGNMENT_LEFT, 1)
-	_word(Vector2(x, top + 24.0 * pt), (str(nm[1]) + " · " if str(nm[1]) != str(nm[0]) else "") + where, T_LABEL, SUB, wide,
-			HORIZONTAL_ALIGNMENT_LEFT, 1)
+	_word(Vector2(x, top + 2.0 * pt), _l(nm), T_BODY, ACCENT, wide, HORIZONTAL_ALIGNMENT_LEFT, 1)
+	_word(Vector2(x, top + 24.0 * pt), where, T_LABEL, SUB, wide, HORIZONTAL_ALIGNMENT_LEFT, 1)
 	var line: Array = ["", ""]
 	var meta := ["wpis z %s" % date_of(found), "found %s" % date_of(found)]
 	match name:
@@ -542,12 +540,10 @@ func _extra_card(name: String, id: String) -> void:
 			_rect(pr.grow(maxf(1.0, pt)), EDGE)
 			_photo_rect = pr
 			text_w = full - pw - 10.0 * pt
-	_word(Vector2(0, y), str(line[0]), T_SUB, INK, text_w, HORIZONTAL_ALIGNMENT_LEFT, 2)
-	y += _lines(str(line[0]), T_SUB, text_w, 2) * _line_h(T_SUB)
-	_word(Vector2(0, y), str(line[1]), T_LABEL, SUB, text_w, HORIZONTAL_ALIGNMENT_LEFT, 2)
-	y += _lines(str(line[1]), T_LABEL, text_w, 2) * _line_h(T_LABEL) + 8.0 * pt
-	_word(Vector2(0, y), meta[0], T_LABEL, ACCENT, text_w, HORIZONTAL_ALIGNMENT_LEFT, 1)
-	_word(Vector2(0, y + _line_h(T_LABEL)), meta[1], T_LABEL, SUB, text_w, HORIZONTAL_ALIGNMENT_LEFT, 1)
+	var shown := _l(line)
+	_word(Vector2(0, y), shown, T_SUB, INK, text_w, HORIZONTAL_ALIGNMENT_LEFT, 2)
+	y += _lines(shown, T_SUB, text_w, 2) * _line_h(T_SUB) + 8.0 * pt
+	_word(Vector2(0, y), _l(meta), T_LABEL, ACCENT, text_w, HORIZONTAL_ALIGNMENT_LEFT, 1)
 
 
 ## What an unfound card says, Polish and English.

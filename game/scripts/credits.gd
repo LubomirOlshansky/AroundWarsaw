@@ -1,4 +1,6 @@
 extends RefCounted
+
+const Lang := preload("res://scripts/lang.gd")
 ## The in-game credits and licences (DEMO 3j, WORKFLOW "TestFlight": the credits and licences
 ## screen; Settings → DŹWIĘK → LICENCJE). The same facts as CREDITS.md, in the player's words:
 ## the open data the city is built from (OpenStreetMap ODbL, GUGiK, the trees' CC BY 4.0), the
@@ -7,23 +9,24 @@ extends RefCounted
 ## tools/check_credits.gd keeps this list, the add-on folders and radio.json in step.
 
 ## One block per section: [Polish heading, English heading, [lines]]. A line is "Polish · English"
-## where the two differ, or one line where it is a name or a licence.
+## where the two differ (the pair is split by " ‖ ", lang.gd `split`), or one line where it is a name or
+## a licence.
 const DATA := [
 	["Mapa", "Map data", [
 		"© OpenStreetMap contributors",
 		"Open Database License (ODbL) 1.0 · openstreetmap.org/copyright",
-		"Ulice, budynki, drzewa, latarnie, woda, nazwy · roads, buildings, trees, lamps, water, names",
+		"Ulice, budynki, drzewa, latarnie, woda, nazwy ‖ roads, buildings, trees, lamps, water, names",
 	]],
 	["GUGiK", "Polish geodetic office", [
 		"Źródło danych: Główny Urząd Geodezji i Kartografii · geoportal.gov.pl",
-		"Budynki 3D (LoD2), teren (NMT), ortofotomapa · 3D buildings, terrain, aerial photo",
-		"Modele drzew 3D (LoD1): CC BY 4.0, uproszczone · 3D trees: CC BY 4.0, simplified",
+		"Budynki 3D (LoD2), teren (NMT), ortofotomapa ‖ 3D buildings, terrain, aerial photo",
+		"Modele drzew 3D (LoD1): CC BY 4.0, uproszczone ‖ 3D trees: CC BY 4.0, simplified",
 	]],
 	["Gra", "The game", [
-		"Around Warsaw: darmowa gra fanów, otwarty kod · a free open-source fan game",
-		"Kod, modele, dźwięki, muzyka i teksty: licencja MIT · code, art, sound, music, text: MIT",
+		"Around Warsaw: darmowa gra fanów, otwarty kod ‖ a free open-source fan game",
+		"Kod, modele, dźwięki, muzyka i teksty: licencja MIT ‖ code, art, sound, music, text: MIT",
 		"github.com/LubomirOlshansky/AroundWarsaw",
-		"Marki w grze to parodie · brands in the game are parodies",
+		"Marki w grze to parodie ‖ brands in the game are parodies",
 	]],
 	["Silnik", "Engine and add-ons", [
 		"Godot Engine: MIT · godotengine.org/license",
@@ -70,7 +73,7 @@ static func tracks(radio_path: String = "res://data/radio.json") -> Array:
 				"station": String(s.get("name", "?")),
 				"title": String(t.get("title", "?")),
 				"artist": String(t.get("artist", "?")),
-				"licence": licence.replace("own: synthesised by ", "własna · own, "),
+				"licence": licence.replace("own: synthesised by ", Lang.pick("własna, ", "own, ")),
 			})
 	return out
 
@@ -81,5 +84,5 @@ static func text() -> String:
 	for s in sections():
 		parts.append("%s · %s" % [s[0], s[1]])
 		for l in s[2]:
-			parts.append(String(l))
+			parts.append(String(l).replace(" ‖ ", " · "))
 	return "\n".join(parts)

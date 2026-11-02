@@ -27,6 +27,7 @@ extends Control
 signal changed(key: String, value: Variant)
 signal closed
 
+const Lang := preload("res://scripts/lang.gd")  # one language at a time
 const ACCENT := Color("#ffd23f")
 const INK := Color("#fbf7ee")
 const SUB := Color("#c9c2d8")
@@ -72,7 +73,7 @@ const TRAFFIC := [["Pustawo", "Almost empty"], ["Mało", "Low"], ["Normalnie", "
 const QUALITY := [["Auto", "auto"], ["Niska", "Low"], ["Średnia", "Medium"], ["Wysoka", "High"], ["Ultra", "Ultra"]]
 const ON_OFF := [["Wył.", "Off"], ["Wł.", "On"]]
 ## Loop 2b: frames per second (settings.gd FPS: 60, 30) and the benchmark button.
-const FPS := [["60", "płynnie · smooth"], ["30", "bateria · battery"]]
+const FPS := [["60 płynnie", "60 smooth"], ["30 bateria", "30 battery"]]
 ## Loop MW-6: the game's mode (settings.gd `wander`).
 const MODE := [["Miasto", "City"], ["Spacer", "Wander"]]
 ## G4: the car's handling (settings.gd `handling`, car.gd PROFILES).
@@ -169,19 +170,20 @@ func _build() -> void:
 	head.add_child(titles)
 	# Loop MW-1: the line under the title in two (Polish over English), and the column as wide as
 	# MOJA WARSZAWA (the notebook tab's title, at T_NOTES): the fifth tab fits a 375 pt phone.
-	_title = _text("USTAWIENIA", T_HEAD, ACCENT)
-	_subtitle = _text("gra wstrzymana", T_SUB, SUB)
-	_subtitle_en = _text("game paused", T_LABEL, SUB)
+	_title = _text(Lang.pick("USTAWIENIA", "SETTINGS"), T_HEAD, ACCENT)
+	_subtitle = _text(Lang.pick("gra wstrzymana", "game paused"), T_SUB, SUB)
+	_subtitle_en = _text("", T_LABEL, SUB)
+	_subtitle_en.visible = false
 	titles.add_child(_title)
 	titles.add_child(_subtitle)
 	titles.add_child(_subtitle_en)
-	titles.custom_minimum_size.x = ThemeDB.fallback_font.get_string_size("MOJA WARSZAWA", HORIZONTAL_ALIGNMENT_LEFT, -1,
+	titles.custom_minimum_size.x = ThemeDB.fallback_font.get_string_size(Lang.pick("MOJA WARSZAWA", "MY WARSAW"), HORIZONTAL_ALIGNMENT_LEFT, -1,
 			_px(T_NOTES)).x
 	for i in TABS.size():
-		var b := _word_button(TABS[i][0], TABS[i][1])
+		var b := _word_button(TABS[i][0], String(TABS[i][1]).to_upper())
 		b.toggle_mode = true
 		b.name = "tab_%s" % TABS[i][1]
-		_tighten(b, TABS[i][0], TABS[i][1])
+		_tighten(b, TABS[i][0], String(TABS[i][1]).to_upper())
 		b.pressed.connect(set_tab.bind(i))
 		head.add_child(b)
 		_tabs.append(b)
@@ -203,14 +205,14 @@ func _build() -> void:
 	var rescue := HBoxContainer.new()
 	rescue.add_theme_constant_override("separation", _px(8))
 	drive[0].add_child(rescue)
-	var tow := _word_button("POMOC DROGOWA", "stuck? · tow to the road")
+	var tow := _word_button("POMOC DROGOWA", "TOW TRUCK")
 	tow.name = "unstuck"
 	tow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	tow.pressed.connect(func():
 		close()
 		changed.emit("unstuck", 1))
 	rescue.add_child(tow)
-	_new_game_button = _word_button("NOWA GRA", "reset progress")
+	_new_game_button = _word_button("NOWA GRA", "NEW GAME")
 	_new_game_button.name = "new_game"
 	_new_game_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_new_game_button.pressed.connect(_on_new_game_pressed)
@@ -250,7 +252,7 @@ func _build() -> void:
 	_segments(picture[0], "vhs", ON_OFF)
 	_heading(picture[1], "Jakość obrazu", "Quality")
 	var quality := QUALITY.duplicate(true)
-	quality[0][1] = "auto · %s" % _auto_name
+	quality[0] = ["Auto · %s" % _auto_name, "Auto · %s" % _auto_name]
 	_segments(picture[1], "quality", quality)
 	_heading(picture[2], "Klatki na sekundę", "Frame rate")
 	_segments(picture[2], "fps", FPS)
@@ -260,14 +262,14 @@ func _build() -> void:
 	picture[3].add_child(perf_row)
 	_segments(perf_row, "perf", ON_OFF)
 	# Loop 2b: a minute on the bench route, then a result card to copy (main.gd).
-	var bench := _word_button("TEST", "bench · 1 min")
+	var bench := _word_button("TEST", "BENCH")
 	bench.name = "bench"
 	bench.pressed.connect(func():
 		close()
 		changed.emit("bench", 1))
 	perf_row.add_child(bench)
 	# Loop MW-6: the photo mode (fotka.gd), from the pause card.
-	var photo := _word_button("FOTKA", "photo mode")
+	var photo := _word_button("FOTKA", "PHOTO")
 	photo.name = "fotka"
 	photo.pressed.connect(func():
 		close()
@@ -277,9 +279,12 @@ func _build() -> void:
 	var sound := _page(body, 2)
 	for l in LEVELS:
 		_level(sound[0], l[0], l[1], l[2])
+	# 2026-11-02 (F): the language, one at a time (lang.gd): POLSKI or ENGLISH.
+	_heading(sound[1], "Język", "Language")
+	_segments(sound[1], "lang", [["Polski", "Polski"], ["English", "English"]])
 	# DEMO 3j: the credits and licences (credits.gd), a page of their own opened from here.
 	_heading(sound[1], "O grze", "About")
-	var about := _word_button("LICENCJE", "credits · licences")
+	var about := _word_button("LICENCJE", "CREDITS")
 	about.name = "credits"
 	about.pressed.connect(show_credits)
 	sound[1].add_child(about)
@@ -326,6 +331,33 @@ func _build() -> void:
 	if _target != "":
 		notebook_page.show_target(_target)
 	set_tab(_tab)
+
+
+## Settings → Język: the panel is made again in the chosen language (hud.gd `language_changed`),
+## on the tab that was open, with the values in `state`.
+func rebuild(state: Dictionary) -> void:
+	if not _built:
+		return
+	var was_visible := visible
+	for c in get_children():
+		remove_child(c)
+		c.queue_free()
+	_groups.clear()
+	_bars.clear()
+	_values.clear()
+	_stepbars.clear()
+	_tabs.clear()
+	_pages.clear()
+	_new_game_armed = false
+	_built = false
+	_build()
+	_built = true
+	sync(state)
+	visible = was_visible
+	set_tab(_tab)
+	_fit()
+	if Gamepad.in_use():
+		pad_focus()
 
 
 ## A page of the panel: `columns` columns side by side; returns the columns.
@@ -380,10 +412,10 @@ func set_tab(i: int) -> void:
 	var on_notes := _tab == NOTEBOOK_TAB
 	var on_credits := _tab == CREDITS_PAGE
 	_body.custom_minimum_size = notebook_page.custom_minimum_size if on_notes else _settings_size
-	_title.text = "MOJA WARSZAWA" if on_notes else ("O GRZE" if on_credits else "USTAWIENIA")
+	_title.text = Lang.pick("MOJA WARSZAWA", "MY WARSAW") if on_notes else (Lang.pick("O GRZE", "ABOUT") if on_credits else Lang.pick("USTAWIENIA", "SETTINGS"))
 	_title.add_theme_font_size_override("font_size", _px(T_NOTES if on_notes else T_HEAD))
-	_subtitle.text = _notes_count() if on_notes else ("licencje i autorzy" if on_credits else "gra wstrzymana")
-	_subtitle_en.text = "the city notebook" if on_notes else ("credits and licences" if on_credits else "game paused")
+	_subtitle.text = _notes_count() if on_notes else (Lang.pick("licencje i autorzy", "credits and licences") if on_credits else Lang.pick("gra wstrzymana", "game paused"))
+	_subtitle_en.text = ""
 	if on_notes:
 		notebook_page.queue_redraw()
 	_fit()
@@ -413,7 +445,7 @@ func _credits_page(body: Control) -> void:
 	for s in Credits.sections():
 		_heading(col, s[0], s[1])
 		for line in s[2]:
-			var l := _text(String(line), T_SUB, INK)
+			var l := _text(Lang.split(String(line), " ‖ "), T_SUB, INK)
 			l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			l.custom_minimum_size.x = col.custom_minimum_size.x
 			col.add_child(l)
@@ -423,8 +455,8 @@ func _credits_page(body: Control) -> void:
 ## Loop MW-1: "zeszyt miasta · 12/72" (the line under MOJA WARSZAWA).
 func _notes_count() -> String:
 	if notebook == null or notebook.places.is_empty():
-		return "zeszyt miasta"
-	return "zeszyt miasta · %d/%d" % [notebook.found_total(), notebook.places.size()]
+		return Lang.pick("zeszyt miasta", "the city notebook")
+	return Lang.pick("zeszyt miasta · %d/%d", "the city notebook · %d/%d") % [notebook.found_total(), notebook.places.size()]
 
 
 ## Loop MW-1: opens on the notebook (--notebook=TARGET: a chapter or a place's card).
@@ -600,10 +632,7 @@ func _heading(parent: Node, pl: String, en: String) -> void:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", _px(8))
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(_text(pl.to_upper(), T_SUB, ACCENT))
-	var e := _text(en, T_LABEL, SUB)
-	e.size_flags_vertical = Control.SIZE_SHRINK_END
-	row.add_child(e)
+	row.add_child(_text(Lang.pick(pl, en).to_upper(), T_SUB, ACCENT))
 	parent.add_child(row)
 
 
@@ -645,7 +674,7 @@ var _new_game_armed := false
 func _on_new_game_pressed() -> void:
 	if not _new_game_armed:
 		_new_game_armed = true
-		_set_word_button(_new_game_button, "NA PEWNO?", "tap again: wipes progress")
+		_set_word_button(_new_game_button, "NA PEWNO?", "SURE? TAP AGAIN")
 		get_tree().create_timer(4.0).timeout.connect(_disarm_new_game)
 		return
 	_new_game_armed = false
@@ -656,7 +685,7 @@ func _on_new_game_pressed() -> void:
 func _disarm_new_game() -> void:
 	if _new_game_armed:
 		_new_game_armed = false
-		_set_word_button(_new_game_button, "NOWA GRA", "reset progress")
+		_set_word_button(_new_game_button, "NOWA GRA", "NEW GAME")
 
 
 
@@ -668,8 +697,9 @@ func _word_button(pl: String, en: String) -> Button:
 	words.alignment = BoxContainer.ALIGNMENT_CENTER
 	words.add_theme_constant_override("separation", 0)
 	words.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var top := _text(pl, T_BODY, INK)
-	var low := _text(en, T_LABEL, SUB)
+	var top := _text(Lang.pick(pl, en), T_BODY, INK)
+	var low := _text("", T_LABEL, SUB)  # the second line is gone: one language (lang.gd)
+	low.visible = false
 	for l in [top, low]:
 		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		words.add_child(l)
@@ -681,13 +711,15 @@ func _word_button(pl: String, en: String) -> Button:
 ## A word button's two lines changed (the words are its first child's labels).
 func _set_word_button(b: Button, pl: String, en: String) -> void:
 	var words := b.get_child(0)
-	(words.get_child(0) as Label).text = pl
-	(words.get_child(1) as Label).text = en
+	(words.get_child(0) as Label).text = Lang.pick(pl, en)
+	(words.get_child(1) as Label).text = ""
 
 
 ## The words set the button's width (a Button doesn't size to its children); measured with the
 ## font itself (a label outside the tree can under-measure).
 func _fit_words(b: Button, pl: String, en: String) -> void:
+	pl = Lang.pick(pl, en)
+	en = ""
 	var font := ThemeDB.fallback_font
 	var w := maxf(font.get_string_size(pl, HORIZONTAL_ALIGNMENT_LEFT, -1, _px(T_BODY)).x,
 			font.get_string_size(en, HORIZONTAL_ALIGNMENT_LEFT, -1, _px(T_LABEL)).x) + 24.0 * pt
@@ -697,6 +729,8 @@ func _fit_words(b: Button, pl: String, en: String) -> void:
 ## The six tabs share one row: their buttons are as wide as their words need plus a little, not
 ## the 1.45 x 44 pt of the option buttons (still 44 pt tall, and never narrower than 44 pt).
 func _tighten(b: Button, pl: String, en: String) -> void:
+	pl = Lang.pick(pl, en)
+	en = ""
 	var font := ThemeDB.fallback_font
 	var w := maxf(font.get_string_size(pl, HORIZONTAL_ALIGNMENT_LEFT, -1, _px(T_BODY)).x,
 			font.get_string_size(en, HORIZONTAL_ALIGNMENT_LEFT, -1, _px(T_LABEL)).x) + 12.0 * pt
@@ -712,9 +746,9 @@ func _set_auto_name(name: String) -> void:
 	if not _groups.has("quality"):
 		return
 	var b: Button = _groups["quality"][0]
-	var low: Label = b.get_child(0).get_child(1)
-	low.text = "auto · %s" % name
-	_fit_words(b, QUALITY[0][0], low.text)
+	var top: Label = b.get_child(0).get_child(0)
+	top.text = "Auto · %s" % name
+	_fit_words(b, top.text, top.text)
 	_fit()
 
 
@@ -780,7 +814,7 @@ func _draw_steps(bar: Control, key: String, options: Array) -> void:
 		bar.draw_circle(Vector2(cx, y), (9.0 if k == v else 4.5) * pt, Color("#fff4d6") if k == v else Color(1, 1, 1, 0.5))
 	var font := ThemeDB.fallback_font
 	var words: Array = options[clampi(v, 0, n - 1)]
-	bar.draw_string(font, Vector2(x0, touch + 12.0 * pt), "%s · %s" % [words[0], words[1]], HORIZONTAL_ALIGNMENT_LEFT, -1, _px(T_SUB), SUB)
+	bar.draw_string(font, Vector2(x0, touch + 12.0 * pt), Lang.pick(words[0], words[1]), HORIZONTAL_ALIGNMENT_LEFT, -1, _px(T_SUB), SUB)
 
 
 func _select(key: String, index: int) -> void:
@@ -791,8 +825,9 @@ func _select(key: String, index: int) -> void:
 
 func _say(scheme: int) -> void:
 	var s: Array = CONTROLS_SAY[clampi(scheme, 0, CONTROLS_SAY.size() - 1)]
-	_say_pl.text = s[0]
-	_say_en.text = s[1]
+	_say_pl.text = Lang.pick(s[0], s[1])
+	_say_en.text = ""
+	_say_en.visible = false
 
 
 ## A volume: the words, −, a bar (tap or drag along it) and +.
@@ -805,8 +840,7 @@ func _level(parent: Node, key: String, pl: String, en: String, bar_width := 200.
 	words.add_theme_constant_override("separation", 0)
 	words.custom_minimum_size.x = 76.0 * pt
 	words.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	words.add_child(_text(pl, T_BODY, INK))
-	words.add_child(_text(en, T_LABEL, SUB))
+	words.add_child(_text(Lang.pick(pl, en), T_BODY, INK))
 	row.add_child(words)
 	var minus := _flat_button("−", 22)
 	minus.name = "%s_minus" % key
@@ -862,5 +896,5 @@ func _draw_bar(bar: Control, key: String) -> void:
 			bar.draw_rect(Rect2(track.position + Vector2(k * w + 0.6 * pt, 0), Vector2((w - 1.2 * pt) * share, h)), c)
 	var font := ThemeDB.fallback_font
 	var fs := _px(T_SUB)
-	var label := "%d %%" % roundi(v * 100.0) if v > 0.001 else "0 % · cisza, mute"
+	var label := "%d %%" % roundi(v * 100.0) if v > 0.001 else Lang.pick("0 % · cisza", "0 % · muted")
 	bar.draw_string(font, Vector2(track.position.x, track.position.y - 5.0 * pt), label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, SUB)
