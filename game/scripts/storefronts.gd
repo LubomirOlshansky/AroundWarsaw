@@ -97,6 +97,10 @@ const POWISLE_TUBE_C := Color(0.8, 0.62, 1.0)
 const MARSZ_ORANGE := Color(1.0, 0.62, 0.2)
 const MARSZ_GREEN := Color(0.4, 1.0, 0.55)
 const MARSZ_BLUE := Color(0.5, 0.75, 1.0)
+## Krakowskie Przedmieście's shopfront tubes (street-by-street pass, 2026-11-02): the royal route, candle gold and burgundy.
+const KP_GOLD := Color(1.0, 0.8, 0.4)
+const KP_WINE := Color(0.9, 0.35, 0.5)
+const KP_BLUE := Color(0.6, 0.8, 1.0)
 ## The venues' fascias (vision 3.0-3.2): place id -> [the lines of the sign, tube colour, metres
 ## up (the sign's bottom)]. The words are the parody names of places.json (Glon na Powiślu: GLON).
 const VENUES := {
@@ -188,6 +192,15 @@ const VENUES := {
 	"marsz_optyk": [["OPTYK", "DOBRY WZROK"], MARSZ_BLUE, 2.8],
 	"marsz_kwiaciarnia": [["KWIACIARNIA", "PRZY TORACH"], MARSZ_GREEN, 2.8],
 	"marsz_pasmanteria": [["PASMANTERIA", "GUZIK"], MARSZ_ORANGE, 2.8],
+	# Krakowskie Przedmieście's shopfronts (street-by-street pass, 2026-11-02): the royal route's trades, original names.
+	"kp_bursztyn": [["BURSZTYN", "I SREBRO"], KP_GOLD, 2.8],
+	"kp_apteka": [["APTEKA", "POD KOLUMNĄ"], Color(0.2, 1.0, 0.45), 2.8],
+	"kp_lody": [["LODY", "KRÓLEWSKIE"], KP_BLUE, 2.8],
+	"kp_nuty": [["NUTY", "I PŁYTY"], KP_WINE, 2.8],
+	"kp_czytelnia": [["CZYTELNIA", "KAWA I KSIĘGI"], KP_GOLD, 2.8],
+	"kp_pierogi": [["PIEROGI", "U BONY"], KP_WINE, 2.8],
+	"kp_pamiatki": [["PAMIĄTKI", "Z SYRENKĄ"], KP_BLUE, 2.8],
+	"kp_kantor": [["KANTOR", "ZAMKOWY"], Color(0.2, 1.0, 0.45), 2.8],
 	"marsz_zielarnia": [["ZIELARNIA", "NA WSZYSTKO"], MARSZ_GREEN, 2.8],
 	"zag_femina": [["KINO", "FEMINA"], Color(1.0, 0.3, 0.35), 4.6],
 	"zag_krol": [["KEBAB KRÓL", "MAZOWSZA"], Color(1.0, 0.72, 0.12), 2.8],
@@ -314,6 +327,20 @@ const MARSZALKOWSKA := {
 	"marsz_pasmanteria": [52.22317, 21.01497],
 	"marsz_zielarnia": [52.22039, 21.01706],
 }
+## Krakowskie Przedmieście's shopfronts (F's street-by-street pass, 2026-11-02): eight trades on the
+## royal route (amber, chemist, ice cream, sheet music, reading cafe, pierogi, souvenirs, exchange
+## office) at the mapped house numbers 20/22, 19, 27, 56, 45, 58/60, 64 and 69, both sides, from Nowy
+## Świat's top to the Castle. Like the cafés, not notebook places; the nearest address snaps each sign.
+const KRAKOWSKIE := {
+	"kp_bursztyn": [52.23930, 21.01761],
+	"kp_apteka": [52.24322, 21.01426],
+	"kp_lody": [52.24391, 21.01395],
+	"kp_nuty": [52.24402, 21.01543],
+	"kp_czytelnia": [52.24461, 21.01369],
+	"kp_pierogi": [52.24442, 21.01512],
+	"kp_pamiatki": [52.24547, 21.01448],
+	"kp_kantor": [52.24575, 21.01334],
+}
 ## A venue sign's letter pixel (m) and the smallest it shrinks to on a short wall.
 const VENUE_PX := 0.12
 const VENUE_PX_MIN := 0.08
@@ -421,7 +448,7 @@ func setup(data: Dictionary, places: Array) -> void:
 		if str(p.get("k", "")) == "kebab":
 			avoid.append(Vector2(float(p["x"]), float(p["z"])))
 	var with_cafes: Array = places.duplicate()
-	for table: Dictionary in [CAFES, LOUNGES, TRENDY, HYPE, CINEMAS, NOWY_SWIAT, POWISLE, MARSZALKOWSKA, zaglebie_table()]:
+	for table: Dictionary in [CAFES, LOUNGES, TRENDY, HYPE, CINEMAS, NOWY_SWIAT, POWISLE, MARSZALKOWSKA, KRAKOWSKIE, zaglebie_table()]:
 		for id: String in table:
 			var ll: Array = table[id]
 			with_cafes.append({"id": id, "at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})
