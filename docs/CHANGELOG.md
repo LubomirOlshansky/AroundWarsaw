@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- The bike paths are smoother: small gaps in them are closed, paths OpenStreetMap had cut into pieces run on as one, and spikes and sharp corners are rounded, so riders ride on from one path to the next instead of turning back.
 - Arkadka is redesigned: a cream-and-terracotta mall over its lit shop-front glass, glass-pyramid skylights, a roof car park full of parked cars with floodlights and stair cores, entrance canopies, and a finned entrance rotunda with the name on four faces. The Forest tower wears a BANK PEPEO sign near its crown, and its low wing has a roof terrace with parasols, tables and people from 11 to 23.
 
 

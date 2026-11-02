@@ -64,6 +64,7 @@ then the Launch gate.
 - [ ] Map checks in GitHub CI (the derived map pack as a release asset)
 - [x] check_streaming's look pass green on the Mac (a look pre-loads what each of its views
       shows), 2026-11-01, PR #183
+- [x] Bike paths smoothed (F, 2026-11-02, `tools/cycleways.py`, run by bake_osm): 195 gaps closed, 218 split ways joined, 52 ends on a line, 68 corners rounded; Mac look and ride check parked, comparison with OSM and the 3-8 m gaps left
 - [ ] Map review C: the streets of the 3d-1 box and map north against the orthophoto
 - [x] Bridge and tunnel joins (loop 3e leftovers): rails cut where a bus box touches them,
       Rozdroże's portal wall, Nowy Zjazd's wall (check_drive `--no-allow` 51 → 26 lane spots; 3 of
