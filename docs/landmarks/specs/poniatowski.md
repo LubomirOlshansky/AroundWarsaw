@@ -64,7 +64,21 @@ the deck's lamps are the bake's.
 L2. Towers 1536 triangles, budget 1850 (`check_mesh_quality.gd`); the spans are map geometry
 (about 11 k triangles in the walls surface, no draw call).
 
-## 8. Not built (open)
+## 8. Parts table
+
+| id | shape | size | position | material | feature |
+| --- | --- | --- | --- | --- | --- |
+| pavilion | box + merlons | seat, to 7.5 m over the deck | each group's seat | M_STONE #e8dfc8, M_ATTIC | arcaded pavilion |
+| arcade | arch panels | 3-5 bays, 3.5 m high | walk side (open), river side (glazed) | M_STONE #3a3640, M_PAVILION #4a5560 | round arches |
+| shaft | box, cornice, belfry, merlons | 7 x 7 m to 20 m over the deck | the pavilion's land end | M_STONE #e8dfc8 | the tower |
+| base | box | from the boulevard to the deck | under pavilion and shaft | M_STONE #b9b2a2 | stone base, portals |
+| turret | 8-sided prism + merlons | r 2.5 m, to 3 m over the deck | south groups, (3.5, 9.5) in the seat frame | M_STONE #e8dfc8 | stair turret |
+| pier | rounded block, courses, cap | 9 x 24 m + cutwaters | s 109.9-411.6 on the axis | walls #9c9a94 | granite pier |
+| rib | struts | 7.5 m deep at the springs, 1.6 m at the crown | four planes under the deck | walls #7c8288 | steel arch |
+| fascia, railing | quads, struts | 1.85 m; 1.2 m | both deck edges over the river | walls #b8484e, #1f1f22 | red girder, iron railing |
+| pedestal | boxes | 2.6 x 1.4 m to 2.6 m | over each pier, both edges | walls #9c9a94, #a8323a | cartouche |
+
+## 9. Not built (open)
 
 - Whether a pier hides near the west bank in the deck's shadow (the west span is ~104 m, the record
   says eight spans): QUESTIONS.
