@@ -130,6 +130,12 @@ SPIRAL_RADIUS = 25.0  # ...and at least this big (Rondo Dmowskiego) gets spiral 
 SPIRAL_EXIT_MERGE = 15.0  # exits closer than this along the ring are one
 SPIRAL_HOLD = 0.35   # the share of each gap between exits a lane line keeps its lane before sweeping out
 HATCH_FLOW_REACH = 15.0   # loop 3b-2: roads this close to a hatched area tell its traffic's way
+# Junction lines (2026-11-02, the GUGiK 0.1 m orthophoto): a median strip shorter than this...
+JMED_LEN = 30.0
+JMED_REACH = 3.0     # ...with a third road's strip this near (crossing it, not alongside: JMED_ANGLE)...
+JMED_ANGLE = 0.94    # ...is a junction's painted area (hatched), not a raised grass median,
+JMED_TOUCH = 2.0     # ...unless it comes this near a median that stays, running its way (|cos| at least
+JMED_ALONG = 0.85    # this): that median's end
 KERB_W = 0.3         # granite kerb, metres across...
 EDGE_INSET = 0.35    # ...and the edge line this far inside the carriageway
 
@@ -2369,6 +2375,7 @@ class Roadbed:
         opposite ways side by side): raised, its edges kerbed by bake_edges; grass, or
         paving where trams run in it. Mapped grass, islands and hatching stay as they are."""
         out = []
+        self._zebras = None
         # Map round 2b (L5): a median piece on the mapped tram bed (`landuse=railway`, the
         # ballast surface) is the tram bed, paved like it, even where the tracks themselves bend
         # away from it across a junction (the green rectangle on the tracks by Jerozolimskie x
@@ -2387,6 +2394,7 @@ class Roadbed:
             sgn = -1.0 if ow > 0 else 1.0
             pts = pairs(r["p"])
             strip = []
+            sides = []   # the far half's road per cross-section of `strip`
 
             def flush():
                 if len(strip) >= 2:
@@ -2403,8 +2411,10 @@ class Roadbed:
                                for p, q in strip for f in (0.2, 0.5, 0.8))
                     tram = tram or ballast.hit(mx, mz) >= 0
                     if abs(ring_area(near + far[::-1])) > 4.0 and self.green.hit(mx, mz) < 0:
-                        out.append({"s": flat([v for pq in strip for v in pq]), "k": "paving" if tram else "grass", "dk": lv})
+                        out.append({"s": flat([v for pq in strip for v in pq]), "k": "paving" if tram else "grass", "dk": lv,
+                                    "_jn": not tram and self._median_in_junction(r, strip, sides, lv)})
                 strip.clear()
+                sides.clear()
 
             for a, b in zip(pts, pts[1:]):
                 d = _unit(a, b)
@@ -2445,10 +2455,12 @@ class Roadbed:
                         continue
                     ex, ez = x + nx * (edge - 0.2), z + nz * (edge - 0.2)
                     strip.append(((ex, ez), (far[0] - nx * 0.3, far[1] - nz * 0.3)))
+                    sides.append(other)
             flush()
         # Each median is found from both sides: keep one.
         kept = []
         polys = []
+        junction = []
         for m in out:
             s4 = m["s"]
             q = [(s4[i], s4[i + 1]) for i in range(0, len(s4), 4)] + [(s4[i + 2], s4[i + 3]) for i in range(0, len(s4), 4)][::-1]
@@ -2457,9 +2469,98 @@ class Roadbed:
             if any(lv == m["dk"] and point_in_poly(cx, cz, poly) for lv, poly in polys):
                 continue
             polys.append((m["dk"], q))
-            kept.append(m)
+            if m.pop("_jn"):
+                junction.append((m, q))
+            else:
+                kept.append(m)
+        # Junction lines (2026-11-02): inside a junction the gap between the two halves is
+        # painted, not raised (the GUGiK 0.1 m orthophoto at the Poniatowski ramps, Wał
+        # Miedzeszyński and Plac Trzech Krzyży: chevrons or bare asphalt where a grass median with
+        # its kerbs and edge lines lay across the junction). Such a piece becomes a hatched area:
+        # asphalt, its outline and stripes (bake_hatching), no kerb. One that touches a median
+        # that stays, running its way, is that median's end (or the same strip seen from its other
+        # half) and stays a median; one lying mostly in a piece already painted is the same gap
+        # seen from the other side.
+        def ring(m):
+            s4 = m["s"]
+            return [(s4[i], s4[i + 1]) for i in range(0, len(s4), 4)] + [(s4[i + 2], s4[i + 3]) for i in range(0, len(s4), 4)][::-1]
+
+        def axis(m):
+            s4 = m["s"]
+            return _unit((s4[0], s4[1]), (s4[-4], s4[-3]))
+
+        def touch(q, poly):
+            return any(point_in_poly(x, z, poly) for x, z in q) or any(point_in_poly(x, z, q) for x, z in poly) \
+                or any(math.dist(a, b) < JMED_TOUCH for a in q for b in poly)
+
+        def centre(q):
+            return sum(p[0] for p in q) / len(q), sum(p[1] for p in q) / len(q)
+
+        def same(q, poly):
+            return point_in_poly(*centre(q), poly) or point_in_poly(*centre(poly), q) \
+                or sum(point_in_poly(x, z, poly) for x, z in q) * 2 > len(q)
+        kept_polys = [(m["dk"], ring(m), axis(m)) for m in kept]
+        painted_polys = []
+        painted = merged = 0
+        for m, q in junction:
+            u = axis(m)
+            if u is not None and any(lv == m["dk"] and v is not None and abs(u[0] * v[0] + u[1] * v[1]) >= JMED_ALONG
+                                     and math.dist(poly[0], q[0]) < 200.0 and touch(q, poly) for lv, poly, v in kept_polys):
+                kept.append(m)
+                continue
+            if any(lv == m["dk"] and math.dist(poly[0], q[0]) < 200.0 and same(q, poly) for lv, poly in painted_polys):
+                merged += 1
+                continue
+            painted_polys.append((m["dk"], q))
+            self.hatch.append({"p": q, "k": "prohibited", "jn": False, "ly": 0, "dk": m["dk"]})
+            painted += 1
+        if painted:
+            lvs = {h["dk"] for h in self.hatch}
+            self.hpolys = {lv: Polys([h["p"] for h in self.hatch if h["dk"] == lv]) for lv in lvs}
         self.medians = kept
-        print(f"roadbed: {len(kept)} median strips ({sum(1 for m in kept if m['k'] == 'paving')} with trams)")
+        self.medians_painted = painted
+        print(f"roadbed: {len(kept)} median strips ({sum(1 for m in kept if m['k'] == 'paving')} with trams); "
+              f"{painted} short ones inside a junction painted (hatched) instead ({merged} more seen from the other half)")
+
+    def _median_in_junction(self, r, strip, sides, lv):
+        """Junction lines (2026-11-02): whether a median piece between road r and its far half
+        lies in a junction: shorter than JMED_LEN along and, at any of its cross-sections, within
+        JMED_REACH of a third main road's strip that crosses it (not one running alongside)."""
+        near = [p for p, _ in strip]
+        if polyline_length(near) >= JMED_LEN:
+            return False
+        caps = self.allcaps.get(lv)
+        if caps is None:
+            return False
+        # A roundabout's middle is its raised island; a zebra across the strip makes it a raised
+        # refuge (signal poles stand on it): both stay medians.
+        if any(o is not None and o["_t"].get("junction") in ("roundabout", "circular") for o in sides + [r]):
+            return False
+        if self._zebras is None:
+            self._zebras = Capsules()
+            for w in self.paths:
+                if w["k"] == "zebra":
+                    for a, b in zip(pairs(w["p"]), pairs(w["p"])[1:]):
+                        self._zebras.add(a, b, 1.5, w)
+        if any(self._zebras.hit(p[0] + (q[0] - p[0]) * f, p[1] + (q[1] - p[1]) * f) is not None
+               for p, q in strip for f in (0.25, 0.5, 0.75)):
+            return False
+        for k, ((p, q), other) in enumerate(zip(strip, sides)):
+            d = _unit(near[max(k - 1, 0)], near[min(k + 1, len(near) - 1)])
+            if d is None:
+                continue
+            for f in (0.0, 0.5, 1.0):
+                x, z = p[0] + (q[0] - p[0]) * f, p[1] + (q[1] - p[1]) * f
+                for a, b, half, o in caps.grid.at(x, z):
+                    if o is r or o is other or o["k"] in MINOR or o["_id"] == r["_id"] \
+                            or (other is not None and o["_id"] == other["_id"]):
+                        continue
+                    od = _unit(a, b)
+                    if od is None or abs(od[0] * d[0] + od[1] * d[1]) > JMED_ANGLE:
+                        continue
+                    if seg_dist(x, z, a, b) <= half + JMED_REACH:
+                        return True
+        return False
 
     # -- lane lines, stop lines, arrows, bus and cycle lanes -----------------------------
 

@@ -138,7 +138,7 @@ often, known to every visitor; **B** characteristic, known to locals, gives a st
 | 72 | Dworzec Gdański and its metro (OSM: Dworzec Warszawa Gdańska) | Słomińskiego | station | ✗ | photos gathered ([gdanska](landmarks/photo-reports/gdanska.md)); railway S3d (Mac photos first) |
 | 73 | Warszawa Wschodnia | Lubelska | station | ✗ | photos gathered ([wschodnia](landmarks/photo-reports/wschodnia.md)); railway S3c (Mac photos first) |
 | 74 | Metro stations: Centrum, Świętokrzyska, Ratusz-Arsenał, Politechnika, Rondo ONZ, Rondo Daszyńskiego, Nowy Świat-Uniwersytet, Centrum Nauki Kopernik, Stadion Narodowy, Dworzec Gdański | (84 entrances) | metro | ○ | the kit's canopies, stairwells and M posts are in; each station's own face (Świętokrzyska's glass, Nowy Świat's pavilions, Kopernik's art) is ✗ |
-| 75 | Narodowy Bank Polski | Świętokrzyska | bank | ✗ | photos gathered ([nbp](landmarks/photo-reports/nbp.md)); photo build of the 1970s stone block |
+| 75 | Narodowy Bank Polski | Świętokrzyska | bank | ✗ | ortho and position only ([nbp](landmarks/photo-reports/nbp.md); facade photos still wanted); photo build of the 1970s stone block |
 | 76 | Poczta Główna | Świętokrzyska | post office | ✗ | photos gathered ([poczta](landmarks/photo-reports/poczta.md)); photo build |
 | 77 | Filharmonia Narodowa | Jasna / Sienkiewicza | concert hall | ✗ | photos gathered ([filharmonia](landmarks/photo-reports/filharmonia.md)); photo build |
 | 78 | PAST-a | Zielna | historic telephone tower | ✗ | photos gathered ([pasta](landmarks/photo-reports/pasta.md)); photo build: the 1908 tower, a famous Uprising site |
