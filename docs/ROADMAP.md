@@ -131,6 +131,9 @@ then the Launch gate.
 - [ ] City inventory Part 3: the top not-done places, one thread each, photos first (Most Poniatowskiego,
       Muzeum Powstania, Pomnik Powstania, Hotel Warszawa and Cedet, Rondo ONZ towers, the monuments pass,
       Plac Bankowy, Świętokrzyska's NBP/Poczta/PAST-a, the outline builds' photo re-pass, Praga's faces)
+- [ ] Monuments pass (City inventory Part 3 item 6)
+  - [x] Every OSM monument, sculpture, talking bench and memorial plaque in the box as a generic piece, plaques on their walls with candles (2026-11-02, tools/bake_monuments.py)
+  - [ ] Photo builds: Nike, Słowacki and Starzyński, Mały Powstaniec and Kiliński, Plac Piłsudskiego's, the Eastern memorial, Umschlagplatz (Mac photo pass)
 - [ ] Krajobraz places (F, 2026-11-02; docs/design/krajobraz-places.md, BACKLOG "Krajobraz places"): the newest public spaces as built
   - [x] K1 ul. Bracka's woonerf: its 22 missing young trees planted in the mapped beds (33 in all)
   - [x] K2 ul. Chmielna: 65 young elms and planes in its tree pits (85 in all), granite paving, Ali's stone and plate

@@ -19,13 +19,18 @@ bubbles and KEBAB FM's "Sąsiedzi znów liczą obroty". Open:
 
 docs/CITY_INVENTORY.md lists every characteristic place in the box, ranked, with its status; Part 3
 is the order of the next threads. Found while building it:
-- **Monuments are almost missing.** OSM's memorial and statue points are not in `centrum.json`, so only
-  the hand-built ones exist (Zygmunt, Grób, Mickiewicz, Kopernik, Prus, Wyszyński, de Gaulle, the
-  Syrenki). Nike, Słowacki, Starzyński, Mały Powstaniec, Kiliński, Plac Piłsudskiego's, the Uprising
-  monument, Umschlagplatz, the Eastern memorial, Reagan, Dmowski, Witos, Skłodowska-Curie and Sapera are ✗.
-  The OSM points are now cached in `docs/inventory/osm_candidates.json` (tools/city_list.py, 2026-11-02;
-  CITY_INVENTORY Part 2 lists 216 monuments and sculptures, 26 murals, 267 bars and about 690 plaques by
-  street); a bake of them into `pois` would place them; each still needs a model from photos.
+- ~~**Monuments are almost missing.**~~ Fixed 2026-11-02 (monuments pass, part 1): `tools/bake_monuments.py`
+  bakes the OSM cache (`docs/inventory/osm_candidates.json`) into `game/data/monuments.json`: 818 generic
+  pieces (75 statues, 32 busts, 68 steles, 66 stones, 26 sculptures, 9 talking benches, a cross, two
+  obelisks, Ogród Saski's 19 allegories at their real spots instead of 16 random ones) and 520 sandstone
+  wall plaques with candles (Tchorek's Uprising plaques and the rest), built in park_details' per-cell
+  meshes (+3 draw calls on the bench route). Checks `monuments` and `monumentmesh`.
+- **Monuments pass, part 2 (open):** photo builds of Nike, Słowacki, Starzyński, Mały Powstaniec, Kiliński,
+  Plac Piłsudskiego's (Piłsudski, Smolensk, Kaczyński), the Eastern memorial and Umschlagplatz from Mac photos
+  (refs/); each lands as a site and joins `bake_monuments.SKIP`. Then rows 113-116 and 142.
+- **Plaques without a wall:** 49 OSM plaques have no drawn wall within 12 m (free-standing ones, courtyards)
+  and are left out; a post-mounted plaque piece would place them. A plaque's wall is the LoD2 footprint, so
+  a deep shop recess can leave it on a pier rather than the door's wall (fine so far in shots).
 - **Rule:** a tier S or A model starts from photos (F's or `refs/` on the Mac). About 50 outline builds wait
   for their Mac photo check (QUESTIONS); their photo re-pass is Part 3 item 9.
 - 455 named OSM outlines (tier C: tenements, offices, embassies) are plain blocks; street passes take them

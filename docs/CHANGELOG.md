@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- Warsaw's monuments are on the map: about 300 statues, busts, memorial stones and talking benches stand where the real ones do, Ogród Saski's sandstone statues stand at their real spots, and 520 Uprising memorial plaques hang on the walls with candles below them.
 - The quest list on the full map works with a gamepad (X switches between car and helicopter quests, the D-pad picks one, Y takes it) and lists more to do: the "Na czasie" trend deliveries, Cringulo's van, the Friday pistachio drop, the next rival on the ladder (the arrow follows them through traffic), Seba's night race and the peacock stuck on a roof. While something is on, it shows at the top of the list.
 - Driving onto a bridge ramp at an angle no longer drops you under the bridge: the car climbs onto the ramp, at Most Poniatowskiego, Towarowa and the Vistula boulevard road too.
 - The full map has a quest list: ZADANIA AUTO and ZADANIA HELI, each showing what you can start right now (a kebab stand, a jar station, the garage, a ride, a cassette on a roof, a helicopter rescue call) with how far it is and which way. Tap a place and an arrow leads you there; tap a ride or a rescue call and it starts.

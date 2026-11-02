@@ -130,6 +130,9 @@
 # game/tools/check_street_details.gd (every kind builds as one surface, a cell's triangle budget); CI too.
 # Park details (2026-11-01): `parkdetails` runs tools/check_park_details.py (the baked park pieces against the map: stale file,
 # blocked spots, budget); `parkmesh` runs game/tools/check_park_details.gd (every kind builds as one surface); CI too.
+# Monuments (2026-11-02): `monuments` runs tools/check_monuments.py (the OSM monuments and wall plaques against
+# the map: stale file, blocked spots, plaques on walls, hand-built monuments left alone); `monumentmesh` runs
+# game/tools/check_monuments.gd (every kind builds as one surface, a cell's triangle budget with the park pieces); CI too.
 # Bus stops (G8/G9, 2026-11-01): `stops` runs tools/check_stops.py (every bus-road shelter on the kerb and
 # turned to the road, benches facing the walk, none in a building or the water, cafe sets on a shopfront).
 # The main line (2026-10-31): `mainline` runs game/tools/check_main_line.gd: main_line.gd's step from
@@ -168,8 +171,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh spec lod2 drape ground drive drive-prebuilt stuckspots stuckspots-prebuilt steering handling stopassist questlines settings credits language tiers governor hud places edge roadworks eggs tape crowds life buses zaglebie crashes loud oldtram trains packs wellness fans garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 rescues couriers rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram firstlife heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh spec drape drive stuckspots steering handling stopassist questlines settings credits language tiers governor hud places edge roadworks eggs tape crowds life buses zaglebie crashes loud oldtram trains packs wellness fans garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 rescues couriers rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds police plain ram firstlife prebuilt)
+STEPS_ALL=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh monuments monumentmesh spec lod2 drape ground drive drive-prebuilt stuckspots stuckspots-prebuilt steering handling stopassist questlines settings credits language tiers governor hud places edge roadworks eggs tape crowds life buses zaglebie crashes loud oldtram trains packs wellness fans garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 rescues couriers rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram firstlife heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh monuments monumentmesh spec drape drive stuckspots steering handling stopassist questlines settings credits language tiers governor hud places edge roadworks eggs tape crowds life buses zaglebie crashes loud oldtram trains packs wellness fans garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 rescues couriers rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds police plain ram firstlife prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -676,6 +679,16 @@ for s in $want; do
 				*) row FAIL "parkdetails" $secs "$(tail -1 $logs/parkdetails.log) ($logs/parkdetails.log)" ;;
 			esac ;;
 		parkmesh) check parkmesh '^park_details:' --script res://tools/check_park_details.gd ;;
+		monuments)
+			t0=$EPOCHREALTIME
+			python3 -I $ROOT/tools/check_monuments.py > $logs/monuments.log 2>&1
+			code=$?
+			secs=$(printf '%.0f' $(( EPOCHREALTIME - t0 )))
+			case $code in
+				0) row PASS "monuments" $secs "$(tail -1 $logs/monuments.log)" ;;
+				*) row FAIL "monuments" $secs "$(tail -1 $logs/monuments.log) ($logs/monuments.log)" ;;
+			esac ;;
+		monumentmesh) check monumentmesh '^monuments:' --script res://tools/check_monuments.gd ;;
 		stops)
 			t0=$EPOCHREALTIME
 			python3 -I $ROOT/tools/check_stops.py > $logs/stops.log 2>&1

@@ -276,14 +276,16 @@ def build(text):
              'fronts), "○ in game" when the game names them (a card, a sign, a skin), "○ old-town dress" '
              'for the dressed Old Town houses, and ✗ when they are a plain block. Streets are the nearest address point, so a '
              'corner building can sit on the cross street. After the buildings, each street lists the '
-             'OpenStreetMap points the map does not bake (monuments, murals, bars, museums, stages, malls, '
+             'OpenStreetMap points the map does not bake as buildings (monuments, murals, bars, museums, stages, malls, '
              'hotels, offices; real venue names, which the game only shows as parodies) and a count of its '
-             'plaques and memorial stones.\n\n' + '\n'.join(out).rstrip() + '\n')
+             'plaques and memorial stones. Monuments marked "○ in game" stand as a generic piece at least '
+             '(tools/bake_monuments.py, game/data/monuments.json), as do the plaques.\n\n' + '\n'.join(out).rstrip() + '\n')
     tier_c = sum(v for k, v in counts.items() if k.startswith('c_'))
     count_md = ('**Counts** (Part 1, %d ranked rows): ★ %d photo builds · ◐ %d outline builds · '
                 '○ %d dress only · ⏳ %d in progress · ✗ %d not done. Part 2 adds %d named outlines '
                 '(tier C): %d with a model of their own, %d dressed or named in the game, %d plain blocks. From '
-                'OpenStreetMap points the map does not bake: %d monuments and sculptures, %d murals, %d bars and '
+                'OpenStreetMap points (the monuments and plaques stand as generic pieces from tools/bake_monuments.py '
+                'since 2026-11-02, the rest are not baked): %d monuments and sculptures, %d murals, %d bars and '
                 'clubs, %d museums and galleries, %d theatres and cinemas, %d malls, %d hotels, %d plaques and '
                 'memorial stones (the named office buildings are already outlines above).\n'
                 % (len(rows), counts['★'], counts['◐'], counts['○'], counts['⏳'], counts['✗'],
