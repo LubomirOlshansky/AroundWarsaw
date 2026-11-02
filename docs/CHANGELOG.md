@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-02
 - The narrow one-way streets of the centre (Mokotowska, Wilcza, Hoża, Żurawia and about 280 more) are as wide as the real ones now, room for the parked cars, instead of a lane-wide strip, and the two-lane side streets are a metre wider, as on the aerial photo.
+- The Stadion Narodowy has its grounds: lime and plane trees line both sides of the entrance avenues, and groups of pollarded willows stand on the lawns between them.
 - Złota is now the green linear park that opened this summer: no cars between Marszałkowska and Jasna, rows of young limes, lawns with pale stone blocks to sit on, a rock fountain, benches, café gardens, and Dom pod Orłami over it with its two bronze eagles on the corner towers.
 - Speech bubbles point at whoever is talking even when the screen is busy, and a line no longer jumbles its words while it types.
 - Chmielna has its benches: 64 along the street, on both sides between the young trees, facing the walk.

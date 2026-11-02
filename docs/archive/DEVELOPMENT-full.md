@@ -5310,6 +5310,9 @@ still hold, with the paths above.
    `trees3d_crown` → 45,046), and its two pedestrian areas re-tagged `granite`. One K5 plaza
    tree by Skyliner stood through a lying scooter (check_pois Q4) and was taken out;
    `plaza_gardens.py` keeps POI_GAP (1.6 m) from the map's POIs (→ 270,270 / 45,045).
+   K9 (2026-11-02, `planted_trees.py` PLACE `stadion`, kind `grounds`: lime and plane rows on the
+   Stadion Narodowy's entrance plazas, pollarded willow groups on its lawns, marked in
+   `planted_places`): +80 trees (→ 270,966 / 45,161 on top of the Złota limes).
 1. OpenStreetMap (Overpass) → `data/raw/osm_wide.json` (the whole map: roads, trees, lamps,
    traffic lights, car parks, street furniture), then
    `W=data/raw/osm_wide.json && python3 -I tools/bake_osm.py $W $W game/map/centrum.json $W $W`.
