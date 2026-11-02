@@ -15,6 +15,13 @@ extends SceneTree
 ## PT-4 (2026-11-02): hard stops on Marszałkowska by Rondo Dmowskiego, among the underpass stairs;
 ## after the roundabout's rebuild (site `rondo`) the lanes up to the ring drive clean.
 ##
+## PT-2 and PT-5 (2026-11-02): suspects from the Autopilot runs (a block NE of Plac Defilad, the side
+## streets west of Marszałkowska). Not reproduced: ~680 straight lines (every 40 m, both ways, both
+## areas, 12 m/s with the gas held) along the real road centrelines stop only at dead ends and
+## road ends, and kerb-hugging lines stop only at the walls and houses past the kerb. The agent's
+## stops there were off-route wandering into courtyards and gated service roads. Six lines
+## along the main streets stay as guards.
+##
 ## (Head on into the platform's 3 m end the car stops, as at any wall, and is turned out.)
 ##
 ## PT-7 (2026-11-02): by the curved glass corner of Chmielna and Bracka (Zgoda's end) a car held
@@ -46,6 +53,12 @@ const SPOTS := [
 	[-795.0, 526.0, -20.0, 25.0, 1.8, 0.8, "PT-4 Marszałkowska north to Rondo Dmowskiego, the middle lane"],
 	[-792.2, 525.0, -20.0, 25.0, 1.8, 0.8, "PT-4 Marszałkowska north to Rondo Dmowskiego, the kerb lane"],
 	[-874.9, 395.1, 160.0, 25.0, 1.8, 0.8, "PT-4 Marszałkowska south to Rondo Dmowskiego, past the north-west stairs"],
+	[-730.0, -250.0, -4.0, 12.0, 2.5, 0.8, "PT-2 Mazowiecka north of Plac Defilad"],
+	[-413.0, -332.0, 75.0, 12.0, 2.5, 0.8, "PT-2 Świętokrzyska towards Nowy Świat"],
+	[-387.0, -187.0, 168.0, 12.0, 2.5, 0.8, "PT-2 Nowy Świat, the pedestrian-street stretch"],
+	[-359.0, -68.0, 164.0, 12.0, 2.5, 0.8, "PT-2 Nowy Świat south"],
+	[-2225.0, 30.0, -21.0, 12.0, 2.5, 0.8, "PT-5 Żelazna, west of Marszałkowska"],
+	[-2365.0, 288.0, -97.0, 12.0, 2.5, 0.8, "PT-5 Prosta, west of Marszałkowska"],
 	[-616.0, 180.0, 253.0, 7.0, 3.0, 0.0, "PT-7 west along Chmielna's block, the stick into it past the notch at Zgoda", 230.0],
 	[-620.0, 181.0, 253.0, 7.0, 3.0, 0.0, "PT-7 west along Chmielna's block, the stick south-west past the notch", 200.0],
 	[-612.0, 176.0, 78.0, 7.0, 3.0, 0.0, "PT-7 Chmielna east, the stick to Krucza along the glass corner (the slit)", 150.0],

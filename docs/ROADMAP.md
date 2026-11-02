@@ -92,6 +92,7 @@ then the Launch gate.
       (F, 2026-11-02; docs/PLAYTEST.md; setup and Autopilot plugin done 2026-11-02)
   - [x] PT-1 dead stop at Centrum's tram stop on Marszałkowska, 2026-11-02 (PR #289)
   - [x] PT-7 car pinned and towed at the Chmielna square's glass corner (notches and slits in building fronts bridged city-wide), 2026-11-02
+  - [x] PT-2 (NE of Plac Defilad) and PT-5 (side streets west of Marszałkowska) not reproduced, 2026-11-02: ~680 swept road lines clean, six guard lines in `check_stuck_spots.gd`
   - [x] PT-8 Pani Halina rolled up in front of the car on narrow Hoża and pinned it for her whole prompt, 2026-11-02 (`check_ladder`)
   - [x] PT-13 the first order card started without a tap: GO counts down to the order's own start, 2026-11-02
   - [x] PT-9 radio ticker cut off at the left edge at 2.16:1, and PT-10 the order tracker over speech bubbles and its distance into its arrow, 2026-11-02 (`check_hud`; phone look open)
@@ -408,6 +409,8 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
       feel, stop assist, rubber band, ghost finger, cassette size
 - [x] Rescue call card says where the person is (PT-12, 2026-11-02): distance and compass direction on the card, English hint no longer quotes the Polish label
 - [x] Race card shows its goal in full and tells the player to drive (PT-11, 2026-11-02): "WYŚCIG · POD PALMĘ", hint "Jedź pod Palmę! … Różowa strzałka pokaże drogę."
+- [x] First race waits for a new player and tells them to drive (PT-11 design half, 2026-11-02): Halina holds at the line until the car moves, GAZ! banner + ghost finger + her line after 2 s still, a nudge if stopped mid-race; heli, tape, Powiśle and garage beats pass the headless first10 replay
+- [ ] P2 by hand on the Mac (Autopilot): fly to the BUW cassette and drive to Mirek's garage as a new player would
 - [ ] A 30-minute soak with no crash or soft-lock; the HUD re-checked at 375, 390 and 440 pt (PT-9 bubble tails fixed 2026-11-02, `check_hud` covers them; the phone look is open)
 
 ### Left: TestFlight and the stores
