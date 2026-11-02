@@ -24,8 +24,9 @@ const Wallet := preload("res://scripts/wallet.gd")
 const EggBook := preload("res://scripts/egg_book.gd")
 const Crowds := preload("res://scripts/crowds.gd")
 const Car := preload("res://scripts/car.gd")
+const Upgrades := preload("res://scripts/upgrades.gd")
 const SCRATCH := "user://check_garage.cfg"
-const TAGS := ["hello", "buy", "black", "green", "gold", "switch", "short", "locked"]
+const TAGS := ["hello", "buy", "black", "green", "gold", "switch", "short", "locked", "parts", "tt", "nitro", "part", "max"]
 
 var problems: Array[String] = []
 
@@ -45,11 +46,15 @@ func _run() -> void:
 	await _check_car()
 	_check_lines()
 	_check_eggs()
+	_check_shop_rules()
+	_check_shop_buying()
+	_check_shop_save()
+	await _check_shop_car()
 	if FileAccess.file_exists(SCRATCH):
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(SCRATCH))
 	if problems.is_empty():
-		print("check_garage: OK (%d paints, the rules, buying and switching, 10 seeded walks, the save, the car's paint, Mirek's %d tags, E01 and E21 once)" % [
-				Garage.PAINTS.size(), TAGS.size()])
+		print("check_garage: OK (%d paints, the rules, buying and switching, 10 seeded walks, the save, the car's paint, Mirek's %d tags, E01 and E21 once; G13: %d cars, nitro, %d parts x 3 levels, the shop's rules, buying, save, the car's model, tuning and nitro tank)" % [
+				Garage.PAINTS.size(), TAGS.size(), Upgrades.CARS.size(), Upgrades.PARTS.size()])
 		quit(0)
 	else:
 		for p in problems:
@@ -330,3 +335,228 @@ func _check_eggs() -> void:
 	_expect("E21 respect", int(w.respect) - r1, 15)
 	book.free()
 	w.free()
+
+
+# --- G13: the upgrade shop (upgrades.gd) ---------------------------------------------------------
+
+func _check_shop_rules() -> void:
+	var tt := Upgrades.car("tt")
+	var hatch := Upgrades.car("hatch")
+	if tt.is_empty() or hatch.is_empty():
+		problems.append("shop: the hatch or the TT is missing")
+		return
+	_expect("TT price", int(tt["price"]), 2500)
+	_expect("nitro price", int(Upgrades.NITRO["price"]), 600)
+	_expect("hatch is free", int(hatch["price"]), 0)
+	for k in ["top", "pull", "grip"]:
+		if float(tt[k]) <= float(hatch[k]):
+			problems.append("shop: the TT's %s is not above the hatch's" % k)
+	for p: Dictionary in Upgrades.PARTS:
+		var prices: Array = p["prices"]
+		if prices.size() != Upgrades.MAX_LEVEL:
+			problems.append("shop: %s has %d levels" % [p["id"], prices.size()])
+		for i in prices.size():
+			if int(prices[i]) < 150 or int(prices[i]) > 400:
+				problems.append("shop: %s level %d costs %d zł (want 150-400)" % [p["id"], i + 1, int(prices[i])])
+			if i > 0 and int(prices[i]) <= int(prices[i - 1]):
+				problems.append("shop: %s level %d is not dearer than the last" % [p["id"], i + 1])
+	for id: String in Upgrades.ORDER:
+		var row := Upgrades.find(id)
+		if row.is_empty() or (row["name"] as Array).size() != 2 or (row["blurb"] as Array).size() != 2:
+			problems.append("shop: %s without names or blurbs in both languages" % id)
+		if str(row["name"][0]).length() > 32:
+			problems.append("shop: %s's Polish name is over 32 characters" % id)
+	var st := {"car": "hatch", "cars": {}, "nitro": false, "tune": {}}
+	_expect("rule tt 2500", Upgrades.rule("tt", 2500, st), "buy")
+	_expect("rule tt 2499", Upgrades.rule("tt", 2499, st), "short")
+	_expect("rule hatch on", Upgrades.rule("hatch", 0, st), "on")
+	_expect("rule nitro 600", Upgrades.rule("nitro", 600, st), "buy")
+	_expect("rule nitro 599", Upgrades.rule("nitro", 599, st), "short")
+	_expect("rule tyres 150", Upgrades.rule("tyres", 150, st), "buy")
+	_expect("rule engine 199", Upgrades.rule("engine", 199, st), "short")
+	_expect("rule nothing", Upgrades.rule("turbo", 9999, st), "")
+	st = {"car": "tt", "cars": {"tt": 1}, "nitro": true, "tune": {"tyres": 3, "engine": 1}}
+	_expect("rule tt on", Upgrades.rule("tt", 0, st), "on")
+	_expect("rule hatch back", Upgrades.rule("hatch", 0, st), "switch")
+	_expect("rule nitro owned", Upgrades.rule("nitro", 0, st), "owned")
+	_expect("rule tyres max", Upgrades.rule("tyres", 9999, st), "max")
+	_expect("rule engine level 2", Upgrades.rule("engine", 300, st), "buy")
+	_expect("engine 2 price", Upgrades.price("engine", st["tune"]), 300)
+	_expect("tyres maxed price", Upgrades.price("tyres", st["tune"]), 0)
+	# The numbers: the hatch as it was, the TT and the parts above it.
+	var base := Upgrades.stats("hatch", {}, false)
+	_expect("hatch top speed km/h", int(base["top_kmh"]), 108)
+	_expect("hatch pull", float(base["pull"]), 1.0)
+	_expect("hatch grip", float(base["grip"]), 1.0)
+	var fast := Upgrades.stats("tt", {"tyres": 3, "engine": 3}, true)
+	if int(fast["top_kmh"]) <= int(Upgrades.stats("tt", {}, false)["top_kmh"]) or int(Upgrades.stats("tt", {}, false)["top_kmh"]) <= 108:
+		problems.append("shop: the TT and the engine do not add speed")
+	if float(fast["grip"]) <= float(Upgrades.stats("tt", {}, false)["grip"]):
+		problems.append("shop: the tyres do not add grip")
+	_expect("after the TT", int(Upgrades.stats_after("tt", {"car": "hatch", "tune": {}, "nitro": false})["top_kmh"]), int(Upgrades.stats("tt", {})["top_kmh"]))
+	_expect("after the nitro", bool(Upgrades.stats_after("nitro", {"car": "hatch", "tune": {}, "nitro": false})["nitro"]), true)
+
+
+## Buying walks: exact prices, levels stop at 3, the nitro once, a car once then free to switch.
+func _check_shop_buying() -> void:
+	var w := _wallet(0)
+	var g := _garage(w)
+	_expect("tyres with 0 zł", g.choose_item("tyres"), "short")
+	w.zl = 150 + 250 + 350 + 200 + 300 + 400 + 600 + 2500 + 10
+	var total := int(w.zl)
+	for lv in 3:
+		_expect("tyres level %d" % (lv + 1), g.choose_item("tyres"), "buy")
+	_expect("tyres level after", Upgrades.level(w.tune, "tyres"), 3)
+	_expect("tyres past 3", g.choose_item("tyres"), "max")
+	for lv in 3:
+		_expect("engine level %d" % (lv + 1), g.choose_item("engine"), "buy")
+	_expect("engine past 3", g.choose_item("engine"), "max")
+	_expect("nitro", g.choose_item("nitro"), "buy")
+	_expect("nitro owned", bool(w.nitro), true)
+	_expect("nitro again", g.choose_item("nitro"), "owned")
+	_expect("the TT", g.choose_item("tt"), "buy")
+	_expect("the TT on the road", str(w.car), "tt")
+	_expect("zł left", int(w.zl), 10)
+	_expect("the TT again", g.choose_item("tt"), "on")
+	_expect("back to the hatch (free)", g.choose_item("hatch"), "switch")
+	_expect("on the hatch", str(w.car), "hatch")
+	_expect("the TT, owned, free", g.choose_item("tt"), "switch")
+	_expect("zł after switching", int(w.zl), 10)
+	_expect("paid in all", total - int(w.zl), 150 + 250 + 350 + 200 + 300 + 400 + 600 + 2500)
+	g.free()
+	w.free()
+
+
+func _check_shop_save() -> void:
+	var w := _wallet(5000)
+	w.persistent = true
+	w.path = SCRATCH
+	var g := _garage(w)
+	g.choose_item("tt")
+	g.choose_item("nitro")
+	g.choose_item("tyres")
+	g.choose_item("tyres")
+	g.choose_item("engine")
+	w.save()
+	var back := _wallet(0)
+	back.persistent = true
+	back.path = SCRATCH
+	back.load_save()
+	_expect("saved car", str(back.car), "tt")
+	_expect("saved cars", back.cars.has("tt"), true)
+	_expect("saved nitro", bool(back.nitro), true)
+	_expect("saved tyres", Upgrades.level(back.tune, "tyres"), 2)
+	_expect("saved engine", Upgrades.level(back.tune, "engine"), 1)
+	_expect("saved zł", int(back.zl), 5000 - 2500 - 600 - 150 - 250 - 200)
+	_expect("has progress", back.has_progress(), true)
+	# A save from before G13 (a [garage] section with paints only): the hatch, untuned, no nitro.
+	var old := ConfigFile.new()
+	old.set_value("wallet", "zl", 40)
+	old.set_value("garage", "paint", "blue")
+	old.set_value("garage", "own_blue", 20261030)
+	old.save(SCRATCH)
+	var w2 := _wallet(0)
+	w2.persistent = true
+	w2.path = SCRATCH
+	w2.load_save()
+	_expect("old save's car", str(w2.car), "hatch")
+	_expect("old save's nitro", bool(w2.nitro), false)
+	_expect("old save's tune", w2.tune.size(), 0)
+	_expect("old save's paint", str(w2.paint), "blue")
+	# An edited file naming a car that was never bought, and a level of 9: the hatch, level 3.
+	var edited := ConfigFile.new()
+	edited.set_value("garage", "car", "tt")
+	edited.set_value("garage", "tune_tyres", 9)
+	edited.save(SCRATCH)
+	var w3 := _wallet(0)
+	w3.persistent = true
+	w3.path = SCRATCH
+	w3.load_save()
+	_expect("an unowned car in the file", str(w3.car), "hatch")
+	_expect("a level of 9 in the file", Upgrades.level(w3.tune, "tyres"), 3)
+	w3.reset()
+	_expect("reset car", str(w3.car), "hatch")
+	_expect("reset nitro", bool(w3.nitro), false)
+	g.free()
+	for n in [w, back, w2, w3]:
+		n.free()
+
+
+## The car: the model swap (the same nodes), the tuning's multipliers, the nitro tank, and a real
+## 12 s run of the car script on the gas for each model, with and without the nitro.
+func _check_shop_car() -> void:
+	var car: CharacterBody3D = Car.new()
+	root.add_child(car)
+	await process_frame
+	var nodes := car.find_children("*", "", true, false).size()
+	var mesh_before: Mesh = (car.get("_body_mesh") as MeshInstance3D).mesh
+	var w := _wallet(100000)
+	var g := _garage(w)
+	g.car = car
+	g.choose_item("tt")
+	_expect("car model", str(car.get("model")), "tt")
+	if (car.get("_body_mesh") as MeshInstance3D).mesh == mesh_before:
+		problems.append("car: the TT left the hatch's mesh on")
+	_expect("car nodes after the swap", car.find_children("*", "", true, false).size(), nodes)
+	var st := Upgrades.stats("tt", {}, false)
+	_expect("car top_mult", is_equal_approx(float(car.get("top_mult")), float(st["top_mult"])), true)
+	g.choose_item("tyres")
+	var grip_cruise := float(car.get("grip"))
+	var base_grip: float = float(Car.PROFILES[Car.Handling.CRUISE]["grip"])
+	if grip_cruise <= base_grip * 1.1:
+		problems.append("car: grip %.1f with the TT and tyres 1 (profile %.1f)" % [grip_cruise, base_grip])
+	car.set_handling(Car.Handling.SPORT)
+	if float(car.get("grip")) <= float(Car.PROFILES[Car.Handling.SPORT]["grip"]):
+		problems.append("car: the tuning's grip is lost on switching to Sport")
+	car.set_handling(Car.Handling.CRUISE)
+	g.choose_item("hatch")
+	_expect("car back on the hatch", str(car.get("model")), "hatch")
+	# Nitro: not owned = never on; owned: held burns the tank in NITRO_SECONDS, a dry tank waits for
+	# the button to be let go, then it refills in NITRO_REFILL s.
+	car.set("nitro_hold", true)
+	car.call("_nitro_tick", 0.1)
+	_expect("nitro without owning", bool(car.get("nitro_on")), false)
+	g.choose_item("nitro")
+	_expect("car owns the nitro", bool(car.get("nitro_owned")), true)
+	car.call("_nitro_tick", 0.1)
+	_expect("nitro on", bool(car.get("nitro_on")), true)
+	if absf(float(car.call("top_speed")) - float(car.get("max_speed")) * Car.NITRO_TOP) > 0.01:
+		problems.append("car: top speed %.1f with the nitro on" % float(car.call("top_speed")))
+	var t := 0.0
+	while bool(car.get("nitro_on")) and t < 10.0:
+		car.call("_nitro_tick", 0.05)
+		t += 0.05
+	if absf(t - Car.NITRO_SECONDS) > 0.3:
+		problems.append("car: the tank burned %.1f s (want %.1f)" % [t, Car.NITRO_SECONDS])
+	for i in 600:
+		car.call("_nitro_tick", 0.05)  # held on, dry: stays off
+	_expect("a dry tank, button held", bool(car.get("nitro_on")), false)
+	car.set("nitro_hold", false)
+	for i in int(Car.NITRO_REFILL / 0.05) + 20:
+		car.call("_nitro_tick", 0.05)
+	if float(car.get("nitro_charge")) < 0.999:
+		problems.append("car: the tank is at %.2f after %.0f s" % [float(car.get("nitro_charge")), Car.NITRO_REFILL])
+	# A run on the gas, 12 s: the TT is quicker than the hatch, the nitro quicker still.
+	var tops := {}
+	for run in [["hatch", false], ["tt", false], ["hatch", true], ["tt", true]]:
+		g.choose_item(str(run[0]))
+		car.global_position = Vector3.ZERO
+		car.rotation = Vector3.ZERO
+		car.vel = Vector3.ZERO
+		car.set("nitro_charge", 1.0)
+		car.set("throttle", 1.0)
+		car.set("target_dir", Vector3.ZERO)
+		car.set("nitro_hold", bool(run[1]))
+		var peak := 0.0
+		for i in 720:
+			car.call("_nitro_tick", 0.0)
+			car.call("_step", 1.0 / 60.0)
+			peak = maxf(peak, car.vel.length())
+			if bool(run[1]) and i == 120:
+				car.set("nitro_hold", false)
+		tops["%s%s" % [run[0], "+nitro" if run[1] else ""]] = peak
+	if not (tops["tt"] > tops["hatch"] + 1.0 and tops["hatch+nitro"] > tops["hatch"] + 1.0 and tops["tt+nitro"] > tops["tt"] + 1.0):
+		problems.append("car: top speeds %s (want TT > hatch, nitro > none)" % [tops])
+	g.free()
+	w.free()
+	car.free()

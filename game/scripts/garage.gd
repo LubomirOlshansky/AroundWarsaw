@@ -21,8 +21,12 @@ signal opened
 signal closed
 ## A paint went on the car (bought or switched): its id.
 signal painted(id: String)
+## G13: a car, the nitro or a part was bought (or a car switched to): its shop id.
+signal upgraded(id: String)
 
 const GarageCard := preload("res://scripts/garage_card.gd")
+## G13: the second tab, "Części i auta" (a faster car, nitro, tyres and engine): upgrades.gd.
+const Upgrades := preload("res://scripts/upgrades.gd")
 
 ## The workshop's spot: a point on Brzeska (map metres) near which the ring goes on the street.
 const SPOT := Vector2(1321.0, -1947.6)
@@ -83,6 +87,8 @@ var force := false
 ## Loop 3h slice 4: the guided first 10 minutes (first10.gd) keep the ring hidden until their
 ## 10:00 beat, earnings or not (the rule's "after the first earnings" waits for it).
 var held := false
+## --garage=parts: the card opens on the parts tab (G13).
+var start_tab := "paint"
 ## --garage-log: the card, the buys and the paints.
 var log_on := false
 ## Time spent in this script since the bench last read it (µs).
@@ -157,6 +163,7 @@ func setup(world: Node3D) -> void:
 	_ring.global_position = at
 	_ring.visible = false
 	apply_saved()
+	apply_car()
 	_refresh(true)
 	print("garage: %s at %.0f, %.0f (%s), %.1f m from its spot; paint %s, %d owned%s" % [NAME[0], at.x, at.z, STREET,
 			p.distance_to(SPOT), current(), owned().size() + 1, ", shown" if _shown else ", not shown yet"])
@@ -277,12 +284,84 @@ static func today() -> int:
 
 
 ## Mirek's line for `tag` (dialogue.json "garage": hello, buy, black, green, gold, switch, short,
-## locked) as [pl, en].
+## locked, plus G13's parts, tt, nitro, part, max) as [pl, en].
 func line(tag: String) -> Array:
 	if dialogue == null:
 		return ["", ""]
 	var l: Array = dialogue.line("garage", tag, true)
 	return [str(l[0]), str(l[1])] if l.size() >= 2 else ["", ""]
+
+
+# --- the shop: cars, nitro, parts (G13) -------------------------------------------------------
+
+## The shop's state for upgrades.gd's rules.
+func shop_state() -> Dictionary:
+	if wallet == null:
+		return {"car": Upgrades.DEFAULT_CAR, "cars": {}, "nitro": false, "tune": {}}
+	return {"car": wallet.car, "cars": wallet.cars, "nitro": wallet.nitro, "tune": wallet.tune}
+
+
+## What a tap on shop item `id` would do now (upgrades.gd `rule`).
+func item_rule_now(id: String) -> String:
+	return Upgrades.rule(id, int(wallet.zl) if wallet != null else 0, shop_state())
+
+
+## Buys or switches to shop item `id` when the rule allows (the wallet pays; a car is bought once and
+## then switched to for free, a part's next level is bought, the nitro once), saved and put on the
+## car. Returns the rule that applied ("buy", "switch") or why not.
+func choose_item(id: String) -> String:
+	var r := item_rule_now(id)
+	if r == "buy":
+		var price := Upgrades.price(id, wallet.tune)
+		if not wallet.spend(price):
+			return "short"
+		match Upgrades.kind(id):
+			"car":
+				wallet.cars[id] = today()
+				wallet.car = id
+			"nitro":
+				wallet.nitro = true
+			"part":
+				wallet.tune[id] = Upgrades.level(wallet.tune, id) + 1
+		print("garage: bought %s for %d zł -> %d zł left" % [id, price, wallet.zl])
+	elif r == "switch":
+		wallet.car = id
+		print("garage: switched to the %s (owned, free)" % id)
+	else:
+		return r
+	wallet.save()
+	apply_car()
+	upgraded.emit(id)
+	return r
+
+
+## The car wears the wallet's model, tuning and nitro (at the start, and after every purchase).
+func apply_car() -> void:
+	if car == null or wallet == null:
+		return
+	var st := Upgrades.stats(str(wallet.car), wallet.tune, bool(wallet.nitro))
+	car.set_tuning(float(st["top_mult"]), float(st["pull"]), float(st["grip"]))
+	car.nitro_owned = bool(wallet.nitro)
+	if str(wallet.car) != car.model:
+		car.set_model(str(wallet.car))
+	if hud != null and hud.has_method("set_nitro"):
+		hud.set_nitro(car.nitro_owned, car.nitro_charge)
+
+
+## --upgrades=all: every car, the nitro and every part at level 3, for this run (with --nosave nothing
+## stays); --upgrades=tt|nitro: just that.
+func preset_upgrades(what: String) -> void:
+	if wallet == null:
+		return
+	if what in ["all", "tt"]:
+		wallet.cars["tt"] = today()
+		wallet.car = "tt"
+	if what in ["all", "nitro"]:
+		wallet.nitro = true
+	if what == "all":
+		wallet.tune = {"tyres": 3, "engine": 3}
+	apply_car()
+	print("garage: --upgrades=%s" % what)
 
 
 # --- the ring ----------------------------------------------------------------------------------
@@ -338,11 +417,11 @@ func tick() -> void:
 		return
 	if busy.is_valid() and bool(busy.call()):
 		return
-	open_card()
+	open_card(start_tab)
 
 
 ## The card opens (main.gd pauses the game under it: `opened`).
-func open_card() -> void:
+func open_card(start_tab := "paint") -> void:
 	if _open or hud == null:
 		return
 	_open = true
@@ -358,7 +437,7 @@ func open_card() -> void:
 	hud.move_child(card, -1)
 	card.pt = hud.pt
 	card.safe = hud.safe_rect()
-	card.open()
+	card.open(start_tab)
 	if log_on:
 		print("garage: the card open (%d zł, paint %s, owned %s, eggs %d)" % [wallet.zl, current(), owned().keys(), eggs_now()])
 	opened.emit()

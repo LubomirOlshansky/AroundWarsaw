@@ -118,13 +118,16 @@ walk or park path, never within 1 m of a lane. Accept: a check lists every chair
 any on a lane, in water or inside a wall. Files: street_details.gd, props.gd, storefronts.gd.
 
 
-**G13 · Upgrade shop (P2, Opus design, Sonnet content).** Today the garage (`garage.gd`, Warsztat
-u Mirka) sells paints only. Task: a second tab "Części i auta": (1) a faster car, a parody of the
-Audi TT (low coupe, parody name and badge, about 2,500 zł); (2) nitro: a short boost button with a
-refill timer, about 600 zł; (3) tyres (grip) and engine (top speed) levels 1-3, 150-400 zł each.
-Prices so a first purchase is reachable after about 15 minutes of jobs. New car handles as Cruise
-(G4 first). Accept: purchases saved (save migration), a stat card, `check_garage` extended, bench
-for the new model. Files: garage.gd, garage_card.gd, car.gd, models.gd, wallet.gd. Dialogue: none.
+**G13 · Upgrade shop: done (2026-11-02).** Warsztat u Mirka's card has a second tab, "Części i auta":
+the Ołdi TT (2,500 zł, faster, a lower coupe model), the nitro "Kebab Boost" (600 zł; a bolt disc left
+of the horn or the N key: 3.5 s of boost, 20 s refill), tyres (grip) and engine (top speed and pull),
+levels 1-3 at 150-400 zł. Saved in the [garage] section (no version bump). Left, found on the way:
+- **G13a (P2, phone).** Is the pricing right (first part after a few jobs, the nitro after about 15
+  minutes, the TT as the goal), does the nitro feel good and is the bolt easy to hit with the thumb,
+  does the TT read as a coupe from the 80 m view? Tune `upgrades.gd` and car.gd `NITRO_*` after F's run.
+- **G13b (P3, Sonnet).** The nitro has no flame or sound yet (a tail glow, a whoosh, a haptic buzz);
+  gamepads have no nitro button (X is "secondary"); the police chase speeds were not retuned for
+  the TT's 130 km/h (a TT with the engine at level 3 outruns every patrol car).
 
 **G14 · Unstuck and reset easy to find (P0, quick win).** F: "in Settings there should be reset
 game, and unstuck: if the user is stuck in textures, click and move to the main road". POMOC
@@ -144,7 +147,7 @@ Ujazdowski. One landmark thread: compare the castle's model and the park with th
 photos, per the landmark recipe in docs/LANDMARKS.md.
 
 Split for parallel threads: G4 (driving), G5 (collisions and flicker), G8+G9 (street life),
-G10+G12 (quests), G13 (shop, after G4), G16 (text), G17 (traffic), G18 (Ujazdów). G1-G4, G14 and G15 are done by this thread.
+G10+G12 (quests), G13 (shop, done), G16 (text), G17 (traffic), G18 (Ujazdów). G1-G4, G14 and G15 are done by this thread.
 
 ## Plac Bankowy as in real life (F, 2026-11-02)
 

@@ -81,6 +81,10 @@ const PAD_REACH := 40.0
 const HORN_R := 22.0
 const HORN_REACH := 27.0
 const HORN_CLEAR := 14.0
+## G13 (the upgrade shop): the nitro's disc (52 pt across, bigger than the horn: it is the one a
+## thumb reaches for), left of the horn, shown once the nitro is bought; its ring is the tank.
+const NITRO_R := 26.0
+const NITRO_REACH := 31.0
 ## Loop 2e: the player's car sits about the middle of the screen (the view leads it a little);
 ## the passing panels (toasts, the ticker, notes, the overlay, the banner) keep out of a box
 ## this big round the middle. The cards and the status come first and may cover it.
@@ -135,6 +139,7 @@ signal tapped(at: Vector2)            # a short tap on the city, not on a contro
 signal perf_gesture                   # three fingers down at once: the performance overlay
 signal settings_pressed               # loop 2a: the gear
 signal map_pressed                    # F's asks (2026-10-30): a tap on the minimap (the full-screen map)
+signal nitro_pressed                  # G13: the nitro's disc went down (nitro_held while the finger stays)
 signal horn_pressed                   # the night-buses loop: the horn (a disc over BRAKE / GAS)
 
 var stick := Vector2.ZERO   # -1..1 in screen space, x right, y down
@@ -321,6 +326,11 @@ var _stick_point := Vector2.ZERO
 var _brake_index := -1
 ## The night-buses loop: the finger on the horn (-1: none).
 var _horn_index := -1
+## G13: the nitro bought (the disc shows), the tank 0..1 (the ring), and the finger on it (-1: none).
+var nitro_owned := false
+var nitro_charge := 1.0
+var nitro_held := false
+var _nitro_index := -1
 ## Touches that are neither the stick nor the pedals; two of them make a pinch (or a twist).
 var _free_touches := {}
 var _pinch_distance := 0.0
@@ -851,6 +861,8 @@ func _pedal_rects() -> Array[Rect2]:
 		return out
 	out.append(disc.call(_brake_centre(), ((CLASSIC_BRAKE_R if scheme == CLASSIC else BRAKE_R) + 4.0) * pt))
 	out.append(disc.call(_horn_centre(), (HORN_R + 4.0) * pt))  # the night-buses loop: the horn
+	if nitro_owned:
+		out.append(disc.call(_nitro_centre(), (NITRO_R + 4.0) * pt))  # G13: the nitro
 	if scheme == CLASSIC:
 		out.append(disc.call(_gas_centre(), (GAS_R + 4.0) * pt))
 		var o := _strip_hint_centre()
@@ -941,6 +953,8 @@ func touch_targets() -> Dictionary:
 		out["brake"] = disc.call(_brake_centre(), (CLASSIC_BRAKE_R if scheme == CLASSIC else BRAKE_R) * pt)
 		if not _pedals_hidden:
 			out["horn"] = disc.call(_horn_centre(), HORN_R * pt)
+			if nitro_owned:
+				out["nitro"] = disc.call(_nitro_centre(), NITRO_R * pt)
 		if scheme == CLASSIC:
 			out["gas"] = disc.call(_gas_centre(), GAS_R * pt)
 	return out
@@ -2412,13 +2426,40 @@ func _on_pedals(p: Vector2) -> bool:
 	if flying or _pedals_hidden or touch_off:
 		return false
 	return p.distance_to(_brake_centre()) < _brake_reach() or (scheme == CLASSIC and p.distance_to(_gas_centre()) < GAS_REACH * pt) \
-			or _on_horn(p)
+			or _on_horn(p) or _on_nitro(p)
 
 
 ## The night-buses loop: the horn's centre, left of BRAKE (none in the helicopter).
 func _horn_centre() -> Vector2:
 	var r := CLASSIC_BRAKE_R if scheme == CLASSIC else BRAKE_R
 	return _side(_brake_right() + Vector2(-(r + HORN_CLEAR + HORN_R), r - HORN_R) * pt)
+
+
+## G13: the nitro's centre, left of the horn (right of it in the left-handed layout, which
+## mirrors the horn already).
+func _nitro_centre() -> Vector2:
+	var step := (HORN_R + NITRO_R + 10.0) * pt
+	return _horn_centre() + Vector2(step if left_handed else -step, 0.0)
+
+
+## G13: a touch at `p` is on the nitro's disc.
+func _on_nitro(p: Vector2) -> bool:
+	return nitro_owned and not touch_off and not flying and not _pedals_hidden and p.distance_to(_nitro_centre()) < NITRO_REACH * pt
+
+
+## G13: the nitro's state from the car (main.gd, every frame): owned (the disc shows) and the tank.
+## The disc redraws only when the ring would move by a visible step.
+func set_nitro(owned: bool, charge: float) -> void:
+	var q := roundf(charge * 48.0) / 48.0
+	if owned == nitro_owned and is_equal_approx(q, nitro_charge):
+		return
+	if not owned:
+		nitro_held = false
+		_nitro_index = -1
+	nitro_owned = owned
+	nitro_charge = q
+	if _pad != null:
+		_pad.queue_redraw()
 
 
 ## The night-buses loop: a touch at `p` presses the horn.
@@ -2470,6 +2511,8 @@ func release_all() -> void:
 	_brake_index = -1
 	brake = false
 	_horn_index = -1
+	_nitro_index = -1
+	nitro_held = false
 	_gas_index = -1
 	gas = false
 	_climb_index = -1
@@ -2590,6 +2633,11 @@ func _input(event: InputEvent) -> void:
 			elif _on_horn(touch.position):
 				_horn_index = touch.index
 				horn_pressed.emit()
+			elif _on_nitro(touch.position):
+				_nitro_index = touch.index
+				nitro_held = true
+				nitro_pressed.emit()
+				_pad.queue_redraw()
 			elif not touch_off and not flying and scheme == CLASSIC and touch.position.distance_to(_gas_centre()) < GAS_REACH * pt:
 				_gas_index = touch.index
 				gas = true
@@ -2622,6 +2670,10 @@ func _input(event: InputEvent) -> void:
 				brake = false
 			if touch.index == _horn_index:
 				_horn_index = -1
+			if touch.index == _nitro_index:
+				_nitro_index = -1
+				nitro_held = false
+				_pad.queue_redraw()
 			if touch.index == _gas_index:
 				_gas_index = -1
 				gas = false
@@ -2864,6 +2916,8 @@ func _draw_pad() -> void:
 	_plate(bc, br, brake)
 	_pad_words(bc, br, "HAMULEC", "brake")
 	_draw_horn(_horn_centre(), _horn_index != -1)
+	if nitro_owned:
+		_draw_nitro(_nitro_centre(), nitro_held)
 	if scheme == CLASSIC:
 		var gc := _gas_centre()
 		_plate(gc, GAS_R * pt, gas)
@@ -2900,6 +2954,27 @@ func _draw_horn(c: Vector2, held: bool) -> void:
 	for k in 2:
 		var rr := (4.5 + 4.0 * k) * pt
 		_horn_ring(pts, cols, idx, o + Vector2(6.0, 0.0) * pt, rr - 0.7 * pt, rr + 0.7 * pt, -0.7, 0.7, 8, ink)
+	RenderingServer.canvas_item_add_triangle_array(_pad.get_canvas_item(), idx, pts, cols)
+
+
+## G13: the nitro on its plate: a lightning bolt, in a ring that is the tank (orange while it can
+## burn, grey while it refills, bright while held), one triangle array like the horn's.
+func _draw_nitro(c: Vector2, held: bool) -> void:
+	var pts := PackedVector2Array()
+	var cols := PackedColorArray()
+	var idx := PackedInt32Array()
+	var r := NITRO_R * pt
+	var ready := nitro_charge >= 0.25
+	var hot := Color(1.0, 0.55, 0.12) if ready else Color(0.6, 0.6, 0.62)
+	_horn_disc(pts, cols, idx, c, r, CARD_BG)
+	if held and nitro_charge > 0.0:
+		_horn_disc(pts, cols, idx, c, r, Color(1.0, 0.55, 0.12, 0.32))
+	_horn_ring(pts, cols, idx, c, r - 3.0 * pt, r, 0.0, TAU, 40, Color(1, 1, 1, 0.14))
+	if nitro_charge > 0.01:
+		_horn_ring(pts, cols, idx, c, r - 3.0 * pt, r, -PI * 0.5, -PI * 0.5 + TAU * nitro_charge, maxi(3, roundi(40.0 * nitro_charge)), hot)
+	var ink := ACCENT if held and nitro_charge > 0.0 else (INK if ready else SUB)
+	_horn_fan(pts, cols, idx, [c + Vector2(3, -10) * pt, c + Vector2(-5, 2) * pt, c + Vector2(1, 2) * pt], ink)
+	_horn_fan(pts, cols, idx, [c + Vector2(-3, 10) * pt, c + Vector2(5, -2) * pt, c + Vector2(-1, -2) * pt], ink)
 	RenderingServer.canvas_item_add_triangle_array(_pad.get_canvas_item(), idx, pts, cols)
 
 
