@@ -76,7 +76,12 @@ Left:
   archikatedra.md and ostrogski.md had no parts table, a Plac Zbawiciela café set stood off its
   shopfront (check_stops K5; `square_terraces` now uses the same CAFE_FRONT rule, 45 sets), Dworzec
   Wodny needs the barges' bank-side rays, and the heli aims at Zamek Ostrogskich's tallest cell (its
-  box's middle is the courtyard).
+  box's middle is the courtyard). 2026-11-02, verify --quick in the cloud with the pack (still
+  unseen in CI while the map job skips): check_landmarks failed K7's splash pool (`bulwary_basen`,
+  all under 2 m: a heli has nothing to hit), now in its FLY_OVER list (flown over, never inside);
+  park_details.json's source stamp was stale since map review C's re-bakes (items unchanged),
+  re-stamped and `parkdetails` joined the quick job; the prebuilt bake failed with no display, so
+  `tools/verify.sh` now runs it under xvfb-run, or skips the prebuilt steps as a WARN without one.
 - Open: F publishes release `map-pack-1` (until then the map job skips with a warning). A required
   check: GitHub Settings → Rules → a ruleset on main requiring `quick` and `map`, so a PR can't merge
   on red or before its run ends (#261 did). After a full bake that changes lod2 or terrain:

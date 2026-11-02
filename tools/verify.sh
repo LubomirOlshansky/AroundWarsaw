@@ -549,12 +549,34 @@ print -r -- ""
 # Loop 3d-1: the sector split and the prebuilt sectors are derived and not committed (a fresh
 # clone has none): make them first when they are missing (tools/setup_map.sh, ~20 s, a window
 # opens). Stale ones (made from other inputs) stay a WARN of the map step, as before.
+# The prebuilt bake needs a window: on Linux with no display (a cloud container) it runs under
+# xvfb-run when there is one; with neither, the steps that need the prebuilt city are skipped as a
+# WARN instead of failing on files that were never made (2026-11-02).
+no_prebuilt=0
 if ! python3 -I $ROOT/tools/check_map_data.py --fresh > $logs/setup_map.log 2>&1 && grep -q 'missing' $logs/setup_map.log; then
 	print -r -- "note: $(head -1 $logs/setup_map.log); running tools/setup_map.sh (a window opens)"
-	if ! $ROOT/tools/setup_map.sh >> $logs/setup_map.log 2>&1; then
+	local -a wrap=()
+	if [[ $OSTYPE == linux* && -z $DISPLAY && -z $WAYLAND_DISPLAY ]]; then
+		if (( $+commands[xvfb-run] )); then
+			wrap=(xvfb-run -a -s "-screen 0 1280x720x24")
+		else
+			no_prebuilt=1
+			print -r -- "note: no display and no xvfb-run: the prebuilt city can't be baked here, its steps are skipped (install xvfb)"
+		fi
+	fi
+	if (( no_prebuilt )); then
+		python3 -I $ROOT/tools/bake_sectors.py >> $logs/setup_map.log 2>&1 \
+			|| print -r -- "note: tools/bake_sectors.py failed ($logs/setup_map.log): the game runs below will fail"
+	elif ! $wrap $ROOT/tools/setup_map.sh >> $logs/setup_map.log 2>&1; then
 		print -r -- "note: tools/setup_map.sh failed ($logs/setup_map.log): the game runs below will fail"
 	fi
 fi
+## skip_prebuilt NAME: true (and a WARN row) when the prebuilt city could not be baked here.
+skip_prebuilt() {
+	(( no_prebuilt )) || return 1
+	row WARN "$1" 0 "skipped: no display to bake the prebuilt city (install xvfb, or run on the Mac)"
+	return 0
+}
 
 for s in $want; do
 	case $s in
@@ -691,11 +713,11 @@ for s in $want; do
 		# Loop 3b: every lane for a car and a bus against the colliders; the autopilot over the
 		# bridges and tunnels (height jumps). The runtime city (the prebuilt one: --prebuilt).
 		drive) check drive '^check_drive:' --script res://tools/check_drive.gd ;;
-		drive-prebuilt) check drive-prebuilt '^check_drive:' --script res://tools/check_drive.gd -- --prebuilt ;;
+		drive-prebuilt) skip_prebuilt drive-prebuilt || check drive-prebuilt '^check_drive:' --script res://tools/check_drive.gd -- --prebuilt ;;
 		# PT bug log (docs/PLAYTEST.md): the real car through the spots a playtest found it stopping
 		# dead (PT-1: Marszałkowska's Centrum tram stop); the sectors round them, both city paths.
 		stuckspots) check stuckspots '^check_stuck_spots:' --fixed-fps 60 --script res://tools/check_stuck_spots.gd ;;
-		stuckspots-prebuilt) check stuckspots-prebuilt '^check_stuck_spots:' --fixed-fps 60 --script res://tools/check_stuck_spots.gd -- --prebuilt ;;
+		stuckspots-prebuilt) skip_prebuilt stuckspots-prebuilt || check stuckspots-prebuilt '^check_stuck_spots:' --fixed-fps 60 --script res://tools/check_stuck_spots.gd -- --prebuilt ;;
 		steering) check steering 'check_steering:' --fixed-fps 60 --script res://tools/check_steering.gd ;;
 		# The quest stop assist: the car brakes itself into a quest's ring and holds for the hold.
 		handling) check handling '^check_handling:' --fixed-fps 60 --script res://tools/check_handling.gd ;;
@@ -780,7 +802,7 @@ for s in $want; do
 		sounds) check sounds '^city_sounds:' --script res://tools/check_city_sounds.gd ;;
 		# Loop 10a: where a car can get into the water (whole map), and the game's tow decisions.
 		water) check water '^check_water:' --script res://tools/check_water.gd ;;
-		water-prebuilt) check water-prebuilt '^check_water:' --script res://tools/check_water.gd -- --prebuilt ;;
+		water-prebuilt) skip_prebuilt water-prebuilt || check water-prebuilt '^check_water:' --script res://tools/check_water.gd -- --prebuilt ;;
 		# Loop 3c: the sectors are the whole city (meshes, pixels at 10 spots), streaming misses nothing.
 		# The loading fix (2026-10-31): seven passes now, ~13 min: at least 25 min before it's stopped.
 		streaming) STEP_LIMIT=$(( STEP_LIMIT > 1500 ? STEP_LIMIT : 1500 )) shown streaming '^check_streaming:' --script res://tools/check_streaming.gd -- --keep=$logs/streaming ;;
@@ -820,7 +842,7 @@ for s in $want; do
 		# pavements, people at the start's furniture, a tram's bell as it passes, the square's bed.
 		firstlife) game firstlife 1200 '^first life: OK' --first-life --at=-961.6,95 --heading=339.8 ;;
 		rain) game rain-night 600 "" --weather=rain --time=night ;;
-		prebuilt) game prebuilt-night 600 "" --prebuilt --time=night ;;
+		prebuilt) skip_prebuilt "run: prebuilt-night" || game prebuilt-night 600 "" --prebuilt --time=night ;;
 		classic) game classic 600 "" --controls=classic ;;
 		ios) run_ios ;;
 	esac
