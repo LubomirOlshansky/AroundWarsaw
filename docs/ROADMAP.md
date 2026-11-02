@@ -31,6 +31,9 @@ then the Launch gate.
 - [x] Warsaw Spire rebuilt to the real shape (F's photos, 2026-11-02; spec `spire.md`): a shaft that widens
       upward over a lit glass lobby, a domed roof with a fin and two masts, the mirrored entrance canopy on
       V legs, the two curved 15-storey wings and the paved plaza; Mac look check parked (QUESTIONS)
+- [x] Royal Castle pass 2 and its gardens (F, 2026-11-02; spec `zamek.md`): the Clock Tower and helm, corner
+      turrets, the cream Vistula front with its dome, Kubicki's Arcades and the Upper and Lower Gardens from
+      the Krajobraz project, photos and the orthophoto; Mac look check parked (QUESTIONS)
 - [x] Arkadka redesign, roof car park, BANK PEPEO sign and the Forest roof terrace (F, 2026-11-01; spec `arkadia.md`; Mac photo check parked)
 
 

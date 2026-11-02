@@ -151,6 +151,8 @@ func _fly_checks() -> int:
 			c = Vector2(935.0, -128.0)  # the west pair
 		elif info["key"] == "swieto":
 			c = Vector2(735.0, -896.0)  # the pylon at 45 m (the site is a long strip: its middle is open air)
+		elif info["key"] == "arkady":
+			c = Vector2(-560.0, -1606.0)  # the arcades' middle (the box holds the gardens: its middle is a lawn)
 		var heli: Node3D = Heli.new()
 		heli.ground_height = map.ground_height
 		heli.top_height = map.top_height
@@ -171,7 +173,9 @@ func _fly_checks() -> int:
 		if info["key"] in ["elektrownia", "stadion_pkp"]:
 			c = top_at  # open yards and platforms: the box's middle is air, aim at the tallest cell
 		var alt := clampf(top * 0.5, 6.0, 45.0)
-		if info["key"] == "tr":
+		if info["key"] == "arkady":
+			alt = 5.0  # the arcade wall stands 7.5 m over the Lower Garden; the castle's roofs in the box are higher
+		elif info["key"] == "tr":
 			alt = 6.0  # a building site: the cranes are thin, the theatre's closed floors stand 9 m
 		elif info["key"] == "sw_anna":
 			alt = 8.0  # the bell tower's trim (38 m) stands in the box but away from the nave the heli aims at

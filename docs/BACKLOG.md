@@ -389,6 +389,23 @@ traffic queueing and going round parked cars (traffic.gd PARKED_LOOK / PARKED_WA
   map has no New Town data north of Freta), PURO Stare Miasto (-1094,-1018) has a mapped hotel
   building but no front, the unnamed 4.3 m hotel at (-819,-1419).
 
+## Royal Castle and its gardens (F, 2026-11-02)
+
+F asked to bring the castle in line with Ogród Park Krajobraz's garden project
+(krajobraz.com.pl/projekt/zamek-krolewski) and to look for more sources. Pass 2 done (spec
+`docs/landmarks/specs/zamek.md`): Clock Tower, turrets, terracotta roofs, the cream Vistula front
+and dome, Kubicki's Arcades (site `arkady`), tubs, fountains, vases, the Lower Garden's lawn
+carpet (`map_builder.LAWN_CARPETS`) and the gardens' low basin rings (`GARDEN_RINGS`).
+- Z1 Mac look check (QUESTIONS): LoD2's tower and eave against the model; the arcades on the terrain.
+- Z2 The courtyard (Dziedziniec Wielki): fan-pattern setts, a granite walk from the gate, the
+  yard walls pinkish-beige on the east and north wings.
+- Z3 The Vistula front's two gabled side risalits (14 m, pediment, corner statues) and the
+  four-arch loggias with balustraded balconies; dormers on the whole roof ring.
+- Z4 The south quarter garden: the embroidered parterre (gravel and box scrollwork) by the SE
+  corner, x -581..-568, z -1522..-1492; the Lower Garden's L-shaped bosket and hedge fan.
+- Z5 Pałac pod Blachą as a model (copper-green hipped roof, cream walls, attic statues).
+- Z6 Plac Zamkowy's granite slab paving round the Column.
+
 ## Mariensztat and Krakowskie Przedmieście: review (F, 2026-11-01)
 
 F asked whether Mariensztat and Krakowskie Przedmieście are modelled well. Cloud shots (OSM
