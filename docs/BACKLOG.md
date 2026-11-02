@@ -207,6 +207,9 @@ west end: 90 → 93 draw calls (main 34 → 36, shadow 17 → 18), 0.39 → 0.41
 - [ ] Traffic queues at a closure while it is on screen (a closed road is picked only when nothing else is open);
       real drivers would turn round. A U-turn at the barriers would need a turning lane in the graph.
 - [ ] `--no-edge-roadworks` removes the meshes and colliders but the traffic still stops at the lines.
+- ~~English boards~~ (satire doc #10, 2026-11-02): in English the boards read ROAD WORKS / DETOUR → (the
+  British words, as wide as the Polish, so the board keeps its size); a language change in Settings builds the
+  roadworks again (`EdgeRoadworks.rebuild`, colliders at once, meshes over the next frames). Check W5.
 
 ## Playtest bugs (Autopilot, 2026-11-02)
 
