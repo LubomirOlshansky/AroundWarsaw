@@ -1026,6 +1026,10 @@
       {
         "only": "zag_rozen"
       }
+    ],
+    [
+      "Mięso? Mieszane. Sos? Mieszane. Zamówienie przyjęte, jedź!",
+      "Meat? Mixed. Sauce? Mixed. Order taken, go!"
     ]
   ],
   "rescue_person": [
@@ -2561,6 +2565,41 @@
       "Two scoops, thirty minutes. The maths works.",
       {
         "only": "lody"
+      }
+    ],
+    [
+      "„Mięso?” „Mieszane.” „Sos?” „Mieszane.” Od lat tak.",
+      "\"Meat?\" \"Mixed.\" \"Sauce?\" \"Mixed.\" Always has been.",
+      {
+        "only": "mieszane"
+      }
+    ],
+    [
+      "Nie czytam menu. Menu to formalność. Mieszane.",
+      "I don't read the menu. The menu is a formality. Mixed.",
+      {
+        "only": "mieszane"
+      }
+    ],
+    [
+      "Pan już wie, co chcę. Pan zawsze wie. Mieszane, mieszane.",
+      "The man knows what I want. He always does. Mixed, mixed.",
+      {
+        "only": "mieszane"
+      }
+    ],
+    [
+      "Raz spróbowałem „samo mięso”. Nie rozmawiamy o tym.",
+      "I once tried \"just meat\". We don't talk about it.",
+      {
+        "only": "mieszane"
+      }
+    ],
+    [
+      "Trzecia w nocy, kolejka nie krótsza. Mieszane warte każdej minuty.",
+      "Three a.m., the queue no shorter. Mixed is worth every minute.",
+      {
+        "only": "mieszane"
       }
     ]
   ],
@@ -4460,6 +4499,223 @@
     [
       "Do Browarów po kawę. Dookoła Ronda Daszyńskiego. Trzy razy.",
       "Off to the Browary for a coffee. Round Rondo Daszyńskiego. Three times."
+    ]
+  ],
+  "kibice": [
+    [
+      "Eee, gdzie jest mój bilet? A, w szaliku.",
+      "Eh, where's my ticket? Oh, in my scarf."
+    ],
+    [
+      "Śpiewamy od trzeciej. Mecz jest o ósmej.",
+      "We've been singing since three. Kick-off's at eight."
+    ],
+    [
+      "Szalik po dziadku. Pachnie jak rok dziewięćdziesiąty piąty.",
+      "Grandad's scarf. Smells like 1995."
+    ],
+    [
+      "To nie raca, to dymek z atestem. Różowy, bo z miłości.",
+      "Not a flare, a certified smoke puff. Pink, because it's love."
+    ],
+    [
+      "Bęben pożyczony od sąsiada. Sąsiad też tu jest. Gra na nim.",
+      "The drum's borrowed from my neighbour. He's here too. He's playing it."
+    ],
+    [
+      "Jeden gol i idziemy na pierogi. Dwa gole: ruskie i z mięsem.",
+      "One goal and we go for pierogi. Two goals: both kinds."
+    ],
+    [
+      "Wynik nieważny. Ważne, że kiełbasa ciepła.",
+      "The score doesn't matter. What matters is the sausage is hot."
+    ],
+    [
+      "Trzy godziny śpiewu, zero głosu, sto procent szczęścia.",
+      "Three hours of singing, no voice left, one hundred per cent happy."
+    ],
+    [
+      "Mama myśli, że jestem na basenie. Basen też jest zielony.",
+      "Mum thinks I'm at the pool. The pool's green too."
+    ],
+    [
+      "Każdy rzut rożny to dla nas małe święto narodowe.",
+      "Every corner kick is a small national holiday for us."
+    ],
+    [
+      "Bilet był drogi, ale śpiewanie przed stadionem jest gratis.",
+      "The ticket was pricey, but singing outside is free."
+    ],
+    [
+      "Sąsiad z trybuny zna mój głos lepiej niż żona.",
+      "The guy next to me in the stand knows my voice better than my wife does."
+    ],
+    [
+      "Ja tu tylko po kanapkę, a mam już trzy szaliki.",
+      "I only came for a sandwich and now I've got three scarves."
+    ],
+    [
+      "Ćwiczę doping na balkonie. Sąsiedzi już znają refren.",
+      "I practise the chants on my balcony. The neighbours know the chorus."
+    ],
+    [
+      "Kto nie skacze, ten nie zjadł kiełbasy!",
+      "Whoever's not jumping hasn't had a sausage!",
+      {
+        "only": "chant"
+      }
+    ],
+    [
+      "Ooo-oo-oo! Słów nie pamiętam, ale melodię tak!",
+      "Ooo-oo-oo! Can't remember the words, but I've got the tune!",
+      {
+        "only": "chant"
+      }
+    ],
+    [
+      "Raz, dwa, trzy! Biało, czerwono, zielono!",
+      "One, two, three! White, red and green!",
+      {
+        "only": "chant"
+      }
+    ],
+    [
+      "Śpiewamy dla trawy! Trawa dziś wygląda świetnie!",
+      "We sing for the grass! The grass looks great tonight!",
+      {
+        "only": "chant"
+      }
+    ],
+    [
+      "Bęben, szalik, refren! I jeszcze raz, głośniej!",
+      "Drum, scarf, chorus! Once more, louder!",
+      {
+        "only": "chant"
+      }
+    ],
+    [
+      "Skaczemy, bo zimno! I trochę z radości!",
+      "We jump because it's cold! And a bit for joy!",
+      {
+        "only": "chant"
+      }
+    ],
+    [
+      "O, trąbi! Kierowca z nami! Śpiewamy dla kierowcy!",
+      "Oh, a honk! The driver's with us! This one's for the driver!",
+      {
+        "only": "honk"
+      }
+    ],
+    [
+      "Trąbka to też instrument! Jeszcze raz!",
+      "A horn's an instrument too! Again!",
+      {
+        "only": "honk"
+      }
+    ],
+    [
+      "Dziękujemy za doping z samochodu! Szalik dla pana!",
+      "Thanks for the support from the car! A scarf for you!",
+      {
+        "only": "honk"
+      }
+    ],
+    [
+      "Słyszeliście? Nawet auta są dziś z nami!",
+      "Hear that? Even the cars are with us tonight!",
+      {
+        "only": "honk"
+      }
+    ],
+    [
+      "Kierowco, trąbnij dla drużyny!",
+      "Driver, give us a honk for the team!",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Zwolnij, tu się śpiewa, nie jeździ!",
+      "Slow down, this is for singing, not driving!",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Masz szalik w schowku? Każdy ma szalik w schowku.",
+      "Got a scarf in the glovebox? Everyone's got one.",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Podwieziesz bęben? Sam nie chce iść.",
+      "Give the drum a lift? It won't walk by itself.",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Ładne auto! Biało-czerwono-zielone byłoby ładniejsze.",
+      "Nice car! White, red and green would be nicer.",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Mój palec jest większy niż mój tata!",
+      "My finger's bigger than my dad!",
+      {
+        "only": "kid"
+      }
+    ],
+    [
+      "Tata obiecał, że jak strzelą, to mogę krzyczeć do jutra.",
+      "Dad said if they score I can shout until tomorrow.",
+      {
+        "only": "kid"
+      }
+    ],
+    [
+      "Mam piankowy palec numer jeden. Jestem numer jeden!",
+      "I've got the number-one foam finger. I'm number one!",
+      {
+        "only": "kid"
+      }
+    ],
+    [
+      "Pierwszy raz na meczu! Na razie najlepsza jest kiełbasa.",
+      "My first match! So far the sausage is the best bit.",
+      {
+        "only": "kid"
+      }
+    ]
+  ],
+  "police_kibice": [
+    [
+      "Mecz za godzinę, kawa za trzy minuty. Priorytety.",
+      "Kick-off in an hour, coffee in three minutes. Priorities."
+    ],
+    [
+      "Najgroźniejsza jest tu kiełbasa. Bardzo gorąca.",
+      "The most dangerous thing here is the sausage. Very hot."
+    ],
+    [
+      "Śpiewają fałszywie, ale to nie jest wykroczenie.",
+      "They sing off-key, but that's not an offence."
+    ],
+    [
+      "Patrol? Nie. Kawa z widokiem na bęben.",
+      "On patrol? No. Coffee with a view of the drum."
+    ],
+    [
+      "Różowy dymek sprawdzony. Pachnie jak wata cukrowa.",
+      "Pink smoke checked. Smells like candyfloss."
+    ],
+    [
+      "Szalik mam w radiowozie. Służbowo, oczywiście.",
+      "I've got a scarf in the patrol car. Strictly for work, of course."
     ]
   ]
 }

@@ -5248,6 +5248,12 @@ System Trace: the iPhone 11 at ×2 holds 60 at its lowest GPU clock, Loop G1 abo
 
 ## Map data
 
+**Bike markings (idea #9, 2026-11-02)**: `tools/bike_marks.py` (bake_osm after car_free, or as a
+CLI on a baked map) adds 660 `symbols` of kind `bike` marked `"on": "path"` on the cycle paths;
+`map_builder.gd` edges each `cyclecross` with P-11 squares (`CROSS_SQ`, `CROSS_EDGE`). No counted
+key changes. `tools/compare_cycleways.py` (reads only) measures how much of OSM's cycle network
+the map draws; it needs the raw export (`data/work/demo/osm_demo.json`).
+
 **Map review C (2026-11-02)**: one-lane one-way streets take `DEFAULT_WIDTH` (`bake_roads.py`
 `road_width`, `mark_split_legs`), two-way `lanes=2` ones at least 7 m (`TWO_LANE_STREET`); pois 4,572 (`tools/check_map_data.py` EXPECTED; the Centralny Leżak
 has its spot again). BACKLOG "From map review C".
@@ -5712,6 +5718,9 @@ Command-line options (after `--`):
 | `--packs=0` | packs (docs/design/packs.md): no running clubs, cycling packs or coffee raves (`--crowd=0` drops them too) |
 | `--packs-now` | packs: every club and every COFFEECHAIR café's rave on whatever the clock says; each pack whose loop passes within 300 m of the car's start is timed to stream past it a few seconds in (shots) |
 | `--packs-log` | packs: print `packs:` lines: the routes' lengths, each club setting off and going home, each rave with its booth's position, the minute's summary (where each pack's head is), every line and meeting |
+| `--fans=0` | the fans by Stadion Leguminy (fans.gd) off (also off with `--crowd=0`) |
+| `--fans-now` | fans: the three groups out on whatever the clock says (shots, checks); otherwise only on match evenings (Wed 17:00-21:30, Sat 15:00-21:30, Sun 14:00-20:30) |
+| `--fans-log` | fans: print `fans:` lines: out and home, each chant (and the horn's), every line |
 | `--wellness=0` | wellness circles (docs/design/wellness.md): no sound-healing rings, techno-yoga rows, 40+ circles or kung-fu schools (`--crowd=0` drops them too) |
 | `--wellness-now` | wellness: every spot on whatever the clock says (shots) |
 | `--wellness-log` | wellness: print `wellness:` lines: each spot starting and packing up, every line and meeting, the minute's summary |

@@ -11,12 +11,15 @@ someone writes its lines.
 
 ## 2026-11-02
 - The roadworks at the city's edges now speak English too: ROAD WORKS and DETOUR when you play in English.
+- On match evenings friendly fans gather outside Stadion Leguminy: scarves up over their heads on the drum's beat, pink smoke, funny banners, a kid with a giant foam finger, and a police officer who just drinks a coffee. Honk and they start singing.
 - Loud cars: a meet of low, wide supercars in acid colours (no badges) on the square by the Browary Warszawskie gate, with people filming them on their phones, and a few of them out on the streets, revving and crackling as they pass. KEBAB FM reports that the neighbours are counting the revs again.
+- A kebab shop called MIESZANE MIESZANE glows on Al. Solidarności by the Kebab Basin, named after the only two answers you give at the counter ("Mięso?" "Mieszane." "Sos?" "Mieszane."), with a late-night queue of regulars, and the Skyliner at Rondo Daszyńskiego wears the NOSE AGENCY on its crown.
 - Warsaw's wellness crowd is out in the parks: sound healing round a gong ("DŹWIĘKOTERAPIA, wejście 80 zł"), techno yoga with hamsters in rolling balls, a women's 40+ club turning round a tree to wake the little girl inside, and a kung-fu school doing one very slow move in step.
 - Pani Halina now always pulls up behind you to challenge you to the first race, never in front of you where she could block a narrow street.
 - Railway tracks now look like tracks: pale gravel shoulders, concrete sleepers and shiny rail heads.
 - A new pizzeria, KRINGULA PIZZA, with a huge queue of people who cry over the first bite, and longer morning queues at two hyped coffee chains.
 - A delivery order's GO button counts down the seconds until the order starts by itself, so it no longer seems to start without a tap.
+- Bike paths look like Warsaw's: cycle crossings have their rows of white squares down each side, and white bikes are painted on the red paths just past the crossings.
 - On wide phones the radio's line no longer slides in cut off at the screen edge, and the orange delivery marker stays under speech bubbles and banners, with its distance clear of its arrow.
 - The race card names where you are racing in full ("pod Palmę") instead of cutting it off, and tells you to drive there, with the pink arrow showing the way.
 - The first rescue call tells you which way to go: the card gives the distance and compass direction to the person who needs help.
