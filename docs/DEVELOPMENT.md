@@ -10,9 +10,9 @@ Earlier docs and code comments that cite `DEVELOPMENT.md "<section>"` mean that 
 
 - **Run the game:** `cd game && godot --path . -- --nosave` plus a quit flag (`--quit-after N`, `--shots=`); flags are in the archive section "Test flags" (search `| \`--demo\``).
 - **Release builds read no flags** (`game/scripts/release.gd`): only the debug export (Xcode Run, `device_run.sh`) and the editor binary take test flags; a TestFlight archive or the Play AAB ignores them (`check_credits`).
-- **Verify:** `tools/verify.sh [--quick|--ios|--only=a,b]`; CI runs the no-map subset.
+- **Verify:** `tools/verify.sh [--quick|--ios|--only=a,b]`; CI runs the no-map subset (`quick`) and the map steps (`map`, two halves) on the map pack.
 - **Performance budgets:** the phone's frame grows with draw calls, not triangles; the numbers are in the section "Performance budgets" (the 2 KB table is the gate for anything per-frame).
-- **Map:** derived files are not committed; `tools/setup_map.sh` makes them; `python3 -I tools/check_map_data.py` after any re-bake ("Map data").
+- **Map:** derived files are not committed; `tools/setup_map.sh` makes them (without `data/raw` it fetches lod2/terrain as the map pack, `tools/map_pack.py`, a release asset); `python3 -I tools/check_map_data.py` after any re-bake ("Map data"). A full bake that changes lod2.* or terrain.json: `python3 -I tools/map_pack.py make`, publish the release it prints, commit `tools/map_pack.json`.
 - **New behaviour or flag:** add a short note to the matching archive section (or a new one at the end), and a flag row to the flags table. Keep it brief; the PR is the changelog.
 
 ## Section index of the archive (line numbers at 2026-10-31; use grep, they drift)

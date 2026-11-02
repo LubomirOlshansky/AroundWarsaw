@@ -18,7 +18,9 @@ If they disagree, DEVELOPMENT.md wins: fix this file.
 - Loop 3d-1: the split and the prebuilt sectors (`index.json`, `index.res`, `proxies.scn`,
   `sectors/`, `shared/`) are derived and gitignored, and so are `lod2.*` and `terrain.json`
   (GUGiK's data alone; `tools/setup_map.sh --full` rebuilds them from `data/raw`); commit
-  `centrum.json` and the `.bin` maps only. A fresh clone runs `tools/setup_map.sh` once; steps 7
+  `centrum.json` and the `.bin` maps only (after a `--full` that changes lod2.* or terrain.json:
+  `python3 -I tools/map_pack.py make`, publish its release, commit `tools/map_pack.json`; CI and
+  the cloud fetch that pack). A fresh clone runs `tools/setup_map.sh` once; steps 7
   and 8 below write `sectors/split.stamp` and `sectors/city.stamp` (their inputs' SHA-256), which
   `check_map_data.py` compares to tell stale files by content.
 - Never hand-edit generated files (`centrum.json`, `*.bin`, `index.json`, `sectors/*`, `index.res`,
