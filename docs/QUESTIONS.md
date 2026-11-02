@@ -15,6 +15,20 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | all | The audit beyond the landmarks: BACKLOG "Audit: what is verified beyond the landmarks", its P0 items handed out next | cloud thread "Audit what's left beyond landmarks" | 2026-11-01 |
 
 ## Waiting
+- **2026-11-02 · map · junction lines and the loop 3e structures: one Mac pass** — Both v1.0 lines
+  ("Junction lines checked against photos", "Loop 3e leftovers") can't be done in the cloud: the
+  cloud's network refuses the GUGiK orthophoto (and every other imagery host), and a structure fix
+  needs a re-bake from data/raw (the surface model sets the deck heights). Default built: nothing
+  changed. Mac brief (map-engineer, Opus): (1) `python3 tools/overlay_ortho.py shots/jl_p3k.png -77 670 90`,
+  `... shots/jl_ponir.png 1381 -344 110`, `... shots/jl_walm.png 1514 -147 110` (Plac Trzech Krzyży,
+  the Poniatowski ramps, Wał Miedzeszyński) and judge each white/yellow line inside the junctions
+  against the photo; cut the ones Warsaw doesn't paint in `bake_roads.py` (`_crossed` /
+  `bake_edges`), keep the real edge lines. (2) The three structure leftovers in BACKLOG "From loop 3e":
+  Łazienkowski's Praga loop ramps (slab per piece), deck 4's parapet collider, the Karowa footbridge's
+  Praga end 2.2 m in the air at (304, −1554) (a longer ramp or stairs to Okrzei). Then the whole chain
+  and `verify.sh`.
+- **2026-11-02 · content · Kibice match day: where do the fans come from?** — The map has no tram near Stadion Leguminy, so the walkers come from the two bus platforms by the Trasa Łazienkowska (about 1331,1234, east of the stadium), along Łazienkowska from the west (Agrykola / Myśliwiecka) and up Czerniakowska from the south (`ROUTES` in fans.gd). Do real match-day crowds come mostly from these, or from somewhere we should add (a tram stop further off, the metro)? Also a phone look: are the bunches readable at the default zoom (`--fans-now --fans-phase=arrive --at=1292,1290 --heading=200`)? Default built: the four routes, kick-off 1.5 h into the evening, a win 65 % of the time, a draw otherwise, never a loss.
+- **2026-11-02 · content · Wellness circles (F's ideas #2, #3, #4, #8)** — Mac look check: the eight spots (docs/design/wellness.md) are read off the baked lawns, not seen. Do the sound-healing ring, the techno-yoga rows with their hamster balls, the 40+ circle round its tree and the kung-fu schools sit well in Park Świętokrzyski, Skwer Kościuszki, near Rondo Daszyńskiego, at Browary, in Ogród Saski, Park Ujazdowski and Ogród Krasińskich? Built default: daylight hours only, one sign each ("DŹWIĘKOTERAPIA, WEJŚCIE 80 ZŁ", "TECHNO JOGA + CHOMIKI", "KLUB PEŁNI 40+ / BUDZIMY MAŁĄ DZIEWCZYNKĘ", "SZKOŁA ŻURAWIA"); say if a joke is too sharp for the women's club.
 - **2026-11-02 · landmarks · railway S3c-e (Wschodnia, Gdańska, WKD entrances): photo gather on the Mac** — The railway lane is otherwise done (S1-S3b, L1-L4, T1, map edges). These three are not built, on purpose: F's rule is photos first, and the OSM outlines mislead (Śródmieście WKD's "propeller" roof, Ochota WKD stop, Wschodnia and Gdańska at the map's edge). Default built: nothing (the edge ring and the rails running on stay). Needed: a Mac gather of Commons photos + GUGiK ortho into refs/wschodnia (exists, 2026-11-01), refs/gdanska (exists), refs/wkd_srodmiescie and refs/wkd_ochota (new) with a REPORT.md in game coordinates; then one Sonnet thread per station. Wschodnia and Gdańska are mostly off-map, so WKD first.
 
 - **2026-11-02 · content · KRINGULA PIZZA joke (F's ideas #6)** — The final joke is yours to write. Built default (placeholder): the neon sign KRINGULA / PIZZA on Poznańska (52.22725, 21.01575, corner approximate), a line of 24 (40 at Fri/Sat dinner and Sunday afternoon, open 12:00-23:00), six placeholder fan lines tagged `kringula` in dialogue.json ("I cried at the first bite..."). Also: is Poznańska the right spot, and should the van or Frogs poster point to it? The longer morning queues at NERWO pavilion and KOSZTA Marszałkowska (16, working days 7-11) are a guess too. Mac look check of the door and the line.
@@ -137,6 +151,7 @@ Newest first. One entry per question.
   and night: does the ring meet the real ground without a step or a gap, does the fade read as
   distance (not fog), are the blocks the right scale. Shots of the cloud look are in the PR.
 
+- **2026-11-02 · landmarks · Krakowskie Przedmieście: one Mac gather for everything K1-K6 left** — The cloud has no photos (`refs/` is empty here), so by the photos-only rule nothing more is modelled until a Mac session fills `refs/krakowskie/` (Commons photos + GUGiK ortho, SOURCES.md, a REPORT.md in game coordinates). Wanted, in order: (1) Mickiewicz's spot and facing; (2) the University gate's true spot and width, Pałac Kazimierzowski's front; (3) Bristol's dome corner and facade colours; (4) Pałac Czapskich's front direction and colour (own model: landmarks thread); (5) the southern Potocki guardhouse; (6) the Carmelite front's pilasters; (7) the granite setts' extent beyond Nowy Świat's top; (8) awnings, café gardens (Bristol, Europejski), the carriage rank for the street-by-street pass. Default built: everything as in the entry below. POLIN, the monuments pass and the Castle are other threads' and are left out.
 - **2026-11-01 · landmarks · Krakowskie Przedmieście's photo check (K1-K6, M2)** — Built from
   the OSM outlines alone, so every height and a few spots are guesses (Default built, the specs'
   "photo check" notes list them). For F on the Mac, in order of how much they could be wrong:
@@ -680,7 +695,8 @@ backlog. Lasting decisions also go into BACKLOG's "Decided" sections, DEMO.md or
   kept as place names (they are also the halls' trade names); the new tower and museum are
   never named. Rename the halls descriptively ("Hala na Koszykowej")? Default built: kept.
   **Answered 2026-10-30 (F):** kept.
-- **2026-11-02 · gameplay · G12** — Rescues are on the HELI line in the spec, but most calls are street/park rescues the ambulance car does well. Default built: rescue calls follow the vehicle (flying: roof/sandbar, driving: street/park/shore, heli-only ones in violet); the notebook does not list quests yet. Make every rescue heli-only and give the car only jobs? Default built: no.
+- **2026-11-02 · gameplay · G12** — Rescues are on the HELI line in the spec, but most calls are street/park rescues the ambulance car does well. Default built: rescue calls follow the vehicle (flying: roof/sandbar, driving: street/park/shore, heli-only ones in violet); the full map's ZADANIA card lists them since 2026-11-02 (G12 part 2). Make every rescue heli-only and give the car only jobs? Default built: no.
+- **2026-11-02 · gameplay · G12b** — On the full map's ZADANIA card the pad takes the picked row with Y, because A is the teleport hold. Default built: X tab, D-pad pick, Y take. Alternative: a short A press takes the row and only a held A teleports.
 - **2026-11-02 · gameplay · G10** — START KURS appears within 25 m of the waiting passenger and boards at once (the car is not auto-braked). Phone check: is a tap enough, or should driving through the ring start it too?
 - **2026-11-02 · landmarks · Warsaw Spire** — Rebuilt from F's three photos and the map alone, so these are guesses to check on the Mac: (1) which rim the roof fin stands on (built: the east rim, peaking over the north half); (2) the entrance side (built: north, towards the plaza between the wings); (3) the canopy's size and the V legs' spread; (4) how much narrower the lobby is (built: 0.74 of the roof plan); (5) the wings' colour and top storey. Default built: that. Alternative: move the fin or canopy to the side the photos show.
 

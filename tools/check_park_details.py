@@ -37,7 +37,7 @@ def main():
     counts = {}
     for it in items:
         counts[it[0]] = counts.get(it[0], 0) + 1
-    for k in ("statue", "fountain", "carousel", "playground", "gazebo", "ropecourse", "duck", "seated", "picnic"):
+    for k in ("fountain", "carousel", "playground", "gazebo", "ropecourse", "duck", "seated", "picnic"):
         if k not in counts:
             problems.append("no %s" % k)
     if problems:

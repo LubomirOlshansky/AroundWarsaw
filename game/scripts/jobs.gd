@@ -605,6 +605,28 @@ func _look_for_work() -> void:
 			return
 
 
+## G12 part 2: the job places the AUTO list may name now ([{group, at (map x, z), name [pl, en],
+## colour}]): the kebab stands and słoiki stations while no job, ride, rescue or race is on (the
+## helicopter too: the list is for planning), the Leżak depots while they are out (night).
+func offer_places() -> Array:
+	var out: Array = []
+	if state != State.IDLE or missions.has_target() or (rides != null and rides.busy()) \
+			or (trend != null and trend.busy()) or round_busy() or (rivals != null and rivals.busy()):
+		return out
+	for s in _stands:
+		var who: String = "Kebab 24h" if s["name"] == "" else String(s["name"]).capitalize()
+		out.append({"group": "kebab", "at": Vector2(s["ring"].x, s["ring"].z), "colour": KEBAB_COLOUR,
+				"name": ["Kebab · %s" % who, "Kebab · %s" % who]})
+	for st in _stations:
+		out.append({"group": "sloik", "at": Vector2(st["ring"].x, st["ring"].z), "colour": SLOIK_COLOUR,
+				"name": ["Słoiki · %s" % st["name"], "Jars · %s" % st["name"]]})
+	if roundup != null and roundup._shown:
+		for q: Vector2 in roundup.depot_points():
+			out.append({"group": "lezak", "at": q, "colour": roundup.COLOUR,
+					"name": ["Leżaki · zbiórka", "Leżak round-up"]})
+	return out
+
+
 ## Rings, columns and minimap squares for the job places while nothing else runs.
 func _show_places(on: bool, again := false) -> void:
 	if on == _places_shown and not again:
