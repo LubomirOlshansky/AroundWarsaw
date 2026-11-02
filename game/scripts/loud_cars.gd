@@ -43,6 +43,12 @@ const MEET_RING := 2.4
 ## The meet is heard and revs within this of the view's focus (m).
 const MEET_NEAR := 80.0
 const MEET_REV := Vector2(9.0, 16.0)
+## The player parks at the meet: the view's focus within STOP_NEAR m of its middle and moving under
+## STOP_SPEED m/s for STOP_HOLD s makes the crowd say a `car_meet` line tagged "stop" (once per STOP_GAP s).
+const STOP_NEAR := 16.0
+const STOP_SPEED := 0.6
+const STOP_HOLD := 2.5
+const STOP_GAP := 45.0
 ## A loud car revs when it passes within REV_NEAR m of the view's focus, then not for REV_GAP s.
 const REV_NEAR := 45.0
 const REV_GAP := Vector2(7.0, 12.0)
@@ -74,6 +80,10 @@ var _rng := RandomNumberGenerator.new()
 var _wait := {}
 var _talked := {}
 var _meet_wait := 4.0
+var _prev_ear := Vector2.INF
+var _still := 0.0
+var _stop_wait := 0.0
+var stop_lines := 0
 var _radio_wait := 0.0
 var _meet: MultiMeshInstance3D
 
@@ -215,6 +225,26 @@ func step(dt: float) -> void:
 	if traffic != null:
 		_loud_cars(ear2, dt)
 	_meet_step(ear2, dt)
+	_stop_step(ear2, dt)
+
+
+## The player's car (the view's focus) standing still at the meet: the crowd comments, rarely.
+func _stop_step(ear2: Vector2, dt: float) -> void:
+	var speed := 99.0 if _prev_ear == Vector2.INF else ear2.distance_to(_prev_ear) / maxf(dt, 0.001)
+	_prev_ear = ear2
+	_stop_wait = maxf(_stop_wait - dt, 0.0)
+	if ear2.distance_to(meet_centre()) > STOP_NEAR or speed > STOP_SPEED:
+		_still = 0.0
+		return
+	_still += dt
+	if _still < STOP_HOLD or _stop_wait > 0.0 or dialogue == null:
+		return
+	_stop_wait = STOP_GAP
+	var at3 := Vector3(ear2.x, map.ground_height(ear2.x, ear2.y) if map != null else 0.0, ear2.y)
+	var anchor := func() -> Vector3: return at3 + Vector3(3.0, 1.6, 0.0)
+	if not dialogue.say_ambient(anchor, "", "car_meet", "stop", 4.0, BUBBLE, 2.2, true).is_empty():
+		stop_lines += 1
+		_log("stop line")
 
 
 func _loud_cars(ear2: Vector2, dt: float) -> void:

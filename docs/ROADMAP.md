@@ -58,8 +58,12 @@ then the Launch gate.
 - [x] First-scene items 4-5, paving and kerbs (2026-11-02): grey pavements and paving round the
       start (shader only), yellow tactile pads where crossings meet kerbs (city-wide), edge and
       tactile lines on the two tram platforms by the start; +0 draw calls (phone look parked)
-- [ ] First-scene items 4-5, the rest: pavilions and towers behind the stores, the park strip in
-      front of the museum, lowered kerbs at the crossings
+- [x] First-scene items 4-5, the park strip and lowered kerbs (2026-11-02): four larch benches and
+      three park lamps on the museum's strip (first_scene.gd), a concrete ramp wedge at every
+      crossing's kerb (map_builder.gd `_lowered_kerb`, city-wide); +0 draw calls (phone look parked)
+- [ ] First-scene items 4-5, the pavilions and towers behind the stores: the block east of
+      Marszałkowska (s 184-246) is solid OSM boxes under the camera's blind side; wait for Mac photos
+      (refs/, landmarks-from-photos rule)
 - [x] First-scene items 6-7, life and sound at the start (2026-11-02): people standing at the
       start's cafés, kiosk and paving (crowds.gd `FIRST_SCENE`, a day-long street curve), denser
       walkers on Marszałkowska's two pavements (pedestrians.gd `set_busy`, +0 draw calls), the two
@@ -133,7 +137,8 @@ then the Launch gate.
   - [x] K5 Rondo Daszyńskiego plazas: three tiers of planting and benches round Skyliner, Generation Park and Mennica Legacy Tower (2026-11-02)
   - [x] K2b Chmielna's 64 benches (2026-11-02; the Atlantic fountain's rim was already there)
   - [x] K9 the stadium's grounds: tree rows on the four entrance avenues, pollarded willow groups (80 trees)
-  - [ ] K6 Browary/Norblin gardens; K10 Muzeum Historii Polski is off the map (QUESTIONS)
+  - [x] K6 Browary's Central Garden yard (12 young trees) and Norblin's court (5 candelabra planes), 2026-11-02 (Mac photo check of the places; wall climbers and upstairs terraces not modelled)
+  - [ ] K10 Muzeum Historii Polski is off the map (QUESTIONS)
 - [x] Stadion Leguminy (Legia's ground on Łazienkowska, F, 2026-11-01): modelled from the mapped bowl outline (site `legia`, spec legia.md); Mac photo check parked (QUESTIONS)
 
 - [x] All churches designed by one set of rules (F, 2026-11-01; rules and inventory in
@@ -273,6 +278,7 @@ then the Launch gate.
   - [ ] Łazienki Królewskie (Palace on the Isle, Chopin monument, peacocks): south of the map's edge, waits for a map extension (QUESTIONS)
   - [x] The map's edges: the land runs on past the outline (ground fading into the sky, a tree line, blocks beyond, the rails and roads running out), Wschodnia and Gdańska first, 2026-11-01; the Mac look check parked
   - [x] Roadworks close every road at the map's edge (barriers, ROBOTY DROGOWE and OBJAZD boards, cones, an excavator, a tarp fence, blinking lamps; solid; traffic stops there), 2026-11-02; the Mac look check parked
+  - [x] The roadworks' boards speak the player's language (ROAD WORKS / DETOUR → in English), 2026-11-02
   - [x] L4 Most Średnicowy's look: arch-truss spans on stone piers (after the Mac photo check)
   - [x] Probe spots on the line with a train in view (Powiśle, Most Średnicowy), 2026-11-01; the phone's numbers still to take
 
@@ -309,8 +315,8 @@ then the Launch gate.
       `Hud.apply_text_scale`). Left to do: subtitles (BACKLOG)
 - [x] Wellness circles (F, 2026-11-02, `wellness.gd`, docs/design/wellness.md): sound healing (gong, bowls,
       "80 zł" board), techno yoga with hamsters in rolling balls, the 40+ club "waking the little girl" turning
-      round a tree, kung-fu schools in the parks; eight lawn spots, 58 lines. Left: gong and beat sound, a Mac look
-      check, the phone's cost
+      round a tree, kung-fu schools in the parks; eight lawn spots, 58 lines. Gong, bowls and beat sound done
+      (2026-11-02). Left: a Mac look and listen check, the phone's cost
 - [x] Packs (2026-11-01, `packs.gd`): running clubs, cycling packs with gear jokes, coffee raves
       at the COFFEECHAIR cafés, big guys with tiny dogs. Left: the phone's look and cost, a rave beat
 - [x] Vistula boulevards full of life (F, 2026-11-01, `crowds.gd` BULWARY, `city_life.gd`): nine
@@ -337,10 +343,11 @@ then the Launch gate.
 - [ ] City-life satire ideas (F, 2026-11-02; plans docs/design/city-life-satire.md):
   - [x] #11 kebab MIESZANE MIESZANE neon, its evening queue and the "Mięso? Mieszane. Sos? Mieszane." lines (`check_crowds`), and #12 NOSE AGENCY sign on the Skyliner, 2026-11-02 (Godot did not run; Mac look check open)
   - [x] #10 map-edge roadworks (PR #309)
-  - [ ] #1 loud cars at Browary Warszawskie and revving traffic (Opus)
-  - [ ] #2 sound healing, #3 techno yoga with hamsters, #4 women's club 40+, #8 park yoga and kung-fu (Sonnet, one `circle` crowd spot thread)
-  - [ ] #5 more queues and #6 KRINGULA PIZZA (extends the food-hype lane)
-  - [ ] #7 friendly Legia fans near Stadion Leguminy (Opus)
+  - [x] #1 loud cars at Browary Warszawskie and revving traffic (PR #345); the crowd comments when you park at the meet (2026-11-02, tag `stop`)
+  - [x] #2 sound healing, #3 techno yoga with hamsters, #4 women's club 40+, #8 park yoga and kung-fu (PR #343, `wellness.gd`); gong and techno-thump sounds added 2026-11-02 (listen check parked)
+  - [x] #5 more queues and #6 KRINGULA PIZZA: queues at KRINGULA, the coffee chains and MIESZANE were built earlier; the "queue for the queue" jokes added 2026-11-02 (four lines in dialogue.json, tag `kringula`; text only, Godot did not run)
+  - [x] #7 friendly Legia fans near Stadion Leguminy, 2026-11-02 (PR #336, `fans.gd`; phone look and cost open)
+  - [x] Kibice match day: fans walking in from the stops before kick-off and home after a win or a draw, 2026-11-02 (`fans.gd` ROUTES; stop names and phone look in QUESTIONS)
   - [ ] #9 bike-path network compared with the real one (Opus)
   - [ ] Leftovers (BACKLOG): dates on LUŹNO's roof, Podwózka dates, van fans and egg
 - [x] Gamepad support (2026-11-01, `gamepad.gd`, `check_gamepad`): Xbox, PlayStation and MFi

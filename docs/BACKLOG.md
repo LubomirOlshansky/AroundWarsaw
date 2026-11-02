@@ -13,7 +13,7 @@ bubbles and KEBAB FM's "Sąsiedzi znów liczą obroty". Open:
 - The meet's spot is the paved gate square read off the map's outlines; a photo check on the Mac.
 - A continuous loud-engine loop on a loud car while it is near (now one rev per pass, 7-12 s apart),
   and exhaust flames on the overrun at night (the meet already has its headlights on).
-- The player driving into the meet: the cars are solid boxes; a crowd line when the player's car stops there.
+- Done 2026-11-02: when the player's car stands still within 16 m of the meet for 2.5 s the crowd says a `car_meet` line tagged "stop" (4 lines, once per 45 s; `loud_cars.gd` `_stop_step`). Left: the cars are solid boxes you can drive into.
 
 ## City inventory (F, 2026-11-02)
 
@@ -139,8 +139,11 @@ fresh thread per item; ul. Złota and Zgoda stay with the Skwer Linearny thread.
   pines, rowan), 51 shrub beds and 11 benches in the open ground round Skyliner, Generation Park
   and Mennica Legacy Tower (`tools/plaza_gardens.py`, spec docs/design/rondo-plazas.md). Open for
   the Mac (QUESTIONS): the groves against photos, the wooden benches on terraces (flat ground here).
-- [ ] K6 Browary Warszawskie's Central Garden over the Leżakownia and Norblin's candelabra
-  planes and climbers (Sonnet; with "Norblin, Browary" below).
+- [x] K6 (2026-11-02, `planted_trees.py` kind `garden`): 5 candelabra planes (broad heads on short
+  trunks) in Fabryka Norblina's court and 12 lindens, birches and maples in Browary's Central Garden
+  yard, at spots clear of walls, roads, lamps and the scanned trees. Left (Mac photo check, QUESTIONS):
+  the real positions (the Leżakownia's vaults, the candelabras' places), the climbers on the walls
+  and the garden terraces upstairs (not modelled), and the tree count in the Browary yard.
 - [x] K7 Bulwary Wiślane stages 1-2 (2026-11-02, site `bulwary_basen`, spec bulwary_basen.md): the
   splash pool and 3 fish (the 6 pavilions are the boulevard dressing, PR #310). Left: the amphitheatre, trampolines and the "living river"
   garden (not in OSM, need the orthophoto), and the Mac look check (QUESTIONS).
@@ -204,6 +207,9 @@ west end: 90 → 93 draw calls (main 34 → 36, shadow 17 → 18), 0.39 → 0.41
 - [ ] Traffic queues at a closure while it is on screen (a closed road is picked only when nothing else is open);
       real drivers would turn round. A U-turn at the barriers would need a turning lane in the graph.
 - [ ] `--no-edge-roadworks` removes the meshes and colliders but the traffic still stops at the lines.
+- ~~English boards~~ (satire doc #10, 2026-11-02): in English the boards read ROAD WORKS / DETOUR → (the
+  British words, as wide as the Polish, so the board keeps its size); a language change in Settings builds the
+  roadworks again (`EdgeRoadworks.rebuild`, colliders at once, meshes over the next frames). Check W5.
 
 ## Playtest bugs (Autopilot, 2026-11-02)
 
@@ -254,6 +260,23 @@ at night were skipped (they read as poles by day).
 ## Stadion Leguminy (F, 2026-11-01)
 - Built from the mapped outline only (spec legia.md). Left: Mac photo check (QUESTIONS), the real stands' shape and the concourse side, entrances and tickets booths, club shop, the car park on the east side, the 20 m west stand as its own mass.
 
+## Kibice by Stadion Leguminy (F, 2026-11-02)
+Built (`fans.gd`, design docs/design/kibice.md): three friendly groups (north gate, north-east corner,
+south side) on match evenings, scarves up on the drum, pink smoke puffs, banners, a kid with a foam
+finger, a patrol car whose officer drinks a coffee, the `fan_chant` loop, the horn starts a chant.
+Left:
+- Phone look and cost near the stadium (+5 draw calls in the cloud bench); banner readability at phone size.
+- The north groups stand between the pavement and the road edge on the forecourt; check against
+  photos of the real gate (Mac photo check of the stadium is already parked).
+- Match day built (2026-11-02): walkers in bunches on four routes (the bus stops by the Trasa,
+  Łazienkowska from the west, Czerniakowska from the south) to the groups before kick-off, late
+  runners, home the other way after full time; a win (chants twice as often, scarves up, `win`
+  lines, a toast) or a draw (`draw` lines). Left: the real stop names and whether trams or buses
+  serve the stadium (the map has no tram near it; QUESTIONS), a phone look of the walkers' size
+  and the cost on the phone (+1 draw call while they walk, 0.09 ms fans scripts in the cloud
+  probe, was 0.05), walkers dodging the car (they walk through it now, like the other crowds),
+  the standing groups thinning during the match (they stay out all evening now).
+
 ## Police chases and radiowozy (F, 2026-11-02)
 
 - Built: chasers at 0.8 of the player's top speed and an escape at 100 m (the old 0.92 opened a gap of only 2.4 m/s, so 120 m was out of reach inside the 30-45 s cap); the patrol estate is silver with the blue band, checker strips and bonnet panel, and a silver Crafter-style van (shape 3 of the police family, every third patrol car). Open: the roadblock and blockers still use the estate (a van across the road would read better); the lizak officer's car; a phone look and the feel of the new chase speed (QUESTIONS).
@@ -295,8 +318,8 @@ Twelve ideas, plans in docs/design/city-life-satire.md. Built: #11 MIESZANE MIES
 `kebab_mieszane`; evening queue `Crowds.MIESZANE`, "mieszane" lines in `viral`, one vendor line in `kebab_vendor`), #12 NOSE AGENCY crown sign on the Skyliner. Done before: #10 (PR #309). Open, each its own thread:
 - **Loud cars (#1, Opus)**: sports-car meet at Browary Warszawskie (generic bodies, no marques) and revving cars in traffic with a louder engine layer.
 - **Wellness circles (#2 sound healing, #3 techno yoga with hamsters, #4 women's club 40+, #8 park yoga and kung-fu; Sonnet, ONE thread)**: one new crowd spot kind `circle`.
-- **Queues (#5) and KRINGULA PIZZA (#6, Sonnet)**: extend the queue sites; the brick pizzeria and its fans; the joke text goes to F (QUESTIONS).
-- **Legia fans (#7, Opus)**: friendly scarves, drum, pink-red harmless smoke on match evenings near Stadion Leguminy; no violence, no crest, no real chants.
+- Queues (#5) and KRINGULA PIZZA (#6): built, with the "kolejka w kolejce" lines (2026-11-02). Left: F rewrites the joke text if he likes (QUESTIONS), Mac look check of the queue spots.
+- Legia fans (#7): built (PR #336); what is left is in "Kibice by Stadion Leguminy".
 - **Bike paths (#9, Opus)**: compare with the real network, fill gaps by data, rider density on the main ones.
 - Small: English "UNDER CONSTRUCTION" on the edge roadworks boards; Mac look check of both new signs (the shop's door is a guess 40 m west of KEBAB KRÓL; Godot did not run in the cloud for this change).
 
@@ -924,8 +947,8 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   their checks (`first10`, `first10-run`, `opening`, `cassettes`, `save`, `hud`), merge #115 then
   #121. Built, not verified on the phone.
 - **The first scene's open items** (design/first-scene.md items 4-5; BACKLOG "High priority: the
-  first scene"): the pavilions and towers behind the Eastern Wall stores, the park strip in front of
-  the museum, lowered kerbs at the crossings. Gap. The paving, the crossings' tactile pads and the
+  first scene"): the pavilions and towers behind the Eastern Wall stores (a solid OSM block, needs
+  Mac photos). The park strip's benches and lamps and the lowered kerbs were built 2026-11-02. The paving, the crossings' tactile pads and the
   tram platforms' edges were built 2026-11-02 (first-scene.md "Items 4 and 5 as built"); items 6-7
   (pedestrians and sound at the start) built 2026-11-02; both phone checks parked.
 
@@ -1325,8 +1348,10 @@ Built (`wellness.gd`, docs/design/wellness.md; ideas 2, 3, 4 and 8 of docs/desig
 spots (Park Świętokrzyski, Skwer Kościuszki, Rondo Daszyńskiego, Browary Warszawskie, Ogród Saski, Park Ujazdowski,
 Ogród Krasińskich) in daylight hours, 58 lines (`sound_healing`, `techno_yoga`, `club_40`, `park_kungfu`), check
 `wellness`. Left:
-- No sound yet: a soft gong when the car passes a sound-healing ring and a thump near a techno row
-  (sfx.gd positional voices, one new make_sfx.py sound each).
+- ~~No sound yet~~ DONE (2026-11-02): `gong_bowls` (gong every 6 s, singing bowl between, 12 s loop) at each sound-healing
+  ring and `techno_thump` (muffled 128 BPM four-on-the-floor, 7.5 s loop) at each techno row, through city_sounds.gd's new
+  `gong` and `thump` kinds (reach 60 and 70 m, sounding while the spot is on); `check_sfx` covers both loops. Only a phone
+  or Mac listen can judge the levels (-13 / -12 dB, cloud has no ears).
 - Mac look check (QUESTIONS): the spots are read off the baked lawns, not seen; Łazienki Królewskie, Pole
   Mokotowskie and Skaryszak (the design doc's other park spots) lie outside the map.
 - Only the phone can show whether the 7-10 figures, the signs' text and the hamster balls read at the default

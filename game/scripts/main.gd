@@ -42,6 +42,7 @@ extends Node
 ## struggled (the ×2 fallback) or was calm (the sharp image), and writes nothing of it.
 
 const Lang := preload("res://scripts/lang.gd")  # one language at a time (2026-11-02)
+const EdgeRoadworks := preload("res://scripts/edge_roadworks.gd")  # rebuilt on a language change
 const Release := preload("res://scripts/release.gd")  # DEMO 3j: no flags in a release build
 const Access := preload("res://scripts/access.gd")
 const MapBuilder := preload("res://scripts/map_builder.gd")
@@ -126,6 +127,8 @@ const OldTram := preload("res://scripts/old_tram.gd")
 const CrashScenes := preload("res://scripts/crash_scenes.gd")
 ## Packs (docs/design/packs.md): running clubs, cycling packs and coffee raves.
 const Packs := preload("res://scripts/packs.gd")
+## Kibice (docs/design/city-life-satire.md 7): friendly fans by Stadion Leguminy on match evenings.
+const Fans := preload("res://scripts/fans.gd")
 const LoudCars := preload("res://scripts/loud_cars.gd")
 ## Wellness circles (docs/design/city-life-satire.md): sound healing, techno yoga, the 40+ club, park kung-fu.
 const Wellness := preload("res://scripts/wellness.gd")
@@ -475,6 +478,15 @@ var loud_log := false
 var packs_flag := 1
 var packs_now := false
 var packs_log := false
+## Kibice (fans.gd): the fans by Stadion Leguminy; flags --fans=0 (none), --fans-now (out whatever the
+## clock), --fans-log, --fans-phase= and --fans-result= (the match day's walkers).
+var fans: Fans
+var fans_flag := 1
+var fans_now := false
+var fans_log := false
+## --fans-phase=arrive|match|leave and --fans-result=win|draw: the match day's walkers for shots.
+var fans_phase := ""
+var fans_result := ""
 ## Wellness circles (wellness.gd); flags --wellness=0 (none), --wellness-now (every spot on at any hour), --wellness-log.
 var wellness: Wellness
 var wellness_flag := 1
@@ -1342,6 +1354,7 @@ func _build_world() -> void:
 	_build_crash_scenes()
 	_build_storefronts(data, world)
 	_build_packs(data, world)
+	_build_fans(data, world)
 	_build_loud_cars(world)
 	_build_wellness(world)
 	_build_first10()
@@ -1608,6 +1621,8 @@ func _set_quality(choice: int) -> void:
 		crowds.refresh()
 	if packs != null:
 		packs.amount = _crowd_scale()
+	if fans != null:
+		fans.amount = _crowd_scale()
 	if wellness != null:
 		wellness.amount = _crowd_scale()
 	if life != null:
@@ -2207,6 +2222,36 @@ func _build_packs(data: Dictionary, world: Node3D) -> void:
 	packs.setup(data, storefronts.venues if storefronts != null else [])
 
 
+## The fans by Stadion Leguminy (fans.gd), after the police (the patrol car by the gate) and the
+## city's sounds (the chant). None with --fans=0 or --crowd=0.
+func _build_fans(data: Dictionary, world: Node3D) -> void:
+	if fans_flag == 0 or crowd_flag == 0:
+		return
+	fans = Fans.new()
+	fans.name = "Fans"
+	fans.map = map
+	fans.dialogue = dialogue
+	fans.hud = hud
+	fans.police = police
+	fans.sounds = city_sounds
+	fans.log_on = fans_log
+	fans.amount = _crowd_scale()
+	fans.force = fans_now
+	fans.force_phase = fans_phase
+	fans.force_result = fans_result
+	fans.clock = tod.local_clock
+	fans.focus = func() -> Vector3: return cam_focus
+	fans.vehicle = func() -> Array:
+		if flying:
+			return [heli.global_position, heli.speed() * 3.6, true]
+		return [car.global_position, car.vel.length() * 3.6, false]
+	if traffic != null:
+		fans.on_screen = traffic.on_screen
+	world.add_child(fans)
+	fans.setup(data)
+	hud.horn_pressed.connect(func() -> void:
+		if fans != null and not flying:
+			fans.honk(car.global_position))
 ## City-life satire #1 (loud_cars.gd): the meet at Browary on both city paths, and the loud
 ## cars in traffic (none with --no-traffic). None at all with --loud=0.
 func _build_loud_cars(world: Node3D) -> void:
@@ -2235,6 +2280,7 @@ func _build_wellness(world: Node3D) -> void:
 	wellness.name = "Wellness"
 	wellness.map = map
 	wellness.dialogue = dialogue
+	wellness.sounds = city_sounds
 	wellness.hud = hud
 	wellness.log_on = wellness_log
 	wellness.amount = _crowd_scale()
@@ -3798,6 +3844,16 @@ func _parse_args() -> void:
 			packs_now = true
 		elif arg == "--packs-log":
 			packs_log = true
+		elif arg.begins_with("--fans="):
+			fans_flag = clampi(int(arg.trim_prefix("--fans=")), 0, 1)
+		elif arg == "--fans-now":
+			fans_now = true
+		elif arg == "--fans-log":
+			fans_log = true
+		elif arg.begins_with("--fans-phase="):
+			fans_phase = arg.trim_prefix("--fans-phase=")
+		elif arg.begins_with("--fans-result="):
+			fans_result = arg.trim_prefix("--fans-result=")
 		elif arg.begins_with("--wellness="):
 			wellness_flag = clampi(int(arg.trim_prefix("--wellness=")), 0, 1)
 		elif arg == "--wellness-now":
@@ -4273,6 +4329,9 @@ func _set_language(code: String) -> void:
 	print("language: %s" % code)
 	if hud != null:
 		hud.language_changed(_settings_state())
+	# The roadworks' boards at the map's edge carry their words in the meshes (edge_roadworks.gd).
+	if map != null:
+		EdgeRoadworks.rebuild(map)
 
 
 func _close_settings() -> void:
@@ -5278,6 +5337,8 @@ func _make_stats() -> BenchStats:
 		b.systems["storefronts"] = [storefronts, "spent_usec", true]  # loop MW-2
 	if packs != null:
 		b.systems["packs"] = [packs, "spent_usec", true]  # running clubs, cycling packs, raves
+	if fans != null:
+		b.systems["fans"] = [fans, "spent_usec", true]  # the fans by Stadion Leguminy
 	if wellness != null:
 		b.systems["wellness"] = [wellness, "spent_usec", true]  # sound healing, techno yoga, 40+ club, kung-fu
 	if egg_book != null:

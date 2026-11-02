@@ -45,6 +45,12 @@ const ITEMS := [
 	["column", 199.0, -30.5, "#9db4d8"],
 	["planter", 221.0, -19.6, "#e8a6b8"],
 	["cafe", 192.0, -31.0, "#2f6b4f"], ["cafe", 186.0, -27.0, "#e07a5f"],
+	# The park strip in front of the museum (first-scene item 4, 2026-11-02): larch benches facing
+	# the street between the tree row and the museum, and slim park lamps on the same line. The
+	# strip's trees, grass and paths are the map's.
+	["bench", 82.0, -17.2, ""], ["bench", 118.0, -17.2, ""], ["bench", 133.5, -17.0, ""],
+	["bench", 176.0, -17.2, ""],
+	["lamp", 92.0, -16.2, ""], ["lamp", 122.0, -16.2, ""], ["lamp", 163.0, -16.2, ""],
 	# The start area as real Warsaw (R7, docs/design/start-area-real.md, 2026-11-01): the street
 	# name plates at the crossings (Widok by Wars, Sienkiewicza by Junior, Fangora by the museum),
 	# the tram stop on Marszałkowska's island north of the museum (the map has its platform but no
@@ -137,6 +143,10 @@ func build() -> void:
 				Props.add_bollards(st, xf, 5)
 			"stone":
 				Props.add_memorial_stone(st, xf)
+			"bench":
+				Props.add_long_bench(st, xf, 2.4)
+			"lamp":
+				Props.add_park_lamp(st, xf)
 		if SOLID.has(kind):
 			var half: Vector2 = SOLID[kind]
 			var shape := CollisionShape3D.new()

@@ -97,6 +97,8 @@ var on_screen: Callable
 var map: Node3D
 var dialogue: Node
 var hud: CanvasLayer
+## city_sounds.gd (add_crowd) for the gong and the thump; may be null.
+var sounds: Node
 ## The --crowd scale (Low tier 0.5).
 var amount := 1.0
 var log_on := false
@@ -247,6 +249,14 @@ func setup(seed_value := 2711) -> void:
 				"n": 0, "near": false, "props": null, "line_t": _rng.randf_range(4.0, 12.0), "met": false,
 				"pos": PackedVector3Array(), "bub": PackedVector3Array()})
 	_build_drawing(cap, balls)
+	if sounds != null and sounds.has_method("add_crowd"):
+		for s in spots:
+			var sound_kind: String = {"sound": "gong", "techno": "thump"}.get(s["kind"], "")
+			if sound_kind == "":
+				continue
+			var spot: Dictionary = s
+			sounds.add_crowd("wellness_%s" % spot["id"], sound_kind, spot["at"],
+					func() -> bool: return int(spot["n"]) > 0)
 	print("wellness: %d spots (%d sound, %d techno, %d club, %d kung-fu), amount %.2f" % [spots.size(), _count_kind("sound"),
 			_count_kind("techno"), _count_kind("club"), _count_kind("kungfu"), amount])
 
