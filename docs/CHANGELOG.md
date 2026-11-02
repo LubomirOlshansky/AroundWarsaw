@@ -46,6 +46,7 @@ someone writes its lines.
 - Getting wedged between traffic cars no longer ends the drive: push against them for a moment and your car slips through, and after eight seconds in a jam it is towed onto the road.
 
 ## 2026-11-01
+- New by the Vistula: the WTS DESKA tennis club (a parody of the real club) on Zaruskiego, under Most Łazienkowski: a closed tennis hall, one outdoor glass padel court lit at night with four people playing, and a DESKA neon on the clubhouse. A friend now phones from the club: their fourth player hurt a leg at pole dance, so drive or fly to the DESKA court and play; the club has its own notebook page.
 - With a game controller you can now set the volumes, browse the city notebook, pick a paint at the garage, and pan, zoom and teleport on the full map.
 - Small houses without a detailed model now have pitched roofs, gabled or hipped: red tile, red sheet metal in MDM, and green copper or red on the Royal Route.
 - LORETKA, the pink rooftop date bar, now has its summer terrace up on the hotel roof: pink parasols, greenery, string lights and couples on summer evenings. Also new: the PRZEGRYWKI board-game bar and WACZEK burger joints with an upside-down golden W.
