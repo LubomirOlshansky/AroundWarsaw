@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-02
 - The quest list on the full map works with a gamepad (X switches between car and helicopter quests, the D-pad picks one, Y takes it) and lists more to do: the "Na czasie" trend deliveries, Cringulo's van, the Friday pistachio drop, the next rival on the ladder (the arrow follows them through traffic), Seba's night race and the peacock stuck on a roof. While something is on, it shows at the top of the list.
+- Driving onto a bridge ramp at an angle no longer drops you under the bridge: the car climbs onto the ramp, at Most Poniatowskiego, Towarowa and the Vistula boulevard road too.
 - The full map has a quest list: ZADANIA AUTO and ZADANIA HELI, each showing what you can start right now (a kebab stand, a jar station, the garage, a ride, a cassette on a roof, a helicopter rescue call) with how far it is and which way. Tap a place and an arrow leads you there; tap a ride or a rescue call and it starts.
 - With larger text on, the mission panel, the race banner and the ride app cards now fit the smaller phones and stay clear of your car.
 - Nowy Świat and Al. Jerozolimskie are no longer dark at night: Nowy Świat has street lamps on both pavements and the avenues have their lamps closer together, so the pools of light join up along the street.
