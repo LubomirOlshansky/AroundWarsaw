@@ -3278,6 +3278,309 @@
       }
     ]
   ],
+  "sound_healing": [
+    [
+      "Osiemdziesiąt złotych za ciszę. Cisza jest w cenie.",
+      "Eighty zloty for silence. The silence is included."
+    ],
+    [
+      "Gong czyści czakry. Sąsiad czyści uszy.",
+      "The gong cleans the chakras. The neighbour cleans his ears."
+    ],
+    [
+      "Misa tybetańska z Pruszkowa. Autentyczna.",
+      "A Tibetan bowl from Pruszków. Authentic."
+    ],
+    [
+      "Czuję wibracje. Albo to tramwaj.",
+      "I feel the vibrations. Or that's the tram."
+    ],
+    [
+      "Wchodzę w głęboki relaks. Zapłaciłam za godzinę, więc wchodzę.",
+      "Going into deep relaxation. I paid for the hour, so I'm going in."
+    ],
+    [
+      "Dziewięćdziesiąt minut bez powiadomień. Prawie.",
+      "Ninety minutes without notifications. Almost."
+    ],
+    [
+      "Leżę i rezonuję.",
+      "I lie here and resonate."
+    ],
+    [
+      "Mata dla początkujących kosztuje dodatkowo.",
+      "The beginners' mat costs extra."
+    ],
+    [
+      "Gong ma certyfikat. Ja nie.",
+      "The gong is certified. I'm not."
+    ],
+    [
+      "Oddychaj. Teraz wydychaj. Teraz zapłać za następną sesję.",
+      "Breathe in. Out. Now pay for the next session.",
+      {
+        "only": "leader"
+      }
+    ],
+    [
+      "Pozwólcie dźwiękowi was przeniknąć. Telefony proszę wyciszyć.",
+      "Let the sound pass through you. Phones on silent, please.",
+      {
+        "only": "leader"
+      }
+    ],
+    [
+      "Cisza... ktoś pisze na grupie... cisza.",
+      "Silence... someone's typing in the group chat... silence.",
+      {
+        "only": "leader"
+      }
+    ],
+    [
+      "Ciszej proszę, to jest sesja!",
+      "Quiet, please, this is a session!",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Pański silnik jest w złym stroju.",
+      "Your engine is off-key.",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Klakson? Poproszę czterysta trzydzieści dwa herca.",
+      "A horn? 432 hertz, please.",
+      {
+        "only": "car"
+      }
+    ]
+  ],
+  "techno_yoga": [
+    [
+      "Pies z głową w dół, chomik z głową w kole.",
+      "Downward dog, hamster head in the wheel."
+    ],
+    [
+      "Chomik robi dziesięć kilometrów. Ja trzy skłony.",
+      "The hamster does ten kilometres. I do three bends."
+    ],
+    [
+      "Techno o ósmej rano. Moje ciało nie pytało.",
+      "Techno at eight a.m. My body wasn't asked."
+    ],
+    [
+      "Bas dziewięćdziesiąt decybeli, oddech spokojny.",
+      "Bass at ninety decibels, breathing calm."
+    ],
+    [
+      "Chomik w kuli wtoczył mi się w pozę drzewa.",
+      "A hamster ball rolled into my tree pose."
+    ],
+    [
+      "Namaste, ale w rytmie sto trzydzieści.",
+      "Namaste, but at 130 bpm."
+    ],
+    [
+      "Chomiki mają certyfikat. Ja jeszcze nie.",
+      "The hamsters are certified. I'm not yet."
+    ],
+    [
+      "Ta poza to jest drop.",
+      "This pose is the drop."
+    ],
+    [
+      "Wdech na trzy, wydech na cztery, drop na pięć.",
+      "In for three, out for four, drop on five."
+    ],
+    [
+      "Zero kaca, sto trzydzieści uderzeń na minutę.",
+      "Zero hangover, 130 beats a minute."
+    ],
+    [
+      "Czujcie bit w kręgosłupie i chomika pod piętą.",
+      "Feel the beat in your spine and the hamster under your heel.",
+      {
+        "only": "leader"
+      }
+    ],
+    [
+      "Teraz kotek. Chomiku, zjedź z maty.",
+      "Now cat pose. Hamster, off the mat.",
+      {
+        "only": "leader"
+      }
+    ],
+    [
+      "Oddychajcie w rytmie. Nie, nie w moim, w basu.",
+      "Breathe in rhythm. No, not mine, the bass's.",
+      {
+        "only": "leader"
+      }
+    ],
+    [
+      "Ścisz auto, mamy tu własny bas!",
+      "Turn your car down, we've got our own bass!",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Zwolnij, przejeżdżasz przez strefę chomików.",
+      "Slow down, you're crossing a hamster zone.",
+      {
+        "only": "car"
+      }
+    ]
+  ],
+  "club_40": [
+    [
+      "Budzimy małą dziewczynkę. Wstała i chce kawę.",
+      "We're waking the little girl. She's up and wants coffee."
+    ],
+    [
+      "Moja mała dziewczynka jest zmęczona. Daj jej pospać.",
+      "My little girl is tired. Let her sleep."
+    ],
+    [
+      "Hula-hoop po czterdziestce to nie ruch, to deklaracja.",
+      "A hula hoop after forty isn't exercise, it's a statement."
+    ],
+    [
+      "Dziewczynka w środku ma cztery lata i dużo pomysłów.",
+      "The girl inside is four years old and full of ideas."
+    ],
+    [
+      "Pierwszy raz od lat bawię się w kółko graniaste.",
+      "First time in years I'm playing ring-a-ring-o'-roses."
+    ],
+    [
+      "Śmiejemy się, a potem każda opowiada o swojej działce.",
+      "We laugh, and then each tells about her allotment."
+    ],
+    [
+      "Mąż pyta, gdzie jestem. Budzę dziewczynkę.",
+      "My husband asks where I am. Waking the girl."
+    ],
+    [
+      "Dziewczynka chce lody. Dorosła też.",
+      "The girl wants ice cream. So does the grown-up."
+    ],
+    [
+      "Balony dla dziewczynki, musujące dla dorosłej.",
+      "Balloons for the girl, something sparkling for the grown-up."
+    ],
+    [
+      "Nie, to nie sekta. To klub.",
+      "No, it's not a cult. It's a club."
+    ],
+    [
+      "Zamknijcie oczy. Widzicie ją? Macha.",
+      "Close your eyes. Can you see her? She's waving.",
+      {
+        "only": "leader"
+      }
+    ],
+    [
+      "Powtarzajcie: jesteśmy pełnią!",
+      "Repeat after me: we are the full moon!",
+      {
+        "only": "leader"
+      }
+    ],
+    [
+      "A teraz każda mówi dziewczynce, że dobrze jej szło.",
+      "Now each tells the girl she did well.",
+      {
+        "only": "leader"
+      }
+    ],
+    [
+      "Jedź ostrożnie, w środku jest dziewczynka!",
+      "Drive carefully, there's a little girl inside!",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Dziewczynki machają do pana. Niech pan zwolni!",
+      "The girls are waving at you. Slow down!",
+      {
+        "only": "car"
+      }
+    ]
+  ],
+  "park_kungfu": [
+    [
+      "Żuraw w locie. Technika sprzed wieków. Ćwiczę od wtorku.",
+      "Flying crane. A centuries-old technique. I've trained since Tuesday."
+    ],
+    [
+      "Mistrz mówi: bądź jak woda. Woda nie ma pleców.",
+      "The master says be like water. Water has no back."
+    ],
+    [
+      "Wolny ruch jest trudniejszy niż szybki.",
+      "A slow move is harder than a fast one."
+    ],
+    [
+      "Jesteśmy ninja. Wszyscy widzą, że tu stoimy.",
+      "We're ninjas. Everyone can see us standing here."
+    ],
+    [
+      "Ćwiczę kung-fu w parku, bo na siłowni nie ma gołębi.",
+      "I do kung-fu in the park because gyms have no pigeons."
+    ],
+    [
+      "Siedemnasta forma: ptak, który zapomniał, dokąd leci.",
+      "Form seventeen: the bird that forgot where it was flying."
+    ],
+    [
+      "Równowaga jest w nogach. U mnie w kolanach, niestety.",
+      "Balance is in the legs. In mine, in the knees, sadly."
+    ],
+    [
+      "Oddech, ruch, kawa. W tej kolejności.",
+      "Breath, move, coffee. In that order."
+    ],
+    [
+      "Wolniej. Jeszcze wolniej. Wolniej, niż myślisz.",
+      "Slower. Slower still. Slower than you think.",
+      {
+        "only": "leader"
+      }
+    ],
+    [
+      "Cisza. Słyszę tylko, jak ktoś czeka na zielone.",
+      "Silence. I only hear someone waiting for the green light.",
+      {
+        "only": "leader"
+      }
+    ],
+    [
+      "Gołąb nie jest częścią formy. Gołąb to nauczyciel.",
+      "The pigeon is not part of the form. The pigeon is a teacher.",
+      {
+        "only": "leader"
+      }
+    ],
+    [
+      "Mistrz mówi: samochód to też żywioł.",
+      "The master says a car is an element too.",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Wolniej, nie zakłócaj energii qi.",
+      "Slower, don't disturb the qi.",
+      {
+        "only": "car"
+      }
+    ]
+  ],
   "cringulo_review": [
     [
       "Ciasto chrupie, sos jest, ser ciągnie się jak kredyt.",

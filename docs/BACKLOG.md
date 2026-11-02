@@ -215,8 +215,8 @@ covers the minimap and +/- buttons (not reproduced on main: check_hud sweep clea
 stops the car dead in 0.2-0.4 s with no slide; is that the arcade feel we want, or should it
 bounce or slide off a wall? Runs 4-8 (Krucza, Mokotowska,
 Świętokrzyska, Królewska): no wall bugs on the streets themselves (the on-road stops were bumps
-into traffic cars); PT-7 (the tow fires by the curved glass building), PT-8 (a 6 km/h crawl
-during Pani Halina's prompt) suspects; PT-9 HUD overlaps confirmed.
+into traffic cars); PT-7 (the tow fires by the curved glass building) suspect, PT-8 (a 6 km/h crawl
+during Pani Halina's prompt: she was put in front of the car, fixed 2026-11-02); PT-9 HUD overlaps confirmed.
 - Found with PT-1: a free spot (`main.gd _free_car_spot`, a tow) only tests the box against the
   wall faces, so a spot fully inside a solid outline (a building, now a 0.9 m platform) counts as
   free. Not seen in play; reject spots inside platforms and footprints if it shows up.
@@ -1305,6 +1305,19 @@ gear names (WĄWÓZ, CEGŁA, SPECJAŁ, GARNEK, SZPAN). Left:
   between the pavements on either side in places (corners joined within 4 m).
 - A beat from the rave booth (sfx.gd positional voice), a rave notebook card or egg, a DJ crate
   courier job, a radio mention.
+
+## Wellness circles: sound healing, techno yoga, the 40+ club, park kung-fu (F, 2026-11-02)
+Built (`wellness.gd`, docs/design/wellness.md; ideas 2, 3, 4 and 8 of docs/design/city-life-satire.md): eight lawn
+spots (Park Świętokrzyski, Skwer Kościuszki, Rondo Daszyńskiego, Browary Warszawskie, Ogród Saski, Park Ujazdowski,
+Ogród Krasińskich) in daylight hours, 58 lines (`sound_healing`, `techno_yoga`, `club_40`, `park_kungfu`), check
+`wellness`. Left:
+- No sound yet: a soft gong when the car passes a sound-healing ring and a thump near a techno row
+  (sfx.gd positional voices, one new make_sfx.py sound each).
+- Mac look check (QUESTIONS): the spots are read off the baked lawns, not seen; Łazienki Królewskie, Pole
+  Mokotowskie and Skaryszak (the design doc's other park spots) lie outside the map.
+- Only the phone can show whether the 7-10 figures, the signs' text and the hamster balls read at the default
+  zoom and what they cost there (cloud: llvmpipe only).
+- Not rain-aware (the clock only); no notebook card or egg; the groups ignore the car (no scatter).
 
 ## Powiśle streets (F, 2026-11-02)
 Built: eight original-name neon shop signs (`Storefronts.POWISLE`, same venue code as the cinemas)

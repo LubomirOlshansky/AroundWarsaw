@@ -5712,6 +5712,9 @@ Command-line options (after `--`):
 | `--packs=0` | packs (docs/design/packs.md): no running clubs, cycling packs or coffee raves (`--crowd=0` drops them too) |
 | `--packs-now` | packs: every club and every COFFEECHAIR café's rave on whatever the clock says; each pack whose loop passes within 300 m of the car's start is timed to stream past it a few seconds in (shots) |
 | `--packs-log` | packs: print `packs:` lines: the routes' lengths, each club setting off and going home, each rave with its booth's position, the minute's summary (where each pack's head is), every line and meeting |
+| `--wellness=0` | wellness circles (docs/design/wellness.md): no sound-healing rings, techno-yoga rows, 40+ circles or kung-fu schools (`--crowd=0` drops them too) |
+| `--wellness-now` | wellness: every spot on whatever the clock says (shots) |
+| `--wellness-log` | wellness: print `wellness:` lines: each spot starting and packing up, every line and meeting, the minute's summary |
 | `--tram-log` | vintage-tram loop: print `old tram:` lines: each run taken out of sight and turned modern, the follow count every 50 m and its resets, E39 |
 | `--bus-log` | night-buses loop: print `buses:` lines: the hub's bays and stops, each gathering and ring bus, the car at the ring, the race to the Palm, each honk and called bus, the stop lines, a summary every 20 s |
 | `--crash=now` / `--crash=X,Z` / `--crash=on` / `--crash=0` | crash scenes (`crash_scenes.gd`): a scene now 45-130 m ahead of the car (shots; it may be in view), or on the fitting road nearest X,Z; `on`: the 3-5 minute timer in a test run too (it runs in a normal launch only); `0`: none |

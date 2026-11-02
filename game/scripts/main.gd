@@ -127,6 +127,8 @@ const CrashScenes := preload("res://scripts/crash_scenes.gd")
 ## Packs (docs/design/packs.md): running clubs, cycling packs and coffee raves.
 const Packs := preload("res://scripts/packs.gd")
 const LoudCars := preload("res://scripts/loud_cars.gd")
+## Wellness circles (docs/design/city-life-satire.md): sound healing, techno yoga, the 40+ club, park kung-fu.
+const Wellness := preload("res://scripts/wellness.gd")
 ## The garage loop: Warsztat u Mirka and its paint jobs (garage.gd, its card garage_card.gd).
 const Garage := preload("res://scripts/garage.gd")
 ## Loop 3h slice 4: the guided first 10 minutes and the end card.
@@ -473,6 +475,11 @@ var loud_log := false
 var packs_flag := 1
 var packs_now := false
 var packs_log := false
+## Wellness circles (wellness.gd); flags --wellness=0 (none), --wellness-now (every spot on at any hour), --wellness-log.
+var wellness: Wellness
+var wellness_flag := 1
+var wellness_now := false
+var wellness_log := false
 ## The garage loop (garage.gd): Warsztat u Mirka on Brzeska; flags --paint=<id> (the car starts in
 ## that paint, owned for the run), --garage (the car in the garage's ring, the card open; the
 ## garage shown whatever the wallet), --garage-log (`garage:` lines).
@@ -1336,6 +1343,7 @@ func _build_world() -> void:
 	_build_storefronts(data, world)
 	_build_packs(data, world)
 	_build_loud_cars(world)
+	_build_wellness(world)
 	_build_first10()
 	_set_quality(quality_choice)
 	get_tree().root.size_changed.connect(_apply_style)
@@ -1600,6 +1608,8 @@ func _set_quality(choice: int) -> void:
 		crowds.refresh()
 	if packs != null:
 		packs.amount = _crowd_scale()
+	if wellness != null:
+		wellness.amount = _crowd_scale()
 	if life != null:
 		life.amount = float(life_flag) * (0.5 if quality == Tiers.LOW else 1.0)
 	RenderingServer.directional_shadow_atlas_set_size(qs["shadow_size"], true)
@@ -2215,6 +2225,30 @@ func _build_loud_cars(world: Node3D) -> void:
 	loud_cars.focus = func() -> Vector3: return cam_focus
 	world.add_child(loud_cars)
 	loud_cars.setup()
+
+
+## The wellness circles (wellness.gd): none with --wellness=0 or --crowd=0.
+func _build_wellness(world: Node3D) -> void:
+	if wellness_flag == 0 or crowd_flag == 0:
+		return
+	wellness = Wellness.new()
+	wellness.name = "Wellness"
+	wellness.map = map
+	wellness.dialogue = dialogue
+	wellness.hud = hud
+	wellness.log_on = wellness_log
+	wellness.amount = _crowd_scale()
+	wellness.force = wellness_now
+	wellness.clock = tod.local_clock
+	wellness.focus = func() -> Vector3: return cam_focus
+	wellness.vehicle = func() -> Array:
+		if flying:
+			return [heli.global_position, heli.speed() * 3.6, true]
+		return [car.global_position, car.vel.length() * 3.6, false]
+	if traffic != null:
+		wellness.on_screen = traffic.on_screen
+	world.add_child(wellness)
+	wellness.setup()
 
 
 func _build_first10() -> void:
@@ -3764,6 +3798,12 @@ func _parse_args() -> void:
 			packs_now = true
 		elif arg == "--packs-log":
 			packs_log = true
+		elif arg.begins_with("--wellness="):
+			wellness_flag = clampi(int(arg.trim_prefix("--wellness=")), 0, 1)
+		elif arg == "--wellness-now":
+			wellness_now = true
+		elif arg == "--wellness-log":
+			wellness_log = true
 		elif arg.begins_with("--honk="):
 			for f in arg.trim_prefix("--honk=").split(",", false):
 				honk_frames.append(int(f))
@@ -5238,6 +5278,8 @@ func _make_stats() -> BenchStats:
 		b.systems["storefronts"] = [storefronts, "spent_usec", true]  # loop MW-2
 	if packs != null:
 		b.systems["packs"] = [packs, "spent_usec", true]  # running clubs, cycling packs, raves
+	if wellness != null:
+		b.systems["wellness"] = [wellness, "spent_usec", true]  # sound healing, techno yoga, 40+ club, kung-fu
 	if egg_book != null:
 		b.systems["eggs+tape+spacer"] = [self, "_moments_usec", false]  # loop MW-6
 	if districts != null:

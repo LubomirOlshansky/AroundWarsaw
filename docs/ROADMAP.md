@@ -87,6 +87,7 @@ then the Launch gate.
 - [ ] Free-play playtest plan P1-P10 run with Autopilot and every confirmed PT bug fixed
       (F, 2026-11-02; docs/PLAYTEST.md; setup and Autopilot plugin done 2026-11-02)
   - [x] PT-1 dead stop at Centrum's tram stop on Marszałkowska, 2026-11-02 (PR #289)
+  - [x] PT-8 Pani Halina rolled up in front of the car on narrow Hoża and pinned it for her whole prompt, 2026-11-02 (`check_ladder`)
   - [x] PT-13 the first order card started without a tap: GO counts down to the order's own start, 2026-11-02
   - [x] PT-9 radio ticker cut off at the left edge at 2.16:1, and PT-10 the order tracker over speech bubbles and its distance into its arrow, 2026-11-02 (`check_hud`; phone look open)
 - [ ] A full `tools/verify.sh` and `--ios` on the Mac on today's main, both city paths
@@ -261,7 +262,7 @@ then the Launch gate.
   - [x] T1 trains through the city (suburban, city line, long-distance), `check_trains`, 2026-11-01
   - [x] S3a Warszawa Stadion: the white hall with its sail, the red-and-white mosaic canopies, 2026-11-01; the roof sweeping up into a taller sail after the Mac photo check
   - [x] S3b Warszawa Śródmieście: the two glass stair pavilions by the Palace, 2026-11-01
-  - [ ] S3c-e the other stations: Wschodnia, Gdańska (the map's edges, Mac look first), the WKD entrances
+  - [ ] S3c-e the other stations: Wschodnia, Gdańska (the map's edges, Mac look first), the WKD entrances (parked 2026-11-02: need a Mac photo gather first, QUESTIONS "Waiting"; the rest of the railway lane is done)
   - [x] Parks come alive (2026-11-01, `park_details.gd`, `tools/bake_park_details.py`): Ogród Saski, Ogród Krasińskich, Park Ujazdowski and the castle's park get sandstone statues, a fountain, a carousel, a playground, a gazebo, pergolas, a sundial, a footbridge, ducks and swans, squirrels, people on the benches, picnics and a yoga class; the Mac look check parked
   - [ ] Łazienki Królewskie (Palace on the Isle, Chopin monument, peacocks): south of the map's edge, waits for a map extension (QUESTIONS)
   - [x] The map's edges: the land runs on past the outline (ground fading into the sky, a tree line, blocks beyond, the rails and roads running out), Wschodnia and Gdańska first, 2026-11-01; the Mac look check parked
@@ -300,6 +301,10 @@ then the Launch gate.
       Left-handed layout added 2026-11-01 (DOSTĘP, `--left-handed`); colour-safe now also covers the
       HUD's win green and fail red (2026-11-01, `Access.tint`). Text size now live (2026-11-01,
       `Hud.apply_text_scale`). Left to do: subtitles (BACKLOG)
+- [x] Wellness circles (F, 2026-11-02, `wellness.gd`, docs/design/wellness.md): sound healing (gong, bowls,
+      "80 zł" board), techno yoga with hamsters in rolling balls, the 40+ club "waking the little girl" turning
+      round a tree, kung-fu schools in the parks; eight lawn spots, 58 lines. Left: gong and beat sound, a Mac look
+      check, the phone's cost
 - [x] Packs (2026-11-01, `packs.gd`): running clubs, cycling packs with gear jokes, coffee raves
       at the COFFEECHAIR cafés, big guys with tiny dogs. Left: the phone's look and cost, a rave beat
 - [x] Vistula boulevards full of life (F, 2026-11-01, `crowds.gd` BULWARY, `city_life.gd`): nine
