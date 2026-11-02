@@ -973,10 +973,10 @@ func _club_talk(c: Dictionary, step: float, eye: Vector2, car2: Vector2) -> void
 		if d < MEET_R:
 			c["met"] = true
 			meets += 1
-			if hud != null and hud.has_method("toast"):
+			if hud != null and hud.has_method("ambient_toast"):
 				var what := "Klub biegowy" if c["kind"] == "run" else "Peleton"
 				var gloss := "Running club" if c["kind"] == "run" else "Cycling pack"
-				hud.toast("%s %s" % [what, c["name"]], "%s: %s" % [gloss, c["gloss"]])
+				hud.ambient_toast("%s %s" % [what, c["name"]], "%s: %s" % [gloss, c["gloss"]])
 			if log_on:
 				print("packs: the car meets %s (%.0f m)" % [c["name"], d])
 	c["line_t"] = float(c["line_t"]) - step
@@ -999,8 +999,8 @@ func _rave_talk(r: Dictionary, step: float, eye: Vector2, car2: Vector2, kmh: fl
 	if car2 != Vector2.INF and not bool(r["met"]) and car2.distance_to(a2) < MEET_R:
 		r["met"] = true
 		meets += 1
-		if hud != null and hud.has_method("toast"):
-			hud.toast("Kawowy rave przed COFFEECHAIR", "A coffee rave outside COFFEECHAIR")
+		if hud != null and hud.has_method("ambient_toast"):
+			hud.ambient_toast("Kawowy rave przed COFFEECHAIR", "A coffee rave outside COFFEECHAIR")
 	r["line_t"] = float(r["line_t"]) - step
 	if float(r["line_t"]) > 0.0 or int(r["n"]) == 0:
 		return
@@ -1021,7 +1021,7 @@ func _rave_talk(r: Dictionary, step: float, eye: Vector2, car2: Vector2, kmh: fl
 func _say(anchor: Callable, speaker: String, group: String, tag: String, accent: Color, prefer := false) -> void:
 	if dialogue == null:
 		return
-	var l: Array = dialogue.say(anchor, speaker, group, tag, 4.0, accent, 2.2, prefer or tag != "")
+	var l: Array = dialogue.say_ambient(anchor, speaker, group, tag, 4.0, accent, 2.2, prefer or tag != "")
 	if not l.is_empty():
 		lines_said += 1
 		if log_on:

@@ -17,6 +17,7 @@ extends Node
 ## night only while no job runs) and the shared beacon: +0-1 draw calls near a depot.
 
 const Beacon := preload("res://scripts/beacon.gd")
+const MapIcons := preload("res://scripts/map_icons.gd")
 const StopAssist := preload("res://scripts/stop_assist.gd")
 const Missions := preload("res://scripts/missions.gd")
 
@@ -377,14 +378,17 @@ func _next() -> int:
 func _pins() -> void:
 	var pts := PackedVector2Array()
 	var colours := PackedColorArray()
+	var shapes := PackedInt32Array()
 	for i in targets:
 		var a: Vector3 = store.scooters[i]["at"]
 		pts.append(Vector2(a.x, a.z))
 		colours.append(PIN_COLOUR)
+		shapes.append(MapIcons.POI_SCOOTER)
 	var at: Vector3 = depots[depot]["at"]
 	pts.append(Vector2(at.x, at.z))
 	colours.append(COLOUR)
-	hud.set_minimap_pois(pts, colours)
+	shapes.append(MapIcons.POI_DEPOT)
+	hud.set_minimap_pois(pts, colours, shapes)
 
 
 func _finish() -> void:

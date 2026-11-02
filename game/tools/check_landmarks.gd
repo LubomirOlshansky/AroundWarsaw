@@ -169,6 +169,8 @@ func _fly_checks() -> int:
 			alt = 6.0  # a building site: the cranes are thin, the theatre's closed floors stand 9 m
 		elif info["key"] == "sw_anna":
 			alt = 8.0  # the bell tower's trim (38 m) stands in the box but away from the nave the heli aims at
+		elif str(info["key"]).begins_with("church_"):
+			alt = 6.0  # the kit's towers (25-34 m) stand at the front, away from the nave the heli aims at (eave 7.5 m and up)
 		elif info["key"] == "dtc":
 			alt = 10.0  # the 17.5 m stores share roof cells with the Eastern Wall's 70 m slabs behind them
 		elif info["key"] == "tarasy":

@@ -15,6 +15,28 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | all | The audit beyond the landmarks: BACKLOG "Audit: what is verified beyond the landmarks", its P0 items handed out next | cloud thread "Audit what's left beyond landmarks" | 2026-11-01 |
 
 ## Waiting
+- **2026-11-02 · content · Nowy Świat shopfronts** — Mac look check for the eight signs (`Storefronts.NOWY_SWIAT`): each sits on a wall chosen from the road line, not a real door, so move any that land on a gap, a side street or the wrong side; are the pastel tubes readable at dusk beside the KUKŁA and NERWO signs? Still open (needs photos/orthophoto): per-house plaster colours, real shop awnings, café gardens, the Visitation and Staszic ends. Default built: neon only, no queues, no notebook cards.
+- **2026-11-02 · gameplay · Police chases** — Phone check: with chasers at 0.8 of your top speed and the escape at 100 m, does a flat-out run lose them in about 15 s without feeling free? (`CHASE_TOP` in `police/police_unit.gd`, `ESCAPE_DIST` in `police.gd`.) And a look at the new silver radiowóz estate and the silver police van against the photos: band height, checker strip, bonnet panel, the van's black mesh window. Built default: 24 m/s, 100 m.
+- **2026-11-02 · map · Marszałkowska street details** — Mac/phone look check: the new tram-island kits (a bench, a stop post, a ticket machine on the slab of the islands by Świętokrzyska and south of the Rotunda; are they on the slab, not sunk or floating, and facing the tracks?), the planters, bollards, kiosks and columns now on Marszałkowska north of Świętokrzyska and south of the Rotunda (C9, C10: clutter or life at camera size 80?). Also photos for the crossings (zebras and the cycle crossings against real Marszałkowska), the facades and shopfronts house by house. Default built: the bake's placement.
+- **2026-11-01 · landmarks · Stadion Leguminy** — Mac look check for the Legia ground on Łazienkowska (built in the cloud with no photo): facade colours (default: light-grey and graphite panels under a graphite band, a red line and a green band), the roof's opening size (default 160 x 122 m round the pitch), seat colours (default white, green, red blocks), where the four floodlight masts really stand, and whether the south and east LEGUMINA signs read at night. The 20 m west stand and the 5.4 m footprint are not modelled separately. Parody name chosen because the club name is a brand; say if the real place name should be used.
+
+
+
+
+- **2026-11-02 · landmarks · Pokorna 2** — Mac look check: does the 57 m block off Pokorna now read as flats (balconies, warm plaster #d6c3ad, blue-grey railings), is its real colour closer to grey or pale pink, and do the balcony slabs clash with the real LoD2 walls (gap or z-fight)? Built: spec docs/landmarks/specs/pokorna2.md, site `pokorna2`, `--prebuilt` look not rendered in the cloud.
+- **2026-11-02 · content · Language choice** — Phone look check for the new Polish / English choice (title buttons top right, Settings → DŹWIĘK → Język): is the text the right size now that each screen has one line, not two (cards, toasts, the ticker, the pull-over card), do the title buttons clear the notch, and does anything still show both languages? Not covered by `check_language` (drawn text): the notebook page, the pedals' words, the full map's labels. Default built: the phone's language until the player picks one (Polish phone: Polish, any other: English); a text with no English (street, parody and place names) stays as it is in both.
+- **2026-11-02 · map · Cycle paths** — Phone look and ride check (the cloud has no GUGiK data, only the baked outlines): after `tools/cycleways.py` closed 195 gaps (ends within 3 m), put 52 ends on a neighbouring path, joined 218 split ways and rounded 68 corners, do the red paths draw smoothly and do riders carry on at the joins instead of turning back? Gaps of 3-8 m (about 600 ends, often the two sides of a street) were left on purpose; default kept. Compare the paths with OSM once on the Mac (`python3 -I tools/cycleways.py --dry` after a re-bake prints the same counts).
+- **2026-11-02 · map · Le Régina (Kościelna) and the New Town hotels** — Parked: `centrum.json` has no Kościelna, Freta or Zakroczymska roads and no tenements there, so a hotel front (the `HOTELS` mechanism, landmarks.gd) has nothing to attach to. Needs the bake extended north of Freta (map-engineer, Opus, Mac). Default built: nothing.
+- **2026-11-02 · landmarks · Jana Pawła II blocks** — Finding, nothing built: BACKLOG has no such item; buildings of 26 m and up (and slabs 45 m+ long) on the avenue already get the large-panel facade type 2 automatically (`_building_type`). The cluster at (-1855, -530) is ~170 one-metre, 15 m "yes" objects (orange, grey roofs) in an 85 x 64 m patch, not a block row; the Mac look check should say what it really is (OSM way on the real map near Al. Jana Pawła II) before anyone models it. Which blocks F meant (name or photo) is the open question.
+- **2026-11-02 · content · Powiśle streets** — Mac look check for the eight Powiśle shop signs (`Storefronts.POWISLE`: FLAT BIAŁY, ROWEROWNIA, WINYLE NA SKARPIE, KSIĘGARNIA POD SYRENKĄ, BAR TOPIEL, PIEKARNIA NA POWIŚLU, ALTANA, PRZY SOLCU): right street and wall, readable by night? Phone: do they crowd the boulevards' signs? Default built: signs only, spots snapped to the baked streets, no doors, queue or notebook cards.
+- **2026-11-02 · content · Classic cinemas** — Mac look check for the seven cinema marquees (`Storefronts.CINEMAS`): is each sign on the right street and wall (positions are approximate, snapped to the nearest road and a wall within reach), readable by night? Also: where is Kino Wisła, and should Iluzjon (Narbutta, south of the map) get a pin on the full map? Default built: signs only, real names, no queue, no notebook card.
+- **2026-11-02 · landmarks · Plac Bankowy** — Mac look check (the cloud has no photos, LoD2 or terrain): is the Blue Skyscraper's blue right (default #5f94c6 mirror, silver spandrels, cool podium; real photos show sky-blue to steel-blue), is the Treasury palace's yellow right (#e6d8a0 with grey-green roof; real is a pale yellow with white columns), what colour the Voivodeship wing really is (built as palace yellow; OSM says teal), the Arsenal's plaster and roof, Landau's house. Prebuilt path not baked in the cloud (`bake_city` fails on main's known site mismatches); skins use the same landmark outlines on both paths.
+- **2026-11-02 · landmarks · Gdański Business Center** — Mac look check (site `gbc`, spec `gbc.md`): is this the right complex (tower at Inflancka, 74 m, two 45 m blocks, a 31 m block), the tower crown's slant direction and depth, the blocks' colour (pale blue-green here), logo boxes (AWIWA on the tower, NIELZEN on the blocks; the plaza between them is the map's own, unplanted extras not built). Default built from OSM and the four photos.
+- **2026-11-01 · landmarks · Ujazdowski Castle** — Mac look check for Zamek Ujazdowski (`ujazdowski`): the facade's real colour (built cream), the copper roofs and tower caps (spire to 26.5 m), the entrance side (built west, onto the park path), the courtyard (built open; OSM maps an 8.8 m roof patch in it), the east bay. Also the `--prebuilt` look and bench. Built: the model in cream with copper roofs; look shots in the thread. Phone: drive Al. Ujazdowskie south to the castle, stop in its ring for the notebook card.
+- **2026-11-01 · driving · Heli camera** — Phone feel check: does the helicopter's camera now turn with it while the stick is held (gain 1.1, as the car's Point), without the held direction circling? Built: camera follows while flying; a held direction keeps the screen it was set against, re-aimed at 20° (like drive_controls.gd). Not run in Godot (none in the cloud).
+- **2026-11-01 · visuals · Bulwary life** — Phone look check: do the groups on the boulevard's steps and benches (Karowa to Kopernik, evening) sit where people would, and do the fast cyclists (30-41 km/h) read as fast, not as a glitch? Built: 9 chill spots, 45 % fast riders; default kept.
+- **2026-11-01 · visuals · Retro filter** — Phone look check: does the new vaporwave Retro filter (Settings → Obraz, V key; the old VHS tape) read as 80s Miami neon, not muddy, by day and at night? Default built: pink and teal split-tone, soft bloom, light scanlines and grain; the Styl obrazu picker is removed (always Ostry). Where: PR "Rework retro filter".
+- **2026-11-01 · landmarks · Grand hotels** — Mac look check for Hotel Bristol (colour of the facade, mansard, door position on Krakowskie Przedmieście) and Hotel Polonia Palace (colour, 25.5 m height, door on Al. Jerozolimskie); built: sand and cream walls, grey slate mansards, door at the middle of the longest street front.
 
 - **2026-11-01 · landmarks · Old Town hotels** — Which tenements are the real Hotel Bellotto (Brukowa 12),
   Castle Inn (Świętojańska 2) and the Rynek aparthotel? Default built: the nearest tenement to each
@@ -33,6 +55,26 @@ Newest first. One entry per question.
   z-fight), are the arcades round-headed or flat in the photos, how tall are the real towers,
   what do the real reliefs show, which blocks really have arcades. Check `--prebuilt` too
   (the cloud could not bake the sectors).
+- **2026-11-01 · landmarks · church kit and Plac Zamkowy: Mac look check** — Built in the cloud
+  from outlines alone (docs/design/churches.md, spec churches.md). Defaults: the front is the
+  outline's end nearest a street; towers, caps and colours by a guessed style per church
+  (`CHURCHES` in landmarks.gd). Check on the Mac: for each of the 22 kit churches, which end is
+  the real front, how many towers and which cap, the plaster or brick colour; fix the entry in
+  `CHURCHES` (`out` flips the front, `towers`, `cap`, `wall`, `roof`). Plac Zamkowy: do the new
+  gables (stepped, pediment, curved) stand on the right houses' top edges on the real LoD2 walls,
+  and do the pastels look right next to the Castle's brick. Phone: frame cost of the Old Town with
+  the extra gables.
+
+- **2026-11-01 · gameplay pass · phone checks** — F's six screenshots drive BACKLOG "Gameplay pass" G1-G13. Phone checks: (G1) a fresh save shows HELI at 0:00 and the map hold teleports; (G2) the Low default feels calm and the slider moves it; (G3) the zoom buttons clear the minimap and the pill; (G4) is Cruise easy enough (grip 16, turn pull 10, steer 0.14 s, soft gas; lane change at 50 km/h slides under 1.1 m/s), is Sport still wanted, and do Settings → Jazda → Prowadzenie and the moved Tryb gry (now in Świat) read well; (G5) which wall-like blocks F meant (a photo of one helps). Defaults built: heli and teleport free, Low traffic, Cruise handling.
+
+- **2026-11-01 · gameplay pass · phone checks** — F's six screenshots drive BACKLOG "Gameplay pass" G1-G13. Phone checks: (G1) a fresh save shows HELI at 0:00 and the map hold teleports; (G2) the Low default feels calm and the slider moves it; (G3) the zoom buttons clear the minimap and the pill; (G4) is Cruise easy enough (grip 16, turn pull 10, steer 0.14 s, soft gas; lane change at 50 km/h slides under 1.1 m/s), is Sport still wanted, how the Czułość slider (0.6x to 1.4x turn rate, middle = as is) feels at both ends, and do Settings → Jazda → Prowadzenie and the moved Tryb gry (now in Świat) read well; (G5) which wall-like blocks F meant (a photo of one helps). Defaults built: heli and teleport free, Low traffic, Cruise handling.
+
+- **2026-11-01 · driving · photo mode and POMOC DROGOWA: phone check** — Fixed in the cloud
+  (headless check and a game run: the car moved 0.00 m under Fotka; the button towed it onto the
+  lane). Default built: the button is the last row of JAZDA's left column, always available on
+  the ground (also mid-job or mid-chase; in the water it calls the water tow, in the air it does
+  nothing). Phone check: open FOTKA by a wall for a minute and close it, the car stays; press
+  POMOC DROGOWA, the card closes and the car is on the road with the "Towed free" toast.
 
 - **2026-11-01 · landmarks · metro entrances: Mac look check** — Built in the cloud (flat
   ground). Default built: `Props.add_metro_entrance` per bake form (`canopy` vaulted glass over
@@ -72,6 +114,8 @@ Newest first. One entry per question.
   plaster colours, the statue's pose (sword hand, shield side, which way she faces), the rim
   wall against the mapped pond, whether Varso's visitors stand on the crown's roof. Photos of
   the square's four sides (one per house front) would let the plaster colours be set per house.
+- **2026-11-02 · content · the Zagłębie's names and Femina** — Default to build: KEBAB KRÓL MAZOWSZA, STAMBUŁ 24, DONER PASZA, U WUJKA ERDALA and the craft ZAKWAS I ROŻEN (spec `zaglebie-kebabowe.md`, section 2); Kino Femina keeps its real name with a red KINO / FEMINA fascia on the mapped building. Say if you want other names, or if the real shops' names should show instead. The Mac photo check of Femina's front is parked (BACKLOG).
+
 - **2026-11-01 · content · the Norblin milk bar's name** — Default to build: **KROWA 2.0** (a bar
   mleczny rebuilt as a start-up, sign "BAR MLECZNY / KROWA 2.0", pale-blue tube, open 8-18 with a
   long lunch line). Say if you want another name. Also parked: the Mac look check of the four
@@ -394,8 +438,8 @@ Newest first. One entry per question.
 - **2026-10-31 · map · map north** — Outdated 2018 LoD2 models under much taller mapped buildings
   give way to OSM map-wide (46 models, mostly Wola: low sheds become the mapped towers as plain
   blocks), or only in the new area? Default built: map-wide.
-- **2026-10-31 · map · map north** — Arkadia's roof car park is left out of the bake: keep it out,
-  or model it for DEMO 6.4's car-park race? Default built: left out.
+- **2026-10-31 · map · map north** — Arkadia's roof car park: ~~left out of the bake~~ modelled 2026-11-01 as parked-car boxes on the deck (no ramps, no drivable deck); DEMO 6.4's car-park race would still need a drivable deck. Default built: static cars.
+- **2026-11-01 · landmarks · Arkadia and Forest** — Mac photo check: Arkadia's real facade colours (cream/terracotta is a guess), whether the roof skylights are pyramids, where the real entrances are (canopies sit on the three longest faces); the Forest terrace: which wing really has it, its real size, BANK PEPEO's real height on the tower. Default built: that.
 - **2026-10-31 · map · map north** — The flag mast on Rondo Radosława isn't in OSM: no placeholder,
   left to the landmarks lane (spot in DEMO.md 2.1). Default built: none.
 - **2026-10-31 · map · 3e** — Ground under trenches: 1 m sub-cells only at tunnel portals and
@@ -585,3 +629,6 @@ backlog. Lasting decisions also go into BACKLOG's "Decided" sections, DEMO.md or
   kept as place names (they are also the halls' trade names); the new tower and museum are
   never named. Rename the halls descriptively ("Hala na Koszykowej")? Default built: kept.
   **Answered 2026-10-30 (F):** kept.
+- **2026-11-02 · gameplay · G12** — Rescues are on the HELI line in the spec, but most calls are street/park rescues the ambulance car does well. Default built: rescue calls follow the vehicle (flying: roof/sandbar, driving: street/park/shore, heli-only ones in violet); the notebook does not list quests yet. Make every rescue heli-only and give the car only jobs? Default built: no.
+- **2026-11-02 · gameplay · G10** — START KURS appears within 25 m of the waiting passenger and boards at once (the car is not auto-braked). Phone check: is a tap enough, or should driving through the ring start it too?
+- **2026-11-02 · landmarks · Warsaw Spire** — Rebuilt from F's three photos and the map alone, so these are guesses to check on the Mac: (1) which rim the roof fin stands on (built: the east rim, peaking over the north half); (2) the entrance side (built: north, towards the plaza between the wings); (3) the canopy's size and the V legs' spread; (4) how much narrower the lobby is (built: 0.74 of the roof plan); (5) the wings' colour and top storey. Default built: that. Alternative: move the fin or canopy to the side the photos show.
