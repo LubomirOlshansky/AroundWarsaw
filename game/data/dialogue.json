@@ -2587,6 +2587,41 @@
   ],
   "garage": [
     [
+      "Pod maskę zajrzymy. Kasa na ladę.",
+      "We'll look under the bonnet. Cash on the counter.",
+      {
+        "only": "parts"
+      }
+    ],
+    [
+      "Ołdi TT. Niski, szybki, nie pytaj skąd go mam.",
+      "The Owdy TT. Low, fast, don't ask where I got it.",
+      {
+        "only": "tt"
+      }
+    ],
+    [
+      "Kebab Boost: pachnie czosnkiem, ciągnie jak holownik.",
+      "Kebab Boost: smells of garlic, pulls like a tug.",
+      {
+        "only": "nitro"
+      }
+    ],
+    [
+      "Dokręcone. Pierwsza śruba gratis, reszta za złotówki.",
+      "Tightened. First bolt free, the rest for złoty.",
+      {
+        "only": "part"
+      }
+    ],
+    [
+      "Lepiej już nie będzie. Chyba że kupisz nowe auto.",
+      "It won't get better. Unless you buy a new car.",
+      {
+        "only": "max"
+      }
+    ],
+    [
       "Wjeżdżaj. Tylko nie na kanał, tam śpi kot.",
       "Drive in. Just not over the pit, the cat sleeps there.",
       {

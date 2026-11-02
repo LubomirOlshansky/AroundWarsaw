@@ -14,7 +14,7 @@ const PixelFont := preload("res://scripts/pixel_font.gd")
 const WORDS := ["KEBAB 24H", "BAR MLECZNY", "APTEKA", "KWIATY", "HOTEL", "KANTOR", "PIZZA", "KLUB", "NOCNY"]
 ## The landmarks loop: words only the landmarks wear (never a shop's), after WORDS in the atlas:
 ## the parody of the brand on Warsaw Spire's crown, the mall by Rondo Radosława's.
-const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA", "CHILTON", "INTERKONTI", "N", "O", "W", "T", "E", "L", "BANK POLSKA",
+const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA", "CHILTON", "INTERKONTI", "N", "O", "W", "T", "E", "L", "BANK POLSKA", "BANK PEPEO",
 		"METROPOLKA", "ENELMEDIK", "ACORN", "HOTELS", "--",
 		# First scene item 3: the Eastern Wall's stores (parodies of their roof names).
 		"JUNIOREK", "SAWKA", "WARSIK",
@@ -47,7 +47,9 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		# The Mac photo check (2026-11-01): Ochota's letters by the entrance.
 		"OCHOTA",
 		# The Old Town hotels' names (parodies of Castle Inn and Hotel Bellotto, an aparthotel).
-		"KASZTEL INN", "CANALETTO", "STARÓWKA"]
+		"KASZTEL INN", "CANALETTO", "STARÓWKA",
+		# The hotel on Plac Zawiszy (a parody of the Radisson Blu Sobieski).
+		"RADYSŁAW BLU"]
 ## Tube colours (linear, bright): pink, cyan, violet, and a few words' usual colours.
 const PINK := Color(1.0, 0.1, 0.55)
 const CYAN := Color(0.1, 0.9, 1.0)

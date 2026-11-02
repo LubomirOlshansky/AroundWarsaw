@@ -28,6 +28,13 @@ then the Launch gate.
       the stadium, Plac Piłsudskiego, the start street's stores, many churches (Mac photo checks
       for some), the Ministry of Finance (2026-11-01, spec `mf.md`; Mac photo check parked)
 - [x] Police chases are escapable (chasers 0.8 of your top speed, escape at 100 m) and the radiowozy match the real ones: silver Auris-style estate, silver Crafter-style van (F, 2026-11-02)
+- [x] Warsaw Spire rebuilt to the real shape (F's photos, 2026-11-02; spec `spire.md`): a shaft that widens
+      upward over a lit glass lobby, a domed roof with a fin and two masts, the mirrored entrance canopy on
+      V legs, the two curved 15-storey wings and the paved plaza; Mac look check parked (QUESTIONS)
+- [x] Arkadka redesign, roof car park, BANK PEPEO sign and the Forest roof terrace (F, 2026-11-01; spec `arkadia.md`; Mac photo check parked)
+
+
+- [x] Powiśle streets: eight small neon-signed shops on Tamka, Dobra, Browarna, Topiel and Solec (F, 2026-11-02; signs only, positions need a Mac look)
 - [x] Classic cinemas: seven neon marquees, Muranów, Atlantic, Luna, Kultura, Elektronik, Femina, Kinoteka (F, 2026-11-02; signs only, positions need a Mac look)
 - [x] Gdański Business Center (tower, two blocks, parody logos; 2026-11-02, spec `gbc.md`; Mac photo check parked)
 - [x] Flat-price jokes: radio, passengers, Podwózka, traffic, dog walkers and three developer billboards (F, 2026-11-01; text only, billboard spots need a Mac look)
@@ -62,6 +69,7 @@ then the Launch gate.
 - [ ] Map checks in GitHub CI (the derived map pack as a release asset)
 - [x] check_streaming's look pass green on the Mac (a look pre-loads what each of its views
       shows), 2026-11-01, PR #183
+- [x] Bike paths smoothed (F, 2026-11-02, `tools/cycleways.py`, run by bake_osm): 195 gaps closed, 218 split ways joined, 52 ends on a line, 68 corners rounded; Mac look and ride check parked, comparison with OSM and the 3-8 m gaps left
 - [ ] Map review C: the streets of the 3d-1 box and map north against the orthophoto
 - [x] Bridge and tunnel joins (loop 3e leftovers): rails cut where a bus box touches them,
       Rozdroże's portal wall, Nowy Zjazd's wall (check_drive `--no-allow` 51 → 26 lane spots; 3 of
@@ -71,6 +79,15 @@ then the Launch gate.
 - [ ] Junction lines checked against photos; dark Jerozolimskie and Nowy Świat at night
 
 ### Left: landmarks and street details
+- [x] All churches designed by one set of rules (F, 2026-11-01; rules and inventory in
+      docs/design/churches.md): the church kit, 22 parish churches as models with a card each
+      (spec churches.md); Zbawiciela (#226), św. Teresy (#225) and the older fronts already done.
+      Open: Mac photo check of each (QUESTIONS), Praga cathedral, Archikatedra's tower, the
+      Dominican and Capuchin monasteries
+- [x] Plac Zamkowy's houses (F, 2026-11-01): a pastel palette in place of OpenStreetMap's mud
+      colours, the plac and Krakowskie Przedmieście's first houses in the historic dress, and a
+      mix of three gable kinds (stepped, pediment, curved) on every front facing the column.
+      Roof repetition in general stays with the gameplay pass thread (BACKLOG "Old Town roofs")
 - [x] Marszałkowska street by street (F, 2026-11-01), pass 1: Kościół Najświętszego Zbawiciela on
       Plac Zbawiciela as a model (spec zbawiciela.md; Mac photo check parked). Next on the street:
       MDM's arcades and corner towers (LANDMARKS 2.8), then houses, roads and street life
@@ -94,6 +111,8 @@ then the Launch gate.
       a pediment, an east bay, dormers and chimneys, 1379 tris, spec ujazdowski.md) and the notebook
       place `zamek_ujazdowski` (chapter Retro i szyk, district Ujazdów i Łazienki, which had no
       place); Mac look check parked (QUESTIONS)
+- [x] Radysław Blu (F, 2026-11-02): the Radisson Blu Sobieski on Plac Zawiszy built whole in postmodern
+      colour bands (`sobieski` site, spec `sobieski.md`, card, neon name); Mac photo check parked (BACKLOG "Grand hotels")
 - [x] Old Town hotels (F, 2026-11-01): fronts on three tenements (portal, canopy, neon name, flags,
       lanterns, card), under parody names KASZTEL INN (Castle Inn), CANALETTO (Hotel Bellotto),
       STARÓWKA (an aparthotel on the Rynek); Mac look check parked (QUESTIONS, BACKLOG "Old Town hotels")
@@ -199,7 +218,7 @@ then the Launch gate.
 ### Left: the gameplay pass (F, 2026-11-01, six phone screenshots; detail and acceptance in docs/BACKLOG.md "Gameplay pass")
 Beta goal: a visitor explores the city with everything open, an easy city drive, a calm street.
 - [x] G1 Heli and map teleport open from the first second (the guide no longer gates them)
-- [ ] G2 Calmer default traffic: Low is the default now (2026-11-01); the stepped slider is left
+- [x] G2 Calmer default traffic: Low is the default and Settings → Świat → Ruch uliczny is a stepped slider with a live label (default 2026-11-01, slider with G16; `check_settings`)
 - [x] G3 +/- zoom buttons on the driving screen (5 steps, saved)
 - [x] G4 Easy city drive: Cruise handling by default, Sport in Settings → Jazda → Prowadzenie, check_handling, 2026-11-01 (the phone feel check is parked in QUESTIONS)
 - [x] G5 Flicker and "lag wall" audit: the dithered fade patches, wall-like props, the metro
@@ -211,8 +230,9 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [x] G10 Podwózka off the main line: a visible rider icon and a START RIDE button with clear directions (Opus) · 2026-11-02, START KURS button within 25 m, bigger "!"; phone check open
 - [x] G11 Better map icons on the minimap and the full map (Sonnet) (2026-11-01, kind shapes, metro and hospital pins, legend; rider and heli icons ride with G10)
 - [x] G12 Separate quest lines: helicopter quests and car quests, each with its own list and map colour (Opus) · 2026-11-02, first pass: rescue calls follow the vehicle, heli colour, car arrows hide while flying; the notebook list and the car/heli split of mixed rescues are parked
-- [ ] G13 Upgrade shop: Audi TT parody (faster car), nitro, tuning, paid in zł (Opus design, Sonnet content)
+- [x] G13 Upgrade shop: Audi TT parody (faster car), nitro, tuning, paid in zł (Opus design, Sonnet content) · 2026-11-02, the Ołdi TT 2,500 zł, Kebab Boost nitro 600 zł, tyres and engine levels 1-3; phone check and nitro flame/sound open (BACKLOG G13a, G13b)
 - [x] G14 POMOC DROGOWA (unstuck) and NOWA GRA (two-tap reset) at the top of Settings → Jazda (quick win)
+- [x] Language choice (F, 2026-11-02): POLSKI / ENGLISH on the title screen and in Settings → DŹWIĘK → Język; the whole game shows one language, saved in settings, the phone's language by default (`lang.gd`, `check_language`; the phone look check is parked in QUESTIONS)
 - [x] G15 Stop assist works better: bigger quest start and end rings, looser "stopped", longer look-ahead (quick win; phone check)
 - [x] G16 Fewer text popups while driving on the road: ambient bubbles muted above 40 km/h, ambient toasts one per 20 s, traffic is a slider (2026-11-01, Sonnet)
 - [x] G17 Car stuck against other cars: held against traffic 1.5 s it ghosts through them for 3 s, tow after 8 s among cars (2026-11-02, check_steering `car_sandwich`)
