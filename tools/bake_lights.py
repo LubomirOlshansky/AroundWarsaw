@@ -179,9 +179,23 @@ LAMP_GAP = 22.0        # ...where no lamp (mapped or added) stands within this o
 APPROACH_SPACING = 20.0  # map round 2 (D7): lamps along a structure's approaches on the ground
 DECK_LAMP_AIR = 2.0    # map round 2: a lamp this far over the ground on a deck lights only the deck
 THROUGH_STREET = 600.0 # ...and a named residential street this long or longer (all its ways; Nowy Świat 1.1 km)
+# Night streets (2026-11-02, BACKLOG "From map review B"): at 34 m a side, staggered, a lamp's
+# pool (its lit bands reach 9-12 m, night.gdshaderinc POOL_STEPS) left dark gaps along the wide
+# avenues, and Al. Jerozolimskie and Nowy Świat read much darker than Marszałkowska, whose mapped
+# lamps stand closer. The avenues' unlit stretches get a lamp every MAIN_SPACING a side wherever
+# none stands within MAIN_GAP (Warsaw's avenue poles are about 25-30 m apart a side).
+MAIN_KINDS = {"primary", "secondary"}
+MAIN_SPACING = 26.0
+MAIN_GAP = 16.0
+# ...and the royal route is lit from both pavements (Nowy Świat's lanterns stand on both sides; a
+# residential street is otherwise lit from one side).
+BOTH_SIDES = {"Nowy Świat", "Krakowskie Przedmieście"}
+BOTH_GAP = 12.0        # ...a narrow street: the gap keeps the lamp across it (8 m over, 13 m along) free
+KERB_REACH = 8         # ...and a kerb point on asphalt steps out up to 8 x 0.5 m to the pavement
 
 
-def street_lamps(roads, lamps, blocked, taken, decks, trams, kerb_of, spacing=STREET_SPACING, min_len=STREET_SPACING, gap=LAMP_GAP):
+def street_lamps(roads, lamps, blocked, taken, decks, trams, kerb_of, spacing=STREET_SPACING, min_len=STREET_SPACING, gap=LAMP_GAP,
+                 main=(MAIN_SPACING, MAIN_GAP)):
     """Map round 2 (2026-10-29, L3/D7): the main streets read dark at night wherever OpenStreetMap
     maps no street lamps along them (Al. Jerozolimskie east of Rondo Dmowskiego: none within 40 m
     of (-615, 394); Nowy Świat at (-331, 18); Most Poniatowskiego's abutments between the towers).
@@ -189,7 +203,8 @@ def street_lamps(roads, lamps, blocked, taken, decks, trams, kerb_of, spacing=ST
     the kerb (0.6 m out; a one-way carriageway on its right, the outer side of a dual
     carriageway; a two-way street on both sides, staggered) wherever no lamp stands within
     LAMP_GAP, the spot is not in a building, on a carriageway, a tram track or under or on a
-    deck. (x, z, arm angle) with the arm over the road."""
+    deck. `main` (spacing, gap) replaces them on the primary and secondary avenues (None: no
+    change). (x, z, arm angle) with the arm over the road."""
     out = []
     near = {}
 
@@ -238,10 +253,13 @@ def street_lamps(roads, lamps, blocked, taken, decks, trams, kerb_of, spacing=ST
         shift = float(r.get("c", 0.0))
         side_off = float(r.get("w", 7.0)) * 0.5 + 0.6
         # A side street (residential, unclassified) is lit from one side, as Warsaw's are.
-        sides = (1.0,) if r.get("oneway") or r["k"] in ("residential", "unclassified") else (1.0, -1.0)
+        sides = (1.0,) if r.get("oneway") or (r["k"] in ("residential", "unclassified") and
+                                              r.get("name") not in BOTH_SIDES) else (1.0, -1.0)
+        step, room = (spacing, gap) if main is None else (
+            main if r["k"] in MAIN_KINDS else (MAIN_SPACING, BOTH_GAP) if r.get("name") in BOTH_SIDES else (spacing, gap))
         for side in sides:
-            stagger = 0.0 if side > 0 else spacing * 0.5
-            at = min(spacing * 0.5 + stagger, length * (0.35 if side > 0 else 0.65))
+            stagger = 0.0 if side > 0 else step * 0.5
+            at = min(step * 0.5 + stagger, length * (0.35 if side > 0 else 0.65))
             while at < length:
                 run = 0.0
                 for (ax, az), (bx, bz) in zip(pts, pts[1:]):
@@ -254,7 +272,12 @@ def street_lamps(roads, lamps, blocked, taken, decks, trams, kerb_of, spacing=ST
                         nx, nz = -dz * side, dx * side
                         off = side_off + shift * side
                         px, pz = x + nx * off, z + nz * off
-                        free = not has_near(px, pz, gap) and not blocked(px, pz) and not on_tram(px, pz)
+                        # Night streets: where the asphalt is wider than the way's width (parking
+                        # bays along Nowy Świat) the kerb point steps out to the pavement.
+                        k = 0
+                        while main is not None and k < KERB_REACH and blocked(px, pz):
+                            px, pz, k = px + nx * 0.5, pz + nz * 0.5, k + 1
+                        free = not has_near(px, pz, room) and not blocked(px, pz) and not on_tram(px, pz)
                         if free:
                             kerb = kerb_of(px, pz)
                             free = kerb is None or kerb[0] >= 0.3
@@ -266,7 +289,7 @@ def street_lamps(roads, lamps, blocked, taken, decks, trams, kerb_of, spacing=ST
                             add_near(px, pz)
                         break
                     run += seg
-                at += spacing
+                at += step
     return out
 
 
@@ -369,7 +392,7 @@ def main(map_dir):
             approaches.append({"p": f["p"], "w": float(f["l"]) + float(f["r"]), "c": (float(f["r"]) - float(f["l"])) * 0.5,
                                "k": "secondary", "name": "", "oneway": False})
     abut = street_lamps(approaches, lamps, lamp_blocked, added + streets, decks, osm.get("trams", []),
-                        lambda x, z: (-1.0,) if carriage.hit(x, z) else None, APPROACH_SPACING, 12.0, 12.0)
+                        lambda x, z: (-1.0,) if carriage.hit(x, z) else None, APPROACH_SPACING, 12.0, 12.0, None)
     # The street's own kind (as its mapped lamps: LED_STREETS by its name), not the nearest
     # road's at the lamp (an unnamed ramp beside it made every other lamp LED).
     for (px, pz, a, name) in streets:

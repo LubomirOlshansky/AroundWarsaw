@@ -113,7 +113,10 @@ then the Launch gate.
       Śląsko-Dąbrowski place hint sits on the bridge (`places` WARN gone). Still needs a Mac run
       (no terrain in the cloud): Łazienkowski's slab edges, deck 4's parapet, the Karowa footbridge's end
 - [ ] Loop 3e leftovers still open: the rail cutting, Most Łazienkowski cut by the east edge (decide)
-- [ ] Junction lines checked against photos; dark Jerozolimskie and Nowy Świat at night
+- [x] Dark Jerozolimskie and Nowy Świat at night (2026-11-02): the lamp bake's added avenue lamps 26 m apart
+      a side (was 34), Nowy Świat lit from both pavements, kerb lamps step past parking bays; the street lit
+      Nowy Świat 52 → 88 %, Jerozolimskie at the review spot 32 → 48 % (Marszałkowska 43 → 51 %). Phone look open
+- [ ] Junction lines checked against photos
 
 ### Left: landmarks and street details
 - [x] City inventory, street by street (F, 2026-11-02): every characteristic place in the box ranked S/A/B
