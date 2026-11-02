@@ -266,7 +266,7 @@ Done (N1): `bake_street_details.py` DENSE puts a café cluster every 11-17 m on 
 with stop kits). Skins and cards for Pałac Zamoyskich, Kamienice Mikulskiego 53 and 55, Kamienica
 Bürgera, Kamienica Jasińskiego and Pałac Kossakowskich (landmarks.gd SKINS, INFO).
 - **N2 (open):** colours and card texts are estimates, no photos in the cloud (Mac look check);
-  a pastry-shop parody for the old confectioner's near Nowy Świat 35; Chmielna's and Foksal's mouths;
+  shops done 2026-11-02 (BLIKLINA 1869 near no. 35, Chmielna, Foksal, Pasmanteria; positions estimated, move to real doors);
   the tenement fronts and café gardens' real extent from orthophoto; a night look of the terraces.
 - Not benched (cloud, no GPU): +68 props in the street-details batch, no new material or draw call.
 
