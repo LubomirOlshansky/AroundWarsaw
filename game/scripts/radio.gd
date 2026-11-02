@@ -46,6 +46,10 @@ const STATIONS := [
 	{"id": "rondo_fm", "name": "RONDO FM", "freq": "86,6", "colour": Color("#4ff0ff")},
 	{"id": "mordor_fm", "name": "MORDOR FM", "freq": "108,8", "colour": Color("#b98cff")},
 ]
+## First scene item 7 (docs/design/first-scene.md, 2026-11-02): the first launch's radio starts its
+## song at the beginning under the title (main.gd sets it for a fresh save), not somewhere in the
+## middle as a single-track station otherwise joins; cleared after the first tune.
+var from_top := false
 ## Moderate: under the (future) engine and city sounds.
 const VOLUME_DB := -9.0
 ## Loop MW-5: the late-night station's id, and the station the radio falls back to by day
@@ -219,6 +223,7 @@ func tune(index: int, quiet := false) -> void:
 	station = index if index >= 0 and index < stations.size() else -1
 	_settle()
 	_play_current(true)
+	from_top = false
 	if not quiet and _static.stream != null and not _silent:
 		_static.play()
 	var info: Dictionary = stations[station] if station >= 0 else {}
@@ -253,7 +258,7 @@ func _play_current(join_middle: bool) -> void:
 	if _silent or stream == null:
 		return
 	var from := 0.0
-	if single and join_middle:
+	if single and join_middle and not from_top:
 		from = fmod(Time.get_ticks_msec() * 0.001 * 7.3, maxf(stream.get_length() - 1.0, 1.0))
 	_player.play(from)
 

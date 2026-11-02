@@ -15,6 +15,7 @@ item. Updated 2026-11-01 from the audit. v1.0 = the Demo and TestFlight gates in
 then the Launch gate.
 
 ### Done (built and checked headless)
+- [x] WTS DESKA tennis club (hall + one padel court), players, DESKA neon and a friend's "Czwarty" phone call that sends you there (2026-11-01, PR pending; phone check open)
 - [x] Map: the 21 km² demo box in streamed sectors, 1 m terrain, map north (3c, 3d-1, 3d-2, 3e)
 - [x] Roads: checks C1-C10 and `check_drive` green on the Mac at the time (3a, 3b, 3b-2)
 - [x] The river off-limits (10a); the HUD at phone size (2e); the follow camera; car models (2c)
@@ -47,8 +48,14 @@ then the Launch gate.
 - [x] Metro entrances modelled at the real M1/M2 stairs: vaulted glass canopies, stairwells, passage mouths, red M posts, lifts (F, 2026-11-01; Mac look check parked in QUESTIONS)
 - [x] Merge PR #115 (start facing the first stand, short first order, BUW roof cassette), then
       PR #121 (the opening flyover) (both on main; ticked 2026-11-01)
-- [ ] First-scene items 4-7: pavilions and towers behind the stores, Plac Defilad's paving, tram
-      stops and kerbs on Marszałkowska, pedestrians and sound at the start
+- [ ] First-scene items 4-5: pavilions and towers behind the stores, Plac Defilad's paving, tram
+      stops and kerbs on Marszałkowska
+- [x] First-scene items 6-7, life and sound at the start (2026-11-02): people standing at the
+      start's cafés, kiosk and paving (crowds.gd `FIRST_SCENE`, a day-long street curve), denser
+      walkers on Marszałkowska's two pavements (pedestrians.gd `set_busy`, +0 draw calls), the two
+      trams placed when play begins so they are in the first frame after the title and the
+      flyover, a tram bell as the first passes the car, the square's talk under the city bed, the
+      first launch's song from its first bar; verify `firstlife`. Phone look and sound check parked
 - [ ] The start area as real Warsaw (F, 2026-11-01; plan docs/design/start-area-real.md):
   - [x] R1 the Eastern Wall's signs as they are in 2025/26 (Polish letters in the neon font,
         DO WYNAJĘCIA boards, FROGS XXL on the old H&M corner, KAPCIE, SCENA RELAX), 2026-11-01
@@ -66,6 +73,8 @@ then the Launch gate.
   - [ ] R8 landmark polish left in the box (the museum's ribbon and roofline)
 
 ### Left: map and roads
+- [ ] Free-play playtest plan P1-P10 run with Autopilot and every confirmed PT bug fixed
+      (F, 2026-11-02; docs/PLAYTEST.md; setup and Autopilot plugin done 2026-11-02)
 - [ ] A full `tools/verify.sh` and `--ios` on the Mac on today's main, both city paths
 - [x] Map checks in GitHub CI (the derived map pack as a release asset, `tools/map_pack.py`, the `map` job), 2026-11-02 (release `map-pack-1` to publish)
 - [x] check_streaming's look pass green on the Mac (a look pre-loads what each of its views
@@ -157,8 +166,15 @@ then the Launch gate.
       Syrenka statue, Dworzec Wodny and Kaskada (`syrenka_powisle`, `dworzec_wodny`, `kaskada`),
       and DALEJ DALLA GELATO, the gelateria parody whose queue stands all year, in winter coats
       from November (`crowds.gd` GELATO; Mac look check parked)
-- [ ] Powiśle left: boulevard dressing (deck strips, bar containers), Piano House, Cube House,
-      Hortus, Moderna, Dobra and Tamka's tenements, the Mac photo checks (BACKLOG "Powiśle street by street")
+- [x] Piano House and Cube House, 2026-11-02: models from their outlines (`piano_house` 152 tris,
+      white keyboard facade, new skin `S_KEYS`, set-back glass top floor; `cube_house` 324 tris,
+      white cube with a staircase of boxed bays); specs `piano_house.md`, `cube_house.md`, Mac photo check parked
+- [x] Hortus and Moderna, 2026-11-02: models from their outlines (`hortus` 488 tris: glass offices
+      in a white frame over a recessed ground floor on piers, the Drewniana flats as a tenement with
+      a cornice and mansard; `moderna` 70 tris: a pre-war tenement front and a glass wing with a
+      penthouse, card "Modernka Powiśle"); specs `hortus.md`, `moderna.md`, Mac photo check parked
+- [ ] Powiśle left: boulevard dressing (deck strips, bar containers), Dobra and Tamka's
+      tenements, the Mac photo checks (BACKLOG "Powiśle street by street")
 - [x] Street furniture along the main line's route (Krakowskie Przedmieście, Nowy Świat, the Old
       Town's edge, Plac Zbawiciela, the boulevards, Rondo Daszyńskiego)
 - [ ] The estate, the halls and Jana Pawła II (F, 2026-11-01; BACKLOG section):
@@ -168,7 +184,8 @@ then the Launch gate.
   - [ ] Mac photo checks for the estate and the stalls (QUESTIONS); then the boulevard street by street
 - [ ] Nowy Świat street by street (F, 2026-11-01; BACKLOG "Nowy Świat"):
   - [x] N1 café terraces along the whole street (about three times as many) and six named houses with skins and cards, 2026-11-01
-  - [ ] N2 Mac look check, Café Blikle-style pastry shop parody, Chmielna and Foksal corners, Pałac Staszica to the rondo's tenement fronts from photos
+  - [x] N2 three more neon shops (BLIKLINA OD 1869 pastry parody near no. 35, Chmielna, Foksal), 2026-11-02
+  - [ ] N2 Mac look check, Pałac Staszica to the rondo's tenement fronts from photos
 - [ ] Plac Bankowy as in real life (F, 2026-11-02): DONE the Blue Skyscraper in blue mirror glass
       (new skin S_MIRROR; the gold was its first copper cladding) and the palaces in their real
       colours (kept skins `ratusz`, `wojewodzki`, `gielda`, `arsenal`, `mniszchow`, `landau`, with
@@ -255,12 +272,19 @@ then the Launch gate.
   - [x] G4 KOSZTA COFFEE, GREEN CAFFE NERWO, KUKŁA and the queues, 2026-11-01
   - [x] G5 Cringulo: the "Mlask" job, his pizza, fans and news, 2026-11-01
   - [x] LORETKA's summer terrace with couples, PRZEGRYWKI, WACZEK burger neons, 2026-11-01
-  - [ ] Leftovers (BACKLOG): Podwózka dates, "Kolejki" card, van fans and egg
+  - [x] The "Kolejki" notebook card at KUKŁA on Nowy Świat (place `kolejki`, 2026-11-02; `check_places` not run in the cloud, no Godot)
+  - [x] Podwózka TIMBER date passengers, fans by Cringulo's van and the egg `easter_mlask`, 2026-11-02
+  - [x] The van's CRINGULO TV lettering, 2026-11-02
+  - [ ] Still left (BACKLOG): Mac and phone look checks
 - [x] Roof rescues never name a real chain (2026-11-02, `missions.gd` `ROOF_PARODIES`): Puro shows as Hotel Piure, Green Caffè Nero as Green Caffè Nerwo; headless check not run in the cloud (no Godot)
 - [x] Zagłębie Kebabowe and Kino Femina (F, 2026-11-02; spec docs/design/zaglebie-kebabowe.md): five parody kebab shops on Al. Solidarności, Femina's neon, delivery twists, the craft kebab's choice, Szlak Szpili, 2026-11-02 (the Mac photo check of Femina's front is open)
-  - [ ] Leftovers (BACKLOG): dates on LUŹNO's roof, Podwózka dates, "Kolejki" card, van fans and egg
+  - [x] KEBAB FM lines about the seven cinemas and the Kebab Basin, 2026-11-02 (text only; headless checks not run in the cloud)
+  - [ ] Leftovers (BACKLOG): dates on LUŹNO's roof, Podwózka dates, van fans and egg
 - [x] Gamepad support (2026-11-01, `gamepad.gd`, `check_gamepad`): Xbox, PlayStation and MFi
       pads for driving, the helicopter, the mission card, Settings, the full map and the title;
+      touch unchanged. Follow-ups done the same day: the volume bars, the notebook, the garage
+      and the full map (stick pan, RT / LT zoom, A teleport). Left: real pads on the phone (beta),
+      glyphs, rumble (docs/store/mac-and-gamepad.md)
       touch unchanged. Left: real pads on the phone (beta), the bars / notebook / garage focus,
       the full map's stick pan (docs/store/mac-and-gamepad.md)
 - [x] Crash scenes (F, 2026-11-01, `crash_scenes.gd`, `check_crash_scenes`, PR "crash scenes"):
@@ -288,6 +312,7 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [x] G11 Better map icons on the minimap and the full map (Sonnet) (2026-11-01, kind shapes, metro and hospital pins, legend; rider and heli icons ride with G10)
 - [x] G12 Separate quest lines: helicopter quests and car quests, each with its own list and map colour (Opus) · 2026-11-02, first pass: rescue calls follow the vehicle, heli colour, car arrows hide while flying; the notebook list and the car/heli split of mixed rescues are parked
 - [x] G13 Upgrade shop: Audi TT parody (faster car), nitro, tuning, paid in zł (Opus design, Sonnet content) · 2026-11-02, the Ołdi TT 2,500 zł, Kebab Boost nitro 600 zł, tyres and engine levels 1-3; phone check and nitro flame/sound open (BACKLOG G13a, G13b)
+- [x] G13c Police keep pace with the upgraded car (0.8 of the player's real top speed), the pad's nitro on LB / RB, the view's turn on the right stick (2026-11-02; phone feel parked in QUESTIONS)
 - [x] G14 POMOC DROGOWA (unstuck) and NOWA GRA (two-tap reset) at the top of Settings → Jazda (quick win)
 - [x] Language choice (F, 2026-11-02): POLSKI / ENGLISH on the title screen and in Settings → DŹWIĘK → Język; the whole game shows one language, saved in settings, the phone's language by default (`lang.gd`, `check_language`; the phone look check is parked in QUESTIONS)
 - [x] G15 Stop assist works better: bigger quest start and end rings, looser "stopped", longer look-ahead (quick win; phone check)

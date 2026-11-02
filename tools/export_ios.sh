@@ -2,6 +2,10 @@
 # Prebuild the city, then export the Godot project as an Xcode project in build/ios.
 set -e
 cd "${0:A:h}/../game"
+# The Autopilot playtest autoload must never ship (tools/autopilot.sh).
+if grep -q '^AutopilotPlaytest=' project.godot; then
+	echo "Autopilot is on in project.godot: run tools/autopilot.sh off first" >&2; exit 1
+fi
 # A clone Godot has never opened is imported first (tools/export_android.sh: without it the
 # bake can't resolve the add-ons' class names and the export crashes in its first import).
 [[ -d .godot/imported ]] || godot --headless --path . --import
