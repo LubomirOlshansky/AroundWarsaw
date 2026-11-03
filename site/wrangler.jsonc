@@ -6,9 +6,9 @@
   "name": "aroundwarsaw",
   "main": "worker.js",
   "compatibility_date": "2026-10-01",
-  // Store links: put the App Store / Google Play URLs here once the apps are listed.
+  // Beta links: the TestFlight public join link and the Play listing (Android testers are added by hand).
   // Empty means /go/ios and /go/android send the visitor to the beta form instead.
-  "vars": { "IOS_URL": "", "ANDROID_URL": "" },
+  "vars": { "IOS_URL": "https://testflight.apple.com/join/dKEKRncj", "ANDROID_URL": "https://play.google.com/store/apps/details?id=com.olshanskysoft.nocnawarszawa" },
   "analytics_engine_datasets": [{ "binding": "CLICKS", "dataset": "aroundwarsaw_clicks" }],
   "observability": { "enabled": true },
   "assets": {
