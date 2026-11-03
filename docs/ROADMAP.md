@@ -32,6 +32,9 @@ then the Launch gate.
 - [x] Warsaw Spire rebuilt to the real shape (F's photos, 2026-11-02; spec `spire.md`): a shaft that widens
       upward over a lit glass lobby, a domed roof with a fin and two masts, the mirrored entrance canopy on
       V legs, the two curved 15-storey wings and the paved plaza; Mac look check parked (QUESTIONS)
+- [x] Royal Castle pass 2 and its gardens (F, 2026-11-02; spec `zamek.md`): the Clock Tower and helm, corner
+      turrets, the cream Vistula front with its dome, Kubicki's Arcades and the Upper and Lower Gardens from
+      the Krajobraz project, photos and the orthophoto; Mac look check parked (QUESTIONS)
 - [x] Rondo Dmowskiego as it is: the paved island with its four crescent flower beds round the tram cross,
       Metro Centrum's blue tubes over all twelve underpass stairs and the Patelnia's, the Patelnia mural, a
       kiosk, a cart and the east tram shelter (F, 2026-11-02; spec `rondo-dmowskiego.md`; Mac look check parked)
@@ -43,6 +46,7 @@ then the Launch gate.
 - [x] Beta radio: KEBAB FM + MORDOR FM lineup, DALEJ skip button, the host's start greeting with weather (F, 2026-11-02); Suno/ElevenLabs prompts in `docs/MUSIC.md`
 - [x] Most Poniatowskiego from photos gathered on the Mac (refs/poniatowski: 30 Commons photos, four orthos, a measured report): the four tower groups with arcaded pavilions, 20 m shafts and stair turrets; granite piers, steel arch ribs, the red fascia and black railing with the pier pedestals (2026-11-02, spec `poniatowski.md`; F's look check and the west pier parked; the Powiśle viaduct's arches still open)
 - [x] POLIN and the Ghetto Heroes Monument from photos gathered on the Mac (refs/polin: 25 Commons photos, the ortho, a measured report) and the LoD2 roof: the glass-fin box, the canyon, the roof slot and the west lens; the monument with its reliefs and menorahs (2026-11-02, spec `polin.md`; F's look check parked)
+- [x] Muzeum Powstania Warszawskiego from photos gathered on the Mac (refs/mpw: 25 Commons photos, the ortho, a measured parts list) and LoD2: the brick power station on Przyokopowa, the halls with their red park gables, the tower with the Kotwica, the Wall of Remembrance and the bell, the office block, gatehouse, KASA and fence (2026-11-02, spec `mpw.md`; F's look check parked)
 - [x] Plac Krasińskich from photos gathered on the Mac (refs/pomnik_powstania, refs/krasinski: 31 Commons photos, the ortho, measured reports) and LoD2: the Warsaw Uprising Monument (the storming insurgents under the two falling slabs, the descent into the sewers) and Pałac Krasińskich (white walls, green copper roof, pediments with statues, corner pavilions, loggias, porch) (2026-11-02, specs `pomnik_powstania.md`, `krasinski.md`; F's look check parked)
 - [ ] Beta radio songs: 8 vaporwave for KEBAB FM, 8 minimal techno for MORDOR FM, idents (F generates on a paid plan; `tools/add_music.py`)
 - [x] Gdański Business Center (tower, two blocks, parody logos; 2026-11-02, spec `gbc.md`; Mac photo check parked)
