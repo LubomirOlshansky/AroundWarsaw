@@ -9,6 +9,9 @@ that day here, in plain words a player would understand (no file names, no spoil
 rows in the progress log but no section here is listed automatically from the log's labels until
 someone writes its lines.
 
+## 2026-11-03
+- Warszawa Wschodnia stands on Praga's side of the tracks: a long glass hall under a flat roof with a zig-zag folded edge on green V-shaped legs, WARSZAWA WSCHODNIA in white letters over the platforms, and rust-brown roofs on columns over its five island platforms.
+
 ## 2026-11-02
 - Behind the three department stores at the start, Pasaż Wiecha has its two-storey shop pavilions (dark shop windows under a white band), tall white Y-shaped lamp masts, café tables under white parasols and people sitting at them.
 - The WKD commuter line's two stops are in the city: Śródmieście WKD by the Aleje has its two concrete "propeller" roofs over the stairs down to the cutting, and Ochota WKD by Plac Zawiszy its heavy concrete roof on V-shaped legs over the platform.
