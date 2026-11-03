@@ -13,6 +13,7 @@ someone writes its lines.
 
 - The Poniatowski viaduct over Powiśle now stands on open concrete arches with struts under a steel deck, and its closed bays along Aleja 3 Maja hold five little bars with neon, lit windows and café tables.
 - Most Poniatowskiego now crosses the Vistula on eight spans, with a new stone pier at the west bank.
+- The bridge's towers look sturdier: corner piers, cornices and bigger arched windows on the shafts, and deeper arcades on the pavilions.
 - The website now leads with the beta: join on iPhone through TestFlight, or request Android access with a short form. The open-source story moved to the footer and a quieter "How it's made" section.
 - With colour-safe markers on (Settings, accessibility), race rings are now chequered like a finish line and a rescue pickup's ring is dashed, so you can tell them apart without relying on colour.
 - Praga's old streets get evenings: six neon bar signs (ŚWIAT PO PRASKU, BARISTA Z PODWÓRKA, WINO ZE SKRZYNKI, KRAINA WINA, KIJOWSKA DWÓJKA, POD KUFLEM ZA ROGIEM) around Okrzei, Wrzesińska, Kijowska and Targowa, and people outside with a drink after dark.
