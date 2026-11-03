@@ -1,8 +1,8 @@
-# Arkadka (Westfield Arkadia) and the Forest's terrace: spec
+# Arkadka (Westfield Arkadia): spec
 
-Site keys `arkadia` and `forest` in `game/scripts/landmarks.gd` (`_build_arkadia` and its helpers
+Site key `arkadia` in `game/scripts/landmarks.gd` (`_build_arkadia` and its helpers
 `_arkadia_entrance`, `_arkadia_tower`, `_arkadia_rotunda`, `_arkadia_office`, `_arkadia_wing`,
-`_arkadia_plaza`; `_build_forest`, `_forest_terrace`, `_forest_bank_sign`).
+`_arkadia_plaza`). The Forest next door has its own spec, `forest.md`.
 
 - First built 2026-11-01 in a cloud thread from the OpenStreetMap outline alone (158 points, about
   300 x 330 m, 10.9 m in OSM, 21 m built) with a guessed glass rotunda on the roof.
@@ -127,7 +127,7 @@ rebuild adds the entrance (arc sectors, piers, canopies, six gables), the tower,
 wings' parapets, pilasters and awnings and the plinth, about 4 000 more, and the smaller deck holds
 fewer cars. Shots: `--at=-2760,-2450 --yaw=0 --pitch=-30 --size=90` (the plaza from the south, as in
 photos 4, 5 and 8), `--at=-2770,-2440 --yaw=30 --pitch=-20 --size=50 --lift=18` (tower and entrance),
-`--at=-2760,-2440 --yaw=20 --pitch=-22 --time=night --size=70 --lift=18`.
+`--at=-2760,-2440 --yaw=20 --pitch=-22 --time=night --size=70 --lift=18`. The Forest has its own spec since 2026-11-03 (`forest.md`).
 
 ## 8. Parts table
 
@@ -157,14 +157,3 @@ photos 4, 5 and 8), `--at=-2770,-2440 --yaw=30 --pitch=-20 --size=50 --lift=18` 
 - The open-air cinema on the lawns (photo 2): a summer-night event, a content idea.
 - The service road the map draws across the plaza (OSM) is a delivery lane in reality; check that
   traffic never uses it.
-
-## Forest (unchanged)
-
-The Forest: the two OSM parts over 25 m: tower 120 m (52 x 37 m) and the wing 27.4 m (26 x 54 m).
-Tower: dark green glass with fins; BANK PEPEO 1.9 scale (about 23 m wide) on four faces 7 m under the
-crown, warm white (#ffb873, not the real bank's red; "pepeo" is ash, F's spelling). Wing: timber
-deck #a98457 at +0.1 m inside a 1.1 m glass balustrade (#c9dcdc, M_PAVILION + 0.5), planters with
-small trees every 7 m, round tables with three stools, parasols (4 colours) on a 7.5 m grid, all
-outside the roof grid. People: crowds.gd DECKS `forest_terrace` (max 14, open 11-23 *guess*, 24 spots
-inside the planters). Budget 1500 triangles (1244 measured plus 20 %). Shot:
-`--at=-2945,-2405 --yaw=250 --pitch=-35 --size=45`.

@@ -50,8 +50,13 @@ class FakeWalkers extends Node3D:
 
 class FakeBubbles extends Control:
 	var said := 0
-	func say(_anchor: Variant, _speaker: String, _line: String, _sub := "", _s := 4.0, _a := Color.WHITE, _h := 2.6) -> void:
+	func say(_anchor: Variant, _speaker: String, _line: String, _sub := "", _s := 4.0, _a := Color.WHITE, _h := 2.6, _k := 0, _key := "") -> bool:
 		said += 1
+		return true
+	func allows(_k: int, _key := "") -> bool:
+		return true
+	func is_talking(_anchor: Variant) -> bool:
+		return false
 	func hush(_anchor: Variant) -> void:
 		pass
 	func muted() -> bool:

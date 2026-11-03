@@ -17,7 +17,7 @@
           "artist": "Around Warsaw",
           "seconds": 53.33,
           "gain_db": -0.1,
-          "licence": "own: synthesised by tools/make_music.py (MIT)",
+          "licence": "own: synthesised by tools/make_music.py (all rights reserved)",
           "source": "palma_de_gaulle.wav"
         }
       ]
@@ -34,7 +34,7 @@
           "artist": "Around Warsaw",
           "seconds": 48.0,
           "gain_db": -0.45,
-          "licence": "own: synthesised by tools/make_music.py (MIT)",
+          "licence": "own: synthesised by tools/make_music.py (all rights reserved)",
           "source": "rondo_3am.wav"
         }
       ]
@@ -51,7 +51,7 @@
           "artist": "Around Warsaw",
           "seconds": 41.74,
           "gain_db": -0.8,
-          "licence": "own: synthesised by tools/make_music.py (MIT)",
+          "licence": "own: synthesised by tools/make_music.py (all rights reserved)",
           "source": "mordor_mall.wav"
         }
       ]
@@ -73,7 +73,7 @@
           "artist": "Around Warsaw",
           "seconds": 98.46,
           "gain_db": -2.3,
-          "licence": "own: synthesised by tools/make_music.py (MIT)",
+          "licence": "own: synthesised by tools/make_music.py (all rights reserved)",
           "source": "01_sod.wav"
         },
         {
@@ -82,7 +82,7 @@
           "artist": "Around Warsaw",
           "seconds": 91.43,
           "gain_db": -3.7,
-          "licence": "own: synthesised by tools/make_music.py (MIT)",
+          "licence": "own: synthesised by tools/make_music.py (all rights reserved)",
           "source": "02_wiadukt.wav"
         },
         {
@@ -91,7 +91,7 @@
           "artist": "Around Warsaw",
           "seconds": 96.0,
           "gain_db": -2.9,
-          "licence": "own: synthesised by tools/make_music.py (MIT)",
+          "licence": "own: synthesised by tools/make_music.py (all rights reserved)",
           "source": "03_nocna_przesiadka.wav"
         },
         {
@@ -100,7 +100,7 @@
           "artist": "Around Warsaw",
           "seconds": 109.09,
           "gain_db": -2.6,
-          "licence": "own: synthesised by tools/make_music.py (MIT)",
+          "licence": "own: synthesised by tools/make_music.py (all rights reserved)",
           "source": "04_szklo_na_woli.wav"
         },
         {
@@ -109,7 +109,7 @@
           "artist": "Around Warsaw",
           "seconds": 103.78,
           "gain_db": -2.2,
-          "licence": "own: synthesised by tools/make_music.py (MIT)",
+          "licence": "own: synthesised by tools/make_music.py (all rights reserved)",
           "source": "05_bulwar_2340.wav"
         },
         {
@@ -118,7 +118,7 @@
           "artist": "Around Warsaw",
           "seconds": 109.71,
           "gain_db": -2.2,
-          "licence": "own: synthesised by tools/make_music.py (MIT)",
+          "licence": "own: synthesised by tools/make_music.py (all rights reserved)",
           "source": "06_mgla_nad_palacem.wav"
         },
         {
@@ -127,7 +127,7 @@
           "artist": "Around Warsaw",
           "seconds": 106.67,
           "gain_db": -3.3,
-          "licence": "own: synthesised by tools/make_music.py (MIT)",
+          "licence": "own: synthesised by tools/make_music.py (all rights reserved)",
           "source": "07_swit_na_smolnej.wav"
         }
       ]

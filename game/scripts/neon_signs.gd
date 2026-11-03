@@ -14,7 +14,7 @@ const PixelFont := preload("res://scripts/pixel_font.gd")
 const WORDS := ["KEBAB 24H", "BAR MLECZNY", "APTEKA", "KWIATY", "HOTEL", "KANTOR", "PIZZA", "KLUB", "NOCNY"]
 ## The landmarks loop: words only the landmarks wear (never a shop's), after WORDS in the atlas:
 ## the parody of the brand on Warsaw Spire's crown, the mall by Rondo Radosława's.
-const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA", "CHILTON", "INTERKONTI", "N", "O", "W", "T", "E", "L", "BANK POLSKA", "BANK PEPEO",
+const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA", "CHILTON", "INTERKONTI", "N", "O", "W", "T", "E", "L", "BANK POLSKA", "PEPEO ŻUBR",
 		"METROPOLKA", "ENELMEDIK", "ACORN", "HOTELS", "--",
 		# First scene item 3: the Eastern Wall's stores (parodies of their roof names).
 		"JUNIOREK", "SAWKA", "WARSIK",
@@ -63,6 +63,9 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		"VERSO PLACE",
 		# The Skyliner's crown (docs/design/city-life-satire.md #12): a small agency with a large nose.
 		"NOSE AGENCY",
+		# Bracka and Plac Trzech Krzyży (photo builds, 2026-11-03): Vitkac's and the Sheraton's
+		# names as parodies, a generic word over Jabłkowski's door.
+		"VIPKAC", "SZERATON", "DOM MODY",
 		# Poczta Główna's red band over the colonnade (a parody of the operator's own band).
 		"POCZTA",
 		# The Vistula boulevards' bar pavilions and containers (docs/landmarks/specs/bulwary.md):
