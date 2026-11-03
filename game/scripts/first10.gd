@@ -375,7 +375,8 @@ func tick() -> void:
 ## What the director knows now (see `decide`).
 func facts() -> Dictionary:
 	var air: bool = flying.is_valid() and bool(flying.call())
-	var busy: bool = (jobs != null and jobs.busy()) or (rivals != null and (rivals.busy() or rivals.first_waiting())) \
+	# PT-15: a ride request's card up counts (Halina won't roll up over it).
+	var busy: bool = (jobs != null and (jobs.busy() or jobs.ride_offered())) or (rivals != null and (rivals.busy() or rivals.first_waiting())) \
 			or (missions != null and (missions.has_target() or int(missions.state) in [Missions.State.OFFER, Missions.State.RESULT])) \
 			or (police != null and int(police.phase) != 0) or (garage != null and garage.is_open()) or _end_up
 	var orders: int = jobs.orders_started() if jobs != null else 0
