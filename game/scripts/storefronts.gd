@@ -234,7 +234,7 @@ const VENUES := {
 	"praga_kufel": [["POD KUFLEM", "ZA ROGIEM"], NOWO_TEAL, 2.8],
 	# The Powiśle viaduct's closed bays (F, 2026-11-03: "a lot of gastronomy, the K-bar and others"):
 	# parody names over the bays' arched doors (map_builder PV_BARS); a nod to the real bars, not them.
-	"via_qbar": [["Q-BAR", "POD WIADUKTEM"], NOWO_TEAL, 3.7],
+	"via_qbar": [["Q-BAR POD", "WIADUKTEM"], NOWO_TEAL, 3.7],
 	"via_luk": [["WINO", "POD ŁUKIEM"], NOWY_WINE, 3.7],
 	"via_nity": [["NITY", "I KUFLE"], NOWO_AMBER, 3.7],
 	"via_beton": [["BETONIARNIA", "BISTRO"], NOWY_CREAM, 3.7],
