@@ -1446,6 +1446,11 @@ func ambient_toast(text: String, gloss := "") -> void:
 func toast(text: String, gloss := "") -> void:
 	text = Lang.pick(text, gloss)
 	gloss = ""
+	# PT-20 (Autopilot run 20261103-152518): the same toast again while it is still up only
+	# keeps it up; it is not shown (and logged, and laid out) a second time.
+	if _toast_left > 0.0 and _toast.text == text and bool(_wants.get(_toast_box, false)):
+		_toast_left = 3.0
+		return
 	# A long line wraps at TOAST_W points rather than running off a phone's screen.
 	var font := ThemeDB.fallback_font
 	for pair: Array in [[_toast, text, T_TITLE], [_toast_gloss, gloss, T_SUB]]:
