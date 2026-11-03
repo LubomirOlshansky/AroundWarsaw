@@ -255,6 +255,14 @@ PT-9 (bubbles) fixed 2026-11-02: the tail of a bubble kept clear of the HUD ende
 PT-13 (the order card went away without a tap) fixed 2026-11-02: it was the order's designed start after 9 s, unexplained; the card's GO now counts those seconds down.
 PT-10 (the order tracker over bubbles) fixed 2026-11-02: the target pointer draws under the speech bubbles and the panels and goes faint under the banner or a bubble; the edge arrow slides along the edge clear of bubbles and panels, and its distance sits past the arrow by the label's own size (`check_hud`: draw order, 72 directions, a bubble in the arrow's spot). Phone look open.
 
+## Plac Krasińskich: the Uprising Monument and the palace (CITY_INVENTORY 22 and 79, 2026-11-02)
+Built from photos gathered on the Mac (`refs/pomnik_powstania/`, `refs/krasinski/`) and LoD2, specs
+`pomnik_powstania.md` and `krasinski.md` (sites `pomnik_powstania` 1514 tris, `krasinski` 1508). Found and left:
+- The Supreme Court's colonnade behind the monument is green (ribbed green glass, ~#738483); OSM tags its columns "marble #deeded", so the game draws them white and the court as plain blocks. A Sąd Najwyższy model is its own item.
+- The monument's heights and the groups' facing are estimates from photos (no published height, no aerial); the bronze is simplified to blocky figures. The plaza's dark granite bands, the blue-green light strips, the floor plaque, the juniper beds and the brick wall with the Kotwica on the Długa side are not drawn; the 1 August candles are not there.
+- The palace's pediment relief is a flat recessed field, the cartouche over the central window and the roof statues of the garden front are not modelled; the dormer and chimney counts are rough (the report says so). The garden's round parterre and the pond's sculpture are the park's (the fountain is already there).
+- F's look check on the Mac or the phone: the slabs' lean, the fighters' size, the roof's green.
+
 ## POLIN and the Ghetto Heroes Monument (F, 2026-11-02)
 Built from photos gathered on the Mac (`refs/polin/`) and the LoD2 roof, spec `polin.md`. Found and left:
 - The east front's two long dark band windows (~10 m, 4-5 m up) and the small lit slot south of the canyon are not drawn.
@@ -806,11 +814,17 @@ Built (cloud, Sonnet): eight shopfronts (`Storefronts.KRAKOWSKIE`, 93 venue sign
   mosaic's pattern).
 - ~~S3b Warszawa Śródmieście~~ Done 2026-11-01 (site `srodmiescie`, spec `srodmiescie.md`, 476 tris).
   Left: Mac photo check (the glazing, the fascia, the lettering).
+- ~~S3c-e the WKD stops~~ Done 2026-11-02 from F's Mac photo gather (`refs/wkd_srodmiescie/`,
+  `refs/wkd_ochota/`, reports in `docs/landmarks/photo-reports/`): sites `wkd_srodmiescie` (the two
+  concrete "propellers" on a raked wedge pier and a post over the stairs, white parapet boxes, the
+  ŚRÓDMIEŚCIE board, an arrows logo; 378 tris) and `wkd_ochota` (the slab on V legs over the island
+  platform, replacing OSM's 5 m "retail" box there, blue benches, red-brown edge strips, a stair up
+  at the west end; ~540 tris). Left: Mac/phone look (the propellers' twist and pier, the parapet
+  boxes' open end, Ochota's stair: the report guessed its spot; the report's ortho reading put the
+  slab ~10 m south of OSM's platform, built on OSM's).
 - S3c-e: Wschodnia and Gdańska sit at the map's east and north edges (the land past the edge is
   drawn since 2026-11-01, below; the cloud shots' missing ground inside the map is the cloud's flat
-  ground quad, not the Mac's); the WKD entrances (Śródmieście WKD's "propeller" roof, Ochota WKD):
-  the OSM outlines there don't match the descriptions (a 90 m, 2.5 m shelter by Centralna; the
-  platforms by Ochota are tram stops), so they wait for photos.
+  ground quad, not the Mac's): mostly off the map, low priority.
 - ~~L4 Most Średnicowy's look, after a Mac photo check.~~ Built 2026-11-01 (below).
 - Photo checks on the Mac for every station model (built from published descriptions).
   **Mac photo check, 2026-11-01** (main 03a26dc; Commons photos in refs/ochota, powisle,
@@ -1033,8 +1047,9 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   their checks (`first10`, `first10-run`, `opening`, `cassettes`, `save`, `hud`), merge #115 then
   #121. Built, not verified on the phone.
 - **The first scene's open items** (design/first-scene.md items 4-5; BACKLOG "High priority: the
-  first scene"): the pavilions and towers behind the Eastern Wall stores (a solid OSM block, needs
-  Mac photos). The park strip's benches and lamps and the lowered kerbs were built 2026-11-02. The paving, the crossings' tactile pads and the
+  first scene"): the pavilions and Pasaż Wiecha behind the Eastern Wall stores were built
+  2026-11-02 from the Mac photo report (site `wiecha`, first_scene.gd PASAZ; the phone look and
+  the open points are in QUESTIONS "Pasaż Wiecha"). The park strip's benches and lamps and the lowered kerbs were built 2026-11-02. The paving, the crossings' tactile pads and the
   tram platforms' edges were built 2026-11-02 (first-scene.md "Items 4 and 5 as built"); items 6-7
   (pedestrians and sound at the start) built 2026-11-02; both phone checks parked.
 
@@ -1306,6 +1321,12 @@ plan: docs/design/start-area-real.md (items R1-R8, ticked in ROADMAP "v1.0 check
   2025 year in search and the trade press. A Mac pass could add Wykop's own tags.
 
 ## High priority: the first scene and the Museum of Modern Art (the user, 2026-10-31)
+- **Found 2026-11-02 (Pasaż Wiecha build):** the default camera looks north-west, so the
+  pavilions' shopfronts on the pasaż (their west faces) face away from it: from the start the
+  player sees their roofs, south ends and the masts; the fronts show when the camera turns
+  (`--yaw=225`). The strip in front of Scena Relax is one LoD2 mass with the theatre, so it was
+  left in that model. The 1960s slabs above the pasaż are cream-ochre (spec D, 2026-11-01) but
+  the photo report calls them grey-white #D8D8D4: parked in QUESTIONS.
 - **Muzeum Sztuki Nowoczesnej as it is** (the user, 2026-10-31): the new white box on Plac
   Defilad's east edge (Thomas Phifer, opened 2024). Today it is plain white LoD2 parts with no
   model and no card. Wanted: one long, low, matte white box, the arcade of square columns at its
@@ -1405,7 +1426,7 @@ golden-image shots runtime vs `--prebuilt`,
   their pavements never shows (it stands on the museum's side instead). **2026-11-01 (Mac photo
   check, spec B):** the Rotunda re-pass done (spec `docs/landmarks/specs/rotunda.md`: green-grey
   glass between 52 silver mullions, the folded-plate crown with its teeth, the oculus, the
-  canopies, Widok Towers' green grid); only the phone can show the teeth and the signs' size. Left: the pavilions and towers behind the stores, Plac Defilad's paving and park strip,
+  canopies, Widok Towers' green grid); only the phone can show the teeth and the signs' size. Left: Plac Defilad's paving and park strip (the pavilions behind the stores done 2026-11-02, site `wiecha`),
   the tram stops and kerbs (item 5), the photo check on the Mac. **Items 6-7 (life and sound) built
   2026-11-02** (first-scene.md "Items 6 and 7 as built"). Found then, open: the café sitters sit on
   the footway by the tables, not on the chairs (a seat list per café set would fix it); the

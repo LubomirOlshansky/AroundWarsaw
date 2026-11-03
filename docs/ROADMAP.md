@@ -42,6 +42,7 @@ then the Launch gate.
 - [x] Classic cinemas: seven neon marquees, Muranów, Atlantic, Luna, Kultura, Elektronik, Femina, Kinoteka (F, 2026-11-02; signs only, positions need a Mac look)
 - [x] Beta radio: KEBAB FM + MORDOR FM lineup, DALEJ skip button, the host's start greeting with weather (F, 2026-11-02); Suno/ElevenLabs prompts in `docs/MUSIC.md`
 - [x] POLIN and the Ghetto Heroes Monument from photos gathered on the Mac (refs/polin: 25 Commons photos, the ortho, a measured report) and the LoD2 roof: the glass-fin box, the canyon, the roof slot and the west lens; the monument with its reliefs and menorahs (2026-11-02, spec `polin.md`; F's look check parked)
+- [x] Plac Krasińskich from photos gathered on the Mac (refs/pomnik_powstania, refs/krasinski: 31 Commons photos, the ortho, measured reports) and LoD2: the Warsaw Uprising Monument (the storming insurgents under the two falling slabs, the descent into the sewers) and Pałac Krasińskich (white walls, green copper roof, pediments with statues, corner pavilions, loggias, porch) (2026-11-02, specs `pomnik_powstania.md`, `krasinski.md`; F's look check parked)
 - [ ] Beta radio songs: 8 vaporwave for KEBAB FM, 8 minimal techno for MORDOR FM, idents (F generates on a paid plan; `tools/add_music.py`)
 - [x] Gdański Business Center (tower, two blocks, parody logos; 2026-11-02, spec `gbc.md`; Mac photo check parked)
 - [x] Złota 44 rebuilt from F's photos: the flaring wing, the sharp tip, the glass crown box, white banded cladding, the podium garden (2026-11-02, spec `zlota44.md`; Mac photo check parked)
@@ -62,9 +63,11 @@ then the Launch gate.
 - [x] First-scene items 4-5, the park strip and lowered kerbs (2026-11-02): four larch benches and
       three park lamps on the museum's strip (first_scene.gd), a concrete ramp wedge at every
       crossing's kerb (map_builder.gd `_lowered_kerb`, city-wide); +0 draw calls (phone look parked)
-- [ ] First-scene items 4-5, the pavilions and towers behind the stores: the block east of
-      Marszałkowska (s 184-246) is solid OSM boxes under the camera's blind side; wait for Mac photos
-      (refs/, landmarks-from-photos rule)
+- [x] First-scene items 4-5, Pasaż Wiecha and the pavilions behind the stores (2026-11-02, from
+      the Mac photo report dt_pawilony): four two-storey pavilions (dark shop storey, white band
+      with a strip window; site `wiecha`, spec wiecha.md, 1522 tris), the pasaż's white Y lamp
+      masts in place of the map's lamps, café gardens under white parasols, planters, bollards
+      and people at the cafés (first_scene.gd); +0 draw calls (phone look parked)
 - [x] First-scene items 6-7, life and sound at the start (2026-11-02): people standing at the
       start's cafés, kiosk and paving (crowds.gd `FIRST_SCENE`, a day-long street curve), denser
       walkers on Marszałkowska's two pavements (pedestrians.gd `set_busy`, +0 draw calls), the two
@@ -288,7 +291,8 @@ then the Launch gate.
   - [x] T1 trains through the city (suburban, city line, long-distance), `check_trains`, 2026-11-01
   - [x] S3a Warszawa Stadion: the white hall with its sail, the red-and-white mosaic canopies, 2026-11-01; the roof sweeping up into a taller sail after the Mac photo check
   - [x] S3b Warszawa Śródmieście: the two glass stair pavilions by the Palace, 2026-11-01
-  - [ ] S3c-e the other stations: Wschodnia, Gdańska (the map's edges, Mac look first), the WKD entrances (parked 2026-11-02: need a Mac photo gather first, QUESTIONS "Waiting"; the rest of the railway lane is done)
+  - [x] S3c-e the WKD stops: Śródmieście WKD's two concrete propellers over the stairs, Ochota WKD's slab on V legs, from the Mac photo gather, 2026-11-02
+  - [ ] S3c-e the other stations: Wschodnia, Gdańska (the map's edges, mostly off the map; Mac look first)
   - [x] Parks come alive (2026-11-01, `park_details.gd`, `tools/bake_park_details.py`): Ogród Saski, Ogród Krasińskich, Park Ujazdowski and the castle's park get sandstone statues, a fountain, a carousel, a playground, a gazebo, pergolas, a sundial, a footbridge, ducks and swans, squirrels, people on the benches, picnics and a yoga class; the Mac look check parked
   - [ ] Łazienki Królewskie (Palace on the Isle, Chopin monument, peacocks): south of the map's edge, waits for a map extension (QUESTIONS)
   - [x] The map's edges: the land runs on past the outline (ground fading into the sky, a tree line, blocks beyond, the rails and roads running out), Wschodnia and Gdańska first, 2026-11-01; the Mac look check parked
