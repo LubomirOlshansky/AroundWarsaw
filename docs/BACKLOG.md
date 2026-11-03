@@ -3,6 +3,13 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Vitkac quests and ride stories (F, 2026-11-03)
+
+F asked for two things; both are plan only, nothing is built (Sonnet for the lines, Opus for the quest design; docs/design/ gets the plan first).
+
+- **Vitkac quests.** Quests that start or end at the Vitkac block on Bracka (the photo-built landmark, PR #385; CITY_INVENTORY #80). Ideas to design: a personal-shopper job (carry bags from the door to a car or hotel on time), a "queue for the drop" gag outside the doors, a Podwózka stop with its own result card. Hook into the ZADANIA list (`main.gd` `_quest_entries`, quest-lists) and `StopAssist`. The name on screen: Vitkac is a real place name and fine; any shop or label inside is a parody (warsaw-tone, never a real brand). Add-ons check at build time (NPC talk: Dialogue Manager or not).
+- **Every ride has its own passenger story.** Today `rides.gd` has a handful of passenger types with one request line and one result line. Make each ride a short story told in the car: a named passenger or group, a request line, 2-4 lines spoken at set points during the drive (distance or street triggers, Nawigacja style), and a drop-off line. F's example: a fancy couple living in Wilanów going to Vitkac to shop, who bicker about the budget and the dog's outfit on the way. Needs: a story table (passenger, from, to, lines), a pick that fits the route (Wilanów pickups need a far start or a spawn "from" label), polish in Polish with English (warsaw-tone), parody names only, no line over two HUD rows on a phone. Check: `--ride-quirk` / `--passenger` flags and the `ride:` log lines; extend the rides check.
+
 ## Loud cars at Browary (F, 2026-11-02)
 
 City-life satire #1 built (`loud_cars.gd`, `check_loud_cars`): seven generic supercars at the Browary
@@ -948,7 +955,7 @@ Built (cloud, Sonnet): eight shopfronts (`Storefronts.KRAKOWSKIE`, 93 venue sign
   the castle's turret corner and entrance; the church's front, tower and colours; the Syrenka's
   plinth against the flood wall (its corner touches the plinth in the cloud render); what Kaskada
   is; a tree on Kaskada's deck.
-- ~~Tamka's and Dobra's tenements~~ DONE 2026-11-02 (street dress: per-house plaster, cornice, string course, shop fronts; spec `dobra_tamka.md`; Mac look check: the real plasters, whether the shops sit where the real ones do, the gaps where houses are missing). Left: boulevard dressing (deck strips, bar containers), Dobra and Tamka kerbs, trees and furniture. (Piano House and Cube House DONE 2026-11-02, specs `piano_house.md`, `cube_house.md`;
+- ~~Tamka's and Dobra's tenements~~ DONE 2026-11-02 (street dress: per-house plaster, cornice, string course, shop fronts; spec `dobra_tamka.md`; Mac look check: the real plasters, whether the shops sit where the real ones do, the gaps where houses are missing). Boulevard dressing DONE 2026-11-02 (spec `bulwary.md`: the six bar pavilions, 14 containers and kiosks, 17 deck strips with leżaki; Mac photo check: the pavilions' fronts and roofs, what the Karowa boxes are, the decks' spots; not built: the stepped timber seating down to the water, beach volleyball, containers OSM does not map). Left: Dobra and Tamka kerbs, trees and furniture. (Piano House and Cube House DONE 2026-11-02, specs `piano_house.md`, `cube_house.md`;
   Mac photo check: Piano House's real facade rhythm and whether its top floor is set back; where
   Cube House's real bays or loggias are and its colours. Hortus and Moderna DONE 2026-11-02, specs
   `hortus.md`, `moderna.md`; Mac photo check: Hortus's glass and frame colours, its piers, the

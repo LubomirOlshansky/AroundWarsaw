@@ -264,7 +264,10 @@ then the Launch gate.
       a cornice and mansard; `moderna` 70 tris: a pre-war tenement front and a glass wing with a
       penthouse, card "Modernka Powiśle"); specs `hortus.md`, `moderna.md`, Mac photo check parked
 - [x] Dobra and Tamka tenements, 2026-11-02: per-house plasters, cornice, string course, shop fronts (`tenement_trim.gd`, spec `dobra_tamka.md`, `check_tenement_trim`); Mac photo check parked
-- [ ] Powiśle left: boulevard dressing (deck strips, bar containers), the Mac photo checks (BACKLOG "Powiśle street by street")
+- [x] Boulevard dressing, 2026-11-02: the six bar pavilions on the embankment (lawn roofs, glass
+      fronts, terraces, bulbs, parody neon), 14 bar containers and kiosks, 17 timber deck strips
+      with leżaki (`bulwary_*` sites, spec `bulwary.md`, Mac photo check parked)
+- [ ] Powiśle left: the Mac photo checks (BACKLOG "Powiśle street by street")
 - [x] Street furniture along the main line's route (Krakowskie Przedmieście, Nowy Świat, the Old
       Town's edge, Plac Zbawiciela, the boulevards, Rondo Daszyńskiego)
 - [x] Office crowds at Rondo Daszyńskiego, 2026-11-02 (F; BACKLOG "Rondo Daszyńskiego office crowd"):
@@ -334,6 +337,8 @@ then the Launch gate.
   - [ ] RF4b Powiśle roof terraces, L-shaped hips; the phone bench and a Mac look
 
 ### Left: content and feel
+- [ ] **Vitkac quests** (F, 2026-11-03; backlog "Vitkac quests and ride stories"): the black-stone luxury block on Bracka as a quest place, with the quests built around it. Not started; the landmark is the 2026-11-03 photo build (PR #385)
+- [ ] **Every Podwózka ride gets its own passenger story** (F, 2026-11-03): a named passenger with request, pickup, in-ride and drop-off lines, e.g. the fancy couple from Wilanów going shopping at Vitkac. Not started
 - [x] Photo mode no longer lets the car reverse into buildings (its hold parks the car and puts it
       back on close), and the pause card's JAZDA tab has POMOC DROGOWA · unstuck, the tow to the
       nearest road on demand (F stuck after a photo on the iPhone, 2026-11-01; phone check parked)
