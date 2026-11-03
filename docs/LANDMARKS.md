@@ -60,7 +60,22 @@ batch's captions (towers, churches) come from Commons titles: check the angle be
 | 1.8 | Most Poniatowskiego | DONE 2026-11-02 from photos (spec `docs/landmarks/specs/poniatowski.md`): tower groups, piers, arch ribs, fascia, railing | the west pier check; the viaduct's arch count from photos | yes |
 | 1.9 | Warszawa Centralna | DONE 2026-10-31 (L2, site `centralna`, spec `docs/landmarks/specs/centralna.md`, 1370 tris): the glass hall, the wings, the flat slab overhanging to 140 x 86 m, the hyperbolic paraboloid shells under it on the mapped pillars, from the OSM parts | photo check on the Mac: how much of the shells shows outside, the wings' walls; the canopy's AO | yes |
 
-### P2. Named landmarks to L2 (today skins: colour only on LoD2)
+### P1b. Warsaw modernism and brutalism (F, 2026-11-03, high priority)
+
+F: "I love modernism"; Karowa 18, Kozia 9 and the Hammer building should look very nice. The full
+ranking, facts and sources, the modelling recipe and the "Betonowy album" quest are in
+docs/design/modernism-collection.md; the rows are CITY_INVENTORY 146-153 (plus 127, 75, 130 and the
+re-passes). Photos first: each slug's `refs/<slug>/` and REPORT on the Mac before its spec.
+
+| # | Object | Today | To do | Photos |
+| --- | --- | --- | --- | --- |
+| 1b.1 | Młotek, Smolna 8 (slug `mlotek`) | plain LoD2 block, 66 m, outline at x 83, z 34 | L3: the wider two-storey head over the deep recess, the raw facade bands, lit windows | not yet (gather first) |
+| 1b.2 | Kozia 9 (`kozia9`) | plain block | L3: five sections stepping up a storey each, brick terraces, barrel windows on Moliera | not yet |
+| 1b.3 | Karowa 18a (`karowa18a`) | plain block | L3: the sculptural balconies, the car park in the base | not yet |
+| 1b.4 | Żyletkowiec and the Ekspozytura (`zyletkowiec`) | plain block | L2: the repeating facade module (shader), the monumental neighbour | not yet |
+| 1b.5 | Dom Chłopa, NBP, the Kopernika skyscraper, Torwar, BGK, Ministerstwo Komunikacji, Dom Słowa Polskiego | plain blocks | L2 each, one thread each | not yet |
+| 1b.6 | Osiedle Za Żelazną Bramą (`zelazna_brama`) | plain blocks | one shared slab kit, one material, draw calls per sector not per slab | not yet |
+
 
 | # | Object | To do |
 | --- | --- | --- |

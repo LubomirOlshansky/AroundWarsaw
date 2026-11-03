@@ -3,6 +3,29 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Warsaw modernism and brutalism (F, 2026-11-03, high priority)
+
+F loves Warsaw modernism and asked for every modernist and brutalist building as good as photos allow
+(Karowa 18, Kozia 9 and the Hammer building by name), a collect-them-all quest, and high priority.
+Plan, ranking, facts with sources and the quest: docs/design/modernism-collection.md. Docs only so far.
+
+- **Photo builds, in order** (CITY_INVENTORY 146-153, LANDMARKS P1b): M1 Młotek (Smolna 8), M2 Kozia 9,
+  M3 Karowa 18a; then M4 Żyletkowiec, M5 Dom Chłopa, M6 NBP, M7 the Kopernika skyscraper, M8 Osiedle Za
+  Żelazną Bramą (one slab kit), M9 Torwar, M10 BGK, M11 Ministerstwo Komunikacji, M12 Dom Słowa Polskiego.
+  Each starts with a Mac gather (`refs/<slug>/`, REPORT with the outline's x, z) and F's "go" for the
+  Remote Control session; Opus spec, Sonnet build, art-director against the photos, bench before/after.
+- **Photo re-passes** that join the set: M13 Sofitel Victoria, M14 Plac Defilad's pavilions, M15 Muzeum
+  Narodowe, M16 the Sejm's hall, M17 Warszawa Wschodnia.
+- **"Betonowy album"** (Opus design pass, gameplay-dev build): Pani Wanda's lost slides as Kadr shots
+  (`fotka.gd`), bundles of three, five story slides (Młotek from the helicopter, Kozia at walking pace,
+  the Karowa bend's last slide, Centralna from above, the Rotunda at dusk), the Emilia KASETA then card,
+  the "Betonowa" car paint for the whole album, its own map icon. Not before minute 10. Dialogue Manager
+  not used (no branching). Needs `check_album.gd` in verify.sh and the flags in the archive's table.
+- Facts marked *(confirm)* in the plan (Dom Chłopa's architect, NBP's years, BGK, the ministry, Torwar,
+  the Emilia demolition year) are checked in each REPORT before a spec.
+- Out of the map box, not planned: Supersam, the Ruda and Bródno estates, Hotel Felix, Żoliborz and
+  Saska Kępa villas. Sezam and the Eastern Wall towers are the Ściana Wschodnia thread's.
+
 ## Vitkac quests and ride stories (F, 2026-11-03)
 
 F asked for two things; both are plan only, nothing is built (Sonnet for the lines, Opus for the quest design; docs/design/ gets the plan first).
