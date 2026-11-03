@@ -15,6 +15,7 @@ item. Updated 2026-11-01 from the audit. v1.0 = the Demo and TestFlight gates in
 then the Launch gate.
 
 ### Done (built and checked headless)
+- [x] Opening fly-over sound: the announcer line (Opening_line_a) plays once with the flight, radio dipped to -20 dB, then swells to full (2026-11-03, PR pending; phone listen check open)
 - [x] WTS DESKA tennis club (hall + one padel court), players, DESKA neon and a friend's "Czwarty" phone call that sends you there (2026-11-01, PR pending; phone check open)
 - [x] Map: the 21 km² demo box in streamed sectors, 1 m terrain, map north (3c, 3d-1, 3d-2, 3e)
 - [x] Roads: checks C1-C10 and `check_drive` green on the Mac at the time (3a, 3b, 3b-2)
@@ -51,6 +52,7 @@ then the Launch gate.
 - [x] POLIN and the Ghetto Heroes Monument from photos gathered on the Mac (refs/polin: 25 Commons photos, the ortho, a measured report) and the LoD2 roof: the glass-fin box, the canyon, the roof slot and the west lens; the monument with its reliefs and menorahs (2026-11-02, spec `polin.md`; F's look check parked)
 - [x] Muzeum Powstania Warszawskiego from photos gathered on the Mac (refs/mpw: 25 Commons photos, the ortho, a measured parts list) and LoD2: the brick power station on Przyokopowa, the halls with their red park gables, the tower with the Kotwica, the Wall of Remembrance and the bell, the office block, gatehouse, KASA and fence (2026-11-02, spec `mpw.md`; F's look check parked)
 - [x] Plac Krasińskich from photos gathered on the Mac (refs/pomnik_powstania, refs/krasinski: 31 Commons photos, the ortho, measured reports) and LoD2: the Warsaw Uprising Monument (the storming insurgents under the two falling slabs, the descent into the sewers) and Pałac Krasińskich (white walls, green copper roof, pediments with statues, corner pavilions, loggias, porch) (2026-11-02, specs `pomnik_powstania.md`, `krasinski.md`; F's look check parked)
+- [x] Bracka and Plac Trzech Krzyży from the Mac photo reports and the OSM outlines: Vitkac (dark banded stone, glass top with terrace trees, as VIPKAC), Dom Towarowy Braci Jabłkowskich (arched shop windows, balcony band, Doric door, atrium roof), the Sheraton (white bands, ribbon windows, the corner drum with its crown, as SZERATON) (2026-11-03, specs `vitkac.md`, `jablkowscy.md`, `sheraton.md`; F's look check parked); and the BGK building on Al. Jerozolimskie 7 (F asked, 2026-11-03; grey granite, paired windows, corner blocks, the gilded monogram; spec `bgk.md`)
 - [ ] Beta radio songs: 8 vaporwave for KEBAB FM, 8 minimal techno for MORDOR FM, idents (F generates on a paid plan; `tools/add_music.py`)
 - [x] Gdański Business Center (tower, two blocks, parody logos; 2026-11-02, spec `gbc.md`; Mac photo check parked)
 - [x] Złota 44 rebuilt from F's photos: the flaring wing, the sharp tip, the glass crown box, white banded cladding, the podium garden (2026-11-02, spec `zlota44.md`; Mac photo check parked)
@@ -142,6 +144,15 @@ then the Launch gate.
 - [x] Junction lines checked against photos (Mac, 2026-11-03, 0.1 m GUGiK crops): the guide dashes and hatch
       edges are real; the defect was grass medians laid across junctions: 29 short pieces now painted as
       hatched areas (`bake_roads.py` `_median_in_junction`, check_streets S5 119 → 90)
+- [x] Open courtyards from above (F, 2026-11-03): the GUGiK blocks already show their courts; the
+      hand-built Ministry of Finance, National Museum and Hotel Bristol now cut theirs out too (187 courts
+      traced from the LoD2 roofs, `tools/bake_courts.py`, `game/data/courts.json`, verify step `courts`)
+  - [ ] OSM-only buildings (no LoD2 model) keep a multipolygon's outer ring only: bake_osm to keep the
+        inner rings and map_builder to draw them (a Mac re-bake; BACKLOG "Open courtyards")
+  - [x] Hotel Europejski's courtyard: its LoD2 (2018, mid-renovation) is roofed over; the photo rebuild
+        (PR #402) hand-models the court, so "europejski" stays out of `COURT_SITES`
+- [ ] Grow the map north-east to take in Koneser, Park Fontann and Ząbkowska (F, 2026-11-03: not now,
+      backlog only; QUESTIONS 2026-11-02 and 2026-11-03)
 
 ### Left: landmarks and street details
 - [x] City inventory, street by street (F, 2026-11-02): every characteristic place in the box ranked S/A/B

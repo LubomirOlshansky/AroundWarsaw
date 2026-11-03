@@ -7241,6 +7241,10 @@ func _bridge_pockets(keep: Array, marks) -> void:
 		var box := _poly_box(poly)
 		if box.intersects(area) and not marks.replaces(box.get_center()):
 			polys.append(poly)
+	# Landmark models that ask for it (their mapped outline as the car's walls): bridged like a house.
+	for poly: PackedVector2Array in marks.pocket_rings:
+		if _poly_box(poly).intersects(area):
+			polys.append(poly)
 	var list: Array = data["buildings"]
 	for index in (keep if _has_lod2 else range(list.size())):
 		var bld: Dictionary = list[int(index)]

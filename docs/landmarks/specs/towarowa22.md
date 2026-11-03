@@ -62,5 +62,5 @@ for when the map has it.
 
 - A Mac photo pass once the towers stand (the renders may change); the hall frame's real truss
   rhythm; the Srebrna-end block over the car park (needs the map's parked cars moved).
-- Pocket rings (`_collide_raw` + pocket_rings) arrive with PR #385; until then the blocks have
-  the plain `_collide` rings.
+- Pocket rings: not needed. Every new block stands at least 8 m from the kept buildings (no party
+  wall, no slit for the car), so plain `_collide` rings are enough.
