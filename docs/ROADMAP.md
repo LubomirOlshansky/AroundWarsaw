@@ -15,6 +15,7 @@ item. Updated 2026-11-01 from the audit. v1.0 = the Demo and TestFlight gates in
 then the Launch gate.
 
 ### Done (built and checked headless)
+- [x] Closed source for now: MIT replaced by an all-rights-reserved `LICENSE`, CONTRIBUTING.md and the open-source/contribute lines removed from README, CREDITS, the in-game credits and the site (2026-11-03, PR pending; F makes the repo private and deploys the site; the design wiki is untouched)
 - [x] Opening fly-over sound: the announcer line (Opening_line_a) plays once with the flight, radio dipped to -20 dB, then swells to full (2026-11-03, PR pending; phone listen check open)
 - [x] WTS DESKA tennis club (hall + one padel court), players, DESKA neon and a friend's "Czwarty" phone call that sends you there (2026-11-01, PR pending; phone check open)
 - [x] Map: the 21 km² demo box in streamed sectors, 1 m terrain, map north (3c, 3d-1, 3d-2, 3e)
@@ -729,8 +730,8 @@ Asked by the user later on 2026-10-28 (order set by `docs/DEMO.md`, being writte
   pull-over; docs/design/police.md); part two in loop 3g-2 (city guards, the zone cap and the
   clamp, the escort, the race and job ties, the first contact, the sounds); still owed: the chase
   framing (camera lane) and the PixelLab portraits.
-- **Open source**: the MIT licence for the code and the game's own sounds and art (`LICENSE`);
-  the map data keeps ODbL / CC BY / GUGiK terms (`CREDITS.md`); public repo AroundWarsaw.
+- **Closed source** (F, 2026-11-03, replaces the MIT open-source decision of 2026-10-28): all rights reserved for the code and the game's own sounds and art (`LICENSE`);
+  the map data keeps ODbL / CC BY / GUGiK terms (`CREDITS.md`); the repo goes private.
 - **PixelLab** (pixel-art generation through its MCP server `pixellab`, added 2026-10-28):
   portraits for dialogue, HUD and minimap icons, signs, posters, UI and store art; how to use it
   is in `.claude/skills/pixellab/SKILL.md` (budget: up to 50 generations a loop without asking;

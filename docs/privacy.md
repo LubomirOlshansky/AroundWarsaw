@@ -2,7 +2,7 @@
 
 Last updated: 29 October 2026
 
-Around Warsaw is a free, open-source game. It collects no personal data, and it stores or
+Around Warsaw is a free game. It collects no personal data, and it stores or
 shares none.
 
 - **No data collected.** The game has no accounts, no sign-in, no analytics, no advertising,
@@ -29,7 +29,7 @@ Questions: open an issue on the game's GitHub repository.
 
 ## Polityka prywatności (po polsku)
 
-Around Warsaw to darmowa gra open source. Nie zbiera żadnych danych osobowych, nie
+Around Warsaw to darmowa gra. Nie zbiera żadnych danych osobowych, nie
 przechowuje ich i nikomu ich nie przekazuje.
 
 - **Żadnych danych.** Gra nie ma kont, logowania, analityki, reklam, raportów o błędach ani
