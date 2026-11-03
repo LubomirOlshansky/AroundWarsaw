@@ -255,6 +255,17 @@ PT-9 (bubbles) fixed 2026-11-02: the tail of a bubble kept clear of the HUD ende
 PT-13 (the order card went away without a tap) fixed 2026-11-02: it was the order's designed start after 9 s, unexplained; the card's GO now counts those seconds down.
 PT-10 (the order tracker over bubbles) fixed 2026-11-02: the target pointer draws under the speech bubbles and the panels and goes faint under the banner or a bubble; the edge arrow slides along the edge clear of bubbles and panels, and its distance sits past the arrow by the label's own size (`check_hud`: draw order, 72 directions, a bubble in the arrow's spot). Phone look open.
 
+## Most Poniatowskiego (F, 2026-11-02)
+Built from photos gathered on the Mac (`refs/poniatowski/`, report `docs/landmarks/photo-reports/poniatowski.md`),
+spec `poniatowski.md`: the four tower groups (arcaded pavilions, 20 m shafts, south stair turrets) and the river
+spans (granite piers, steel arch ribs, red fascia, black railing, pier pedestals). Found and left:
+- Two of the five piers are estimates (on the east floodplain under trees), and the west span (~104 m) may hide a
+  pier near the west bank (photo 22): QUESTIONS.
+- Not modelled: the north groups' curved ramps, the small arcade beyond each shaft, the merlon scrolls and the
+  insets over the arches, the bases' brick panels and balconies, the real tram catenary masts.
+- The concrete arch viaduct over Powiśle (the report has it) is still the bake's flat deck on posts.
+- The approaches between the towers stay unlit at night (the bake lights `bridge=*` roads only; item below).
+
 ## Plac Krasińskich: the Uprising Monument and the palace (CITY_INVENTORY 22 and 79, 2026-11-02)
 Built from photos gathered on the Mac (`refs/pomnik_powstania/`, `refs/krasinski/`) and LoD2, specs
 `pomnik_powstania.md` and `krasinski.md` (sites `pomnik_powstania` 1514 tris, `krasinski` 1508). Found and left:
@@ -1637,8 +1648,7 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
   need a landing spot designed in.
 - The baked ground AO and the lamp light map still use the LoD2 footprints: Centralna's canopy
   (wider than the LoD2 hall) casts no AO, and lamp pools are not cut by the stadium's skin.
-- Most Poniatowskiego's towers have no mapped height: plinth to 1.2 m over the deck, top 15 m
-  over it, a guess; Varso I and II stay OSM extrusions (loop 1 lowered Varso 2's floating
+- Varso I and II stay OSM extrusions (loop 1 lowered Varso 2's floating
   80-90 m top to the ground; Varso 1's 71-81 m top rests on its 71 m part for a little over
   half its footprint and overhangs a 10 m part for the rest, so it stays).
 - The title skyline's Varso stays shorter than the Palace (in the city it is 310 m to 237 m).
@@ -1981,9 +1991,6 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
 - Tunnel 2 (the link under Most Poniatowskiego's west abutment) is shallow (30 m long, ramps of
   8 % from both portals, ~1.5 m under the grid): it passes under the abutment's approach fill,
   whose retaining walls open over it (the wall's foot at the mouth's top).
-- Most Poniatowskiego's towers keep their guessed heights (top 15 m over the deck); their
-  footprints come from the outline by the deck (16 x 3.5-5 m), thinner than the photo suggests.
-  The rounded second outline (a stair annex down to the boulevard) is no longer drawn.
 - The bus is swept on main roads and links only (lane classes 0-1): traffic sends a bus into a
   residential or living street with a 5 % weight (`traffic.gd _choose_next`), where a rigid
   12 m box at OpenStreetMap's square corners hits walls. For gameplay-dev: keep buses to classes
@@ -2330,10 +2337,6 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
   joint share one end line.
 - **Tram stop shelters** left out where mapped on the rails (14): place them on the stop's
   platform instead (the nearest `platforms` edge on the track's side).
-- **River piers** (art): Most Poniatowskiego (an arch bridge on masonry piers) and Most
-  Średnicowy stand on the same thin concrete posts as the viaducts; a river-pier style (wider,
-  stone, cutwaters) would read more like Warsaw. A design call. (Most Średnicowy has its stone
-  piers since 2026-11-01; Poniatowskiego is still open.)
 - Most Świętokrzyski, the Jana Pawła II viaduct and the Wisłostrada tunnel end at the map's rim
   (the diorama's void beyond): the bigger map moves the rim past them (known, DEMO.md 4.4).
 
