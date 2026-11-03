@@ -68,7 +68,7 @@ the saucer with its rim and the neon WARSZAWA POWIŚLE, the platform canopies, t
 | --- | --- | --- |
 | S3a | Warszawa Stadion | the 1955-58 pavilion (Romanowicz and Szymaniak too), renovated for Euro 2012; side platforms with canopies; the stadium's crowd route |
 | S3b | Śródmieście and Śródmieście WKD | underground: the entrances in Aleje Jerozolimskie's passages (stair heads with signs), the vents |
-| S3c | Warszawa Wschodnia | at the east edge: the hall's front only (low priority, mostly off the map); the yard runs on past the edge since 2026-11-01 (`map_edge.gd`) |
+| S3c | Warszawa Wschodnia | DONE 2026-11-03 from the Mac photo report (`docs/landmarks/photo-reports/wschodnia.md`): site `wschodnia`, spec `wschodnia.md`: the whole hall is on the map (OSM's outline; no LoD2 or building drew it before), glass under a flat roof with a folded fascia on V struts, WARSZAWA WSCHODNIA, rust-brown roofs over the five island platforms; the yard runs on past the edge since 2026-11-01 (`map_edge.gd`) |
 | S3d | Warszawa Gdańska | at the north edge: the platforms' canopies and the footbridge (low priority); the land and tracks run on past the edge since 2026-11-01 (`map_edge.gd`) |
 | S3e | Ochota WKD and Śródmieście WKD | DONE 2026-11-02 from the Mac photo reports (`docs/landmarks/photo-reports/wkd_*.md`): site `wkd_ochota` (the slab on V legs over the island platform, a stair at the west end) and site `wkd_srodmiescie` (Śródmieście WKD is in an open cutting by the Aleje, not underground: two concrete propellers over the stairs) |
 

@@ -152,6 +152,7 @@ const BUDGET := {
 	"bulwary_basen": 700,
 	"marina": 5200,
 	"stadion_pkp": 1900,
+	"wschodnia": 7000,
 	"srodmiescie": 580,
 	"wkd_srodmiescie": 460,
 	"wkd_ochota": 650,  # the stair has up to 40 steps on the real ground (6 on the flat stub)

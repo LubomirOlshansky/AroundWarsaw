@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-03
+- Warszawa Wschodnia stands on Praga's side of the tracks: a long glass hall under a flat roof with a zig-zag folded edge on green V-shaped legs, WARSZAWA WSCHODNIA in white letters over the platforms, and rust-brown roofs on columns over its five island platforms.
 - Plac Bankowy's palaces look like the real ones: pale cream under green copper roofs, the city hall's wings end in white colonnades with the giant six-column portico at the back of its courtyard, and the old Bank Polski's rounded corner has its tier of arches and a green dome. On Jasna the Philharmonic shows its colonnade with a composer on every window sill and its green FN neon, and Teatr Polski on Karasia has its round corner bays and oval windows.
 
 ## 2026-11-02
