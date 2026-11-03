@@ -209,9 +209,15 @@ const BUDGET := {
 	"zacheta": 720,
 	"zlota44": 1800,
 	"zygmunt": 280,
+	# Towarowa 22 built as finished (2026-11-03): seven towers and blocks, the hall's steel frame,
+	# the pavilion, the park, the drone port and the gilded crane.
+	"towarowa22": 5000,
+	# The Warsaw HUB's round-ended hotel tower (the photo report, 2026-11-03).
+	"crowne": 380,
 }
 ## Known defects per site: {"zfight": n, "degenerate": n, "badnormal": n, "float": n}.
-const KNOWN := {}
+## Towarowa 22's drone taxi hovers 7 m over its pad by design (the "Warsaw of the future").
+const KNOWN := {"towarowa22": {"float": 8}}
 const ZFIGHT_AREA := 0.01
 const ZFIGHT_PLANE := 0.02
 const ZFIGHT_WINDOW := 0.3  ## coarse sort window; _coplanar decides

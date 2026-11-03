@@ -6269,7 +6269,11 @@ func _tree_blocked(x: float, z: float) -> bool:
 	if _marks == null:
 		return false
 	for c: Array in _marks.tree_free:
-		if Vector2(x, z).distance_to(c[0]) < float(c[1]):
+		# [centre, radius], or [plan, 0, its box] (Towarowa 22's blocks).
+		if c.size() > 2:
+			if (c[2] as Rect2).has_point(Vector2(x, z)) and Geometry2D.is_point_in_polygon(Vector2(x, z), c[0]):
+				return true
+		elif Vector2(x, z).distance_to(c[0]) < float(c[1]):
 			return true
 	return false
 

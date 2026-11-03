@@ -3,6 +3,23 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Towarowa 22 and the Rondo Daszyńskiego towers (F, 2026-11-03)
+
+- **Towarowa 22 built as finished** (site `towarowa22`, spec `docs/landmarks/specs/towarowa22.md`, from F's
+  renders and photos): the tower row, the tanks block, Gutenberga, the printing hall's yellow frame over a
+  garden, Pawilon DSP, Park Słowa, Nowa Wronia's paving, the drone port and the gilded last crane. Open:
+  T22-1 the block over the Srebrna-end car park (the map's 31 parked cars and service road are in the
+  way); T22-2 (none: every new block stands free of the kept buildings, so no pocket rings are needed); T22-3 a Mac/phone look check (the hall
+  frame's density, the wavy crown, the signs' faces); T22-4 a photo pass once the towers stand.
+- **Rondo Daszyńskiego towers by photo** (CITY_INVENTORY 60): rebuilt from the Mac's reports (2026-11-03).
+  Left: RD-1 Warsaw Unit's taper (about 10 % narrower at the top) and its 27 m base wings and gate;
+  RD-2 Mennica's open arcade of round steel columns with the copper lobby, its curved plan, the
+  west building's curved glass front and the plaza (fountain, ring sculpture); RD-3 GPY's irregular
+  black patches and the Z/X wings' roof terraces; RD-4 the HUB's chamfered plans and the podium
+  skylight; RD-5 a Mac look check of all five (no night photos on Commons); RD-6 a small dark
+  triangle floats over the Rondo between Skyliner and the HUB (seen from about yaw 45, 150 m up;
+  already on main before this lane, source not found yet).
+
 ## Forest rebuilt from F's photos (F, 2026-11-03)
 
 Built (spec `docs/landmarks/specs/forest.md`): the three-slab tower with crown bands, colour fins and PEPEO ŻUBR, the finned wings with black top storeys and roof gardens, the courtyard's amphitheatre, pavilion and 43 young trees. Left:
