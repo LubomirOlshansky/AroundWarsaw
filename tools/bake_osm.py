@@ -349,8 +349,10 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
     bed.finish_roads()
     bed.set_corridors()
     bed.build_region()
-    bed.bake_edges()
+    # Junction lines (2026-11-02): the medians first, so the short ones inside a junction, painted
+    # (hatched) instead, are an edge line and no kerb to bake_edges.
     bed.bake_medians()
+    bed.bake_edges()
     bed.bake_lane_lines()
     bed.bake_hatching()
     bed.clip_crossings()   # map review B (2026-10-29): zebras only on the asphalt
