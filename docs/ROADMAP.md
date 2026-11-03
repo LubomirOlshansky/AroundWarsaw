@@ -36,6 +36,10 @@ then the Launch gate.
 - [x] Royal Castle pass 2 and its gardens (F, 2026-11-02; spec `zamek.md`): the Clock Tower and helm, corner
       turrets, the cream Vistula front with its dome, Kubicki's Arcades and the Upper and Lower Gardens from
       the Krajobraz project, photos and the orthophoto; Mac look check parked (QUESTIONS)
+- [x] Royal Castle's river front and helms after F's look check (2026-11-03): no salmon band between the pale
+      Vistula front and the roof (LoD2's steep slopes in tile, its river-side walls in the front's cream), LoD2's
+      Clock Tower cut under the model's cornice so nothing grey or salmon pokes through the copper helm; the
+      gate west and four dials kept
 - [x] Rondo Dmowskiego as it is: the paved island with its four crescent flower beds round the tram cross,
       Metro Centrum's blue tubes over all twelve underpass stairs and the Patelnia's, the Patelnia mural, a
       kiosk, a cart and the east tram shelter (F, 2026-11-02; spec `rondo-dmowskiego.md`; Mac look check parked)
