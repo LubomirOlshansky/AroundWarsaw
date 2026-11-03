@@ -9,6 +9,9 @@ that day here, in plain words a player would understand (no file names, no spoil
 rows in the progress log but no section here is listed automatically from the log's labels until
 someone writes its lines.
 
+## 2026-11-03
+- The "delivered" card after a kebab or jar job now closes by itself after a few seconds or when you drive off, a ride request no longer pops up over Pani Halina's race challenge, and the car no longer bounces back and forth along a building front on Jasna by Plac Dąbrowskiego.
+
 ## 2026-11-02
 - Behind the three department stores at the start, Pasaż Wiecha has its two-storey shop pavilions (dark shop windows under a white band), tall white Y-shaped lamp masts, café tables under white parasols and people sitting at them.
 - The WKD commuter line's two stops are in the city: Śródmieście WKD by the Aleje has its two concrete "propeller" roofs over the stairs down to the cutting, and Ochota WKD by Plac Zawiszy its heavy concrete roof on V-shaped legs over the platform.

@@ -6607,13 +6607,22 @@ const POCKET_DEPTH := 3.0
 const POCKET_WALL := 2.4
 ## How far a pocket's walls run beyond its mouth, at least: shorter is a corner, not a notch.
 const POCKET_DETOUR := 0.6
+## PT-17 (2026-11-03): a long shallow bay in a block's front (Jasna by Plac Dąbrowskiego: 24 m
+## long, 2.3 m deep between two rounded piers 2 m proud) took a car whose stick pointed into the
+## block: it slid along the bay at 15 m/s into one pier, was turned out along the wall, slid into
+## the other pier, back and forth (70 s in the playtest) until the tow. A bay up to BAY_MOUTH
+## wide and only BAY_DEPTH deep (less than a car's length: nobody parks in it) gets a wall across
+## its mouth too. Deeper recesses stay open (the 9 m x 3 m one on Bracka: a car fits).
+const BAY_MOUTH := 30.0
+const BAY_DEPTH := 2.5
 ## A step out of a block's front, STEP_MIN to STEP_MAX proud of the wall before it (the corner of
 ## the next building, 0.3 m out at Chmielna and Bracka), caught the front corner of a car sliding
 ## along that wall nose on: a collider wall fairs it in, STEP_TAPER times its height long (~9°).
 const STEP_MIN := 0.08
 const STEP_MAX := 0.6
 const STEP_TAPER := 6.0
-## The walls added so far, all builds (check_stuck_spots prints it): ~15,100 for the whole city,
+## The walls added so far, all builds (check_stuck_spots prints it): ~22,600 for the whole city
+## (~15,100 before the PT-17 bays),
 ## ~300 ms of a sector's build in the cloud (none on the prebuilt path: baked in).
 var pocket_walls := 0
 
@@ -6747,42 +6756,29 @@ func _ring_bridges(ring: PackedVector2Array, originals: Array[PackedVector2Array
 	while i < n:
 		var best := -1
 		for step in range(12, 1, -1):
-			if step >= n - 1:
-				continue
-			var j := (i + step) % n
-			var a := ring[i]
-			var b := ring[j]
-			var mouth := a.distance_to(b)
-			if mouth > POCKET_MOUTH or mouth < 0.3:
-				continue
-			var path := 0.0
-			var ok := true
-			var dir := (b - a) / mouth
-			for k in step:
-				var p := ring[(i + k) % n]
-				var q := ring[(i + k + 1) % n]
-				path += p.distance_to(q)
-				if k > 0:
-					# Counter-clockwise ring: the block lies to the left of a→b; a notch goes in there.
-					var side := dir.cross(p - a)
-					if side < -0.05 or side > POCKET_DEPTH:
-						ok = false
-						break
-			if not ok or path < mouth + POCKET_DETOUR:
-				continue
-			var inside := false
-			for t: float in [0.25, 0.5, 0.75]:
-				inside = inside or Geometry2D.is_point_in_polygon(a.lerp(b, t), ring)
-			if inside:
-				continue
-			best = j
-			break
+			if step < n - 1 and _ring_span(ring, i, step, 0.3, POCKET_MOUTH, POCKET_DEPTH):
+				best = (i + step) % n
+				break
 		if best >= 0:
 			walls.append_array([ring[i], ring[best]])
 			var k := i
 			while k != best:
 				covered[k] = 1
 				k = (k + 1) % n
+			i = i + ((best - i + n) % n)
+		else:
+			i += 1
+	# PT-17: then the long shallow bays (wider than a notch, at most BAY_DEPTH deep), on their own
+	# pass so a notch inside one keeps its own wall.
+	i = 0
+	while i < n:
+		var best := -1
+		for step in range(12, 1, -1):
+			if step < n - 1 and _ring_span(ring, i, step, POCKET_MOUTH, BAY_MOUTH, BAY_DEPTH):
+				best = (i + step) % n
+				break
+		if best >= 0:
+			walls.append_array([ring[i], ring[best]])
 			i = i + ((best - i + n) % n)
 		else:
 			i += 1
@@ -6811,6 +6807,35 @@ func _ring_bridges(ring: PackedVector2Array, originals: Array[PackedVector2Array
 				break
 		if open_ground:
 			walls.append_array([a, b])
+
+
+## Whether ring[i] to ring[i + step] is the mouth of a dent: the mouth from `lo` to `hi` m long,
+## outside the block, every vertex between on the block's side within `depth` of it, and the way
+## round longer than the mouth by POCKET_DETOUR.
+func _ring_span(ring: PackedVector2Array, i: int, step: int, lo: float, hi: float, depth: float) -> bool:
+	var n := ring.size()
+	var a := ring[i]
+	var b := ring[(i + step) % n]
+	var mouth := a.distance_to(b)
+	if mouth > hi or mouth < lo:
+		return false
+	var path := 0.0
+	var dir := (b - a) / mouth
+	for k in step:
+		var p := ring[(i + k) % n]
+		var q := ring[(i + k + 1) % n]
+		path += p.distance_to(q)
+		if k > 0:
+			# Counter-clockwise ring: the block lies to the left of a→b; a notch goes in there.
+			var side := dir.cross(p - a)
+			if side < -0.05 or side > depth:
+				return false
+	if path < mouth + POCKET_DETOUR:
+		return false
+	for t: float in [0.25, 0.5, 0.75]:
+		if Geometry2D.is_point_in_polygon(a.lerp(b, t), ring):
+			return false
+	return true
 
 
 ## The steps out of a block's front met by a car sliding along it (the ring's way; `turn` -1 for
