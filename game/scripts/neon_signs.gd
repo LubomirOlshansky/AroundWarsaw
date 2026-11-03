@@ -14,7 +14,7 @@ const PixelFont := preload("res://scripts/pixel_font.gd")
 const WORDS := ["KEBAB 24H", "BAR MLECZNY", "APTEKA", "KWIATY", "HOTEL", "KANTOR", "PIZZA", "KLUB", "NOCNY"]
 ## The landmarks loop: words only the landmarks wear (never a shop's), after WORDS in the atlas:
 ## the parody of the brand on Warsaw Spire's crown, the mall by Rondo Radosława's.
-const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA", "CHILTON", "INTERKONTI", "N", "O", "W", "T", "E", "L", "BANK POLSKA", "BANK PEPEO",
+const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA", "CHILTON", "INTERKONTI", "N", "O", "W", "T", "E", "L", "BANK POLSKA", "PEPEO ŻUBR",
 		"METROPOLKA", "ENELMEDIK", "ACORN", "HOTELS", "--",
 		# First scene item 3: the Eastern Wall's stores (parodies of their roof names).
 		"JUNIOREK", "SAWKA", "WARSIK",
@@ -38,6 +38,9 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		"ROBUR",
 		# HOTEL PIURE's rooftop date bar (G3).
 		"LORETKA",
+		# Arkadka from F's photos (2026-11-03): Westfield as "west field" in Polish, the
+		# hypermarket, the DIY store and the cinema on the sign tower.
+		"ZACHODNIE", "POLE", "KARFUREK", "MERLINEK", "KINO SITKO",
 		# The railway (docs/design/railway.md, S2): the round pavilion's letters at Powiśle.
 		"WARSZAWA", "POWIŚLE",
 		# S3a: Warszawa Stadion's roof letters.
@@ -59,7 +62,9 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		# Varso Place's name stone on the corner plaza (Krajobraz K3; a parody, never the real mark).
 		"VERSO PLACE",
 		# The Skyliner's crown (docs/design/city-life-satire.md #12): a small agency with a large nose.
-		"NOSE AGENCY",
+		"NOSE AGENCY", "NOSE", "AGENCY",
+		# Warsaw Unit's crown (the photo report, 2026-11-03): a parody of the insurer's logo.
+		"WARTKA",
 		# Bracka and Plac Trzech Krzyży (photo builds, 2026-11-03): Vitkac's and the Sheraton's
 		# names as parodies, a generic word over Jabłkowski's door.
 		"VIPKAC", "SZERATON", "DOM MODY",
@@ -67,7 +72,10 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		"POCZTA",
 		# The Vistula boulevards' bar pavilions and containers (docs/landmarks/specs/bulwary.md):
 		# parody bar names and what the hatches sell.
-		"CUDAK", "POMOSTEK", "RZECZKA", "LEMONIADA", "ZAPIEKANKI"]
+		"CUDAK", "POMOSTEK", "RZECZKA", "LEMONIADA", "ZAPIEKANKI",
+		# Towarowa 22 built as finished (2026-11-03): the drone port, the superblock's name and the
+		# gilded last crane's plaque (the "Warsaw of the future" jokes).
+		"WARSZAWA 2050", "DRONOPORT", "TOWAROWA 22", "OSTATNI ŻURAW WOLI"]
 ## Tube colours (linear, bright): pink, cyan, violet, and a few words' usual colours.
 const PINK := Color(1.0, 0.1, 0.55)
 const CYAN := Color(0.1, 0.9, 1.0)

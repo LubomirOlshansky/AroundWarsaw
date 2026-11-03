@@ -42,9 +42,9 @@ over one thing systematically: every kerb of a square, every ramp), **verify** (
 | P8 | The helicopter: take-off, landing on roofs, the rescue roofs | goal | landing on landmark roofs, clipping into towers | – | – |
 | P9 | Menus: pause card, map, garage, settings, POMOC DROGOWA | test | a button that does nothing, a screen you can't leave | – | – |
 | P10 | Police chase and the clamp; crash scenes | explore | a chase that pins the car, a scene that blocks a street for good | – | – |
-| P11 | Trasa Łazienkowska and Wisłostrada, both ways, under and over (GAMEPLAY_PLAN 1.6) | test | the car hidden under the deck, tunnel portals, ramps, long curves | – | – |
-| P12 | Teleport from the full map: 10 holds on tunnels, bridges, courtyards, the river bank | test | where the car lands; on a tunnel or a roof; heading against traffic | – | – |
-| P13 | Stuck on purpose: 60 s into walls, parked cars, a tram island | test | bubbles and toasts per 10 s; time to the tow offer | – | – |
+| P11 | Trasa Łazienkowska and Wisłostrada, both ways, under and over (GAMEPLAY_PLAN 1.6) | test | the car hidden under the deck, tunnel portals, ramps, long curves | 2026-11-03 (run 20261103-152948) | baseline: 8 spots driven 8-9 s each from a teleport landing, y within 0.02 m of `drive_height` except Solec (0.65 m below once) and Wał Miedzeszyński (0.17 m); under the deck on Solec the car is covered by the deck in the first filmed frames (no x-ray yet, GAMEPLAY_PLAN 3.5); the tunnels themselves were not driven through (C11.1 not driven over the bridge, C11.3/C11.4 only from the landing); PT-18 |
+| P12 | Teleport from the full map: 10 holds on tunnels, bridges, courtyards, the river bank | test | where the car lands; on a tunnel or a roof; heading against traffic | 2026-11-03 (runs 20261103-151750, -151009) | landings recorded for all ten (none in a tunnel, none under `drive_height`); drive-off not measured: gas moved the car ~5 m then speed 0 at 8 of 10 spots (probably the harness input hold); PT-19 |
+| P13 | Stuck on purpose: 60 s into walls, parked cars, a tram island | test | bubbles and toasts per 10 s; time to the tow offer | 2026-11-03 (run 20261103-152518) | baseline 41 s per case: fence 6 bubbles + 6 toasts, parked car 0 + 1, traffic bumps 2 + 0; most are ambient lines and quest toasts, "Towed free" came in two cases; car position and speed were not logged, so "truly pinned" is unproven; PT-20 |
 | P14 | Narrow streets: Frascati, Hoża, Ordynacka, Sienna, Aleja 3 Maja, living streets | explore | pinches, jolting kerbs, dead ends with no turn-round | – | – |
 | P15 | The helicopter high over Varso, the Palace and the map edge | test | sky past the edge, floating buildings, the heli's place on screen | – | – |
 | P16 | Trzy mosty at full speed | goal | every contact at race speed; the look-ahead on the bridges | – | – |
@@ -87,6 +87,9 @@ keeping to `shots/autopilot/`, never into git) · **status** (suspect → confir
 | PT-15 | P2 | Pani Halina's race flash-back | a taxi "New ride" card (Marek ★ 4.9, 303 m) came up while the flash-back offer was on screen: two offers at once | S3? | run 20261102-231535 (text log only) | fixed 2026-11-03 (cause in the code, no frame needed): a Podwózka request only waited for a race, not for a rival's prompt or Halina rolling up, and her call only waited for a job, not for a request card. Now no request comes while any rival prompt is up or she is on her way (rivals.gd `calling`), and neither her call nor a rival's FLASH LIGHTS prompt comes while a request card is up (jobs.gd `ride_offered`; first10 counts it as busy). A probe run with `--first-race` forcing requests during her call got none; run 14 (text, on a Mac checkout that likely predates this fix: run 13 there still showed the old WEZWANIE hint) had the Halina flash-back banner and the ride-app banner on screen together at 178 s and 266 s, and a ride card with the EASTER EGG toast at 250 s: re-check on main |
 | PT-16 | P2 | the first order | the agent drove the same order card to its ring six times; after each arrival the order still showed as on. Either the stand chains a new order at once or the harness misread the arrival | ? | run 20261102-231535 t=22-200 | fixed 2026-11-03 (likely cause): the DOWIEZIONE result card waited for OK for ever, with the customer still standing in the orange ring; the agent never pressed OK, so the order looked on, it drove back to the ring, and every beat of the guide waited (the race at 203 s). The kebab and słoiki result cards (and "order dropped") now go by themselves after 12 s or once the car is 25 m away, as Podwózka's always did (jobs.gd RESULT_LIFE, RESULT_OFF). Verify on the next P2 run; the guide holding beats while a job is on: default built 2026-11-03, new offers held while a beat is due (first10.gd `due`; QUESTIONS) |
 | PT-17 | P2 | Plac Dąbrowskiego by Jasna (`--at=-950,-305`) | following the KASETA arrow by car, the car moved ~40 m in 70 s, circling on the carriageway, until POMOC DROGOWA towed it free | S2? | run 20261103-005809 t=441-509, `heli_events.jsonl` (no frames) | fixed 2026-11-03: reproduced without traffic, with the stick held north-east (the arrow to the BUW roof): Jasna's east facade at the square's corner (-925..-940, -279..-302) has a 24 m bay 2.3 m deep between two rounded piers 2 m proud. The car slid along the bay at 15 m/s into one pier, was turned out along the wall into the other and back, 4 unsticks in 20 s, until the tow. Bays up to 30 m wide and 2.5 m deep now get a low collider wall across the mouth too (map_builder BAY_MOUTH, BAY_DEPTH; ~7,500 more short walls, ~22,600 city-wide; deeper recesses, like the 9 x 3 m one on Bracka, stay open); 4 spots in `check_stuck_spots` (all 4 fail on the old map); run 14 drove through at t=210 with no stuck or tow (one pass) |
+| PT-18 | P11 | Solec under the Trasa's deck (`--at=1347,1077`) | the car is covered by the deck for the first ~2 s (frames 27.07-27.74 of run -152948, a red sliver only); on the way north it climbs a ramp from y -14.6 to -9.3 and stops for ~1.6 s at (1308,960) | fixed: deck visibility in #419, the ramp stall in #421; re-check on the next P11 run | run 20261103-152948 trace1 t=26.8-35.9 | baseline for the under-deck fix (GAMEPLAY_PLAN 3.5); the stop is not confirmed as a bug |
+| PT-19 | P12 | the map teleport (`_teleport_from_map`) | in a re-run three holds left the car where it was (C12.3 116,1619; C12.7 -700,900; C12.10 -1013,-45) with no message; also the 3 s gas test moved the car only ~5 m (speed 0) at 8 of 10 spots | suspect | runs 20261103-151750 (probes after the episode) | likely the harness input hold or a teleport refusal / lane graph not streamed in; re-run with a different gas path |
+| PT-20 | P13 | the Świętokrzyska kebab toast | "The kebab stand by Świętokrzyska has your first order." came twice 0.2 s apart (t=25.2, 25.4) during C13.1 | fixed in #417 (dedupe in hud.toast), re-check on the next P13 run | run 20261103-152518 trace1 | may have been the poll catching one toast twice |
 | R4 | P3 | on-road hard stops on Krucza, Świętokrzyska, Królewska | 50 km/h to 1-8 km/h for 1-2 s, a traffic driver's bubble ("The indicator isn't an optional extra!") as it slows | – | runs -154847, -160539, -161411 frames | closed (not bugs: bumps into traffic cars; the bubble is dialogue.gd's shout from a car the player hits) |
 
 No run so far put the car under the ground (it stayed 0.7-1.0 m above the terrain at every
@@ -119,3 +122,62 @@ agents](https://www.ea.com/seed/news/gameplay-testing-curiosity), [Augmenting au
 testing with deep RL](https://arxiv.org/pdf/2103.15819)); exploratory test sessions with a charter
 and a time box ([Exploratory testing strategies for video
 games](https://sol.sbc.org.br/index.php/sbgames/article/view/27667)).
+
+## 5. Driving-first cases (P11-P16, GAMEPLAY_PLAN 1.6)
+
+The rows above in detail, written for the harness (section 2 of the autopilot-playtest skill
+applies to all of them: trace every stop, unstick, height jump and clip with game time, world
+x, z and heading; one episode under 6 minutes; phone shape 1266x585). Each case is one option the
+agent is forced through in turn. **Pass** is what a player should see; anything else is a PT row.
+
+**P11 Trasa Łazienkowska and Wisłostrada** (`--at=919,1291`, Aleja Armii Ludowej west of the
+bridge, heading east)
+- C11.1 East along Armii Ludowej onto Most Łazienkowski (1042..2126, 814..1218) to the far end,
+  then back. Pass: no stop, no unstick, the car never 1 m under `drive_height`.
+- C11.2 Under the Trasa's deck: Solec north and south where it passes under (1347,1077), Rondo
+  Sedlaczka and Myśliwiecka (800,1335), Wał Miedzeszyński on the east bank (2075,835). Pass: no
+  stop; **frame every second under the deck**:
+  the car must be visible (today it is not: GAMEPLAY_PLAN 3.5; after 0.3 the x-ray shows it).
+- C11.3 Through Aleja Armii Ludowej's tunnel (116,1619 and 41,1636) both ways. Pass: the x-ray
+  silhouette on; the portals entered and left without a stop.
+- C11.4 Wisłostrada north from 265,-836 through Tunel Wisłostrady (429,-800 → 594,-586) and back.
+  Pass: as C11.3.
+
+**P12 Teleport from the full map** (any start; the map's hold-to-teleport, or `--map-jump=` per
+episode). Ten holds, each followed by 3 s of gas:
+- C12.1-C12.4 Over the tunnels: 429,-800; 594,-586; 116,1619; -761,-1399. Pass: the car stands on
+  the street above (never in the tunnel, never 1 m under `drive_height`) and drives off (0.1 fix;
+  the headless `teleport` step checks the landing, this checks the drive-off).
+- C12.5 On Most Łazienkowski over the river (1700,973). Pass: on the deck or a bank road, never in the
+  river.
+- C12.6 Under the Trasa's deck on Solec (1347,1077). Pass: on the road under it, visible.
+- C12.7-C12.8 A courtyard (Hoża, -700,900) and a gated service road off Nowy Świat. Pass: lands
+  on a public street lane, can drive away.
+- C12.9 The river bank by the boulevards (300,-700). Pass: on a road, not the beach or water.
+- C12.10 The start (-1013,-45). Pass: on Marszałkowska heading with the traffic.
+
+**P13 Stuck on purpose** (`--at=-1013,-45`, Marszałkowska at the start, traffic on)
+- C13.1 60 s pressing into the tram-stop fence and the shelter. Log every bubble and toast with
+  its time. Pass after 0.2: at most 2 bubbles and 1 toast in any 10 s; no comment per hit.
+- C13.2 60 s nose into a parked car on Świętokrzyska. Pass: the tow offer (POMOC DROGOWA) within
+  10 s of getting nowhere; the chatter rule as C13.1.
+- C13.3 Repeated bumps into a traffic car at 15-20 km/h. Pass: one driver shout at most per 20 s.
+
+**P14 Narrow streets** (one street per option; lanes under 2.5 m from the GAMEPLAY_PLAN audit)
+- C14.1 Frascati (127,850). C14.2 Hoża east to west (-107,669 → -1339,1113). C14.3 Ordynacka
+  (-219,-222). C14.4 Sienna (-1835,336). C14.5 Aleja 3 Maja (668,-70). C14.6 Three living
+  streets near the start. Pass: no stop on the carriageway; log every kerb jolt and every dead end
+  where the car can't turn round in three tries (with x, z).
+
+**P15 The helicopter high** (HELI at the start, then climb)
+- C15.1 Climb to the top over the Palace of Culture, hold 10 s, frame every 2 s. C15.2 Fly to Varso
+  (-1700,620) at the top. C15.3 Fly east to the map edge (x 2100) at the top. Pass: no flat sky
+  inside the city's outline, no building floating over sky, the helicopter in the middle third of
+  the screen (fixed by 0.4; before it, log what you see).
+
+**P16 Trzy mosty at full speed** (the final race; `--trzy-mosty` needs the ladder beaten, so drive
+its route as a free drive: Rondo Daszyńskiego → Most Śląsko-Dąbrowski → Most Świętokrzyski → Most
+Poniatowskiego → the stadium's south stands, 10.1 km)
+- C16.1 The route at top speed, split into three episodes of one bridge each (the 6 minute limit).
+  Pass: no stop on the route; log every contact with speed lost and whether the look-ahead showed
+  the turn in time (frames 1 s before each bridge head).

@@ -92,7 +92,7 @@ const BUDGET := {
 	"dtc": 1730,
 	"europejski": 8000,
 	"flaga": 170,
-	"forest": 1500,
+	"forest": 4900,
 	"gpy": 250,
 	"gaulle": 880,
 	"rondo": 7000,
@@ -133,7 +133,7 @@ const BUDGET := {
 	"plater49": 140,
 	"platinum_a": 80,
 	"platinum_b": 80,
-	"poniatowski": 2700,
+	"poniatowski": 4800,  # 2026-11-03: the towers strengthened (F), 2556 -> 4574 tris over four groups; +0 draw calls
 	"prezydencki": 1050,
 	"q22": 960,
 	"rondo1": 630,
@@ -209,9 +209,15 @@ const BUDGET := {
 	"zacheta": 720,
 	"zlota44": 1800,
 	"zygmunt": 280,
+	# Towarowa 22 built as finished (2026-11-03): seven towers and blocks, the hall's steel frame,
+	# the pavilion, the park, the drone port and the gilded crane.
+	"towarowa22": 5000,
+	# The Warsaw HUB's round-ended hotel tower (the photo report, 2026-11-03).
+	"crowne": 380,
 }
 ## Known defects per site: {"zfight": n, "degenerate": n, "badnormal": n, "float": n}.
-const KNOWN := {}
+## Towarowa 22's drone taxi hovers 7 m over its pad by design (the "Warsaw of the future").
+const KNOWN := {"towarowa22": {"float": 8}}
 const ZFIGHT_AREA := 0.01
 const ZFIGHT_PLANE := 0.02
 const ZFIGHT_WINDOW := 0.3  ## coarse sort window; _coplanar decides

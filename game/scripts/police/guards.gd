@@ -23,6 +23,7 @@ extends Node
 
 const GuardUnit := preload("res://scripts/police/guard_unit.gd")
 const Models := preload("res://scripts/models.gd")
+const Chatter := preload("res://scripts/chatter.gd")
 const POSTS_PATH := "res://data/police_guards.json"
 
 ## The pedestrians' fixed slots the guards take (0-2 the day's trap officers, 3 the first
@@ -263,7 +264,7 @@ func _say(g, tag: String, prefer: bool) -> void:
 		if g.slot < 0:
 			return Vector3.INF
 		return Vector3(g.pos.x, police.map.ground_height(g.pos.x, g.pos.y) + 2.2, g.pos.y)
-	var l: Array = police.dialogue.say(anchor, SPEAKER, "guard", tag, 3.2, COLOUR, 0.0, prefer)
+	var l: Array = police.dialogue.say(anchor, SPEAKER, "guard", tag, 3.2, COLOUR, 0.0, prefer, Chatter.POLICE)
 	if not l.is_empty():
 		_glog("line guard/%s: %s" % [tag, l[0]])
 

@@ -452,7 +452,7 @@ func _words() -> void:
 			_expect(str(x).length() <= 100, "an end card line at most 100 characters: %s" % x)
 	var w := First10.end_words()
 	_expect(w.size() == 4 and First10.REPO in w[1], "the repo's name on the card (the shared line under the Polish)")
-	_expect("OpenStreetMap" in w[1] and "GUGiK" in w[1] and "MIT" in w[1], "the credits on the card (the shared line)")
+	_expect("OpenStreetMap" in w[1] and "GUGiK" in w[1], "the credits on the card (the shared line)")
 	var readme := FileAccess.get_file_as_string(ProjectSettings.globalize_path("res://").path_join("../README.md").simplify_path())
 	if readme != "":
 		_expect(("https://" + First10.REPO) in readme, "README names %s" % First10.REPO)
