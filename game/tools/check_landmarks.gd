@@ -163,6 +163,8 @@ func _fly_checks() -> int:
 			c = Vector2(735.0, -896.0)  # the pylon at 45 m (the site is a long strip: its middle is open air)
 		elif info["key"] == "arkady":
 			c = Vector2(-560.0, -1606.0)  # the arcades' middle (the box holds the gardens: its middle is a lawn)
+		if str(info["key"]).begins_with("bulwary_"):
+			continue  # the boulevards' 3.6 m pavilions, 2.6 m containers and 25 cm decks: the heli hovers over them
 		var heli: Node3D = Heli.new()
 		heli.ground_height = map.ground_height
 		heli.top_height = map.top_height
@@ -180,8 +182,8 @@ func _fly_checks() -> int:
 					if h > top:
 						top = h
 						top_at = Vector2(x, z)
-		if info["key"] in ["elektrownia", "stadion_pkp", "ostrogski", "mpw"]:
-			c = top_at  # open yards and platforms (Ostrogski's courtyard between its two blocks): the box's middle is air, aim at the tallest cell
+		if info["key"] in ["elektrownia", "stadion_pkp", "ostrogski", "mpw", "bulwary_pawilony", "bulwary_bary"]:
+			c = top_at  # open yards, platforms, rows along the river (Ostrogski's courtyard between its two blocks): the box's middle is air, aim at the tallest cell
 		var alt := clampf(top * 0.5, 6.0, 45.0)
 		if info["key"] == "arkady":
 			alt = 5.0  # the arcade wall stands 7.5 m over the Lower Garden; the castle's roofs in the box are higher
