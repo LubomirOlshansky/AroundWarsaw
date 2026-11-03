@@ -274,6 +274,20 @@ Built from photos gathered on the Mac (`refs/pomnik_powstania/`, `refs/krasinski
 - The palace's pediment relief is a flat recessed field, the cartouche over the central window and the roof statues of the garden front are not modelled; the dormer and chimney counts are rough (the report says so). The garden's round parterre and the pond's sculpture are the park's (the fountain is already there).
 - F's look check on the Mac or the phone: the slabs' lean, the fighters' size, the roof's green.
 
+## Poczta Główna and PAST-a (CITY_INVENTORY 76 and 78, 2026-11-03)
+Built from the Mac photo reports (`refs/poczta/`, `refs/pasta/`) and LoD2, specs `poczta.md` and
+`pasta.md` (sites `poczta` 588 tris, `pasta` 476). Found and left:
+- Poczta: the colonnade's place on the Świętokrzyska face (on the hall's axis) and the columns
+  standing 2 m out from LoD2's wall are estimates (a real colonnade may be recessed into the front);
+  LoD2 already has a raised lump at the corner, the drum and dome are sunk round it. The wall reads
+  grey-pink in the cloud's renderer: check the salmon on the phone. The back (the street to the south)
+  and the courtyard are LoD2's as they are.
+- PAST-a: OSM's outline (21 x 26 m with a notch at the south-west) is taken as the tower; the ortho
+  puts its roof ~8 m further west. The lower wings north and south are LoD2's, not the report's steep
+  roofs and tall chimneys of 1910 (they are gone today). The plaque's text and the Virtuti cross are a
+  plain white stone; the flags on poles are not drawn, only the two long banners.
+- F's look check on the Mac or the phone: the dome's size, the band's red, the tower's colour.
+
 ## POLIN and the Ghetto Heroes Monument (F, 2026-11-02)
 Built from photos gathered on the Mac (`refs/polin/`) and the LoD2 roof, spec `polin.md`. Found and left:
 - The east front's two long dark band windows (~10 m, 4-5 m up) and the small lit slot south of the canyon are not drawn.
