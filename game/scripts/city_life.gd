@@ -2447,7 +2447,7 @@ func _near_miss(m: Mover) -> void:
 	_pedzik_t = t
 	pedzik_lines += 1
 	if dialogue != null:
-		dialogue.say_ambient(func() -> Vector3: return m.p3 + Vector3(0, 2.2, 0), "Pędzik", "pedzik", "", 4.0, Color("#c23a7e"), 2.2)
+		dialogue.say_reaction(func() -> Vector3: return m.p3 + Vector3(0, 2.2, 0), "Pędzik", "pedzik", "", 4.0, Color("#c23a7e"), 2.2, false, "near_miss")
 	if life_log or pedzik_log:
 		print("pedzik: a near miss at %.0f, %.0f: the line" % [m.p2.x, m.p2.y])
 
@@ -3055,7 +3055,7 @@ func horn(at: Vector3) -> void:
 			horn_lines += 1
 			var m := d
 			if dialogue != null:
-				dialogue.say_ambient(func() -> Vector3: return (m["p3"] as Vector3) + Vector3(0, 2.0, 0), "", "dog_walkers", "horn", 4.0, BUBBLE, 2.2, true)
+				dialogue.say_reaction(func() -> Vector3: return (m["p3"] as Vector3) + Vector3(0, 2.0, 0), "", "dog_walkers", "horn", 4.0, BUBBLE, 2.2, true)
 			if dogs_log:
 				print("dogs: the walker's horn line")
 
@@ -3072,7 +3072,7 @@ func _tiny_tick(p: Vector2, kmh: float) -> void:
 		tiny_lines += 1
 		var m := d
 		if dialogue != null:
-			dialogue.say_ambient(func() -> Vector3: return m.p3 + Vector3(0, 2.3, 0), "", "dog_walkers", "tiny", 4.0, BUBBLE, 2.2, true)
+			dialogue.say_reaction(func() -> Vector3: return m.p3 + Vector3(0, 2.3, 0), "", "dog_walkers", "tiny", 4.0, BUBBLE, 2.2, true)
 		if dogs_log:
 			print("dogs: a big guy's tiny-dog line")
 		return
@@ -3143,7 +3143,7 @@ func _bell_tick(p: Vector2, kmh: float, step: float) -> void:
 		sfx.play_at("bike_bell", from + Vector3(0, 1.0, 0))
 	if dialogue != null:
 		var at := from
-		dialogue.say_ambient(func() -> Vector3: return at + Vector3(0, 2.2, 0), "", "cyclists", "lane", 4.0, BUBBLE, 2.2, true)
+		dialogue.say_reaction(func() -> Vector3: return at + Vector3(0, 2.2, 0), "", "cyclists", "lane", 4.0, BUBBLE, 2.2, true)
 	if life_log:
 		print("life: the car parked on a cycle path at %.0f, %.0f for %.0f s: the bell" % [p.x, p.y, _bell_hold])
 

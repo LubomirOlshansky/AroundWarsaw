@@ -251,6 +251,8 @@ var _bump_cooldown := 0.0
 var _sound_cooldown := 0.0
 var _turn_side := 0.0
 var _contact := 0.0
+## Phase 0.2: trying to drive this frame (gas, brake or the stick), for struggling().
+var _trying := false
 ## Seconds left of the last touch of something fixed (a wall, a kiosk, a parked car), not a
 ## moving car or tram: only those can pin the car (a queue at a red light is not "stuck").
 var _fixed_contact := 0.0
@@ -708,6 +710,7 @@ func _step(dt: float) -> void:
 	# Nosing into the car ahead in a queue doesn't count: traffic moves on by itself. A car
 	# the game has parked (loop 2b) is never "trying".
 	var trying := not parked and (gas > 0.1 or brake_now or target_dir != Vector3.ZERO)
+	_trying = trying
 	var here := Vector2(global_position.x, global_position.z)
 	if _contact > 0.0 and (_fixed_contact > 0.0 or _car_push > CAR_PUSH_TIME) and trying:
 		if _pinned <= 0.0 or here.distance_to(_pin_at) > 1.0:
@@ -911,6 +914,20 @@ func max_turn(v: float, gas := 0.0) -> float:
 ## Pinned against a wall: turn the car out of it (towards where the player wants to go,
 ## or along the wall), step it 0.5 m off and send it off at walking pace. Pinned again
 ## within 5 s, ask the game for a free spot (`stuck`).
+## Phase 0.2 (the chatter budget, chatter.gd): the car is struggling: pinned, pressing into
+## something at walking pace, held against traffic, or trying near one spot for half of
+## STALL_TIME. The city keeps quiet then (no shouts, no dog walkers, no crowds).
+func struggling() -> bool:
+	if parked:
+		return false
+	return _pinned > 0.0 or _car_hold > 0.0 or stalled >= STALL_TIME * 0.5 \
+			or (_contact > 0.0 and _trying and absf(forward_speed) < STRUGGLE_SPEED)
+
+
+## Phase 0.2: slower than this (m/s, ~11 km/h) while touching something and trying counts as struggling.
+const STRUGGLE_SPEED := 3.0
+
+
 func _unstick() -> void:
 	_pinned = 0.0
 	unsticks += 1

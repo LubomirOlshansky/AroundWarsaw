@@ -55,4 +55,4 @@ L2, triangle budgets: smolensk 120 (built 100), pilsudski 160 (134), kaczynski 1
 | kaczynski_pedestal | 3 boxes | 9.6 x 10.8 to 4 x 4.6 m, 2.5 m | (-677, -762.3) | M_STONE #2e3032 | stepped pedestal |
 | kaczynski_figure | figure | 3.6 m | on the pedestal | M_STONE #4a4f46 | the President |
 | masts | footing, frustum, head | 14 m | PLAC_MASTS | M_STONE, M_LAMP | masts |
-| paving | ground shader | 6 m panels, 0.27 m bands | PLAC_BOX | ground.gdshader | chequer |
+| paving | ground shader | 6 m panels (soft step, gone in wide views), 0.3 m bands, granite grain | PLAC_BOX | ground.gdshader | chequer |
