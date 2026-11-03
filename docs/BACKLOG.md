@@ -3,6 +3,43 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+
+## Landmark look-check fixes (F's answers, 2026-11-03)
+F's answers on the reviewed look-check page (look-check-answers.md in the project files), the smaller
+ones. Shots in the project files, look-check-fixes/. Done:
+- ~~Hotel Warszawa: wings-to-base join, portal, crown cornice~~: one granite plinth, stone ground-floor
+  face and string course across wings and shaft; the wings rise to the back U's 25 m under cornices that
+  turn the corner; the portal has dark reveals and a cornice slab; both cornices step out (1.5 / 1.1 m)
+  over a shadow line (`_hw_cornice`).
+- ~~Poczta's colonnade~~: a shallow recess between two piers, columns half in the front's plane, the red
+  band as a canopy over the pavement; pale warm stone with a pink cast (`#ecd2c2`, skin too).
+- ~~PAST-a's colour~~: darker weathered grey-brown (`#877667`), base and trim darker. OSM footprint kept.
+- ~~MPW's pale bannered wing and deeper arches~~: MPW_LOW is a three-storey pale wing (12.5 m) with two
+  hung banners and four flags; W2's arches get a wide archivolt and a dark reveal, piers 0.6 m out.
+- ~~Norblin~~ (F's photos + the Mac's read of them): copper base (lit warm at night on the south faces),
+  dark office storeys with fine fins, the top two set back behind planters; the glass-roofed passage
+  between Galwan and Plater; the white workshops and the glazed hall on Prosta as white walls under dark
+  zinc hips (they were generic boxes; `tools/bake_sectors.py` SITE_AREAS has their area). Card text: no
+  chimney.
+- ~~Browary's garden~~: the 17 young trees replanted in four clumps (`tools/planted_trees.py` "groups",
+  an old map unplants and replants once: `browary@groups`; AO re-baked, 850 bytes changed), the path
+  edged in dark steel, the clearings in pale stone.
+- ~~Wschodnia~~: pleats 2.3 m deep and 0.9 m out, struts 0.42 m every 6 m spread 2.4 m; the two short
+  suburban platforms roofed from x 2020 east (WSC_SUBURBAN_X).
+- ~~Bazar Różyckiego~~: three units a side always; most old stalls get a patched sheet or tarp.
+- ~~Pasaż Wiecha~~: the slabs light warm grey with a balcony ledge every storey; the Y masts stand to
+  11 m with 2.2 m blades.
+Found and left:
+- Norblin: the glass roof's real extent and both court links (built: the gap between the two outlines);
+  the gate through the white house on Żelazna with its lit sign; café tables in the lane; the
+  rust-clad pavilion at the lane's far end; the lit stage pavilion at the glazed hall's west end.
+- Wschodnia: the ortho shows the main platforms' rust roofs much shorter (about x 1878-1966, two
+  pairs) than the built x 1860-2120 run; check with a photo before cutting them.
+- Pasaż Wiecha: a Christmas tree on the pasaż for a winter event (F: yes; needs a season flag).
+- MPW: the platform's overhang direction (west/south) stays provisional.
+- The Norblin copper glow at night is flat and strong at phone size; a phone look should say if it
+  needs toning down.
+
 ## Loud cars at Browary (F, 2026-11-02)
 
 City-life satire #1 built (`loud_cars.gd`, `check_loud_cars`): seven generic supercars at the Browary

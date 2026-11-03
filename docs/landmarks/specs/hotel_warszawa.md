@@ -98,3 +98,5 @@ BUDGET "hotel_warszawa"). No new material, node or draw call. Shots: the front f
 | back_u | prism | 25 m, a U round the hall | u -16.1..18.8, v -54.5..-5 | M_STONE #dccaa6, roof #cfcbc4 | 2 massing |
 | hall | prism + quads | 11.8 x 31.8 m, 7.5 m, ridge 9.3 m | u -8.6..3.2, v -47.4..-15.6 | M_STONE, M_GLASS_ROOF #7f9faf | roof |
 | flagpoles | beams + quads | 9 m, flags 1.25 m | u 12.5-15.7, v 4 | M_STONE #e6e6e2 | ground |
+
+F's look check (2026-11-03): front east confirmed, the tower reads as the hotel. Applied: one granite plinth, stone ground-floor face and string course across wings and shaft; wings to 25 m (the back U's height) under turned cornices; portal reveals and cornice slab; main and crown cornices 1.5 / 1.1 m proud over a shadow line.

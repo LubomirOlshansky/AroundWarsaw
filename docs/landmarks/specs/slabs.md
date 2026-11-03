@@ -73,3 +73,5 @@ L1 (massing, colour and the loggia rhythm in the shader), triangle budget 270 (2
 | roof | cap of the outline | each slab | y 37.3 | M_STONE #8c8a84 | 3 roof |
 | houses | two boxes | 6 x 4.4 x 3.2 m | the long axis, ±45 % | M_STONE #cdbd9b | 3 roof |
 | billboard | posts, rails, panel, word | up to 25 x 5.5 m | slab 2, south-south-east edge | M_STONE #1d3d6b, neon atlas | 4 billboard |
+
+F's look check (2026-11-03): light warm grey (#d3cfc6, ends #c4bfb5, provisional) with a balcony ledge every 2.8 m on the long faces.

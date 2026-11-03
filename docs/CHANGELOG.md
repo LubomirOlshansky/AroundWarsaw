@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-03
+- Ten landmarks look more like the real thing after a photo check: Fabryka Norblina's white workshops with dark metal roofs along its lane, its copper walls glowing at night and a glass-roofed passage; Browary's garden with its trees in clumps around the path and café tables; a pale bannered wing at the Rising Museum; a stone base and sharper cornices on Hotel Warszawa; Poczta Główna's columns set into the front under a red canopy; a darker PAST-a; bolder pleats and struts at Warszawa Wschodnia; patched stall roofs at Bazar Różyckiego; and grey slabs with balcony bands and taller white Y masts on Pasaż Wiecha.
 - With colour-safe markers on (Settings, accessibility), race rings are now chequered like a finish line and a rescue pickup's ring is dashed, so you can tell them apart without relying on colour.
 - Praga's old streets get evenings: six neon bar signs (ŚWIAT PO PRASKU, BARISTA Z PODWÓRKA, WINO ZE SKRZYNKI, KRAINA WINA, KIJOWSKA DWÓJKA, POD KUFLEM ZA ROGIEM) around Okrzei, Wrzesińska, Kijowska and Targowa, and people outside with a drink after dark.
 - After the first ten minutes the game tells you where the story goes on: a short goal line ("Find and flash: Słoik z Radomia") when a new step opens, and now and then a gold arrow with a star at the screen's edge pointing to the next rival, only while you are not doing anything else. The screen-edge arrow also no longer hides under the minimap, the wallet or the pedals.
