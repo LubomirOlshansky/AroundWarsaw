@@ -857,6 +857,7 @@ BARRIER_HALF = {"fence": 0.06, "wall": 0.18, "hedge": 0.45}   # map_builder.gd B
 PROP_SOLID = {"benches": 3.2, "bikes": 3.4, "columns": 1.4, "shelters": 4.0}   # map_builder.gd _build_props
 DRIVE_HALF = 1.7       # a lane's drive corridor: a bus's half width (1.3), and 0.4 m for a 12 m
                        # bus box's chord on a bend and the game's mitred lane offsets
+BARRIER_TOP = 2.5      # loop 3e leftovers: a barrier's top over the ground (map_builder.gd BARRIER_STYLE: a wall 1.9 m) and a little
 ROAD_INSET = 0.15      # a carriageway's own corridor: its half width less this
 SMALL_BUILDING = 30.0  # a mapped building this small (a kiosk, a vent) in a lane is left out
 GUARD_END = 8.0        # loop 3e: a deck's guard rail this near its piece's end clears a bus on the lanes there...
@@ -951,7 +952,13 @@ def clear_carriageways(m):
                     m.terrain(x, z) < m.tunnel_height(t, x, z) + MOUTH + 1.0:
                 return True
         return False
-    notes = {"barrier m cut": 0.0, "props": 0}
+    # Loop 3e leftovers (2026-11-02): a deck road's carriageway where the deck runs lower than a
+    # barrier's top over the ground (its ends at grade): a wall mapped up to the kerb line there
+    # stood 0.7 m into the slab at Wybrzeże Szczecińskie's deck 4 by Most Śląsko-Dąbrowski
+    # ((409, -1519) and (423, -1523): check_drive's buses on its outer lanes).
+    def in_deck_road(x, z):
+        return any(m.decks.p[i]["k"] == "road" and h < m.terrain(x, z) + BARRIER_TOP for h, _, i in m.decks.at(x, z))
+    notes = {"barrier m cut": 0.0, "barrier m cut on decks": 0.0, "props": 0}
     lines = []
     for ln in d.get("lines", []):
         pad = BARRIER_HALF.get(ln["k"])
@@ -966,8 +973,11 @@ def clear_carriageways(m):
                 if k == 0 and run:
                     continue
                 x, z = a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n
-                if inside(x, z, pad):
+                on_deck = False
+                if inside(x, z, pad) or (on_deck := in_deck_road(x, z)):
                     notes["barrier m cut"] += math.dist(a, b) / n
+                    if on_deck:
+                        notes["barrier m cut on decks"] += math.dist(a, b) / n
                     if len(run) >= 2:
                         lines.append({"k": ln["k"], "p": [round(v, 2) for q in _simplify(run) for v in q]})
                     run = []
@@ -1659,7 +1669,7 @@ def add_structures(out, map_dir, terrain):
           f"corridor, not cut (x, z, share): {cst['grazed']}")
     cc = clear_carriageways(m)
     print(f"carriageways (check_drive): {cc['barrier m cut']:.0f} m of fences, walls, hedges and mapped guard rails "
-          f"inside a carriageway or a lane cut out; left out there: {cc['props']} solid props, "
+          f"inside a carriageway or a lane cut out ({cc['barrier m cut on decks']:.0f} m of them on a deck road at grade); left out there: {cc['props']} solid props, "
           f"{cc.get('parked', 0)} parked cars, {cc.get('pillars', 0)} viaduct pillars, {cc.get('small buildings', 0)} kiosks; "
           f"{cc.get('moved off tram tracks', 0)} props on a tram track moved beside it, "
           f"{cc.get('on tram tracks', 0)} left out (map review A, round 2)")

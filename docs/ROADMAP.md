@@ -130,12 +130,16 @@ then the Launch gate.
       Elektrownia Powiśle at their tallest cell (the box middle is open air), the Most
       Śląsko-Dąbrowski place hint sits on the bridge (`places` WARN gone). Still needs a Mac run
       (no terrain in the cloud): Łazienkowski's slab edges, deck 4's parapet, the Karowa footbridge's end
-- [ ] Loop 3e leftovers still open: the rail cutting (Mac re-bake). Most Łazienkowski's east edge settled
+- [ ] Loop 3e leftovers still open: the rail cutting (Mac re-bake); deck 4 fixed 2026-11-03 (walls cut
+      from deck ends, `bake_structures.py` `BARRIER_TOP`); the Karowa footbridge and Łazienkowski's loop
+      ramps parked (QUESTIONS). Most Łazienkowski's east edge settled
       2026-11-02: the river crossing is whole, the Praga viaducts end at the outline under edge roadworks
 - [x] Dark Jerozolimskie and Nowy Świat at night (2026-11-02): the lamp bake's added avenue lamps 26 m apart
       a side (was 34), Nowy Świat lit from both pavements, kerb lamps step past parking bays; the street lit
       Nowy Świat 52 → 88 %, Jerozolimskie at the review spot 32 → 48 % (Marszałkowska 43 → 51 %). Phone look open
-- [ ] Junction lines checked against photos (Mac: needs the GUGiK orthophoto; brief in QUESTIONS 2026-11-02)
+- [x] Junction lines checked against photos (Mac, 2026-11-03, 0.1 m GUGiK crops): the guide dashes and hatch
+      edges are real; the defect was grass medians laid across junctions: 29 short pieces now painted as
+      hatched areas (`bake_roads.py` `_median_in_junction`, check_streets S5 119 → 90)
 
 ### Left: landmarks and street details
 - [x] City inventory, street by street (F, 2026-11-02): every characteristic place in the box ranked S/A/B
