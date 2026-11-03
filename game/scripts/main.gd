@@ -309,6 +309,9 @@ var start_in_tunnel := false
 var ghost_debug := 0
 ## --left-handed: the left-handed layout for this run (Settings → DOSTĘP keeps it otherwise).
 var _flag_left_handed := false
+## --color-safe: colour-safe markers for this run (Settings → DOSTĘP keeps it otherwise): the HUD's
+## tint and the race and rescue rings' shapes (beacon.gd), for shots.
+var _flag_color_safe := false
 ## --lang=pl|en: the language for this run (not saved), over the saved choice and the phone's.
 var _flag_lang := ""
 ## --lift=M: aim the camera M metres above the vehicle (close-ups of tall landmarks).
@@ -3568,6 +3571,8 @@ func _parse_args() -> void:
 			_flag_lang = arg.trim_prefix("--lang=")  # pl or en, for shots and checks
 		elif arg == "--left-handed":
 			_flag_left_handed = true  # accessibility (2026-11-01): the mirrored controls, for shots
+		elif arg == "--color-safe":
+			_flag_color_safe = true  # accessibility (2026-11-03): colour-safe rings and tint, for shots
 		elif arg.begins_with("--shots="):
 			for s in arg.trim_prefix("--shots=").split(","):
 				shots.append(int(s))
@@ -4060,6 +4065,8 @@ func _load_settings() -> void:
 	Access.apply(settings)
 	if _flag_left_handed:
 		Access.left_handed = true
+	if _flag_color_safe:
+		Access.color_safe = true
 	if not _flag_size:
 		base_size = settings.view
 	model_name = _flag_model if _flag_model != "" else OS.get_model_name()
