@@ -187,6 +187,23 @@ float kp_setts_at(vec2 wp) {
 	return 1.0 - smoothstep(KP_HALF - 0.4, KP_HALF, best);
 }
 
+// Plac Piłsudskiego (photos, 2026-11-02; docs/landmarks/photo-reports/pilsudskiego.md): the paved
+// field is grey granite slabs in ~6 m squares, a chequer of lighter and darker panels outlined by
+// darker grey bands (the drone photo). The map has it as bare ground crossed by footpaths; inside
+// PLAC_BOX those (and any plaza) take the pattern. Box test first, so no other place pays for it.
+const vec4 PLAC_BOX = vec4(-840.0, -718.0, -868.0, -735.0);   // x0, x1, z0, z1
+const vec3 PLAC_LIGHT = vec3(0.706, 0.706, 0.69);   // #b4b4b0
+const vec3 PLAC_DARK = vec3(0.6, 0.6, 0.585);
+const vec3 PLAC_BAND = vec3(0.557, 0.561, 0.549);   // #8e8f8c
+
+// 1 inside the square's paved field, fading over its last metre.
+float plac_at(vec2 wp) {
+	vec2 lo = vec2(PLAC_BOX.x, PLAC_BOX.z);
+	vec2 hi = vec2(PLAC_BOX.y, PLAC_BOX.w);
+	vec2 d = min(wp - lo, hi - wp);
+	return clamp(min(d.x, d.y), 0.0, 1.0);
+}
+
 void fragment() {
 	vec3 base = srgb_to_linear(COLOR.rgb);
 	vec2 wp = world_pos.xz;
@@ -383,6 +400,20 @@ void fragment() {
 		float broad = smoothstep(0.3, 0.8, value_noise(vec2(dot(wp, AX) * 0.012, dot(wp, AY) * 0.03) + vec2(TIME * 0.004, 0.0)));
 		emit += srgb_to_linear(sky_colour) * night * (0.05 + 0.16 * broad + 0.1 * crest) * mix(1.0, 0.75, deep);
 		emit += srgb_to_linear(vec3(0.55, 0.32, 0.42)) * night * 0.1 * (1.0 - smoothstep(2.0, 40.0, d));
+	}
+	if (id <= 0 || id == 2 || id == 4) {
+		float plac = plac_at(wp);
+		if (plac > 0.0) {
+			vec2 q = (wp - vec2(PLAC_BOX.x, PLAC_BOX.z)) / 6.0;
+			vec2 e = abs(fract(q) - 0.5);
+			float band = step(0.455, max(e.x, e.y));       // 0.27 m bands round each square
+			float panel = mod(floor(q.x) + floor(q.y), 2.0);
+			vec3 col = mix(mix(PLAC_LIGHT, PLAC_DARK, panel), PLAC_BAND, band);
+			vec2 slab = wp / 1.5;                           // the slabs inside a panel
+			vec2 j = abs(fract(slab) - 0.5);
+			base = mix(base, srgb_to_linear(col), plac);
+			shade = mix(shade, 0.97 + 0.05 * hash12(floor(slab)) - 0.05 * step(0.46, max(j.x, j.y)), plac);
+		}
 	}
 	// Rain: wet asphalt and paving darken, puddles lie darker still and mirror the sky.
 	if (wetness > 0.001 && (id == 6 || id == 2 || id == 4 || id == 5 || id == 7 || id == 14 || id == 19)) {

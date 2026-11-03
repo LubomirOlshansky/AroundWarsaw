@@ -297,6 +297,11 @@ func has_target() -> bool:
 	return state == State.PICKUP or state == State.RIDE
 
 
+## PT-15: a request card is up, waiting for ACCEPT / SKIP.
+func offering() -> bool:
+	return state == State.OFFER
+
+
 ## The pin (then the passenger, once the car is near the pin or them), or the ride's real door.
 func target_position() -> Vector3:
 	if state == State.PICKUP:
@@ -486,7 +491,9 @@ func _free() -> bool:
 		return false
 	if jobs != null and jobs.side_busy():
 		return false  # loop MW-4: the "Na czasie" job too
-	return rivals == null or not rivals.busy()
+	# PT-15 (2026-11-03): nor while a rival's prompt is up or Pani Halina rolls up to flash for the
+	# first race (rivals.gd `calling`): a "New ride" card came up over her flash-back offer.
+	return rivals == null or not (rivals.busy() or rivals.calling())
 
 
 func _calls_quiet() -> bool:
@@ -588,6 +595,9 @@ func _show_offer(r: Dictionary) -> void:
 func _offer_tick() -> void:
 	if not _calls_quiet() or (jobs != null and jobs.side_busy()) or (rivals != null and rivals.busy()):
 		state = State.IDLE  # their card is up now, not ours
+		return
+	if rivals != null and rivals.calling():
+		_withdraw()  # PT-15: her prompt is a strip, not a card: ours must go, not hide behind it
 		return
 	if flying or away:
 		_withdraw()

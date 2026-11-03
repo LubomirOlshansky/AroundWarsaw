@@ -37,6 +37,12 @@ const PULL_IN := 7.0          # stop in this ring to start a job...
 const PULL_IN_SPEED := 8.0    # ...going slower than this (m/s): pulling in, not passing
 const ARRIVE := StopAssist.RING          # the door's ring
 const ARRIVE_SPEED := StopAssist.STOP_SPEED
+## PT-16 (2026-11-03): a result card (delivered, or the order dropped) goes by itself RESULT_LIFE s
+## after it comes up, or once the car is RESULT_OFF m from where it came up (OK closes it at once),
+## as Podwózka's does (rides.gd). It waited for OK: the playtest agent never pressed it, drove
+## back to the customer still standing in the ring six times, and every beat of the guide waited.
+const RESULT_LIFE := 12.0
+const RESULT_OFF := 25.0
 const ORDER_MIN := 400.0
 const ORDER_MAX := 1500.0
 ## Across the river it is "basically the centre": the customer's word, not the map's.
@@ -159,6 +165,8 @@ var _rng := RandomNumberGenerator.new()
 ## Loop 3h slice 4: the stand whose next order is the guided first order (first10.gd `pin_first`;
 ## -1: none). Cleared once that order is made.
 var pinned := -1
+## PT-16: where the car was when the result card came up.
+var _result_at := Vector3.ZERO
 ## Zagłębie Kebabowe: Kino Femina's point (the welcome line), whether the craft kebab's wait runs (s
 ## left; the order's "premium" is set when it ends) and whether the welcome played this session.
 var _femina := Vector2.INF
@@ -504,6 +512,12 @@ func busy() -> bool:
 	return state != State.IDLE or (rides != null and rides.busy()) or (trend != null and trend.busy()) or round_busy()
 
 
+## PT-15 (2026-11-03): a Podwózka request card is up (rides.gd OFFER, not "busy"): a rival's
+## prompt and Halina's first-race call wait for it, so two offers never share the screen.
+func ride_offered() -> bool:
+	return rides != null and rides.offering()
+
+
 ## Loop jobs-2: the Leżak round-up is on (its card included).
 func round_busy() -> bool:
 	return roundup != null and roundup.busy()
@@ -576,6 +590,10 @@ func _process(dt: float) -> void:
 			_order_tick()
 		State.DELIVER:
 			_deliver_tick(dt)
+		State.RESULT:
+			if _t > RESULT_LIFE or _flat(car.global_position, _result_at) > RESULT_OFF:
+				print("jobs: the result card went by itself (%s)" % ("%.0f s" % _t if _t > RESULT_LIFE else "drove off"))
+				_release()
 	last_usec = Time.get_ticks_usec() - t0
 
 
@@ -947,6 +965,7 @@ func _deliver_tick(dt: float) -> void:
 
 func _arrive() -> void:
 	state = State.RESULT
+	_result_shown()
 	hud.hide_status()
 	_remove_ghost()
 	# The passenger's chatter stops: the last word is at the door.
@@ -960,6 +979,12 @@ func _arrive() -> void:
 	else:
 		_sloik_result()
 	Access.buzz(120, 0.8)
+
+
+## PT-16: the result card's clock and spot (it goes by itself, see RESULT_LIFE).
+func _result_shown() -> void:
+	_t = 0.0
+	_result_at = car.global_position
 
 
 func _kebab_result() -> void:
@@ -1225,6 +1250,7 @@ func secondary() -> bool:
 
 func _abandon() -> void:
 	state = State.RESULT
+	_result_shown()
 	courier.cancel()
 	hud.hide_status()
 	_beacon.visible = false
