@@ -438,6 +438,12 @@ const INFO := {
 	"sejm": ["Sejm RP",
 			"Przy Wiejskiej.",
 			"On Wiejska."],
+	"poczta": ["Poczta Główna",
+			"Główna poczta przy Świętokrzyskiej, z kopułką na rogu Jasnej. Kolejka do okienka jak zawsze.",
+			"The main post office on Świętokrzyska, a small dome on the Jasna corner. A queue at the counter, as ever."],
+	"pasta": ["PAST-a",
+			"Wieża telefoniczna z 1908 roku. 20 sierpnia 1944 roku zdobyta przez powstańców z batalionu „Kiliński”.",
+			"The telephone tower of 1908. Taken by the insurgents of the Kiliński Battalion on 20 August 1944."],
 	"mf": ["Ministerstwo Finansów",
 			"Gmach z lat 1953–56 przy Świętokrzyskiej. Tu liczą cudze pieniądze.",
 			"1953–56 on Świętokrzyska: where the country's money is counted."],
@@ -668,6 +674,8 @@ static func tower_colour(key: String, fallback: Color) -> Color:
 		return KOP_WALL
 	if key == "mf":
 		return MF_WALL
+	if key == "pasta":
+		return PASTA_WALL
 	if key == "barbakan":
 		return BARB_WALL
 	if key == "teresy":
@@ -905,6 +913,9 @@ func _find_sites() -> void:
 	_find_works()
 	# The Ministry of Finance (2026-11-01): a model instead of the mapped box.
 	_find_mf()
+	# Świętokrzyska's big three (2026-11-03, the Mac photo reports): PAST-a, a model instead of
+	# the mapped block (Poczta Główna is a kept skin, SKINS).
+	_find_pasta()
 	# Powiśle, street by street (2026-11-01): Ostrogski Castle and the Chopin Institute, Tamka 41.
 	_find_ostrogski()
 	# The Powiśle parish church (2026-11-01): a model instead of the mapped box.
@@ -1257,6 +1268,11 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_elektrownia(s)
 			"mf":
 				_build_mf(s)
+			"poczta":
+				_mark_zone(s)  # the mass stays LoD2's, in its skin; the front, the dome and the hall's glass are ours
+				_build_poczta(s)
+			"pasta":
+				_build_pasta(s)
 			"teatr":
 				_mark_zone(s)  # the mass stays LoD2's, in its skin; the portico is ours
 				_build_teatr(s)
@@ -3519,6 +3535,9 @@ const SKINS := [
 	{"key": "sejm", "osm": "Sejm RP", "mode": M_MONUMENT, "wall": "#e2e0d8", "roof": "#8d8f8c"},
 	# Dom Partii (F's photo, 2026-11-01): the white stone block at Rondo de Gaulle'a; its extras
 	# (the roof sign, the courtyard) are the site `dom_partii_extras`.
+	# Poczta Główna (the Mac photo report, 2026-11-03): pale salmon plaster (POCZTA_WALL); its
+	# front, corner dome and glazed hall are the site's own model (_build_poczta).
+	{"key": "poczta", "osm": "Poczta Główna", "mode": M_MONUMENT, "wall": "#e5c8b4", "roof": "#77706b"},
 	{"key": "dom_partii", "osm": "Centrum Bankowo-Finansowe", "mode": M_MONUMENT, "wall": "#ebe8df", "roof": "#8e9091"},
 ]
 
@@ -16478,3 +16497,176 @@ func _menorah(p: Vector2, y: float, s: float) -> void:
 			var elbow := foot + up * low + side * sd * r
 			_beam(foot + up * low, elbow, 0.08 * s, GETTO_BRONZE)
 			_beam(elbow, foot + up * 1.9 + side * sd * r, 0.08 * s, GETTO_BRONZE)
+
+
+# --- Świętokrzyska's big three: Poczta Główna and PAST-a (2026-11-03, from the Mac photo reports
+# docs/landmarks/photo-reports/poczta.md and pasta.md; specs docs/landmarks/specs/poczta.md, pasta.md)
+
+## Poczta Główna, Świętokrzyska 31/33: the eight-storey block from Świętokrzyska back to the
+## street behind, round a glazed central hall. The mass stays LoD2's (a kept skin in its pale
+## salmon plaster, SKINS); the model adds what the photo shows from the street: the round corner
+## tower at Jasna under a grey-silver dome and lantern, a colonnade of six white columns two
+## storeys high before the glazed entrance under a red band with POCZTA (a parody of the
+## operator's band), a recessed white window strip beside it, the tall arched windows of the
+## corner's ground floor, a cornice under the top storey, and the hall's roof (LoD2's hip) glazed.
+## Frame: u west along the Świętokrzyska face from its east end, +v out to the street.
+const POCZTA_O := Vector2(-906.2, -164.7)
+const POCZTA_AXIS := Vector2(-0.9493, 0.3146)
+const POCZTA_FACE := 54.4                  # the straight face's length (u)
+const POCZTA_DOME := Vector2(-0.5, -4.5)   # the corner tower's centre (u, v): ortho (-905, -159)
+const POCZTA_ENTRY := 26.5                 # the colonnade's middle (u): on the hall's axis
+const POCZTA_HALL := Rect2(11.5, -31.2, 30.5, 15.8)  # LoD2's hall (u, v), eaves ~8 m, ridge 13.2 m
+const POCZTA_WALL := "#e5c8b4"   # the report's #E3C3AE, a step paler
+const POCZTA_ROOF := "#77706b"
+const POCZTA_WHITE := Color("#f0ece4")
+const POCZTA_RED := Color("#c0262d")
+const POCZTA_SILVER := Color("#a7acb0")
+const POCZTA_GLASS := Color("#3a454e")
+const POCZTA_HALL_GLASS := Color("#7a8d98")
+const POCZTA_SIGN := Color(1.0, 0.86, 0.35)
+
+
+func _build_poczta(site: Dictionary) -> void:
+	_o = POCZTA_O
+	_a = POCZTA_AXIS.normalized()
+	_b = Vector2(-_a.y, _a.x)
+	_g = _ground_under((site["zone"] as Array)[0])
+	var g := _g
+	var wall := Color(POCZTA_WALL)
+	var none := Color(0, 0, 0, 0)
+	var e := POCZTA_ENTRY
+	# the entrance: a dark glazed recess behind six columns on a low podium, the entablature and
+	# the red band with the name
+	_mode = M_GLASS
+	_wall(_w(e + 8.6, 0.08), _w(e - 8.6, 0.08), g + 0.2, g + 8.2, _b, POCZTA_GLASS)
+	_mode = M_STONE
+	_lbox(e, 1.4, 9.2, 1.6, g - 0.4, g + 0.25, POCZTA_WHITE.darkened(0.12), M_STONE, POCZTA_WHITE.darkened(0.06))
+	for k in 6:
+		_column(e - 8.0 + k * 3.2, 2.0, 0.42, g + 0.25, g + 8.2, POCZTA_WHITE)
+	_lbox(e, 1.3, 9.2, 1.5, g + 8.2, g + 9.0, POCZTA_WHITE, M_STONE, POCZTA_WHITE.darkened(0.05))
+	_lbox(e, 1.3, 9.2, 1.5, g + 9.0, g + 10.4, POCZTA_RED, M_STONE, POCZTA_RED.darkened(0.25))
+	var at := _w(e, 2.8)
+	signs.append(["POCZTA", Vector3(at.x, g + 9.1, at.y), Vector3(_b.x, 0.0, _b.y), 0.55, POCZTA_SIGN])
+	_collide(_rect(e, 1.4, 9.2, 1.6))
+	# the recessed white window strip east of the entrance, from the pavement to the cornice
+	var su := e - 12.0
+	_lbox(su, 0.1, 1.1, 0.12, g - 0.2, g + 27.5, POCZTA_WHITE, M_STONE, POCZTA_WHITE)
+	_mode = M_GLASS
+	_wall(_w(su + 0.5, 0.26), _w(su - 0.5, 0.26), g + 3.6, g + 26.8, _b, POCZTA_GLASS)
+	_mode = M_STONE
+	# the corner's tall arched windows at street level, and the cornice under the top storey
+	for u: float in [4.2, 7.8, 11.4]:
+		_arch_win(_w(u, 0.0), -_a, _b, 1.05, g + 0.4, g + 4.4, POCZTA_GLASS)
+	_lbox((4.5 + POCZTA_FACE - 0.5) * 0.5, 0.2, (POCZTA_FACE - 0.5 - 4.5) * 0.5, 0.45, g + 26.2, g + 26.7,
+			POCZTA_WHITE.darkened(0.08), M_STONE, POCZTA_WHITE.darkened(0.12))
+	# the corner tower: a drum from the ground (hidden in the mass below the roof) up past the
+	# roof, a ring cornice, the dome in four bands, a lantern and its point
+	var c := _w(POCZTA_DOME.x, POCZTA_DOME.y)
+	_prism(_circle(c, 3.6, 14), g - 0.5, g + 33.0, wall, none, M_MONUMENT)
+	_prism(_circle(c, 4.0, 14), g + 30.0, g + 30.6, POCZTA_WHITE, POCZTA_WHITE, M_STONE, M_STONE)
+	_prism(_circle(c, 3.95, 14), g + 33.0, g + 33.6, POCZTA_WHITE, POCZTA_WHITE, M_STONE, M_STONE)
+	var angles := [0.0, 0.45, 0.85, 1.2, 1.45]
+	for k in 4:
+		var a0: float = angles[k]
+		var a1: float = angles[k + 1]
+		_mode = M_STONE
+		_frustum(_circle(c, 3.75 * cos(a0), 14), g + 33.6 + 4.0 * sin(a0),
+				_circle(c, 3.75 * cos(a1), 14), g + 33.6 + 4.0 * sin(a1), POCZTA_SILVER,
+				POCZTA_SILVER if k == 3 else none)
+	var top := g + 33.6 + 4.0 * sin(1.45)
+	_prism(_circle(c, 0.45, 8), top, top + 1.1, POCZTA_WHITE, POCZTA_SILVER, M_STONE, M_STONE)
+	_frustum(_circle(c, 0.55, 8), top + 1.1, _circle(c, 0.08, 8), top + 1.8, POCZTA_SILVER, POCZTA_SILVER)
+	# the central hall: LoD2's hipped roof glazed (a little over it), on walls hidden in LoD2's
+	var hc := POCZTA_HALL.get_center()
+	var hu := POCZTA_HALL.size.x * 0.5
+	var hv := POCZTA_HALL.size.y * 0.5
+	_prism(_rect(hc.x, hc.y, hu - 0.4, hv - 0.4), g - 0.5, g + 8.0, wall, none, M_STONE)
+	_mode = M_GLASS_ROOF
+	_frustum(_rect(hc.x, hc.y, hu + 0.3, hv + 0.3), g + 8.0, _rect(hc.x, hc.y, hu + 0.3 - (hv + 0.15), 0.15),
+			g + 13.5, POCZTA_HALL_GLASS, POCZTA_HALL_GLASS)
+	_mode = M_STONE
+
+
+## PAST-a, Zielna 37/39 (1904-1908, the Swedish telephone company's exchange; in the Uprising the
+## German strongpoint taken by the Kiliński Battalion on 20 August 1944). OpenStreetMap maps it as
+## one 54 m block and LoD2 has no model of it, so this is a model on its outline: a grey base
+## with the door, the Uprising plaque and nothing funny (warsaw-tone), the grey-brown tower of
+## pilaster strips (M_MONUMENT) to a cornice, the top storey an open loggia of tall round arches
+## (five on the long faces), a crenellated parapet like a castle's, and on the roof the gilt
+## anchor sign; two long white-and-red banners hang on the Zielna face. Its lower wings north and
+## south along Zielna stay LoD2's. Frame: u south along the Zielna face, +v out to the street.
+const PASTA_O := Vector2(-1201.5, -267.9)
+const PASTA_AXIS := Vector2(0.3543, 0.9353)
+const PASTA_LOGGIA := 43.0   # the cornice under the loggia storey (over the ground)
+const PASTA_TOP := 49.5      # the loggia's top, where the merlons start (~51.5 m with them)
+const PASTA_WALL := Color("#9c8574")   # the report's #8C7F72 warmed: grey-brown over the old brick
+const PASTA_BASE := Color("#6e655d")
+const PASTA_TRIM := Color("#b5a99b")
+const PASTA_DARK := Color("#2b2826")
+const PASTA_ROOF := Color("#5d5955")
+const PASTA_STONE := Color("#ece7dc")
+const PASTA_RED := Color("#c8303a")
+
+
+func _find_pasta() -> void:
+	var outline := _landmark("PAST-a")
+	if outline.size() < 3:
+		return
+	_add_site("pasta", [outline])
+	if not sites.is_empty() and sites[-1]["key"] == "pasta":
+		sites[-1]["ring"] = _simplify(outline, 0.8)
+
+
+func _build_pasta(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	_g = _ground_under(ring)
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	# the loggia's arches first (they stand off the wall by cm, so the wall behind stays whole)
+	for i in ring.size():
+		var a := ring[i]
+		var b := ring[(i + 1) % ring.size()]
+		var l := a.distance_to(b)
+		if l < 4.5:
+			continue
+		var n := clampi(roundi(l / 4.6), 1, 5)
+		var e := (b - a) / l
+		var out := _out(ring, a, b)
+		var pitch := l / n
+		var hw := minf(1.25, pitch * 0.3)
+		for k in n:
+			var p := a + e * (pitch * (k + 0.5))
+			_arch_panel(p, e, out, hw + 0.3, g + PASTA_LOGGIA + 0.9, g + PASTA_TOP - 1.2 - hw, PASTA_TRIM, 0.04, M_STONE)
+			_arch_panel(p, e, out, hw, g + PASTA_LOGGIA + 1.2, g + PASTA_TOP - 1.2 - hw, PASTA_DARK, 0.08, M_STONE)
+	var base := _largest(Geometry2D.offset_polygon(ring, 0.3, Geometry2D.JOIN_MITER))
+	_prism(base, g - 0.6, g + 4.2, PASTA_BASE, PASTA_BASE.lightened(0.05), M_STONE, M_STONE)
+	_prism(ring, g + 4.2, g + PASTA_LOGGIA, PASTA_WALL, none, M_MONUMENT)
+	var ledge := _largest(Geometry2D.offset_polygon(ring, 0.35, Geometry2D.JOIN_MITER))
+	_prism(ledge, g + PASTA_LOGGIA, g + PASTA_LOGGIA + 0.6, PASTA_TRIM, PASTA_TRIM, M_STONE, M_STONE)
+	_prism(ring, g + PASTA_LOGGIA + 0.6, g + PASTA_TOP, PASTA_WALL, PASTA_ROOF, M_STONE, M_STONE)
+	_attic(ring, g + PASTA_TOP, 2.0, PASTA_WALL.lightened(0.04))
+	_collide(ring)
+	# the Zielna face: the door, the plaque, the banners (white on the viewer's left when hung)
+	_o = PASTA_O
+	_a = PASTA_AXIS.normalized()
+	_b = Vector2(_a.y, -_a.x)
+	_lbox(10.6, 0.3, 1.8, 0.08, g - 0.2, g + 4.0, PASTA_TRIM, M_STONE, PASTA_TRIM)
+	_lbox(10.6, 0.35, 1.3, 0.08, g - 0.2, g + 3.5, PASTA_DARK, M_STONE, PASTA_DARK)
+	_lbox(14.6, 0.33, 0.75, 0.05, g + 1.4, g + 2.4, PASTA_STONE, M_STONE, PASTA_STONE)
+	for u: float in [4.5, 16.7]:
+		_lbox(u + 0.45, 0.06, 0.45, 0.04, g + 12.0, g + 36.0, PASTA_STONE, M_STONE, PASTA_STONE)
+		_lbox(u - 0.45, 0.06, 0.45, 0.04, g + 12.0, g + 36.0, PASTA_RED, M_STONE, PASTA_RED)
+	# the gilt anchor on the roof, facing Zielna, on a low plinth
+	var lc := _local(_centre(ring))
+	var y0 := g + PASTA_TOP + 0.6
+	_lbox(lc.x, lc.y, 0.8, 0.8, g + PASTA_TOP, y0, PASTA_BASE, M_STONE, PASTA_BASE.lightened(0.05))
+	var pt := func(s: float, h: float, d: float) -> Vector3:
+		var q := _w(lc.x + s, lc.y + d)
+		return Vector3(q.x, y0 + h, q.y)
+	var line := [[0.0, 0.1, 0.0, 4.2], [0.0, 4.2, 0.9, 4.2], [0.9, 4.2, 1.25, 3.75], [1.25, 3.75, 0.9, 3.3],
+			[0.9, 3.3, 0.0, 3.3], [-1.45, 1.8, -1.0, 0.7], [-1.0, 0.7, 0.0, 0.3], [0.0, 0.3, 1.0, 0.7],
+			[1.0, 0.7, 1.45, 1.8]]
+	for k in line.size():
+		var seg: Array = line[k]
+		var d := 0.06 * (k % 2)  # every other stroke a little forward, so joints do not z-fight
+		_beam(pt.call(seg[0], seg[1], d), pt.call(seg[2], seg[3], d), 0.28, KP_GOLD)

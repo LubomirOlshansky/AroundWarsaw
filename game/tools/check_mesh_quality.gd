@@ -110,6 +110,8 @@ const BUDGET := {
 	"mennica": 650,
 	"mirowska": 2050,
 	"mf": 1870,
+	"poczta": 710,
+	"pasta": 580,
 	"msn": 500,
 	"norblin": 1480,
 	"browary": 3600,

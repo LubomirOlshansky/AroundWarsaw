@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-03
 - Nowogrodzka's bar strip comes alive at night: eight neon bar signs between Marszałkowska and Bracka (KWARTA, U HALINKI, ZA BARDZO, KRAFTOWNIA, SCHRON PIWNY, PODWÓRKO 22, NALEWALNIA, DŻINIARNIA) and people with a drink and a cigarette on the pavement outside, busiest on Friday and Saturday nights.
+- On Świętokrzyska the main post office stands in its pale salmon plaster, with a little grey-silver dome on the Jasna corner and six white columns under a red POCZTA band at the door; on Zielna the PAST-a tower rises 51 m, with tall arches and castle-like merlons at the top, a gilt anchor on the roof and white-and-red banners down the front.
 - Warszawa Wschodnia stands on Praga's side of the tracks: a long glass hall under a flat roof with a zig-zag folded edge on green V-shaped legs, WARSZAWA WSCHODNIA in white letters over the platforms, and rust-brown roofs on columns over its five island platforms.
 
 ## 2026-11-02
