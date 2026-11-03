@@ -304,6 +304,7 @@ then the Launch gate.
         (spots and heights estimated; Mac photo check)
   - [x] K6 Chopin benches, Prus and Wyszyński statues, granite setts, Pałac Czapskich's skin, 2026-11-01
   - [x] KP photo gather on the Mac (refs/krakowskie/) and the rebuild from it, 2026-11-02: Mickiewicz on his terrace, the University gate's pavilions, Kazimierzowski's portico, Bristol's belvedere, Pałac Czapskich whole, Potocki's gates, the Kordegarda, the Carmelite front, Europejski's colour
+  - [x] Hotel Europejski rebuilt from F's photos as restored in 2018: bow-fronts with two tiers of columns and curved balconies, 11 pedimented bays and the HOTEL EUROPEJSKI plaque on Krakowskie, arched shop windows, balustrade attic, the dark louvred roof storey, the courtyard; the University gate's clear opening set to 3.8 x 4.5 m, 2026-11-03 (phone look check)
   - [ ] KP street dressing from the photos: café gardens, bollards, awnings; the setts' extent south of Kopernik (no ground photo yet)
   - [x] KP street by street pass 1: eight neon shopfronts along the royal route, 2026-11-02 (Mac look check)
   - [x] K6 the black Chopin benches, Prus's and Wyszyński's statues, the granite setts on the

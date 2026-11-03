@@ -86,7 +86,7 @@ const BUDGET := {
 	"dworzec_wodny": 310,
 	"kaskada": 260,
 	"dtc": 1730,
-	"europejski": 480,
+	"europejski": 8000,
 	"flaga": 170,
 	"forest": 1500,
 	"gpy": 250,

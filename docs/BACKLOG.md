@@ -1422,8 +1422,8 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   the hotel on Królewska is **Hotel Wiktoria** (a slab of ribbon windows on a dark podium, a
   card under the parody name); the Królewska edge (Dom bez Kantów, the Departament, the unnamed
   south-east block) in its own stone; the museum's wings 18.5 m and entrance block 25 m.
-  **Left**: Hotel Wiktoria's heights (slab 30 m, podium 8 m, 18 m deep), the museum's and
-  Europejski's are estimates to set from photos; the Królewska-edge colours are guesses; the
+  **Left**: Hotel Wiktoria's heights (slab 30 m, podium 8 m, 18 m deep), the museum's ~~and
+  Europejski's~~ are estimates to set from photos (Europejski rebuilt from F's photos 2026-11-03); the Królewska-edge colours are guesses; the
   unnamed south-east block has no card (its name isn't mapped); the Metropolitan's passages are
   dark panels, not open; the army museum's yard placement is a guess (east courtyard).
   Next candidates: tram stop platforms, kiosks (not in the baked data yet), Warsaw's green bins. **Left**: PZU Tower and JM Tower are towers since 2026-11-01 (first pass, colours to check on a Mac photo), and any model the user names next (docs/QUESTIONS.md).
