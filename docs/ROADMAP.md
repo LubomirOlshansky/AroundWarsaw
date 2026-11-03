@@ -136,7 +136,8 @@ then the Launch gate.
       Plac Bankowy, Świętokrzyska's NBP/Poczta/PAST-a, the outline builds' photo re-pass, Praga's faces)
 - [ ] Monuments pass (City inventory Part 3 item 6)
   - [x] Every OSM monument, sculpture, talking bench and memorial plaque in the box as a generic piece, plaques on their walls with candles (2026-11-02, tools/bake_monuments.py)
-  - [ ] Photo builds: Nike, Słowacki and Starzyński, Mały Powstaniec and Kiliński, Plac Piłsudskiego's, the Eastern memorial, Umschlagplatz (Mac photo pass)
+  - [x] Plac Piłsudskiego from photos: the Smolensk memorial, Piłsudski, Kaczyński, the masts and the granite chequer (2026-11-02, refs/pilsudskiego/)
+  - [ ] Photo builds: Nike, Słowacki and Starzyński, Mały Powstaniec and Kiliński, the Eastern memorial, Umschlagplatz (reports in docs/landmarks/photo-reports/)
 - [ ] Krajobraz places (F, 2026-11-02; docs/design/krajobraz-places.md, BACKLOG "Krajobraz places"): the newest public spaces as built
   - [x] K1 ul. Bracka's woonerf: its 22 missing young trees planted in the mapped beds (33 in all)
   - [x] K2 ul. Chmielna: 65 young elms and planes in its tree pits (85 in all), granite paving, Ali's stone and plate
@@ -267,7 +268,8 @@ then the Launch gate.
         Kazimierzowski's skin, Pałac Potockich and the Kordegarda, Bristol's corner dome, 2026-11-01
         (spots and heights estimated; Mac photo check)
   - [x] K6 Chopin benches, Prus and Wyszyński statues, granite setts, Pałac Czapskich's skin, 2026-11-01
-  - [ ] KP photo gather on the Mac (refs/krakowskie/, QUESTIONS 2026-11-02): then Czapski's model, the second Potocki guardhouse, awnings and café gardens
+  - [x] KP photo gather on the Mac (refs/krakowskie/) and the rebuild from it, 2026-11-02: Mickiewicz on his terrace, the University gate's pavilions, Kazimierzowski's portico, Bristol's belvedere, Pałac Czapskich whole, Potocki's gates, the Kordegarda, the Carmelite front, Europejski's colour
+  - [ ] KP street dressing from the photos: café gardens, bollards, awnings; the setts' extent south of Kopernik (no ground photo yet)
   - [x] KP street by street pass 1: eight neon shopfronts along the royal route, 2026-11-02 (Mac look check)
   - [x] K6 the black Chopin benches, Prus's and Wyszyński's statues, the granite setts on the
         carriageway, Pałac Czapskich's skin and card, 2026-11-01 (Mac look check)

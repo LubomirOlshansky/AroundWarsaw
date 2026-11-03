@@ -15,6 +15,7 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | all | The audit beyond the landmarks: BACKLOG "Audit: what is verified beyond the landmarks", its P0 items handed out next | cloud thread "Audit what's left beyond landmarks" | 2026-11-01 |
 
 ## Waiting
+- **2026-11-02 · landmarks · Krakowskie Przedmieście and Plac Piłsudskiego rebuilt from photos** — Built from `refs/krakowskie/` and `refs/pilsudskiego/` (reports in docs/landmarks/photo-reports/; specs `mickiewicz`, `brama_uw`, `kazimierzowski`, `czapski`, `potocki`, `kordegarda`, `karmelici`, `bristol`, `plac_pilsudskiego`). Look check on the Mac or the phone, and four calls where the report and the map disagree (default built in brackets): (1) Pałac Potockich: the report put its front at z -800..-760 in the ortho's censored block; the OSM outline and the Kordegarda put it opposite the Presidential Palace [the outline]; (2) Lech Kaczyński: the report read a statue at (-745, -823), which is the Papal Cross's shadow; OSM maps his pedestal at (-677, -762) [OSM]; (3) Bristol's rotunda: the report's (-551, -889) is outside the outline [the outline's corner, (-557.8, -894)]; (4) the University gate: 24 m wide in the report, but the mapped gap is ~19 m [22 m]. Open: the Saxon Palace's reconstruction site west of the square (the 2025-26 ortho: excavations, two white halls, a crane) [grass, as before]; the café gardens, bollards and awnings of photos 26-29 [not built yet: BACKLOG]; the granite setts south of Kopernik (no ground photo) [as before].
 - **2026-11-02 · landmarks · POLIN and the Ghetto Heroes Monument** — Built from `refs/polin/` on the Mac (25 Commons photos, the ortho, REPORT.md) and the LoD2 roof (spec `polin.md`). Look check on the Mac or the phone: the fins' grey-green (S_FINS reads as panels every 2.4 m, the real fins are 0.3 m with a speckled letter frit), the canyon wedge's width and lean, the west lens's size, and the monument's steps, reliefs and menorahs. Estimates from photos only: the 18 m height (LoD2 agrees), the monument's 9.5 m width. Default built: as the report measured.
 - **2026-11-02 · map · junction lines and the loop 3e structures: one Mac pass** — Both v1.0 lines
   ("Junction lines checked against photos", "Loop 3e leftovers") can't be done in the cloud: the
@@ -152,18 +153,7 @@ Newest first. One entry per question.
   and night: does the ring meet the real ground without a step or a gap, does the fade read as
   distance (not fog), are the blocks the right scale. Shots of the cloud look are in the PR.
 
-- **2026-11-02 · landmarks · Krakowskie Przedmieście: one Mac gather for everything K1-K6 left** — The cloud has no photos (`refs/` is empty here), so by the photos-only rule nothing more is modelled until a Mac session fills `refs/krakowskie/` (Commons photos + GUGiK ortho, SOURCES.md, a REPORT.md in game coordinates). Wanted, in order: (1) Mickiewicz's spot and facing; (2) the University gate's true spot and width, Pałac Kazimierzowski's front; (3) Bristol's dome corner and facade colours; (4) Pałac Czapskich's front direction and colour (own model: landmarks thread); (5) the southern Potocki guardhouse; (6) the Carmelite front's pilasters; (7) the granite setts' extent beyond Nowy Świat's top; (8) awnings, café gardens (Bristol, Europejski), the carriage rank for the street-by-street pass. Default built: everything as in the entry below. POLIN, the monuments pass and the Castle are other threads' and are left out.
-- **2026-11-01 · landmarks · Krakowskie Przedmieście's photo check (K1-K6, M2)** — Built from
-  the OSM outlines alone, so every height and a few spots are guesses (Default built, the specs'
-  "photo check" notes list them). For F on the Mac, in order of how much they could be wrong:
-  (1) Mickiewicz's monument: where on the lawn (today the lawn's centre) and which way it faces;
-  (2) the University gate: whether the entrance is at (-494,-684) (the east frontage by Pałac
-  Tyszkiewiczów-Potockich), its width and pylons; (3) Hotel Bristol: is the dome on the rounded
-  north-east corner, and its height; (4) the Carmelite front's colours and number of pilasters;
-  (5) Potocki's court front and the Kordegarda's height and roof; (6) Prus's and Wyszyński's
-  statues (built from published coordinates, facings guessed): spots, facings, bronze colour;
-  the granite setts' extent and tone on Krakowskie Przedmieście; Pałac Czapskich's colour; (7) Mariensztat's real reliefs' subjects and places, and the
-  Rynek's well or fountain.
+- **2026-11-01 · landmarks · Mariensztat's photo check (M2) and KP's leftovers** — The K1-K6 photo check is done (2026-11-02, from `refs/krakowskie/`, see the entry above). Still open: Prus's and Wyszyński's spots and facings, the Wizytki front, Mariensztat's real reliefs' subjects and places, and the Rynek's well or fountain.
 - **2026-11-01 · landmarks · the Old Town Market Square, the Syrenka and the decks: Mac look check**
   Built in the cloud with no photos (free-licence sources are not reachable from there). Default
   built: sand-grey paving with a border band and a pale disc, 58 café umbrellas in nine colours,

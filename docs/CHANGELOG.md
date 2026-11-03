@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- Krakowskie Przedmieście is rebuilt from photos: Mickiewicz stands on his balustraded terrace with gilt-flame lanterns, the University gate has its white pavilions with statues and the crowned eagle, the Carmelite church its sandstone front and green copper globe, Hotel Bristol its open belvedere on the corner, and the Academy of Fine Arts its brick-red palace. Plac Piłsudskiego has its granite chequer, tall masts, the black stepped Smolensk memorial and the Piłsudski and Kaczyński statues.
 - The POLIN museum in Muranów stands as it is: a box of grey-green glass fins split by the tall sand-coloured canyon of its entrance, a glazed slot across the roof and a big glass lens on the west side, with the Ghetto Heroes Monument on the square in front, its bronze fighters, steps and menorahs.
 - In your first race Pani Halina waits at the start until you move, and if you sit still she tells you to step on it and follow the pink arrow, with a finger showing how to drive.
 - Warsaw's monuments are on the map: about 300 statues, busts, memorial stones and talking benches stand where the real ones do, Ogród Saski's sandstone statues stand at their real spots, and 520 Uprising memorial plaques hang on the walls with candles below them.

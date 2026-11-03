@@ -331,8 +331,17 @@ const INFO := {
 			"Apartamenty w kamienicy przy Rynku, dla gości z walizką na kółkach.",
 			"Apartments in a tenement on the Market, for wheeled-suitcase guests."],
 	"bristol": ["Hotel Bristol",
-			"Wielki hotel z 1901 roku, z mansardą i kopułą na rogu.",
-			"A grand hotel of 1901, with a mansard and a dome on its corner."],
+			"Wielki hotel z 1901 roku, z mansardą i belwederem na rogu.",
+			"A grand hotel of 1901, with a mansard and a belvedere on its corner."],
+	"smolensk": ["Pomnik Ofiar Tragedii Smoleńskiej",
+			"Czarne kamienne schody z 2018 roku, pamięci ofiar katastrofy z 10 kwietnia 2010.",
+			"Black stone stairs of 2018, for the victims of the 10 April 2010 air crash."],
+	"pilsudski": ["Pomnik Józefa Piłsudskiego",
+			"Marszałek w płaszczu, z dłońmi na szabli, na granitowym głazie (1995).",
+			"The Marshal in a greatcoat, hands on his sabre, on a granite block (1995)."],
+	"kaczynski": ["Pomnik Lecha Kaczyńskiego",
+			"Prezydent z brązu na niskim cokole, odsłonięty w 2021 roku.",
+			"The President in bronze on a low plinth, unveiled in 2021."],
 	"polonia": ["Hotel Polonia Palace",
 			"Hotel z 1913 roku przy Alejach Jerozolimskich. Przetrwał powstanie.",
 			"A hotel of 1913 on Al. Jerozolimskie. It outlived the Uprising."],
@@ -1260,6 +1269,20 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_potocki(s)
 			"kordegarda":
 				_build_kordegarda(s)
+			"smolensk":
+				_build_smolensk(s)
+			"pilsudski":
+				_build_pilsudski(s)
+			"kaczynski":
+				_build_kaczynski(s)
+			"plac_maszty":
+				_id = 0  # the masts: no card, not on the picking grid
+				_build_plac_masts(s)
+			"kazimierzowski":
+				_mark_zone(s)  # the mass stays LoD2's, in its skin; the risalit's portico is ours
+				_build_kazimierzowski(s)
+			"czapski":
+				_build_czapski(s)
 			"mariensztat":
 				_build_mariensztat(s)
 			"hotel_kasztel", "hotel_canaletto", "hotel_starowka":
@@ -3459,16 +3482,15 @@ const SKINS := [
 	{"key": "staszic", "osm": "Pałac Staszica", "mode": M_MONUMENT, "wall": "#e2d6b8", "roof": "#5f6f6a"},
 	{"key": "wszystkich", "osm": "Kościół Wszystkich Świętych", "mode": M_MONUMENT, "wall": "#ddcfaa", "roof": "#6e7f6e"},
 	{"key": "wizytki", "osm": "Kościół Wizytek", "mode": M_MONUMENT, "wall": "#ecdfc0", "roof": "#6d8f7f"},
-	{"key": "karmelici", "osm": "Kościół Wniebowzięcia Najświętszej Maryi Panny i świętego Józefa Oblubieńca", "mode": M_MONUMENT, "wall": "#e2d8c0", "roof": "#7d8a7c"},
-	{"key": "czapski", "osm": "Pałac Czapskich", "mode": M_MONUMENT, "wall": "#e4cfae", "roof": "#6b5f5a"},
+	{"key": "karmelici", "osm": "Kościół Wniebowzięcia Najświętszej Maryi Panny i świętego Józefa Oblubieńca", "mode": M_MONUMENT, "wall": "#d9cba6", "roof": "#5e8f80"},
 	{"key": "zamoyski", "osm": "Pałac Zamoyskich", "mode": M_MONUMENT, "wall": "#e7dcba", "roof": "#6a6762"},
 	{"key": "mikulski55", "osm": "Kamienica Mikulskiego przy Nowym Świecie 55", "mode": M_MONUMENT, "wall": "#e3c9a2", "roof": "#6d625a"},
 	{"key": "mikulski53", "osm": "Kamienica Mikulskiego przy Nowym Świecie 53", "mode": M_MONUMENT, "wall": "#d8cfb6", "roof": "#6d625a"},
 	{"key": "burger", "osm": "Kamienica Bürgera", "mode": M_MONUMENT, "wall": "#e8d7a8", "roof": "#6f655d"},
 	{"key": "jasinski", "osm": "Kamienica Jasińskiego", "mode": M_MONUMENT, "wall": "#e5b9a0", "roof": "#6b6059"},
 	{"key": "kossakowski", "osm": "Pałac Kossakowskich", "mode": M_MONUMENT, "wall": "#efe3c4", "roof": "#6e6a64"},
-	{"key": "potocki", "osm": "Pałac Potockich", "mode": M_MONUMENT, "wall": "#e8d9a8", "roof": "#7a6e68"},
-	{"key": "bristol", "osm": "Hotel Bristol", "mode": M_MONUMENT, "wall": "#e4d2b4", "roof": "#6a5a52"},
+	{"key": "potocki", "osm": "Pałac Potockich", "mode": M_MONUMENT, "wall": "#ede8dc", "roof": "#c5502f"},
+	{"key": "bristol", "osm": "Hotel Bristol", "mode": M_MONUMENT, "wall": "#e9e1c8", "roof": "#6f7477"},
 	# Plac Bankowy (2026-11-02): the palaces round the square in their real colours.
 	{"key": "ratusz", "osm": "Urząd Miasta Stołecznego Warszawy", "mode": M_MONUMENT, "wall": "#e6d8a0", "roof": "#76847a"},
 	{"key": "wojewodzki", "osm": "Mazowiecki Urząd Wojewódzki", "mode": M_MONUMENT, "wall": "#e3d6a8", "roof": "#76847a"},
@@ -3476,7 +3498,7 @@ const SKINS := [
 	{"key": "arsenal", "osm": "Arsenał", "mode": M_MONUMENT, "wall": "#e8dfc6", "roof": "#8b5a44"},
 	{"key": "mniszchow", "osm": "Pałac Mniszchów", "mode": M_MONUMENT, "wall": "#e2cdb6", "roof": "#7a6a62"},
 	{"key": "landau", "osm": "Dom Bankowy Landaua", "mode": M_MONUMENT, "wall": "#d9b99e", "roof": "#6e6660"},
-	{"key": "kazimierzowski", "osm": "Pałac Kazimierzowski", "mode": M_MONUMENT, "wall": "#e6d9ac", "roof": "#6e6a62"},
+	{"key": "kazimierzowski", "osm": "Pałac Kazimierzowski", "mode": M_MONUMENT, "wall": "#e2c77a", "roof": "#b5503a"},
 	{"key": "sejm", "osm": "Sejm RP", "mode": M_MONUMENT, "wall": "#e2e0d8", "roof": "#8d8f8c"},
 	# Dom Partii (F's photo, 2026-11-01): the white stone block at Rondo de Gaulle'a; its extras
 	# (the roof sign, the courtyard) are the site `dom_partii_extras`.
@@ -5928,8 +5950,8 @@ func _field_gun(c: Vector2, dir: Vector2) -> void:
 ## Plac Piłsudskiego's edges: Hotel Europejski (its mapped outline) and the Tomb of the Unknown
 ## Soldier (built at its place, like Sigismund's Column; its zone the mapped outline, which
 ## drops the hundred tiny 3D parts it is mapped in).
-const EUROPEJSKI_WALL := Color("#e7ddc5")
-const EUROPEJSKI_BASE := Color("#d2c5a7")
+const EUROPEJSKI_WALL := Color("#eeeae0")  # photo 29 (refs/krakowskie)
+const EUROPEJSKI_BASE := Color("#d9d4c6")
 const EUROPEJSKI_ROOF := Color("#6f7b76")
 const EUROPEJSKI_GLASS := Color("#3a3f47")
 const EUROPEJSKI_H := 19.0        # the main cornice
@@ -5954,6 +5976,8 @@ func _find_plac() -> void:
 		var grown := Geometry2D.offset_polygon(grob, 1.0, Geometry2D.JOIN_MITER)
 		_add_site("grob", [grown[0] if not grown.is_empty() else grob])
 	_find_plac2()
+	# Plac Piłsudskiego from photos (2026-11-02): the monuments and masts on the square.
+	_find_plac_photos()
 
 
 ## Hotel Europejski (1857-1877, Enrico Marconi): a long cream classical block. A rusticated
@@ -12874,28 +12898,38 @@ func _build_mf(site: Dictionary) -> void:
 	_collide(ring)
 
 
-# --- Krakowskie Przedmieście's missing pieces (BACKLOG K1-K5, 2026-11-01) -------------------------
+# --- Krakowskie Przedmieście from photos (2026-11-02; first pass K1-K5 2026-11-01) -------------
 
-## The street's boxes become models: the Carmelite church's front (`karmelici`, a kept skin),
-## Mickiewicz's monument (`mickiewicz`), the University's main gate (`brama_uw`, with Pałac
-## Kazimierzowski a kept skin behind it), Pałac Potockich (`potocki`, a kept skin with its
-## court front) and its guardhouse (`kordegarda`, built whole: OSM maps it 4.3 m tall), Hotel
-## Bristol's corner dome (`bristol`, a kept skin). Specs docs/landmarks/specs/karmelici.md,
-## mickiewicz.md, brama_uw.md, potocki.md, kordegarda.md, bristol.md; made in a cloud thread from
-## the OpenStreetMap outlines (no photos): the spots of the monument and the gate, and every
-## height, are estimates for the Mac's photo check.
-const MICK := Vector2(-626.6, -1073.6)  # the lawn's centre (Skwer Adama Mickiewicza)
+## The street's landmarks, rebuilt from the reference set F's Mac gathered (refs/krakowskie/: 29
+## Commons photos and three GUGiK orthophotos; docs/landmarks/photo-reports/krakowskie.md) where
+## the first pass (2026-11-01) had only the OpenStreetMap outlines: the Carmelite church's front
+## (`karmelici`, a kept skin), Mickiewicz's monument (`mickiewicz`), the University's main gate
+## (`brama_uw`) and the portico of Pałac Kazimierzowski behind it (`kazimierzowski`, a kept skin),
+## Pałac Czapskich built whole (`czapski`), Pałac Potockich's court front and street gates
+## (`potocki`, a kept skin) round the Kordegarda (`kordegarda`, built whole: OSM maps it 4.3 m
+## tall), Hotel Bristol's corner belvedere (`bristol`, a kept skin). Specs in
+## docs/landmarks/specs/: karmelici.md, mickiewicz.md, brama_uw.md, kazimierzowski.md, czapski.md,
+## potocki.md, kordegarda.md, bristol.md. Where the report's ortho reading and the mapped outline
+## disagree by more than its ±3 m (Bristol's rotunda, the Potocki front), the outline wins, since
+## the model must sit on the building the game draws.
+const MICK := Vector2(-626.0, -1078.0)  # the plinth's centre (ortho; OSM node (-626, -1075))
 const MICK_AXIS := Vector2(0.259, 0.966)  # along the street (south); +v is the street side (west)
-const BRAMA := Vector2(-494.5, -684.0)
-const BRAMA_AXIS := Vector2(0.364, 0.932)
-const KARM := Vector2(-597.0, -1043.5)
+const BRAMA := Vector2(-462.0, -642.0)  # the gate's centre on the east building line (ortho, ±4 m)
+const KARM := Vector2(-598.9, -1042.4)  # the front's north end, 2.2 m out from the outline's line onto its centre risalit
 const KARM_AXIS := Vector2(0.507, 0.862)
 const KARM_MID := 13.0
+const KAZIM := Vector2(-268.0, -730.0)  # in front of the centre risalit, facing WSW down the avenue
+const KAZIM_OUT := Vector2(-0.909, 0.416)
+const CZAP := Vector2(-599.3, -600.5)  # the centre risalit's face, facing east over the forecourt
+const CZAP_OUT := Vector2(0.964, -0.266)
 const POTOCKI := Vector2(-683.3, -919.0)
 const POTOCKI_AXIS := Vector2(-0.2, -0.98)
+## The two street gates of Pałac Potockich, each between a wing's end and the Kordegarda.
+const POTOCKI_GATES := [[Vector2(-636.6, -974.4), Vector2(-631.6, -963.6)],
+		[Vector2(-626.9, -946.6), Vector2(-625.4, -935.2)]]
 const KORDEGARDA := Vector2(-626.3, -947.4)
 const KORDEGARDA_AXIS := Vector2(-0.239, -0.971)
-const BRISTOL_TOWER := Vector2(-557.8, -894.0)
+const BRISTOL_TOWER := Vector2(-557.8, -894.0)  # the rounded south-west corner at Karowa
 const BRISTOL_H := 27.4  # the mapped roof, which the kept skin holds
 # K6 (2026-11-01): the two statues of Krakowskie Przedmieście's north end, spots projected from
 # their published coordinates (Prus 52.24173 N 21.01636 E, Twardowski Square; Wyszyński
@@ -12911,28 +12945,125 @@ const KP_DARK := Color("#3a3d40")
 const KP_BRONZE := Color("#5e5c4c")
 const KP_GRANITE := Color("#8d8a86")
 const KP_COPPER := Color("#6f9382")
+const KP_IRON := Color("#25282a")
+const KP_WOOD := Color("#4a3328")
+# The photos' colours (report sections 1-6).
+const MICK_GRANITE := Color("#cfcac0")
+const MICK_BALUSTER := Color("#d8d4cc")
+const MICK_BRONZE := Color("#3a3a32")
+const MICK_PATINA := Color("#4a5048")
+const MICK_FLAME := Color("#c9a13a")
+const BRAMA_WHITE := Color("#f2f0ea")
+const BRAMA_TRIM := Color("#dcd6c8")
+const KAZIM_ROOF := Color("#b5503a")
+const CZAP_WALL := Color("#d3644e")
+const CZAP_SHADE := Color("#b5503f")
+const CZAP_WHITE := Color("#f2efe8")
+const CZAP_ROOF := Color("#a8503c")
+const POTOCKI_WALL := Color("#ede8dc")
+const POTOCKI_ROOF := Color("#c5502f")
+const KORD_WHITE := Color("#efede6")
+const KORD_SCULPT := Color("#c9c7c0")
+const BRISTOL_WALL := Color("#e9e1c8")
+const BRISTOL_SHADE := Color("#cfc6ac")
+const BRISTOL_SLATE := Color("#6f7477")
+const KARM_SAND := Color("#c9b78c")
+const KARM_OCHRE := Color("#b39a62")
+const KARM_TRIM := Color("#d8c9a2")
+const KARM_GLOBE := Color("#5e9e8a")
+const KARM_ROOF := Color("#7d8a7c")
 
 
 func _find_krakowskie() -> void:
-	_add_site("mickiewicz", [_circle(MICK, 5.2, 16)])
+	_o = MICK
+	_a = MICK_AXIS.normalized()
+	_b = Vector2(-_a.y, _a.x)
+	_add_site("mickiewicz", [_rect(0.0, 1.4, 8.6, 6.9)])
 	_add_site("prus", [_circle(PRUS, 3.2, 12)])
 	_add_site("wyszynski", [_circle(WYSZYNSKI, 3.6, 12)])
 	_o = BRAMA
-	_a = BRAMA_AXIS.normalized()
+	_a = STREET_AXIS.normalized()
 	_b = Vector2(-_a.y, _a.x)
-	_add_site("brama_uw", [_rect(0.0, 0.0, 15.0, 3.0)])
+	_add_site("brama_uw", [_rect(0.0, 0.0, 11.4, 2.6)])
 	var guard := _landmark("Galeria Kordegarda")
 	if guard.size() >= 3:
 		_add_site("kordegarda", [guard])
 		if not sites.is_empty() and sites[-1]["key"] == "kordegarda":
 			sites[-1]["ring"] = guard
+	var czap := _landmark("Pałac Czapskich")
+	if czap.size() >= 3:
+		_add_site("czapski", [_largest(Geometry2D.offset_polygon(czap, 0.6, Geometry2D.JOIN_MITER))])
+		if not sites.is_empty() and sites[-1]["key"] == "czapski":
+			sites[-1]["ring"] = _simplify(czap, 0.5)
+
+
+## A balustrade in the local frame from (u0, v0) to (u1, v1): a plinth, a rail and a die every
+## `step` metres (the balusters themselves are too small to read from the game's camera).
+func _kp_balustrade(u0: float, v0: float, u1: float, v1: float, y: float, h: float, col: Color, step: float) -> void:
+	var cu := (u0 + u1) * 0.5
+	var cv := (v0 + v1) * 0.5
+	var hu := maxf(absf(u1 - u0) * 0.5, 0.12)
+	var hv := maxf(absf(v1 - v0) * 0.5, 0.12)
+	_lbox(cu, cv, hu, hv, y, y + 0.18, col.darkened(0.06), M_STONE, col)
+	_lbox(cu, cv, hu, hv, y + h - 0.16, y + h, col, M_STONE, col.lightened(0.04))
+	var n := maxi(int(round(maxf(absf(u1 - u0), absf(v1 - v0)) / step)), 1)
+	for k in n + 1:
+		var t := float(k) / n
+		_lbox(lerpf(u0, u1, t), lerpf(v0, v1, t), 0.14, 0.14, y + 0.18, y + h - 0.16, col, M_STONE, col)
+
+
+## A standing figure on the local spot (cu, cv) from y, h tall, facing +v: the coat, the chest,
+## the head a little forward.
+func _kp_figure(cu: float, cv: float, y: float, h: float, col: Color) -> void:
+	var c := _w(cu, cv)
+	_frustum(_circle(c, h * 0.13, 8), y, _circle(c, h * 0.1, 8), y + h * 0.56, col)
+	_frustum(_circle(c, h * 0.1, 8), y + h * 0.56, _circle(c, h * 0.075, 8), y + h * 0.84, col, col)
+	_prism(_circle(_w(cu, cv + h * 0.012), h * 0.05, 8), y + h * 0.84, y + h, col, col, M_STONE, M_STONE)
+
+
+## A round-headed opening drawn on a face at v (facing +_b): a rectangle up to the spring, a half
+## disc over it.
+func _kp_arch_open(cu: float, v: float, y0: float, y_spring: float, hw: float, col: Color) -> void:
+	var keep := _mode
+	_mode = M_STONE
+	var n := Vector3(_b.x, 0.0, _b.y)
+	var at := func(u: float, y: float) -> Vector3:
+		var p := _w(u, v)
+		return Vector3(p.x, y, p.y)
+	var top := y_spring + hw - _g
+	var none := Vector2(-1, -1)
+	_quad(at.call(cu - hw, y0), at.call(cu + hw, y0), at.call(cu + hw, y_spring), at.call(cu - hw, y_spring), n, col,
+			none, none, none, none, top)
+	var centre: Vector3 = at.call(cu, y_spring)
+	for k in 6:
+		var a0 := PI * k / 6.0
+		var a1 := PI * (k + 1) / 6.0
+		_tri(centre, at.call(cu + cos(a0) * hw, y_spring + sin(a0) * hw), at.call(cu + cos(a1) * hw, y_spring + sin(a1) * hw),
+				n, col, none, none, none, top)
+	_mode = keep
+
+
+## A gilt candelabrum on a post (Mickiewicz's terrace): a bronze stem, three arms with globes and
+## the gilt flame on top.
+func _kp_candelabrum(p: Vector2, y: float, h: float) -> void:
+	_prism(_circle(p, 0.32, 6), y, y + 0.6, MICK_BRONZE, MICK_BRONZE, M_STONE, M_STONE)
+	_frustum(_circle(p, 0.16, 6), y + 0.6, _circle(p, 0.09, 6), y + h - 1.2, MICK_BRONZE)
+	_prism(_circle(p, 0.5, 6), y + h - 1.2, y + h - 1.05, MICK_BRONZE, MICK_BRONZE, M_STONE, M_STONE)
+	for k in 3:
+		var q := p + Vector2.from_angle(TAU * k / 3.0) * 0.42
+		_prism(_circle(q, 0.17, 6), y + h - 1.05, y + h - 0.7, Color("#f0dfae"), Color("#f0dfae"), M_LAMP, M_LAMP)
+	_frustum(_circle(p, 0.09, 6), y + h - 1.05, _circle(p, 0.07, 6), y + h - 0.45, MICK_BRONZE)
+	_frustum(_circle(p, 0.2, 6), y + h - 0.45, _circle(p, 0.02, 6), y + h, MICK_FLAME)
 
 
 ## The Carmelite church's front (Kościół Wniebowzięcia NMP i św. Józefa; Fontana and Szreger,
-## 1761-1781): the nave stays LoD2's (a kept skin); the model adds the two-storey front, a
-## ground floor of six pilasters with the door and niches, a narrower upper storey, scrolls, an
-## attic and a small pediment under a gilt globe and cross. Frame: origin at the front's north
-## end, u south along the front (26 m), +v out of it to the street (west-south-west).
+## 1761-1781), photos 24-25: the nave stays LoD2's (a kept skin); the model is the two-storey
+## sandstone front. Below: two pairs of engaged Tuscan columns round the big door, pilasters at
+## the ends, two round-headed side doors. Above, set back behind a balustraded balcony: a temple
+## front of four free-standing Corinthian columns with a big arched window, two statues in
+## niches, a straight entablature and an attic with sculpture groups, crowned by a green copper
+## globe with a gilt finial; a lantern turret with round openings and a green cap either side.
+## Frame: origin at the front's north end, u south along the front (26 m), +v out of it (west).
 func _build_karmelici(_site: Dictionary) -> void:
 	_o = KARM
 	_a = KARM_AXIS.normalized()
@@ -12940,131 +13071,270 @@ func _build_karmelici(_site: Dictionary) -> void:
 	var m := KARM_MID
 	_g = map.terrain_height(_w(m, 1.5).x, _w(m, 1.5).y)
 	var g := _g
+	var none := Color(0, 0, 0, 0)
 	_mode = M_STONE
-	_lbox(m, 0.0, 13.3, 0.7, g - 0.6, g + 1.0, KP_BASE, M_STONE, KP_BASE.lightened(0.05))
-	_lbox(m, -0.3, 13.0, 0.6, g + 1.0, g + 9.2, KP_STONE, M_STONE, KP_STONE)
-	_lbox(m, -0.4, 8.0, 0.6, g + 9.2, g + 17.0, KP_STONE, M_MONUMENT, KP_STONE)
+	_lbox(m, -0.8, 13.3, 1.5, g - 0.6, g + 1.0, KARM_OCHRE, M_STONE, KARM_OCHRE.lightened(0.05))
+	_lbox(m, -1.1, 13.0, 1.4, g + 1.0, g + 9.2, KARM_SAND, M_STONE, KARM_SAND)
 	for sd: float in [-1.0, 1.0]:
-		for u: float in [3.5, 8.0, 12.4]:  # the ground floor's pilasters
-			_lbox(m + sd * u, 0.4, 0.4, 0.3, g + 1.0, g + 9.2, KP_TRIM, M_STONE, KP_TRIM)
-		for u: float in [3.2, 7.4]:  # the upper storey's
-			_lbox(m + sd * u, 0.3, 0.35, 0.3, g + 10.0, g + 17.0, KP_TRIM, M_STONE, KP_TRIM)
-		# the scroll: two steps down from the upper storey to the ground floor's end
-		_lbox(m + sd * 10.6, 0.1, 2.0, 0.6, g + 10.0, g + 11.1, KP_STONE, M_STONE, KP_TRIM)
-		_lbox(m + sd * 9.5, 0.1, 1.4, 0.6, g + 11.1, g + 12.4, KP_STONE, M_STONE, KP_TRIM)
-		_prism(_circle(_w(m + sd * 12.0, 0.3), 0.4, 8), g + 10.0, g + 11.3, KP_TRIM, KP_TRIM, M_STONE, M_STONE)
-	_lbox(m, 0.3, 13.3, 0.9, g + 9.2, g + 10.0, KP_TRIM, M_STONE, KP_TRIM)
-	_lbox(m, 0.4, 8.3, 0.9, g + 17.0, g + 17.9, KP_TRIM, M_STONE, KP_TRIM)
-	# the door, two side doors, windows
-	_mode = M_GLASS
-	_wall(_w(m - 1.5, 0.37), _w(m + 1.5, 0.37), g + 1.0, g + 6.2, _b, KP_DARK)
+		for u: float in [2.4, 3.9]:  # the paired engaged columns round the door
+			_column(m + sd * u, 0.45, 0.42, g + 1.0, g + 9.2, KARM_TRIM)
+		for u: float in [8.4, 12.4]:  # pilasters
+			_lbox(m + sd * u, 0.4, 0.45, 0.3, g + 1.0, g + 9.2, KARM_TRIM, M_STONE, KARM_TRIM)
+	_lbox(m, -0.6, 13.3, 1.9, g + 9.2, g + 10.3, KARM_TRIM, M_STONE, KARM_TRIM)  # the entablature
+	# the doors: the big one in the middle, a round-headed one each side
+	_kp_arch_open(m, 0.35, g + 1.0, g + 5.4, 1.5, KP_WOOD)
 	for sd: float in [-1.0, 1.0]:
-		_wall(_w(m + sd * 5.75 - 0.9, 0.37), _w(m + sd * 5.75 + 0.9, 0.37), g + 1.0, g + 4.6, _b, KP_DARK)
-		_wall(_w(m + sd * 10.2 - 0.8, 0.37), _w(m + sd * 10.2 + 0.8, 0.37), g + 3.0, g + 7.0, _b, KP_DARK)
-		_wall(_w(m + sd * 5.3 - 0.7, 0.27), _w(m + sd * 5.3 + 0.7, 0.27), g + 11.8, g + 15.0, _b, KP_DARK)
-	_wall(_w(m - 1.4, 0.27), _w(m + 1.4, 0.27), g + 11.6, g + 15.6, _b, KP_DARK)
-	_mode = M_STONE
-	_lbox(m, 0.9, 2.0, 0.6, g + 6.2, g + 6.9, KP_TRIM, M_STONE, KP_TRIM)
+		_kp_arch_open(m + sd * 6.2, 0.35, g + 1.0, g + 3.9, 0.85, KP_WOOD)
+		_kp_arch_open(m + sd * 10.4, 0.35, g + 4.6, g + 7.0, 0.7, KP_DARK)
 	for k in 3:  # three steps down to the street
-		_lbox(m, 1.0 + 0.5 * k, 3.4 - 0.5 * k, 0.5 + 0.5 * (2 - k), g - 0.6, g + 0.15 + 0.35 * (2 - k), KP_BASE,
-				M_STONE, KP_BASE.lightened(0.04))
-	# the attic, two tiers, a small pediment, the gilt globe and cross
-	_lbox(m, -0.3, 5.6, 0.7, g + 17.9, g + 19.7, KP_STONE, M_STONE, KP_STONE)
-	_lbox(m, -0.3, 3.6, 0.7, g + 19.7, g + 21.2, KP_STONE, M_STONE, KP_STONE)
-	var ka := _a
-	var kb := _b
-	_a = kb
-	_b = ka
-	_gable(0.4, -0.9, m, 3.6, g + 21.2, 1.7, KP_STONE, KARM_ROOF)
-	_a = ka
-	_b = kb
-	var c := _w(m, -0.1)
-	_frustum(_circle(c, 0.45, 8), g + 22.9, _circle(c, 0.95, 8), g + 23.5, KP_GOLD)
-	_frustum(_circle(c, 0.95, 8), g + 23.5, _circle(c, 0.35, 8), g + 24.2, KP_GOLD, KP_GOLD)
-	_lbox(m, -0.1, 0.12, 0.12, g + 24.2, g + 26.4, KP_GOLD, M_STONE, KP_GOLD)
-	_lbox(m, -0.1, 0.6, 0.12, g + 25.3, g + 25.6, KP_GOLD, M_STONE, KP_GOLD)
-	_collide(_rect(m, 1.5, 3.4, 1.0))
+		_lbox(m, 1.0 + 0.5 * k, 4.4 - 0.5 * k, 0.5 + 0.5 * (2 - k), g - 0.6, g + 0.15 + 0.35 * (2 - k), KARM_OCHRE,
+				M_STONE, KARM_OCHRE.lightened(0.04))
+	# the upper storey: the wall set back, the balcony and its balustrade before it
+	_lbox(m, -1.5, 8.2, 1.5, g + 10.3, g + 18.0, KARM_SAND, M_STONE, KARM_SAND)
+	_kp_balustrade(-7.6 + m, 1.1, 7.6 + m, 1.1, g + 10.3, 1.0, KARM_TRIM, 2.5)
+	for u: float in [-5.4, -1.9, 1.9, 5.4]:
+		_column(m + u, 0.4, 0.4, g + 10.3, g + 17.0, KARM_TRIM)
+	_kp_arch_open(m, 0.05, g + 11.6, g + 14.6, 1.3, KP_DARK)  # the big window
+	for sd: float in [-1.0, 1.0]:  # the niches and their statues
+		_kp_arch_open(m + sd * 3.65, 0.05, g + 11.6, g + 14.4, 0.75, KARM_OCHRE.darkened(0.25))
+		_kp_figure(m + sd * 3.65, 0.25, g + 11.7, 2.4, KARM_TRIM.lightened(0.05))
+	_lbox(m, -1.0, 8.3, 2.0, g + 17.0, g + 18.0, KARM_TRIM, M_STONE, KARM_TRIM)
+	# the attic, its sculpture groups, the copper globe and the gilt finial
+	_lbox(m, -1.3, 6.4, 1.6, g + 18.0, g + 19.6, KARM_SAND, M_STONE, KARM_SAND)
+	for u: float in [-7.6, -3.0, 3.0, 7.6]:
+		_lbox(m + u, 0.3, 0.45, 0.4, g + 18.0, g + 19.0, KARM_TRIM, M_STONE, KARM_TRIM)
+		_kp_figure(m + u, 0.3, g + 19.0, 1.8, KARM_TRIM)
+	var c := _w(m, -0.3)
+	_frustum(_circle(c, 0.6, 10), g + 19.6, _circle(c, 1.25, 10), g + 20.6, KARM_GLOBE)
+	_frustum(_circle(c, 1.25, 10), g + 20.6, _circle(c, 0.9, 10), g + 21.8, KARM_GLOBE)
+	_frustum(_circle(c, 0.9, 10), g + 21.8, _circle(c, 0.25, 10), g + 22.4, KARM_GLOBE, KARM_GLOBE)
+	_lbox(m, -0.3, 0.1, 0.1, g + 22.4, g + 24.6, KP_GOLD, M_STONE, KP_GOLD)
+	_lbox(m, -0.3, 0.5, 0.1, g + 23.6, g + 23.85, KP_GOLD, M_STONE, KP_GOLD)
+	# the lantern turrets either side of the upper storey: a square drum with round openings,
+	# a green cap and a small finial
+	for sd: float in [-1.0, 1.0]:
+		var u := m + sd * 10.6
+		_lbox(u, -0.6, 1.6, 1.0, g + 10.3, g + 14.6, KARM_SAND, M_STONE, KARM_SAND)
+		_lbox(u, -0.6, 1.75, 1.15, g + 14.6, g + 15.1, KARM_TRIM, M_STONE, KARM_TRIM)
+		var t := _w(u, -0.6)
+		var nb := Vector3(_b.x, 0.0, _b.y)
+		_disc(Vector3(_w(u, 0.45).x, g + 12.5, _w(u, 0.45).y), nb, 0.55, 8, KP_DARK)
+		_frustum(_circle(t, 1.3, 8), g + 15.1, _circle(t, 0.35, 8), g + 17.0, KARM_GLOBE, none)
+		_prism(_circle(t, 0.35, 8), g + 17.0, g + 17.5, KARM_GLOBE, KARM_GLOBE, M_STONE, M_STONE)
+		_lbox(u, -0.6, 0.06, 0.06, g + 17.5, g + 18.6, KP_GOLD, M_STONE, KP_GOLD)
+	_collide(_rect(m, 1.5, 4.4, 1.0))
 
 
-const KARM_ROOF := Color("#7d8a7c")
-
-
-## Adam Mickiewicz's monument (Cyprian Godebski, 1898), a bronze poet on a tall granite
-## pedestal in the lawn of Skwer Mickiewicza: three granite steps, a moulded plinth, the
-## pedestal with a bronze plaque on each face, the cloaked figure (right hand raised), and four
-## lamp posts at the steps' corners.
+## Adam Mickiewicz's monument (Cyprian Godebski, 1898), photos 1-4: in its own lawn square on the
+## east side, facing the street (west). A raised granite terrace 16 x 10 m, 1.6 m high, with a
+## stone balustrade on its front and sides, a wide flight of eight steps from the street and a
+## second on the north side, a bronze candelabrum with gilt flames on each corner; on it the
+## stepped pedestal with a cartouche and a bronze wreath at its foot, the tall shaft with a
+## bronze medallion, and the poet standing (right hand on his chest, cloak), 13.5 m in all.
+## Frame: origin at the plinth's centre, u south along the street, +v west (the street side).
 func _build_mickiewicz(_site: Dictionary) -> void:
 	_o = MICK
 	_a = MICK_AXIS.normalized()
 	_b = Vector2(-_a.y, _a.x)
 	_g = map.terrain_height(MICK.x, MICK.y)
 	var g := _g
-	_mode = M_STONE
 	var none := Color(0, 0, 0, 0)
-	for k in 3:
-		_lbox(0.0, 0.0, 3.0 - 0.5 * k, 3.0 - 0.5 * k, g - 0.4 + 0.4 * k, g + 0.0 + 0.4 * (k + 1), KP_GRANITE, M_STONE,
-				KP_GRANITE.lightened(0.05))
-	_lbox(0.0, 0.0, 1.45, 1.45, g + 1.2, g + 1.8, KP_GRANITE.lightened(0.04), M_STONE, KP_GRANITE.lightened(0.1))
-	_lbox(0.0, 0.0, 1.15, 1.15, g + 1.8, g + 5.2, KP_GRANITE.lightened(0.1), M_STONE, none)
-	_lbox(0.0, 0.0, 1.4, 1.4, g + 5.2, g + 5.7, KP_GRANITE.lightened(0.04), M_STONE, KP_GRANITE.lightened(0.1))
-	for s: float in [-1.0, 1.0]:  # the bronze plaques
-		_lbox(s * 1.17, 0.0, 0.04, 0.7, g + 2.4, g + 4.4, KP_BRONZE, M_STONE, KP_BRONZE)
-		_lbox(0.0, s * 1.17, 0.7, 0.04, g + 2.4, g + 4.4, KP_BRONZE, M_STONE, KP_BRONZE)
-	# the figure: cloak, chest, head, the raised right arm
-	var c := _w(0.0, 0.0)
-	_frustum(_circle(c, 0.7, 8), g + 5.7, _circle(c, 0.42, 8), g + 7.1, KP_BRONZE)
-	_frustum(_circle(c, 0.42, 8), g + 7.1, _circle(c, 0.3, 8), g + 7.7, KP_BRONZE, KP_BRONZE)
-	_prism(_circle(c, 0.17, 8), g + 7.7, g + 8.15, KP_BRONZE, KP_BRONZE, M_STONE, M_STONE)
-	_lbox(0.15, 0.45, 0.1, 0.1, g + 7.0, g + 8.0, KP_BRONZE, M_STONE, KP_BRONZE)
-	# the lamp posts
+	var t := g + 1.6  # the terrace
+	_mode = M_STONE
+	_lbox(0.0, 0.0, 8.0, 5.0, g - 0.5, t, MICK_GRANITE.darkened(0.08), M_STONE, MICK_GRANITE.lightened(0.03))
+	for k in 8:  # the street flight, 6 m wide
+		_lbox(0.0, 5.0 + 0.35 * (8 - k) * 0.5, 3.0, 0.175 * (8 - k), g - 0.5, g + 0.2 * (k + 1), MICK_GRANITE,
+				M_STONE, MICK_GRANITE.lightened(0.04))
+	for k in 4:  # the north flight, 4 m wide
+		_lbox(-8.0 - 0.35 * (4 - k) * 0.5, 0.0, 0.175 * (4 - k), 2.0, g - 0.5, g + 0.4 * (k + 1), MICK_GRANITE,
+				M_STONE, MICK_GRANITE.lightened(0.04))
+	# the balustrade: the front either side of the flight, the two sides (the north one broken
+	# by its flight), the back
+	for sd: float in [-1.0, 1.0]:
+		_kp_balustrade(sd * 3.3, 4.8, sd * 7.8, 4.8, t, 0.95, MICK_BALUSTER, 2.3)
+		_kp_balustrade(7.8, sd * 4.8, 7.8, sd * 0.4, t, 0.95, MICK_BALUSTER, 2.2)
+		_kp_balustrade(-7.8, sd * 4.8, -7.8, sd * 2.3, t, 0.95, MICK_BALUSTER, 2.5)
+	_kp_balustrade(-7.8, -4.8, 7.8, -4.8, t, 0.95, MICK_BALUSTER, 3.9)
 	for su: float in [-1.0, 1.0]:
 		for sv: float in [-1.0, 1.0]:
-			var p := _w(su * 3.6, sv * 3.6)
-			_prism(_circle(p, 0.1, 6), g, g + 2.4, KP_DARK, none, M_STONE)
-			_frustum(_circle(p, 0.26, 6), g + 2.4, _circle(p, 0.2, 6), g + 2.95, Color("#f0dfae"), Color("#f0dfae"))
-	_collide(_rect(0.0, 0.0, 3.0, 3.0))
+			_kp_candelabrum(_w(su * 7.2, sv * 4.2), t, 5.0)
+	# the pedestal: two steps, the die with the cartouche, the bronze wreath group at its foot
+	_lbox(0.0, 0.0, 2.6, 2.6, t, t + 0.5, MICK_GRANITE, M_STONE, MICK_GRANITE.lightened(0.05))
+	_lbox(0.0, 0.0, 2.1, 2.1, t + 0.5, t + 1.0, MICK_GRANITE, M_STONE, MICK_GRANITE.lightened(0.05))
+	_lbox(0.0, 0.0, 1.7, 1.7, t + 1.0, t + 3.2, MICK_GRANITE.lightened(0.03), M_STONE, none)
+	_lbox(0.0, 1.72, 0.8, 0.05, t + 1.6, t + 2.8, MICK_GRANITE.lightened(0.1), M_STONE, MICK_GRANITE)  # cartouche
+	_lbox(0.0, 2.1, 1.4, 0.35, t + 1.0, t + 1.8, MICK_PATINA, M_STONE, MICK_PATINA)  # wreath and foliage
+	_lbox(0.0, 0.0, 1.9, 1.9, t + 3.2, t + 3.6, MICK_GRANITE.lightened(0.06), M_STONE, MICK_GRANITE.lightened(0.1))
+	# the shaft with its medallion, a cornice
+	_lbox(0.0, 0.0, 1.05, 1.05, t + 3.6, t + 9.4, MICK_GRANITE.lightened(0.08), M_STONE, none)
+	var med := _w(0.0, 1.08)
+	_disc(Vector3(med.x, t + 6.4, med.y), Vector3(_b.x, 0.0, _b.y), 0.65, 8, MICK_PATINA)
+	_lbox(0.0, 0.0, 1.35, 1.35, t + 9.4, t + 9.9, MICK_GRANITE.lightened(0.06), M_STONE, MICK_GRANITE.lightened(0.1))
+	# the poet: cloak, chest, head, the right hand on the chest
+	_kp_figure(0.0, 0.0, t + 9.9, 4.5, MICK_PATINA)
+	_lbox(0.3, 0.4, 0.14, 0.12, t + 9.9 + 3.0, t + 9.9 + 3.35, MICK_PATINA, M_STONE, MICK_PATINA)
+	_collide(_rect(0.0, 1.4, 8.0, 6.4))
 
 
-## The University's main gate (Brama Główna, Krakowskie Przedmieście 26/28; 1816, the campus's
-## door): two stone pylons with caps and urns, an iron gate between them and iron railings on
-## stone plinths to either side, the whole 28 m along the street. Frame: origin at the gate's
-## centre on the street's pavement, u along the street (south), +v to the street (west).
+## The University's main gate (Brama Główna, Krakowskie Przedmieście 26/28; Stefan Szyller,
+## 1910), photos 5-11: two white pavilions, each with a statue in a niche (Minerva, Apollo), a
+## curved gable with a cartouche, a lantern and a finial; between them the black wrought-iron
+## gate under a crowned eagle; outside each pavilion a narrow iron side gate and a pier with an
+## urn. Behind it the lime avenue runs to Pałac Kazimierzowski. Frame: origin at the gate's
+## centre on the building line, u south along the street, +v out to the street (west-south-west).
 func _build_brama_uw(_site: Dictionary) -> void:
 	_o = BRAMA
-	_a = BRAMA_AXIS.normalized()
+	_a = STREET_AXIS.normalized()
 	_b = Vector2(-_a.y, _a.x)
 	_g = map.terrain_height(BRAMA.x, BRAMA.y)
 	var g := _g
 	_mode = M_STONE
 	var none := Color(0, 0, 0, 0)
-	var iron := Color("#25282a")
-	var stone := Color("#d8cdb4")
 	for sd: float in [-1.0, 1.0]:
-		var u := sd * 3.8  # the pylon: plinth, shaft, cornice, cap and urn
-		_lbox(u, 0.0, 1.0, 1.0, g - 0.4, g + 1.0, KP_BASE, M_STONE, KP_BASE.lightened(0.05))
-		_lbox(u, 0.0, 0.8, 0.8, g + 1.0, g + 4.6, stone, M_STONE, none)
-		_lbox(u, 0.0, 1.0, 1.0, g + 4.6, g + 5.1, KP_TRIM, M_STONE, KP_TRIM)
-		_frustum(_rect(u, 0.0, 0.8, 0.8), g + 5.1, _rect(u, 0.0, 0.3, 0.3), g + 5.9, stone, stone)
-		_prism(_circle(_w(u, 0.0), 0.28, 8), g + 5.9, g + 6.6, stone.lightened(0.04), stone.lightened(0.04), M_STONE, M_STONE)
-		# a stone-plinth railing run to the end pier
-		_lbox(sd * 9.3, 0.0, 4.5, 0.3, g - 0.3, g + 0.9, KP_BASE, M_STONE, KP_BASE.lightened(0.05))
-		_lbox(sd * 14.0, 0.0, 0.5, 0.5, g - 0.3, g + 2.8, stone, M_STONE, KP_TRIM)
-		for k in 5:
-			_lbox(sd * (5.9 + 1.6 * k), 0.0, 0.05, 0.05, g + 0.9, g + 2.3, iron, M_STONE, iron)
-		_lbox(sd * 9.3, 0.0, 4.5, 0.05, g + 2.2, g + 2.3, iron, M_STONE, iron)
-	# the gate between the pylons: two rails, seven bars with spear tips
-	_lbox(0.0, 0.0, 3.0, 0.05, g + 0.4, g + 0.55, iron, M_STONE, iron)
-	_lbox(0.0, 0.0, 3.0, 0.05, g + 3.0, g + 3.15, iron, M_STONE, iron)
-	for k in 7:
-		_lbox(-2.4 + 0.8 * k, 0.0, 0.05, 0.05, g + 0.4, g + 3.4, iron, M_STONE, iron)
-	_collide(_rect(0.0, 0.0, 14.5, 0.5))
+		var u := sd * 5.2  # the pavilion: plinth, body, cornice, curved gable, lantern
+		_lbox(u, 0.0, 2.3, 2.3, g - 0.5, g + 0.8, BRAMA_TRIM, M_STONE, BRAMA_TRIM)
+		_lbox(u, 0.0, 2.2, 2.2, g + 0.8, g + 7.0, BRAMA_WHITE, M_STONE, none)
+		for su: float in [-1.0, 1.0]:  # the corner pilasters on the street face
+			_lbox(u + su * 1.95, 2.25, 0.25, 0.1, g + 0.8, g + 7.0, BRAMA_TRIM, M_STONE, BRAMA_TRIM)
+		_lbox(u, 0.0, 2.45, 2.45, g + 7.0, g + 7.6, BRAMA_TRIM, M_STONE, BRAMA_TRIM)
+		_lbox(u, 0.0, 1.9, 1.9, g + 7.6, g + 8.7, BRAMA_WHITE, M_STONE, BRAMA_WHITE)
+		_lbox(u, 0.0, 1.3, 1.3, g + 8.7, g + 9.5, BRAMA_WHITE, M_STONE, BRAMA_WHITE)
+		_lbox(u, 0.0, 0.7, 0.7, g + 9.5, g + 10.0, BRAMA_TRIM, M_STONE, BRAMA_TRIM)
+		var cart := _w(u, 1.95)
+		_disc(Vector3(cart.x, g + 8.6, cart.y), Vector3(_b.x, 0.0, _b.y), 0.55, 8, BRAMA_TRIM)
+		var c := _w(u, 0.0)
+		_prism(_circle(c, 0.55, 8), g + 10.0, g + 11.4, BRAMA_WHITE, none, M_STONE, M_STONE)
+		_frustum(_circle(c, 0.7, 8), g + 11.4, _circle(c, 0.12, 8), g + 12.8, BRAMA_TRIM, none)
+		_prism(_circle(c, 0.07, 6), g + 12.8, g + 14.0, KP_GOLD, KP_GOLD, M_STONE, M_STONE)
+		# the niche and its statue, facing the street
+		_kp_arch_open(u, 2.25, g + 1.6, g + 4.6, 0.8, BRAMA_TRIM.darkened(0.3))
+		_kp_figure(u, 2.45, g + 1.6, 2.6, BRAMA_WHITE.darkened(0.04))
+		# the side gate and the pier with its urn
+		var p := sd * 10.6
+		_lbox(p, 0.0, 0.5, 0.5, g - 0.3, g + 3.6, BRAMA_WHITE, M_STONE, BRAMA_TRIM)
+		_lbox(p, 0.0, 0.6, 0.6, g + 3.6, g + 3.9, BRAMA_TRIM, M_STONE, BRAMA_TRIM)
+		var q := _w(p, 0.0)
+		_frustum(_circle(q, 0.2, 8), g + 3.9, _circle(q, 0.42, 8), g + 4.5, BRAMA_TRIM)
+		_frustum(_circle(q, 0.42, 8), g + 4.5, _circle(q, 0.12, 8), g + 5.1, BRAMA_TRIM, BRAMA_TRIM)
+		var gu := sd * 8.8  # the side gate, 3 m between the pavilion and the pier
+		_lbox(gu, 0.0, 1.6, 0.04, g + 0.3, g + 0.42, KP_IRON, M_STONE, KP_IRON)
+		_lbox(gu, 0.0, 1.6, 0.04, g + 2.6, g + 2.72, KP_IRON, M_STONE, KP_IRON)
+		for k in 4:
+			_lbox(gu - 1.2 + 0.8 * k, 0.0, 0.04, 0.04, g + 0.3, g + 2.95, KP_IRON, M_STONE, KP_IRON)
+	# the main gate between the pavilions: two rails, bars, the overthrow, the crowned eagle
+	_lbox(0.0, 0.0, 3.0, 0.05, g + 0.3, g + 0.45, KP_IRON, M_STONE, KP_IRON)
+	_lbox(0.0, 0.0, 3.0, 0.05, g + 3.6, g + 3.75, KP_IRON, M_STONE, KP_IRON)
+	for k in 9:
+		_lbox(-2.6 + 0.65 * k, 0.0, 0.05, 0.05, g + 0.3, g + 4.6, KP_IRON, M_STONE, KP_IRON)
+	_lbox(0.0, 0.0, 3.0, 0.06, g + 4.6, g + 4.75, KP_IRON, M_STONE, KP_IRON)
+	_lbox(0.0, 0.0, 0.45, 0.12, g + 4.75, g + 5.7, KP_IRON, M_STONE, KP_IRON)  # the eagle
+	_lbox(0.0, 0.0, 1.2, 0.08, g + 5.2, g + 5.5, KP_IRON, M_STONE, KP_IRON)  # its wings
+	_frustum(_circle(_w(0.0, 0.0), 0.22, 6), g + 5.7, _circle(_w(0.0, 0.0), 0.3, 6), g + 6.05, KP_GOLD, KP_GOLD)
+	_collide(_rect(0.0, 0.0, 11.0, 2.3))
 
 
-## Pałac Potockich (Krakowskie Przedmieście 15, the Ministry of Culture): the mass stays LoD2's
-## (a kept skin); the model adds the court front of the main block: corner pilasters, a string
-## course and cornice along 50 m, and a three-bay central pavilion with four pilasters, a door
-## with steps, an upper window and a triangular pediment with an oculus.
-## Frame: origin at the front's south end, u north along it, +v out into the court (east).
+## Pałac Kazimierzowski (the rector's palace at the far end of the campus avenue), photos 16-17:
+## the mass stays LoD2's (a kept skin, now in its ochre with a red tile roof); the model adds the
+## centre risalit's front, which closes the vista from the gate: a rusticated ground floor with
+## three round-arched doors, four white Corinthian columns over two storeys on it, an entablature
+## and a triangular pediment. Frame: origin in front of the risalit, u along the front (SSE), +v out
+## of it (west-south-west, down the avenue).
+func _build_kazimierzowski(_site: Dictionary) -> void:
+	_o = KAZIM
+	_b = KAZIM_OUT.normalized()
+	_a = Vector2(_b.y, -_b.x)
+	_g = map.terrain_height(KAZIM.x, KAZIM.y)
+	var g := _g
+	var ochre := Color("#e2c77a")
+	_mode = M_STONE
+	_lbox(0.0, 0.5, 6.4, 0.9, g - 0.5, g + 4.6, ochre.lightened(0.12), M_STONE, ochre)  # the rusticated porch
+	for k in 4:  # its courses
+		_lbox(0.0, 1.42, 6.4, 0.04, g + 0.6 + k * 1.0, g + 0.72 + k * 1.0, ochre.darkened(0.1), M_STONE, ochre)
+	for u: float in [-3.2, 0.0, 3.2]:
+		_kp_arch_open(u, 1.5, g + 0.0, g + 2.5, 0.85, KP_WOOD)
+	_lbox(0.0, 0.6, 6.5, 1.0, g + 4.6, g + 5.0, KAZIM_WHITE, M_STONE, KAZIM_WHITE)
+	for u: float in [-4.5, -1.5, 1.5, 4.5]:
+		_column(u, 0.9, 0.42, g + 5.0, g + 12.6, KAZIM_WHITE)
+	_lbox(0.0, 0.4, 6.0, 0.9, g + 12.6, g + 13.6, KAZIM_WHITE, M_STONE, KAZIM_WHITE)
+	var ka := _a
+	var kb := _b
+	_a = kb
+	_b = ka
+	_gable(1.3, -0.5, 0.0, 6.0, g + 13.6, 2.4, KAZIM_WHITE, KAZIM_ROOF)
+	_a = ka
+	_b = kb
+	_collide(_rect(0.0, 0.5, 6.4, 0.9))
+
+
+const KAZIM_WHITE := Color("#f3f1ea")
+
+
+## Pałac Czapskich (Krasiński-Czapski palace, the Academy of Fine Arts), photos 18-19: built whole
+## (the first pass kept a skin and its front's direction was unknown). It stands 90 m back from
+## the street, facing east over its forecourt: three storeys in brick-red plaster with white
+## pilasters, quoins and cornice, the corner pavilions stepping forward, a centre risalit under a
+## white pediment with a cartouche and a balcony over the door, a red tile hipped roof with a
+## row of white chimneys. Frame: origin on the risalit's face, u north along the front, +v east.
+func _build_czapski(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	_o = CZAP
+	_b = CZAP_OUT.normalized()
+	_a = Vector2(_b.y, -_b.x)
+	_g = _ground_under(ring)
+	var g := _g
+	var h := 15.0  # the main cornice (LoD2: eaves ~17 m over the yard, ridge ~23 m)
+	var none := Color(0, 0, 0, 0)
+	_mode = M_STONE
+	_prism(ring, g - 0.5, g + 1.2, CZAP_SHADE, none, M_STONE)
+	_prism(ring, g + 1.2, g + h, CZAP_WALL, none, M_MONUMENT)
+	var band := _largest(Geometry2D.offset_polygon(ring, 0.15, Geometry2D.JOIN_MITER))
+	_prism(band, g + 5.2, g + 5.6, CZAP_WHITE, CZAP_WHITE, M_STONE, M_STONE)
+	var eave := _largest(Geometry2D.offset_polygon(ring, 0.45, Geometry2D.JOIN_MITER))
+	_prism(eave, g + h, g + h + 0.7, CZAP_WHITE, CZAP_WHITE, M_STONE, M_STONE)
+	# white quoins on every outer corner of the outline
+	for i in ring.size():
+		var p := ring[i]
+		var d0 := (p - ring[(i + ring.size() - 1) % ring.size()]).normalized()
+		var d1 := (ring[(i + 1) % ring.size()] - p).normalized()
+		if absf(d0.cross(d1)) < 0.5:
+			continue
+		var lp := _local(p)
+		_lbox(lp.x, lp.y, 0.45, 0.45, g + 1.2, g + h, CZAP_WHITE, M_STONE, CZAP_WHITE)
+	# the front: pilasters between the bays, the risalit with its door, balcony and pediment
+	for u: float in [-14.0, -10.0, 10.0, 14.6]:
+		_lbox(u, 0.15, 0.35, 0.2, g + 1.2, g + h, CZAP_WHITE, M_STONE, CZAP_WHITE)
+	for u: float in [-5.1, -1.8, 1.8, 5.5]:
+		_lbox(u, 0.55, 0.35, 0.2, g + 1.2, g + h, CZAP_WHITE, M_STONE, CZAP_WHITE)
+	_kp_arch_open(0.2, 0.76, g + 0.0, g + 3.6, 1.1, KP_WOOD)
+	_lbox(0.2, 1.2, 1.8, 0.5, g + 5.6, g + 5.8, CZAP_WHITE, M_STONE, CZAP_WHITE)  # the balcony
+	_lbox(0.2, 1.68, 1.8, 0.03, g + 5.8, g + 6.8, KP_IRON, M_STONE, KP_IRON)
+	var ka := _a
+	var kb := _b
+	_a = kb
+	_b = ka
+	_gable(1.0, -1.0, 0.2, 5.8, g + h + 0.7, 2.6, CZAP_WHITE, CZAP_ROOF)
+	_a = ka
+	_b = kb
+	var cart := _w(0.2, 1.02)
+	_disc(Vector3(cart.x, g + h + 1.6, cart.y), Vector3(_b.x, 0.0, _b.y), 0.6, 8, CZAP_WHITE.darkened(0.12))
+	_kp_figure(0.2, 0.6, g + h + 3.3, 1.6, CZAP_WHITE)
+	# the roofs: the main body and the two corner wings, red tile hips; the chimney row
+	var y := g + h + 0.7
+	_hip(0.3, -10.0, 14.6, 9.4, y, 6.0, CZAP_ROOF)
+	_hip(-19.7, -11.6, 5.5, 16.4, y, 5.0, CZAP_ROOF)
+	_hip(20.4, -11.4, 5.4, 16.4, y, 5.0, CZAP_ROOF)
+	for u: float in [-10.0, -4.0, 4.0, 10.0]:
+		_lbox(u, -10.0, 0.5, 0.8, y + 2.0, y + 7.4, CZAP_WHITE, M_STONE, CZAP_WHITE.darkened(0.2))
+	_collide(ring)
+
+
+## Pałac Potockich (Krakowskie Przedmieście 15, the Ministry of Culture), photos 20-21: the mass
+## stays LoD2's (a kept skin, cream walls under orange-red roofs; the wings' ends on the street are
+## the two pavilions the report calls guardhouses); the model adds the court front of the main
+## block (corner pilasters, a string course and cornice along 50 m, a three-bay central pavilion
+## under a pediment) and the two street gates either side of the Kordegarda: stone piers with
+## caps and urns and wrought-iron gates.
+## Frame: origin at the court front's south end, u north along it, +v out into the court (east).
 func _build_potocki(_site: Dictionary) -> void:
 	_o = POTOCKI
 	_a = POTOCKI_AXIS.normalized()
@@ -13072,8 +13342,8 @@ func _build_potocki(_site: Dictionary) -> void:
 	var m := 25.0
 	_g = map.terrain_height(_w(m, 2.0).x, _w(m, 2.0).y)
 	var g := _g
-	var wall := Color("#e8d9a8")
-	var trim := Color("#f4eedd")
+	var wall := POTOCKI_WALL
+	var trim := Color("#f7f4ec")
 	_mode = M_STONE
 	_lbox(25.0, 0.0, 25.2, 0.3, g - 0.6, g + 1.2, KP_BASE, M_STONE, KP_BASE.lightened(0.05))
 	_lbox(25.0, 0.2, 25.0, 0.2, g + 5.6, g + 6.1, trim, M_STONE, trim)  # the string course
@@ -13096,18 +13366,43 @@ func _build_potocki(_site: Dictionary) -> void:
 	var kb := _b
 	_a = kb
 	_b = ka
-	_gable(1.3, -0.5, m, 5.2, g + 13.2, 2.2, wall, Color("#7a6e68"))
+	_gable(1.3, -0.5, m, 5.2, g + 13.2, 2.2, wall, POTOCKI_ROOF)
 	_a = ka
 	_b = kb
 	var oc := _w(m, 1.35)
 	_disc(Vector3(oc.x, g + 14.6, oc.y), Vector3(_b.x, 0.0, _b.y), 0.7, 8, KP_DARK)
 	_collide(_rect(m, 2.2, 2.4, 0.5))
+	# the street gates (photos 20-21): a pier at each end, an iron gate between
+	for pair: Array in POTOCKI_GATES:
+		var p0: Vector2 = pair[0]
+		var p1: Vector2 = pair[1]
+		_o = (p0 + p1) * 0.5
+		_a = (p1 - p0).normalized()
+		_b = Vector2(-_a.y, _a.x)
+		var hl := p0.distance_to(p1) * 0.5
+		var gg: float = map.terrain_height(_o.x, _o.y)
+		for sd: float in [-1.0, 1.0]:
+			var u := sd * (hl - 0.5)
+			_lbox(u, 0.0, 0.5, 0.5, gg - 0.4, gg + 3.4, POTOCKI_WALL, M_STONE, POTOCKI_WALL)
+			_lbox(u, 0.0, 0.62, 0.62, gg + 3.4, gg + 3.7, trim, M_STONE, trim)
+			var q := _w(u, 0.0)
+			_frustum(_circle(q, 0.18, 8), gg + 3.7, _circle(q, 0.36, 8), gg + 4.2, KP_BASE)
+			_frustum(_circle(q, 0.36, 8), gg + 4.2, _circle(q, 0.1, 8), gg + 4.7, KP_BASE, KP_BASE)
+		var w := hl - 1.0
+		_lbox(0.0, 0.0, w, 0.04, gg + 0.25, gg + 0.37, KP_IRON, M_STONE, KP_IRON)
+		_lbox(0.0, 0.0, w, 0.04, gg + 2.8, gg + 2.92, KP_IRON, M_STONE, KP_IRON)
+		var bars := int(w / 0.6)
+		for k in bars + 1:
+			_lbox(-w + 2.0 * w * k / bars, 0.0, 0.035, 0.035, gg + 0.25, gg + 3.0 + 0.5 * sin(PI * k / bars), KP_IRON,
+					M_STONE, KP_IRON)
+		_collide(_rect(0.0, 0.0, hl, 0.3))
 
 
-## The Kordegarda (the palace's old guardhouse; today a gallery), built whole because OSM maps it
-## only 4.3 m tall: the C-shaped outline raised to 6.4 m in warm plaster with a window storey, a
-## cornice, a dark hipped-flat roof, and on the street face a portico of four columns under a
-## pediment. Frame: origin at the street face's south end, u north along it, +v to the street (east).
+## The Kordegarda (the palace's old guardhouse, today the ministry's gallery), photos 22-23: built
+## whole because OSM maps it 4.3 m tall. One storey of white stone 6 m to the cornice; on the
+## street face, between shallow pilasters, three tall round-arched windows either side of a
+## round-arched door in dark wood; a balustraded attic with sculpture groups on its corners and
+## over the door. Frame: origin at the street face's south end, u north along it, +v to the street (east).
 func _build_kordegarda(site: Dictionary) -> void:
 	var ring: PackedVector2Array = site["ring"]
 	_o = KORDEGARDA
@@ -13115,63 +13410,66 @@ func _build_kordegarda(site: Dictionary) -> void:
 	_b = Vector2(-_a.y, _a.x)
 	_g = _ground_under(ring)
 	var g := _g
-	var wall := Color("#e8dcb4")
-	var trim := Color("#f4eedd")
+	var none := Color(0, 0, 0, 0)
 	_mode = M_STONE
-	_prism(ring, g - 0.5, g + 1.1, KP_BASE, KP_BASE, M_STONE, M_STONE)
-	_prism(ring, g + 1.1, g + 5.8, wall, Color("#6c6a66"), M_MONUMENT, M_STONE)
+	_prism(ring, g - 0.5, g + 0.8, KORD_WHITE.darkened(0.12), none, M_STONE)
+	_prism(ring, g + 0.8, g + 6.0, KORD_WHITE, Color("#8d8b86"), M_STONE, M_STONE)
 	var eave := _largest(Geometry2D.offset_polygon(ring, 0.35, Geometry2D.JOIN_MITER))
-	_prism(eave, g + 5.8, g + 6.4, trim, Color("#6c6a66"), M_STONE, M_STONE)
-	_parapet(ring, g + 6.4, 0.5, trim)
-	# the portico on the street face (the face is about 16 m long)
-	var m := 7.9
-	_lbox(m, 1.6, 4.4, 1.6, g - 0.5, g + 0.6, KP_BASE, M_STONE, KP_BASE.lightened(0.05))
-	for u: float in [-3.6, -1.2, 1.2, 3.6]:
-		_column(m + u, 2.6, 0.32, g + 0.6, g + 5.4, trim)
-	_lbox(m, 1.9, 4.2, 1.5, g + 5.4, g + 6.2, trim, M_STONE, trim)
-	var ka := _a
-	var kb := _b
-	_a = kb
-	_b = ka
-	_gable(3.3, 0.3, m, 4.2, g + 6.2, 1.6, wall, Color("#6c6a66"))
-	_a = ka
-	_b = kb
-	_mode = M_GLASS
-	_wall(_w(m - 1.0, 0.45), _w(m + 1.0, 0.45), g + 0.6, g + 4.4, _b, KP_DARK)
-	_mode = M_STONE
+	_prism(eave, g + 6.0, g + 6.6, KORD_WHITE.lightened(0.04), Color("#8d8b86"), M_STONE, M_STONE)
+	# the street face, 15.6 m: seven openings between pilasters
+	var face := 15.6
+	var step := face / 7.0
+	for k in 7:
+		var u := step * (k + 0.5)
+		if k == 3:
+			_kp_arch_open(u, 0.05, g + 0.8, g + 4.0, 0.8, KP_WOOD)
+		else:
+			_kp_arch_open(u, 0.05, g + 1.2, g + 4.2, 0.65, KP_DARK)
+	for k in 8:
+		_lbox(step * k, 0.1, 0.22, 0.12, g + 0.8, g + 6.0, KORD_WHITE.lightened(0.03), M_STONE, KORD_WHITE)
+	# the attic: a balustrade along the street face, the sculpture groups
+	_kp_balustrade(0.3, 0.1, face - 0.3, 0.1, g + 6.6, 0.9, KORD_WHITE, 1.6)
+	for u: float in [0.6, face * 0.5, face - 0.6]:
+		_lbox(u, 0.1, 0.7, 0.55, g + 6.6, g + 7.6, KORD_WHITE, M_STONE, KORD_WHITE)
+		_kp_figure(u - 0.3, 0.1, g + 7.6, 1.7, KORD_SCULPT)
+		_kp_figure(u + 0.35, 0.1, g + 7.6, 1.4, KORD_SCULPT)
 	_collide(ring)
 
 
-## Hotel Bristol's corner tower (1901): the mass stays LoD2's (a kept skin); the model sets a
-## round tower on its rounded corner at Krakowskie Przedmieście: a drum with pilasters, a
-## ring cornice, a copper dome with a lantern, a spire and a ball. Its base is sunk in the
-## roof, so a LoD2 roof a little higher or lower than OSM's 27.4 m does not open a gap.
+## Hotel Bristol (1901), photos 12-15: the mass stays LoD2's (a kept skin in cream with a grey
+## zinc mansard); the hotels pass adds the plinth, balconies, cornice, dormers and the door with
+## its board; this adds the corner tower on the rounded south-west corner at Karowa: a cream drum
+## with pilasters up to the roof and on it an open round belvedere, eight thin columns on a
+## balustraded ring under a flat cream dome cap. Its base is sunk in the roof, so a LoD2 roof a
+## little higher or lower than OSM's 27.4 m does not open a gap.
 func _build_bristol(site: Dictionary) -> void:
 	var zone: PackedVector2Array = (site["zone"] as Array)[0]
 	var ring := _simplify(zone, 0.9)
 	_palace_hotel(ring, _ground_under(ring), BRISTOL_H, {
-			"wall": Color("#e4d2b4"), "base": Color("#b9a98a"), "trim": KP_TRIM, "slate": Color("#6b6a6c"),
+			"wall": BRISTOL_WALL, "base": BRISTOL_SHADE, "trim": KP_TRIM, "slate": BRISTOL_SLATE,
 			"glass": Color("#33383e"), "name": "BRISTOL", "name_w": 5.4, "board": Color("#2a2420"),
 			"tube": Color(1.0, 0.82, 0.45), "whole": false, "street_at": Vector2(-592.0, -915.0), "avoid": BRISTOL_TOWER, "avoid_r": 7.5,
-			"canopy": KP_COPPER}, PackedVector2Array())
+			"canopy": Color("#2b2b2b")}, PackedVector2Array())
 	var c := BRISTOL_TOWER
 	_g = map.terrain_height(c.x, c.y)
 	var g := _g
-	var base := g + 26.0
-	var wall := Color("#e4d2b4")
+	var top := g + 32.4  # the LoD2 roof at the corner (32.7 m over the street)
+	var none := Color(0, 0, 0, 0)
 	_mode = M_STONE
-	_prism(_circle(c, 3.4, 12), g - 0.5, base + 6.4, wall, wall, M_MONUMENT, M_STONE)
+	_prism(_circle(c, 3.4, 12), g - 0.5, top, BRISTOL_WALL, BRISTOL_WALL, M_MONUMENT, M_STONE)
 	for k in 8:  # pilasters round the drum
 		var d := Vector2.from_angle(TAU * (k + 0.5) / 8.0)
-		_prism(_circle(c + d * 3.6, 0.3, 4), base, base + 6.4, KP_TRIM, KP_TRIM, M_STONE, M_STONE)
-	_prism(_circle(c, 4.2, 12), base + 6.4, base + 7.2, KP_TRIM, KP_TRIM, M_STONE, M_STONE)
-	_frustum(_circle(c, 3.9, 12), base + 7.2, _circle(c, 3.1, 12), base + 8.6, KP_COPPER)
-	_frustum(_circle(c, 3.1, 12), base + 8.6, _circle(c, 1.4, 12), base + 11.4, KP_COPPER)
-	_frustum(_circle(c, 1.4, 12), base + 11.4, _circle(c, 0.9, 12), base + 12.0, KP_COPPER)
-	_prism(_circle(c, 0.9, 12), base + 12.0, base + 13.6, KP_TRIM, KP_COPPER, M_MONUMENT, M_STONE)
-	_frustum(_circle(c, 1.0, 12), base + 13.6, _circle(c, 0.12, 12), base + 16.4, KP_COPPER, KP_COPPER)
-	_frustum(_circle(c, 0.25, 8), base + 16.4, _circle(c, 0.5, 8), base + 16.8, KP_GOLD)
-	_frustum(_circle(c, 0.5, 8), base + 16.8, _circle(c, 0.1, 8), base + 17.4, KP_GOLD, KP_GOLD)
+		_prism(_circle(c + d * 3.6, 0.3, 4), g + 6.0, top, KP_TRIM, KP_TRIM, M_STONE, M_STONE)
+	_prism(_circle(c, 3.9, 12), top, top + 0.5, KP_TRIM, KP_TRIM, M_STONE, M_STONE)
+	_prism(_circle(c, 3.6, 12), top + 0.5, top + 1.3, BRISTOL_WALL, none, M_STONE)  # the balustrade
+	_prism(_circle(c, 1.7, 8), top + 0.5, top + 4.0, Color("#4a4842"), none, M_STONE)  # the open belvedere's shade
+	for k in 8:
+		var d := Vector2.from_angle(TAU * k / 8.0)
+		_prism(_circle(c + d * 3.0, 0.2, 6), top + 1.3, top + 4.0, KP_TRIM, none, M_STONE)
+	_prism(_circle(c, 3.5, 12), top + 4.0, top + 4.6, KP_TRIM, KP_TRIM, M_STONE, M_STONE)
+	_frustum(_circle(c, 3.3, 12), top + 4.6, _circle(c, 2.0, 12), top + 5.6, BRISTOL_WALL)
+	_frustum(_circle(c, 2.0, 12), top + 5.6, _circle(c, 0.5, 12), top + 6.2, BRISTOL_WALL, BRISTOL_WALL)
+	_prism(_circle(c, 0.12, 6), top + 6.2, top + 7.4, KP_GOLD, KP_GOLD, M_STONE, M_STONE)
 
 
 ## Rynek Mariensztacki (BACKLOG M2): the 1949 estate's square. Its six houses on the south side
@@ -15274,3 +15572,112 @@ func _menorah(p: Vector2, y: float, s: float) -> void:
 			var elbow := foot + up * low + side * sd * r
 			_beam(foot + up * low, elbow, 0.08 * s, GETTO_BRONZE)
 			_beam(elbow, foot + up * 1.9 + side * sd * r, 0.08 * s, GETTO_BRONZE)
+
+
+# --- Plac Piłsudskiego from photos (2026-11-02) ----------------------------------------------------
+
+## The square's monuments and masts, from the reference set F's Mac gathered (refs/pilsudskiego/:
+## 6 Commons photos and the GUGiK ortho; docs/landmarks/photo-reports/pilsudskiego.md), in place
+## of the generic OSM pieces (tools/bake_monuments.py SKIP). Spec docs/landmarks/specs/plac_pilsudskiego.md.
+## The paving's chequer is the ground shader's (`plac_at`). No humour on any of them.
+## Pomnik Ofiar Tragedii Smoleńskiej 2010 (2018): a polished black stone stair seen from the side,
+## sheer on the west, stepped down to the east, ~10 m tall, 4 m deep, 6 m long, on a low base of
+## glass and water. The spot is the ortho's (OSM (-761, -736)).
+const SMOLENSK := Vector2(-765.0, -737.0)
+const SMOLENSK_BLACK := Color("#1e1e22")
+const SMOLENSK_GLASS := Color("#2b3a42")
+## Józef Piłsudski (Tadeusz Łodziana, 1995): the marshal in a greatcoat, both hands on the sabre, on
+## a rough granite block; OSM's spot (in the ortho's censored part), facing the square.
+const PILSUDSKI := Vector2(-673.3, -817.8)
+## Lech Kaczyński (2021): a standing bronze on a stepped pedestal of dark granite, which OSM maps
+## as two 2.5 m "buildings" (x -681.7..-672.3, z -768..-756.7) beside its statue node (-671.3,
+## -762.7); the model replaces them. The report read a statue's shadow at (-745, -823): that is
+## the Papal Cross's (OSM (-738, -817)).
+const KACZYNSKI := Vector2(-677.0, -762.3)
+const PLAC_CENTRE := Vector2(-780.0, -800.0)
+const PLAC_BRONZE := Color("#4a4f46")
+const PLAC_GRANITE := Color("#8f8d88")
+const PLAC_DARK_GRANITE := Color("#2e3032")
+## The masts round the paved field (photo 1: about ten thin poles), five along each long side.
+const PLAC_MASTS := [Vector2(-832.0, -863.0), Vector2(-806.0, -864.0), Vector2(-780.0, -864.5), Vector2(-754.0, -865.0),
+		Vector2(-741.0, -864.0), Vector2(-832.0, -741.0), Vector2(-806.0, -740.5), Vector2(-786.0, -740.0),
+		Vector2(-744.0, -739.5), Vector2(-724.0, -739.0)]
+const PLAC_MAST_H := 14.0
+
+
+func _find_plac_photos() -> void:
+	_add_site("smolensk", [_circle(SMOLENSK, 7.4, 12)])
+	_add_site("pilsudski", [_circle(PILSUDSKI, 2.2, 10)])
+	_add_site("kaczynski", [_circle(KACZYNSKI, 6.6, 12)])
+	var zones: Array = []
+	for p: Vector2 in PLAC_MASTS:
+		zones.append(_circle(p, 0.4, 6))
+	_add_site("plac_maszty", zones)
+
+
+## The frame of a statue on `at` facing the square: +v towards it.
+func _plac_frame(at: Vector2) -> void:
+	_o = at
+	_b = (PLAC_CENTRE - at).normalized()
+	_a = Vector2(_b.y, -_b.x)
+
+
+func _build_smolensk(_site: Dictionary) -> void:
+	_o = SMOLENSK
+	_a = Vector2(0.0, -1.0)  # u north along its 6 m length
+	_b = Vector2(1.0, 0.0)   # +v east, where the steps come down
+	_g = map.terrain_height(SMOLENSK.x, SMOLENSK.y)
+	var g := _g
+	_mode = M_STONE
+	_lbox(0.0, 0.0, 4.5, 3.6, g - 0.4, g + 0.25, SMOLENSK_GLASS, M_STONE, SMOLENSK_GLASS.lightened(0.15))
+	_lbox(0.0, 0.0, 3.4, 2.4, g + 0.25, g + 0.3, SMOLENSK_BLACK, M_STONE, Color("#4c6670"))  # the water film
+	var steps := 8
+	var rise := 9.7 / steps
+	for k in steps:  # sheer at v = -2, each step 0.5 m shorter towards the east
+		var v1 := 2.0 - 0.5 * k
+		_lbox(0.0, (-2.0 + v1) * 0.5, 3.0, (v1 + 2.0) * 0.5, g + 0.3 + rise * k, g + 0.3 + rise * (k + 1),
+				SMOLENSK_BLACK, M_STONE, SMOLENSK_BLACK.lightened(0.06))
+	_collide(_rect(0.0, 0.0, 7.0, 7.0))  # a car keeps clear of the base (the check tests from its tallest cell, 4 m off the middle)
+
+
+func _build_pilsudski(_site: Dictionary) -> void:
+	_plac_frame(PILSUDSKI)
+	_g = map.terrain_height(PILSUDSKI.x, PILSUDSKI.y)
+	var g := _g
+	_mode = M_STONE
+	_lbox(0.0, 0.0, 1.6, 1.6, g - 0.3, g + 0.25, PLAC_GRANITE.darkened(0.1), M_STONE, PLAC_GRANITE)
+	# the rough block, a little uneven, the lettering panel and the two eagle badges
+	_frustum(_rect(0.0, 0.0, 1.3, 1.25), g + 0.25, _rect(0.05, 0.0, 1.15, 1.1), g + 3.1, PLAC_GRANITE, PLAC_GRANITE.lightened(0.05))
+	_lbox(0.0, 1.2, 0.8, 0.04, g + 1.6, g + 2.4, PLAC_GRANITE.lightened(0.18), M_STONE, PLAC_GRANITE)
+	for su: float in [-1.0, 1.0]:
+		_lbox(su * 1.05, 1.12, 0.22, 0.06, g + 2.5, g + 2.95, PLAC_BRONZE, M_STONE, PLAC_BRONZE)
+	_kp_figure(0.0, 0.0, g + 3.1, 3.4, PLAC_BRONZE)
+	_lbox(0.0, 0.45, 0.05, 0.05, g + 3.1, g + 4.8, PLAC_BRONZE, M_STONE, PLAC_BRONZE)  # the sabre under his hands
+	_lbox(0.0, 0.38, 0.22, 0.12, g + 4.7, g + 4.9, PLAC_BRONZE, M_STONE, PLAC_BRONZE)
+	_collide(_rect(0.0, 0.0, 1.6, 1.6))
+
+
+func _build_kaczynski(_site: Dictionary) -> void:
+	_plac_frame(KACZYNSKI)
+	_g = map.terrain_height(KACZYNSKI.x, KACZYNSKI.y)
+	var g := _g
+	_mode = M_STONE
+	_lbox(0.0, 0.0, 4.8, 5.4, g - 0.3, g + 0.8, PLAC_DARK_GRANITE, M_STONE, PLAC_DARK_GRANITE.lightened(0.08))
+	_lbox(0.0, 0.0, 3.4, 3.9, g + 0.8, g + 1.65, PLAC_DARK_GRANITE, M_STONE, PLAC_DARK_GRANITE.lightened(0.1))
+	_lbox(0.0, 0.0, 2.0, 2.3, g + 1.65, g + 2.5, PLAC_DARK_GRANITE, M_STONE, PLAC_DARK_GRANITE.lightened(0.12))
+	_kp_figure(0.0, 0.0, g + 2.5, 3.6, PLAC_BRONZE)
+	_collide(_rect(0.0, 0.0, 4.8, 5.4))
+
+
+func _build_plac_masts(_site: Dictionary) -> void:
+	_mode = M_STONE
+	for p: Vector2 in PLAC_MASTS:
+		_g = map.terrain_height(p.x, p.y)
+		var g := _g
+		_prism(_circle(p, 0.28, 6), g - 0.3, g + 0.6, PLAC_GRANITE, PLAC_GRANITE, M_STONE, M_STONE)
+		_frustum(_circle(p, 0.13, 6), g + 0.6, _circle(p, 0.08, 6), g + PLAC_MAST_H, Color("#9a9c9e"), Color("#9a9c9e"))
+		_prism(_circle(p, 0.2, 6), g + PLAC_MAST_H, g + PLAC_MAST_H + 0.4, Color("#f4eedc"), Color("#f4eedc"), M_LAMP, M_LAMP)
+		_o = p
+		_a = Vector2(1.0, 0.0)
+		_b = Vector2(0.0, 1.0)
+		_collide(_rect(0.0, 0.0, 0.3, 0.3))
