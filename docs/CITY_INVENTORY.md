@@ -50,7 +50,7 @@ often, known to every visitor; **B** characteristic, known to locals, gives a st
 **C** texture (named tenements, offices, embassies, small institutions) in Part 2 only.
 
 <!-- counts:start -->
-**Counts** (Part 1, 145 ranked rows): ★ 20 photo builds · ◐ 53 outline builds · ○ 23 dress only · ⏳ 8 in progress · ✗ 41 not done. Part 2 adds 542 named outlines (tier C): 19 with a model of their own, 73 dressed or named in the game, 450 plain blocks. From OpenStreetMap points (the monuments and plaques stand as generic pieces from tools/bake_monuments.py since 2026-11-02, the rest are not baked): 216 monuments and sculptures, 26 murals, 267 bars and clubs, 102 museums and galleries, 38 theatres and cinemas, 4 malls, 34 hotels, 688 plaques and memorial stones (the named office buildings are already outlines above).
+**Counts** (Part 1, 145 ranked rows): ★ 20 photo builds · ◐ 54 outline builds · ○ 23 dress only · ⏳ 8 in progress · ✗ 40 not done. Part 2 adds 542 named outlines (tier C): 19 with a model of their own, 73 dressed or named in the game, 450 plain blocks. From OpenStreetMap points (the monuments and plaques stand as generic pieces from tools/bake_monuments.py since 2026-11-02, the rest are not baked): 216 monuments and sculptures, 26 murals, 267 bars and clubs, 102 museums and galleries, 38 theatres and cinemas, 4 malls, 34 hotels, 688 plaques and memorial stones (the named office buildings are already outlines above).
 <!-- counts:end -->
 
 ## Part 1. The ranked list
@@ -232,6 +232,9 @@ Proposed order for the next threads (photos first, see "Why some places were reb
 8. Świętokrzyska's big three: NBP, Poczta Główna, PAST-a (75, 76, 78); Filharmonia (77).
 9. Photo re-pass of the outline builds on the first ten minutes' routes: Varso, Złote Tarasy, Teatr Wielki, Krakowskie Przedmieście (7, 8, 18, 24-27). Krakowskie Przedmieście's gather list is parked in QUESTIONS (2026-11-02).
 10. Praga's faces: the cathedral of St Michael and St Florian, Koneser, Bazar Różyckiego, Wschodnia (84-86, 73).
+
+Tier C street passes (Part 2's named outlines and points, street by street, no photo builds): Nowogrodzka's
+bar strip, pass 1 (2026-11-03: eight parody bar fascias, pavement crowds at night); next Mazowiecka's clubs.
 
 <!-- streets:start -->
 ## Part 2. Street by street

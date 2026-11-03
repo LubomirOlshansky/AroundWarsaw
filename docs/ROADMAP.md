@@ -191,6 +191,10 @@ then the Launch gate.
 - [x] Marszałkowska street by street, pass 4 (F, 2026-11-02): eight neon shopfronts of old trades on
       mapped house numbers (milk bar, dry cleaner, watchmaker, pastry, optician, florist, haberdashery,
       herbalist). Open: house plaster/cornices and crossings need photos (QUESTIONS, BACKLOG)
+- [x] Nowogrodzka street by street, pass 1 (2026-11-03): the bar strip between Marszałkowska and Bracka,
+      eight parody bar fascias at the real bars' OSM points (`Storefronts.NOWOGRODZKA`) and pavement
+      crowds on a new pub curve (`Crowds.NOWOGRODZKA`, `pub_level`). Open: Mac look check, the houses
+      and the shot bars' yard at no. 22 (BACKLOG "Nowogrodzka street by street")
 - [x] Old Town Market Square and its Syrenka (F, 2026-11-01): cobbled paving, 58 café umbrellas, the
       fountain's rim and the bronze mermaid with sword and shield, two cards (spec rynek.md);
       Mac photo check parked (QUESTIONS)

@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-03
+- Nowogrodzka's bar strip comes alive at night: eight neon bar signs between Marszałkowska and Bracka (KWARTA, U HALINKI, ZA BARDZO, KRAFTOWNIA, SCHRON PIWNY, PODWÓRKO 22, NALEWALNIA, DŻINIARNIA) and people with a drink and a cigarette on the pavement outside, busiest on Friday and Saturday nights.
 - Warszawa Wschodnia stands on Praga's side of the tracks: a long glass hall under a flat roof with a zig-zag folded edge on green V-shaped legs, WARSZAWA WSCHODNIA in white letters over the platforms, and rust-brown roofs on columns over its five island platforms.
 
 ## 2026-11-02
