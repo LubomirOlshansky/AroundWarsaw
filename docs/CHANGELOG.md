@@ -9,6 +9,9 @@ that day here, in plain words a player would understand (no file names, no spoil
 rows in the progress log but no section here is listed automatically from the log's labels until
 someone writes its lines.
 
+## 2026-11-03
+- Plac Bankowy's palaces look like the real ones: pale cream under green copper roofs, the city hall's wings end in white colonnades with the giant six-column portico at the back of its courtyard, and the old Bank Polski's rounded corner has its tier of arches and a green dome. On Jasna the Philharmonic shows its colonnade with a composer on every window sill and its green FN neon, and Teatr Polski on Karasia has its round corner bays and oval windows.
+
 ## 2026-11-02
 - With a gamepad, the hints name the buttons the way your pad prints them (×, R2 and L2 on a PlayStation pad; B and ZR on a Nintendo one), and crashes and bumps rumble the pad instead of the phone.
 - Sliding along a building no longer wedges the car in a gap or a notch between two houses (it got stuck and towed by the glass corner on the Chmielna square): the car slides on past them everywhere in the city.

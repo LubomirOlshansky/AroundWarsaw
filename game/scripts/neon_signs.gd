@@ -57,7 +57,9 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		# Varso Place's name stone on the corner plaza (Krajobraz K3; a parody, never the real mark).
 		"VERSO PLACE",
 		# The Skyliner's crown (docs/design/city-life-satire.md #12): a small agency with a large nose.
-		"NOSE AGENCY"]
+		"NOSE AGENCY",
+		# Filharmonia Narodowa's own green neon on its corner (the institution's name, not a brand).
+		"FN", "SALA KONCERTOWA"]
 ## Tube colours (linear, bright): pink, cyan, violet, and a few words' usual colours.
 const PINK := Color(1.0, 0.1, 0.55)
 const CYAN := Color(0.1, 0.9, 1.0)

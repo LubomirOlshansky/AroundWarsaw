@@ -303,6 +303,12 @@ const INFO := {
 	"gielda": ["Giełda i Bank Polski",
 			"Klasycystyczny gmach Corazziego z rotundą, kiedyś giełda, dziś siedziba spółek.",
 			"Corazzi's classical bourse and bank with its rotunda, now offices."],
+	"filharmonia": ["Filharmonia Narodowa",
+			"Sala koncertowa przy Jasnej, otwarta w 1901 roku, odbudowana w 1955. Tu odbywa się Konkurs Chopinowski.",
+			"The concert hall on Jasna, opened in 1901, rebuilt in 1955. The Chopin Competition is played here."],
+	"teatr_polski": ["Teatr Polski",
+			"Teatr Arnolda Szyfmana przy Karasia, otwarty w 1913 roku.",
+			"Arnold Szyfman's theatre on Karasia, opened in 1913."],
 	"arsenal": ["Arsenał",
 			"Siedemnastowieczny arsenał królewski, od 1953 Muzeum Archeologiczne.",
 			"The seventeenth-century royal arsenal, the Archaeological Museum since 1953."],
@@ -1232,6 +1238,18 @@ func build(surface, near := Rect2(), only := "") -> void:
 			"zamek":
 				_mark_zone(s)  # the mass stays LoD2's, in its skin; the stone plinth is ours
 				_build_zamek(s)
+			"ratusz":
+				_mark_zone(s)  # the mass stays LoD2's, in its skin; the colonnades and portico are ours
+				_build_ratusz(s)
+			"gielda":
+				_mark_zone(s)  # the mass stays LoD2's, in its skin; the corner's arches and dome are ours
+				_build_gielda(s)
+			"filharmonia":
+				_mark_zone(s)  # the mass stays LoD2's, in its skin; the Jasna front is ours
+				_build_filharmonia(s)
+			"teatr_polski":
+				_mark_zone(s)  # the mass stays LoD2's, in its skin; the Karasia front is ours
+				_build_teatr_polski(s)
 			"sw_krzyz":
 				_mark_zone(s)  # the mass stays LoD2's, in its skin; the facade and towers are ours
 				_build_krzyz(s)
@@ -3470,14 +3488,19 @@ const SKINS := [
 	{"key": "potocki", "osm": "Pałac Potockich", "mode": M_MONUMENT, "wall": "#e8d9a8", "roof": "#7a6e68"},
 	{"key": "bristol", "osm": "Hotel Bristol", "mode": M_MONUMENT, "wall": "#e4d2b4", "roof": "#6a5a52"},
 	# Plac Bankowy (2026-11-02): the palaces round the square in their real colours.
-	{"key": "ratusz", "osm": "Urząd Miasta Stołecznego Warszawy", "mode": M_MONUMENT, "wall": "#e6d8a0", "roof": "#76847a"},
-	{"key": "wojewodzki", "osm": "Mazowiecki Urząd Wojewódzki", "mode": M_MONUMENT, "wall": "#e3d6a8", "roof": "#76847a"},
-	{"key": "gielda", "osm": "Gmach Giełdy i Banku Polskiego", "mode": M_MONUMENT, "wall": "#e4d8b2", "roof": "#7a847c"},
+	# The Mac photo report (ratusz.md, 2026-11-02): pale ochre-cream walls under green copper;
+	# the colonnades, the portico and the rotunda are models (_build_ratusz, _build_gielda).
+	{"key": "ratusz", "osm": "Urząd Miasta Stołecznego Warszawy", "mode": M_MONUMENT, "wall": "#e6d6ae", "roof": "#7da894"},
+	{"key": "wojewodzki", "osm": "Mazowiecki Urząd Wojewódzki", "mode": M_MONUMENT, "wall": "#e6d6ae", "roof": "#7da894"},
+	{"key": "gielda", "osm": "Gmach Giełdy i Banku Polskiego", "mode": M_MONUMENT, "wall": "#e6d6ae", "roof": "#7da894"},
 	{"key": "arsenal", "osm": "Arsenał", "mode": M_MONUMENT, "wall": "#e8dfc6", "roof": "#8b5a44"},
 	{"key": "mniszchow", "osm": "Pałac Mniszchów", "mode": M_MONUMENT, "wall": "#e2cdb6", "roof": "#7a6a62"},
 	{"key": "landau", "osm": "Dom Bankowy Landaua", "mode": M_MONUMENT, "wall": "#d9b99e", "roof": "#6e6660"},
 	{"key": "kazimierzowski", "osm": "Pałac Kazimierzowski", "mode": M_MONUMENT, "wall": "#e6d9ac", "roof": "#6e6a62"},
 	{"key": "sejm", "osm": "Sejm RP", "mode": M_MONUMENT, "wall": "#e2e0d8", "roof": "#8d8f8c"},
+	# The Mac photo reports (2026-11-02): the masses in their stone; the fronts are models.
+	{"key": "filharmonia", "osm": "Filharmonia Narodowa", "mode": M_MONUMENT, "wall": "#e3ded2", "roof": "#8e9392"},
+	{"key": "teatr_polski", "osm": "Teatr Polski", "mode": M_MONUMENT, "wall": "#e2ddcd", "roof": "#76a08c"},
 	# Dom Partii (F's photo, 2026-11-01): the white stone block at Rondo de Gaulle'a; its extras
 	# (the roof sign, the courtyard) are the site `dom_partii_extras`.
 	{"key": "dom_partii", "osm": "Centrum Bankowo-Finansowe", "mode": M_MONUMENT, "wall": "#ebe8df", "roof": "#8e9091"},
@@ -8661,6 +8684,407 @@ func _build_teatr(_site: Dictionary) -> void:
 		_wall(_w(m + u - 1.0, 0.13), _w(m + u + 1.0, 0.13), g + 3.6, g + 8.0, _b, Color("#3a3d40"))
 	_mode = M_STONE
 	_collide(_rect(m, 4.0, 15.0, 6.0))
+
+
+# --- Plac Bankowy: Corazzi's palaces and the Bank Polski rotunda -----------------------------
+
+## Plac Bankowy's west side (Antonio Corazzi, 1825-1830; spec docs/landmarks/specs/bankowy.md,
+## from the Mac's Commons photos and GUGiK ortho in docs/landmarks/photo-reports/ratusz.md,
+## 2026-11-02). The masses stay LoD2's in their skins, now in the photos' pale ochre-cream under
+## green copper; the models add what LoD2 squashes into stubs. The Ratusz (Pałac Komisji
+## Rządowej Przychodów i Skarbu): the cour d'honneur open to the square, both wings ending in
+## colonnades of free-standing white columns two storeys tall under an entablature, the small
+## four-column porches in the court, and at the court's back the giant portico of six Corinthian
+## columns on an arcaded base under an attic with no pediment. The Bank Polski and Exchange
+## (Gmach Giełdy i Banku Polskiego) at Bielańska: the rounded corner's upper tier of round
+## arches over the open arcade, the drum and its shallow green dome. Column positions and the
+## rotunda's rings are OpenStreetMap's (building parts with heights), which match the ortho.
+const BANK_WALL := Color("#e6d6ae")
+const BANK_COLUMN := Color("#f2eee3")
+const BANK_TRIM := Color("#ece4cc")
+const BANK_BASE := Color("#cdbf98")
+const BANK_ROOF := Color("#7da894")
+const BANK_DARK := Color("#27303a")
+const BANK_LEAD := Color("#a3aaa8")
+## Columns closer than this (m) carry one entablature (the colonnades' ~2.7 m, the porches' ~3.3 m).
+const BANK_SPAN := 3.45
+## The giant portico: its six front columns (OSM) run from BANK_PORTICO_A to _B, it reaches
+## BANK_PORTICO_DEPTH m back to the wall, the columns stand on the arcaded base's top.
+const BANK_PORTICO_A := Vector2(-1587.6, -995.69)
+const BANK_PORTICO_B := Vector2(-1595.27, -1010.9)
+const BANK_PORTICO_DEPTH := 5.2
+const BANK_PORTICO_BASE := 6.6
+const BANK_PORTICO_TOP := 16.8
+## The rotunda (OSM's round parts): centre, the drum's radius and its top, the dome's rise; the
+## rounded corner's upper face (radius), and the open arcade's piers round the corner (the map's
+## own 1.3-2.3 m piers, kept by LoD2; ours stand over them), an arched window over each opening.
+const BANK_ROT := Vector2(-1479.7, -894.85)
+const BANK_ROT_R := 12.05
+const BANK_ROT_DRUM := Vector2(13.2, 17.5)
+const BANK_ROT_RISE := 4.0
+const BANK_ROT_FACE := 15.75
+const BANK_ROT_PIERS := [Vector2(-1466.8, -904.6), Vector2(-1465.2, -900.8), Vector2(-1464.5, -896.9),
+		Vector2(-1464.7, -893.0), Vector2(-1465.8, -889.2), Vector2(-1467.5, -885.8), Vector2(-1470.2, -882.9),
+		Vector2(-1473.4, -879.9)]
+
+
+## The Ratusz: what stands on the mapped columns and the giant portico (`_bank_portico`).
+func _build_ratusz(site: Dictionary) -> void:
+	var outline: PackedVector2Array = site["zone"][0]
+	var grown := Geometry2D.offset_polygon(outline, 3.0, Geometry2D.JOIN_MITER)
+	if grown.is_empty():
+		return
+	_o = Vector2.ZERO
+	_a = Vector2(1, 0)
+	_b = Vector2(0, 1)
+	# the colonnades and porches: the mapped columns two storeys tall (the giant ones are the portico's)
+	var cols: Array[Dictionary] = []
+	for bld in _parts_in(grown[0], func(b: Dictionary) -> bool:
+			return str(b["kind"]) == "column" and float(b["h"]) < 12.0):
+		var q := _pts(bld["p"])
+		var c := _centre(q)
+		var r := 0.0
+		for p in q:
+			r = maxf(r, p.distance_to(c))
+		cols.append({"c": c, "r": r, "y0": float(bld["mh"]), "y1": float(bld["h"])})
+	_bank_colonnades(cols)
+	_bank_portico()
+
+
+## Columns and their entablatures: every chain of columns closer than BANK_SPAN gets one
+## stylobate under it and one entablature (a cornice on top) over it, as single polygons so
+## the corners do not double up.
+func _bank_colonnades(cols: Array[Dictionary]) -> void:
+	var n := cols.size()
+	var links: Array = []
+	for i in n:
+		links.append([])
+	for i in n:
+		for j in range(i + 1, n):
+			if (cols[i]["c"] as Vector2).distance_to(cols[j]["c"]) < BANK_SPAN:
+				links[i].append(j)
+				links[j].append(i)
+	var seen := {}
+	for i in n:
+		var c: Vector2 = cols[i]["c"]
+		var g: float = map.terrain_height(c.x, c.y)
+		var r: float = cols[i]["r"] + 0.06
+		_column(c.x, c.y, r, g + float(cols[i]["y0"]), g + float(cols[i]["y1"]), BANK_COLUMN)
+	# walk each chain from an end (or any column of a ring)
+	for start in n:
+		if seen.has(start) or (links[start] as Array).size() > 1 and _bank_has_end(start, links, seen):
+			continue
+		var chain := PackedVector2Array()
+		var at := start
+		var prev := -1
+		var y1: float = cols[start]["y1"]
+		var y0: float = cols[start]["y0"]
+		var r: float = cols[start]["r"]
+		while at >= 0 and not seen.has(at):
+			seen[at] = true
+			chain.append(cols[at]["c"])
+			var nxt := -1
+			for j: int in links[at]:
+				if j != prev and not seen.has(j):
+					nxt = j
+					break
+			prev = at
+			at = nxt
+		if chain.size() < 2:
+			continue
+		var g: float = map.terrain_height(chain[0].x, chain[0].y)
+		for p in chain:
+			g = minf(g, map.terrain_height(p.x, p.y))
+		var keep := _mode
+		_mode = M_STONE
+		for poly in _bank_band(chain, r + 0.55, 0.9, g - 0.5, g + minf(y0, 1.6), BANK_BASE, BANK_TRIM):
+			_collide(poly)
+		_bank_band(chain, r + 0.15, 0.3, g + y1, g + y1 + 1.0, BANK_TRIM, BANK_TRIM)
+		_bank_band(chain, r + 0.35, 0.5, g + y1 + 1.0, g + y1 + 1.4, BANK_TRIM.lightened(0.04), BANK_LEAD)
+		_mode = keep
+
+
+## Whether column i's chain still has an unwalked end (so the walk starts there, not mid-chain).
+func _bank_has_end(i: int, links: Array, seen: Dictionary) -> bool:
+	var todo := [i]
+	var met := {i: true}
+	while not todo.is_empty():
+		var k: int = todo.pop_back()
+		if (links[k] as Array).size() <= 1 and not seen.has(k):
+			return true
+		for j: int in links[k]:
+			if not met.has(j):
+				met[j] = true
+				todo.append(j)
+	return false
+
+
+## A band `half` m each side of the polyline `chain`, run on `ext` m past both ends, y0 to y1.
+## Returns the band's outlines (the stylobate's are the car's).
+func _bank_band(chain: PackedVector2Array, half: float, ext: float, y0: float, y1: float, col: Color, top: Color) -> Array[PackedVector2Array]:
+	var line := chain.duplicate()
+	line[0] = chain[0] + (chain[0] - chain[1]).normalized() * ext
+	var last := chain.size() - 1
+	line[last] = chain[last] + (chain[last] - chain[last - 1]).normalized() * ext
+	var out: Array[PackedVector2Array] = []
+	for poly: PackedVector2Array in Geometry2D.offset_polyline(line, half, Geometry2D.JOIN_MITER, Geometry2D.END_BUTT):
+		if poly.size() >= 3:
+			_prism(poly, y0, y1, col, top, M_STONE, M_STONE)
+			out.append(poly)
+	return out
+
+
+## The giant portico at the court's back: the rusticated arcaded base, six columns, the
+## entablature and the plain attic, the dark back wall with its tall windows between.
+## Frame: u from the north-east column along the row, +v out of the portico into the court.
+func _bank_portico() -> void:
+	_o = BANK_PORTICO_A
+	_a = (BANK_PORTICO_B - BANK_PORTICO_A).normalized()
+	_b = Vector2(-_a.y, _a.x)
+	if _b.dot(Vector2(0.893, -0.45)) < 0.0:
+		_b = -_b
+	var span := BANK_PORTICO_A.distance_to(BANK_PORTICO_B)
+	var m := span * 0.5
+	var d := BANK_PORTICO_DEPTH
+	_g = map.terrain_height(_w(m, 0.0).x, _w(m, 0.0).y)
+	var g := _g
+	var base := g + BANK_PORTICO_BASE
+	var top := g + BANK_PORTICO_TOP
+	var bay := span / 5.0
+	# the back wall inside the portico, its tall windows (the arches go first: they stand off it)
+	for k in 5:
+		_arch_panel(_w((k + 0.5) * bay, -d + 0.3), _a, _b, 0.85, base + 1.2, base + 5.6, BANK_DARK, 0.04, M_GLASS)
+	_lbox(m, -d + 0.15, m + 1.0, 0.15, base, top, BANK_WALL.darkened(0.08), M_STONE, BANK_WALL)
+	# the base: rusticated, a round arch under each bay, a string course on top
+	for k in 5:
+		_arch_panel(_w((k + 0.5) * bay, 1.0), _a, _b, 1.05, g + 0.4, g + 4.2, BANK_DARK, 0.04, M_STONE)
+	_lbox(m, -d * 0.5 + 0.5, m + 1.0, d * 0.5 + 0.5, g - 0.6, base - 0.4, BANK_BASE, M_STONE, BANK_BASE)
+	_lbox(m, -d * 0.5 + 0.55, m + 1.1, d * 0.5 + 0.55, base - 0.4, base, BANK_TRIM, M_STONE, BANK_TRIM.darkened(0.04))
+	# six Corinthian columns
+	for k in 6:
+		_column(k * bay, 0.0, 0.74, base, top, BANK_COLUMN)
+	# the entablature, its cornice, and the attic over the portico (no pediment)
+	_lbox(m, -d * 0.5 + 0.35, m + 0.95, d * 0.5 + 0.35, top, top + 1.4, BANK_TRIM, M_STONE, BANK_TRIM)
+	_lbox(m, -d * 0.5 + 0.5, m + 1.2, d * 0.5 + 0.5, top + 1.4, top + 1.9, BANK_TRIM.lightened(0.04), M_STONE, BANK_LEAD)
+	_lbox(m, -d * 0.5 + 0.2, m + 0.7, d * 0.5 + 0.2, top + 1.9, top + 4.1, BANK_WALL, M_STONE, BANK_LEAD)
+	_lbox(m, -d * 0.5 + 0.3, m + 0.8, d * 0.5 + 0.3, top + 4.1, top + 4.4, BANK_TRIM, M_STONE, BANK_LEAD)
+	_collide(_rect(m, -d * 0.5 + 0.5, m + 1.0, d * 0.5 + 0.5))
+
+
+## The Bank Polski's rounded corner: the upper tier's round arches over the open arcade (whose
+## piers are the map's), a cornice, the drum ringed by small windows and the shallow green dome.
+func _build_gielda(_site: Dictionary) -> void:
+	_o = Vector2.ZERO
+	_a = Vector2(1, 0)
+	_b = Vector2(0, 1)
+	var c := BANK_ROT
+	_g = map.terrain_height(c.x + BANK_ROT_FACE, c.y)  # the corner's foot, on the street
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	# the arcade's piers round the corner, the cornice band over them, an arched window over each
+	# opening in the upper tier, the cornice under the drum
+	var angles: Array[float] = []
+	for pc: Vector2 in BANK_ROT_PIERS:
+		var out := (pc - c).normalized()
+		var along := Vector2(-out.y, out.x)
+		var h := 1.2
+		_prism(PackedVector2Array([pc + (out + along) * h, pc + (out - along) * h, pc - (out + along) * h,
+				pc - (out - along) * h]), g - 0.5, g + 7.1, BANK_WALL, none, M_STONE, M_STONE)
+		angles.append(atan2(out.y, out.x))
+	for k in angles.size() - 1:
+		var t := (angles[k] + angles[k + 1]) * 0.5
+		var out := Vector2(cos(t), sin(t))
+		var along := Vector2(-out.y, out.x)
+		_arch_panel(c + out * BANK_ROT_FACE, along, out, 1.25, g + 7.5, g + 11.2, BANK_TRIM, 0.04, M_STONE)
+		_arch_panel(c + out * BANK_ROT_FACE, along, out, 0.95, g + 8.15, g + 11.2, BANK_DARK, 0.1, M_GLASS)
+	var a0: float = angles[0] - 0.08
+	var a1: float = angles[angles.size() - 1] + 0.08
+	var ring := PackedVector2Array()
+	var steps := 12
+	for k in steps + 1:
+		var t := a0 + (a1 - a0) * k / steps
+		ring.append(c + Vector2(cos(t), sin(t)) * (BANK_ROT_FACE + 0.35))
+	for k in range(steps, -1, -1):
+		var t := a0 + (a1 - a0) * k / steps
+		ring.append(c + Vector2(cos(t), sin(t)) * (BANK_ROT_FACE - 1.4))
+	_prism(ring, g + 7.1, g + 7.5, BANK_TRIM, BANK_TRIM, M_STONE, M_STONE)
+	_prism(ring, g + 13.6, g + 14.4, BANK_TRIM, BANK_LEAD, M_STONE, M_STONE)
+	# the drum over the roofs: the wall a hand proud of LoD2's, a window per bay, the cornice
+	var r := BANK_ROT_R
+	for k in 16:
+		var t := TAU * (k + 0.5) / 16.0
+		var out := Vector2(cos(t), sin(t))
+		_arch_panel(c + out * (r + 0.12), Vector2(-out.y, out.x), out, 0.6, g + BANK_ROT_DRUM.x + 1.0,
+				g + BANK_ROT_DRUM.y - 1.9, BANK_DARK, 0.05, M_GLASS)
+	_prism(_circle(c, r + 0.12, 32), g - 0.5, g + BANK_ROT_DRUM.y, BANK_WALL, none, M_STONE, M_STONE)
+	_prism(_circle(c, r + 0.55, 32), g + BANK_ROT_DRUM.y, g + BANK_ROT_DRUM.y + 0.6, BANK_TRIM, BANK_LEAD, M_STONE, M_STONE)
+	# the shallow dome: a spherical cap in four rings, a small round light on top
+	var y0 := g + BANK_ROT_DRUM.y + 0.6
+	var rings := 4
+	_mode = M_STONE
+	for k in rings:
+		var s0 := float(k) / rings
+		var s1 := float(k + 1) / rings
+		var r0 := (r + 0.2) * cos(s0 * PI * 0.5)
+		var r1 := maxf((r + 0.2) * cos(s1 * PI * 0.5), 1.4)
+		_frustum(_circle(c, r0, 32), y0 + BANK_ROT_RISE * sin(s0 * PI * 0.5), _circle(c, r1, 32),
+				y0 + BANK_ROT_RISE * sin(s1 * PI * 0.5), BANK_ROOF.darkened(0.03 * k),
+				BANK_ROOF if k == rings - 1 else none)
+	_prism(_circle(c, 1.2, 12), y0 + BANK_ROT_RISE, y0 + BANK_ROT_RISE + 0.9, BANK_TRIM, BANK_ROOF.lightened(0.08), M_STONE, M_STONE)
+
+
+# --- Filharmonia Narodowa and Teatr Polski ----------------------------------------------------
+
+## Filharmonia Narodowa (Jasna 5; Karol Kozłowski's hall of 1901, rebuilt in 1955; spec
+## docs/landmarks/specs/filharmonia.md, from the Mac's photos and ortho in
+## docs/landmarks/photo-reports/filharmonia.md, 2026-11-02). The mass stays LoD2's in its skin
+## of pale cream stone; the model adds the Jasna front: a rusticated base, the giant order of
+## smooth cream-white columns, the tall windows between them each with an iron balconette and a
+## white composer on the sill, the cornice and the attic; on the corner at Sienkiewicza the
+## green neon FN roundel and SALA KONCERTOWA (the institution's own words, not a brand).
+## Frame: u along the mapped Jasna front from its north end, +v out of it to the street (east).
+const FIL_A := Vector2(-860.7, -77.7)
+const FIL_B := Vector2(-837.6, -27.0)
+const FIL_WALL := Color("#e3ded2")
+const FIL_COLUMN := Color("#ede9de")
+const FIL_BASE := Color("#c9c3b5")
+const FIL_STATUE := Color("#f1efe9")
+const FIL_DARK := Color("#232a33")
+const FIL_IRON := Color("#2b2c2e")
+const FIL_LEAD := Color("#a2a7a8")
+const FIL_NEON := Color(0.2, 1.0, 0.45)
+const FIL_COLS := 11
+const FIL_END := 4.8       # the solid corner bays at both ends of the colonnade
+const FIL_BASE_TOP := 4.5
+const FIL_TOP := 15.0
+
+
+func _build_filharmonia(_site: Dictionary) -> void:
+	_o = FIL_A
+	_a = (FIL_B - FIL_A).normalized()
+	_b = Vector2(_a.y, -_a.x)    # east, to Jasna
+	var span := FIL_A.distance_to(FIL_B)
+	var m := span * 0.5
+	_g = minf(map.terrain_height(FIL_A.x, FIL_A.y), map.terrain_height(FIL_B.x, FIL_B.y))
+	var g := _g
+	var base := g + FIL_BASE_TOP
+	var top := g + FIL_TOP
+	var bay := (span - 2.0 * FIL_END) / float(FIL_COLS - 1)
+	# the windows first (they stand off the face), then the face, then the columns in front
+	for k in FIL_COLS - 1:
+		var u := FIL_END + (k + 0.5) * bay
+		_arch_panel(_w(u, 0.35), _a, _b, 1.0, base + 1.2, top - 2.6, FIL_DARK, 0.04, M_GLASS)
+		_lbox(u, 0.7, 1.15, 0.35, base + 1.05, base + 1.25, FIL_WALL, M_STONE, FIL_WALL)   # the sill
+		_lbox(u, 0.86, 1.1, 0.03, base + 1.25, base + 2.2, FIL_IRON, M_STONE, FIL_IRON)    # the balconette
+		_fil_composer(_w(u, 0.75), base + 1.25)
+		_arch_panel(_w(u, 0.35), _a, _b, 0.75, g + 1.0, g + 3.2, FIL_DARK, 0.04, M_GLASS)  # ground-floor windows
+	_lbox(m, 0.05, m, 0.3, base, top, FIL_WALL, M_STONE, FIL_WALL)
+	_lbox(m, 0.25, m + 0.2, 0.5, g - 0.6, base, FIL_BASE, M_STONE, FIL_BASE.lightened(0.05))
+	_lbox(m, 0.3, m + 0.25, 0.55, base - 0.35, base, FIL_WALL.lightened(0.03), M_STONE, FIL_WALL)
+	for k in FIL_COLS:
+		_column(FIL_END + k * bay, 1.55, 0.62, base, top, FIL_COLUMN)
+	# entablature, cornice, attic
+	_lbox(m, 0.85, m + 0.2, 1.4, top, top + 1.2, FIL_COLUMN, M_STONE, FIL_COLUMN)
+	_lbox(m, 1.0, m + 0.45, 1.6, top + 1.2, top + 1.65, FIL_COLUMN.lightened(0.04), M_STONE, FIL_LEAD)
+	_lbox(m, 0.1, m + 0.1, 0.35, top + 1.65, top + 3.0, FIL_WALL, M_STONE, FIL_LEAD)
+	# the corner at Sienkiewicza: a dark round plate with FN over the door, the hall's name lower down
+	var corner := _w(span - 2.4, 0.45)
+	var n3 := Vector3(_b.x, 0.0, _b.y)
+	_disc(Vector3(corner.x, top - 2.0, corner.y), n3, 1.5, 16, FIL_DARK)
+	signs.append(["FN", Vector3(corner.x, top - 2.6, corner.y) + n3 * 0.08, n3, 1.1, FIL_NEON])
+	var name_at := _w(span - FIL_END * 0.5 - 1.0, 0.6)
+	signs.append(["SALA KONCERTOWA", Vector3(name_at.x, base - 1.5, name_at.y), n3, 0.45, FIL_NEON])
+	_collide(_rect(m, 1.0, m + 0.3, 1.2))
+
+
+## A composer on a window sill: white stone, standing, a cloak to the ankles, one hand at the chest.
+func _fil_composer(at: Vector2, y: float) -> void:
+	var keep_o := _o
+	var keep_a := _a
+	var keep_b := _b
+	var fwd := keep_b
+	_o = at
+	_a = fwd
+	_b = Vector2(-fwd.y, fwd.x)
+	var col := FIL_STATUE
+	_mode = M_STONE
+	_frustum(_rect(0.0, 0.0, 0.34, 0.42), y, _rect(0.0, 0.0, 0.22, 0.3), y + 1.85, col, Color(0, 0, 0, 0))
+	_frustum(_rect(0.0, 0.0, 0.22, 0.3), y + 1.85, _rect(0.0, 0.0, 0.17, 0.27), y + 2.25, col, col)
+	_prism(_circle(_w(0.02, 0.0), 0.15, 6), y + 2.25, y + 2.6, col.lightened(0.03), col, M_STONE, M_STONE)
+	var s := _w(0.0, 0.22)
+	var h := _w(0.3, 0.0)
+	_beam(Vector3(s.x, y + 2.1, s.y), Vector3(h.x, y + 1.7, h.y), 0.13, col)
+	_o = keep_o
+	_a = keep_a
+	_b = keep_b
+
+
+## Teatr Polski (Karasia 2; Czesław Przybylski, 1912-1913; spec docs/landmarks/specs/teatr_polski.md,
+## from the Mac's photos and ortho in docs/landmarks/photo-reports/teatr_polski.md, 2026-11-02).
+## The mass stays LoD2's in its skin (cream-grey render, the hall's green copper roof); the model
+## adds the Karasia front: the two rounded corner bays (drums) at its ends with balustraded tops,
+## round-arched doors and windows on the ground floor, tall windows over a long iron balcony on
+## the middle storey, a row of oval windows (oculi) on the top one, the cornice and a stone
+## balustrade along the roof edge, and the small green kiosk on the walk.
+## Frame: u along the mapped front from its north end, +v out of it to Karasia (west).
+const TP_A := Vector2(-299.0, -482.1)
+const TP_B := Vector2(-306.0, -499.6)
+const TP_DRUMS := [Vector2(-297.6, -479.9), Vector2(-306.6, -502.3)]
+const TP_DRUM_R := 2.4
+const TP_WALL := Color("#e2ddcd")
+const TP_TRIM := Color("#ebe7dc")
+const TP_BASE := Color("#c8c2b1")
+const TP_DARK := Color("#262c33")
+const TP_IRON := Color("#2a2b2c")
+const TP_LEAD := Color("#a0a5a5")
+const TP_KIOSK := Color("#3f7d5a")
+const TP_EAVES := 16.0
+
+
+func _build_teatr_polski(_site: Dictionary) -> void:
+	_o = TP_A
+	_a = (TP_B - TP_A).normalized()
+	_b = Vector2(-_a.y, _a.x)
+	if _b.x > 0.0:
+		_b = -_b                  # west, to Karasia
+	var span := TP_A.distance_to(TP_B)
+	var m := span * 0.5
+	_g = minf(map.terrain_height(TP_A.x, TP_A.y), map.terrain_height(TP_B.x, TP_B.y))
+	var g := _g
+	var top := g + TP_EAVES
+	var bays := 5
+	var bay := span / bays
+	var n3 := Vector3(_b.x, 0.0, _b.y)
+	# openings first (they stand off the face): arched doors below, tall windows, oculi on top
+	for k in bays:
+		var u := (k + 0.5) * bay
+		_arch_panel(_w(u, 0.35), _a, _b, 1.05, g + 0.3, g + 3.3, TP_DARK, 0.04, M_GLASS)
+		_arch_panel(_w(u, 0.35), _a, _b, 0.85, g + 5.6, g + 9.4, TP_DARK, 0.04, M_GLASS)
+		var oc := _w(u, 0.4)
+		_disc(Vector3(oc.x, g + 12.6, oc.y), n3, 0.75, 10, TP_TRIM)
+		_disc(Vector3(oc.x, g + 12.6, oc.y) + n3 * 0.03, n3, 0.55, 10, TP_DARK)
+	_lbox(m, 0.05, m, 0.3, g - 0.5, top, TP_WALL, M_STONE, TP_WALL)
+	_lbox(m, 0.25, m + 0.1, 0.45, g - 0.5, g + 0.9, TP_BASE, M_STONE, TP_BASE)
+	_lbox(m, 0.3, m, 0.5, g + 4.6, g + 4.9, TP_TRIM, M_STONE, TP_TRIM)        # string course
+	_lbox(m, 0.3, m, 0.5, g + 10.4, g + 10.7, TP_TRIM, M_STONE, TP_TRIM)
+	# the long iron balcony across the middle storey
+	_lbox(m, 0.95, m - 0.6, 0.6, g + 5.2, g + 5.45, TP_TRIM, M_STONE, TP_TRIM)
+	_lbox(m, 1.52, m - 0.6, 0.03, g + 5.45, g + 6.4, TP_IRON, M_STONE, TP_IRON)
+	# cornice and the balustrade along the roof edge
+	_lbox(m, 0.5, m, 0.7, top, top + 0.6, TP_TRIM, M_STONE, TP_LEAD)
+	_lbox(m, 0.35, m, 0.12, top + 0.6, top + 1.5, TP_TRIM, M_STONE, TP_TRIM)
+	# the drums: round bays to the cornice, a cornice ring and a balustraded top
+	for c: Vector2 in TP_DRUMS:
+		_prism(_circle(c, TP_DRUM_R, 16), g - 0.5, top, TP_WALL, Color(0, 0, 0, 0), M_STONE, M_STONE)
+		_prism(_circle(c, TP_DRUM_R + 0.3, 16), top, top + 0.6, TP_TRIM, TP_LEAD, M_STONE, M_STONE)
+		_prism(_circle(c, TP_DRUM_R + 0.35, 16), g - 0.5, g + 0.9, TP_BASE, TP_BASE, M_STONE, M_STONE)
+		_parapet(_circle(c, TP_DRUM_R + 0.1, 16), top + 0.6, 0.9, TP_TRIM)
+		for side: float in [-1.0, 1.0]:
+			var out := (_b + _a * side * 0.55).normalized()
+			_arch_panel(c + out * (TP_DRUM_R + 0.02), Vector2(-out.y, out.x), out, 0.55, g + 5.8, g + 9.2, TP_DARK, 0.04, M_GLASS)
+	# the green kiosk on the walk
+	_lbox(m + 3.0, 4.0, 1.0, 0.75, g, g + 2.5, TP_KIOSK, M_STONE, TP_KIOSK.darkened(0.15))
+	_collide(_rect(m + 3.0, 4.0, 1.0, 0.75))
 
 
 ## The Church of the Holy Cross (Kościół Świętego Krzyża; Bellotti's baroque facade, 1679-1696) on

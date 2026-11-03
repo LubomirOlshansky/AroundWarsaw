@@ -153,6 +153,11 @@ const BUDGET := {
 	"stadium": 4750,
 	"swieto": 240,
 	"teatr": 600,
+	# Plac Bankowy, Filharmonia, Teatr Polski (the Mac photo reports, 2026-11-02): fronts on kept skins.
+	"ratusz": 2500,
+	"gielda": 1050,
+	"filharmonia": 1450,
+	"teatr_polski": 760,
 	"teresy": 280,
 	"sw_krzyz": 1100,
 	"sejm": 1400,
