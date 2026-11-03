@@ -11,6 +11,8 @@ someone writes its lines.
 
 ## 2026-11-03
 - Solec under Trasa Łazienkowska drives clean: the car no longer gets caught on the guard rail of the ramp up to the Trasa or on the pillar beside Solec's kerb.
+- Driving under Trasa Łazienkowska, Most Łazienkowski or a viaduct, you no longer lose your car: when a bridge hides it, it shows through as a warm outline, the way it already did in tunnels.
+- The city talks less when you are in trouble: stuck against a wall or pressing into traffic, nobody comments, and a bump only draws a shout now and then. At most two speech bubbles are up at once, a ride's lost stars come as one short note after the bumps stop, and Settings → World has a new "City chattiness" choice (Quiet, Some, Lots).
 - Plac Piłsudskiego no longer looks like a giant chess board: the granite panels differ only softly, thin darker joints outline them, and from far away you see just the grid of joints.
 - Cedet on Al. Jerozolimskie looks more like itself: its roof's two wings sweep up again with shade underneath, the Krucza corner is rounder, the glass storeys are lower over a taller shop floor, the top pavilion sits back under its roof, and the steel loop is grey-bronze by day (still blue neon at night).
 - The opening flight over Warsaw now has a voice: the radio announcer's welcome plays once while the camera flies down to your car, over a very quiet radio, and the radio swells to full volume as the game begins.
