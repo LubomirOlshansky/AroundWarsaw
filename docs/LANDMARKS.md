@@ -69,9 +69,9 @@ re-passes). Photos first: each slug's `refs/<slug>/` and REPORT on the Mac befor
 
 | # | Object | Today | To do | Photos |
 | --- | --- | --- | --- | --- |
-| 1b.1 | Młotek, Smolna 8 (slug `mlotek`) | plain LoD2 block, 66 m, outline at x 83, z 34 | L3: the wider two-storey head over the deep recess, the raw facade bands, lit windows | not yet (gather first) |
-| 1b.2 | Kozia 9 (`kozia9`) | plain block | L3: five sections stepping up a storey each, brick terraces, barrel windows on Moliera | not yet |
-| 1b.3 | Karowa 18a (`karowa18a`) | plain block | L3: the sculptural balconies, the car park in the base | not yet |
+| 1b.1 | Młotek, Smolna 8 (slug `mlotek`) | plain LoD2 block, 66 m, outline at x 83, z 34 | L3: the wider two-storey head over the deep recess, the raw facade bands, lit windows | gathered 2026-11-03: 17 + ortho |
+| 1b.2 | Kozia 9 (`kozia9`) | plain block | L3: five sections stepping up a storey each, cream-grey roughcast terraces, barrel windows on Moliera | gathered 2026-11-03: 9 (only 2 of the block) |
+| 1b.3 | Karowa 18a (`karowa18a`) | plain block | L3: the sculptural balconies, the car park in the base | gathered 2026-11-03: 12 + ortho |
 | 1b.4 | Żyletkowiec and the Ekspozytura (`zyletkowiec`) | plain block | L2: the repeating facade module (shader), the monumental neighbour | not yet |
 | 1b.5 | Dom Chłopa, NBP, the Kopernika skyscraper, Torwar, BGK, Ministerstwo Komunikacji, Dom Słowa Polskiego | plain blocks | L2 each, one thread each | not yet |
 | 1b.6 | Osiedle Za Żelazną Bramą (`zelazna_brama`) | plain blocks | one shared slab kit, one material, draw calls per sector not per slab | not yet |
