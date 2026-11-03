@@ -110,6 +110,8 @@ const BUDGET := {
 	"mennica": 650,
 	"mirowska": 2050,
 	"mf": 1870,
+	"poczta": 710,
+	"pasta": 580,
 	"msn": 500,
 	# Norblin on its real block (2026-11-02, photo report): two blocks, Plater and Galwan, about
 	# three times the first footprint, arched windows round their courts, green roofs and terraces.
@@ -118,6 +120,7 @@ const BUDGET := {
 	"browary": 3800,
 	"koszyki": 1370,
 	"elektrownia": 1950,
+	"mpw": 3200,
 	"metropolitan": 3100,
 	"muzeum": 840,
 	"palace": 3900,

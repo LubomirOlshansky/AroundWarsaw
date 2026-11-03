@@ -50,7 +50,7 @@ often, known to every visitor; **B** characteristic, known to locals, gives a st
 **C** texture (named tenements, offices, embassies, small institutions) in Part 2 only.
 
 <!-- counts:start -->
-**Counts** (Part 1, 145 ranked rows): ★ 20 photo builds · ◐ 53 outline builds · ○ 23 dress only · ⏳ 8 in progress · ✗ 41 not done. Part 2 adds 541 named outlines (tier C): 19 with a model of their own, 74 dressed or named in the game, 448 plain blocks. From OpenStreetMap points (the monuments and plaques stand as generic pieces from tools/bake_monuments.py since 2026-11-02, the rest are not baked): 216 monuments and sculptures, 26 murals, 267 bars and clubs, 102 museums and galleries, 38 theatres and cinemas, 4 malls, 34 hotels, 688 plaques and memorial stones (the named office buildings are already outlines above).
+**Counts** (Part 1, 145 ranked rows): ★ 23 photo builds · ◐ 54 outline builds · ○ 23 dress only · ⏳ 8 in progress · ✗ 37 not done. Part 2 adds 541 named outlines (tier C): 19 with a model of their own, 74 dressed or named in the game, 448 plain blocks. From OpenStreetMap points (the monuments and plaques stand as generic pieces from tools/bake_monuments.py since 2026-11-02, the rest are not baked): 216 monuments and sculptures, 26 murals, 267 bars and clubs, 102 museums and galleries, 38 theatres and cinemas, 4 malls, 34 hotels, 688 plaques and memorial stones (the named office buildings are already outlines above).
 <!-- counts:end -->
 
 ## Part 1. The ranked list
@@ -79,7 +79,7 @@ often, known to every visitor; **B** characteristic, known to locals, gives a st
 | 18 | Teatr Wielki and Teatr Narodowy | Plac Teatralny (Moliera, Fredry) | opera, theatre | ◐ | photo re-pass of the colonnade; Teatr Narodowy's wing is ✗ |
 | 19 | Grób Nieznanego Żołnierza and Plac Piłsudskiego | Plac Piłsudskiego | monument, square | ◐ | photo check |
 | 20 | Muzeum Historii Żydów Polskich Polin and Pomnik Bohaterów Getta | Mordechaja Anielewicza | museum, monument | ★ | built 2026-11-02 from `refs/polin/` (25 Commons photos, the ortho) and LoD2, spec `polin.md`; F's look on the Mac or the phone |
-| 21 | Muzeum Powstania Warszawskiego (OSM: Elektrownia Tramwajów Miejskich) | Przyokopowa / Grzybowska | museum | ✗ | **photo build**: the brick power station, the Freedom Park wall, the tower |
+| 21 | Muzeum Powstania Warszawskiego (OSM: Elektrownia Tramwajów Miejskich) | Przyokopowa / Grzybowska | museum | ★ | built 2026-11-02 from `refs/mpw/` (25 Commons photos, the ortho, REPORT/PARTS) and LoD2, spec `mpw.md`: the brick front, the halls, the tower with the Kotwica, the Wall of Remembrance; F's look on the Mac or the phone |
 | 22 | Pomnik Powstania Warszawskiego | Plac Krasińskich | monument | ★ | built 2026-11-02 from `refs/pomnik_powstania/` (14 Commons photos, the ortho), spec `pomnik_powstania.md`; F's look on the Mac or the phone |
 | 23 | Barbakan and the city walls (OSM: Baszta Prochowa) | Nowomiejska / Podwale | fortification | ◐ | Barbakan photo check; the walls and towers along Podwale are ✗ |
 | 24 | Archikatedra św. Jana | Świętojańska | cathedral | ◐ | photo check; the tower |
@@ -139,9 +139,9 @@ often, known to every visitor; **B** characteristic, known to locals, gives a st
 | 73 | Warszawa Wschodnia | Lubelska | station | ◐ | built 2026-11-03 from the Mac photo report (site `wschodnia`, spec `wschodnia.md`): F's look on the Mac or the phone |
 | 74 | Metro stations: Centrum, Świętokrzyska, Ratusz-Arsenał, Politechnika, Rondo ONZ, Rondo Daszyńskiego, Nowy Świat-Uniwersytet, Centrum Nauki Kopernik, Stadion Narodowy, Dworzec Gdański | (84 entrances) | metro | ○ | the kit's canopies, stairwells and M posts are in; each station's own face (Świętokrzyska's glass, Nowy Świat's pavilions, Kopernik's art) is ✗ |
 | 75 | Narodowy Bank Polski | Świętokrzyska | bank | ✗ | photo build of the 1970s stone block |
-| 76 | Poczta Główna | Świętokrzyska | post office | ✗ | photo build |
+| 76 | Poczta Główna | Świętokrzyska | post office | ★ | built 2026-11-03 from `refs/poczta/` (the Mac photo report) and LoD2, spec `poczta.md`: the kept mass in salmon plaster, the corner dome at Jasna, the six-column entrance under the red POCZTA band, the glazed hall; F's look on the Mac or the phone |
 | 77 | Filharmonia Narodowa | Jasna / Sienkiewicza | concert hall | ✗ | photo build |
-| 78 | PAST-a | Zielna | historic telephone tower | ✗ | photo build: the 1908 tower, a famous Uprising site |
+| 78 | PAST-a | Zielna | historic telephone tower | ★ | built 2026-11-03 from `refs/pasta/` (the Mac photo report), spec `pasta.md`: the 51 m tower, its arched loggia and merlons, the gilt anchor, the banners and the Uprising plaque; F's look on the Mac or the phone |
 | 79 | Pałac Krasińskich and Ogród Krasińskich | Plac Krasińskich | palace, park | ★ | built 2026-11-02 from `refs/krasinski/` (17 Commons photos, the ortho) and LoD2, spec `krasinski.md`; the park's details are in; F's look on the Mac or the phone |
 | 80 | Vitkac | Bracka | luxury department store | ✗ | photo build: the black stone block, start area |
 | 81 | Dom Towarowy Braci Jabłkowskich | Bracka | historic department store | ✗ | photo build of the 1914 front |
@@ -223,7 +223,7 @@ lists all of them street by street with their status.
 Proposed order for the next threads (photos first, see "Why some places were rebuilt"):
 
 1. ~~Most Poniatowskiego (14)~~: built from photos 2026-11-02.
-2. Muzeum Powstania Warszawskiego (21): the brick power station, the wall, the tower.
+2. ~~Muzeum Powstania Warszawskiego (21): the brick power station, the wall, the tower.~~ Done 2026-11-02 (spec `mpw.md`).
 3. Pomnik Powstania Warszawskiego and Plac Krasińskich's palace (22, 79).
 4. Hotel Warszawa / Prudential (29) and Cedet (30): the start area's south.
 5. Rondo ONZ towers by photo: Q22 and Rondo 1 first (28).
@@ -342,13 +342,13 @@ Generated by `python3 -I tools/city_inventory.py` from the map data and Part 1. 
 
 ### Śródmieście (97 places)
 
-- **Świętokrzyska**: **#75 Narodowy Bank Polski** ✗; **#76 Poczta Główna** ✗; **#105 Ministerstwo Finansów** ◐; Instytut Ekonomiki Rolnictwa i Gospodarki Żywnościowej ✗; *monuments:* Pomnik Powstańców Warszawy ○ in game, Ławeczka Laury Petrarki ○ in game; *bars:* Bar Studio ✗, Chillin ✗, Królik ✗; *museums:* Centrum Pieniądza NBP ✗; *stages:* Teatr Lalka ✗, Teatr Studio ✗; *plaques and memorial stones:* 1
+- **Świętokrzyska**: **#75 Narodowy Bank Polski** ✗; **#76 Poczta Główna** ★; **#105 Ministerstwo Finansów** ◐; Instytut Ekonomiki Rolnictwa i Gospodarki Żywnościowej ✗; *monuments:* Pomnik Powstańców Warszawy ○ in game, Ławeczka Laury Petrarki ○ in game; *bars:* Bar Studio ✗, Chillin ✗, Królik ✗; *museums:* Centrum Pieniądza NBP ✗; *stages:* Teatr Lalka ✗, Teatr Studio ✗; *plaques and memorial stones:* 1
 - **Bracka**: **#80 Vitkac** ✗; **#81 Dom Towarowy Braci Jabłkowskich** ✗; Kamienica Zofii Kiersnowskiej (flats) ✗; Pałac Brzozowskich (flats) ✗; *monuments:* Pisklę. Drozd śpiewak ○ in game; *bars:* Mały Wojtek ✗; *museums:* Instytut Goethego ✗
 - **Chmielna**: **#7 Varso Tower (with Varso I, Varso II)** ◐; **#97 Kawiarnia and bar street of Chmielna, Mokotowska, Hoża, Poznańska** ○; Kamienica Braci Jabłkowskich (commercial) ✗; Kamienica Lilpopów (flats) ✗; *bars:* Bless ✗, Connect ✗, Frodo ✗, HighGarden Rooftop Lounge ✗, Hoppiness ✗; *stages:* Multikino ✗; *hotels:* Mamaison Residence Diana ✗, NYX ✗; *plaques and memorial stones:* 3
 - **Jasna**: **#77 Filharmonia Narodowa** ✗; **#103 Dom pod Orłami and Skwer Linearny na Złotej** ★; Centrum Jasna ✗; Kamienica Maksymiliana Harczyka (flats) ✗; *bars:* Jasna 1 ○ in game, Warszawska ✗; *museums:* Muzeum Historii Spółdzielczości w Polsce ✗, Spotkania z Europą ✗; *plaques and memorial stones:* 1
 - **Złota**: **#5 Złota 44** ★; **#8 Złote Tarasy (with Lumen, Skylight)** ◐; Kiseki (shop) ✗; Wojskowe Biuro Emerytalne ✗; *monuments:* Tindaro ○ in game; *murals:* Bez tytułu (Jacek Kuroń) 2020 ✗; *bars:* Hybrydy ✗, Kulturalna ✗; *museums:* Mi Polin Mezuzah Center ✗, Muzeum Ewolucji ✗, Muzeum Neonów ✗; *stages:* Kinoteka ○, Palladium ✗, Sala Kongresowa ✗; *malls:* TK Maxx ✗; *plaques and memorial stones:* 8
 - **Królewska**: **#104 Hotel Wiktoria (Sofitel Victoria) and Królewska** ◐; **#106 Saski Crescent, Saski Park, Senator** ✗; *monuments:* Lech Kaczyński ○ in game, Pomnik Ofiar Tragedii Smoleńskiej ○ in game; *plaques and memorial stones:* 4
-- **Zielna**: **#78 PAST-a** ✗; Mała PAST-a (commercial) ✗; Pałac Janaszów (offices) ✗; *bars:* Inspector Lounge ✗, Piętro Niżej ✗; *plaques and memorial stones:* 4
+- **Zielna**: **#78 PAST-a** ★; Mała PAST-a (commercial) ✗; Pałac Janaszów (offices) ✗; *bars:* Inspector Lounge ✗, Piętro Niżej ✗; *plaques and memorial stones:* 4
 - **Plac Grzybowski**: **#102 Plac Grzybowski and Kościół Wszystkich Świętych** ◐; Kamienica Brenkina ✗; *plaques and memorial stones:* 1
 - **Bagno**: **#128 Atelier Residence, Rezydencja Foksal, Apartamenty Flare, Młotek, Solec Residence, Złota Chmielna** ✗; *plaques and memorial stones:* 1
 - **Próżna**: **#101 Synagoga Nożyków and Próżna's pre-war tenements (Kamienica Zalmana Nożyka, Kamienica Wolanowskiego)** ◐; *museums:* Austriackie Forum Kultury ✗
@@ -489,7 +489,7 @@ Generated by `python3 -I tools/city_inventory.py` from the map data and Part 1. 
 - **Grzybowska**: **#57 Browary Warszawskie** ◐; **#61 Wola towers: The Bridge, Generation Park X and Z, Atlas Tower, Pekao Tower, Warsaw Towers** ○; **#129 Platinum Towers, Łucka City, Ilmet, Central Tower, Spektrum, PZU, JM Tower, Chałubińskiego 8, Westynka, Chilton** ○; Biura przy Bramie (offices) ○ in game; Biura przy Warzelni ○ in game; Biura przy Willi ○ in game; Concept Tower ✗; Kamienica Gawłowiczów (flats) ✗; Karolkowa Business Park ✗; Kolmex ✗; Prime Corporate Center ✗; Wydział Ruchu Drogowego Komendy Stołecznej Policji ✗; *monuments:* Mur pamięci ○ in game; *bars:* Asap Club ✗, Browar Warszawski ✗, Nine's Sports Bar ✗, Pistaccio ✗, Savore ✗; *museums:* Muzeum Nurkowania ✗, SOA Gallery ✗; *hotels:* Leonardo Royal Hotel Warsaw ✗, Royal Tulip Warsaw Centre ✗; *plaques and memorial stones:* 5
 - **Prosta**: **#56 Fabryka Norblina** ◐; Crown Point (offices) ✗; Mennica Legacy Tower Budynek Zachodni (commercial) ✗; Prosta Tower ✗; Studio A ✗; *monuments:* Pamięci uciekinierów z getta ○ in game; *bars:* Amare Mio! ✗, Instytut ✗, Piano Bar ✗, Torres Wine Bar ✗, Wiśniewski ✗; *hotels:* Holiday Inn Express Warsaw ✗; *plaques and memorial stones:* 1
 - **Chłodna**: **#120 Kamienica pod Zegarem and Chłodna's footbridge memorial (Kładka)** ✗; Kamienica Markowskiego (flats) ✗; Meridian (flats) ✗; *monuments:* Kładka Pamięci ○ in game, Matka Boska Łaskawa ○ in game; *museums:* Fundacja Archeologii Fotografii ✗; *plaques and memorial stones:* 2
-- **Przyokopowa**: **#21 Muzeum Powstania Warszawskiego** ✗; Proximo II (offices) ✗; Wola Center ✗; *monuments:* Stefan Kuryłowicz ○ in game; *museums:* Muzeum Powstania Warszawskiego ✗; *plaques and memorial stones:* 1
+- **Przyokopowa**: **#21 Muzeum Powstania Warszawskiego** ★; Proximo II (offices) ✗; Wola Center ✗; *monuments:* Stefan Kuryłowicz ○ in game; *museums:* Muzeum Powstania Warszawskiego ★; *plaques and memorial stones:* 1
 - **Plac Europejski**: **#6 Warsaw Spire** ★; Bellona (offices) ✗; *plaques and memorial stones:* 1
 - **Plac Mirowski**: **#53 Hala Mirowska and Hala Gwardii** ◐; Kamienica Mulmanów (flats) ✗; *monuments:* Feliks "Papa" Stamm ✗; *plaques and memorial stones:* 1
 - **Okopowa**: **#134 Klif** ✗
