@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-03
+- Bracka has its two department stores: the dark stone Vipkac with a glass top floor and trees on its roof terrace, and the 1914 Jabłkowski Brothers' store with arched shop windows and two white columns at the door; by Plac Trzech Krzyży the white banded Szeraton hotel stands with its glass drum and name crown on the corner. Next to Vipkac, the grey granite bank building of 1931 fills the Jerozolimskie corner by Nowy Świat, with its gilded monogram over the middle.
 - From above, the Ministry of Finance, the National Museum and Hotel Bristol now show their open courtyards (a tree-lined court at the ministry, the paved museum court, Bristol's light well) instead of one solid roof.
 - Hotel Europejski on Krakowskie Przedmieście looks like the restored hotel today: rounded corners with two tiers of columns and curved balconies, rows of pedimented windows, tall arched shop windows, the HOTEL EUROPEJSKI name in gold over the street, a balustrade along the roof and the dark curved glass storey set back behind it. The University's main gate is narrower, as in life.
 - The website now leads with the beta: join on iPhone through TestFlight, or request Android access with a short form. The open-source story moved to the footer and a quieter "How it's made" section.

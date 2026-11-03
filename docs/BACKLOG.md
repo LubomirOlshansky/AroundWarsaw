@@ -293,9 +293,6 @@ fixed 2026-11-02); PT-9 HUD overlaps confirmed.
   watch on the next P2 run that the nudge reads at phone size and that a red light mid-race (under
   5 s) never triggers the stall line. The heli/tape/garage beats pass headless only; P2 by hand
   (flying to the BUW roof, driving to Mirek) waits for an Autopilot run on the Mac.
-- Found with PT-7: a 9 m wide, 3 m deep recess in Jabłkowski's front on Bracka (-578,203) still
-  holds a car whose stick points into it (turned out once; a real recess, left open). Wider recesses
-  like it are not bridged on purpose (a car fits in them).
 - Found with PT-7: the camera's see-through ghost hides the wall the car is about to hit when it
   drives towards the camera (south on the default view): a player pushing into it sees no wall.
   A design question for the visuals lane (a ground outline or a faint base under the ghost?).
@@ -341,6 +338,19 @@ spans (granite piers, steel arch ribs, red fascia, black railing, pier pedestals
   south arcade stands 3-5 m back under the deck, because the street runs under the deck's edge there.
 - The approaches between the towers have been lit since map round 2 (D7, `bake_lights` approach lamps); the
   night shots of 2026-11-03 show both abutments lit.
+
+## Bracka and Plac Trzech Krzyży: Vitkac, Jabłkowski's, the Sheraton (CITY_INVENTORY 80-82, 2026-11-03)
+- The BGK building (CITY_INVENTORY 146, F asked 2026-11-03) built too (site `bgk`). Left: its three
+  light wells, the stepped south side's real heights, the balconettes; the block behind it on
+  Mysia, Mysia 2 (OSM landmark 'Polska Grupa Energetyczna'), is still plain.
+- Built from the Mac photo reports (sites `vitkac`, `jablkowscy`, `sheraton`). Left: the Mac look
+  check (QUESTIONS); Jabłkowski's stained-glass windows lit at night through the front; the Sheraton's
+  glazed restaurant pavilion with white umbrellas on the forecourt (its spot needs the photo).
+- Found and fixed: a landmark model's car walls skipped the slit and notch bridging (map_builder
+  `_bridge_pockets` only saw kept buildings), so the PT-7 slit by Jabłkowski's corner came back;
+  a site can now hand its outline over (`landmarks.gd` `pocket_rings`, opt-in, these three use it).
+  Older models (Dom pod Orłami, POLIN, the Bankowy palaces...) don't: worth a sweep with
+  `check_stuck_spots` along their fronts.
 
 ## Plac Krasińskich: the Uprising Monument and the palace (CITY_INVENTORY 22 and 79, 2026-11-02)
 Built from photos gathered on the Mac (`refs/pomnik_powstania/`, `refs/krasinski/`) and LoD2, specs
@@ -875,7 +885,7 @@ traffic queueing and going round parked cars (traffic.gd PARKED_LOOK / PARKED_WA
 - Left, all for the Mac photo check: real colours of both facades, the real storey count (Polonia 25.5 m
   and Bristol 27.4 m are mapped or estimated), where the entrances are, the mansards' true profile;
   the other grand hotels (Hotel Metropol 1960s block, Mercure Grand, Hotel Saski) stay generic;
-  Sheraton, Hilton, Holiday Inn and the Ibises are plain OSM extrusions.
+  Hilton, Holiday Inn and the Ibises are plain OSM extrusions (the Sheraton is a model since 2026-11-03).
 - Radisson Blu Sobieski (Plac Zawiszy 1) done 2026-11-02 as "Radysław Blu" (`sobieski`, spec `sobieski.md`) from the
   OSM outline, no photo: Mac check of band colours and order, storey count (31 m assumed), entrance. The Atlas Tower
   (-2230,1015) next door is a separate thread and untouched here.
