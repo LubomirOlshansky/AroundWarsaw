@@ -329,3 +329,14 @@ section { padding: clamp(48px, 7vw, 88px) 0; }
 .tile-lead img { aspect-ratio: 1266 / 585; }
 
 .tile-lead img { aspect-ratio: 1920 / 884; }
+
+/* Beta: one card per platform, the form beside them. */
+.plat { display: grid; gap: 16px; margin-top: 28px; }
+.plat-card { padding: 20px 22px; border: 1px solid var(--line); border-radius: 14px; background: var(--night); display: grid; gap: 12px; justify-items: start; scroll-margin-top: 80px; }
+.plat-card h3 { margin: 0; display: flex; align-items: center; gap: 10px; font-size: 1.25rem; }
+.plat-card p { margin: 0; color: var(--ink-2); }
+.plat-card .btn { min-height: 48px; padding: 0 20px; font-size: 16px; }
+.plat-card:target { border-color: var(--sodium); }
+@media (max-width: 700px) { .plat-card .btn { width: 100%; text-align: center; } }
+.bar nav .nav-beta, .brand { white-space: nowrap; }
+@media (max-width: 700px) { .bar nav .nav-wiki { display: none; } }
