@@ -2676,6 +2676,13 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
   test map. `shots.sh`'s `settings_panel` shot is MISSING (the paused game never reaches the shot
   frame): a shot-script issue, not the map.
 
+## From the Mac pass (2026-11-03)
+- **Oboźna's lane edge steps (C8)**: 0.77 m within 4 m at (-184, -605) and 0.50 m at (-97, -623), on the
+  slope down to Powiśle; the same on a fresh bake of origin/main, so not from the junction-median change.
+  Allowlisted in `tools/check_roads_allow.json` with this reason; judge on the 1 m terrain.
+- **check_gamepad P12** ("the full map's hint doesn't speak of the pad") fails on the merged main code
+  (2026-11-03), not from this PR: the full map's hint text needs its gamepad wording back (gameplay lane).
+
 ## From loop 3e (the structures, 2026-10-30)
 - **Most Łazienkowski's Praga end and the Czerniakowska interchange (R8)**: ~~where two ramps of one
   deck group part, a ramp's guard rail runs into the other's lanes~~ **Fixed (the joins loop,
