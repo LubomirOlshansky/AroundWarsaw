@@ -207,6 +207,13 @@ const VENUES := {
 	"nowo_podworko": [["PODWÓRKO 22", "SZOTY"], NOWO_MAGENTA, 3.0],
 	"nowo_nalewalnia": [["NALEWALNIA", "KIEDYŚ PO 4"], NOWO_AMBER, 2.8],
 	"nowo_dziniarnia": [["DŻINIARNIA"], NOWO_TEAL, 2.8],
+	# Mazowiecka's club street (street-by-street, 2026-11-03): parodies of the real clubs' names or
+	# trades, one sign per address (Tygmont and La Pose share no. 6/8, Enklawa and Ritual no. 12).
+	"maz_tygrys": [["TYGRYS", "JAZZ"], NOWO_AMBER, 2.8],
+	"maz_szotownia": [["SZOTOWNIA"], NOWO_MAGENTA, 2.8],
+	"maz_szkic": [["SZKIC", "NOCĄ"], NOWO_TEAL, 2.8],
+	"maz_enklawka": [["ENKLAWKA"], NOWO_MAGENTA, 3.0],
+	"maz_pokoj": [["POKÓJ 12,5"], NOWO_AMBER, 2.8],
 	"nowy_paczki": [["PĄCZKARNIA", "TŁUSTE DNI"], NOWY_ROSE, 2.8],
 	"nowy_lody": [["LODY", "BEZ KOLEJKI"], NOWY_SKY, 2.8],
 	"nowy_ksiegarnia": [["KSIĘGARNIA", "PRZY KAWIE"], NOWY_CREAM, 2.8],
@@ -425,6 +432,16 @@ const NOWOGRODZKA := {
 	"nowo_nalewalnia": [52.22906, 21.01406],
 	"nowo_dziniarnia": [52.22894, 21.01362],
 }
+## Mazowiecka's clubs (street-by-street, 2026-11-03): five parody fascias at the OpenStreetMap points
+## of the real clubs (Tygmont, Czupito/Mazo, Sketch Nite, Enklawa/Ritual, Room 13); the nearest address
+## snaps each sign to a wall. Bank Club and Blu Club (no. 14) are Lombard's, places.json.
+const MAZOWIECKA := {
+	"maz_tygrys": [52.236993, 21.013325],
+	"maz_szotownia": [52.237075, 21.013000],
+	"maz_szkic": [52.237760, 21.012753],
+	"maz_enklawka": [52.237787, 21.013159],
+	"maz_pokoj": [52.237889, 21.012811],
+}
 ## A venue sign's letter pixel (m) and the smallest it shrinks to on a short wall.
 const VENUE_PX := 0.12
 const VENUE_PX_MIN := 0.08
@@ -532,7 +549,7 @@ func setup(data: Dictionary, places: Array) -> void:
 		if str(p.get("k", "")) == "kebab":
 			avoid.append(Vector2(float(p["x"]), float(p["z"])))
 	var with_cafes: Array = places.duplicate()
-	for table: Dictionary in [CAFES, LOUNGES, TRENDY, HYPE, CINEMAS, NOWY_SWIAT, POWISLE, MARSZALKOWSKA, KRAKOWSKIE, ZBAWICIELA, NOWOGRODZKA, zaglebie_table()]:
+	for table: Dictionary in [CAFES, LOUNGES, TRENDY, HYPE, CINEMAS, NOWY_SWIAT, POWISLE, MARSZALKOWSKA, KRAKOWSKIE, ZBAWICIELA, NOWOGRODZKA, MAZOWIECKA, zaglebie_table()]:
 		for id: String in table:
 			var ll: Array = table[id]
 			with_cafes.append({"id": id, "at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})
