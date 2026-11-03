@@ -240,6 +240,8 @@ var _toast_gloss: Label
 var _toast_left := 0.0
 var _kmh := 0
 var _ambient_toast_at := -999.0
+## Phase 0.2: the chatter budget (chatter.gd, bubbles.gd's); main.gd sets it. Null: no budget.
+var chatter: RefCounted
 ## G16: ambient toasts (flavour, hints) come at most this often while the car is moving.
 const AMBIENT_TOAST_GAP := 20.0
 ## The performance overlay.
@@ -1430,9 +1432,12 @@ func _build_toast() -> void:
 ## street by day or night.
 ## A toast for flavour or a hint, not a quest or danger line: while driving it is dropped if
 ## another ambient toast came in the last AMBIENT_TOAST_GAP seconds (G16).
+## Phase 0.2: also dropped while the car struggles (and a few seconds after: chatter.gd quiet()).
 func ambient_toast(text: String, gloss := "") -> void:
 	var now := Time.get_ticks_msec() / 1000.0
 	if _kmh > 10 and now - _ambient_toast_at < AMBIENT_TOAST_GAP:
+		return
+	if chatter != null and not chatter.toast_ok():
 		return
 	_ambient_toast_at = now
 	toast(text, gloss)
@@ -1441,6 +1446,11 @@ func ambient_toast(text: String, gloss := "") -> void:
 func toast(text: String, gloss := "") -> void:
 	text = Lang.pick(text, gloss)
 	gloss = ""
+	# PT-20 (Autopilot run 20261103-152518): the same toast again while it is still up only
+	# keeps it up; it is not shown (and logged, and laid out) a second time.
+	if _toast_left > 0.0 and _toast.text == text and bool(_wants.get(_toast_box, false)):
+		_toast_left = 3.0
+		return
 	# A long line wraps at TOAST_W points rather than running off a phone's screen.
 	var font := ThemeDB.fallback_font
 	for pair: Array in [[_toast, text, T_TITLE], [_toast_gloss, gloss, T_SUB]]:
@@ -2787,6 +2797,12 @@ func _exit_tree() -> void:
 
 func full_map_open() -> bool:
 	return full_map != null and full_map.is_open()
+
+
+## Phase 0.2: a card (a job's or a call's, a ride's, the full map) is up: ambient chatter waits
+## (bubbles.gd cards_up, chatter.gd).
+func cards_up() -> bool:
+	return bool(_wants.get(_card, false)) or full_map_open()
 
 
 const _UP_DOWN := [1, -1]
