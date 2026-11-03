@@ -820,11 +820,17 @@ Built (cloud, Sonnet): eight shopfronts (`Storefronts.KRAKOWSKIE`, 93 venue sign
   mosaic's pattern).
 - ~~S3b Warszawa Śródmieście~~ Done 2026-11-01 (site `srodmiescie`, spec `srodmiescie.md`, 476 tris).
   Left: Mac photo check (the glazing, the fascia, the lettering).
+- ~~S3c-e the WKD stops~~ Done 2026-11-02 from F's Mac photo gather (`refs/wkd_srodmiescie/`,
+  `refs/wkd_ochota/`, reports in `docs/landmarks/photo-reports/`): sites `wkd_srodmiescie` (the two
+  concrete "propellers" on a raked wedge pier and a post over the stairs, white parapet boxes, the
+  ŚRÓDMIEŚCIE board, an arrows logo; 378 tris) and `wkd_ochota` (the slab on V legs over the island
+  platform, replacing OSM's 5 m "retail" box there, blue benches, red-brown edge strips, a stair up
+  at the west end; ~540 tris). Left: Mac/phone look (the propellers' twist and pier, the parapet
+  boxes' open end, Ochota's stair: the report guessed its spot; the report's ortho reading put the
+  slab ~10 m south of OSM's platform, built on OSM's).
 - S3c-e: Wschodnia and Gdańska sit at the map's east and north edges (the land past the edge is
   drawn since 2026-11-01, below; the cloud shots' missing ground inside the map is the cloud's flat
-  ground quad, not the Mac's); the WKD entrances (Śródmieście WKD's "propeller" roof, Ochota WKD):
-  the OSM outlines there don't match the descriptions (a 90 m, 2.5 m shelter by Centralna; the
-  platforms by Ochota are tram stops), so they wait for photos.
+  ground quad, not the Mac's): mostly off the map, low priority.
 - ~~L4 Most Średnicowy's look, after a Mac photo check.~~ Built 2026-11-01 (below).
 - Photo checks on the Mac for every station model (built from published descriptions).
   **Mac photo check, 2026-11-01** (main 03a26dc; Commons photos in refs/ochota, powisle,
