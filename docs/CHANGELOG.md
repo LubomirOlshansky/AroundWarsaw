@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-03
+- Solec under Trasa Łazienkowska drives clean: the car no longer gets caught on the guard rail of the ramp up to the Trasa or on the pillar beside Solec's kerb.
 - Driving under Trasa Łazienkowska, Most Łazienkowski or a viaduct, you no longer lose your car: when a bridge hides it, it shows through as a warm outline, the way it already did in tunnels.
 - The city talks less when you are in trouble: stuck against a wall or pressing into traffic, nobody comments, and a bump only draws a shout now and then. At most two speech bubbles are up at once, a ride's lost stars come as one short note after the bumps stop, and Settings → World has a new "City chattiness" choice (Quiet, Some, Lots).
 - Plac Piłsudskiego no longer looks like a giant chess board: the granite panels differ only softly, thin darker joints outline them, and from far away you see just the grid of joints.
