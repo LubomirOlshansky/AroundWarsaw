@@ -100,7 +100,8 @@ is the order of the next threads. Found while building it:
   the Eastern memorial and Umschlagplatz from the Mac's photo reports (docs/landmarks/photo-reports/); each
   lands as a site and joins `bake_monuments.SKIP`. Then rows 113-116 and 142. ~~Plac Piłsudskiego's
   (Piłsudski, Smolensk, Kaczyński)~~ done 2026-11-02 (sites `smolensk`, `pilsudski`, `kaczynski`,
-  `plac_maszty`, the paving's chequer in ground.gdshader; spec `plac_pilsudskiego.md`).
+  `plac_maszty`, the paving's chequer in ground.gdshader; spec `plac_pilsudskiego.md`; the chequer
+  softened 2026-11-03 after the playtest read it as a chess board, phone look check open).
 - **Plaques without a wall:** 49 OSM plaques have no drawn wall within 12 m (free-standing ones, courtyards)
   and are left out; a post-mounted plaque piece would place them. A plaque's wall is the LoD2 footprint, so
   a deep shop recess can leave it on a pier rather than the door's wall (fine so far in shots).

@@ -172,6 +172,7 @@ then the Launch gate.
 - [ ] Monuments pass (City inventory Part 3 item 6)
   - [x] Every OSM monument, sculpture, talking bench and memorial plaque in the box as a generic piece, plaques on their walls with candles (2026-11-02, tools/bake_monuments.py)
   - [x] Plac Piłsudskiego from photos: the Smolensk memorial, Piłsudski, Kaczyński, the masts and the granite chequer (2026-11-02, refs/pilsudskiego/)
+  - [x] Plac Piłsudskiego paving no longer reads as a chess board: half the panel contrast, thin dark bands, granite grain, panels fade out in wide views (2026-11-03, GAMEPLAY_PLAN Phase 0.5; phone look still open)
   - [ ] Photo builds: Nike, Słowacki and Starzyński, Mały Powstaniec and Kiliński, the Eastern memorial, Umschlagplatz (reports in docs/landmarks/photo-reports/)
 - [ ] Krajobraz places (F, 2026-11-02; docs/design/krajobraz-places.md, BACKLOG "Krajobraz places"): the newest public spaces as built
   - [x] K1 ul. Bracka's woonerf: its 22 missing young trees planted in the mapped beds (33 in all)
