@@ -319,6 +319,8 @@ func _check_sites(c: Crowds) -> void:
 			and Crowds.pub_level(10.0, 5, 7, false) == 0.0 and Crowds.pub_level(23.5, 2, 7, false) < 0.5
 			and Crowds.pub_level(23.5, 5, 1, false) >= 0.6 and Crowds.pub_level(23.5, 5, 7, true) <= 0.3,
 			"Nowogrodzka: the pub crowd by hour, night, month and rain")
+	_expect(Crowds.WILCZA.size() >= 5 and Crowds.WILCZA.keys().all(func(id: String) -> bool: return c.by_id.has(id)),
+			"Wilcza: %d pub spots are sites" % Crowds.WILCZA.size())
 	# Mazowiecka street-by-street (2026-11-03): the club street's pavement crowds, a Friday night's, empty
 	# before 21 and by morning, 01:00 Saturday still Friday's, a Tuesday a fifth, rain under a third.
 	_expect(Crowds.MAZOWIECKA.size() >= 5 and Crowds.MAZOWIECKA.keys().all(func(id: String) -> bool: return c.by_id.has(id)),

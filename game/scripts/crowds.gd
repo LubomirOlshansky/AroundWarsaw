@@ -258,6 +258,17 @@ const NOWOGRODZKA := {
 	"pub_nowo_22": [Vector2(-680.0, 528.0), 14, 16.0],
 	"pub_nowo_27": [Vector2(-695.0, 547.0), 10, 14.0],
 }
+## Wilcza and Poznańska's bars (street-by-street, 2026-11-03): people with a glass and a cigarette on the
+## pavement in front of the bars, on the `pub` curve like NOWOGRODZKA. id -> [spot (game coordinates),
+## most people, radius]. The fascias are storefronts.gd's WILCZA.
+const WILCZA := {
+	"pub_wil_muza": [Vector2(-409.1, 958.5), 10, 14.0],
+	"pub_wil_goraczka": [Vector2(-505.9, 1005.2), 14, 14.0],
+	"pub_wil_aura": [Vector2(-548.1, 831.8), 8, 12.0],
+	"pub_wil_macki": [Vector2(-799.0, 1031.9), 12, 14.0],
+	"pub_wil_kaseta": [Vector2(-794.9, 1122.0), 8, 12.0],
+	"pub_wil_banany": [Vector2(-805.8, 1108.7), 10, 12.0],
+}
 ## Mazowiecka's club street (street-by-street, 2026-11-03): people in the queues and smokers on the
 ## pavement outside the clubs of Mazowiecka between Świętokrzyska and Królewska, on the `club` curve
 ## (`club_level`: the existing clubs' curve, fullest 01-02, thinning by 05, the clubs' own WEEKDAY factor, so
@@ -885,6 +896,9 @@ func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
 	for pid: String in NOWOGRODZKA:
 		var ps: Array = NOWOGRODZKA[pid]
 		_add_site({"id": pid, "kind": "chill", "pub": true, "sit": false, "at": ps[0], "max": int(ps[1]), "radius": float(ps[2])})
+	for wid: String in WILCZA:
+		var ws: Array = WILCZA[wid]
+		_add_site({"id": wid, "kind": "chill", "pub": true, "sit": false, "at": ws[0], "max": int(ws[1]), "radius": float(ws[2])})
 	for kid: String in MAZOWIECKA:
 		var ks: Array = MAZOWIECKA[kid]
 		_add_site({"id": kid, "kind": "chill", "club": true, "sit": false, "at": ks[0], "max": int(ks[1]), "radius": float(ks[2])})

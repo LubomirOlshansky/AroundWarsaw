@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-03
+- Wilcza and Poznańska get their bar nights: seven neon bar signs (MUZA NA BIS, CYGARNIA, GORĄCZKA PIĄTKOWA, AURA PO PRACY, MACKI I KUFLE, KASETA PRZEWIJANA, REPUBLIKA BANANOWA) and people with a drink on the pavement outside after dark.
 - Mazowiecka's club street wakes up after midnight: five neon club signs (TYGRYS JAZZ, SZOTOWNIA, SZKIC NOCĄ, ENKLAWKA, POKÓJ 12,5) and queues and smokers on the pavement outside the doors, fullest around 1-2 a.m. on Friday and Saturday.
 - Playing with a controller, the A button now presses the button at the top of the screen (the mixtape, starting a ride, the tow truck, a rescue call), and that button shows "A" while the controller is in use. With the nitro bought, its tank stays on screen while you drive with a controller.
 - The road from Nowy Świat down to Most Poniatowskiego crosses Powiśle on a viaduct of grey concrete arches, with big arches over Kruczkowskiego, Solec and Wybrzeże, and the bridge's north towers have their curved stone stairs down to the boulevard, lit by iron lanterns at night.

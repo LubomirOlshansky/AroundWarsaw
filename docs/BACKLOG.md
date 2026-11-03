@@ -641,6 +641,17 @@ Tier C street pass, same pattern as Nowogrodzka (cloud, Sonnet). Built:
 Open: Mac look check (QUESTIONS); a bouncer-and-rope dressing at the doors; the northern pedestrian
 stretch toward Królewska; the houses need photos.
 
+## Wilcza and Poznańska's bars (2026-11-03), pass 1
+Tier C street pass, same pattern as Nowogrodzka and Mazowiecka (cloud, Sonnet): the next densest OSM bar cluster
+(13 bars on Wilcza, Poznańska, Hoża). Built:
+- Seven parody bar fascias (`Storefronts.WILCZA`: MUZA NA BIS at Wilcza 17, CYGARNIA DYMEK at 26, GORĄCZKA PIĄTKOWA at
+  27/29 (two bars, one door), AURA PO PRACY at Hoża 27, MACKI I KUFLE at Poznańska 12, KASETA PRZEWIJANA at
+  Poznańska 7, REPUBLIKA BANANOWA at Wilcza 51A). An eighth sign cost a plain Frogs (check_parodies' 80 % floor), so
+  Rausz shares the Gorączka door.
+- Pavement crowds (`Crowds.WILCZA`, six spots, 8-14 people, standing) on the existing `pub` curve (`pub_level`).
+Open: Mac look check (QUESTIONS); Wilcza 73 (a nightclub and a sake bar) and the Żurawia/Chmielna cluster (33 bars,
+partly covered by Nowy Świat and the Chmielna passes) are next; the houses need photos.
+
 ## Nowy Świat street by street (F, 2026-11-02), pass 1
 Built (cloud, Sonnet): eight parody shopfronts (`Storefronts.NOWY_SWIAT`, check_parodies 68 venues). Open:
 - Mac look check of the eight signs (QUESTIONS); move them to real doors.
