@@ -22,7 +22,7 @@ extends SceneTree
 const Landmarks := preload("res://scripts/landmarks.gd")
 const Chunked := preload("res://scripts/chunked_surface.gd")
 ## Triangles a site may hold (the museum and Plac loop's own models).
-const BUDGET := {"muzeum": 2500, "europejski": 1500, "grob": 600, "metropolitan": 3200, "wiktoria": 900,
+const BUDGET := {"muzeum": 2500, "europejski": 8000, "grob": 600, "metropolitan": 3200, "wiktoria": 900,
 		"hotel_kasztel": 400, "hotel_canaletto": 400, "hotel_starowka": 400, "polonia": 1450, "ujazdowski": 1650, "sobieski": 1500,
 		"zamek": 3200, "arkady": 2400}
 ## The Królewska edge's skins: key -> a point in a building the skin must cover.
