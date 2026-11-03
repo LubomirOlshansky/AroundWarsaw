@@ -176,7 +176,7 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh monuments monumentmesh spec lod2 drape ground drive drive-prebuilt stuckspots stuckspots-prebuilt finite steering stuckoffer handling stopassist questlines settings credits language tiers governor hud places edge roadworks eggs tape crowds life buses zaglebie crashes loud oldtram trains packs wellness fans garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 rescues couriers rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram firstlife heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_ALL=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh monuments monumentmesh spec lod2 courts drape ground drive drive-prebuilt stuckspots stuckspots-prebuilt finite steering stuckoffer handling stopassist questlines settings credits language tiers governor hud places edge roadworks eggs tape crowds life buses zaglebie crashes loud oldtram trains packs wellness fans garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 rescues couriers rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram firstlife heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
 STEPS_QUICK=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh monuments monumentmesh spec drape drive stuckspots finite steering stuckoffer handling stopassist questlines settings credits language tiers governor hud places edge roadworks eggs tape crowds life buses zaglebie crashes loud oldtram trains packs wellness fans garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 rescues couriers rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds police plain ram firstlife prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
@@ -731,6 +731,17 @@ for s in $want; do
 			case $code in
 				0) row PASS "lod2" $secs "$(grep -m1 -E '^check_lod2: (OK|no )' $logs/lod2.log) · $counts" ;;
 				*) row FAIL "lod2" $secs "$(grep -m1 '^check_lod2: ' $logs/lod2.log | tail -1) · $counts ($logs/lod2.log)" ;;
+			esac ;;
+		# Courtyards (2026-11-03): game/data/courts.json is what tools/bake_courts.py makes from
+		# today's lod2.bin and centrum.json (the courts landmarks.gd cuts out of its models; ~75 s).
+		courts)
+			t0=$EPOCHREALTIME
+			python3 -I $ROOT/tools/bake_courts.py --check > $logs/courts.log 2>&1
+			code=$?
+			secs=$(printf '%.0f' $(( EPOCHREALTIME - t0 )))
+			case $code in
+				0) row PASS "courts" $secs "$(grep -m1 '^courts: ' $logs/courts.log)" ;;
+				*) row FAIL "courts" $secs "$(grep -m1 '^courts: ' $logs/courts.log) ($logs/courts.log)" ;;
 			esac ;;
 		# Loop 3b-2: the bare ground poking through the areas laid on it (water, grass, plazas, sand).
 		drape) check drape '^check_drape:' --script res://tools/check_drape.gd ;;
