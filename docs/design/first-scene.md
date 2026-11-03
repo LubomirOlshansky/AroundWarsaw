@@ -122,10 +122,21 @@ prebuilt sectors with a renderer; check both city paths.
 - **The park strip** (first_scene.gd ITEMS `bench`, `lamp`): four 2.4 m larch benches facing the
   street and three slim park lamps on the museum's pavement strip (west of the tree row), clear of
   the café sets, kiosk and stall. The trees, grass and paths are the map's.
-- **Not done: the pavilions and towers behind the stores.** East of Marszałkowska between s 184
-  and 246 the OSM footprints fill the block (the towers 34-40 m, the 3 m pavilions at t 70-82), no
-  free ground for props, and the game's camera sees it from behind the stores. It needs photos
-  (refs/, Mac) first.
+- **Pasaż Wiecha and the pavilions behind the stores** (built 2026-11-02 from the Mac photo
+  report `docs/landmarks/photo-reports/dt_pawilony.md`; spec `docs/landmarks/specs/wiecha.md`).
+  The pasaż runs between the stores' backs (t 62) and the pavilions (t 72-77, 93 by the square at
+  Chmielna) from Aleje Jerozolimskie to behind Junior. Four OSM pavilions are site `wiecha`
+  (landmarks.gd): two storeys, 7.2 m, a dark glass shop storey lit warm at night under a dark
+  fascia, a white upper band with one strip window, a parapet and plant boxes. The map's eight
+  lamps on the pasaż became the photos' white Y masts (props.gd `add_y_mast`, map_builder.gd skips
+  them, first_scene.gd `PASAZ`), plus three more so they stand about every 25 m. Café gardens
+  under white parasols (nine tables in three groups), planters, bollard rows across both ends,
+  and people at the north café garden (crowds.gd FIRST_SCENE). Landmarks' surface and the
+  first-scene mesh: +0 draw calls. Left as they were: Zodiak and tower75 (their own sites), the
+  slabs, the strip in front of Scena Relax (one LoD2 mass with the theatre), the 2025 building
+  site at Chmielna (shown as street, the report's default), the Christmas tree (a winter event).
+  The default camera sees the pavilions' roofs and south ends; their fronts face the pasaż, away
+  from it.
 
 ### Items 6 and 7 as built (2026-11-02)
 
