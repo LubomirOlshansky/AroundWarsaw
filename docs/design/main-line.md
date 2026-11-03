@@ -89,7 +89,8 @@ map's legend is one card.
 ## 4. Open (parked in QUESTIONS.md)
 
 - The new gates (0/100/220/340/480/640/850) and the hour: F to time a fresh save on the phone.
-- The main line's star on the screen's edge arrow too (today the arrow keeps its job's colour and
-  the label; the minimap and the full map carry the difference).
-- A short goal line on the driving screen (today only on the full map, to keep the first screen
-  clean).
+- ~~The main line's star on the screen's edge arrow too~~ and ~~a short goal line on the driving
+  screen~~: built 2026-11-03 as a nudge (`main_nudge.gd`): the goal line is a toast 4 s after the
+  step changes; the edge arrow in gold with "★ N m" shows for 25 s then and again after every
+  150 s of free driving, only while nothing else is on, so the first screen stays clean. The
+  timings wait for F's run on the phone.

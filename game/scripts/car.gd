@@ -158,6 +158,13 @@ const GHOST_PUSH_TIME := 1.5
 const GHOST_TIME := 3.0
 const JAM_TIME := 8.0
 const JAM_RADIUS := 4.0
+## The stuck offer (G14's "later", 2026-11-03): trying to drive (gas, brake or the stick) for
+## STALL_TIME s in all and still within STALL_RADIUS m of where it began, whatever holds it (a
+## wall nothing pins it against, a gap inside a building, a ledge): `stalled` reaches STALL_TIME
+## and the game offers the tow on the context button. Time off the controls neither counts nor
+## resets it; leaving the spot does. Parked, held by the stop assist or in the water: never.
+const STALL_TIME := 8.0
+const STALL_RADIUS := 4.0
 ## The driving-feel loop (the ram test): the share of the speed going into a car or a tram that
 ## is kept for the next frame (it was none: a rear-ended car stopped the player dead).
 const CAR_KEEP := 0.5
@@ -261,6 +268,9 @@ var _jam := 0.0
 var _car_hold := 0.0
 var _hold_at := Vector2.ZERO
 var _jam_at := Vector2.ZERO
+## The stuck offer: seconds spent trying near `_stall_at` (main.gd reads it).
+var stalled := 0.0
+var _stall_at := Vector2.INF
 ## The driving-feel loop: seconds since the last kerb jolt.
 var _kerb_wait := KERB_GAP
 var _pinned := 0.0
@@ -734,6 +744,13 @@ func _step(dt: float) -> void:
 	else:
 		_jam = 0.0
 
+	# The stuck offer: the time spent trying near one spot (a car that drives off starts again).
+	if _stall_at == Vector2.INF or here.distance_to(_stall_at) > STALL_RADIUS:
+		_stall_at = here
+		stalled = 0.0
+	if trying and not assisting and collision_mask != 0:
+		stalled += dt
+
 	# Lean into turns and squat under braking, just for the look.
 	var lean := clampf(lateral.dot(global_transform.basis.x) * 0.012, -0.08, 0.08)
 	_body.rotation.z = lerpf(_body.rotation.z, lean, 1.0 - exp(-10.0 * dt))
@@ -790,6 +807,12 @@ func leave_water() -> void:
 	reset_motion()
 
 
+## The stuck offer starts again from here (a tow has just moved the car, maybe only a few metres).
+func reset_stall() -> void:
+	stalled = 0.0
+	_stall_at = Vector2.INF
+
+
 ## Stopped, with nothing of the last contact kept (no pin, no wall, no bounce): a car the game
 ## has just moved (the water's tow, the pause card's unstuck button, 2026-11-01).
 func reset_motion() -> void:
@@ -808,6 +831,7 @@ func reset_motion() -> void:
 	_car_push = 0.0
 	_car_hold = 0.0
 	_jam = 0.0
+	reset_stall()
 	for body: PhysicsBody3D in _ghosted.keys():
 		if is_instance_valid(body):
 			remove_collision_exception_with(body)

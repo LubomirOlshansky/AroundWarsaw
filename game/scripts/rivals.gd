@@ -319,6 +319,7 @@ func setup(lane_graph: LaneGraph, traffic_node: Traffic, hud_layer: CanvasLayer,
 	_beacon = Beacon.new()
 	world.add_child(_beacon)
 	_beacon.setup(RACE_COLOUR, Color("#2b2c2f"))
+	_beacon.pattern = Beacon.Pattern.CHEQUER  # colour-safe: a finish line (beacon.gd)
 	_beacon.waving = true
 	_cooldown.resize(RIVALS.size())
 	for i in RIVALS.size():
@@ -662,7 +663,8 @@ func _frame(dt: float) -> void:
 
 
 func _look_for_challenge() -> void:
-	if flying or missions.has_target() or (jobs != null and jobs.busy()):
+	# PT-15: not over a ride request's card either.
+	if flying or missions.has_target() or (jobs != null and (jobs.busy() or jobs.ride_offered())):
 		return
 	for i in _drivers.size():
 		if _cooldown[i] <= 0.0 and _can_challenge(i):
@@ -1118,6 +1120,12 @@ func _first_give_up(say: bool) -> void:
 	first_result = "declined"
 	state = State.CRUISE
 	hud.hide_challenge()
+
+
+## PT-15 (2026-11-03): a prompt is up (a rival's FLASH LIGHTS, or Halina's flash back) or Halina
+## is rolling up for it: rides.gd offers no ride over it.
+func calling() -> bool:
+	return state == State.PROMPT or _caller >= 0
 
 
 ## Loop 3h slice 4: the guided first race is waiting for its flash back.

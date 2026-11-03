@@ -138,6 +138,7 @@ const Garage := preload("res://scripts/garage.gd")
 const First10 := preload("res://scripts/first10.gd")
 const StopAssist := preload("res://scripts/stop_assist.gd")
 const MainLine := preload("res://scripts/main_line.gd")
+const MainNudge := preload("res://scripts/main_nudge.gd")
 const MAP_PATH := "res://map/centrum.json"
 
 ## Visual styles to compare on the phone. lines = vertical resolution of the pixel image.
@@ -308,6 +309,9 @@ var start_in_tunnel := false
 var ghost_debug := 0
 ## --left-handed: the left-handed layout for this run (Settings → DOSTĘP keeps it otherwise).
 var _flag_left_handed := false
+## --color-safe: colour-safe markers for this run (Settings → DOSTĘP keeps it otherwise): the HUD's
+## tint and the race and rescue rings' shapes (beacon.gd), for shots.
+var _flag_color_safe := false
 ## --lang=pl|en: the language for this run (not saved), over the saved choice and the phone's.
 var _flag_lang := ""
 ## --lift=M: aim the camera M metres above the vehicle (close-ups of tall landmarks).
@@ -1220,6 +1224,7 @@ func _build_world() -> void:
 	hud.set_left_handed(Access.left_handed)  # accessibility (2026-11-01)
 	hud.set_touch_off(no_touch)  # desktop: --no-touch
 	hud.settings_pressed.connect(_open_settings)
+	hud.context_pressed.connect(_on_context_pressed)  # the stuck offer's tow (2026-11-03)
 	hud.settings_panel.changed.connect(_on_setting)
 	hud.settings_panel.closed.connect(_close_settings)
 	hud.map_pressed.connect(_open_full_map)  # F's asks: a tap on the minimap
@@ -3566,6 +3571,8 @@ func _parse_args() -> void:
 			_flag_lang = arg.trim_prefix("--lang=")  # pl or en, for shots and checks
 		elif arg == "--left-handed":
 			_flag_left_handed = true  # accessibility (2026-11-01): the mirrored controls, for shots
+		elif arg == "--color-safe":
+			_flag_color_safe = true  # accessibility (2026-11-03): colour-safe rings and tint, for shots
 		elif arg.begins_with("--shots="):
 			for s in arg.trim_prefix("--shots=").split(","):
 				shots.append(int(s))
@@ -4058,6 +4065,8 @@ func _load_settings() -> void:
 	Access.apply(settings)
 	if _flag_left_handed:
 		Access.left_handed = true
+	if _flag_color_safe:
+		Access.color_safe = true
 	if not _flag_size:
 		base_size = settings.view
 	model_name = _flag_model if _flag_model != "" else OS.get_model_name()
@@ -4575,6 +4584,34 @@ func _unstuck() -> void:
 	_tow_to_lane("unstuck")
 
 
+## The stuck offer (G14's "later", 2026-11-03; F: "if the user is stuck in textures, click and
+## move to the main road"): driven for Car.STALL_TIME s and still in one spot (car.gd `stalled`,
+## whatever holds it: a wall nothing pins it against, a gap inside a building), POMOC DROGOWA comes
+## up on the context button once it is free, with one toast; a tap tows (`_unstuck`). It goes when
+## the car leaves the spot, takes to the air or is towed. The pinned car's own turn-out and tow
+## (car.gd) still come first: this is for what they miss.
+func _stuck_offer_frame() -> void:
+	var want: bool = not flying and not autopilot and _bench_ghost == null and title == null \
+			and not car.in_water and car.stalled >= Car.STALL_TIME \
+			and not (fotka != null and fotka.is_open())
+	if want and hud.pill_free():
+		hud.show_pill("POMOC DROGOWA", "tow truck", "unstuck")
+		if Gamepad.in_use():
+			hud.toast(Gamepad.fmt("Utknąłeś? {a}: pomoc drogowa."), Gamepad.fmt("Stuck? {a}: tow truck."))
+		else:
+			hud.toast("Utknąłeś? Stuknij POMOC DROGOWA.", "Stuck? Tap TOW TRUCK.")
+		print("stuck offer: %.0f s trying at %.1f, %.1f, frame %d" % [car.stalled, car.global_position.x, car.global_position.z, frame])
+	elif not want and hud.pill_shown("unstuck"):
+		hud.hide_pill()
+
+
+## The context button's press (hud.context_pressed): the stuck offer's tow is the game's own.
+func _on_context_pressed(owner: String) -> void:
+	if owner == "unstuck":
+		hud.hide_pill()
+		_unstuck()
+
+
 ## The car onto the nearest lane facing its way (else just the nearest free spot), stopped.
 func _tow_to_lane(why: String) -> void:
 	var at := car.global_position
@@ -4589,6 +4626,9 @@ func _tow_to_lane(why: String) -> void:
 	car.vel = Vector3.ZERO
 	car.forward_speed = 0.0
 	car.reset_physics_interpolation()
+	car.reset_stall()
+	if hud.pill_shown("unstuck"):
+		hud.hide_pill()
 	hud.toast("Pomoc drogowa: wyciągnięci!", "Towed free")
 	_cut_camera()
 	print("%s: moved to %.1f, %.1f" % [why, spot.x, spot.z])
@@ -5180,6 +5220,7 @@ func _process(dt: float) -> void:
 	_read_input(dt)
 	_moment_frame(dt)  # loop MW-6: --egg, --tape, --fotka and the VHS of a tape
 	_water_frame(dt)
+	_stuck_offer_frame()  # G14's "later": POMOC DROGOWA on the context button when stuck
 	Haptics.tick(dt, not flying and absf(car.forward_speed) > 3.0)
 	if autopilot or _bench_ghost != null:
 		_autopilot(dt)
@@ -5688,6 +5729,11 @@ func _stop_assist() -> void:
 var _main_target := Vector2.INF
 var _main_t := 0.0
 var main_step: Dictionary = {}
+## The main line on the driving screen (main_nudge.gd): its goal line and gold edge arrow, shown
+## when nothing else is on (`_free_now`, from `_show_target`).
+var _nudge := MainNudge.new()
+var _nudge_arrow := false
+var _free_now := false
 
 
 func _guide_on() -> bool:
@@ -5730,10 +5776,18 @@ func _main_line_tick(dt: float) -> void:
 		f["end_seen"] = true
 	main_step = MainLine.step(f)
 	hud.set_main_line(main_step["at"], str(main_step["pl"]), str(main_step["en"]))
+	# Nothing comes by itself on the title, in a camera moment or in Spacer (spacer.gd).
+	var quiet := title != null or (moments != null and moments.playing()) or (spacer != null and spacer.on)
+	var n := _nudge.tick(MainLine.STEP_EVERY, main_step, _free_now, quiet)
+	_nudge_arrow = bool(n["arrow"])
+	if bool(n["toast"]):
+		hud.toast("★ " + str(main_step["pl"]), "★ " + str(main_step["en"]))
+		print("main line: goal line %s" % main_step["id"])
 
 
 ## The arrow and minimap dot for the mission target.
 func _show_target() -> void:
+	_free_now = false
 	if rivals != null and rivals.has_target():
 		var f: Vector3 = rivals.target_position()
 		var p := _vehicle_position()
@@ -5817,10 +5871,22 @@ func _show_target() -> void:
 		if notes != null and notes.is_found(spacer.hint_id):
 			spacer.dismiss()
 		return
+	# The main line's nudge (main_nudge.gd): now and then, while nothing else is on, the gold edge
+	# arrow to the next rival or the final's start; the minimap keeps its star (no side pin).
+	var ma: Vector2 = main_step.get("at", Vector2.INF)
+	if not missions.has_target() and _nudge_arrow and ma != Vector2.INF and Lines.shows(Lines.Line.CAR, flying):
+		var at_m := _vehicle_position()
+		var mm := roundi(Vector2(ma.x - at_m.x, ma.y - at_m.z).length())
+		var on_m := cam.unproject_position(Vector3(ma.x, map.ground_height(ma.x, ma.y) + 3.5, ma.y)) * float(view.stretch_shrink)
+		hud.set_target(on_m, "★ %d m" % mm, MainLine.COLOUR, mm > 12)
+		_put_target(Vector2.INF, Color.WHITE, false)
+		_free_now = true
+		return
 	if not missions.has_target():
 		hud.set_target(Vector2.ZERO, "", Color.WHITE, false)
 		_put_target(Vector2.INF, Color.WHITE, false)
 		_last_target_source = ""
+		_free_now = true
 		return
 	var t: Vector3 = missions.target_position()
 	var colour: Color = missions.target_colour()
@@ -6331,9 +6397,16 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 
 ## M / the pad's A: the mission card's first button (loop 2d-1: a Podwózka request or result first).
+## The context button comes after the cards (a card on screen is what A answers first) and before
+## the rescue line's own A (which offers the next call): the pad had no way to press KASETA, START
+## KURS or POMOC DROGOWA (2026-11-03).
 func _primary() -> void:
-	if (rides == null or not rides.primary()) and (jobs == null or not jobs.primary()) \
-			and (trend_job == null or not trend_job.primary()):
+	if (rides != null and rides.primary()) or (jobs != null and jobs.primary()) \
+			or (trend_job != null and trend_job.primary()):
+		return
+	if missions.state == missions.State.OFFER or missions.state == missions.State.RESULT:
+		missions.primary()
+	elif not hud.press_pill():
 		missions.primary()
 
 

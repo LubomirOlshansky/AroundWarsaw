@@ -42,6 +42,8 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		"WARSZAWA", "POWIŚLE",
 		# S3a: Warszawa Stadion's roof letters.
 		"STADION",
+		# S3e: Warszawa Wschodnia's fascia letters (with WARSZAWA above).
+		"WSCHODNIA",
 		# The river's bar barges (docs/landmarks/specs/barki.md): parodies of their names.
 		"WIECZOREK", "BARKA", "MARINKA", "KASKADKA", "PRZYSTAŃ",
 		# S3b: Warszawa Śródmieście's pavilions.
@@ -60,7 +62,12 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		"NOSE AGENCY",
 		# Bracka and Plac Trzech Krzyży (photo builds, 2026-11-03): Vitkac's and the Sheraton's
 		# names as parodies, a generic word over Jabłkowski's door.
-		"VIPKAC", "SZERATON", "DOM MODY"]
+		"VIPKAC", "SZERATON", "DOM MODY",
+		# Poczta Główna's red band over the colonnade (a parody of the operator's own band).
+		"POCZTA",
+		# The Vistula boulevards' bar pavilions and containers (docs/landmarks/specs/bulwary.md):
+		# parody bar names and what the hatches sell.
+		"CUDAK", "POMOSTEK", "RZECZKA", "LEMONIADA", "ZAPIEKANKI"]
 ## Tube colours (linear, bright): pink, cyan, violet, and a few words' usual colours.
 const PINK := Color(1.0, 0.1, 0.55)
 const CYAN := Color(0.1, 0.9, 1.0)

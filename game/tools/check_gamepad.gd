@@ -29,6 +29,11 @@ extends SceneTree
 ##       family prints every button token, `fmt` fills the hints per family and language, every
 ##       {token} in a Gamepad.fmt line in scripts/ is known, and no string names RT / LT / LB / RB
 ##       by hand (a hint says {rt} / {lt}).
+##   P15 (2026-11-03) A presses the context button (KASETA, START KURS, POMOC DROGOWA, WEZWANIE)
+##       when it is up and nothing when it is not; with the pad in use the button reads "A · ...",
+##       a finger takes the "A" off again; main.gd answers a card before the context button.
+##   P16 (2026-11-03) with the pad in use and the nitro bought its disc stays as the tank's gauge
+##       (one pedal rect, at the disc), none without the nitro, the pedals again after a touch.
 ##   godot --headless --path game --script res://tools/check_gamepad.gd
 
 const Gamepad := preload("res://scripts/gamepad.gd")
@@ -361,7 +366,66 @@ func _ui() -> void:
 	if jumped.size() != 1 or jumped[0].distance_to(want) > 1.0 or fm.visible:
 		fails.append("P12 A held: teleports %s (want one at %s), map open %s" % [jumped, want, fm.visible])
 	fm._input(_press(JOY_BUTTON_A, false))
+	fm.visible = false
+
+	# P15
+	_context(hud)
 	_finish()
+
+
+## P15: the pad's A presses the context button (hud.gd `press_pill`, main.gd `_primary`).
+func _context(hud: CanvasLayer) -> void:
+	Gamepad.family = Gamepad.XBOX
+	var got: Array[String] = []
+	var calls := [0]
+	hud.context_pressed.connect(func(o: String) -> void: got.append(o))
+	hud.pill_pressed.connect(func() -> void: calls[0] += 1)
+	var pill: Button = hud.get("_pill")
+	var top := pill.get_child(0).get_child(0) as Label
+	hud.hide_pill()
+	if hud.press_pill() or not got.is_empty():
+		fails.append("P15 A pressed a context button that was not up (%s)" % [got])
+	hud.set_pad_mode(false, false)
+	hud.show_pill("KASETA", "time tape", "tape")
+	if top.text.begins_with("A · "):
+		fails.append("P15 the pill names the pad's A without a pad: \"%s\"" % top.text)
+	hud.set_pad_mode(true, false)
+	if not top.text.begins_with("A · "):
+		fails.append("P15 the pad took over and the pill doesn't name A: \"%s\"" % top.text)
+	if not hud.press_pill() or got != ["tape"] or calls[0] != 0:
+		fails.append("P15 A on KASETA: presses %s, rescue presses %d" % [got, calls[0]])
+	hud.show_pill("WEZWANIE", "rescue call", "call")
+	if not top.text.begins_with("A · "):
+		fails.append("P15 a new pill in pad mode doesn't name A: \"%s\"" % top.text)
+	hud.press_pill()
+	if got != ["tape", "call"] or calls[0] != 1:
+		fails.append("P15 A on WEZWANIE: presses %s, rescue presses %d" % [got, calls[0]])
+	hud.set_pad_mode(false, false)
+	if top.text.begins_with("A · "):
+		fails.append("P15 a finger took over and the pill still names A: \"%s\"" % top.text)
+	hud.hide_pill()
+	# P16: the nitro's tank stays on screen while the pad hides the pedals.
+	hud.set_nitro(true, 0.5)
+	hud.set_pad_mode(true, false)
+	var rects: Array = hud._pedal_rects()
+	var nc: Vector2 = hud._nitro_centre()
+	if rects.size() != 1 or not (rects[0] as Rect2).has_point(nc):
+		fails.append("P16 pad mode with the nitro: pedal rects %s, the disc at %s" % [rects, nc])
+	hud.set_nitro(false, 1.0)
+	if not hud._pedal_rects().is_empty():
+		fails.append("P16 pad mode without the nitro keeps %s" % [hud._pedal_rects()])
+	hud.set_pad_mode(false, false)
+	hud.set_nitro(true, 1.0)
+	if hud._pedal_rects().size() < 3:
+		fails.append("P16 a finger back: only %d pedal rects" % hud._pedal_rects().size())
+	hud.set_nitro(false, 1.0)
+	# main.gd: A answers a card first, then the context button, then the rescue line's own A.
+	var main_text := FileAccess.get_file_as_string("res://scripts/main.gd")
+	var body := main_text.substr(main_text.find("func _primary("), 700)
+	var cards := body.find("trend_job.primary()")
+	var pill_at := body.find("hud.press_pill()")
+	if cards < 0 or pill_at < cards:
+		fails.append("P15 main.gd _primary doesn't press the context button after the cards")
 
 
 ## P14: the button faces per pad family.
