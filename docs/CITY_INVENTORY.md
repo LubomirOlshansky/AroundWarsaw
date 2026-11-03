@@ -88,7 +88,7 @@ often, known to every visitor; **B** characteristic, known to locals, gives a st
 | 27 | Pałac Prezydencki | Krakowskie Przedmieście | palace | ◐ | photo check of the portico and statue |
 | 28 | Rondo ONZ towers: Q22, Rondo 1, Cosmopolitan, InterContinental (OSM: InterContinental), Warsaw Trade Tower | Rondo ONZ / Emilii Plater / Twarda | skyscrapers | ○ | **photo build** of each crown and skin (one thread per tower, Q22 and Rondo 1 first) |
 | 29 | Hotel Warszawa (the 1934 Prudential) | Plac Powstańców Warszawy | historic skyscraper, hotel | ★ | built 2026-11-02 from `refs/hotel_warszawa/` (Commons photos, the ortho) and LoD2, spec `hotel_warszawa.md`; Mac look check (QUESTIONS) |
-| 30 | Cedet (Dom Towarowy CDT) | Krucza / Aleje Jerozolimskie | department store | ★ | built 2026-11-02 from `refs/cedet/` (Commons photos, the ortho) and LoD2, spec `cedet.md`; Mac look check: corner radius, pavilion (QUESTIONS) |
+| 30 | Cedet (Dom Towarowy CDT) | Krucza / Aleje Jerozolimskie | department store | ★ | built 2026-11-02 from `refs/cedet/` (Commons photos, the ortho) and LoD2, spec `cedet.md`; F's look check applied 2026-11-03 (wings, 11 m corner, 3.7 m storeys, recessed pavilion, grey-bronze loop) |
 
 ### Tier A: iconic, seen often
 
