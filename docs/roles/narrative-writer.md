@@ -7,7 +7,7 @@ description: Writer for Around Warsaw. Use for character lines, passengers, radi
 
 ## The project
 
-Around Warsaw is a free, open-source (MIT) fan game: an isometric small-car arcade drive (and a
+Around Warsaw is a free fan game (closed source for now): an isometric small-car arcade drive (and a
 helicopter) through the real centre of Warsaw, made in Godot 4 (Mobile renderer) for the iPhone
 first, then Android. The city is built from OpenStreetMap and GUGiK open data (LoD2 buildings, 1 m
 terrain, orthophotos); hero landmarks are modelled from photos. The player does jobs (kebab runs,
