@@ -135,7 +135,8 @@ JMED_LEN = 30.0
 JMED_REACH = 3.0     # ...with a third road's strip this near (crossing it, not alongside: JMED_ANGLE)...
 JMED_ANGLE = 0.94    # ...is a junction's painted area (hatched), not a raised grass median,
 JMED_TOUCH = 2.0     # ...unless it comes this near a median that stays, running its way (|cos| at least
-JMED_ALONG = 0.85    # this): that median's end
+JMED_ALONG = 0.85    # this): that median's end; or within this of a deck piece's end
+JMED_DECK = 15.0
 KERB_W = 0.3         # granite kerb, metres across...
 EDGE_INSET = 0.35    # ...and the edge line this far inside the carriageway
 
@@ -2376,6 +2377,7 @@ class Roadbed:
         paving where trams run in it. Mapped grass, islands and hatching stay as they are."""
         out = []
         self._zebras = None
+        self._deck_ends = None
         # Map round 2b (L5): a median piece on the mapped tram bed (`landuse=railway`, the
         # ballast surface) is the tram bed, paved like it, even where the tracks themselves bend
         # away from it across a junction (the green rectangle on the tracks by Jerozolimskie x
@@ -2535,6 +2537,12 @@ class Roadbed:
         # A roundabout's middle is its raised island; a zebra across the strip makes it a raised
         # refuge (signal poles stand on it): both stay medians.
         if any(o is not None and o["_t"].get("junction") in ("roundabout", "circular") for o in sides + [r]):
+            return False
+        # Nor by a deck's end: its outline would cross the joint (check_roads C2 at Most
+        # Łazienkowski's Praga loop ramps, (2126, 825)).
+        if self._deck_ends is None:
+            self._deck_ends = [e for pc in self.pieces if pc["kind"] in ("road", "tram") for e in (pc["pts"][0], pc["pts"][-1])]
+        if any(math.dist(e, p) < JMED_DECK for e in self._deck_ends for p in (near[0], near[-1])):
             return False
         if self._zebras is None:
             self._zebras = Capsules()
