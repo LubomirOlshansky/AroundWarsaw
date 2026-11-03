@@ -347,6 +347,10 @@ Built from photos gathered on the Mac (`refs/hotel_warszawa/`, `refs/cedet/`) an
   generic 1.5 m mullions; the north wing has no crown pavilion of its own; the glazed lantern and link roof
   plant are not modelled; the ground-floor tenants' fascias (parodies) and the red neon at the east corner
   are not there.
+- Cedet after F's look check (2026-11-03): the east end's radius is unclear (4 m kept; check against a
+  straight-on photo of the Bracka corner); the wings' tips stand ~1 m over LoD2's 31.5 m so the sweep reads
+  from the street (lower them if a photo shows a flatter curve); the plant screen at the back of the
+  pavilion is LoD2's 35 m box, its louvres and colour are guesses.
 
 ## Most Poniatowskiego (F, 2026-11-02)
 Built from photos gathered on the Mac (`refs/poniatowski/`, report `docs/landmarks/photo-reports/poniatowski.md`),
