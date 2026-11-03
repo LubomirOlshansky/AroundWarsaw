@@ -26,8 +26,10 @@ is the order of the next threads. Found while building it:
   wall plaques with candles (Tchorek's Uprising plaques and the rest), built in park_details' per-cell
   meshes (+3 draw calls on the bench route). Checks `monuments` and `monumentmesh`.
 - **Monuments pass, part 2 (open):** photo builds of Nike, Słowacki, Starzyński, Mały Powstaniec, Kiliński,
-  Plac Piłsudskiego's (Piłsudski, Smolensk, Kaczyński), the Eastern memorial and Umschlagplatz from Mac photos
-  (refs/); each lands as a site and joins `bake_monuments.SKIP`. Then rows 113-116 and 142.
+  the Eastern memorial and Umschlagplatz from the Mac's photo reports (docs/landmarks/photo-reports/); each
+  lands as a site and joins `bake_monuments.SKIP`. Then rows 113-116 and 142. ~~Plac Piłsudskiego's
+  (Piłsudski, Smolensk, Kaczyński)~~ done 2026-11-02 (sites `smolensk`, `pilsudski`, `kaczynski`,
+  `plac_maszty`, the paving's chequer in ground.gdshader; spec `plac_pilsudskiego.md`).
 - **Plaques without a wall:** 49 OSM plaques have no drawn wall within 12 m (free-standing ones, courtyards)
   and are left out; a post-mounted plaque piece would place them. A plaque's wall is the LoD2 footprint, so
   a deep shop recess can leave it on a pier rather than the door's wall (fine so far in shots).
@@ -813,6 +815,19 @@ the OSM outlines, no photos; specs in docs/landmarks/specs/):
 - ~~K5 Hotel Bristol's corner dome~~ (`bristol`, tower 334 tris; its body done in the hotels pass,
   see "Grand hotels"). Left: Mac photo check that the dome is on this corner, its profile and the
   facade's colours.
+- **Photo rebuild (2026-11-02)** from `refs/krakowskie/` (29 Commons photos, three orthos; report
+  docs/landmarks/photo-reports/krakowskie.md): Mickiewicz moved to (-626, -1078) and rebuilt facing the
+  street on his 16 x 10 m terrace (balustrade, two flights, four gilt-flame candelabra, 13.5 m pedestal
+  and poet); the University gate moved to (-462, -642) and rebuilt (white pavilions with statues in
+  niches, curved gables, lanterns, the crowned-eagle gate, side gates, urn piers); Pałac Kazimierzowski
+  ochre with a red roof and its white portico; Pałac Czapskich built whole (brick-red, white trim,
+  pediment, red hips, facing east); Pałac Potockich cream under orange-red roofs, its two street gates;
+  the Kordegarda in white stone with arched windows and a statued attic (no portico); the Carmelite
+  front in sandstone with its paired columns, temple front, copper globe and lantern turrets (2.2 m
+  further out, on the outline's risalit); Bristol cream with a zinc mansard and the open belvedere;
+  Europejski paler. The "southern guardhouse" is the south wing's end, now in the skin's colours.
+  Left: Mac/phone look check (QUESTIONS), café gardens/bollards/awnings (below), the setts south of
+  Kopernik, Prus's and Wyszyński's spots.
 - ~~K6 small things~~ done 2026-11-01: the black Chopin benches (`map_builder`
   `_split_chopin_benches`), Prus's and Wyszyński's statues (`prus` 100 tris, `wyszynski` 122;
   spots from their published coordinates, facings guessed), the carriageway's granite setts
@@ -833,8 +848,11 @@ Plan: docs/design/railway.md. One PR per item, in this order:
 ## Krakowskie Przedmieście street by street (F, 2026-11-02), pass 1
 Built (cloud, Sonnet): eight shopfronts (`Storefronts.KRAKOWSKIE`, 93 venue signs in check_parodies), original names, at the mapped house numbers 20/22, 19, 27, 56, 45, 58/60, 64, 69. Open:
 - Mac look check of the eight signs (QUESTIONS); move them to real doors.
-- Shop awnings, café gardens (Bristol, Europejski, Czytelnik-style), a horse carriage rank, pavement details: need photos.
-- Left from K1-K6: the second Potocki guardhouse, Pałac Czapskich's own model (landmarks thread owns models).
+- Shop awnings, café gardens (Bristol, Europejski, Czytelnik-style), pavement details: photos 26-29 of
+  `refs/krakowskie/` now describe them (low black or wooden barriers, white and dark-red umbrellas, wooden
+  decks, planters; white awnings on the west row near Bednarska; granite bollards ~0.8 m every ~4 m along
+  the walk edge; black cast-iron lamps every ~25 m): next item. No carriage rank in the photos or the ortho.
+- ~~Left from K1-K6: the second Potocki guardhouse, Pałac Czapskich's own model~~ done 2026-11-02 (photo rebuild above).
 
 ## Powiśle street by street (F, 2026-11-01)
 - Built: Ostrogski Castle + Chopin Institute, the Teresy church, the boulevard Syrenka, Dworzec

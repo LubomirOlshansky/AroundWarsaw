@@ -1,59 +1,52 @@
 # Kościół Karmelitów (Carmelite church): spec
 
-Site key `karmelici` in `game/scripts/landmarks.gd` (`_build_karmelici`). Written 2026-11-01 in a cloud thread (BACKLOG K1) from the OpenStreetMap outline in `centrum.json`; no photo, no LoD2 here. Values marked *(photo check)* wait for the Mac's `refs/`. The nave stays the kept LoD2 skin; the model adds the street front.
+Site key `karmelici` (a kept skin with a model) in `game/scripts/landmarks.gd` (`_build_karmelici`). Written 2026-11-02 in a cloud thread from the Mac's reference set `refs/krakowskie/` (29 Wikimedia Commons photos, three GUGiK orthophotos at 0.137 m/px; report `docs/landmarks/photo-reports/krakowskie.md`, authors and licences there) plus the GUGiK LoD2 heights from the CI map pack. It replaces the 2026-11-01 first pass, which had the OpenStreetMap outline only. Report section 6, photos 24-25.
 
 ## 1. Identity
 
-Church of the Assumption and St Joseph (Efraim Szreger and Jakub Fontana, 1761-1781) on Krakowskie Przedmieście, next to the Presidential Palace. Defining: a tall two-storey stucco front with pilasters, scrolls down to the ends, an attic and a small pediment under a gilt globe and cross.
+Kościół Wniebowzięcia NMP i św. Józefa (Fontana and Szreger, 1761-1781): a two-storey sandstone front facing the street (west) over a paved forecourt. Below, two pairs of engaged Tuscan columns round the big door and pilasters at the ends, three doors; above, set back behind a balustraded balcony, a temple front of four free-standing Corinthian columns with a big arched window and two statues in niches, a straight entablature, an attic with sculpture groups, crowned by a green copper globe with a gilt finial; a lantern turret with round openings and a green cap either side.
 
 ## 2. Massing
 
-Frame: origin (-597.0, -1043.5) (the front's north end on the outline), u along the front (axis (0.507, 0.862), 26 m, to the south-south-east), +v out of it to the street (west-south-west). The outline's west edge steps in 1.5 m jogs, so the front plane sits on its outermost points. Heights *(photo check)*: ground floor 9.2 m, entablature 10 m, upper storey 17 m (16 m wide), cornice 17.9 m, attic tiers to 21.2 m, pediment apex 22.9 m, globe 23.5 m, cross 26.4 m.
+The nave is the LoD2 model (kept skin: #d9cba6, teal copper roof #5e8f80 from the ortho). Frame: origin (-598.9, -1042.4), u south along the front (0.507, 0.862), +v west; the front stands 2.2 m out from the first pass's line, onto the outline's centre risalit (the LoD2 front had shown through it). Lower storey 26 x 2.8 m to 9.2 m, entablature to 10.3 m; upper storey 16.4 m wide to 18 m; attic to 19.6 m; globe to 22.4 m; finial to 24.6 m. Turrets 3.2 x 2 m at u ±10.6, caps to 17.5 m.
 
-## 3. Facade
+## 3. Facade, base to top
 
-Plinth 1.6 m; six pilasters on the ground floor (u 3.5, 8, 12.4 each side of the middle), a central dark door (3 x 5.2 m) under a small cornice with three steps, two side doors, two windows; an entablature; an upper storey four pilasters narrower with a tall central window and two side windows; a cornice; the two-tier attic.
+Ochre plinth and three steps; columns (r 0.42 m) at u ±2.4, ±3.9, pilasters at ±8.4, ±12.4; the door (3 x 5.4 m, round-headed, dark wood), side doors (1.7 m), windows over them; balcony balustrade; upper columns (r 0.4 m) at ±1.9, ±5.4; the arched window (2.6 x 4.3 m); niches with statues at ±3.65; four sculpture groups on the attic.
 
 ## 4. Roof
 
-- **Pediment**: 7.2 m wide, rise 1.7 m on the attic, copper-grey slopes (#7d8a7c), with the gilt globe (r 0.95 m, 8 sides) and a cross 2.2 m tall on top.
-- **Nave**: the kept skin's roof, #7d8a7c.
-- **Scrolls**: two stepped blocks down each side from the upper storey to the ends, with a ball finial.
+The LoD2 roof in the skin's teal copper; the globe in green copper (#5e9e8a); the turrets' green caps.
 
 ## 5. Colour and material
 
 | Part | Colour | Material code |
 | --- | --- | --- |
-| Plaster | #e2d8c0 | M_STONE, M_MONUMENT (upper windows) |
-| Trim | #f1eadb | M_STONE |
-| Plinth, steps | #b3a994 | M_STONE |
-| Door, windows | #3a3d40 | M_GLASS |
-| Globe, cross | #c9a24a | M_STONE |
-
-No new material or draw call.
+| Front walls | #c9b78c | M_STONE |
+| Plinth, steps, niches | #b39a62 | M_STONE |
+| Columns, entablature, statues | #d8c9a2 | M_STONE |
+| Globe, turret caps | #5e9e8a | M_STONE |
+| Finial | #c9a24a | M_STONE |
+| Doors | #4a3328 | M_STONE |
 
 ## 6. Ground and night
 
-Car stopped by the steps (one ring). Card: "Kościół Karmelitów". Open *(photo check)*: the real front's colours (white and grey?), the number of pilasters, the scrolls' shape.
+The forecourt's parking is the map's. The car stops at the steps. Card "Kościół Karmelitów".
 
 ## 7. Detail level and budget
 
-L3 for the front; 374 triangles measured, budget 450 (`check_mesh_quality.gd`).
-
-Shot: `--at=-600,-1034 --yaw=245 --pitch=-20 --size=45 --nohud --no-ghost`.
+L2, triangle budget 1300 (built 1202).
 
 ## 8. Parts table
 
 | id | shape | size | position | material | feature |
 | --- | --- | --- | --- | --- | --- |
-| plinth | box | 26.6 x 1.4 m, 1.6 m high | u 13, v 0 | M_STONE | 3 plinth |
-| ground floor | box | 26 x 1.2 m, 8.2 m high | u 13, 1..9.2 m | M_STONE | 3 ground floor |
-| upper storey | box | 16 x 1.2 m, 7.8 m high | u 13, 9.2..17 m | M_MONUMENT | 3 upper storey |
-| pilasters | 10 boxes | 0.8 x 0.6 m, 8.2 and 7 m high | u 3.5, 8, 12.4; 3.2, 7.4 | M_STONE | 3 facade |
-| entablature, cornice | 2 boxes | 26.6 x 1.8 m; 16.6 x 1.8 m | 9.2..10, 17..17.9 m | M_STONE | 3 facade |
-| scrolls | 4 boxes, 2 balls | 4 x 1.2 m and 2.8 x 1.2 m | u 9.5 and 10.6 each side | M_STONE | 3 facade |
-| doors and windows | 7 dark panes | 3 x 5.2 m door; 1.8 x 3.6 m; 1.6 x 4 m | ground and upper storey | M_GLASS | 3 facade |
-| portal cornice, steps | box and 3 boxes | 4 x 1.2 m; 6.8 to 4.8 m wide | u 13, in front of the door | M_STONE | 3 portal |
-| attic | 2 boxes | 11.2 and 7.2 m wide, 1.8 and 1.5 m high | 17.9..21.2 m | M_STONE | 3 attic |
-| pediment | gable | 7.2 m wide, rise 1.7 m | 21.2..22.9 m | M_STONE | 4 roof |
-| globe and cross | 2 frustums, 2 boxes | r 0.95 m; cross 2.2 m | apex, 22.9..26.4 m | M_STONE | 4 roof |
+| lower storey | boxes | 26 x 2.8 x 8.2 m | u 0..26 | M_STONE #c9b78c | ground floor |
+| columns | 4 columns, 4 pilasters | r 0.42 m, 8.2 m | round the door | M_STONE | Tuscan pairs |
+| doors | 3 round-headed panels | 3 m and 1.7 m | v 0.35 | M_STONE #4a3328 | doors |
+| upper storey | box, balustrade | 16.4 x 3 x 7.7 m | centre | M_STONE | temple front |
+| upper columns | 4 columns | r 0.4 m, 6.7 m | v 0.4 | M_STONE | Corinthian |
+| window, niches | arch panels, 2 figures | 2.6 x 4.3 m; 1.5 m | upper face | M_STONE | statues |
+| attic | box, 4 groups | 12.8 x 1.6 m | 18-19.6 m | M_STONE | sculpture groups |
+| globe | 3 frustums, finial | r 1.25 m | top | M_STONE #5e9e8a | copper globe |
+| turrets | box, disc, cap | 3.2 x 2 x 4.8 m | u ±10.6 | M_STONE | lantern turrets |
