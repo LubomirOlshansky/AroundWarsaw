@@ -58,8 +58,9 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		"VERSO PLACE",
 		# The Skyliner's crown (docs/design/city-life-satire.md #12): a small agency with a large nose.
 		"NOSE AGENCY",
-		# Filharmonia Narodowa's own green neon on its corner (the institution's name, not a brand).
-		"FN", "SALA KONCERTOWA"]
+		# Filharmonia Narodowa's own green neon on its corner (the institution's name, not a brand;
+		# SALA KONCERTOWA in two rows, as one it is wider than the atlas).
+		"FN", "SALA", "KONCERTOWA"]
 ## Tube colours (linear, bright): pink, cyan, violet, and a few words' usual colours.
 const PINK := Color(1.0, 0.1, 0.55)
 const CYAN := Color(0.1, 0.9, 1.0)

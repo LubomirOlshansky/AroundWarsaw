@@ -8993,7 +8993,8 @@ func _build_filharmonia(_site: Dictionary) -> void:
 	_disc(Vector3(corner.x, top - 2.0, corner.y), n3, 1.5, 16, FIL_DARK)
 	signs.append(["FN", Vector3(corner.x, top - 2.6, corner.y) + n3 * 0.08, n3, 1.1, FIL_NEON])
 	var name_at := _w(span - FIL_END * 0.5 - 1.0, 0.6)
-	signs.append(["SALA KONCERTOWA", Vector3(name_at.x, base - 1.5, name_at.y), n3, 0.45, FIL_NEON])
+	signs.append(["SALA", Vector3(name_at.x, base - 1.0, name_at.y), n3, 0.45, FIL_NEON])
+	signs.append(["KONCERTOWA", Vector3(name_at.x, base - 2.1, name_at.y), n3, 0.45, FIL_NEON])
 	_collide(_rect(m, 1.0, m + 0.3, 1.2))
 
 

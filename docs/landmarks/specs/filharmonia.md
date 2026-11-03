@@ -42,7 +42,7 @@ LoD2's roof shapes in the skin's lead grey (#8e9392); the raised hall roof in th
 
 Walls #e3ded2 (the report), columns #ede9de, base #c9c3b5, statues #f1efe9, windows #232a33,
 iron #2b2c2e, lead #a2a7a8, neon green (0.2, 1.0, 0.45). M_STONE, M_GLASS; the skin M_MONUMENT.
-The neon words FN and SALA KONCERTOWA join neon_signs.gd's LANDMARK_WORDS.
+The neon words FN, SALA and KONCERTOWA (two rows: as one the hall's name is wider than the atlas) join neon_signs.gd's LANDMARK_WORDS.
 
 ## 6. Ground and night
 
@@ -69,4 +69,4 @@ L2, 1196 triangles, budget 1450 (check_mesh_quality). Shot: `--at=-838,-55 --yaw
 | entablature | 2 boxes | 56.1 x 3.2 m, 1.65 m | over the columns | M_STONE #ede9de | 1 the colonnade |
 | attic | box | 55.9 x 0.7 m, 1.35 m | over the face | M_STONE #e3ded2 | facade |
 | roundel | disc | r 1.5 m | the Sienkiewicza corner | M_STONE #232a33 | 3 the neon |
-| neon | 2 words | FN, SALA KONCERTOWA | the corner | neon sign | 3 the neon |
+| neon | 3 words | FN, SALA / KONCERTOWA | the corner | neon sign | 3 the neon |
