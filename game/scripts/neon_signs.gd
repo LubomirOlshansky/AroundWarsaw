@@ -60,6 +60,9 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		"VERSO PLACE",
 		# The Skyliner's crown (docs/design/city-life-satire.md #12): a small agency with a large nose.
 		"NOSE AGENCY",
+		# Bracka and Plac Trzech Krzyży (photo builds, 2026-11-03): Vitkac's and the Sheraton's
+		# names as parodies, a generic word over Jabłkowski's door.
+		"VIPKAC", "SZERATON", "DOM MODY",
 		# Poczta Główna's red band over the colonnade (a parody of the operator's own band).
 		"POCZTA",
 		# The Vistula boulevards' bar pavilions and containers (docs/landmarks/specs/bulwary.md):

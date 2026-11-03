@@ -3,6 +3,7 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+<<<<<<< HEAD
 ## Eastern Wall photo pass: Marszałkowska fronts, Sezam WACZEK, Coca-Cola sign (F, 2026-11-03)
 
 Plan only, nothing built (F paused new work; this wants his "go" for the Mac photo gather). Scope F set:
@@ -18,12 +19,47 @@ Plan only, nothing built (F paused new work; this wants his "go" for the Mac pho
   on its ground floor, F's photos), NOT on the Junior-Sawa-Wars fronts. Its own yellow wordmark and sign shape
   (Storefronts.HYPE `waczek_*`, upside-down W). Add a `waczek_sezam` site; the Sezam block itself (the old Sezam
   department store, now the glass office with the SEZAM name) is part of the same pass.
-- **Coca-Cola sign** on the tower roof (F's photos: the red Coca-Cola roof sign on the round slab at Marszałkowska,
-  now beside the Amica tower on the Eastern Wall). Real brand, so a parody (KOKA-KOLKA is already on `tower75`;
-  check which tower F means and whether the Amica sign gets a parody too, e.g. AMIKA).
+- **Cola sign (F answered 2026-11-03):** put it on the rooftop at the Sezam/Centrum corner (Marszałkowska x Świętokrzyska), as an
+  original parody wordmark (real brand never used; the existing KOKA-KOLKA on `tower75` is the style to check against so the
+  two do not repeat). **Amica** gets a fictional appliance-brand name on its tower roof too (pick one, e.g. AMIKA is too close:
+  use something like ZMYWAKA or PRALKA PLUS, Polish, affectionate). Both are lit roof signs, `_dtc_sign` style.
 - **Chmielna:** keep the street clean, no excavation or roadworks. **Pasaż slabs:** the report's grey-white #D8D8D4 with a
   slightly warm tint (palette change in the existing `wiecha` model).
-- Open for the gather: which Coca-Cola tower, the Sezam corner's exact outline, the Żabka corner on Wars.
+- Open for the gather: the Sezam corner's exact outline, the Żabka corner on Wars.
+=======
+## Open courtyards (F, 2026-11-03)
+
+F: "some kamienica from the top have the hole in the center, I want it where it has one". Found: the
+GUGiK LoD2 blocks (most of the centre) already show their courts, since each model is roofed only
+where the building stands (shots from above at Hoża). The gap was the hand-built landmark models that
+lift a mapped outline: bake_osm keeps only a multipolygon's outer ring, so the Ministry of Finance,
+the National Museum and Hotel Bristol had one solid roof over real courts. Done: `tools/bake_courts.py`
+traces every closed-in, roofless patch of 30 m² or more inside a mapped outline from lod2.bin (187
+courts, `game/data/courts.json`, verify step `courts` checks it against today's map files);
+landmarks.gd `COURT_SITES` (mf, muzeum, bristol) cuts them out of the site's flat tops and walls them
+in, with window bays every 3.6 m and storey. The Palace already had its courts (`P_COURTS`). Open:
+- OSM-only buildings (no LoD2 model, mostly newer blocks: Oxygen, offices with atria) still lose their
+  inner rings in bake_osm (`main`'s multipolygon loop reads only `outer` members). Keep the inner rings
+  in centrum.json and let map_builder `_build_buildings` draw them (walls facing in, roof cut); needs
+  the raw OSM export, so a Mac re-bake (the cloud has no OSM access).
+- Hotel Europejski: its LoD2 model (2018, mid-renovation) is roofed over the court, so no court is
+  traced; the photo rebuild (PR #402) hand-models it (a 14 m ring, inner walls, glass roof at
+  8.5 m), so "europejski" stays out of `COURT_SITES` (no double court).
+- Other sites the trace finds courts in, left as built: Złota 44 (127 m², a gap of the 2018 survey
+  by the tower), Pasaż Wiecha (152 m²), St Anthony's and the Reformed church (64 and 37 m², small
+  cloister or light-well courts). Add a key to `COURT_SITES` after a look check.
+- Mac look check: the three courts from the helicopter and the game's angle, day and night (the court
+  walls' windows light like the model's own bays).
+
+## Grow the map north-east (F, 2026-11-03: not now)
+
+Koneser (1426, -2355), Park Fontann (the Multimedia Fountain Park, -868, -2208) and Ząbkowska's bar
+strip (x 1020-1080, z -2080 to -2110) lie in the map box's cut north-east corner (`centrum.json`
+"outside": z < -2045 east of x -1706). F (2026-11-03): add to the backlog, don't build yet. The job
+(map lane): grow bake_osm's map shape (tools/map_shape.py), re-bake the chain and the LoD2/terrain
+on the Mac, publish a new map pack, then build Koneser, the fountain park and Ząbkowska's bars from
+the photo reports already in (QUESTIONS 2026-11-02 and 2026-11-03).
+>>>>>>> origin/main
 
 ## Vitkac quests and ride stories (F, 2026-11-03)
 
@@ -282,9 +318,6 @@ fixed 2026-11-02); PT-9 HUD overlaps confirmed.
   watch on the next P2 run that the nudge reads at phone size and that a red light mid-race (under
   5 s) never triggers the stall line. The heli/tape/garage beats pass headless only; P2 by hand
   (flying to the BUW roof, driving to Mirek) waits for an Autopilot run on the Mac.
-- Found with PT-7: a 9 m wide, 3 m deep recess in Jabłkowski's front on Bracka (-578,203) still
-  holds a car whose stick points into it (turned out once; a real recess, left open). Wider recesses
-  like it are not bridged on purpose (a car fits in them).
 - Found with PT-7: the camera's see-through ghost hides the wall the car is about to hit when it
   drives towards the camera (south on the default view): a player pushing into it sees no wall.
   A design question for the visuals lane (a ground outline or a faint base under the ghost?).
@@ -330,6 +363,19 @@ spans (granite piers, steel arch ribs, red fascia, black railing, pier pedestals
   south arcade stands 3-5 m back under the deck, because the street runs under the deck's edge there.
 - The approaches between the towers have been lit since map round 2 (D7, `bake_lights` approach lamps); the
   night shots of 2026-11-03 show both abutments lit.
+
+## Bracka and Plac Trzech Krzyży: Vitkac, Jabłkowski's, the Sheraton (CITY_INVENTORY 80-82, 2026-11-03)
+- The BGK building (CITY_INVENTORY 146, F asked 2026-11-03) built too (site `bgk`). Left: its three
+  light wells, the stepped south side's real heights, the balconettes; the block behind it on
+  Mysia, Mysia 2 (OSM landmark 'Polska Grupa Energetyczna'), is still plain.
+- Built from the Mac photo reports (sites `vitkac`, `jablkowscy`, `sheraton`). Left: the Mac look
+  check (QUESTIONS); Jabłkowski's stained-glass windows lit at night through the front; the Sheraton's
+  glazed restaurant pavilion with white umbrellas on the forecourt (its spot needs the photo).
+- Found and fixed: a landmark model's car walls skipped the slit and notch bridging (map_builder
+  `_bridge_pockets` only saw kept buildings), so the PT-7 slit by Jabłkowski's corner came back;
+  a site can now hand its outline over (`landmarks.gd` `pocket_rings`, opt-in, these three use it).
+  Older models (Dom pod Orłami, POLIN, the Bankowy palaces...) don't: worth a sweep with
+  `check_stuck_spots` along their fronts.
 
 ## Plac Krasińskich: the Uprising Monument and the palace (CITY_INVENTORY 22 and 79, 2026-11-02)
 Built from photos gathered on the Mac (`refs/pomnik_powstania/`, `refs/krasinski/`) and LoD2, specs
@@ -864,7 +910,7 @@ traffic queueing and going round parked cars (traffic.gd PARKED_LOOK / PARKED_WA
 - Left, all for the Mac photo check: real colours of both facades, the real storey count (Polonia 25.5 m
   and Bristol 27.4 m are mapped or estimated), where the entrances are, the mansards' true profile;
   the other grand hotels (Hotel Metropol 1960s block, Mercure Grand, Hotel Saski) stay generic;
-  Sheraton, Hilton, Holiday Inn and the Ibises are plain OSM extrusions.
+  Hilton, Holiday Inn and the Ibises are plain OSM extrusions (the Sheraton is a model since 2026-11-03).
 - Radisson Blu Sobieski (Plac Zawiszy 1) done 2026-11-02 as "Radysław Blu" (`sobieski`, spec `sobieski.md`) from the
   OSM outline, no photo: Mac check of band colours and order, storey count (31 m assumed), entrance. The Atlas Tower
   (-2230,1015) next door is a separate thread and untouched here.
@@ -2724,6 +2770,13 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
   test map. `shots.sh`'s `settings_panel` shot is MISSING (the paused game never reaches the shot
   frame): a shot-script issue, not the map.
 
+## From the Mac pass (2026-11-03)
+- **Oboźna's lane edge steps (C8)**: 0.77 m within 4 m at (-184, -605) and 0.50 m at (-97, -623), on the
+  slope down to Powiśle; the same on a fresh bake of origin/main, so not from the junction-median change.
+  Allowlisted in `tools/check_roads_allow.json` with this reason; judge on the 1 m terrain.
+- **check_gamepad P12** ("the full map's hint doesn't speak of the pad") fails on the merged main code
+  (2026-11-03), not from this PR: the full map's hint text needs its gamepad wording back (gameplay lane).
+
 ## From loop 3e (the structures, 2026-10-30)
 - **Most Łazienkowski's Praga end and the Czerniakowska interchange (R8)**: ~~where two ramps of one
   deck group part, a ramp's guard rail runs into the other's lanes~~ **Fixed (the joins loop,
@@ -2758,7 +2811,10 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
   lane) fixed by moving its `near` onto the bridge. The three geometry leftovers below were NOT
   touched: the cloud has no terrain.json, so `drop` (the parapet collider's test) and the deck
   heights differ from the Mac and check_drive cannot confirm a fix there; do them on the Mac.
-- **Wybrzeże Szczecińskie's deck over the Port Praski inlet (deck 4)** by Most Śląsko-Dąbrowski's
+- ~~**Wybrzeże Szczecińskie's deck over the Port Praski inlet (deck 4)**~~ **Fixed 2026-11-03 (Mac):** the bus
+  hit OSM `barrier=wall` lines mapped to the kerb at the deck's at-grade ends, not the parapet; `bake_structures.py`
+  now cuts barrier lines in a deck road's corridor where the deck runs below ground + `BARRIER_TOP` (2.5 m);
+  check_drive `--no-allow` 9/28 → 7/21 (also the fence at deck 76's ramp end, (2118, 743)). Was: by Most Śląsko-Dąbrowski's
   Praga end: a bus on the outer lane at its west end brushes the neighbouring piece's parapet (the
   gap between pieces keeps a collider where there is a drop): ~~6~~ 2 places left ((409, −1519) and
   (426, −1519), 6 spots: the 2 of them at the lane edge 1272 went with the wall change, not with a
