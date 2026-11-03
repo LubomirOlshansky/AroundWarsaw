@@ -152,6 +152,12 @@ SITE_AREAS = [
     (-874.0, 149.0, -841.0, 215.0),
     (-826.0, 185.0, -800.0, 229.0),
     (-793.0, 287.0, -764.0, 333.0),
+    # Pasaż Wiecha's pavilions (landmarks.gd _find_wiecha, 2026-11-02): the four outlines whose
+    # vertex average is WIECHA_AT (their bboxes)
+    (-879.0, 144.0, -840.0, 219.0),
+    (-835.0, 215.0, -818.0, 236.0),
+    (-854.0, 167.0, -805.0, 197.0),
+    (-823.0, 291.0, -777.0, 344.0),
     # Osiedle Za Żelazną Bramą (landmarks.gd _find_zelazna): eleven unnamed blocks, bboxes of
     # the outlines under ZELAZNA_AT
     (-2099.0, 285.0, -2070.0, 326.0),
