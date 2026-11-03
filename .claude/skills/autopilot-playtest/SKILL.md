@@ -77,6 +77,8 @@ per event, to its trace file:
   never drove the other eight). A steering deadband of about 14° keeps it on the street.
 - A **stuck** is under 1.2 m/s for over 2 s with the gas held; when one lasts 10 s, reverse or
   `--at=` back to the route and go on, so a trap costs time but doesn't end the run.
+- **Keys**: the game reads `physical_keycode` (main.gd `_unhandled_key_input`: H, Q, E, C...), so an injected key event must set it, or H "does nothing" (run 12). The HELI button always works. During a job that rides in the car the helicopter is refused with a toast, by design.
+- **Short runs**: on F's Mac the run's sandbox ended (-9) about 5-6 minutes into the second episode in runs 11 and 12, so keep each run to one episode of 8 minutes or less and split a long row (P2's second half) into two runs; flush the trace every tick and describe frames as they come in.
 - After the run, frame-describer on the frames of every stop and height event: a hard stop can
   be a kerb, a tram island or just a traffic car, and only the picture tells.
 
