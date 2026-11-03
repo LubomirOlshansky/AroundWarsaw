@@ -260,6 +260,17 @@ Run 11 (P2, the flying half, 2026-11-02) timed out after the heli beat (the Mac 
 Run 12 (2026-11-03): PT-14 closed (the helicopter climbs after landing; run 11's harness mixed its keys); PT-17 suspect, a car circling on Plac Dąbrowskiego until the tow. The rescue beat waited 83 s past its window while a ride and a chase were on (the same hold as the race above).
 PT-15, PT-16, PT-17 fixed 2026-11-03 (PLAYTEST.md): no ride request over Halina's call or a rival's prompt (and none of those over a request card); the delivered / order-dropped card goes by itself after 12 s or 25 m (it waited for OK for ever, the likely reason one order looked driven six times and the race waited until 203 s); Jasna's 24 m shallow bay by Plac Dąbrowskiego bridged (bays up to 30 x 2.5 m city-wide). Still open for F: the guide's beats wait while any job is on (the design question above); verify all three on the next P2 run.
 
+## Hotel Warszawa and Cedet (city inventory item 4, 2026-11-02)
+Built from photos gathered on the Mac (`refs/hotel_warszawa/`, `refs/cedet/`) and the LoD2 heights, specs
+`hotel_warszawa.md` and `cedet.md`. Found and left:
+- Hotel: the shaft's corner pilasters are single (the photos show doubled, stepped strips); the U behind is
+  one 25 m height (LoD2 has lower bits); the glazed pavilion and rounded corner at the block's south-east
+  foot belong to the next outline south (not built); the lift head and masts are placed from the report.
+- Cedet: the cornice's fine vertical ribbing and the 3-pane / 2-sash split of each bay are the shader's
+  generic 1.5 m mullions; the north wing has no crown pavilion of its own; the glazed lantern and link roof
+  plant are not modelled; the ground-floor tenants' fascias (parodies) and the red neon at the east corner
+  are not there.
+
 ## Most Poniatowskiego (F, 2026-11-02)
 Built from photos gathered on the Mac (`refs/poniatowski/`, report `docs/landmarks/photo-reports/poniatowski.md`),
 spec `poniatowski.md`: the four tower groups (arcaded pavilions, 20 m shafts, south stair turrets) and the river

@@ -143,6 +143,8 @@ const BUDGET := {
 	"zodiak": 600,
 	"wiecha": 1800,
 	"orly": 1600,
+	"hotel_warszawa": 2300,
+	"cedet": 2300,
 	"polin": 450,
 	# Krakowskie Przedmieście and Plac Piłsudskiego from photos (2026-11-02)
 	"czapski": 860,
