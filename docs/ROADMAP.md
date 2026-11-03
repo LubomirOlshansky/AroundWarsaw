@@ -393,7 +393,9 @@ then the Launch gate.
       and the full map (stick pan, RT / LT zoom, A teleport). Button names per pad family
       (PlayStation ×, R2 / L2; Nintendo B / A, ZR / ZL; Xbox and MFi A, RT / LT) in every pad hint
       and the pad's rumble for every buzz while it is in use (2026-11-02, `Gamepad.fmt`,
-      haptics.gd; `check_gamepad` P14, `check_juice` J2). Left: real pads on the phone (beta),
+      haptics.gd; `check_gamepad` P14, `check_juice` J2). The pad's A presses the top row's
+      context button (KASETA, START KURS, POMOC DROGOWA, WEZWANIE), which reads "A · ..." while the
+      pad is in use (2026-11-03, `check_gamepad` P15). Left: real pads on the phone (beta),
       the Nintendo layout guess (docs/store/mac-and-gamepad.md)
 - [x] Crash scenes (F, 2026-11-01, `crash_scenes.gd`, `check_crash_scenes`, PR "crash scenes"):
       every few minutes a fender bender ahead on a main road, two wrecks in the kerb lane, a
@@ -422,7 +424,7 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [x] G12 part 2, the two lists (2026-11-02): the full map's ZADANIA card, tabs ZADANIA AUTO / ZADANIA HELI (the vehicle's first), what can start now nearest first with distance and compass point; a tapped place is the quest pin (arrow and minimap dot until reached), a ride or heli rescue call request starts at once (`check_quest_lines`, `check_hud`). Phone look and the pad's way into the card open (BACKLOG "Gameplay pass" G12b)
 - [x] G12b + G12c, the quest card with a gamepad and more quest kinds (2026-11-02): X / D-pad / Y on the ZADANIA card; Na czasie, Mlask, Limitka, the next rival (pin follows them), Seba's final, the peacock call, and the quest under way as a row (`check_quest_lines`, `check_hud`). Phone look open
 - [x] G13 Upgrade shop: Audi TT parody (faster car), nitro, tuning, paid in zł (Opus design, Sonnet content) · 2026-11-02, the Ołdi TT 2,500 zł, Kebab Boost nitro 600 zł, tyres and engine levels 1-3; phone check and nitro flame/sound open (BACKLOG G13a, G13b)
-- [x] G13c Police keep pace with the upgraded car (0.8 of the player's real top speed), the pad's nitro on LB / RB, the view's turn on the right stick (2026-11-02; phone feel parked in QUESTIONS)
+- [x] G13c Police keep pace with the upgraded car (0.8 of the player's real top speed), the pad's nitro on LB / RB, the view's turn on the right stick (2026-11-02; phone feel parked in QUESTIONS; the nitro's tank stays on screen in pad mode, 2026-11-03)
 - [x] G14 POMOC DROGOWA (unstuck) and NOWA GRA (two-tap reset) at the top of Settings → Jazda (quick win)
 - [x] G14 later: stuck for 8 s (driving and getting nowhere), POMOC DROGOWA comes up on screen and a tap tows the car to the road (2026-11-03, `check_stuck_offer`; phone look open)
 - [x] Language choice (F, 2026-11-02): POLSKI / ENGLISH on the title screen and in Settings → DŹWIĘK → Język; the whole game shows one language, saved in settings, the phone's language by default (`lang.gd`, `check_language`; the phone look check is parked in QUESTIONS)

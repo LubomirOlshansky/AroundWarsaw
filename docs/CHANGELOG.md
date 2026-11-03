@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-03
+- Playing with a controller, the A button now presses the button at the top of the screen (the mixtape, starting a ride, the tow truck, a rescue call), and that button shows "A" while the controller is in use. With the nitro bought, its tank stays on screen while you drive with a controller.
 - The road from Nowy Świat down to Most Poniatowskiego crosses Powiśle on a viaduct of grey concrete arches, with big arches over Kruczkowskiego, Solec and Wybrzeże, and the bridge's north towers have their curved stone stairs down to the boulevard, lit by iron lanterns at night.
 - Nowogrodzka's bar strip comes alive at night: eight neon bar signs between Marszałkowska and Bracka (KWARTA, U HALINKI, ZA BARDZO, KRAFTOWNIA, SCHRON PIWNY, PODWÓRKO 22, NALEWALNIA, DŻINIARNIA) and people with a drink and a cigarette on the pavement outside, busiest on Friday and Saturday nights.
 - In your first ten minutes, a ride request no longer turns up just before Pani Halina's race or the first rescue call, so a player who takes every ride still meets them on time; rides come again between them.
