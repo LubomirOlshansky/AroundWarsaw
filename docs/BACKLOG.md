@@ -301,7 +301,8 @@ spans (granite piers, steel arch ribs, red fascia, black railing, pier pedestals
 - 2026-11-03 (F: "strengthen the shafts and pavilion arcades"): `_pt_group` adds the shafts' corner piers (0.25 m
   proud, full height), string courses at 6.6 and 10.9 m, a corbel table under the cornice, a bigger arched window
   and a pair over it, taller belfry slits and crown; the arcade bays between piers 0.35 m proud with keystones, an
-  impost band and a plinth. Colliders unchanged (everything stays inside them). Mac/phone look open.
+  impost band and a plinth. Colliders unchanged (everything stays inside them). Mesh 2556 -> 4574 triangles over the
+  four groups (check_mesh_quality budget 2700 -> 4800), +0 draw calls. Mac/phone look open.
 - Not modelled: the small arcade beyond each shaft, the merlon scrolls and the insets over the arches, the
   bases' brick panels and balconies, the real tram catenary masts.
 - 2026-11-03: the Powiśle viaduct's arcade (`map_builder._build_powisle`: pilasters every ~19 m, segmental arches

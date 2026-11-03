@@ -5942,11 +5942,11 @@ func _pt_group(hu: float, hv: float, g: float, deck: float, south: bool) -> void
 	for f in 4:
 		var nu: float = [1.0, -1.0, 0.0, 0.0][f]
 		var nv: float = [0.0, 0.0, 1.0, -1.0][f]
-		for k in 7:
-			var a := -r + 0.95 + k * (2.0 * r - 1.9) / 6.0
+		for k in 4:
+			var a := -r + 1.3 + k * (2.0 * r - 2.6) / 3.0
 			var cu := su + nu * (r + 0.18) + absf(nv) * a
 			var cv := sv + nv * (r + 0.18) + absf(nu) * a
-			_lbox(cu, cv, 0.18, 0.18, d + 14.55, d + 15.3, PT_SHADE, M_STONE)
+			_lbox(cu, cv, 0.3, 0.3, d + 14.55, d + 15.3, PT_SHADE, M_STONE)
 	_lbox(su, sv, r + 0.45, r + 0.45, d + 15.3, d + 16.0, PT_SHADE, M_STONE, PT_ROOF)
 	_lbox(su, sv, r - 0.5, r - 0.5, d + 16.0, d + 18.3, PT_CREAM, M_STONE, PT_ROOF)
 	_attic(_rect(su, sv, r - 0.5, r - 0.5), d + 18.3, 1.3, PT_CREAM)
