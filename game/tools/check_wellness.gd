@@ -38,6 +38,9 @@ class FakeDialogue extends Node:
 	func say_ambient(_anchor: Variant, speaker: String, group: String, tag := "", _s := 4.0, _a := Color.WHITE, _h := 2.6, _p := false) -> Array:
 		return say(_anchor, speaker, group, tag, _s, _a, _h, _p)
 
+	func say_reaction(_anchor: Variant, speaker: String, group: String, tag := "", _s := 4.0, _a := Color.WHITE, _h := 2.6, _p := false, _key := "") -> Array:
+		return say(_anchor, speaker, group, tag, _s, _a, _h, _p)
+
 
 var problems: Array[String] = []
 var now := {"hour": 14.0, "weekday": 5}

@@ -247,6 +247,10 @@ func _build() -> void:
 	_segments(world[1], "wander", MODE)
 	_heading(world[1], "Gadatliwość miasta", "City chattiness")
 	_segments(world[1], "chatter", CHATTER)
+	# Three choices beside the five times of day: narrower buttons (still over 44 pt) so the
+	# page keeps the card's width on a 375 pt phone.
+	for b: Button in _groups["chatter"]:
+		b.custom_minimum_size.x = touch * 1.3
 	# Obraz · Picture. Loop G1: in three rows (Quality's five choices made the two columns too
 	# wide for the SE): Style and VHS; Quality; Frame rate and the overlay with TEST.
 	# 2026-11-01 (F): the Style picker is gone (always the sharp image); the old VHS tape is now

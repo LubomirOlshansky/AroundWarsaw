@@ -83,6 +83,7 @@ func _check_quiet_driving() -> void:
 		problems.append("G16: a quest bubble was dropped at 60 km/h")
 	b.clear()
 	kmh[0] = 30.0
+	b.chatter.clock += b.chatter.gap()  # Phase 0.2: past the budget's gap after the quest line
 	b.say_ambient(Vector3.ZERO, "", "x", "y")
 	if b.count() != 1:
 		problems.append("G16: an ambient bubble was dropped at 30 km/h")
