@@ -240,6 +240,8 @@ var _toast_gloss: Label
 var _toast_left := 0.0
 var _kmh := 0
 var _ambient_toast_at := -999.0
+## Phase 0.2: the chatter budget (chatter.gd, bubbles.gd's); main.gd sets it. Null: no budget.
+var chatter: RefCounted
 ## G16: ambient toasts (flavour, hints) come at most this often while the car is moving.
 const AMBIENT_TOAST_GAP := 20.0
 ## The performance overlay.
@@ -1430,9 +1432,12 @@ func _build_toast() -> void:
 ## street by day or night.
 ## A toast for flavour or a hint, not a quest or danger line: while driving it is dropped if
 ## another ambient toast came in the last AMBIENT_TOAST_GAP seconds (G16).
+## Phase 0.2: also dropped while the car struggles (and a few seconds after: chatter.gd quiet()).
 func ambient_toast(text: String, gloss := "") -> void:
 	var now := Time.get_ticks_msec() / 1000.0
 	if _kmh > 10 and now - _ambient_toast_at < AMBIENT_TOAST_GAP:
+		return
+	if chatter != null and not chatter.toast_ok():
 		return
 	_ambient_toast_at = now
 	toast(text, gloss)
@@ -2787,6 +2792,12 @@ func _exit_tree() -> void:
 
 func full_map_open() -> bool:
 	return full_map != null and full_map.is_open()
+
+
+## Phase 0.2: a card (a job's or a call's, a ride's, the full map) is up: ambient chatter waits
+## (bubbles.gd cards_up, chatter.gd).
+func cards_up() -> bool:
+	return bool(_wants.get(_card, false)) or full_map_open()
 
 
 const _UP_DOWN := [1, -1]

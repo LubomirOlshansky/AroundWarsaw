@@ -32,7 +32,7 @@ const Props := preload("res://scripts/props.gd")
 class FakeDialogue extends Node:
 	var said: Array = []
 
-	func say(_anchor: Variant, speaker: String, group: String, tag := "", _s := 4.0, _a := Color.WHITE, _h := 2.6, _p := false) -> Array:
+	func say(_anchor: Variant, speaker: String, group: String, tag := "", _s := 4.0, _a := Color.WHITE, _h := 2.6, _p := false, _k := 0, _key := "") -> Array:
 		said.append([speaker, group, tag])
 		return ["…", "…"]
 

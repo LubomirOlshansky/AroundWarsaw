@@ -42,8 +42,12 @@ F's playtest (13:22): "the map and buildings are good now; I want to make the dr
 experience". The plan, the road audit and the causes are in docs/GAMEPLAY_PLAN.md; its phases:
 - [ ] 0.1 Map teleport and tow land in a tunnel: `_lane_spot` accepts tunnel lanes as "the ground's
   level"; skip tunnels, test the box first, `check_teleport` (Codex)
-- [ ] 0.2 Chatter budget: one rate cap for bubbles and toasts, no comment per collision, quiet while
-  stuck, merged star toasts, a "Gadatliwość miasta" setting, `check_chatter` (Codex)
+- [x] 0.2 Chatter budget (2026-11-03, `chatter.gd`, `check_chatter`): every bubble has a class (quest,
+  police, reaction, ambient); at most 2 up and one new every 4 s; one reaction in 20 s, none for a
+  bump under 15 km/h, a near miss once a minute; city lines silent while the car is pinned, pressing
+  into something, stalled or offered the tow, and 5 s after; ambient waits while a card or the full
+  map is up; the ride's star toasts merge into one; Settings → ŚWIAT → Gadatliwość miasta. Phone
+  feel parked (QUESTIONS)
 - [ ] 0.3 The car is invisible under Trasa Łazienkowska and other decks: tunnel x-ray under decks too (Codex)
 - [ ] 0.4 Helicopter high up: heli framed at the top, far plane clips the ground (floating buildings,
   blue sky), height cap, horizon haze
