@@ -587,6 +587,7 @@ func _build_parts(marks, roofs_only: bool) -> void:
 	_build_catenary(walls)
 	_build_srednicowy(walls)
 	_build_poniatowski(walls)
+	_build_powisle(walls)
 	_build_garage_doors(walls)
 	_build_guard_rails(walls)
 	_build_shore()
@@ -2119,6 +2120,296 @@ func _pn_pier(st, o: Vector2, u: Vector2, n: Vector2, s: float, top: float) -> v
 		var b := poly[(i + 1) % poly.size()]
 		_wall_faces.append_array([Vector3(a.x, y0, a.y), Vector3(b.x, y0, b.y), Vector3(b.x, top, b.y),
 				Vector3(a.x, y0, a.y), Vector3(b.x, top, b.y), Vector3(a.x, top, a.y)])
+
+
+## Most Poniatowskiego's viaduct over Powiśle (the photo report's "viaduct" section, photos 17, 19,
+## 20, 32 and ortho_west): west of the towers the deck runs on for ~700 m from the escarpment by
+## the National Museum to Wybrzeże Kościuszkowskie as a reinforced-concrete arch viaduct, wide
+## shallow arches with thick ribbed spandrels in light grey concrete #b8b6b0, its pier buildings
+## (OpenStreetMap's buildings at the deck's edges, kept: the arches spring from their sides)
+## flanking the big arches over Kruczkowskiego and Solec, a big arch over Wybrzeże at the east
+## end, and Al. 3 Maja beside and under it. The bake gives it a flat slab on pairs of thin posts;
+## this draws, along both outer edges (the parapets' plane), the arcade: square pilaster piers
+## from the ground to the slab with a plinth and an impost band, a segmental arch between each
+## pair (the spandrel wall from the slab down to the arch, its inner face and soffit, a paler
+## archivolt ring, vertical ribs on the spandrels) and a cornice under the slab. In the walls
+## surface (no new draw call); the pilasters are solid from the ground to the slab.
+## Found from the deck piece that starts at PV_A (the carriageway heading east), whose deck group
+## is the viaduct's; a bake without it keeps the slab on posts.
+const PV_A := Vector2(449.1, 30.6)
+## The frame's range along (s, from PV_A towards the towers): the deck ends at -272 (the west
+## abutment's fill) and 426 (the fill on to the west towers, at s ~510).
+const PV_S := Vector2(-275.0, 435.0)
+## The piers along each side, [s, half length, kind]: 0 a pilaster (solid), 1 a pier building
+## (OpenStreetMap's, drawn as a building: the arches spring from its sides), 2 the west
+## abutment pier (solid), 3 the east one standing in the fill (drawn only). Spans ~19 m, set
+## with tools' measurement (2026-11-03) so that every solid pier stands at least 0.05 m clear of
+## the half width (+1 m for roads, +0.4 m for footways) of every way on the ground under the
+## edge: Kruczkowskiego (s 26), Solec (s 239-276), Wybrzeże Kościuszkowskie (s 400-426) and
+## their footways pass under the big arches; Al. 3 Maja runs under the south edge from s 295,
+## where that side's arcade stands back on PV_INSET instead.
+const PV_NORTH: Array[Vector3] = [Vector3(-264.0, 1.5, 2), Vector3(-244.9, 1.2, 0), Vector3(-225.7, 1.2, 0),
+		Vector3(-206.6, 1.2, 0), Vector3(-187.4, 1.2, 0), Vector3(-168.3, 1.2, 0), Vector3(-149.1, 1.2, 0),
+		Vector3(-130.0, 1.2, 0), Vector3(-114.9, 1.2, 0), Vector3(-91.7, 1.2, 0), Vector3(-72.6, 1.2, 0),
+		Vector3(-53.4, 1.2, 0), Vector3(-35.3, 1.2, 0), Vector3(11.0, 7.0, 1), Vector3(48.5, 6.5, 1),
+		Vector3(73.0, 1.2, 0), Vector3(91.0, 1.2, 0), Vector3(109.0, 1.2, 0), Vector3(127.0, 1.2, 0),
+		Vector3(145.0, 1.2, 0), Vector3(163.0, 1.2, 0), Vector3(181.0, 1.2, 0), Vector3(199.0, 1.2, 0),
+		Vector3(224.0, 7.0, 1), Vector3(288.0, 7.0, 1), Vector3(313.3, 1.2, 0), Vector3(331.7, 1.2, 0),
+		Vector3(350.0, 1.2, 0), Vector3(368.3, 1.2, 0), Vector3(427.4, 1.4, 3)]
+const PV_SOUTH: Array[Vector3] = [Vector3(-264.0, 1.5, 2), Vector3(-244.9, 1.2, 0), Vector3(-225.7, 1.2, 0),
+		Vector3(-206.6, 1.2, 0), Vector3(-187.4, 1.2, 0), Vector3(-168.3, 1.2, 0), Vector3(-149.1, 1.2, 0),
+		Vector3(-130.0, 1.2, 0), Vector3(-110.9, 1.2, 0), Vector3(-91.7, 1.2, 0), Vector3(-72.6, 1.2, 0),
+		Vector3(-53.4, 1.2, 0), Vector3(-35.3, 1.2, 0), Vector3(-19.1, 1.2, 0), Vector3(11.0, 7.0, 1),
+		Vector3(48.5, 6.5, 1), Vector3(73.0, 1.2, 0), Vector3(91.0, 1.2, 0), Vector3(109.0, 1.2, 0),
+		Vector3(127.0, 1.2, 0), Vector3(145.0, 1.2, 0), Vector3(163.0, 1.2, 0), Vector3(181.0, 1.2, 0),
+		Vector3(199.0, 1.2, 0), Vector3(224.0, 7.0, 1), Vector3(289.0, 7.0, 1), Vector3(313.3, 1.2, 0),
+		Vector3(331.7, 1.2, 0), Vector3(350.0, 1.2, 0), Vector3(368.3, 1.2, 0), Vector3(382.7, 1.2, 0),
+		Vector3(427.4, 1.4, 3)]
+## The south arcade's plane from s INSET.x on: t = INSET.y (the deck overhangs Al. 3 Maja).
+const PV_INSET := Vector2(296.0, 0.0)
+const PV_RING := 1.6        ## the arch ring's (and the spandrel wall's) thickness
+const PV_PROUD := 0.4       ## how far a pilaster stands out of the arcade's plane
+const PV_CLEAR := 4.5       ## the arches' springing at least this over the ground
+const PV_CROWN := 1.0       ## spandrel depth at the crown, under the slab
+const PV_RIB := 3.2         ## spacing of the spandrels' ribs
+const PV_CONCRETE := Color("#b8b6b0")
+
+
+## The viaduct's frame [origin, along, across, deck group, the north edge's t per metre of s
+## from PV_S.x, the south one's], or [] when the bake has no such deck.
+func _powisle_frame() -> Array:
+	for d: Dictionary in _decks:
+		if d["k"] != "road":
+			continue
+		var pts: PackedVector2Array = d["pts"]
+		if pts[0].distance_to(PV_A) < 2.0 and pts[0].distance_to(pts[pts.size() - 1]) > 400.0:
+			var u := (pts[pts.size() - 1] - pts[0]).normalized()
+			var n := Vector2(-u.y, u.x)
+			var g := int(d["g"])
+			# The outer edges: the outermost piece's parapet line at each metre along.
+			var bins := int(PV_S.y - PV_S.x) + 1
+			var lo := PackedFloat32Array()
+			var hi := PackedFloat32Array()
+			lo.resize(bins)
+			hi.resize(bins)
+			lo.fill(INF)
+			hi.fill(-INF)
+			for e: Dictionary in _decks:
+				if int(e["g"]) != g:
+					continue
+				var ep: PackedVector2Array = e["pts"]
+				for k in ep.size() - 1:
+					var a := ep[k] - pts[0]
+					var b := ep[k + 1] - pts[0]
+					var sa := a.dot(u)
+					var sb := b.dot(u)
+					if absf(sb - sa) < 0.01:
+						continue
+					# Left of the piece's direction is -t when it heads +u, +t when it heads back.
+					var left := float(e["l"]) + 0.2
+					var right := float(e["r"]) + 0.2
+					var fwd := sb > sa
+					for i in range(maxi(0, ceili(minf(sa, sb) - PV_S.x)), mini(bins - 1, floori(maxf(sa, sb) - PV_S.x)) + 1):
+						var f := (i + PV_S.x - sa) / (sb - sa)
+						var t := lerpf(a.dot(n), b.dot(n), f)
+						lo[i] = minf(lo[i], t - (left if fwd else right))
+						hi[i] = maxf(hi[i], t + (right if fwd else left))
+			return [pts[0], u, n, g, lo, hi]
+	return []
+
+
+## The arcade's plane (t) on one side (-1 north, +1 south) at s.
+func _pv_plane(f: Array, side: int, s: float) -> float:
+	if side > 0 and s >= PV_INSET.x:
+		return PV_INSET.y
+	var edge: PackedFloat32Array = f[4] if side < 0 else f[5]
+	var i := clampi(roundi(s - PV_S.x), 0, edge.size() - 1)
+	var t := edge[i]
+	if is_inf(t):
+		# Past a piece's end: the nearest metre that has one.
+		for k in range(1, 12):
+			for j in [i - k, i + k]:
+				if j >= 0 and j < edge.size() and not is_inf(edge[j]):
+					return edge[j]
+		return 0.0
+	return t
+
+
+## True for a bake post the arcade replaces (within 3 m of an arcade's plane).
+func _powisle_skips(f: Array, c: Vector2) -> bool:
+	if f.is_empty():
+		return false
+	var q: Vector2 = c - f[0]
+	var s: float = q.dot(f[1])
+	if s < PV_S.x or s > PV_S.y:
+		return false
+	var t: float = q.dot(f[2])
+	return absf(t - _pv_plane(f, -1, s)) < 3.0 or absf(t - _pv_plane(f, 1, s)) < 3.0
+
+
+func _build_powisle(st) -> void:
+	var f := _powisle_frame()
+	if f.is_empty():
+		return
+	_uv2 = Vector2(0.5, -1.0)
+	for side in [-1, 1]:
+		var piers: Array[Vector3] = PV_NORTH if side < 0 else PV_SOUTH
+		for k in piers.size():
+			_pv_pier(st, f, side, piers[k], k)
+			if k + 1 < piers.size():
+				_pv_span(st, f, side, piers[k].x + piers[k].y, piers[k + 1].x - piers[k + 1].y)
+	_uv2 = Vector2.ZERO
+
+
+## A point on side's arcade plane at s, `out` metres outwards of it (towards the street).
+func _pv_at(f: Array, side: int, s: float, out := 0.0) -> Vector2:
+	var o: Vector2 = f[0]
+	var u: Vector2 = f[1]
+	var n: Vector2 = f[2]
+	return o + u * s + n * (_pv_plane(f, side, s) + side * out)
+
+
+## The slab's underside over side's plane at s.
+func _pv_soffit(f: Array, side: int, s: float) -> float:
+	var p := _pv_at(f, side, s)
+	return deck_height(int(f[3]), p.x, p.y) - 1.38
+
+
+## One pier: a pilaster or an abutment pier (with its plinth, impost band and collider); a pier
+## building is OpenStreetMap's (not drawn here).
+func _pv_pier(st, f: Array, side: int, p: Vector3, k: int) -> void:
+	var kind := int(p.z)
+	if kind == 1:
+		return
+	var c := _pv_at(f, side, p.x, (PV_PROUD - PV_RING) * 0.5)
+	if _in_sector and not _sector_rect.has_point(c):
+		return
+	var u: Vector2 = f[1]
+	var n: Vector2 = f[2]
+	var u3 := Vector3(u.x, 0.0, u.y)
+	var n3 := Vector3(n.x, 0.0, n.y)
+	var basis := Basis(n3, Vector3.UP, -u3)
+	var ground := INF
+	for q in [_pv_at(f, side, p.x - p.y, PV_PROUD), _pv_at(f, side, p.x + p.y, PV_PROUD),
+			_pv_at(f, side, p.x - p.y, -PV_RING), _pv_at(f, side, p.x + p.y, -PV_RING)]:
+		ground = minf(ground, terrain_height(q.x, q.y))
+	var top := _pv_soffit(f, side, p.x)
+	var across := PV_RING + PV_PROUD
+	var y0 := ground - 0.5
+	_box_oriented(st, Vector3(c.x, (y0 + top) * 0.5, c.y), basis, Vector3(across, top - y0, p.y * 2.0), PV_CONCRETE)
+	# Plinth, and the impost band the arches spring from.
+	var spring := _pv_spring(f, side, p.x)
+	_box_oriented(st, Vector3(c.x, ground + 0.4, c.y), basis, Vector3(across + 0.3, 1.8, p.y * 2.0 + 0.3), PV_CONCRETE.darkened(0.12))
+	_box_oriented(st, Vector3(c.x, spring - 0.2, c.y), basis, Vector3(across + 0.24, 0.4, p.y * 2.0 + 0.24), PV_CONCRETE.lightened(0.1))
+	if kind == 3:
+		return
+	var corners: Array[Vector2] = []
+	for q in [Vector2(-1, -1), Vector2(1, -1), Vector2(1, 1), Vector2(-1, 1)]:
+		corners.append(c + u * q.x * p.y + n * q.y * across * 0.5)
+	for i in 4:
+		var a := corners[i]
+		var b := corners[(i + 1) % 4]
+		_wall_faces.append_array([Vector3(a.x, y0, a.y), Vector3(b.x, y0, b.y), Vector3(b.x, top, b.y),
+				Vector3(a.x, y0, a.y), Vector3(b.x, top, b.y), Vector3(a.x, top, a.y)])
+
+
+## The springing height at a pier: the impost of the arches either side (the lower of the two
+## spans' own, so the band is one height round the pier).
+func _pv_spring(f: Array, side: int, s: float) -> float:
+	var piers: Array[Vector3] = PV_NORTH if side < 0 else PV_SOUTH
+	var best := INF
+	for k in piers.size():
+		if absf(piers[k].x - s) > 0.01:
+			continue
+		if k > 0:
+			best = minf(best, _pv_arch(f, side, piers[k - 1].x + piers[k - 1].y, s - piers[k].y).y)
+		if k + 1 < piers.size():
+			best = minf(best, _pv_arch(f, side, s + piers[k].y, piers[k + 1].x - piers[k + 1].y).y)
+	return best if best < INF else _pv_soffit(f, side, s) - PV_CROWN - 3.0
+
+
+## A span's arch between pier faces s0 and s1: [crown height, springing height] (a segmental
+## arch, its rise at most 0.3 of the span, springing at least PV_CLEAR over the highest ground
+## under it, or a flat lintel PV_CROWN + 1 m deep where the deck is too low for an arch).
+func _pv_arch(f: Array, side: int, s0: float, s1: float) -> Vector2:
+	var crown := INF
+	var ground := -INF
+	for i in 9:
+		var s := lerpf(s0, s1, i / 8.0)
+		crown = minf(crown, _pv_soffit(f, side, s) - PV_CROWN)
+		for o in [PV_PROUD, -PV_RING]:
+			var q := _pv_at(f, side, s, o)
+			ground = maxf(ground, terrain_height(q.x, q.y))
+	var spring := maxf(crown - 0.3 * (s1 - s0), ground + PV_CLEAR)
+	return Vector2(crown, minf(spring, crown - 1.0))
+
+
+func _pv_span(st, f: Array, side: int, s0: float, s1: float) -> void:
+	var span := s1 - s0
+	if span < 2.0:
+		return
+	var mid := _pv_at(f, side, (s0 + s1) * 0.5)
+	if _in_sector and not _sector_rect.has_point(mid):
+		return  # the sector holding the span's middle draws it
+	var n: Vector2 = f[2]
+	var out3 := Vector3(n.x, 0.0, n.y) * side
+	var arch := _pv_arch(f, side, s0, s1)
+	var crown := arch.x
+	var rise := crown - arch.y
+	var radius := (span * span * 0.25 + rise * rise) / (2.0 * rise)
+	var segs := clampi(roundi(span / 1.6), 8, 28)
+	var face := PackedVector2Array()   # on the plane
+	var back := PackedVector2Array()   # the ring's inner side
+	var tops := PackedFloat32Array()
+	var arcs := PackedFloat32Array()
+	for i in segs + 1:
+		var s := lerpf(s0, s1, float(i) / segs)
+		var x := s - (s0 + s1) * 0.5
+		face.append(_pv_at(f, side, s))
+		back.append(_pv_at(f, side, s, -PV_RING))
+		tops.append(_pv_soffit(f, side, s))
+		arcs.append(crown - radius + sqrt(maxf(radius * radius - x * x, 0.0)))
+	var shade := PV_CONCRETE.darkened(0.28)
+	for i in segs:
+		var a := face[i]
+		var b := face[i + 1]
+		var ia := back[i]
+		var ib := back[i + 1]
+		# The spandrel wall: its face, its inner face, and the arch's soffit between them.
+		_quad(st, Vector3(a.x, arcs[i], a.y), Vector3(b.x, arcs[i + 1], b.y), Vector3(b.x, tops[i + 1], b.y),
+				Vector3(a.x, tops[i], a.y), out3, PV_CONCRETE)
+		_quad(st, Vector3(ia.x, arcs[i], ia.y), Vector3(ib.x, arcs[i + 1], ib.y), Vector3(ib.x, tops[i + 1], ib.y),
+				Vector3(ia.x, tops[i], ia.y), -out3, shade)
+		var down := Vector3(0.0, -1.0, 0.0)
+		_quad(st, Vector3(a.x, arcs[i], a.y), Vector3(b.x, arcs[i + 1], b.y), Vector3(ib.x, arcs[i + 1], ib.y),
+				Vector3(ia.x, arcs[i], ia.y), down, PV_CONCRETE.darkened(0.18))
+		# The archivolt: a paler ring 0.7 m deep, standing 0.1 m out of the face.
+		var pa := a + n * side * 0.1
+		var pb := b + n * side * 0.1
+		_quad(st, Vector3(pa.x, arcs[i], pa.y), Vector3(pb.x, arcs[i + 1], pb.y), Vector3(pb.x, arcs[i + 1] + 0.7, pb.y),
+				Vector3(pa.x, arcs[i] + 0.7, pa.y), out3, PV_CONCRETE.lightened(0.1))
+		_quad(st, Vector3(pa.x, arcs[i], pa.y), Vector3(pb.x, arcs[i + 1], pb.y), Vector3(b.x, arcs[i + 1], b.y),
+				Vector3(a.x, arcs[i], a.y), down, PV_CONCRETE.darkened(0.1))
+		# The cornice under the slab: a band 0.35 m deep standing 0.3 m out.
+		var ca := a + n * side * 0.3
+		var cb := b + n * side * 0.3
+		_quad(st, Vector3(ca.x, tops[i] - 0.35, ca.y), Vector3(cb.x, tops[i + 1] - 0.35, cb.y), Vector3(cb.x, tops[i + 1], cb.y),
+				Vector3(ca.x, tops[i], ca.y), out3, PV_CONCRETE.lightened(0.06))
+		_quad(st, Vector3(a.x, tops[i] - 0.35, a.y), Vector3(b.x, tops[i + 1] - 0.35, b.y), Vector3(cb.x, tops[i + 1] - 0.35, cb.y),
+				Vector3(ca.x, tops[i] - 0.35, ca.y), down, PV_CONCRETE.darkened(0.15))
+	# The ribs: vertical strips on the spandrel from under the cornice to the archivolt.
+	var ribs := floori(span / PV_RIB)
+	var u: Vector2 = f[1]
+	var basis := Basis(Vector3(n.x, 0.0, n.y), Vector3.UP, -Vector3(u.x, 0.0, u.y))
+	for r in ribs:
+		var s := s0 + span * (r + 0.5) / ribs
+		var x := s - (s0 + s1) * 0.5
+		var y0 := crown - radius + sqrt(maxf(radius * radius - x * x, 0.0)) + 0.7
+		var y1 := _pv_soffit(f, side, s) - 0.35
+		if y1 - y0 < 0.4:
+			continue
+		var p := _pv_at(f, side, s, 0.08)
+		_box_oriented(st, Vector3(p.x, (y0 + y1) * 0.5, p.y), basis, Vector3(0.16, y1 - y0, 0.4), PV_CONCRETE.lightened(0.04))
 
 
 ## Loop 3b: a garage door at each ramp top where R9 ended a service way (`garage_doors`): a
@@ -4098,11 +4389,14 @@ func _build_bridge_structures(st) -> void:
 							Vector3(k0.x, ya - 0.2, k0.y), Vector3(k1.x, yb + 1.6, k1.y), Vector3(k0.x, ya + 1.6, k0.y)])
 	var ms := _srednicowy_frame()
 	var pn := _poniatowski_frame()
+	var pv := _powisle_frame()
 	for p: Dictionary in data.get("decks", {}).get("piers", []):
 		if _srednicowy_skips(ms, Vector2(float(p["c"][0]), float(p["c"][1]))):
 			continue  # Most Średnicowy's stone piers stand here (`_build_srednicowy`)
 		if _poniatowski_skips(pn, Vector2(float(p["c"][0]), float(p["c"][1]))):
 			continue  # Most Poniatowskiego's stone piers and arches stand here (`_build_poniatowski`)
+		if _powisle_skips(pv, Vector2(float(p["c"][0]), float(p["c"][1]))):
+			continue  # the Powiśle viaduct's arcade stands here (`_build_powisle`)
 		_pier(st, p, concrete.darkened(0.1))
 	_uv2 = Vector2.ZERO
 	if not _in_sector:

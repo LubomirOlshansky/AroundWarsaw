@@ -5709,6 +5709,18 @@ const PT_SHAFT_U := 0.5
 const PT_SHAFT_V := 3.5
 ## The south groups' stair turret: centre in the seat's frame (land +u, out +v), radius.
 const PT_TURRET := Vector3(3.5, 9.5, 2.5)
+## The north groups' switchback stair down to the boulevard (OpenStreetMap maps it on both:
+## the steps out from the walk, the walls round the stair with their rounded end at v ~11.5,
+## the steps back to the shaft's foot; the report's "curved ramp/stair"): a straight flight from
+## the pavilion's outer face out to PT_RAMP_C.y, a ramp turning round a half circle (centre
+## PT_RAMP_C, radii PT_RAMP_R, the flights as wide as the ring) and a short flight back to
+## v = PT_RAMP_END by the shaft, inside parapets PT_RAMP_WALL thick that take in the mapped
+## walls. check_roads.py C10 mirrors its collider (PT_RAMP_BOX: u0, u1, v1; v0 = hv).
+const PT_RAMP_C := Vector2(3.0, 8.2)
+const PT_RAMP_R := Vector2(0.3, 2.95)
+const PT_RAMP_WALL := 0.6
+const PT_RAMP_END := 5.6
+const PT_RAMP_BOX := Vector3(-0.6, 6.6, 11.8)
 
 
 func _build_towers(site: Dictionary) -> void:
@@ -5834,14 +5846,75 @@ func _pt_group(hu: float, hv: float, g: float, deck: float, south: bool) -> void
 		var tc := _w(PT_TURRET.x, PT_TURRET.y)
 		_prism(_circle(tc, PT_TURRET.z, 8), g - 0.5, d + 2.0, PT_CREAM, PT_ROOF, M_STONE, M_STONE)
 		_attic(_circle(tc, PT_TURRET.z, 8), d + 2.0, 1.0, PT_CREAM)
+		# An iron lantern on a post on the turret's crown, over the stair's turn.
+		_prism(_circle(tc, 0.1, 4), d + 2.0, d + 3.6, Color("#1e1e22"), Color("#1e1e22"), M_STONE, M_STONE)
+		_prism(_circle(tc, 0.24, 4), d + 3.6, d + 4.2, Color("#ffd27a"), Color("#1e1e22"), M_LAMP, M_STONE)
 		# The flight from the pavilion's outer face out to the turret (its walls and landing).
 		_prism(_rect(PT_TURRET.x, (hv + PT_TURRET.y - PT_TURRET.z) * 0.5, 2.5,
 				(PT_TURRET.y - PT_TURRET.z - hv) * 0.5), g - 0.5, d - 0.4, PT_BASE, PT_SHADE, M_STONE, M_STONE)
+	if not south:
+		_pt_ramp(hv, g, d)
 	# Solid from the boulevard to over the deck (a car on either level stops at it).
 	_collide_span(_rect(0.0, 0.0, hu + 0.6, hv + 0.6), g - 1.0, d + 6.0)
 	_collide_span(_rect(su, sv, r + 0.3, r + 0.3), g - 1.0, d + 6.0)
 	if south:
 		_collide_span(_circle(_w(PT_TURRET.x, PT_TURRET.y), PT_TURRET.z, 8), g - 1.0, d + 3.0)
+
+
+## A north group's switchback stair (PT_RAMP_*), in the frame _pt_group's caller set: grey stone
+## treads stepping down from the walk (d) to the boulevard (g) evenly along the way, cream
+## parapets a metre over them on the outer sides and a cream wall between the two flights, solid.
+func _pt_ramp(hv: float, g: float, d: float) -> void:
+	var c := PT_RAMP_C
+	var r0 := PT_RAMP_R.x
+	var r1 := PT_RAMP_R.y
+	var pw := PT_RAMP_WALL * 0.5
+	var w := (r1 - r0) * 0.5
+	var first := c.y - hv
+	var turn := PI * (r0 + r1) * 0.5
+	var last := c.y - PT_RAMP_END
+	var total := first + turn + last
+	var drop := d - g
+	# The first flight, out from the walk.
+	var n1 := 8
+	for k in n1:
+		var v0 := hv + first * k / n1
+		var v1 := hv + first * (k + 1) / n1
+		var top := d - drop * (first * (k + 0.5) / n1) / total
+		_prism(_rect(c.x - r0 - w, (v0 + v1) * 0.5, w, (v1 - v0) * 0.5), g - 0.5, top, PT_BASE, PT_SHADE, M_STONE, M_STONE)
+		_prism(_rect(c.x - r1 - pw, (v0 + v1) * 0.5, pw, (v1 - v0) * 0.5), g - 0.5, top + 1.0, PT_CREAM, PT_SHADE, M_STONE, M_STONE)
+	# The turn: a ramp round the half circle, its outer parapet following it.
+	var n2 := 10
+	for k in n2:
+		var a0 := PI * (1.0 - float(k) / n2)
+		var a1 := PI * (1.0 - float(k + 1) / n2)
+		var top := d - drop * (first + turn * (k + 0.5) / n2) / total
+		for ring in [[r0, r1, top, PT_BASE], [r1, r1 + PT_RAMP_WALL, top + 1.0, PT_CREAM]]:
+			var ri: float = ring[0]
+			var ro: float = ring[1]
+			_prism(PackedVector2Array([_w(c.x + cos(a0) * ri, c.y + sin(a0) * ri), _w(c.x + cos(a0) * ro, c.y + sin(a0) * ro),
+					_w(c.x + cos(a1) * ro, c.y + sin(a1) * ro), _w(c.x + cos(a1) * ri, c.y + sin(a1) * ri)]),
+					g - 0.5, ring[2], ring[3], PT_SHADE, M_STONE, M_STONE)
+	# The last flight, back towards the shaft's foot.
+	var n3 := 4
+	for k in n3:
+		var v0 := c.y - last * k / n3
+		var v1 := c.y - last * (k + 1) / n3
+		var top := d - drop * (first + turn + last * (k + 0.5) / n3) / total
+		_prism(_rect(c.x + r0 + w, (v0 + v1) * 0.5, w, (v0 - v1) * 0.5), g - 0.5, top, PT_BASE, PT_SHADE, M_STONE, M_STONE)
+		_prism(_rect(c.x + r1 + pw, (v0 + v1) * 0.5, pw, (v0 - v1) * 0.5), g - 0.5, top + 1.0, PT_CREAM, PT_SHADE, M_STONE, M_STONE)
+	# The wall between the flights, from the walk's height down to the turn.
+	_prism(_rect(c.x, (hv + c.y) * 0.5, r0, (c.y - hv) * 0.5), g - 0.5, d - drop * first / total + 1.0, PT_CREAM, PT_SHADE, M_STONE, M_STONE)
+	# Two iron lanterns light the way down (photos 14, 25: black bracket lamps on the stonework):
+	# on posts on the parapet at the turn's outermost point and at the foot of the last flight.
+	var apex := d - drop * (first + turn * 0.5) / total + 1.0
+	var foot := d - drop * (first + turn + last) / total + 1.0
+	for at in [Vector3(c.x, c.y + r1 + pw, apex), Vector3(c.x + r1 + pw, PT_RAMP_END + 0.3, foot)]:
+		var lp := _w(at.x, at.y)
+		_prism(_circle(lp, 0.08, 4), at.z, at.z + 1.6, Color("#1e1e22"), Color("#1e1e22"), M_STONE, M_STONE)
+		_prism(_circle(lp, 0.2, 4), at.z + 1.6, at.z + 2.1, Color("#ffd27a"), Color("#1e1e22"), M_LAMP, M_STONE)
+	_collide_span(_rect((PT_RAMP_BOX.x + PT_RAMP_BOX.y) * 0.5, (hv + PT_RAMP_BOX.z) * 0.5,
+			(PT_RAMP_BOX.y - PT_RAMP_BOX.x) * 0.5, (PT_RAMP_BOX.z - hv) * 0.5), g - 1.0, d + 1.2)
 
 
 # --- Muzeum Narodowe and Plac Piłsudskiego (the museum and Plac loop, 2026-10-31) ----------------

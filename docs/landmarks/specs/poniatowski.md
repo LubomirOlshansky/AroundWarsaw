@@ -2,7 +2,8 @@
 
 Site key `poniatowski` in `game/scripts/landmarks.gd` (`_find_towers`, `_build_towers`, `_pt_group`)
 for the four tower groups, and `game/scripts/map_builder.gd` (`_build_poniatowski`, `_pn_pier`,
-`_pn_edges`, `_poniatowski_skips`) for the river spans. Written 2026-11-02 from the reference set the
+`_pn_edges`, `_poniatowski_skips`) for the river spans, `_build_powisle` (`_pv_*`, 2026-11-03) for the
+Powiśle viaduct and `landmarks.gd` `_pt_ramp` for the north groups' stairs. Written 2026-11-02 from the reference set the
 Mac gathered in `refs/poniatowski/` (gitignored): 30 Wikimedia Commons photos and four GUGiK
 orthophotos, measured in game coordinates in `docs/landmarks/photo-reports/poniatowski.md` (authors
 and licences there). The GUGiK LoD2 in the map pack has no part of the bridge or its towers, so every
@@ -27,11 +28,13 @@ the concrete viaduct. What makes it read:
 | --- | --- | --- |
 | Pavilion | the bake's seat (`towers`: centre, axis, half sizes ~7 x 1.6-2.4 m) | stone base from the boulevard (~9.6 m under the deck), cream to 5.6 m, merlons to 7.5 m |
 | Shaft | centre 0.5 m past the pavilion's land end, 3.5 m out from its deck-side face, 7 x 7 m | cornice 15.3-16 m, belfry 6 x 6 m to 18 m, merlons to 19 m, corner balls to 20 m |
+| Switchback stair (north groups, 2026-11-03) | seat frame: a flight u 0-2.65 from the pavilion's outer face out to v 8.2, a half-round turn round (3.0, 8.2) radii 0.3-2.95, a flight back to v 5.6 by the shaft; parapets 0.6 m on the mapped walls | treads stepping evenly from the walk down to the boulevard, parapets 1 m over them, a lantern at the turn and the foot |
 | Stair turret (south groups) | seat frame (3.5 along to the land, 9.5 out), r 2.5 m; the W-S one lands at (936, -114) as the ortho shows | to 2 m, merlons to 3 m; the flight from the pavilion out to it |
 | Piers | on the axis at s 109.9, 183.9, 259.8, 335.7, 411.6 m from the west towers' line (report: (1036, -171), (1106, -195), (1178, -219) sure; (1250, -243), (1322, -267) estimated) | 9 m thick, straight sides to ±12 m, round cutwaters to ±16.5 m; up to 9.25 m under the deck |
 | Arch ribs | four planes at ±4.6 and ±12.4 m, between the abutments' faces (s 6, 509.5) and the piers | 7.5 m deep at the springs, 1.6 m at the crown, 12 panels a span |
 | Fascia, railing | the deck's outer edges (−14.7, +14.45) over the river part | fascia 1.35 m under to 0.5 m over the walk; railing to 1.2 m, a post every 2.4 m |
 | Pedestals | over each pier, both edges | 2.6 x 1.4 m, to 1.75 m with a cap and a small turret top to 2.6 m |
+| Powiśle viaduct (2026-11-03) | both outer edges of the deck from s -272 to 426 in the frame from PV_A (449.1, 30.6) (the escarpment to Wybrzeże; the towers stand at s ~510); south from s 296 on t = 0 (Al. 3 Maja runs under the edge) | pilasters 2.4 x 2 m (0.4 m proud) every ~19 m from the ground to the slab, a 1.8 m plinth and an impost band; segmental arches (rise ≤ 0.3 span, springing ≥ 4.5 m over the ground) with a 0.7 m archivolt, the spandrel 1.6 m thick with ribs every 3.2 m and a cornice under the slab; the mapped pier buildings (s 4-18, 42-55, 217-231, 281-296) are the big piers |
 
 ## 3. Facade, base to top
 
@@ -61,8 +64,8 @@ the deck's lamps are the bake's.
 
 ## 7. Detail level and budget
 
-L2. Towers 1536 triangles, budget 1850 (`check_mesh_quality.gd`); the spans are map geometry
-(about 11 k triangles in the walls surface, no draw call).
+L2. Towers (with the north stairs and the lanterns since 2026-11-03) budget 2700 (`check_mesh_quality.gd`);
+the spans and the viaduct are map geometry (about 11 k + 14 k triangles in the walls surface, no draw call).
 
 ## 8. Parts table
 
@@ -82,8 +85,9 @@ L2. Towers 1536 triangles, budget 1850 (`check_mesh_quality.gd`); the spans are 
 
 - Whether a pier hides near the west bank in the deck's shadow (the west span is ~104 m, the record
   says eight spans): QUESTIONS.
-- The north groups' curved ramp down to the lower road; the small 2-3 bay arcade beyond the shaft;
+- The small 2-3 bay arcade beyond the shaft;
   the scrolls on the merlons and the triangular insets over the arches; the brick panels and
   balconies on the bases' Powiśle faces.
-- The concrete arch viaduct over Powiśle (wide shallow arches, ribbed spandrels, #b8b6b0).
+- The viaduct's real arch count and spans, and which arches are filled in with shops (the report's text has
+  no numbers; QUESTIONS 2026-11-03).
 - The tram catenary masts every ~30 m are the bake's lamp posts, not the real masts.
