@@ -5590,6 +5590,17 @@ func _build_lod2(walls, marks) -> Array:
 		uv2 = clipped[4]
 		runs = clipped[5]
 		count = pos.size()
+	# F's look check (2026-11-03): kept LoD2 parts a landmark's model replaces above a height
+	# (the Royal Castle's Clock Tower under its copper helm).
+	if not marks.lod2_tops.is_empty():
+		var topped := _top_lod2(pos, nrm, col, uv, uv2, marks.lod2_tops, runs)
+		pos = topped[0]
+		nrm = topped[1]
+		col = topped[2]
+		uv = topped[3]
+		uv2 = topped[4]
+		runs = topped[5]
+		count = pos.size()
 	# v0.8: whole LoD2 buildings that stand where a landmark is built are left out. The
 	# bake writes each building's triangles in one run sharing its style seed (UV2.x).
 	var dropped := PackedByteArray()
@@ -5629,9 +5640,7 @@ func _build_lod2(walls, marks) -> Array:
 			# The landmarks loop: a kept building in a landmark's own stone (Muzeum Narodowe).
 			var skin: Dictionary = marks.skin_at(Rect2(lo, hi - lo))
 			if not skin.is_empty():
-				for t in range(t0, t1):
-					col[t] = skin["roof"] if nrm[t].y >= 0.7 else skin["wall"]
-					uv2[t].x = skin["mode"]
+				_skin_run(skin, pos, nrm, col, uv2, t0, t1)
 			else:
 				building_runs.append(Vector3i(t0, t1, 0))
 		t0 = t1
@@ -5829,6 +5838,114 @@ func _clip_lod2(pos: PackedVector3Array, nrm: PackedVector3Array, col: PackedCol
 		t0 = t1
 	if not _in_sector:
 		print("lod2: %d buildings cut under a deck (loop 3b)" % n_cut)
+	return [o_pos, o_nrm, o_col, o_uv, o_uv2, o_runs if not runs.is_empty() else PackedInt32Array()]
+
+
+## A kept LoD2 building in a landmark's skin (`skin_at`): its roof colour on faces flatter than
+## the skin's `steep` (0.7 unless it says: a steeper LoD2 slope reads as wall), its wall colour on
+## the rest, and its `pale` colour on the walls along one front (`pale`: {wall, edges: pairs of
+## outline ends, near}: walls whose centre is within `near` m of one of those edges). F's look
+## check (2026-11-03): the Royal Castle's steep roof slopes and LoD2's walls standing up to 0.9 m
+## proud of the model's Vistula front showed as a salmon band over the pale river front.
+func _skin_run(skin: Dictionary, pos: PackedVector3Array, nrm: PackedVector3Array, col: PackedColorArray,
+		uv2: PackedVector2Array, t0: int, t1: int) -> void:
+	var steep: float = skin.get("steep", 0.7)
+	var pale: Dictionary = skin.get("pale", {})
+	for t in range(t0, t1, 3):
+		var c: Color = skin["wall"]
+		var n := nrm[t]
+		if n.y >= steep:
+			c = skin["roof"]
+		elif not pale.is_empty() and absf(n.y) < 0.3:
+			var mid3 := (pos[t] + pos[t + 1] + pos[t + 2]) / 3.0
+			var mid := Vector2(mid3.x, mid3.z)
+			var edges: PackedVector2Array = pale["edges"]
+			for e in range(0, edges.size() - 1, 2):
+				if Geometry2D.get_closest_point_to_segment(mid, edges[e], edges[e + 1]).distance_to(mid) < float(pale["near"]):
+					c = pale["wall"]
+					break
+		for k in 3:
+			col[t + k] = c
+			uv2[t + k].x = skin["mode"]
+
+
+## F's look check (2026-11-03): the triangles of kept LoD2 buildings whose centre stands inside one
+## of the landmarks' `lod2_tops` rings ([ring, metres over the ground at `at`, at]) cut at that
+## height: the part above it left out, a roof face's part flattened onto it (like the deck cuts
+## of `_clip_lod2`, which this mirrors). `runs` comes back with each building's new count.
+func _top_lod2(pos: PackedVector3Array, nrm: PackedVector3Array, col: PackedColorArray, uv: PackedVector2Array,
+		uv2: PackedVector2Array, tops: Array, runs := PackedInt32Array()) -> Array:
+	var rings: Array[PackedVector2Array] = []
+	var boxes: Array[Rect2] = []
+	var cuts: Array[float] = []
+	for e: Array in tops:
+		var ring: PackedVector2Array = e[0]
+		var box := Rect2(ring[0], Vector2.ZERO)
+		for q in ring:
+			box = box.expand(q)
+		var at: Vector2 = e[2]
+		rings.append(ring)
+		boxes.append(box)
+		cuts.append(terrain_height(at.x, at.y) + float(e[1]))
+	var o_pos := PackedVector3Array()
+	var o_nrm := PackedVector3Array()
+	var o_col := PackedColorArray()
+	var o_uv := PackedVector2Array()
+	var o_uv2 := PackedVector2Array()
+	var o_runs := PackedInt32Array()
+	var ends := PackedInt32Array()
+	if runs.is_empty():
+		ends.append(pos.size())
+	else:
+		var e := 0
+		for r in runs:
+			e += r
+			ends.append(e)
+	var t := 0
+	for end in ends:
+		var before := o_pos.size()
+		while t < end:
+			var mid := (pos[t] + pos[t + 1] + pos[t + 2]) / 3.0
+			var cut := INF
+			for i in rings.size():
+				if boxes[i].has_point(Vector2(mid.x, mid.z)) and Geometry2D.is_point_in_polygon(Vector2(mid.x, mid.z), rings[i]):
+					cut = cuts[i]
+					break
+			if cut == INF or maxf(pos[t].y, maxf(pos[t + 1].y, pos[t + 2].y)) <= cut:
+				for k in 3:
+					o_pos.append(pos[t + k])
+					o_nrm.append(nrm[t + k])
+					o_col.append(col[t + k])
+					o_uv.append(uv[t + k])
+					o_uv2.append(uv2[t + k])
+			else:
+				var roof := nrm[t].y >= 0.3
+				var below: Array = []
+				var above: Array = []
+				for k in 3:
+					var a := t + k
+					var b := t + (k + 1) % 3
+					var a_up := pos[a].y > cut
+					var b_up := pos[b].y > cut
+					(above if a_up else below).append([pos[a], col[a], uv[a]])
+					if a_up != b_up:
+						var f := (cut - pos[a].y) / (pos[b].y - pos[a].y)
+						var corner := [pos[a].lerp(pos[b], f), col[a].lerp(col[b], f), uv[a].lerp(uv[b], f)]
+						below.append(corner)
+						above.append(corner)
+				for pi in (2 if roof else 1):
+					var part: Array = below if pi == 0 else above
+					var flat := pi == 1
+					for k in range(1, part.size() - 1):
+						for v: Array in [part[0], part[k], part[k + 1]]:
+							var p: Vector3 = v[0]
+							o_pos.append(Vector3(p.x, cut, p.z) if flat else p)
+							o_nrm.append(Vector3.UP if flat else nrm[t])
+							o_col.append(v[1])
+							o_uv.append(v[2])
+							o_uv2.append(uv2[t])
+			t += 3
+		o_runs.append(o_pos.size() - before)
 	return [o_pos, o_nrm, o_col, o_uv, o_uv2, o_runs if not runs.is_empty() else PackedInt32Array()]
 
 

@@ -854,7 +854,9 @@ F asked to bring the castle in line with Ogród Park Krajobraz's garden project
 `docs/landmarks/specs/zamek.md`): Clock Tower, turrets, terracotta roofs, the cream Vistula front
 and dome, Kubicki's Arcades (site `arkady`), tubs, fountains, vases, the Lower Garden's lawn
 carpet (`map_builder.LAWN_CARPETS`) and the gardens' low basin rings (`GARDEN_RINGS`).
-- Z1 Mac look check (QUESTIONS): LoD2's tower and eave against the model; the arcades on the terrain.
+- Z1 Mac look check: the arcades' top and gravel walk against the terrace, and the tubs and the Upper Garden
+  fountain on it. (LoD2's tower and eave: answered by F 2026-11-03 and fixed: LoD2's Clock Tower cut under the
+  model's cornice, LoD2's steep roof slopes in tile, its walls along the river front in the front's cream.)
 - Z2 The courtyard (Dziedziniec Wielki): fan-pattern setts, a granite walk from the gate, the
   yard walls pinkish-beige on the east and north wings.
 - Z3 The Vistula front's two gabled side risalits (14 m, pediment, corner statues) and the
