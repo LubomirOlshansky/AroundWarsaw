@@ -652,6 +652,17 @@ Tier C street pass, same pattern as Nowogrodzka and Mazowiecka (cloud, Sonnet): 
 Open: Mac look check (QUESTIONS); Wilcza 73 (a nightclub and a sake bar) and the Żurawia/Chmielna cluster (33 bars,
 partly covered by Nowy Świat and the Chmielna passes) are next; the houses need photos.
 
+## Praga's old streets (2026-11-03), pass 1
+Asked as "Ząbkowska" (about 7 bars in OSM). Ząbkowska's bars (x 1020-1080, z about -2080 to -2110) and Moxy lie in
+the map's cut north-east corner (z < -2045), so there is nothing to put them on (QUESTIONS). Built instead the bars
+that are on the map in Praga's tenement streets (cloud, Sonnet):
+- Six parody fascias (`Storefronts.PRAGA`: ŚWIAT PO PRASKU at Okrzei 26, BARISTA Z PODWÓRKA at Okrzei 8, WINO ZE
+  SKRZYNKI at Sierakowskiego 4A, KRAINA WINA at Wrzesińska 4, KIJOWSKA DWÓJKA at Kijowska 2, POD KUFLEM ZA ROGIEM at
+  Targowa 1), parodies of the real bars' trades; check_parodies counts the new table.
+- Pavement crowds (`Crowds.PRAGA`, six spots, 6-10 people, standing) on the `pub` curve, smaller than the centre's.
+Open: Mac look check (QUESTIONS); courtyard life (benches, the yards of Okrzei and Sierakowskiego) and the
+tenement fronts need photos; Ząbkowska waits for the map to grow north-east.
+
 ## Nowy Świat street by street (F, 2026-11-02), pass 1
 Built (cloud, Sonnet): eight parody shopfronts (`Storefronts.NOWY_SWIAT`, check_parodies 68 venues). Open:
 - Mac look check of the eight signs (QUESTIONS); move them to real doors.

@@ -214,6 +214,9 @@ then the Launch gate.
 - [x] Wilcza and Poznańska street by street, pass 1 (2026-11-03): seven parody bar fascias at the real bars' OSM
       points (`Storefronts.WILCZA`) and pavement crowds on the pub curve (`Crowds.WILCZA`). Open: Mac look check
       (BACKLOG "Wilcza and Poznańska's bars")
+- [x] Praga's old streets, pass 1 (2026-11-03): Ząbkowska is off the map, so six parody bar fascias on the Praga
+      streets that are on it (`Storefronts.PRAGA`) and pavement crowds (`Crowds.PRAGA`). Open: Mac look check,
+      courtyards (BACKLOG "Praga's old streets")
 - [x] Old Town Market Square and its Syrenka (F, 2026-11-01): cobbled paving, 58 café umbrellas, the
       fountain's rim and the bronze mermaid with sword and shield, two cards (spec rynek.md);
       Mac photo check parked (QUESTIONS)
