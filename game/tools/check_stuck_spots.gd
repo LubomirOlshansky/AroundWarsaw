@@ -32,6 +32,13 @@ extends SceneTree
 ## notches and a taper in front of small steps (map_builder.gd `_bridge_pockets`). These spots
 ## steer like the point-to-steer stick held one way (an 8th field: the compass heading held).
 ##
+## PT-17 (2026-11-03): following the KASETA arrow by car at Plac Dąbrowskiego, the playtest car went
+## back and forth on Jasna's east pavement for 70 s until the tow. Jasna's facade there (by the
+## square's corner) has a 24 m bay 2.3 m deep between two rounded piers 2 m proud: a car whose
+## stick points into the block slid along the bay into one pier, was turned out along the wall into
+## the other, and so on. Fixed: bays up to 30 m wide and 2.5 m deep get a wall across the mouth too
+## (map_builder.gd BAY_MOUTH, BAY_DEPTH). 4 spots slide along it both ways (all 4 fail on the old map).
+##
 ## Prints one line per spot and `check_stuck_spots: OK`, or the failures and exit 1. ~10 s on the Mac.
 ##   godot --headless --path game --fixed-fps 60 --script res://tools/check_stuck_spots.gd [-- --prebuilt --verbose]
 
@@ -63,6 +70,10 @@ const SPOTS := [
 	[-620.0, 181.0, 253.0, 7.0, 3.0, 0.0, "PT-7 west along Chmielna's block, the stick south-west past the notch", 200.0],
 	[-612.0, 176.0, 78.0, 7.0, 3.0, 0.0, "PT-7 Chmielna east, the stick to Krucza along the glass corner (the slit)", 150.0],
 	[-606.0, 180.0, 110.0, 7.0, 3.0, 0.0, "PT-7 across the Chmielna square to Krucza, along the glass corner", 150.0],
+	[-936.5, -298.0, 157.0, 7.0, 3.0, 0.0, "PT-17 Jasna south from Plac Dąbrowskiego, the stick into the bay", 120.0],
+	[-936.5, -298.0, 157.0, 12.0, 3.0, 0.0, "PT-17 Jasna south, faster, the stick south-east", 135.0],
+	[-930.0, -283.0, 337.0, 7.0, 3.0, 0.0, "PT-17 Jasna's pavement north to the square, the stick north-north-east", 30.0],
+	[-930.0, -283.0, 337.0, 7.0, 3.0, 0.0, "PT-17 Jasna's pavement north, the stick north-east (to the BUW tape)", 60.0],
 ]
 ## Sectors within this of a spot are loaded.
 const REACH := 300.0

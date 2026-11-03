@@ -3697,11 +3697,35 @@ const SURFACE_STYLE := {
 }
 
 
+## Paved surfaces that are really lawn (OpenStreetMap tags them `paving`): the Royal Castle's
+## Lower Garden's sunken lawn carpet (Ogród Dolny, restored 2019; GUGiK orthophoto and the
+## castle's photos, docs/landmarks/specs/zamek.md "Gardens"). Each is the outline's vertex mean.
+const LAWN_CARPETS := [Vector2(-484.6, -1614.6)]
+const LAWN_CARPET := "#78a84a"
+
+
+func _is_lawn_carpet(flat: Array) -> bool:
+	var c := Vector2.ZERO
+	var n := 0
+	for i in range(0, flat.size() - 1, 2):
+		c += Vector2(flat[i], flat[i + 1])
+		n += 1
+	if n == 0:
+		return false
+	c /= n
+	for at: Vector2 in LAWN_CARPETS:
+		if c.distance_to(at) < 3.0:
+			return true
+	return false
+
+
 ## Loop 3b-2: a surface the bake put on a bridge deck (`dk`: a bridge's pavement or tram bed,
 ## bake_roads.py level_surfaces) is laid on the deck; the rest on the ground's own triangles.
 func _build_surfaces(st) -> void:
 	for a in data.get("surfaces", []):
 		var style: Array = SURFACE_STYLE.get(a["k"], ["#cfc7b5", 0.0])
+		if a["k"] == "paving" and _is_lawn_carpet(a["p"]):
+			style = [LAWN_CARPET, style[1]]
 		_layer = float(style[1])
 		_dk = int(a.get("dk", -1))
 		if _dk >= 0:
@@ -3928,10 +3952,36 @@ const BARRIER_STYLE := {
 }
 
 
+## The Royal Castle's gardens map their fountain basins, the vases' round beds and the round
+## path nodes as small closed `wall` rings; drawn 1.9 m high they stood as grey drums. Inside
+## GARDEN_RINGS a closed wall ring under 6 m across is a low stone kerb instead.
+const GARDEN_RINGS := Rect2(-620.0, -1700.0, 190.0, 220.0)
+const GARDEN_RING := ["#d8d2c4", 0.3, 0.45]
+
+
+func _garden_ring(flat: Array) -> bool:
+	var n := flat.size() / 2
+	if n < 4 or not GARDEN_RINGS.has_point(Vector2(flat[0], flat[1])):
+		return false
+	var first := Vector2(flat[0], flat[1])
+	if first.distance_to(Vector2(flat[n * 2 - 2], flat[n * 2 - 1])) > 0.3:
+		return false
+	var c := Vector2.ZERO
+	for i in n - 1:
+		c += Vector2(flat[i * 2], flat[i * 2 + 1])
+	c /= n - 1
+	for i in n:
+		if c.distance_to(Vector2(flat[i * 2], flat[i * 2 + 1])) > 6.0:
+			return false
+	return true
+
+
 func _build_barriers(st) -> void:
 	_uv2 = Vector2(0.5, -1.0)
 	for l in data.get("lines", []):
 		var style: Array = BARRIER_STYLE.get(l["k"], ["#999999", 0.3, 1.0])
+		if l["k"] == "wall" and _garden_ring(l["p"]):
+			style = GARDEN_RING
 		# Loop 3b: a stop's platform is kerb height (0.25 m), not a wall: like the kerbs and
 		# islands, the car drives over it (check_drive.gd found buses brushing them).
 		_wall_along(st, _pts(l["p"]), float(style[1]), float(style[2]), Color(style[0]), l["k"] != "platform")
@@ -6863,13 +6913,22 @@ const POCKET_DEPTH := 3.0
 const POCKET_WALL := 2.4
 ## How far a pocket's walls run beyond its mouth, at least: shorter is a corner, not a notch.
 const POCKET_DETOUR := 0.6
+## PT-17 (2026-11-03): a long shallow bay in a block's front (Jasna by Plac Dąbrowskiego: 24 m
+## long, 2.3 m deep between two rounded piers 2 m proud) took a car whose stick pointed into the
+## block: it slid along the bay at 15 m/s into one pier, was turned out along the wall, slid into
+## the other pier, back and forth (70 s in the playtest) until the tow. A bay up to BAY_MOUTH
+## wide and only BAY_DEPTH deep (less than a car's length: nobody parks in it) gets a wall across
+## its mouth too. Deeper recesses stay open (the 9 m x 3 m one on Bracka: a car fits).
+const BAY_MOUTH := 30.0
+const BAY_DEPTH := 2.5
 ## A step out of a block's front, STEP_MIN to STEP_MAX proud of the wall before it (the corner of
 ## the next building, 0.3 m out at Chmielna and Bracka), caught the front corner of a car sliding
 ## along that wall nose on: a collider wall fairs it in, STEP_TAPER times its height long (~9°).
 const STEP_MIN := 0.08
 const STEP_MAX := 0.6
 const STEP_TAPER := 6.0
-## The walls added so far, all builds (check_stuck_spots prints it): ~15,100 for the whole city,
+## The walls added so far, all builds (check_stuck_spots prints it): ~22,600 for the whole city
+## (~15,100 before the PT-17 bays),
 ## ~300 ms of a sector's build in the cloud (none on the prebuilt path: baked in).
 var pocket_walls := 0
 
@@ -7003,42 +7062,29 @@ func _ring_bridges(ring: PackedVector2Array, originals: Array[PackedVector2Array
 	while i < n:
 		var best := -1
 		for step in range(12, 1, -1):
-			if step >= n - 1:
-				continue
-			var j := (i + step) % n
-			var a := ring[i]
-			var b := ring[j]
-			var mouth := a.distance_to(b)
-			if mouth > POCKET_MOUTH or mouth < 0.3:
-				continue
-			var path := 0.0
-			var ok := true
-			var dir := (b - a) / mouth
-			for k in step:
-				var p := ring[(i + k) % n]
-				var q := ring[(i + k + 1) % n]
-				path += p.distance_to(q)
-				if k > 0:
-					# Counter-clockwise ring: the block lies to the left of a→b; a notch goes in there.
-					var side := dir.cross(p - a)
-					if side < -0.05 or side > POCKET_DEPTH:
-						ok = false
-						break
-			if not ok or path < mouth + POCKET_DETOUR:
-				continue
-			var inside := false
-			for t: float in [0.25, 0.5, 0.75]:
-				inside = inside or Geometry2D.is_point_in_polygon(a.lerp(b, t), ring)
-			if inside:
-				continue
-			best = j
-			break
+			if step < n - 1 and _ring_span(ring, i, step, 0.3, POCKET_MOUTH, POCKET_DEPTH):
+				best = (i + step) % n
+				break
 		if best >= 0:
 			walls.append_array([ring[i], ring[best]])
 			var k := i
 			while k != best:
 				covered[k] = 1
 				k = (k + 1) % n
+			i = i + ((best - i + n) % n)
+		else:
+			i += 1
+	# PT-17: then the long shallow bays (wider than a notch, at most BAY_DEPTH deep), on their own
+	# pass so a notch inside one keeps its own wall.
+	i = 0
+	while i < n:
+		var best := -1
+		for step in range(12, 1, -1):
+			if step < n - 1 and _ring_span(ring, i, step, POCKET_MOUTH, BAY_MOUTH, BAY_DEPTH):
+				best = (i + step) % n
+				break
+		if best >= 0:
+			walls.append_array([ring[i], ring[best]])
 			i = i + ((best - i + n) % n)
 		else:
 			i += 1
@@ -7067,6 +7113,35 @@ func _ring_bridges(ring: PackedVector2Array, originals: Array[PackedVector2Array
 				break
 		if open_ground:
 			walls.append_array([a, b])
+
+
+## Whether ring[i] to ring[i + step] is the mouth of a dent: the mouth from `lo` to `hi` m long,
+## outside the block, every vertex between on the block's side within `depth` of it, and the way
+## round longer than the mouth by POCKET_DETOUR.
+func _ring_span(ring: PackedVector2Array, i: int, step: int, lo: float, hi: float, depth: float) -> bool:
+	var n := ring.size()
+	var a := ring[i]
+	var b := ring[(i + step) % n]
+	var mouth := a.distance_to(b)
+	if mouth > hi or mouth < lo:
+		return false
+	var path := 0.0
+	var dir := (b - a) / mouth
+	for k in step:
+		var p := ring[(i + k) % n]
+		var q := ring[(i + k + 1) % n]
+		path += p.distance_to(q)
+		if k > 0:
+			# Counter-clockwise ring: the block lies to the left of a→b; a notch goes in there.
+			var side := dir.cross(p - a)
+			if side < -0.05 or side > depth:
+				return false
+	if path < mouth + POCKET_DETOUR:
+		return false
+	for t: float in [0.25, 0.5, 0.75]:
+		if Geometry2D.is_point_in_polygon(a.lerp(b, t), ring):
+			return false
+	return true
 
 
 ## The steps out of a block's front met by a car sliding along it (the ring's way; `turn` -1 for
