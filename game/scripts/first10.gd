@@ -616,7 +616,8 @@ func _script(f: Dictionary) -> void:
 		return
 	if car != null:
 		_last_pos = car.global_position
-	if hud != null and hud.finger_shown() and t > FINGER_IDLE + 3.0:
+	if hud != null and hud.finger_shown() and t > FINGER_IDLE + 3.0 \
+			and not (rivals != null and rivals.has_method("first_nudging") and rivals.first_nudging()):
 		hud.ghost_finger(false)
 	var card := (jobs != null and int(jobs.state) == 3) or (rivals != null and int(rivals.state) == 5) \
 			or (missions != null and int(missions.state) == Missions.State.RESULT)
