@@ -32,6 +32,8 @@ extends SceneTree
 ##   P15 (2026-11-03) A presses the context button (KASETA, START KURS, POMOC DROGOWA, WEZWANIE)
 ##       when it is up and nothing when it is not; with the pad in use the button reads "A · ...",
 ##       a finger takes the "A" off again; main.gd answers a card before the context button.
+##   P16 (2026-11-03) with the pad in use and the nitro bought its disc stays as the tank's gauge
+##       (one pedal rect, at the disc), none without the nitro, the pedals again after a touch.
 ##   godot --headless --path game --script res://tools/check_gamepad.gd
 
 const Gamepad := preload("res://scripts/gamepad.gd")
@@ -402,6 +404,21 @@ func _context(hud: CanvasLayer) -> void:
 	if top.text.begins_with("A · "):
 		fails.append("P15 a finger took over and the pill still names A: \"%s\"" % top.text)
 	hud.hide_pill()
+	# P16: the nitro's tank stays on screen while the pad hides the pedals.
+	hud.set_nitro(true, 0.5)
+	hud.set_pad_mode(true, false)
+	var rects: Array = hud._pedal_rects()
+	var nc: Vector2 = hud._nitro_centre()
+	if rects.size() != 1 or not (rects[0] as Rect2).has_point(nc):
+		fails.append("P16 pad mode with the nitro: pedal rects %s, the disc at %s" % [rects, nc])
+	hud.set_nitro(false, 1.0)
+	if not hud._pedal_rects().is_empty():
+		fails.append("P16 pad mode without the nitro keeps %s" % [hud._pedal_rects()])
+	hud.set_pad_mode(false, false)
+	hud.set_nitro(true, 1.0)
+	if hud._pedal_rects().size() < 3:
+		fails.append("P16 a finger back: only %d pedal rects" % hud._pedal_rects().size())
+	hud.set_nitro(false, 1.0)
 	# main.gd: A answers a card first, then the context button, then the rescue line's own A.
 	var main_text := FileAccess.get_file_as_string("res://scripts/main.gd")
 	var body := main_text.substr(main_text.find("func _primary("), 700)

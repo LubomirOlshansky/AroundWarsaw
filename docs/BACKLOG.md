@@ -560,8 +560,9 @@ levels 1-3 at 150-400 zł. Saved in the [garage] section (no version bump). Left
   145 km/h, left standing); the nitro's lift is left out, so a burn opens a quick gap
   (check_police "chase pace"). The pad's nitro is LB or RB held; the view's turn moved from the
   shoulders to right-stick flicks (check_gamepad P9). The keyboard's nitro is Shift only: N also
-  switched the time of day. Left: the pad's nitro has no tank ring while the touch HUD is hidden
-  (pad mode); the phone feel of a TT chase (QUESTIONS).
+  switched the time of day. ~~Left: the pad's nitro has no tank ring while the touch HUD is hidden
+  (pad mode)~~ Done 2026-11-03: in pad mode the nitro's disc stays in its place as the tank's
+  gauge with "LB / RB" under it (hud.gd `_pad_nitro_shown`, `check_gamepad` P16). Left: the phone feel of a TT chase (QUESTIONS).
 
 **G14 · Unstuck and reset easy to find (P0, quick win).** F: "in Settings there should be reset
 game, and unstuck: if the user is stuck in textures, click and move to the main road". POMOC

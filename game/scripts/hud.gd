@@ -931,6 +931,11 @@ func _speed_rect() -> Rect2:
 ## touches it covers.)
 func _pedal_rects() -> Array[Rect2]:
 	var out: Array[Rect2] = []
+	if _pad_nitro_shown():
+		var nc := _nitro_centre()
+		var nr := (NITRO_R + 4.0) * pt
+		out.append(Rect2(nc - Vector2(nr, nr), Vector2(nr * 2.0, nr * 2.0 + _px(T_LABEL) + 4.0 * pt)))
+		return out  # the pad: only the nitro's tank stays on screen
 	if touch_off or (_pedals_hidden and not flying):
 		return out  # desktop: --no-touch keeps none
 	var disc := func(c: Vector2, r: float) -> Rect2: return Rect2(c - Vector2.ONE * r, Vector2.ONE * r * 2.0)
@@ -2629,6 +2634,12 @@ func _nitro_centre() -> Vector2:
 	return _horn_centre() + Vector2(step if left_handed else -step, 0.0)
 
 
+## G13c leftover (2026-11-03): the pad is in use and the nitro bought: its disc stays as the
+## tank's gauge (the touch pedals are gone; LB / RB burn it).
+func _pad_nitro_shown() -> bool:
+	return pad_mode and touch_off and nitro_owned and not flying and not _pedals_hidden
+
+
 ## G13: a touch at `p` is on the nitro's disc.
 func _on_nitro(p: Vector2) -> bool:
 	return nitro_owned and not touch_off and not flying and not _pedals_hidden and p.distance_to(_nitro_centre()) < NITRO_REACH * pt
@@ -3079,6 +3090,16 @@ func _draw_pad() -> void:
 		var outline := PackedVector2Array([m + Vector2(-7.6, -10.0) * pt, m + Vector2(7.6, -10.0) * pt, m + Vector2(0, 2.2) * pt])
 		_pad.draw_colored_polygon(outline, Color("#2a2622"))
 		_pad.draw_colored_polygon(tri, ACCENT)
+	if _pad_nitro_shown():
+		# G13c leftover (2026-11-03): with the pad in use the touch pedals go, but the nitro's
+		# tank stays in its place, read-only, with the shoulders that burn it under the disc.
+		var nc := _nitro_centre()
+		_draw_nitro(nc, false)
+		var font := ThemeDB.fallback_font
+		var words := Gamepad.fmt("{lb} / {rb}")
+		var fs := _px(T_LABEL)
+		var w := font.get_string_size(words, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		_pad.draw_string(font, nc + Vector2(-w * 0.5, NITRO_R * pt + fs + 2.0 * pt), words, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, SUB)
 	if touch_off:
 		return  # desktop: --no-touch, nothing below is drawn
 	if _stick_index != -1 and scheme == CLASSIC and not flying:

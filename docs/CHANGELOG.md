@@ -10,7 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-03
-- Playing with a controller, the A button now presses the button at the top of the screen (the mixtape, starting a ride, the tow truck, a rescue call), and that button shows "A" while the controller is in use.
+- Playing with a controller, the A button now presses the button at the top of the screen (the mixtape, starting a ride, the tow truck, a rescue call), and that button shows "A" while the controller is in use. With the nitro bought, its tank stays on screen while you drive with a controller.
 - In your first ten minutes, a ride request no longer turns up just before Pani Halina's race or the first rescue call, so a player who takes every ride still meets them on time; rides come again between them.
 - Stuck somewhere with the car going nowhere? After a few seconds a POMOC DROGOWA button comes up at the top of the screen; one tap and the tow truck puts you back on the road.
 - The "delivered" card after a kebab or jar job now closes by itself after a few seconds or when you drive off, a ride request no longer pops up over Pani Halina's race challenge, and the car no longer bounces back and forth along a building front on Jasna by Plac Dąbrowskiego.
