@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-03
+- In your first ten minutes, a ride request no longer turns up just before Pani Halina's race or the first rescue call, so a player who takes every ride still meets them on time; rides come again between them.
 - Stuck somewhere with the car going nowhere? After a few seconds a POMOC DROGOWA button comes up at the top of the screen; one tap and the tow truck puts you back on the road.
 - The "delivered" card after a kebab or jar job now closes by itself after a few seconds or when you drive off, a ride request no longer pops up over Pani Halina's race challenge, and the car no longer bounces back and forth along a building front on Jasna by Plac Dąbrowskiego.
 - On Świętokrzyska the main post office stands in its pale salmon plaster, with a little grey-silver dome on the Jasna corner and six white columns under a red POCZTA band at the door; on Zielna the PAST-a tower rises 51 m, with tall arches and castle-like merlons at the top, a gilt anchor on the roof and white-and-red banners down the front.
