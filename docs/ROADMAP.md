@@ -475,7 +475,8 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [x] The plan: road audit, causes of the playtest's bugs, phases (2026-11-03, docs only)
 - [x] 0.1 Teleport and tow never land in a tunnel (2026-11-03, verify step `teleport`)
 - [x] Phase 0.2 chatter budget: one budget for every bubble, no comment on every bump, quiet while stuck, merged ride star toasts, "Gadatliwość miasta" setting (2026-11-03, `chatter.gd`, `check_chatter`; phone feel parked)
-- [ ] Phase 0: car visible under decks, heli framing and far plane, Plac Piłsudskiego paving
+- [ ] Phase 0: heli framing and far plane, Plac Piłsudskiego paving
+- [x] 0.3 The car visible under decks (2026-11-03): its warm silhouette through Trasa Łazienkowska, Most Łazienkowski's land spans and the viaducts whenever a deck hides it from the camera (`check_deck_xray`); phone look open
 - [ ] Phase 1: drivability sweep of every lane and turn, lane graph data fixes, Autopilot rows P11-P16
 - [ ] Phase 2: road fixes street by street with a score baseline in CI
 - [ ] Phase 3: lane assist, wall look-ahead, junction pick, deck cut; F's phone run

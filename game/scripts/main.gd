@@ -178,6 +178,11 @@ var zone_cap_on := false
 var zone_cap_flag := -1
 ## Loop 3b: the car seen through the ground inside a tunnel (tunnel_xray.gd).
 var _xray: Node3D
+## GAMEPLAY_PLAN 0.3: a deck hides the car from the camera (map_builder.gd `deck_hides`, ~0.1 ms
+## under a deck in the cloud check, 1 µs elsewhere), asked every DECK_XRAY_EVERY frames (the
+## silhouette a few frames late).
+const DECK_XRAY_EVERY := 4
+var _deck_hid := false
 var heli: Node3D
 var missions: Node
 var hud: CanvasLayer
@@ -305,6 +310,9 @@ var solo_look := "flat"
 var debug_roads := false
 ## Loop 3b: --tunnel starts the car (with --at) on the floor of a tunnel under that point.
 var start_in_tunnel := false
+## GAMEPLAY_PLAN 0.3: --under starts the car (with --at) on the road under a bridge or viaduct deck
+## there, not on top of it (the deck x-ray's shots).
+var start_under := false
 ## Loop 1: --ghost-debug=N paints the occlusion ghost for measuring (1: the ghosted
 ## fragments magenta and every other building green; 2: the ghost cut fully, no dither)
 ## and prints the ghost's ellipse in screen pixels with every screenshot.
@@ -1191,6 +1199,8 @@ func _build_world() -> void:
 		car.global_position.y = map.ground_height(start_at.x, start_at.z)
 		if start_in_tunnel and not is_nan(map.tunnel_floor_under(start_at.x, start_at.z)):
 			car.global_position.y = map.tunnel_floor_under(start_at.x, start_at.z)
+		elif start_under:
+			car.global_position.y = map.drive_height(start_at.x, start_at.z, map.terrain_height(start_at.x, start_at.z))
 	if start_heading != INF:
 		car.rotation.y = -deg_to_rad(start_heading)
 	cam_focus = car.global_position
@@ -3642,6 +3652,8 @@ func _parse_args() -> void:
 			solo_look = arg.trim_prefix("--solo-look=")
 		elif arg == "--tunnel":
 			start_in_tunnel = true
+		elif arg == "--under":
+			start_under = true
 		elif arg == "--debug-roads":
 			debug_roads = true
 		elif arg.begins_with("--lift="):
@@ -5318,7 +5330,11 @@ func _process(dt: float) -> void:
 	if cam_log:
 		_cam_log_frame(dt)
 	var pos := _vehicle_position()
-	_xray.show_through(not flying and map.in_tunnel(pos.x, pos.z, pos.y))
+	# GAMEPLAY_PLAN 0.3: in a tunnel, or a bridge or viaduct deck between the car and the camera
+	# (Trasa Łazienkowska over the streets under it).
+	if Engine.get_process_frames() % DECK_XRAY_EVERY == 0:
+		_deck_hid = not flying and map.deck_hides(pos + Vector3.UP * 0.8, cam.global_transform.basis.z)
+	_xray.show_through(not flying and (map.in_tunnel(pos.x, pos.z, pos.y) or _deck_hid))
 	# Loop 3d-1: the pedestrian zones cap the player's car (police.md 5.6); the log says when.
 	# F's asks (2026-10-30): only with the Settings switch on (off by default).
 	var zone: String = ped_zones.at(car.global_position.x, car.global_position.z) if ped_zones != null and not flying else ""
