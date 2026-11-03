@@ -4480,8 +4480,12 @@ func _pier(st, p: Dictionary, col: Color) -> void:
 
 ## Guard rails (bridge edges and mapped barrier=guard_rail): a steel beam on posts,
 ## solid for the car.
+## Two rails' ends closer than this get a collider across the gap (narrower than a car).
+const GUARD_JOIN := 1.5
+var guard_joins := 0
 func _build_guard_rails(st) -> void:
 	_uv2 = Vector2(0.5, -1.0)
+	var ends: Array = []  # [the end, its deck, which rail]
 	var steel := Color("#a7abb0")
 	var post := Color("#6c7075")
 	for g in data.get("guards", []):
@@ -4515,6 +4519,28 @@ func _build_guard_rails(st) -> void:
 			run += length
 			_wall_faces.append_array([Vector3(a.x, ga - 0.3, a.y), Vector3(b.x, gb - 0.3, b.y), Vector3(b.x, gb + 1.6, b.y),
 					Vector3(a.x, ga - 0.3, a.y), Vector3(b.x, gb + 1.6, b.y), Vector3(a.x, ga + 1.6, a.y)])
+		if poly.size() > 1:
+			ends.append([poly[0], dk, ends.size() / 2])
+			ends.append([poly[poly.size() - 1], dk, ends.size() / 2])
+	# PT-18: the gaps under GUARD_JOIN between two rails' ends (on Solec's ramp up to the Trasa
+	# the mapped rail comes in pieces 0.9 m apart, the parapet 0.5 m behind) are closed for the
+	# car: its front corner slid into one and caught the next rail's end, pinned.
+	for i in ends.size():
+		for j in range(i + 1, ends.size()):
+			var e0: Array = ends[i]
+			var e1: Array = ends[j]
+			if e0[2] == e1[2] or e0[1] != e1[1]:
+				continue
+			var a: Vector2 = e0[0]
+			var b: Vector2 = e1[0]
+			var gap := a.distance_to(b)
+			if gap < 0.05 or gap > GUARD_JOIN:
+				continue
+			var ga := deck_height(e0[1], a.x, a.y)
+			var gb := deck_height(e0[1], b.x, b.y)
+			_wall_faces.append_array([Vector3(a.x, ga - 0.3, a.y), Vector3(b.x, gb - 0.3, b.y), Vector3(b.x, gb + 1.6, b.y),
+					Vector3(a.x, ga - 0.3, a.y), Vector3(b.x, gb + 1.6, b.y), Vector3(a.x, ga + 1.6, a.y)])
+			guard_joins += 1
 	_uv2 = Vector2.ZERO
 
 
