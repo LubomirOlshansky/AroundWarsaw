@@ -264,7 +264,10 @@ then the Launch gate.
       a cornice and mansard; `moderna` 70 tris: a pre-war tenement front and a glass wing with a
       penthouse, card "Modernka Powiśle"); specs `hortus.md`, `moderna.md`, Mac photo check parked
 - [x] Dobra and Tamka tenements, 2026-11-02: per-house plasters, cornice, string course, shop fronts (`tenement_trim.gd`, spec `dobra_tamka.md`, `check_tenement_trim`); Mac photo check parked
-- [ ] Powiśle left: boulevard dressing (deck strips, bar containers), the Mac photo checks (BACKLOG "Powiśle street by street")
+- [x] Boulevard dressing, 2026-11-02: the six bar pavilions on the embankment (lawn roofs, glass
+      fronts, terraces, bulbs, parody neon), 14 bar containers and kiosks, 17 timber deck strips
+      with leżaki (`bulwary_*` sites, spec `bulwary.md`, Mac photo check parked)
+- [ ] Powiśle left: the Mac photo checks (BACKLOG "Powiśle street by street")
 - [x] Street furniture along the main line's route (Krakowskie Przedmieście, Nowy Świat, the Old
       Town's edge, Plac Zbawiciela, the boulevards, Rondo Daszyńskiego)
 - [x] Office crowds at Rondo Daszyńskiego, 2026-11-02 (F; BACKLOG "Rondo Daszyńskiego office crowd"):
