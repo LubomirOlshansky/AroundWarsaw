@@ -71,6 +71,9 @@ var zone_cap := false
 var handling := 0
 ## Steering sensitivity 0..1 (0.5 = the profile as is; car.gd set_sensitivity). Settings → Jazda, key "sensitivity".
 var sensitivity := 0.5
+## Phase 0.2 (docs/GAMEPLAY_PLAN.md): the city's chattiness, chatter.gd GAPS: 0 Mało, 1 Średnio (the
+## default), 2 Dużo. Settings → ŚWIAT, key "chatter".
+var chatter := 1
 ## Accessibility (access.gd, Settings → ŁATWOŚĆ): larger HUD text, calm (no flashing or shaking),
 ## colour-safe markers, the phone's vibration, and the quest stop assist.
 var text_large := false
@@ -123,6 +126,7 @@ func load_file() -> void:
 	zone_cap = bool(cfg.get_value("game", "zone_cap", zone_cap))
 	handling = clampi(int(cfg.get_value("game", "handling", handling)), 0, 1)
 	sensitivity = clampf(float(cfg.get_value("game", "sensitivity", sensitivity)), 0.0, 1.0)
+	chatter = clampi(int(cfg.get_value("world", "chatter", chatter)), 0, 2)
 	text_large = bool(cfg.get_value("access", "text_large", text_large))
 	calm = bool(cfg.get_value("access", "calm", calm))
 	color_safe = bool(cfg.get_value("access", "color_safe", color_safe))
@@ -161,6 +165,7 @@ func save() -> void:
 	cfg.set_value("game", "zone_cap", zone_cap)
 	cfg.set_value("game", "handling", handling)
 	cfg.set_value("game", "sensitivity", snappedf(sensitivity, 0.05))
+	cfg.set_value("world", "chatter", chatter)
 	cfg.set_value("access", "text_large", text_large)
 	cfg.set_value("access", "calm", calm)
 	cfg.set_value("access", "color_safe", color_safe)
@@ -175,9 +180,9 @@ func save() -> void:
 
 
 func summary() -> String:
-	return "controls %d, classic camera %s, traffic %s, quality %s, volume %.0f/%.0f/%.0f %%, perf %s, %d fps, style %d, vhs %s, zone cap %s, handling %d sens %.2f, access large %s calm %s colour-safe %s vibration %s assist %s left-handed %s, auto image %s" % [
+	return "controls %d, classic camera %s, traffic %s, quality %s, volume %.0f/%.0f/%.0f %%, perf %s, %d fps, style %d, vhs %s, zone cap %s, handling %d sens %.2f chatter %d, access large %s calm %s colour-safe %s vibration %s assist %s left-handed %s, auto image %s" % [
 			controls, "follow" if classic_follow else "fixed", TRAFFIC_NAMES[traffic], "auto" if quality == AUTO else str(quality),
-			master * 100.0, music * 100.0, effects * 100.0, perf, fps, style, vhs, zone_cap, handling, sensitivity, text_large, calm, color_safe, vibration, stop_assist, left_handed, image_summary()]
+			master * 100.0, music * 100.0, effects * 100.0, perf, fps, style, vhs, zone_cap, handling, sensitivity, chatter, text_large, calm, color_safe, vibration, stop_assist, left_handed, image_summary()]
 
 
 ## Loop G1b: "sharp", "sharp, on trial 1/4" or "fallback, calm 1/2 (GPU extras down 74 s)".

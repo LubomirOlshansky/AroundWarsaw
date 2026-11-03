@@ -26,6 +26,16 @@ Plan only, nothing built (F paused new work; this wants his "go" for the Mac pho
   slightly warm tint (palette change in the existing `wiecha` model).
 - Open for the gather: the Sezam corner's exact outline, the Żabka corner on Wars.
 
+## The helicopter high up (F's playtest, 2026-11-03; GAMEPLAY_PLAN 0.4 / 3.1)
+
+The framing, the far plane and the height cap are fixed (heli-view PR, `check_heli_view`; the
+cause and numbers are in GAMEPLAY_PLAN 3.1). Left:
+- Phone check (P15 on the Mac, F's yes): fly to the cap over the Palace, Varso and the east edge;
+  feel of the 220 m cap (it pulls the helicopter down at -11 m/s when it leaves a tower).
+- Horizon haze (plan fix 4) not built: no cut ground showed after the far fix; build it only if the
+  phone still shows a hard line. The far half of a 360 m view shows sector proxies for a few
+  seconds while they stream in.
+
 ## Open courtyards (F, 2026-11-03)
 
 F: "some kamienica from the top have the hole in the center, I want it where it has one". Found: the
@@ -58,6 +68,41 @@ strip (x 1020-1080, z -2080 to -2110) lie in the map box's cut north-east corner
 (map lane): grow bake_osm's map shape (tools/map_shape.py), re-bake the chain and the LoD2/terrain
 on the Mac, publish a new map pack, then build Koneser, the fountain park and Ząbkowska's bars from
 the photo reports already in (QUESTIONS 2026-11-02 and 2026-11-03).
+
+## Driving first: the gameplay plan (F, 2026-11-03)
+
+F's playtest (13:22): "the map and buildings are good now; I want to make the driving the best
+experience". The plan, the road audit and the causes are in docs/GAMEPLAY_PLAN.md; its phases:
+- [x] 0.1 Map teleport and tow land in a tunnel (2026-11-03): `_same_level` took a tunnel's floor as
+  "the ground"; now tunnels only from inside one, main-network lanes first, the teleport checks the
+  car's box, a hold over the river lands on the bridge; verify step `teleport` (11 spots; 2 failed
+  before). Autopilot P12 checks the drive-off
+- [x] 0.2 Chatter budget (2026-11-03, `chatter.gd`, `check_chatter`): every bubble has a class (quest,
+  police, reaction, ambient); at most 2 up and one new every 4 s; one reaction in 20 s, none for a
+  bump under 15 km/h, a near miss once a minute; city lines silent while the car is pinned, pressing
+  into something, stalled or offered the tow, and 5 s after; ambient waits while a card or the full
+  map is up; the ride's star toasts merge into one; Settings → ŚWIAT → Gadatliwość miasta. Phone
+  feel parked (QUESTIONS)
+- [x] 0.3 The car shows through Trasa Łazienkowska and other decks (2026-11-03): the tunnel x-ray
+  whenever a deck stands between the car and the camera (`map_builder.gd` `deck_hides`,
+  `check_deck_xray`); phone look open, the deck cut stays 3.x
+- [ ] 0.4 Helicopter high up: heli framed at the top, far plane clips the ground (floating buildings,
+  blue sky), height cap, horizon haze
+- [ ] 0.5 Plac Piłsudskiego's paving reads as a chessboard: lower the panel contrast, speckle
+- [ ] 1.1 `check_drivability.gd`: every lane, turn and dead end with the player's car; per-street score
+- [ ] 1.2 Lane graph data: 101 nodes off the main network, 15 kinks over 45°, ~300 lanes under 2.5 m
+- [ ] 1.3 Autopilot rows P11-P16 (PLAYTEST.md)
+- [ ] 2.x Road fixes by street, forgiveness bevels, trap dead ends gated, score baseline in CI
+- [ ] 3.x Lane assist, wall look-ahead, junction pick, deck cut in the ghost, F's phone run
+- [ ] 4.1 Running clubs read as a blue blob at crossings: mixed kit, pairs, spread out
+- [ ] 4.2 Varso Place masses from photos (the gap between the tower and Varso 1/2)
+
+## Landmarks from photos: Chmielna 89, "Piramida" (F, 2026-11-03, later)
+
+F: "PKO Piramida looks bad". Chmielna 89 (~80 m, 2021-22), the glass wedge on V-shaped steel legs by
+the railway cutting next to Warta Tower; today an OSM extrusion. Later, photo way: a Mac gather
+`refs/chmielna89/` plus F's four photos (project files), then the wedge, the zigzag frame on the
+sloped face, the V legs, blue-grey glass. No bank name or logo (brands only as parodies).
 
 ## Vitkac quests and ride stories (F, 2026-11-03)
 
@@ -92,7 +137,8 @@ is the order of the next threads. Found while building it:
   the Eastern memorial and Umschlagplatz from the Mac's photo reports (docs/landmarks/photo-reports/); each
   lands as a site and joins `bake_monuments.SKIP`. Then rows 113-116 and 142. ~~Plac Piłsudskiego's
   (Piłsudski, Smolensk, Kaczyński)~~ done 2026-11-02 (sites `smolensk`, `pilsudski`, `kaczynski`,
-  `plac_maszty`, the paving's chequer in ground.gdshader; spec `plac_pilsudskiego.md`).
+  `plac_maszty`, the paving's chequer in ground.gdshader; spec `plac_pilsudskiego.md`; the chequer
+  softened 2026-11-03 after the playtest read it as a chess board, phone look check open).
 - **Plaques without a wall:** 49 OSM plaques have no drawn wall within 12 m (free-standing ones, courtyards)
   and are left out; a post-mounted plaque piece would place them. A plaque's wall is the LoD2 footprint, so
   a deep shop recess can leave it on a pier rather than the door's wall (fine so far in shots).
@@ -331,6 +377,7 @@ Run 11 (P2, the flying half, 2026-11-02) timed out after the heli beat (the Mac 
 Run 12 (2026-11-03): PT-14 closed (the helicopter climbs after landing; run 11's harness mixed its keys); PT-17 suspect, a car circling on Plac Dąbrowskiego until the tow. The rescue beat waited 83 s past its window while a ride and a chase were on (the same hold as the race above).
 Runs 13-14 (2026-11-03): Powiśle met at 283 s; PT-17 not seen on one pass. Every Autopilot run on F's Mac is killed (-9) at about 6 minutes of play, so beats after that (the tape pickup, the garage at 570 s, the end card) can't be playtested with it yet: find the cause (memory with the editor, the game and the agent service on one Mac?) before the next long row.
 PT-15, PT-16, PT-17 fixed 2026-11-03 (PLAYTEST.md): no ride request over Halina's call or a rival's prompt (and none of those over a request card); the delivered / order-dropped card goes by itself after 12 s or 25 m (it waited for OK for ever, the likely reason one order looked driven six times and the race waited until 203 s); Jasna's 24 m shallow bay by Plac Dąbrowskiego bridged (bays up to 30 x 2.5 m city-wide). Verify all three on the next P2 run.
+PT-18 fixed 2026-11-03 (P11 run 20261103-152948, Solec under the Trasa): on the ramp up to the Trasa the mapped guard rail comes in pieces 0.9 m apart and the car's corner caught a piece's end (pinned at 1307, 959); under the ramp its pier stood 2 m off Solec's west kerb. Guard-rail gaps under 1.5 m on a deck now get a shallow collider V behind the rail line, so the bus cuts stay clear (map_builder GUARD_JOIN, GUARD_POCKET; 122 in the sectors round Solec) and the bake keeps piers 2 m further from a main road wherever their slide finds room (bake_structures PIER_ROADSIDE; 44 of 359 piers moved 1-2 m in centrum.json, the rest as baked). Six spots in `check_stuck_spots` (five fail on the old map). PLAYTEST.md's PT-18 row (PR #420) should read fixed. Still open from the same row: the car hidden by the deck (GAMEPLAY_PLAN 3.5, x-ray).
 The guide's beats behind jobs, built 2026-11-03 (default, QUESTIONS): while a beat that waits for a free moment (race, trap, rescue, tape, Powiśle, garage) is due or within 45 s (`first10.gd` `due`, HOLD_AHEAD), the guide holds what comes by itself: Podwózka requests (rides.gd `guide_hold`, the next one at least 30 s after the hold lets go) and the "Na czasie" offers (trend_job.gd). A job already under way runs on and the PODWÓZKA button still asks for a ride. `check_first10` "rider": a player who takes every request meets every beat in its window (without the hold the tape and Powiśle came at 546 s). Left: a player who chains kebab orders at the stand still holds the beats (the stand is the player's own choice; not held), and a ride taken just over 45 s before a beat still pushes it back up to ~2.5 min (inside the windows in the toy); the next P2 run should show both.
 
 ## Hotel Warszawa and Cedet (city inventory item 4, 2026-11-02)
@@ -343,13 +390,23 @@ Built from photos gathered on the Mac (`refs/hotel_warszawa/`, `refs/cedet/`) an
   generic 1.5 m mullions; the north wing has no crown pavilion of its own; the glazed lantern and link roof
   plant are not modelled; the ground-floor tenants' fascias (parodies) and the red neon at the east corner
   are not there.
+- Cedet after F's look check (2026-11-03): the east end's radius is unclear (4 m kept; check against a
+  straight-on photo of the Bracka corner); the wings' tips stand ~1 m over LoD2's 31.5 m so the sweep reads
+  from the street (lower them if a photo shows a flatter curve); the plant screen at the back of the
+  pavilion is LoD2's 35 m box, its louvres and colour are guesses.
 
 ## Most Poniatowskiego (F, 2026-11-02)
 Built from photos gathered on the Mac (`refs/poniatowski/`, report `docs/landmarks/photo-reports/poniatowski.md`),
 spec `poniatowski.md`: the four tower groups (arcaded pavilions, 20 m shafts, south stair turrets) and the river
 spans (granite piers, steel arch ribs, red fascia, black railing, pier pedestals). Found and left:
-- Two of the five piers are estimates (on the east floodplain under trees), and the west span (~104 m) may hide a
-  pier near the west bank (photo 22): QUESTIONS.
+- 2026-11-03 (F's answer, the Mac's check of photos 22 and 1): 8 spans, 7 piers (`PN_PIERS`): the west-bank pier at
+  s 64 (estimate s ~58 ±8, moved to clear the promenade's footway and cycle path), the 7th at s 467. Three of the
+  seven (s 335.7, 411.6, 467) are floodplain estimates (±15 m) until a photo from the Wał Miedzeszyński side.
+- 2026-11-03 (F: "strengthen the shafts and pavilion arcades"): `_pt_group` adds the shafts' corner piers (0.25 m
+  proud, full height), string courses at 6.6 and 10.9 m, a corbel table under the cornice, a bigger arched window
+  and a pair over it, taller belfry slits and crown; the arcade bays between piers 0.35 m proud with keystones, an
+  impost band and a plinth. Colliders unchanged (everything stays inside them). Mesh 2556 -> 4574 triangles over the
+  four groups (check_mesh_quality budget 2700 -> 4800), +0 draw calls. Mac/phone look open.
 - Not modelled: the small arcade beyond each shaft, the merlon scrolls and the insets over the arches, the
   bases' brick panels and balconies, the real tram catenary masts.
 - 2026-11-03: the Powiśle viaduct's arcade (`map_builder._build_powisle`: pilasters every ~19 m, segmental arches
@@ -359,6 +416,15 @@ spans (granite piers, steel arch ribs, red fascia, black railing, pier pedestals
   under the edges; the real arches' count and span, the spandrel ribs and whether the arches are open or
   filled in are not in the report (the photos stay on the Mac): QUESTIONS. Along Al. 3 Maja (s 296-430) the
   south arcade stands 3-5 m back under the deck, because the street runs under the deck's edge there.
+- 2026-11-03 (F's answer): the spandrel walls are gone. Each row is now 31 spans (the north row got piers at
+  s -19.1 and 404.5, measured clear): 4 beam spans by the west abutment on a 1.9 m steel girder, 27 open
+  reinforced-concrete arch ribs (1.6 m wide, 0.9 m deep at the crown to 1.8 m at the springings) with square
+  struts every ~3.2 m up to a 1.1 m steel edge girder with stiffeners (`_pv_span`). The 9 bays per row between
+  Kruczkowskiego's and Solec's pier buildings are closed by rendered walls 0.9 m behind the ribs with an arched
+  door and windows (solid; `_pv_infill`); five of them are parody bars (`PV_BARS`; storefronts.gd `VIADUKT`
+  neon, crowds.gd `VIADUKT` people, warm glass that glows at night, café tables with parasols). Open: which
+  spans and bays are really which, and the bars' real doors (QUESTIONS); a phone bench of the struts (each
+  strut is a box in the city mesh: +0 draw calls, ~+25k vertices).
 - The approaches between the towers have been lit since map round 2 (D7, `bake_lights` approach lamps); the
   night shots of 2026-11-03 show both abutments lit.
 
@@ -928,7 +994,9 @@ F asked to bring the castle in line with Ogród Park Krajobraz's garden project
 `docs/landmarks/specs/zamek.md`): Clock Tower, turrets, terracotta roofs, the cream Vistula front
 and dome, Kubicki's Arcades (site `arkady`), tubs, fountains, vases, the Lower Garden's lawn
 carpet (`map_builder.LAWN_CARPETS`) and the gardens' low basin rings (`GARDEN_RINGS`).
-- Z1 Mac look check (QUESTIONS): LoD2's tower and eave against the model; the arcades on the terrain.
+- Z1 Mac look check: the arcades' top and gravel walk against the terrace, and the tubs and the Upper Garden
+  fountain on it. (LoD2's tower and eave: answered by F 2026-11-03 and fixed: LoD2's Clock Tower cut under the
+  model's cornice, LoD2's steep roof slopes in tile, its walls along the river front in the front's cream.)
 - Z2 The courtyard (Dziedziniec Wielki): fan-pattern setts, a granite walk from the gate, the
   yard walls pinkish-beige on the east and north wings.
 - Z3 The Vistula front's two gabled side risalits (14 m, pediment, corner statues) and the
