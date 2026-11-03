@@ -211,6 +211,9 @@ then the Launch gate.
 - [x] Mazowiecka street by street, pass 1 (2026-11-03): the club street, five parody club fascias at the
       real clubs' OSM points (`Storefronts.MAZOWIECKA`) and queues on a new club curve
       (`Crowds.MAZOWIECKA`, `club_level`). Open: Mac look check, door dressing (BACKLOG "Mazowiecka's club street")
+- [x] Wilcza and Poznańska street by street, pass 1 (2026-11-03): seven parody bar fascias at the real bars' OSM
+      points (`Storefronts.WILCZA`) and pavement crowds on the pub curve (`Crowds.WILCZA`). Open: Mac look check
+      (BACKLOG "Wilcza and Poznańska's bars")
 - [x] Old Town Market Square and its Syrenka (F, 2026-11-01): cobbled paving, 58 café umbrellas, the
       fountain's rim and the bronze mermaid with sword and shield, two cards (spec rynek.md);
       Mac photo check parked (QUESTIONS)

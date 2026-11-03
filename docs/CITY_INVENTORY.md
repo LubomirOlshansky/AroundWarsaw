@@ -234,7 +234,7 @@ Proposed order for the next threads (photos first, see "Why some places were reb
 10. Praga's faces: the cathedral of St Michael and St Florian, Koneser, Bazar Różyckiego, Wschodnia (84-86, 73). The cathedral and the bazaar built from the Mac's photo reports 2026-11-02; Koneser and the fountain park (88) lie in the box's cut north-east corner, off the map.
 
 Tier C street passes (Part 2's named outlines and points, street by street, no photo builds): Nowogrodzka's
-bar strip, pass 1 (2026-11-03: eight parody bar fascias, pavement crowds at night); Mazowiecka's clubs, pass 1 (2026-11-03: five parody club fascias, queues after midnight).
+bar strip, pass 1 (2026-11-03: eight parody bar fascias, pavement crowds at night); Mazowiecka's clubs, pass 1 (2026-11-03: five parody club fascias, queues after midnight); Wilcza and Poznańska's bars, pass 1 (2026-11-03: seven parody bar fascias, pavement crowds at night).
 
 <!-- streets:start -->
 ## Part 2. Street by street
