@@ -35,7 +35,7 @@ the air is the yellow truss over trees, and in the game the drone port on the 15
 (south-south-east, T22_A), v across (east-north-east, T22_B). The map's own outlines in that frame:
 the Office House u 22-99 v 111-182 (34 m, kept), its pergola u 72-102 v 162-208 (kept), Dom Słowa
 Polskiego u 108-201 v 141-220 (replaced), M7 u 211-281 v 188-267 (kept), the octagon's pieces
-u 41-122 v 220-300 (kept), Muzeum Woli u 296-331 v 155-176. The car park at the Srebrna end
+u 41-122 v 220-300 (a building site of cores and slabs in the map; replaced by the finished ring, F 2026-11-03), Muzeum Woli u 296-331 v 155-176. The car park at the Srebrna end
 (u 257-320, v 10-75, 31 parked cars and its service road) stays: the render's block there is left
 for when the map has it. Heights: 150 / 124 / 112 / 96 m towers along Towarowa, an 85 m podium,
 34-36 m low blocks, the Gutenberga podium at 20 m with 58 and 50 m towers, the hall frame 15 m.
@@ -69,7 +69,7 @@ the three neon signs (WARSZAWA 2050, DRONOPORT, TOWAROWA 22) and the plinth's OS
 
 ## 7. Detail level and budget
 
-L3, budget 4800 triangles (the build is 4597), the site's entry in `check_mesh_quality.gd`. The
+L3, budget 5000 triangles (the build is 4813), the site's entry in `check_mesh_quality.gd`. The
 drone's 8 floating faces are KNOWN there, since it hovers by design.
 
 ## 8. Parts table
@@ -90,6 +90,7 @@ drone's 8 floating faces are KNOWN there, since it hovers by design.
 | park | ground cells, path, pool | 83 x 52 m | 125-208, 224-276 | lawn, paving, water | Park Słowa |
 | crane | mast, jib bars, plinth | 32 m tall, 22 m jib | park, u 198 v 233 | gold, stone | OSTATNI ŻURAW WOLI |
 | drone | box + 4 discs | 4 m | 7 m over the pad | white, red light | the drone taxi |
+| octagon | rounded octagon ring + court | 80 m across, 31 m, court 32 m | 40-124, 218-302 | S_SLAB white, pale roof | set-back top storey, planted court |
 | wronia | ground cells | 185 x 11 m | 97-282, 95-106 | brick paving | the walking street |
 
 ## The "Warsaw of the future" jokes

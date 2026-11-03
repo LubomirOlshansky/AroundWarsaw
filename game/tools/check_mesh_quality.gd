@@ -211,7 +211,7 @@ const BUDGET := {
 	"zygmunt": 280,
 	# Towarowa 22 built as finished (2026-11-03): seven towers and blocks, the hall's steel frame,
 	# the pavilion, the park, the drone port and the gilded crane.
-	"towarowa22": 4800,
+	"towarowa22": 5000,
 	# The Warsaw HUB's round-ended hotel tower (the photo report, 2026-11-03).
 	"crowne": 380,
 }

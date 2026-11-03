@@ -5941,6 +5941,12 @@ const T22_GUT := [205.0, 282.0, 108.0, 178.0, 20.0]
 const T22_HALL := [118.0, 198.0, 146.0, 200.0, 15.0]
 const T22_PAVILION := [108.0, 200.0, 204.0, 218.0, 6.0]
 const T22_PARK := [125.0, 208.0, 224.0, 276.0, 0.0]
+## The octagon office at Pańska and Miedziana (the plan's ring with a court): its box in the frame
+## (the map has it as the building site's cores and slabs, F's 2026-11-03 screenshot), centre,
+## half size, corner cut, the court's half size and cut, height. The renders: white bands, a
+## set-back top storey, a planted court.
+const T22_OCT := [40.0, 124.0, 218.0, 302.0, 31.0]
+const T22_OCT_C := Vector2(82.0, 259.5)
 ## The old printing hall's whole mapped outline (u 108..201, v 141..220) goes: the frame, the
 ## garden and the pavilion stand in it.
 const T22_DSP := [106.0, 203.0, 139.0, 222.0, 0.0]
@@ -5981,7 +5987,7 @@ func _t22_ground(r: Array, dy: float, col: Color) -> void:
 func _find_towarowa22() -> void:
 	var zone: Array = []
 	for r: Array in [T22_AFI, T22_PODIUM, T22_WHITE, T22_PINK, T22_PINK_LOW, T22_DARK, T22_DUO, T22_DUO_B,
-			T22_TANKS, T22_GUT, T22_DSP, T22_PARK]:
+			T22_TANKS, T22_GUT, T22_DSP, T22_PARK, T22_OCT]:
 		zone.append(_t22_rect(r))
 	_add_site("towarowa22", zone)
 	# The 2023 laser scan's trees on the building site stay out of the new blocks.
@@ -5989,6 +5995,8 @@ func _find_towarowa22() -> void:
 			T22_TANKS, T22_GUT, T22_DSP]:
 		var poly := _t22_rect(r, 1.5)
 		tree_free.append([poly, 0.0, _box_of([poly])])
+	var oct := _t22_rect(T22_OCT, 1.0)
+	tree_free.append([oct, 0.0, _box_of([oct])])
 
 
 func _build_towarowa22(_site: Dictionary) -> void:
@@ -6034,6 +6042,7 @@ func _build_towarowa22(_site: Dictionary) -> void:
 	_no_roof = false
 	_t22_hall(g)
 	_t22_park(g)
+	_t22_octagon()
 	_t22_crane(g)
 	_mode = M_STONE
 
@@ -6191,6 +6200,65 @@ func _t22_diag(a: Vector2, b: Vector2, ya: float, yb: float) -> void:
 
 
 ## Park Słowa: a lawn with a looping path, a playground's soft disc and trees.
+## The octagon office (see T22_OCT): a rounded octagon ring of white bands round a planted
+## court, the top storey set back 2.5 m. Built on its own ground (the plot's corner sits lower).
+func _t22_octagon() -> void:
+	var outer := _t22_oct_ring(40.0, 13.0)
+	var court := _t22_oct_ring(16.0, 6.0)
+	var g0 := _ground_under(outer)
+	_g = g0
+	var top := g0 + float(T22_OCT[4])
+	var step := top - 3.5
+	var white := Color("#eeece6")
+	var skin := M_SKIN + S_SLAB / 16.0
+	_mode = skin
+	var run := 0.0
+	for i in outer.size():
+		var a := outer[i]
+		var b := outer[(i + 1) % outer.size()]
+		_wall(a, b, g0 - 0.5, step, _out(outer, a, b), white, run)
+		run += a.distance_to(b)
+	var upper: PackedVector2Array = Geometry2D.offset_polygon(outer, -2.5)[0]
+	run = 0.0
+	for i in upper.size():
+		var a := upper[i]
+		var b := upper[(i + 1) % upper.size()]
+		_wall(a, b, step, top, _out(upper, a, b), white, run)
+		run += a.distance_to(b)
+	run = 0.0
+	for i in court.size():
+		var a := court[i]
+		var b := court[(i + 1) % court.size()]
+		_wall(a, b, g0 - 0.5, top, -_out(court, a, b), white, run)
+		run += a.distance_to(b)
+	_mode = M_STONE
+	_cap_holes(outer, [upper], step, Color("#d9d7d0"))
+	_cap_holes(upper, [court], top, Color("#d9d7d0"))
+	_collide(outer)
+	# The court: a lawn and a ring of young trees.
+	_cap(court, g0 + 0.3, T22_GREEN.lightened(0.05))
+	for k in 6:
+		var p := _wl(T22_OCT_C + Vector2.from_angle(TAU * k / 6.0) * 10.0)
+		var gt: float = map.terrain_height(p.x, p.y)
+		_prism(_square(p, 0.15), maxf(gt, g0 + 0.3) - 0.2, maxf(gt, g0 + 0.3) + 2.5, Color("#6b5a48"), Color(0, 0, 0, 0))
+		_pyramid(_circle(p, 1.8, 5), maxf(gt, g0 + 0.3) + 2.2, maxf(gt, g0 + 0.3) + 6.5, T22_GREEN.darkened(0.1 * (k % 2)))
+
+
+## A rounded octagon in the plan round T22_OCT_C: `half` to each side, the corners cut by `cut`
+## and rounded with one extra point.
+func _t22_oct_ring(half: float, cut: float) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	for k in 4:
+		var ang := TAU * k / 4.0
+		var d := Vector2.from_angle(ang)
+		var s := Vector2(-d.y, d.x)
+		var corner := d + s
+		out.append(_wl(T22_OCT_C + d * half - s * (half - cut)))
+		out.append(_wl(T22_OCT_C + d * half + s * (half - cut)))
+		out.append(_wl(T22_OCT_C + corner * (half - cut * 0.42)))
+	return out
+
+
 func _t22_park(g: float) -> void:
 	var r := T22_PARK
 	_no_roof = true
