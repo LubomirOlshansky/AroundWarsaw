@@ -138,6 +138,8 @@ then the Launch gate.
 - [ ] Junction lines checked against photos (Mac: needs the GUGiK orthophoto; brief in QUESTIONS 2026-11-02)
 
 ### Left: landmarks and street details
+
+- [ ] Eastern Wall photo pass (F, 2026-11-03; plan in BACKLOG "Eastern Wall photo pass"): Marszałkowska fronts of Junior, Sawa and Wars from a Mac `refs/dt_centrum/` REPORT, the Widok corner, WACZEK at the former Sezam (Świętokrzyska), the Coca-Cola roof sign, Pasaż slabs warm grey-white; high priority, waits on F's go for the Mac gather
 - [x] City inventory, street by street (F, 2026-11-02): every characteristic place in the box ranked S/A/B
       with its status (photo build, outline build, dress only, not done) in docs/CITY_INVENTORY.md, Part 2
       street by street from the map data (`tools/city_inventory.py`). Its Part 3 is the order of the next

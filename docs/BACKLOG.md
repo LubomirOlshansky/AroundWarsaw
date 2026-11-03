@@ -3,6 +3,28 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Eastern Wall photo pass: Marszałkowska fronts, Sezam WACZEK, Coca-Cola sign (F, 2026-11-03)
+
+Plan only, nothing built (F paused new work; this wants his "go" for the Mac photo gather). Scope F set:
+- **Fronts of Junior, Sawa and Wars on Marszałkowska only.** Pasaż Wiecha's frontage is covered by
+  `dt_pawilony` (site `wiecha`). Today site `dtc` is a cloud model corrected by one Mac photo check
+  (2026-11-01); there is no `refs/dt_centrum/` REPORT, so redo it the photo way: Mac gather into
+  `refs/dt_centrum/` with SOURCES.md and a REPORT in game coordinates, then the build.
+- **Corner and glazing at Widok:** F's photo "Dawne Domy Towarowe Centrum, ul. Marszałkowska" (Wars's south corner on Widok,
+  H&M corner, huge printed banners over the glass, the rounded cornice with CCC / H&M / C&A / TK Maxx on the roof band)
+  is the reference where the Wars and Sawa models meet. Also the two aerials (Varso view, drone view): HalfPrice, adidas,
+  TK Maxx, H&M banners, green roof strips, plant on the roofs, the Amica tower behind.
+- **McDonald's = WACZEK at the former Sezam**, Świętokrzyska corner (the glass block with the SEZAM sign and the McDonald's
+  on its ground floor, F's photos), NOT on the Junior-Sawa-Wars fronts. Its own yellow wordmark and sign shape
+  (Storefronts.HYPE `waczek_*`, upside-down W). Add a `waczek_sezam` site; the Sezam block itself (the old Sezam
+  department store, now the glass office with the SEZAM name) is part of the same pass.
+- **Coca-Cola sign** on the tower roof (F's photos: the red Coca-Cola roof sign on the round slab at Marszałkowska,
+  now beside the Amica tower on the Eastern Wall). Real brand, so a parody (KOKA-KOLKA is already on `tower75`;
+  check which tower F means and whether the Amica sign gets a parody too, e.g. AMIKA).
+- **Chmielna:** keep the street clean, no excavation or roadworks. **Pasaż slabs:** the report's grey-white #D8D8D4 with a
+  slightly warm tint (palette change in the existing `wiecha` model).
+- Open for the gather: which Coca-Cola tower, the Sezam corner's exact outline, the Żabka corner on Wars.
+
 ## Vitkac quests and ride stories (F, 2026-11-03)
 
 F asked for two things; both are plan only, nothing is built (Sonnet for the lines, Opus for the quest design; docs/design/ gets the plan first).
