@@ -489,6 +489,9 @@ const INFO := {
 	"zodiak": ["Zodiak",
 			"Pawilon w Pasażu Wiecha: dawny bar, dziś Warszawski Pawilon Architektury z kawiarnią.",
 			"A pavilion in Pasaż Wiecha: once a bar, now the Warsaw Architecture Pavilion and its café."],
+	"wiecha": ["Pasaż Wiecha",
+			"Deptak za Domami Towarowymi Centrum, nazwany na cześć Stefana Wiecheckiego „Wiecha”. Pawilony z witrynami pod blokami.",
+			"The walkway behind the Eastern Wall's stores, named after the writer Stefan Wiechecki, \"Wiech\". Shop pavilions under the slabs."],
 	"ochota": ["Warszawa Ochota",
 			"Dworzec z 1963 roku: szklana kasa na moście nad wykopem pod betonowym siodłem paraboloidy.",
 			"A 1963 station: a glass ticket hall on a bridge over the cutting, under a concrete saddle roof."],
@@ -848,6 +851,8 @@ func _find_sites() -> void:
 	_find_pokorna2()
 	# R5 of docs/design/start-area-real.md: the Cepelia pavilion and Zodiak.
 	_find_modern_pavilions()
+	# First scene items 4-5 (2026-11-02, the Mac photo report dt_pawilony): Pasaż Wiecha's pavilions.
+	_find_wiecha()
 	# Skwer Linearny na Złotej (F's photo, 2026-11-02): Dom pod Orłami over the new square.
 	_find_orly()
 	# Muranów (2026-11-02, spec polin.md): POLIN and the Ghetto Heroes Monument before it.
@@ -1332,6 +1337,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_rondo(s)
 			"zodiak":
 				_build_zodiak(s)
+			"wiecha":
+				_build_wiecha(s)
 			"orly":
 				_build_orly(s)
 			"polin":
@@ -11033,6 +11040,88 @@ func _build_zodiak(site: Dictionary) -> void:
 		var k := minf(0.6 * a.distance_to(b) / Neon.length_of(ZOD_WORD), 1.0 / (Neon.ROW_H * Neon.PIXEL))
 		signs.append([ZOD_WORD, Vector3(mid.x, g + ZOD_H + ZOD_ROOF + 0.05, mid.y), Vector3(o.x, 0.0, o.y), k, ZOD_COLOUR])
 	_collide(room)
+
+
+# --- Pasaż Wiecha's pavilions (first scene items 4-5, 2026-11-02) ------------------------------
+
+## The low shop pavilions on Pasaż Wiecha, the walkway behind the Eastern Wall's stores, from the
+## Mac photo report (docs/landmarks/photo-reports/dt_pawilony.md: three Commons photos of the
+## pasaż and the 2025 GUGiK orthophoto): two-storey flat-roofed modernist boxes, a black and dark
+## grey shop storey of glass in thin dark frames under a dark fascia, a white upper band with one
+## strip window round it, a flat roof with a few plant boxes. Four OpenStreetMap outlines, found by
+## their vertex average (two sit under or against the slabs, whose outlines hold the same
+## points): north to south the podium row under the slab behind Sawa, the block by tower75, the
+## pavilion on the square by Chmielna, and the podium under the south slab by Aleje
+## Jerozolimskie. OSM gives them 4.3-7.6 m; the photos show two storeys, so all stand WIECHA_TOP
+## high. The strip in front of Scena Relax stays in the theatre's LoD2 model (one mass with it). The pasaż's paving, lamp masts and furniture are
+## first_scene.gd's; Zodiak (the glass pavilion with the overhanging roof) is its own site.
+const WIECHA_AT := [Vector2(-863.2, 178.7), Vector2(-826.1, 226.8), Vector2(-827.8, 182.7),
+		Vector2(-803.6, 317.4)]
+const WIECHA_LOW := 3.8        # the shop storey's top
+const WIECHA_FASCIA := 0.4     # the dark fascia over the shopfronts
+const WIECHA_OVER := 0.9       # how far the fascia reaches out
+const WIECHA_STRIP := Vector2(4.9, 6.1)   # the upper band's strip window (over the ground)
+const WIECHA_TOP := 7.2
+const WIECHA_SHOP := Color("#2b3035")
+const WIECHA_FRAME := Color("#1b1d20")
+const WIECHA_WHITE := Color("#e9e8e3")
+const WIECHA_GLASS := Color("#3b4753")
+const WIECHA_ROOF := Color("#8b8c89")
+
+
+func _find_wiecha() -> void:
+	var zones: Array[PackedVector2Array] = []
+	var outlines: Array[PackedVector2Array] = []
+	for at: Vector2 in WIECHA_AT:
+		for bld in data["buildings"]:
+			var q := _pts(bld["p"])
+			if q.size() >= 3 and float(bld["mh"]) < 0.5 and _centre(q).distance_to(at) < 1.5:
+				outlines.append(_simplify(q, 0.4))
+				zones.append(_largest(Geometry2D.offset_polygon(q, 1.0, Geometry2D.JOIN_MITER)))
+				break
+	_add_site("wiecha", zones)
+	if not sites.is_empty() and sites[-1]["key"] == "wiecha":
+		sites[-1]["outlines"] = outlines
+
+
+func _build_wiecha(site: Dictionary) -> void:
+	var none := Color(0, 0, 0, 0)
+	for outline: PackedVector2Array in site["outlines"]:
+		if outline.size() < 3:
+			continue
+		_g = _ground_under(outline)
+		var g := _g
+		# The shop storey: dark glass lit warm at night, thin dark frames every 2.2 m.
+		_prism(outline, g - 0.4, g + WIECHA_LOW, WIECHA_SHOP, none, M_PAVILION)
+		_mullions(outline, g, g + WIECHA_LOW, 2.2, 0.05, WIECHA_FRAME)
+		# The fascia over the shopfronts, reaching out WIECHA_OVER m: its face, its top round the
+		# upper band, its underside.
+		var over := _largest(Geometry2D.offset_polygon(outline, WIECHA_OVER, Geometry2D.JOIN_MITER))
+		if over.size() >= 3:
+			var y := g + WIECHA_LOW
+			_prism(over, y, y + WIECHA_FASCIA, WIECHA_FRAME, none, M_STONE)
+			_mode = M_STONE
+			_cap_holes(over, [outline], y + WIECHA_FASCIA, WIECHA_FRAME.lightened(0.12))
+			_soffit(over, y, WIECHA_FRAME.lightened(0.2))
+		# The white upper band, and its strip window just proud of it all round.
+		_prism(outline, g + WIECHA_LOW + WIECHA_FASCIA, g + WIECHA_TOP, WIECHA_WHITE, WIECHA_ROOF, M_STONE, M_STONE)
+		var strip := _largest(Geometry2D.offset_polygon(outline, 0.04, Geometry2D.JOIN_MITER))
+		if strip.size() >= 3:
+			_prism(strip, g + WIECHA_STRIP.x, g + WIECHA_STRIP.y, WIECHA_GLASS, none, M_PAVILION + 0.5)
+			_mullions(strip, g + WIECHA_STRIP.x, g + WIECHA_STRIP.y, 1.5, 0.03, WIECHA_FRAME)
+		# A low parapet and two plant boxes on the roof.
+		var inner := _largest(Geometry2D.offset_polygon(outline, -0.25, Geometry2D.JOIN_MITER))
+		if inner.size() >= 3:
+			_prism(outline, g + WIECHA_TOP, g + WIECHA_TOP + 0.35, WIECHA_WHITE.darkened(0.04), none, M_STONE)
+			_mode = M_STONE
+			_cap_holes(outline, [inner], g + WIECHA_TOP + 0.35, WIECHA_WHITE.darkened(0.08))
+		var c := _centre(outline)
+		for k in 2:
+			var p := c + Vector2(2.2 * (k * 2 - 1), 0.8 * (k * 2 - 1))
+			if Geometry2D.is_point_in_polygon(p, outline):
+				_prism(_square(p, 0.9), g + WIECHA_TOP, g + WIECHA_TOP + 1.1, Color("#a9aaa6"), Color("#7f807c"), M_STONE, M_STONE)
+		_collide(outline)
+	_mode = M_STONE
 
 
 # --- Warszawa Ochota (S1 of docs/design/railway.md, 2026-11-01) --------------------------------

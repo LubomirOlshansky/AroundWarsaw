@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-02
 - The Warsaw Rising Museum stands on Przyokopowa: the red-brick tram power station with its tall arched windows, the tower with the white Kotwica and the flag on top, and in Freedom Park the long black Wall of Remembrance with its bell.
+- Behind the three department stores at the start, Pasaż Wiecha has its two-storey shop pavilions (dark shop windows under a white band), tall white Y-shaped lamp masts, café tables under white parasols and people sitting at them.
 - The WKD commuter line's two stops are in the city: Śródmieście WKD by the Aleje has its two concrete "propeller" roofs over the stairs down to the cutting, and Ochota WKD by Plac Zawiszy its heavy concrete roof on V-shaped legs over the platform.
 - Plac Krasińskich has the Warsaw Uprising Monument: bronze insurgents running out from under two falling granite slabs, and beside them the descent into the sewers; behind the lawn stands Pałac Krasińskich in white, with its green copper roof, pediments and statues.
 - With a gamepad, the hints name the buttons the way your pad prints them (×, R2 and L2 on a PlayStation pad; B and ZR on a Nintendo one), and crashes and bumps rumble the pad instead of the phone.

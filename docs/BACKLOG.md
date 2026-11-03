@@ -1050,8 +1050,9 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   their checks (`first10`, `first10-run`, `opening`, `cassettes`, `save`, `hud`), merge #115 then
   #121. Built, not verified on the phone.
 - **The first scene's open items** (design/first-scene.md items 4-5; BACKLOG "High priority: the
-  first scene"): the pavilions and towers behind the Eastern Wall stores (a solid OSM block, needs
-  Mac photos). The park strip's benches and lamps and the lowered kerbs were built 2026-11-02. The paving, the crossings' tactile pads and the
+  first scene"): the pavilions and Pasaż Wiecha behind the Eastern Wall stores were built
+  2026-11-02 from the Mac photo report (site `wiecha`, first_scene.gd PASAZ; the phone look and
+  the open points are in QUESTIONS "Pasaż Wiecha"). The park strip's benches and lamps and the lowered kerbs were built 2026-11-02. The paving, the crossings' tactile pads and the
   tram platforms' edges were built 2026-11-02 (first-scene.md "Items 4 and 5 as built"); items 6-7
   (pedestrians and sound at the start) built 2026-11-02; both phone checks parked.
 
@@ -1323,6 +1324,12 @@ plan: docs/design/start-area-real.md (items R1-R8, ticked in ROADMAP "v1.0 check
   2025 year in search and the trade press. A Mac pass could add Wykop's own tags.
 
 ## High priority: the first scene and the Museum of Modern Art (the user, 2026-10-31)
+- **Found 2026-11-02 (Pasaż Wiecha build):** the default camera looks north-west, so the
+  pavilions' shopfronts on the pasaż (their west faces) face away from it: from the start the
+  player sees their roofs, south ends and the masts; the fronts show when the camera turns
+  (`--yaw=225`). The strip in front of Scena Relax is one LoD2 mass with the theatre, so it was
+  left in that model. The 1960s slabs above the pasaż are cream-ochre (spec D, 2026-11-01) but
+  the photo report calls them grey-white #D8D8D4: parked in QUESTIONS.
 - **Muzeum Sztuki Nowoczesnej as it is** (the user, 2026-10-31): the new white box on Plac
   Defilad's east edge (Thomas Phifer, opened 2024). Today it is plain white LoD2 parts with no
   model and no card. Wanted: one long, low, matte white box, the arcade of square columns at its
@@ -1422,7 +1429,7 @@ golden-image shots runtime vs `--prebuilt`,
   their pavements never shows (it stands on the museum's side instead). **2026-11-01 (Mac photo
   check, spec B):** the Rotunda re-pass done (spec `docs/landmarks/specs/rotunda.md`: green-grey
   glass between 52 silver mullions, the folded-plate crown with its teeth, the oculus, the
-  canopies, Widok Towers' green grid); only the phone can show the teeth and the signs' size. Left: the pavilions and towers behind the stores, Plac Defilad's paving and park strip,
+  canopies, Widok Towers' green grid); only the phone can show the teeth and the signs' size. Left: Plac Defilad's paving and park strip (the pavilions behind the stores done 2026-11-02, site `wiecha`),
   the tram stops and kerbs (item 5), the photo check on the Mac. **Items 6-7 (life and sound) built
   2026-11-02** (first-scene.md "Items 6 and 7 as built"). Found then, open: the café sitters sit on
   the footway by the tables, not on the chairs (a seat list per café set would fix it); the
