@@ -38,7 +38,8 @@ then the Launch gate.
 - [x] Rondo Dmowskiego as it is: the paved island with its four crescent flower beds round the tram cross,
       Metro Centrum's blue tubes over all twelve underpass stairs and the Patelnia's, the Patelnia mural, a
       kiosk, a cart and the east tram shelter (F, 2026-11-02; spec `rondo-dmowskiego.md`; Mac look check parked)
-- [x] Arkadka redesign, roof car park, BANK PEPEO sign and the Forest roof terrace (F, 2026-11-01; spec `arkadia.md`; Mac photo check parked)
+- [x] Arkadka redesign, roof car park, BANK PEPEO sign and the Forest roof terrace (F, 2026-11-01; spec `arkadia.md`)
+- [x] Arkadka rebuilt from F's photos: the fountain plaza, curved entrance with piers, canopies and fanned glass gables, the sign tower with its crown, logo panels and screen, the office wing, the brick wing and rotunda with yellow awnings, the letter sign (F, 2026-11-03; spec `arkadia.md`)
 
 
 - [x] Powiśle streets: eight small neon-signed shops on Tamka, Dobra, Browarna, Topiel and Solec (F, 2026-11-02; signs only, positions need a Mac look)

@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-03
 
+- Arkadka by Rondo Radosława looks like the real mall now: the round fountain plaza, a curved glass entrance between stone piers under a fan of glass roofs, the tall sign tower with its glowing crown, shop logos and a big pink screen, the dark glass office wing, the brick wing with its rotunda and yellow café awnings, and the big red letter sign on the lawns.
 - The website now leads with the beta: join on iPhone through TestFlight, or request Android access with a short form. The open-source story moved to the footer and a quieter "How it's made" section.
 - With colour-safe markers on (Settings, accessibility), race rings are now chequered like a finish line and a rescue pickup's ring is dashed, so you can tell them apart without relying on colour.
 - Praga's old streets get evenings: six neon bar signs (ŚWIAT PO PRASKU, BARISTA Z PODWÓRKA, WINO ZE SKRZYNKI, KRAINA WINA, KIJOWSKA DWÓJKA, POD KUFLEM ZA ROGIEM) around Okrzei, Wrzesińska, Kijowska and Targowa, and people outside with a drink after dark.

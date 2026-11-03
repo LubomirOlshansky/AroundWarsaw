@@ -189,6 +189,8 @@ func _fly_checks() -> int:
 			alt = 5.0  # the arcade wall stands 7.5 m over the Lower Garden; the castle's roofs in the box are higher
 		elif info["key"] == "zamek":
 			alt = 22.0  # the Clock Tower's thin helm (56 m) would lift the heli over the 25 m roofs into the yard
+		elif info["key"] == "arkadia":
+			alt = 12.0  # the sign tower's 49 m crown would lift the heli over the 21 m deck it aims at
 		elif info["key"] == "tr":
 			alt = 6.0  # a building site: the cranes are thin, the theatre's closed floors stand 9 m
 		elif info["key"] == "sw_anna":
