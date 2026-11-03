@@ -20,6 +20,7 @@ extends Control
 
 const Lang := preload("res://scripts/lang.gd")
 const Access := preload("res://scripts/access.gd")
+const Chatter := preload("res://scripts/chatter.gd")
 
 ## Loop 2b: time spent in this script's per-frame work since the bench last read it (µs).
 var spent_usec := 0
@@ -78,38 +79,90 @@ func _px(points: float) -> int:
 
 
 ## Shows `line` (and an English `subtitle`) over `anchor` for `seconds` after it has
-## typed out. `height` lifts the tail above a Node3D anchor's origin.
+## typed out. `height` lifts the tail above a Node3D anchor's origin. `kind` is the line's class in
+## the chatter budget (chatter.gd: QUEST by default, POLICE, REACTION, AMBIENT) and `key` narrows a
+## reaction ("bump", "near_miss"). Returns whether it shows.
 func say(anchor: Variant, speaker: String, line: String, subtitle := "", seconds := 4.0,
-		accent := Color("#ffd23f"), height := 2.6) -> void:
+		accent := Color("#ffd23f"), height := 2.6, kind := Chatter.QUEST, key := "") -> bool:
+	var replacing := is_talking(anchor)
+	_sense()
+	if not chatter.take(kind, count() - (1 if replacing else 0), key):
+		return false
 	accent = Access.tint(accent)  # colour-safe (access.gd)
 	line = Lang.pick(line, subtitle)  # one language (lang.gd)
 	subtitle = ""
 	hush(anchor)
+	_make_room()
 	var typing := line.length() / TYPE_RATE
 	var b := {"anchor": anchor, "speaker": speaker, "line": line, "sub": subtitle, "age": 0.0,
-			"life": typing + seconds, "typing": typing, "accent": accent, "height": height}
+			"life": typing + seconds, "typing": typing, "accent": accent, "height": height, "kind": kind}
 	b["wide"] = _measure(b, WIDTH)
 	_bubbles.append(b)
 	queue_redraw()
+	return true
+
+
+## Phase 0.2: a quest or police line jumps the rate cap but not the two on screen: with two up, the
+## oldest ambient or reaction bubble goes (else the oldest of all).
+func _make_room() -> void:
+	if _bubbles.size() < Chatter.MAX_ON_SCREEN:
+		return
+	var drop := 0
+	for i in _bubbles.size():
+		if int(_bubbles[i].get("kind", Chatter.QUEST)) >= Chatter.REACTION:
+			drop = i
+			break
+	_bubbles.remove_at(drop)
 
 
 ## Ambient chatter (crowds, dog walkers, bus stops...) keeps quiet while the player drives
 ## faster than AMBIENT_MUTE_KMH; quest, police and rival lines use `say` and always show.
-const AMBIENT_MUTE_KMH := 40.0
+## Phase 0.2: the whole budget is chatter.gd's (its MUTE_KMH is this).
+const AMBIENT_MUTE_KMH := Chatter.MUTE_KMH
 
 ## Gives the player's speed in km/h (main.gd); unset means never muted.
 var kmh: Callable
+## Phase 0.2: true while the car struggles (main.gd: car.gd struggling() or the stuck offer up);
+## ambient and reaction lines are dropped then and for Chatter.QUIET_AFTER s after.
+var struggle: Callable
+## Phase 0.2: true while a card (a job's, a ride's, the full map) is up; ambient lines wait.
+var cards_up: Callable
+## The one chatter budget (chatter.gd); its level is the setting (settings.gd `chatter`).
+var chatter := Chatter.new()
 
 
 func muted() -> bool:
 	return kmh.is_valid() and float(kmh.call()) > AMBIENT_MUTE_KMH
 
 
-## `say` for ambient chatter: dropped while the player drives fast (G16).
+## Whether a line of `kind` (chatter.gd) would show now; the dialogue asks before it uses a line up.
+## A refusal counts as dropped (chatter.gd `dropped`, the summary).
+func allows(kind: int, key := "") -> bool:
+	_sense()
+	if chatter.allows(kind, count(), key):
+		return true
+	chatter.dropped[kind] += 1
+	return false
+
+
+## The budget's view of the game now: struggling, speed, a card up (the callables main.gd sets).
+func _sense() -> void:
+	chatter.sense(struggle.is_valid() and bool(struggle.call()),
+			float(kmh.call()) if kmh.is_valid() else 0.0, cards_up.is_valid() and bool(cards_up.call()))
+
+
+## `say` for ambient chatter: dropped while the player drives fast (G16), while the car struggles,
+## while a card is up, or inside the budget's gap (chatter.gd).
 func say_ambient(anchor: Variant, speaker: String, line: String, subtitle := "", seconds := 4.0,
-		accent := Color("#ffd23f"), height := 2.6) -> void:
-	if not muted():
-		say(anchor, speaker, line, subtitle, seconds, accent, height)
+		accent := Color("#ffd23f"), height := 2.6) -> bool:
+	return say(anchor, speaker, line, subtitle, seconds, accent, height, Chatter.AMBIENT)
+
+
+## `say` for someone reacting to the player (a shout, a near miss, a horn): one in
+## Chatter.REACTION_WINDOW s, and none while the car struggles.
+func say_reaction(anchor: Variant, speaker: String, line: String, subtitle := "", seconds := 4.0,
+		accent := Color("#ffd23f"), height := 2.6, key := "") -> bool:
+	return say(anchor, speaker, line, subtitle, seconds, accent, height, Chatter.REACTION, key)
 
 
 ## A bubble's size with its text wrapped `width` points wide: {size, name_h, line_h}.
@@ -181,6 +234,8 @@ func _process(dt: float) -> void:
 
 
 func _frame(dt: float) -> void:
+	chatter.clock += dt
+	_sense()
 	if _bubbles.is_empty() and _tags.is_empty():
 		return
 	for i in range(_bubbles.size() - 1, -1, -1):

@@ -15,7 +15,6 @@ item. Updated 2026-11-01 from the audit. v1.0 = the Demo and TestFlight gates in
 then the Launch gate.
 
 ### Done (built and checked headless)
-- [x] Helicopter high up: framed in the screen's middle, no blue sky or floating towers, 220 m cap except by towers (GAMEPLAY_PLAN 0.4, 2026-11-03, PR pending; phone check open)
 - [x] Opening fly-over sound: the announcer line (Opening_line_a) plays once with the flight, radio dipped to -20 dB, then swells to full (2026-11-03, PR pending; phone listen check open)
 - [x] WTS DESKA tennis club (hall + one padel court), players, DESKA neon and a friend's "Czwarty" phone call that sends you there (2026-11-01, PR pending; phone check open)
 - [x] Map: the 21 km² demo box in streamed sectors, 1 m terrain, map north (3c, 3d-1, 3d-2, 3e)
@@ -164,6 +163,8 @@ then the Launch gate.
       Muzeum Powstania, Pomnik Powstania, Hotel Warszawa and Cedet, Rondo ONZ towers, the monuments pass,
       Plac Bankowy, Świętokrzyska's NBP/Poczta/PAST-a, the outline builds' photo re-pass, Praga's faces)
   - [x] Hotel Warszawa and Cedet from the Mac's photos (item 4, 2026-11-02, specs `hotel_warszawa.md`, `cedet.md`)
+    - [x] Cedet after F's look check (2026-11-03): upswept roof wings with underside shadows, 11 m Krucza corner,
+          3.7 m storeys over a taller ground floor, recessed pavilion, grey-bronze loop
   - [x] Praga's faces from the Mac's photo reports (2026-11-02): St Florian's cathedral (site `florian`) and Bazar
         Różyckiego (site `bazar`); Koneser and the Multimedia Fountain Park are off the map (QUESTIONS)
   - [x] Poczta Główna and PAST-a from the Mac photo reports (2026-11-03, specs `poczta.md`, `pasta.md`)
@@ -171,6 +172,7 @@ then the Launch gate.
 - [ ] Monuments pass (City inventory Part 3 item 6)
   - [x] Every OSM monument, sculpture, talking bench and memorial plaque in the box as a generic piece, plaques on their walls with candles (2026-11-02, tools/bake_monuments.py)
   - [x] Plac Piłsudskiego from photos: the Smolensk memorial, Piłsudski, Kaczyński, the masts and the granite chequer (2026-11-02, refs/pilsudskiego/)
+  - [x] Plac Piłsudskiego paving no longer reads as a chess board: half the panel contrast, thin dark bands, granite grain, panels fade out in wide views (2026-11-03, GAMEPLAY_PLAN Phase 0.5; phone look still open)
   - [ ] Photo builds: Nike, Słowacki and Starzyński, Mały Powstaniec and Kiliński, the Eastern memorial, Umschlagplatz (reports in docs/landmarks/photo-reports/)
 - [ ] Krajobraz places (F, 2026-11-02; docs/design/krajobraz-places.md, BACKLOG "Krajobraz places"): the newest public spaces as built
   - [x] K1 ul. Bracka's woonerf: its 22 missing young trees planted in the mapped beds (33 in all)
@@ -468,6 +470,17 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [x] G17 Car stuck against other cars: held against traffic 1.5 s it ghosts through them for 3 s, tow after 8 s among cars (2026-11-02, check_steering `car_sandwich`)
 - [ ] G18 Park Ujazdowski and Zamek Ujazdowski (the castle) improved: its own landmark thread (Opus)
 - [x] The main line on the driving screen after the guide (2026-11-03, `main_nudge.gd`, `check_main_line`): a goal line toast when the step changes and the gold "★ N m" edge arrow to the next rival or the final's start for 25 s, back after 150 s of free driving, only while nothing else is on; the edge arrow keeps off the minimap, wallet, zoom buttons and pedals (`check_hud`). Phone feel parked (QUESTIONS)
+
+### Left: driving first (F, 2026-11-03; plan docs/GAMEPLAY_PLAN.md, detail in BACKLOG "Driving first")
+- [x] The plan: road audit, causes of the playtest's bugs, phases (2026-11-03, docs only)
+- [x] 0.1 Teleport and tow never land in a tunnel (2026-11-03, verify step `teleport`)
+- [x] Phase 0.2 chatter budget: one budget for every bubble, no comment on every bump, quiet while stuck, merged ride star toasts, "Gadatliwość miasta" setting (2026-11-03, `chatter.gd`, `check_chatter`; phone feel parked)
+- [x] Phase 0.4 helicopter high up: framed in the screen's middle, no blue sky or floating towers, 220 m cap except by towers (GAMEPLAY_PLAN 0.4, 2026-11-03, PR pending; phone check open)
+- [ ] Phase 0: car visible under decks (heli framing and far plane done 2026-11-03; Plac Piłsudskiego paving done)
+- [ ] Phase 1: drivability sweep of every lane and turn, lane graph data fixes, Autopilot rows P11-P16
+- [ ] Phase 2: road fixes street by street with a score baseline in CI
+- [ ] Phase 3: lane assist, wall look-ahead, junction pick, deck cut; F's phone run
+- [ ] Phase 4: running clubs that read, Varso Place masses, Chmielna 89 "Piramida" (later, photo way)
 
 ### Left: the phone (needs F's yes for each device run)
 - [ ] Bench on the iPhone 11 and 16 Pro Max on today's main against budget P (DEMO 7): frame,

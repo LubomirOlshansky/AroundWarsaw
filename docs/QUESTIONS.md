@@ -15,6 +15,7 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | all | The audit beyond the landmarks: BACKLOG "Audit: what is verified beyond the landmarks", its P0 items handed out next | cloud thread "Audit what's left beyond landmarks" | 2026-11-01 |
 
 ## Waiting
+- **2026-11-03 · gameplay · the chatter budget (GAMEPLAY_PLAN 0.2)** — Built as the plan says (`chatter.gd`): at most 2 bubbles, one new every 4 s (Settings → ŚWIAT → Gadatliwość miasta: Mało 8 s, Średnio 4 s, Dużo 2.5 s), one reaction in 20 s, none for a bump under 15 km/h, a near miss once a minute, nothing from the city while the car is pinned, pressing into something under ~11 km/h, held against traffic, trying in one spot for 4 s or offered the tow, and 5 s after; the ride's star toasts merge (one "−1 ★ · stłuczki" 3 s after the last). Defaults built where the plan left a choice: an ambient line while a card or the full map is up is dropped, not queued (city lines are random anyway); easter eggs and the GPS moments count as quest lines (always show); tiny-dog and bike-lane lines count as reactions. Phone check: drive into a wall on Marszałkowska for a minute (Autopilot P13 or by hand) and say whether the city now feels too quiet or still too chatty.
 - **2026-11-03 · landmarks · Vitkac, Jabłkowski's and the Sheraton** — Built from the Mac photo reports (`docs/landmarks/photo-reports/vitkac.md`, `jablkowskich.md`, `sheraton.md`) and the OSM outlines (specs `vitkac.md`, `jablkowscy.md`, `sheraton.md`). Look check on the Mac or the phone: Vitkac's window pattern and band rhythm (one photo only) and where its name sits; Jabłkowski's ochre in sun (the Bracka front faces north-east, so it reads grey in shade), the arch count and the cartouche; the Sheraton's drum size and spot (OSM's round corner was used, the report's ortho put it ~15 m north) and whether the bands read too stripy. Not built: Jabłkowski's stained glass, the Sheraton's forecourt pavilion and umbrellas. Default built: as the specs say. The BGK building (F, 2026-11-03, site `bgk`, report `bgk.md`) too: its granite reads blue-grey in shade, the light wells are not cut, the roof signs are left out (real marks).
 - **2026-11-03 · map · Ząbkowska's bars are off the map** — The thread asked for Ząbkowska's bar strip (W Oparach Absurdu, Beer Station, La Pepica, Bazzart, Moxy), but all of it lies at z < -2045, x > 1000, in the cut north-east corner (`centrum.json` "outside"). Default built: six parody bars on the Praga streets that are on the map (Okrzei, Wrzesińska, Kijowska, Targowa), see BACKLOG "Praga's old streets". Your call (same as Koneser): grow the map north-east, or leave Ząbkowska out. Also a Mac look check (`--at=770,-1890 --heading=0 --time=night --clock=23:00 --date=20260710`): signs on plausible walls, crowds on the pavement.
 - **2026-11-03 · landmarks · Hotel Europejski rebuilt from F's photos** — Spec `docs/landmarks/specs/europejski.md`. Defaults built: the corners rounded at 6.5 m (the photo's pavilions; OSM maps tighter corners, so each bow sits up to 1.2 m inside the mapped corner, and the car still meets the mapped outline); the same facade on all four fronts (only Krakowskie's is photographed square on; the plaque is on that front only); the roof storey's louvres as dark glass with a curved top; the courtyard roofed in glass at 8.5 m (LoD2). Phone look check: the bows and louvres at play zoom, the plaque's gold letters by day.
@@ -641,13 +642,21 @@ Newest first. One entry per question.
 - **YYYY-MM-DD · lane · item** — The question in one line? Options: A / B. Default built: A
   (or "nothing built: waits"). Where: PR #N, BACKLOG "section".
 -->
-- **2026-11-02 · landmarks · Hotel Warszawa and Cedet** — Built from `refs/hotel_warszawa/` and `refs/cedet/` on the Mac (Commons photos, the ortho, REPORT.md) and LoD2 (specs `hotel_warszawa.md`, `cedet.md`). Look check on the Mac or the phone against the photos: the hotel's front read as facing east onto the square (the portal on that side); Cedet's Krucza corner radius (the report reads 10-12 m, OSM barely rounds it; 5 m built), whether the east end is rounded (4 m built), the pavilion's extent and wing size, the storey height (4.6 m to fit LoD2's ~31 m roof, the photos suggest ~3.7 m), and the loop's day colour (steel blue built, the photos show patina green-grey). Default built as listed.
+- **2026-11-02 · landmarks · Hotel Warszawa** — Built from `refs/hotel_warszawa/` on the Mac (Commons photos, the ortho, REPORT.md) and LoD2 (spec `hotel_warszawa.md`). Look check on the Mac or the phone against the photos: the hotel's front read as facing east onto the square (the portal on that side). Default built as listed. (Cedet, asked in the same entry, is answered below.)
 
 ## Answered
 
 Move an entry here with the user's answer and the date; its item goes back to the top of the
 backlog. Lasting decisions also go into BACKLOG's "Decided" sections, DEMO.md or ROADMAP.
 
+- **2026-11-02 · landmarks · Cedet** — ~~Krucza corner radius (5 m built), the east end (4 m built),
+  the pavilion and wings, the storey height (4.6 m built), the loop's day colour (steel blue built)?~~
+  **Answered 2026-11-03 (F, landmark look check):** "Use 10–12 m as the working Krucza radius. The east end
+  also looks softened in the front photo, but its radius is unclear. Aim for 3.7 m glazed storeys, with a
+  taller ground floor and a recessed roof pavilion. Use muted metallic grey-bronze for the loop. Restore the
+  two upswept roof wings and their underside shadows first." Built 2026-11-03: r 11 m, the east end kept at
+  4 m, 5 x 3.7 m storeys over a 6.7 m ground floor (meets the LoD2 eave, 26.7 m), the pavilion 2 m back under
+  its plate, curved wings with dark undersides and shadows on the deck, a grey-bronze loop (blue neon at night).
 - **2026-10-30 · content · MW-3** — Queues stand at the place's point and the nearest footway
   until MW-2's storefronts exist; Smoła's queue lands in a passage hidden by a block from
   `--club=smola`. Default built: as said.

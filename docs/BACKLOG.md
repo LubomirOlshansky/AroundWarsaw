@@ -46,6 +46,39 @@ strip (x 1020-1080, z -2080 to -2110) lie in the map box's cut north-east corner
 on the Mac, publish a new map pack, then build Koneser, the fountain park and Ząbkowska's bars from
 the photo reports already in (QUESTIONS 2026-11-02 and 2026-11-03).
 
+## Driving first: the gameplay plan (F, 2026-11-03)
+
+F's playtest (13:22): "the map and buildings are good now; I want to make the driving the best
+experience". The plan, the road audit and the causes are in docs/GAMEPLAY_PLAN.md; its phases:
+- [x] 0.1 Map teleport and tow land in a tunnel (2026-11-03): `_same_level` took a tunnel's floor as
+  "the ground"; now tunnels only from inside one, main-network lanes first, the teleport checks the
+  car's box, a hold over the river lands on the bridge; verify step `teleport` (11 spots; 2 failed
+  before). Autopilot P12 checks the drive-off
+- [x] 0.2 Chatter budget (2026-11-03, `chatter.gd`, `check_chatter`): every bubble has a class (quest,
+  police, reaction, ambient); at most 2 up and one new every 4 s; one reaction in 20 s, none for a
+  bump under 15 km/h, a near miss once a minute; city lines silent while the car is pinned, pressing
+  into something, stalled or offered the tow, and 5 s after; ambient waits while a card or the full
+  map is up; the ride's star toasts merge into one; Settings → ŚWIAT → Gadatliwość miasta. Phone
+  feel parked (QUESTIONS)
+- [ ] 0.3 The car is invisible under Trasa Łazienkowska and other decks: tunnel x-ray under decks too (Codex)
+- [ ] 0.4 Helicopter high up: heli framed at the top, far plane clips the ground (floating buildings,
+  blue sky), height cap, horizon haze
+- [ ] 0.5 Plac Piłsudskiego's paving reads as a chessboard: lower the panel contrast, speckle
+- [ ] 1.1 `check_drivability.gd`: every lane, turn and dead end with the player's car; per-street score
+- [ ] 1.2 Lane graph data: 101 nodes off the main network, 15 kinks over 45°, ~300 lanes under 2.5 m
+- [ ] 1.3 Autopilot rows P11-P16 (PLAYTEST.md)
+- [ ] 2.x Road fixes by street, forgiveness bevels, trap dead ends gated, score baseline in CI
+- [ ] 3.x Lane assist, wall look-ahead, junction pick, deck cut in the ghost, F's phone run
+- [ ] 4.1 Running clubs read as a blue blob at crossings: mixed kit, pairs, spread out
+- [ ] 4.2 Varso Place masses from photos (the gap between the tower and Varso 1/2)
+
+## Landmarks from photos: Chmielna 89, "Piramida" (F, 2026-11-03, later)
+
+F: "PKO Piramida looks bad". Chmielna 89 (~80 m, 2021-22), the glass wedge on V-shaped steel legs by
+the railway cutting next to Warta Tower; today an OSM extrusion. Later, photo way: a Mac gather
+`refs/chmielna89/` plus F's four photos (project files), then the wedge, the zigzag frame on the
+sloped face, the V legs, blue-grey glass. No bank name or logo (brands only as parodies).
+
 ## Vitkac quests and ride stories (F, 2026-11-03)
 
 F asked for two things; both are plan only, nothing is built (Sonnet for the lines, Opus for the quest design; docs/design/ gets the plan first).
@@ -79,7 +112,8 @@ is the order of the next threads. Found while building it:
   the Eastern memorial and Umschlagplatz from the Mac's photo reports (docs/landmarks/photo-reports/); each
   lands as a site and joins `bake_monuments.SKIP`. Then rows 113-116 and 142. ~~Plac Piłsudskiego's
   (Piłsudski, Smolensk, Kaczyński)~~ done 2026-11-02 (sites `smolensk`, `pilsudski`, `kaczynski`,
-  `plac_maszty`, the paving's chequer in ground.gdshader; spec `plac_pilsudskiego.md`).
+  `plac_maszty`, the paving's chequer in ground.gdshader; spec `plac_pilsudskiego.md`; the chequer
+  softened 2026-11-03 after the playtest read it as a chess board, phone look check open).
 - **Plaques without a wall:** 49 OSM plaques have no drawn wall within 12 m (free-standing ones, courtyards)
   and are left out; a post-mounted plaque piece would place them. A plaque's wall is the LoD2 footprint, so
   a deep shop recess can leave it on a pier rather than the door's wall (fine so far in shots).
@@ -330,6 +364,10 @@ Built from photos gathered on the Mac (`refs/hotel_warszawa/`, `refs/cedet/`) an
   generic 1.5 m mullions; the north wing has no crown pavilion of its own; the glazed lantern and link roof
   plant are not modelled; the ground-floor tenants' fascias (parodies) and the red neon at the east corner
   are not there.
+- Cedet after F's look check (2026-11-03): the east end's radius is unclear (4 m kept; check against a
+  straight-on photo of the Bracka corner); the wings' tips stand ~1 m over LoD2's 31.5 m so the sweep reads
+  from the street (lower them if a photo shows a flatter curve); the plant screen at the back of the
+  pavilion is LoD2's 35 m box, its louvres and colour are guesses.
 
 ## Most Poniatowskiego (F, 2026-11-02)
 Built from photos gathered on the Mac (`refs/poniatowski/`, report `docs/landmarks/photo-reports/poniatowski.md`),
