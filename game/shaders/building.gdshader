@@ -805,7 +805,8 @@ vec3 landmark(int mode, float param, vec3 col, vec2 uv, float top, bool wall, ve
 		return skin(int(param * 16.0 + 0.5), col, uv.x, uv.y, top, glow, cut);
 	} else if (mode == M_LAMP) {
 		if (lights_on > 0.001) {
-			glow = col * 2.4;
+			// param 0.5: a neon tube on a metal piece (Cedet's loop): its own colour by day, blue at night.
+			glow = (param > 0.25 ? vec3(0.17, 0.34, 1.0) : col) * 2.4;
 		}
 		return col;
 	} else if (mode == M_MEMBRANE) {
