@@ -72,7 +72,7 @@ often, known to every visitor; **B** characteristic, known to locals, gives a st
 | 11 | Kolumna Zygmunta | Plac Zamkowy | monument | ◐ | photo check |
 | 12 | Rynek Starego Miasta and its Syrenka | Rynek Starego Miasta | square, statue | ◐ | photo re-pass: paving, umbrellas, the statue's pose; the north and west fronts' gables |
 | 13 | Stadion Narodowy | Aleja Zieleniecka | stadium | ★ | the bank's grass against the orthophoto |
-| 14 | Most Poniatowskiego (towers and deck) | Aleja Poniatowskiego | bridge | ★ | built 2026-11-02 from `refs/poniatowski/` (30 Commons photos, four orthos), spec `poniatowski.md`; the Powiśle viaduct's arches and F's look on the Mac or the phone |
+| 14 | Most Poniatowskiego (towers and deck) | Aleja Poniatowskiego | bridge | ★ | built 2026-11-02 from `refs/poniatowski/` (30 Commons photos, four orthos), spec `poniatowski.md`; the Powiśle viaduct's arcade and the north stairs 2026-11-03; F's look on the Mac or the phone |
 | 15 | Most Świętokrzyski | Wybrzeże Kościuszkowskie | bridge | ◐ | photo check of the pylon and stays |
 | 16 | Centrum Nauki Kopernik and Planetarium (OSM: Planetarium Niebo Kopernika) | Wybrzeże Kościuszkowskie | science centre | ★ | none |
 | 17 | Biblioteka Uniwersytecka (BUW) and its roof garden | Dobra | library, garden | ★ | the philosophers and heights (no facade photo yet) |

@@ -289,10 +289,17 @@ spec `poniatowski.md`: the four tower groups (arcaded pavilions, 20 m shafts, so
 spans (granite piers, steel arch ribs, red fascia, black railing, pier pedestals). Found and left:
 - Two of the five piers are estimates (on the east floodplain under trees), and the west span (~104 m) may hide a
   pier near the west bank (photo 22): QUESTIONS.
-- Not modelled: the north groups' curved ramps, the small arcade beyond each shaft, the merlon scrolls and the
-  insets over the arches, the bases' brick panels and balconies, the real tram catenary masts.
-- The concrete arch viaduct over Powiśle (the report has it) is still the bake's flat deck on posts.
-- The approaches between the towers stay unlit at night (the bake lights `bridge=*` roads only; item below).
+- Not modelled: the small arcade beyond each shaft, the merlon scrolls and the insets over the arches, the
+  bases' brick panels and balconies, the real tram catenary masts.
+- 2026-11-03: the Powiśle viaduct's arcade (`map_builder._build_powisle`: pilasters every ~19 m, segmental arches
+  with archivolts, ribbed spandrels and a cornice, big arches over Kruczkowskiego, Solec and Wybrzeże, the pier
+  buildings kept as the big piers) and the north groups' switchback stairs with lanterns (`landmarks._pt_ramp`;
+  lanterns on the south turrets too) are built. The pier layout is measured clear of every street and footway
+  under the edges; the real arches' count and span, the spandrel ribs and whether the arches are open or
+  filled in are not in the report (the photos stay on the Mac): QUESTIONS. Along Al. 3 Maja (s 296-430) the
+  south arcade stands 3-5 m back under the deck, because the street runs under the deck's edge there.
+- The approaches between the towers have been lit since map round 2 (D7, `bake_lights` approach lamps); the
+  night shots of 2026-11-03 show both abutments lit.
 
 ## Plac Krasińskich: the Uprising Monument and the palace (CITY_INVENTORY 22 and 79, 2026-11-02)
 Built from photos gathered on the Mac (`refs/pomnik_powstania/`, `refs/krasinski/`) and LoD2, specs
@@ -2428,10 +2435,8 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
   lands on the water and shoals beside and under the bridge (orange arcs on Most Poniatowskiego's
   gravel shoals). Fix (shader, after loop 3c): scale the lamp light by whether the fragment is
   within ~2 m of the deck height `water.bin` already holds for that pixel.
-- **Most Poniatowskiego's approaches are unlit at night**: `bake_lights.bridge_lamps` lights only
-  `bridge=*` roads of 40 m or more; the abutments between the towers are approaches (`fills`).
-  Fix: give the fill JSON the structure membership (`blurred abutment`, `between two bridges`)
-  and light those too.
+- ~~**Most Poniatowskiego's approaches are unlit at night**~~: fixed in map round 2 (D7: lamps along a
+  structure's approaches every 20 m); checked at night 2026-11-03.
 - **Rail tracks ending at different heights**: at the Solec viaduct's west end one track's deck
   starts 1.2 m under its neighbours (piece of OSM 1480623763), at Kruczkowskiego 0.5 m (each
   track's measured R2 profile). Fix: hold the parallel tracks of one deck group to a common
