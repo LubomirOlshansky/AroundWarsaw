@@ -9,6 +9,9 @@ that day here, in plain words a player would understand (no file names, no spoil
 rows in the progress log but no section here is listed automatically from the log's labels until
 someone writes its lines.
 
+## 2026-11-03
+- Warszawa Wschodnia stands on Praga's side of the tracks: a long glass hall under a flat roof with a zig-zag folded edge on green V-shaped legs, WARSZAWA WSCHODNIA in white letters over the platforms, and rust-brown roofs on columns over its five island platforms.
+
 ## 2026-11-02
 - The Warsaw Rising Museum stands on Przyokopowa: the red-brick tram power station with its tall arched windows, the tower with the white Kotwica and the flag on top, and in Freedom Park the long black Wall of Remembrance with its bell.
 - Most Poniatowskiego looks like itself: four cream towers with arcaded pavilions, belfries and battlements at the ends, grey steel arches under the deck on granite piers, a red girder and a black iron railing along both edges, and a coat of arms on a stone pedestal over every pier.

@@ -836,9 +836,12 @@ Built (cloud, Sonnet): eight shopfronts (`Storefronts.KRAKOWSKIE`, 93 venue sign
   at the west end; ~540 tris). Left: Mac/phone look (the propellers' twist and pier, the parapet
   boxes' open end, Ochota's stair: the report guessed its spot; the report's ortho reading put the
   slab ~10 m south of OSM's platform, built on OSM's).
-- S3c-e: Wschodnia and Gdańska sit at the map's east and north edges (the land past the edge is
-  drawn since 2026-11-01, below; the cloud shots' missing ground inside the map is the cloud's flat
-  ground quad, not the Mac's): mostly off the map, low priority.
+- S3c Warszawa Wschodnia built 2026-11-03 from the Mac photo report (site `wschodnia`, spec
+  `wschodnia.md`). Left for the Mac or the phone: the hall's height (10.4 m is a guess, no LoD2),
+  the fascia's pleat size and depth, the struts' spacing and colours, whether the letters sit on a
+  plain board, which platforms have roofs (the five long ones are roofed; the two short ones east
+  of them by the suburban hall are bare) and the roofs' length. Gdańska (S3d) is still open: at
+  the map's north edge, the ortho shows it being rebuilt.
 - ~~L4 Most Średnicowy's look, after a Mac photo check.~~ Built 2026-11-01 (below).
 - Photo checks on the Mac for every station model (built from published descriptions).
   **Mac photo check, 2026-11-01** (main 03a26dc; Commons photos in refs/ochota, powisle,
