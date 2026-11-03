@@ -61,6 +61,7 @@ const Trains := preload("res://scripts/trains.gd")
 const Pedestrians := preload("res://scripts/pedestrians.gd")
 const Rivals := preload("res://scripts/rivals.gd")
 const Bubbles := preload("res://scripts/bubbles.gd")
+const Chatter := preload("res://scripts/chatter.gd")
 const Models := preload("res://scripts/models.gd")
 const TimeOfDay := preload("res://scripts/time_of_day.gd")
 const Radio := preload("res://scripts/radio.gd")
@@ -1298,6 +1299,14 @@ func _build_world() -> void:
 	bubbles = Bubbles.new()
 	bubbles.pt = hud.pt
 	bubbles.kmh = func() -> float: return absf(car.forward_speed) * 3.6
+	# Phase 0.2 (docs/GAMEPLAY_PLAN.md): one chatter budget (chatter.gd). Quiet while the car
+	# struggles or the stuck offer is up; ambient lines wait while a card is up; a driver's shout
+	# at a bump needs a real hit (car.bumped's closing speed); the level is the setting.
+	bubbles.struggle = func() -> bool: return not flying and (car.struggling() or hud.pill_shown("unstuck"))
+	bubbles.cards_up = hud.cards_up
+	bubbles.chatter.level = settings.chatter
+	car.bumped.connect(func(_c: Object, speed: float) -> void: bubbles.chatter.hit(speed * 3.6))
+	hud.chatter = bubbles.chatter
 	bubbles.project = func(p: Vector3) -> Vector2: return cam.unproject_position(p) * float(view.stretch_shrink)
 	hud.add_speech(bubbles)  # above the target pointer, below the panels (PT-10)
 	bubbles.process_mode = Node.PROCESS_MODE_PAUSABLE
@@ -4520,7 +4529,7 @@ func _settings_state() -> Dictionary:
 			"auto": auto_name,
 			"master": settings.master, "music": settings.music, "effects": settings.effects, "perf": int(show_perf),
 			"fps": maxi(0, Settings.FPS.find(settings.fps)), "style": style_index, "vhs": int(vhs),
-			"weather": weather.state, "time": tod.mode, "wander": int(spacer != null and spacer.on), "zones": int(zone_cap_on), "handling": settings.handling, "sensitivity": settings.sensitivity,
+			"weather": weather.state, "time": tod.mode, "wander": int(spacer != null and spacer.on), "zones": int(zone_cap_on), "handling": settings.handling, "chatter": settings.chatter, "sensitivity": settings.sensitivity,
 			"text_large": int(settings.text_large), "calm": int(settings.calm), "color_safe": int(settings.color_safe),
 			"vibration": int(settings.vibration), "stop_assist": int(settings.stop_assist),
 			"left_handed": int(settings.left_handed), "lang": maxi(0, Lang.CODES.find(Lang.code))}
@@ -4621,6 +4630,9 @@ func _on_setting(key: String, value: Variant) -> void:
 		"handling":
 			settings.handling = clampi(int(value), 0, 1)
 			car.set_handling(settings.handling)
+		"chatter":
+			settings.chatter = clampi(int(value), 0, Chatter.GAPS.size() - 1)
+			bubbles.chatter.level = settings.chatter
 		"zones":
 			settings.zone_cap = int(value) == 1
 			zone_cap_on = settings.zone_cap

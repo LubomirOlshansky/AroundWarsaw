@@ -38,6 +38,7 @@ var spent_usec := 0
 var trap_flashes := 0
 
 const Access := preload("res://scripts/access.gd")
+const Chatter := preload("res://scripts/chatter.gd")
 const Unit := preload("res://scripts/police/police_unit.gd")
 const Talk := preload("res://scripts/police/police_talk.gd")
 const Balloon := preload("res://scripts/police/police_balloon.gd")
@@ -1676,7 +1677,7 @@ func _say(u, group: String, tag: String, prefer: bool, always := false, speaker 
 	# Loop 3g-2: the megaphone's chirp before its line (police.md 10).
 	if speaker == "Policja":
 		sfx_cue("megaphone")
-	var l: Array = dialogue.say(anchor, speaker, group, tag, 3.5, Color("#8fb0ff"), 2.6, prefer)
+	var l: Array = dialogue.say(anchor, speaker, group, tag, 3.5, Color("#8fb0ff"), 2.6, prefer, Chatter.POLICE)
 	if not l.is_empty():
 		_log("line %s/%s: %s" % [group, tag, l[0]])
 

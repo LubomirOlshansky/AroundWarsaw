@@ -44,8 +44,12 @@ experience". The plan, the road audit and the causes are in docs/GAMEPLAY_PLAN.m
   "the ground"; now tunnels only from inside one, main-network lanes first, the teleport checks the
   car's box, a hold over the river lands on the bridge; verify step `teleport` (11 spots; 2 failed
   before). Autopilot P12 checks the drive-off
-- [ ] 0.2 Chatter budget: one rate cap for bubbles and toasts, no comment per collision, quiet while
-  stuck, merged star toasts, a "Gadatliwość miasta" setting, `check_chatter` (Codex)
+- [x] 0.2 Chatter budget (2026-11-03, `chatter.gd`, `check_chatter`): every bubble has a class (quest,
+  police, reaction, ambient); at most 2 up and one new every 4 s; one reaction in 20 s, none for a
+  bump under 15 km/h, a near miss once a minute; city lines silent while the car is pinned, pressing
+  into something, stalled or offered the tow, and 5 s after; ambient waits while a card or the full
+  map is up; the ride's star toasts merge into one; Settings → ŚWIAT → Gadatliwość miasta. Phone
+  feel parked (QUESTIONS)
 - [x] 0.3 The car shows through Trasa Łazienkowska and other decks (2026-11-03): the tunnel x-ray
   whenever a deck stands between the car and the camera (`map_builder.gd` `deck_hides`,
   `check_deck_xray`); phone look open, the deck cut stays 3.x
