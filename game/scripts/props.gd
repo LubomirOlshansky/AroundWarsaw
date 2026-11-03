@@ -818,6 +818,22 @@ static func add_ad_column(st: SurfaceTool, xf: Transform3D, poster: Color) -> vo
 	_xbox(st, xf, Vector3(0, 3.25, 0), Vector3(0.12, 0.35, 0.12), Color("#c9a44a"))
 
 
+## Pasaż Wiecha's lamp mast (the Mac photo report dt_pawilony, 2026-11-02): a single white pole
+## that splits at 6 m into two flat arms climbing out along ±z, each ending in a long flat lamp
+## blade (lit underneath at night), about 10 m tall. ~90 triangles.
+static func add_y_mast(st: SurfaceTool, xf: Transform3D) -> void:
+	var white := Color("#eeeeea")
+	_xbox(st, xf, Vector3(0, 0.15, 0), Vector3(0.42, 0.3, 0.42), Color("#5d6166"))
+	_xbox(st, xf, Vector3(0, 3.1, 0), Vector3(0.24, 6.2, 0.24), white)
+	for side: float in [-1.0, 1.0]:
+		_xbeam(st, xf, Vector3(0, 5.9, 0), Vector3(0, 9.3, side * 1.4), 0.16, 0.12, white)
+		var tilt := Basis(Vector3.RIGHT, -side * 0.12)
+		var c := xf * Vector3(0, 9.4, side * 2.05)
+		obox(st, c, (xf.basis * tilt).orthonormalized(), Vector3(0.3, 0.1, 1.5), white)
+		obox(st, c + xf.basis * Vector3(0, -0.06, 0), (xf.basis * tilt).orthonormalized(), Vector3(0.2, 0.03, 1.35),
+				Color("#fff4dc"), LIT_SIGN)
+
+
 ## A row of `n` street bollards (a dark steel post 0.9 m tall with a pale band, 1.5 m apart along
 ## x), the row centred on `xf`. ~25 triangles a post. (Street details, docs/design/street-details.md.)
 static func add_bollards(st: SurfaceTool, xf: Transform3D, n := 4) -> void:
