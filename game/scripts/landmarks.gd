@@ -5189,24 +5189,66 @@ func _arkadia_cores(poly: PackedVector2Array, g: float, c: Vector2) -> void:
 	_no_roof = false
 
 
-## The Forest (2023): an office block of stepped wings whose roofs are planted terraces, and
-## its 120 m glass tower. Built from its mapped parts (bake_sectors.py SITE_AREAS has the box):
-## the tallest is the tower, in dark green glass with fins; the rest in paler glass bands,
-## each roof a garden.
+## The Forest (HRA Architekci, 2022; spec docs/landmarks/specs/forest.md), rebuilt from F's seven
+## photos (2026-11-03): a 120 m tower of dark green-black glass in three slabs that step up to
+## the east, each topped by a dark crown band, the east slab hung with orange, red and green
+## vertical fins and wearing PEPEO ŻUBR (F's parody) in its crown; low wings of glass behind the
+## same multicoloured fins, a black-clad top storey set back over a planted ledge, roof gardens
+## with corten planters, timber decks and copper-clad stair houses; and between the wings an open
+## courtyard of young trees, curved grass steps (an amphitheatre) and a corten pavilion.
+## Built from the mapped parts (bake_sectors.py SITE_AREAS has the box).
 const FOREST_BOX := Rect2(-3105.0, -2455.0, 185.0, 120.0)
-const FOREST_GLASS := Color("#5f7d74")
-const FOREST_LOW := Color("#8fa9a0")
+const FOREST_GLASS := Color("#35504a")      # the tower's dark green-black glass
+const FOREST_LOW := Color("#55707a")        # the wings' blue-green glass
+const FOREST_BLACK := Color("#2b2d2f")      # the black-clad top storeys
+const FOREST_CROWN_COL := Color("#2e2925")  # the slabs' crown bands, dark with a brown cast
 const FOREST_GREEN := Color("#5d8f45")
-const FOREST_BANK := Color(1.0, 0.72, 0.45)   # BANK PEPEO's warm white (not the real bank's red)
+const FOREST_CORTEN := Color("#8e4a24")
+const FOREST_COPPER := Color("#9b5b36")
+const FOREST_BANK := Color(1.0, 0.97, 0.9)  # PEPEO ŻUBR in white, as the photos' crown letters
 const FOREST_TIMBER := Color("#a98457")
 const FOREST_PARASOL: Array[Color] = [Color("#f1ece0"), Color("#d9a441"), Color("#e8e2d2"), Color("#5f8f8a")]
+## The fins' colours from the photos, orange most of all, then red, green, mustard and brown.
+const FOREST_FINS: Array[Color] = [Color("#e07a2a"), Color("#d0601f"), Color("#e8923a"), Color("#b8322a"),
+		Color("#c4452a"), Color("#6f8f3a"), Color("#86a046"), Color("#d9a32b"), Color("#7a4a2a"), Color("#e07a2a")]
+## The tower's frame: u along its south face west to east, v north to south (metres from the
+## south-west corner). The mapped outline's east end steps out twice (u 44.6, 47.8, 51.5): three
+## slabs side by side, split at v -22.2 and -12, their tops stepping 110, 115.5 and 120 m from
+## north to south, so the tallest faces Rondo Radosława.
+const FOREST_O := Vector2(-2990.2, -2350.9)
+const FOREST_U := Vector2(0.99633, 0.08562)
+const FOREST_SLABS := [[-40.0, -22.2, 110.0], [-22.2, -12.0, 115.5], [-12.0, 5.0, 120.0]]
+const FOREST_CROWN := 6.0   # the dark crown band on each slab
+## The low wings' height from F's photos (F, 2026-11-03: "estimate it from the photos"): eight
+## storeys, seven of glass over the lobby and the black top one, about 31 m where OSM says 20.8.
+## The 27.4 m wing keeps OSM's height: its terrace crowd stands at 27.4 (crowds.gd DECKS).
+const FOREST_WING_H := 31.0
+## The courtyard, from the mapped paths and grass (clear of both by 1.8 m): the amphitheatre's
+## centre (its steps open to the east, to the fountain), the pavilion, the young trees.
+const FOREST_AMPH := Vector2(-3051.0, -2403.5)
+const FOREST_PAVILION := Vector2(-2973.5, -2398.5)
+const FOREST_TREES := [Vector2(-3034.5, -2390.5), Vector2(-2967.5, -2404.5), Vector2(-2992.5, -2392.5), Vector2(-2992.5, -2400.5),
+		Vector2(-2997.5, -2405.5), Vector2(-2978.5, -2404.5), Vector2(-3055.5, -2394.5), Vector2(-3026.5, -2392.5),
+		Vector2(-2976.5, -2391.5), Vector2(-2998.5, -2395.5), Vector2(-3054.5, -2412.5), Vector2(-2988.5, -2381.5),
+		Vector2(-3016.5, -2386.5), Vector2(-3005.5, -2406.5), Vector2(-3040.5, -2397.5), Vector2(-3043.5, -2387.5),
+		Vector2(-2985.5, -2404.5), Vector2(-3041.5, -2403.5), Vector2(-3034.5, -2412.5), Vector2(-2965.5, -2395.5),
+		Vector2(-3022.5, -2407.5), Vector2(-3026.5, -2385.5), Vector2(-3060.5, -2403.5), Vector2(-3062.5, -2410.5),
+		Vector2(-2986.5, -2397.5), Vector2(-3012.5, -2394.5), Vector2(-3012.5, -2400.5), Vector2(-3046.5, -2394.5),
+		Vector2(-3005.5, -2388.5), Vector2(-2974.5, -2384.5), Vector2(-3010.5, -2383.5), Vector2(-2980.5, -2380.5),
+		Vector2(-2979.5, -2398.5), Vector2(-3045.5, -2411.5), Vector2(-3030.5, -2407.5), Vector2(-2995.5, -2385.5),
+		Vector2(-2969.5, -2390.5), Vector2(-2991.5, -2407.5), Vector2(-3019.5, -2392.5), Vector2(-2985.5, -2389.5),
+		Vector2(-3018.5, -2400.5), Vector2(-3041.5, -2416.5), Vector2(-3032.5, -2384.5)]
+const FOREST_LEAF: Array[Color] = [Color("#6f9a45"), Color("#5f8a3c"), Color("#86a94e"), Color("#7aa048")]
 func _find_forest() -> void:
 	var zone: Array = []
 	var parts: Array = []
 	for bld in data["buildings"]:
 		var q := _pts(bld["p"])
-		if q.size() >= 3 and FOREST_BOX.has_point(_centre(q)) and float(bld["h"]) >= 25.0:
+		if q.size() >= 3 and FOREST_BOX.has_point(_centre(q)) and float(bld["h"]) >= 20.0:
 			zone.append(q)
+			# The U-shaped west wing's centre falls in the courtyard: its hull, so the plain
+			# block (or LoD2's) under it goes too (Piano House's pitfall).
+			zone.append(Geometry2D.convex_hull(q))
 			parts.append(bld)
 	_add_site("forest", zone)
 	if not sites.is_empty() and sites[-1]["key"] == "forest":
@@ -5225,46 +5267,149 @@ func _build_forest(site: Dictionary) -> void:
 	for bld in parts:
 		var poly := _pts(bld["p"])
 		var h := float(bld["h"])
-		var mh := float(bld["mh"])
 		if h >= tallest - 0.5:
-			_prism(poly, g + mh, g + h, FOREST_GLASS, Color("#4f5a58"), M_SKIN + S_FINS / 16.0, M_STONE)
-			# A dark crown band.
-			_prism(poly, g + h, g + h + 1.2, Color("#3d4645"), Color(0, 0, 0, 0), M_STONE)
-			_forest_bank_sign(poly, g, h)
+			_forest_tower(poly, g)
 		else:
-			_prism(poly, g + mh, g + h, FOREST_LOW, FOREST_GREEN, M_SKIN + S_BANDS / 16.0, M_STONE)
-			if h >= 20.0:
-				_forest_terrace(poly, g + h)
-			else:
-				# The planted edge: a hedge round each terrace.
-				var c := _centre(poly)
-				var hedge := PackedVector2Array()
-				for q in poly:
-					hedge.append(q + (c - q).normalized() * 0.6)
-				_prism(hedge, g + h, g + h + 0.9, FOREST_GREEN.darkened(0.15), FOREST_GREEN.lightened(0.08), M_STONE, M_STONE)
+			_forest_wing(poly, g, FOREST_WING_H if h < 25.0 else h, h >= 25.0)
+		# The car's walls on the mapped outline, handed to the pocket bridging too.
 		_collide(poly)
+		pocket_rings.append(poly)
+	_forest_courtyard()
 
 
-## The bank's name on the tower (F, 2026-11-01): BANK PEPEO, a parody of the real bank that has
-## its head office in this tower, in warm white on the two long faces and the south end, near the
-## crown. `at` is the tower's centre; each sign sits on the face the ray from it leaves through.
-func _forest_bank_sign(poly: PackedVector2Array, g: float, h: float) -> void:
-	var c := _centre(poly)
-	for d: Vector2 in [Vector2(0.0, -1.0), Vector2(0.0, 1.0), Vector2(1.0, 0.0), Vector2(-1.0, 0.0)]:
-		var far := -1.0
-		for i in poly.size():
-			var hit: Variant = Geometry2D.segment_intersects_segment(c, c + d * 120.0, poly[i], poly[(i + 1) % poly.size()])
-			if hit != null:
-				far = maxf(far, c.distance_to(hit as Vector2))
-		if far > 0.0:
-			var at := c + d * (far + 0.1)
-			# 1.9 on the long faces (about 23 m of letters), the same on the ends.
-			signs.append(["BANK PEPEO", Vector3(at.x, g + h - 7.0, at.y), Vector3(d.x, 0.0, d.y), 1.9, FOREST_BANK])
+## Strip fins: one flat coloured blade every `step` m, `proud` out of each face of `ring` from y0
+## to y1, `w` wide, its colour by a hash of where it stands (the photos' irregular rhythm). One
+## quad each: from the street the blades read as the facade's colour stripes.
+func _forest_fins(ring: PackedVector2Array, y0: float, y1: float, step: float, w: float, proud: float, salt: float) -> void:
+	var keep := _mode
+	_mode = M_STONE
+	for i in ring.size():
+		var a := ring[i]
+		var b := ring[(i + 1) % ring.size()]
+		var length := a.distance_to(b)
+		if length < step:
+			continue
+		var e := (b - a) / length
+		var out := _out(ring, a, b)
+		var n := floori(length / step)
+		var pad := (length - (n - 1) * step) * 0.5
+		for k in n:
+			var p := a + e * (pad + k * step) + out * proud
+			var hsh := fposmod(sin(p.x * 12.9898 + p.y * 78.233 + salt) * 43758.5453, 1.0)
+			var col: Color = FOREST_FINS[int(hsh * FOREST_FINS.size()) % FOREST_FINS.size()]
+			_wall(p - e * w * 0.5, p + e * w * 0.5, y0, y1, out, col)
+	_mode = keep
+
+
+## The tower: three slabs of the mapped outline, each glass to its crown band, then the band.
+func _forest_tower(poly: PackedVector2Array, g: float) -> void:
+	var v := Vector2(-FOREST_U.y, FOREST_U.x)
+	for s: Array in FOREST_SLABS:
+		var strip := PackedVector2Array([FOREST_O - FOREST_U * 5.0 + v * float(s[0]), FOREST_O + FOREST_U * 60.0 + v * float(s[0]),
+				FOREST_O + FOREST_U * 60.0 + v * float(s[1]), FOREST_O - FOREST_U * 5.0 + v * float(s[1])])
+		var slab := _largest(Geometry2D.intersect_polygons(poly, strip))
+		if slab.size() < 3:
+			continue
+		var top := g + float(s[2])
+		_prism(slab, g, top - FOREST_CROWN, FOREST_GLASS, Color(0, 0, 0, 0), M_SKIN + S_DARK / 16.0, M_STONE)
+		_prism(slab, top - FOREST_CROWN, top, FOREST_CROWN_COL, FOREST_BLACK.lightened(0.08), M_STONE, M_STONE)
+		if float(s[2]) >= 119.0:
+			# The south slab: the colour fins on all its faces, then the name in its crown.
+			_forest_fins(slab, g + 4.5, top - FOREST_CROWN, 1.25, 0.32, 0.12, 7.0)
+			_forest_sign(slab, top)
+		else:
+			# The lower slabs: a sparser run of fins (the photos' faint colour in the dark glass).
+			_forest_fins(slab, g + 4.5, top - FOREST_CROWN, 3.6, 0.26, 0.12, float(s[2]))
+		# A roof plant box on each slab (the photos' crown kit), out of the roof grid.
+		var c := _centre(slab)
+		_no_roof = true
+		_prism(_square(c, 2.2), top, top + 2.4, Color("#5b5f60"), Color("#6a6e6f"), M_STONE, M_STONE)
+		_no_roof = false
+
+
+## PEPEO ŻUBR (F, 2026-11-03), F's parody of the tenant's name, in the south slab's crown band:
+## big on its long south face (towards Rondo Radosława), smaller on its narrow east end (towards
+## Aleja Jana Pawła II), as the photos show it over the narrow face. Placed in the tower's frame
+## on the slab's own faces (the outline's steps make a ray from the centre miss them).
+func _forest_sign(slab: PackedVector2Array, top: float) -> void:
+	var v := Vector2(-FOREST_U.y, FOREST_U.x)
+	var lo := Vector2(INF, INF)
+	var hi := Vector2(-INF, -INF)
+	for q in slab:
+		var l := Vector2((q - FOREST_O).dot(FOREST_U), (q - FOREST_O).dot(v))
+		lo = lo.min(l)
+		hi = hi.max(l)
+	var y := top - FOREST_CROWN + 0.6
+	# The south face: centred on the east half, 1.9 (about 23 m of letters).
+	var south := FOREST_O + FOREST_U * lerpf(lo.x, hi.x, 0.62) + v * (hi.y + 0.1)
+	signs.append(["PEPEO ŻUBR", Vector3(south.x, y, south.y), Vector3(v.x, 0.0, v.y), 1.9, FOREST_BANK])
+	# The east end: 0.85 (about 10 m), on the slab's own 12 m end.
+	var east := FOREST_O + FOREST_U * (hi.x + 0.1) + v * ((lo.y + hi.y) * 0.5)
+	signs.append(["PEPEO ŻUBR", Vector3(east.x, y + 1.2, east.y), Vector3(FOREST_U.x, 0.0, FOREST_U.y), 0.85, FOREST_BANK])
+
+
+## A wing: glass behind the colour fins up to a planted ledge, the black-clad top storey set
+## back 1.6 m, and on its roof the garden (or, on the 27.4 m wing, the terrace with its crowd).
+func _forest_wing(poly: PackedVector2Array, g: float, h: float, terrace: bool) -> void:
+	var glass_top := g + h - 4.0
+	_prism(poly, g, glass_top, FOREST_LOW, FOREST_GREEN.darkened(0.1), M_SKIN + S_FINS / 16.0, M_STONE)
+	_forest_fins(poly, g + 4.0, glass_top, 1.5, 0.34, 0.12, h)
+	var top_ring := _largest(Geometry2D.offset_polygon(poly, -1.6, Geometry2D.JOIN_MITER))
+	if top_ring.size() < 3:
+		return
+	_prism(top_ring, glass_top, g + h, FOREST_BLACK, FOREST_GREEN, M_SKIN + S_DARK / 16.0, M_STONE)
+	# The planted ledge's hedge along the glass edge (the photos' green line over the fins).
+	_no_roof = true
+	var hedge := _largest(Geometry2D.offset_polygon(poly, -0.5, Geometry2D.JOIN_MITER))
+	if hedge.size() >= 3:
+		_prism(hedge, glass_top, glass_top + 0.7, FOREST_GREEN.darkened(0.12), Color(0, 0, 0, 0), M_STONE, M_STONE)
+	_no_roof = false
+	if terrace:
+		_forest_terrace(top_ring, g + h)
+	else:
+		_forest_garden(top_ring, g + h)
+
+
+## A roof garden on a wing: on a 10 m grid inside the roof, corten planters with their plants,
+## timber deck squares, and every fifth spot a copper-clad stair house (the photos' brown boxes).
+func _forest_garden(ring: PackedVector2Array, y: float) -> void:
+	var inner := _largest(Geometry2D.offset_polygon(ring, -3.5))
+	if inner.size() < 3:
+		return
+	var lo := Vector2(INF, INF)
+	var hi := Vector2(-INF, -INF)
+	for q in inner:
+		lo = lo.min(q)
+		hi = hi.max(q)
+	_no_roof = true
+	var k := 0
+	var x := lo.x + 3.0
+	while x < hi.x:
+		var z := lo.y + 3.0
+		while z < hi.y:
+			var p := Vector2(x, z)
+			z += 10.0
+			if not Geometry2D.is_point_in_polygon(p, inner):
+				continue
+			match k % 5:
+				0, 2:
+					_prism(PackedVector2Array([p + Vector2(-2.2, -0.7), p + Vector2(2.2, -0.7), p + Vector2(2.2, 0.7), p + Vector2(-2.2, 0.7)]),
+							y, y + 0.6, FOREST_CORTEN, FOREST_GREEN.lightened(0.1), M_STONE, M_STONE)
+				1, 3:
+					_cap(PackedVector2Array([p + Vector2(-3.0, -2.0), p + Vector2(3.0, -2.0), p + Vector2(3.0, 2.0), p + Vector2(-3.0, 2.0)]),
+							y + 0.08, FOREST_TIMBER)
+				4:
+					_prism(PackedVector2Array([p + Vector2(-2.0, -1.6), p + Vector2(2.0, -1.6), p + Vector2(2.0, 1.6), p + Vector2(-2.0, 1.6)]),
+							y, y + 3.0, FOREST_COPPER, FOREST_BLACK, M_STONE, M_STONE)
+			k += 1
+		x += 10.0
+	_no_roof = false
 
 
 ## The Forest's roof terrace (F, 2026-11-01), on the 27 m wing: a timber deck inside a glass
-## balustrade, planters with small trees along it, parasols over round tables, all kept out of the
-## roof grid so the crowd's spots (crowds.gd DECKS `forest_terrace`) still read the block's roof.
+## balustrade, corten planters with small trees along it (F's photo, 2026-11-03), parasols over
+## round tables, all kept out of the roof grid so the crowd's spots (crowds.gd DECKS
+## `forest_terrace`) still read the block's roof.
 func _forest_terrace(poly: PackedVector2Array, y: float) -> void:
 	var none := Color(0, 0, 0, 0)
 	var edge := Geometry2D.offset_polygon(poly, -0.5)
@@ -5278,7 +5423,7 @@ func _forest_terrace(poly: PackedVector2Array, y: float) -> void:
 	_cap(rim, y + 0.1, FOREST_TIMBER)
 	_prism(rim, y, y + 1.1, Color("#c9dcdc"), none, M_PAVILION + 0.5)
 	_prism(rev, y, y + 1.1, Color("#c9dcdc"), none, M_PAVILION + 0.5)
-	# Planters with a small tree every ~7 m along the glass.
+	# Corten planters with a small tree every ~7 m along the glass.
 	var run := 0.0
 	var next := 3.0
 	for i in rim.size():
@@ -5290,13 +5435,13 @@ func _forest_terrace(poly: PackedVector2Array, y: float) -> void:
 		var inward := -_out(rim, a, b)
 		while next < run + len_e - 1.0:
 			var p := a + t * (next - run) + inward * 0.9
-			_prism(PackedVector2Array([p - t * 1.1 - inward * 0.4, p + t * 1.1 - inward * 0.4, p + t * 1.1 + inward * 0.4, p - t * 1.1 + inward * 0.4]),
-					y + 0.1, y + 0.8, Color("#8a8f8c"), FOREST_GREEN.darkened(0.2), M_STONE, M_STONE)
+			_prism(PackedVector2Array([p - t * 1.6 - inward * 0.5, p + t * 1.6 - inward * 0.5, p + t * 1.6 + inward * 0.5, p - t * 1.6 + inward * 0.5]),
+					y + 0.1, y + 0.8, FOREST_CORTEN, FOREST_GREEN.darkened(0.2), M_STONE, M_STONE)
 			_mode = M_STONE
 			_pyramid(_circle(p, 0.75, 6), y + 0.8, y + 3.0, FOREST_GREEN.lightened(0.05))
 			next += 7.0
 		run += len_e
-	# Parasols over round tables on a 9 m grid inside the planters, with a bar kiosk at the south end.
+	# Parasols over round tables on a 7.5 m grid inside the planters.
 	var inner := Geometry2D.offset_polygon(poly, -4.5)
 	if not inner.is_empty():
 		var area: PackedVector2Array = inner[0]
@@ -5319,6 +5464,55 @@ func _forest_terrace(poly: PackedVector2Array, y: float) -> void:
 					_pyramid(PackedVector2Array([p + Vector2(-1.7, -1.7), p + Vector2(1.7, -1.7), p + Vector2(1.7, 1.7), p + Vector2(-1.7, 1.7)]),
 							y + 2.6, y + 3.3, FOREST_PARASOL[(k / 2) % FOREST_PARASOL.size()])
 				k += 1
+	_no_roof = false
+
+
+## The courtyard between the wings (F's photo from above): the grass amphitheatre, four curved
+## steps with timber edges opening east to the paved circle and the fountain, benches on the
+## circle, a round corten pavilion with a planted roof, and young trees with slim crowns.
+func _forest_courtyard() -> void:
+	_no_roof = true
+	var ga: float = map.terrain_height(FOREST_AMPH.x, FOREST_AMPH.y)
+	_g = ga
+	# Steps: arcs from 110 to 250 degrees (the west half; east = 0), each 1.2 m deep, 0.4 m up.
+	for i in 4:
+		var r0 := 4.0 + i * 1.2
+		var r1 := r0 + 1.2
+		var band := PackedVector2Array()
+		for k in 11:
+			band.append(FOREST_AMPH + Vector2.from_angle(deg_to_rad(110.0 + 14.0 * k)) * r1)
+		for k in range(10, -1, -1):
+			band.append(FOREST_AMPH + Vector2.from_angle(deg_to_rad(110.0 + 14.0 * k)) * r0)
+		_prism(band, ga - 0.3, ga + 0.4 * (i + 1), FOREST_TIMBER.darkened(0.1), FOREST_GREEN.lightened(0.04 * i), M_STONE, M_STONE)
+		if i == 3:
+			_collide(band)
+	# Benches on the circle in front, facing the steps.
+	for k in 3:
+		var p := FOREST_AMPH + Vector2.from_angle(deg_to_rad(160.0 + 20.0 * k)) * 2.2
+		var t := Vector2.from_angle(deg_to_rad(250.0 + 20.0 * k))
+		var o := Vector2(t.y, -t.x)
+		_prism(PackedVector2Array([p - t * 0.9 - o * 0.25, p + t * 0.9 - o * 0.25, p + t * 0.9 + o * 0.25, p - t * 0.9 + o * 0.25]),
+				ga, ga + 0.45, Color("#7a5a3a"), FOREST_TIMBER, M_STONE, M_STONE)
+	# The pavilion: eight corten sides, a planted roof.
+	var gp: float = map.terrain_height(FOREST_PAVILION.x, FOREST_PAVILION.y)
+	_g = gp
+	var pav := _circle(FOREST_PAVILION, 3.2, 8)
+	_prism(pav, gp - 0.3, gp + 3.2, FOREST_CORTEN, FOREST_GREEN, M_STONE, M_STONE)
+	_collide(pav)
+	# The young trees: a slim trunk, a crown of a widening frustum and a pointed top.
+	for i in FOREST_TREES.size():
+		var p: Vector2 = FOREST_TREES[i]
+		var gt: float = map.terrain_height(p.x, p.y)
+		_g = gt
+		var hsh := fposmod(sin(p.x * 3.17 + p.y * 7.31) * 43758.5453, 1.0)
+		var h := 5.0 + hsh * 2.5
+		var r := 1.3 + hsh * 0.6
+		var leaf: Color = FOREST_LEAF[i % FOREST_LEAF.size()]
+		_prism(_square(p, 0.1), gt - 0.2, gt + h * 0.4, Color("#6b5a48"), Color(0, 0, 0, 0), M_STONE)
+		_mode = M_STONE
+		_frustum(_circle(p, r * 0.45, 5), gt + h * 0.3, _circle(p, r, 5), gt + h * 0.6, leaf.darkened(0.1))
+		_pyramid(_circle(p, r, 5), gt + h * 0.6, gt + h, leaf)
+		_collide(_square(p, 0.15))
 	_no_roof = false
 
 

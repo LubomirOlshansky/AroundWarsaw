@@ -10,6 +10,8 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-03
+
+- The Forest office complex by Rondo Radosława is rebuilt from photos: its tower now steps up in three dark glass slabs with orange, red and green fins and PEPEO ŻUBR in the crown, the low wings wear the same colourful fins under black top floors and roof gardens, and the courtyard between them has grass steps, a rusty-steel pavilion and young trees.
 - The Royal Castle's river front is pale right up to its tiled roof, with no salmon strip under the eaves, and the Clock Tower's copper helm stands clean, with no old tower block poking through it.
 - The Poniatowski viaduct over Powiśle now stands on open concrete arches with struts under a steel deck, and its closed bays along Aleja 3 Maja hold five little bars with neon, lit windows and café tables.
 - Most Poniatowskiego now crosses the Vistula on eight spans, with a new stone pier at the west bank.
