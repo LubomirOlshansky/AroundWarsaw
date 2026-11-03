@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-02
 - The Royal Castle gets its Clock Tower back: dark-blue clock faces and a green copper onion helm with a lantern and spire, green-capped corner turrets, terracotta roofs, and a cream river front with a copper dome; below it Kubicki's Arcades now show their round arches, with the restored Upper Garden on top (tubbed ball trees, a fountain) and the Lower Garden's lawn, vases and fountains in front.
+- The WKD commuter line's two stops are in the city: Śródmieście WKD by the Aleje has its two concrete "propeller" roofs over the stairs down to the cutting, and Ochota WKD by Plac Zawiszy its heavy concrete roof on V-shaped legs over the platform.
 - Plac Krasińskich has the Warsaw Uprising Monument: bronze insurgents running out from under two falling granite slabs, and beside them the descent into the sewers; behind the lawn stands Pałac Krasińskich in white, with its green copper roof, pediments and statues.
 - With a gamepad, the hints name the buttons the way your pad prints them (×, R2 and L2 on a PlayStation pad; B and ZR on a Nintendo one), and crashes and bumps rumble the pad instead of the phone.
 - Sliding along a building no longer wedges the car in a gap or a notch between two houses (it got stuck and towed by the glass corner on the Chmielna square): the car slides on past them everywhere in the city.
