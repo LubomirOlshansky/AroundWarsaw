@@ -14627,12 +14627,13 @@ func _build_mpw(site: Dictionary) -> void:
 		var at := _w(0.0, v)
 		# F's look check (2026-11-03): deeper arches. A wide brick archivolt, then a dark reveal
 		# round the window, between piers that stand out 0.6 m.
-		_arch_panel(at, south, -east, 1.75, g + 5.8, g + 9.4, MPW_BAND, 0.02, M_STONE)
-		_arch_panel(at, south, -east, 1.5, g + 6.0, g + 9.4, MPW_BAND.darkened(0.45), 0.03, M_STONE)
+		# The reveal is the window's rim here: layers 2.5 cm apart so none of them flickers.
+		_arch_panel(at, south, -east, 1.75, g + 5.8, g + 9.4, MPW_BAND, 0.025, M_STONE)
+		_arch_panel(at, south, -east, 1.5, g + 6.0, g + 9.4, MPW_BAND.darkened(0.45), 0.05, M_STONE)
 		if i == 3:
-			_mpw_win(at, south, -east, 1.2, 6.2, 9.4, Color(0, 0, 0, 0), MPW_CREAM)
+			_arch_panel(at, south, -east, 1.2, g + 6.2, g + 9.4, MPW_CREAM, 0.075, M_STONE)
 		else:
-			_mpw_win(at, south, -east, 1.2, 6.2, 9.4, MPW_GLASS)
+			_arch_panel(at, south, -east, 1.2, g + 6.2, g + 9.4, MPW_GLASS, 0.08, M_GLASS)
 		_arch_panel(at, south, -east, 1.4, g + 0.6, g + 2.3, MPW_BAND, 0.04, M_STONE)
 		for s: float in [-0.7, 0.7]:
 			_arch_panel(_w(0.0, v + s), south, -east, 0.42, g + 0.8, g + 2.3, MPW_GLASS, 0.08, M_GLASS)

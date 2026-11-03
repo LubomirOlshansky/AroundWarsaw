@@ -115,9 +115,11 @@ const BUDGET := {
 	"msn": 500,
 	# Norblin on its real block (2026-11-02, photo report): two blocks, Plater and Galwan, about
 	# three times the first footprint, arched windows round their courts, green roofs and terraces.
-	"norblin": 4500,
+	# 2026-11-03 look check: the copper base, finned storeys, set-back tops, the passage roof and
+	# the old white workshops under zinc (the Mac's spec).
+	"norblin": 5700,
 	# Browary + the Central Garden's gravel path, café clearings and the sedum roofs (2026-11-02).
-	"browary": 3800,
+	"browary": 3900,   # 2026-11-03: paved main path and clearing edges (look check)
 	"koszyki": 1370,
 	"elektrownia": 1950,
 	"mpw": 3200,
@@ -135,7 +137,7 @@ const BUDGET := {
 	"rotunda": 1380,
 	"skyliner": 400,
 	"skysawa": 170,
-	"slabs": 270,
+	"slabs": 1100,   # 2026-11-03: balcony bands, a ledge every storey on the long faces (look check)
 	"zelazna": 1030,
 	"pokorna2": 1500,
 	"spektrum": 990,
