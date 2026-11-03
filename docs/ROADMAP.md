@@ -145,6 +145,8 @@ then the Launch gate.
 - [ ] City inventory Part 3: the top not-done places, one thread each, photos first (Most Poniatowskiego,
       Muzeum Powstania, Pomnik Powstania, Hotel Warszawa and Cedet, Rondo ONZ towers, the monuments pass,
       Plac Bankowy, Świętokrzyska's NBP/Poczta/PAST-a, the outline builds' photo re-pass, Praga's faces)
+  - [x] Praga's faces from the Mac's photo reports (2026-11-02): St Florian's cathedral (site `florian`) and Bazar
+        Różyckiego (site `bazar`); Koneser and the Multimedia Fountain Park are off the map (QUESTIONS)
   - [x] Poczta Główna and PAST-a from the Mac photo reports (2026-11-03, specs `poczta.md`, `pasta.md`)
   - [ ] Narodowy Bank Polski (waits on its photo report)
 - [ ] Monuments pass (City inventory Part 3 item 6)
@@ -168,7 +170,7 @@ then the Launch gate.
 - [x] All churches designed by one set of rules (F, 2026-11-01; rules and inventory in
       docs/design/churches.md): the church kit, 22 parish churches as models with a card each
       (spec churches.md); Zbawiciela (#226), św. Teresy (#225) and the older fronts already done.
-      Open: Mac photo check of each (QUESTIONS), Praga cathedral, Archikatedra's tower, the
+      Open: Mac photo check of each (QUESTIONS), Archikatedra's tower, the
       Dominican and Capuchin monasteries
 - [x] Plac Zamkowy's houses (F, 2026-11-01): a pastel palette in place of OpenStreetMap's mud
       colours, the plac and Krakowskie Przedmieście's first houses in the historic dress, and a

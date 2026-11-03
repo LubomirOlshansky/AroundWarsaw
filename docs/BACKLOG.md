@@ -387,7 +387,7 @@ add it to the plan." Rules and the full inventory (39 named religious buildings,
 - **Open, Mac:** the front end and tower count of every kit church; the gables on the real LoD2
   walls (do they stand on the right edges, z-fight, read at phone zoom); the palette against
   photos of Plac Zamkowy's west side (Kamienica pod Messalką, Baryczków).
-- **Open, build:** Praga cathedral, Archikatedra's tower and apse, the Dominican, Capuchin,
+- **Open, build:** Archikatedra's tower and apse, the Dominican, Capuchin,
   Franciscan and Pallotine monasteries; lit belfries at night; the Kościół Niepokalanego Poczęcia
   outline is only 20 x 14 m (a chapel, check its name).
 - **Roofs (owned by the gameplay pass thread):** F's "roofs on the old city look strange, a lot of
