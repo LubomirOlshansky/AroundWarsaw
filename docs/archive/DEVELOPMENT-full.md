@@ -5262,6 +5262,9 @@ CLI on a baked map) adds 660 `symbols` of kind `bike` marked `"on": "path"` on t
 `map_builder.gd` edges each `cyclecross` with P-11 squares (`CROSS_SQ`, `CROSS_EDGE`). No counted
 key changes. `tools/compare_cycleways.py` (reads only) measures how much of OSM's cycle network
 the map draws; it needs the raw export (`data/work/demo/osm_demo.json`).
+`tools/bike_network.py --osm <export>` (bake_osm after bike_marks) adds `bike` symbols marked
+`contra` (an arrow ahead, against the one-way), `busway` and `sharrow` (two chevrons ahead), drawn by
+`_build_symbols`; without the export it changes nothing, so the cloud keeps what the Mac's run wrote.
 
 **Map review C (2026-11-02)**: one-lane one-way streets take `DEFAULT_WIDTH` (`bake_roads.py`
 `road_width`, `mark_split_legs`), two-way `lanes=2` ones at least 7 m (`TWO_LANE_STREET`); pois 4,572 (`tools/check_map_data.py` EXPECTED; the Centralny Leżak
@@ -5603,6 +5606,7 @@ Command-line options (after `--`):
 | `--heading=deg` | the car's heading at the start (0 north, 90 east), for testing: with `--demo` it drives off that way |
 | `--nohud` | hide the controls |
 | `--left-handed` | accessibility (2026-11-01): the left-handed layout for this run (the pedals, the horn and the helicopter's pads bottom left, the stick's side and Classic's strip on the right, the credit line bottom right), as Settings → DOSTĘP → "Dla leworęcznych" sets it; for shots (`tools/check_hud.gd` checks it) |
+| `--color-safe` | accessibility (2026-11-03): colour-safe markers for this run, as Settings → DOSTĘP sets them: the HUD's green and red tinted, the drop-off ring blue, the rescue pickup's ring dashed and the race ring chequered (`beacon.gd`); for shots |
 | `--lang=pl\|en` | the language for this run (2026-11-02): over the saved choice and the phone's, not saved; `tools/check_language.gd` runs every screen in both |
 | `--no-touch` | desktop (trailer loop, 2026-10-29): no touch-only controls on screen (the pedals and HAMULEC, the stick's knob and Classic's strip hint, the helicopter's ▲/▼ pads, the title's "tap to drive"); the top row, minimap, wallet, cards, bubbles and the radio caption stay, and the panels get the pedals' room; the keys still drive. For recording on the computer (`tools/check_hud.gd` checks it) |
 | `--no-input` | loop 3d-1: the window never takes the keyboard focus (`WINDOW_FLAG_NO_FOCUS`): test renders whose windows hold the focus for minutes (`check_streaming.gd` passes it; keys typed in another app had toggled the time of day, the overlay and the radio) |

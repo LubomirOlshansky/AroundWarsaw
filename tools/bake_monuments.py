@@ -69,6 +69,10 @@ SKIP = [
     ("Mikołaj Kopernik", -411.0, -460.0, 30.0),       # before Pałac Staszica (site staszic)
     ("Charles de Gaulle", -171.0, 273.0, 15.0),
     ("Grób Nieznanego Żołnierza", -865.75, -768.7, 20.0),
+    # Plac Piłsudskiego from photos (2026-11-02): sites smolensk, pilsudski, kaczynski
+    ("Pomnik Ofiar Tragedii Smoleńskiej", -763.0, -736.5, 12.0),
+    ("Józef Piłsudski", -673.3, -817.8, 10.0),
+    ("Lech Kaczyński", -671.3, -762.7, 10.0),
     ("August Agboola Browne", -846.0, 228.0, 15.0),   # Ali's stone (first_scene.gd)
     ("Palma", -214.0, 237.0, 15.0),
     ("", -1233.0, -1700.0, 45.0),                     # Pomnik Powstania Warszawskiego: its own thread

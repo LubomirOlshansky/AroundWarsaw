@@ -12,6 +12,7 @@ extends Node
 ## Loop 3g-2 (police.md 8.1): a call was accepted (police.gd ends a chase).
 signal accepted
 
+const Gamepad := preload("res://scripts/gamepad.gd")  # the pad's A in the call toast (2026-11-03)
 const Access := preload("res://scripts/access.gd")
 const Haptics := preload("res://scripts/haptics.gd")
 const Beacon := preload("res://scripts/beacon.gd")
@@ -137,9 +138,12 @@ func setup(map_node: Node3D, data: Dictionary, world: Node3D, hud_layer: CanvasL
 	_pickup = Beacon.new()
 	world.add_child(_pickup)
 	_pickup.setup(PICKUP_COLOUR, Color("#e8762e"))
+	_pickup.pattern = Beacon.Pattern.DASHED  # colour-safe: someone waiting (beacon.gd)
 	_dropoff = Beacon.new()
 	world.add_child(_dropoff)
-	_dropoff.setup(_dropoff_colour(), Color("#f2efe8"))
+	# The plain green: the beacon tints it blue itself under colour-safe, also when the
+	# setting changes mid-call (it was fixed at load before).
+	_dropoff.setup(DROPOFF_COLOUR, Color("#f2efe8"))
 	_dropoff.waving = false
 	hud.card_pressed.connect(_on_card)
 	hud.pill_pressed.connect(func(): offer(number + 1))
@@ -319,7 +323,10 @@ func _ring() -> void:
 		return
 	state = State.RINGING
 	hud.show_pill("WEZWANIE", "rescue call")
-	hud.toast("Wezwanie ratunkowe!", "A rescue call came in: tap the button at the top.")
+	if hud.pad_mode:
+		hud.toast(Gamepad.fmt("Wezwanie ratunkowe! {a}: odbierz."), Gamepad.fmt("A rescue call came in: {a} to answer."))
+	else:
+		hud.toast("Wezwanie ratunkowe!", "A rescue call came in: tap the button at the top.")
 	# Sweep 2: the buzz is timed so the phone's log shows the call's hitch is gone (it was
 	# the haptic engine starting inside this frame: warm_haptics()).
 	var t0 := Time.get_ticks_usec()

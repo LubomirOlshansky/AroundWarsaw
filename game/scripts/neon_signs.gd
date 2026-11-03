@@ -42,6 +42,8 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		"WARSZAWA", "POWIŚLE",
 		# S3a: Warszawa Stadion's roof letters.
 		"STADION",
+		# S3e: Warszawa Wschodnia's fascia letters (with WARSZAWA above).
+		"WSCHODNIA",
 		# The river's bar barges (docs/landmarks/specs/barki.md): parodies of their names.
 		"WIECZOREK", "BARKA", "MARINKA", "KASKADKA", "PRZYSTAŃ",
 		# S3b: Warszawa Śródmieście's pavilions.
@@ -58,6 +60,8 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		"VERSO PLACE",
 		# The Skyliner's crown (docs/design/city-life-satire.md #12): a small agency with a large nose.
 		"NOSE AGENCY",
+		# Poczta Główna's red band over the colonnade (a parody of the operator's own band).
+		"POCZTA",
 		# The Vistula boulevards' bar pavilions and containers (docs/landmarks/specs/bulwary.md):
 		# parody bar names and what the hatches sell.
 		"CUDAK", "POMOSTEK", "RZECZKA", "LEMONIADA", "ZAPIEKANKI"]
