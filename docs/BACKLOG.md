@@ -287,8 +287,9 @@ Built from photos gathered on the Mac (`refs/hotel_warszawa/`, `refs/cedet/`) an
 Built from photos gathered on the Mac (`refs/poniatowski/`, report `docs/landmarks/photo-reports/poniatowski.md`),
 spec `poniatowski.md`: the four tower groups (arcaded pavilions, 20 m shafts, south stair turrets) and the river
 spans (granite piers, steel arch ribs, red fascia, black railing, pier pedestals). Found and left:
-- Two of the five piers are estimates (on the east floodplain under trees), and the west span (~104 m) may hide a
-  pier near the west bank (photo 22): QUESTIONS.
+- 2026-11-03 (F's answer, the Mac's check of photos 22 and 1): 8 spans, 7 piers (`PN_PIERS`): the west-bank pier at
+  s 64 (estimate s ~58 ±8, moved to clear the promenade's footway and cycle path), the 7th at s 467. Three of the
+  seven (s 335.7, 411.6, 467) are floodplain estimates (±15 m) until a photo from the Wał Miedzeszyński side.
 - Not modelled: the small arcade beyond each shaft, the merlon scrolls and the insets over the arches, the
   bases' brick panels and balconies, the real tram catenary masts.
 - 2026-11-03: the Powiśle viaduct's arcade (`map_builder._build_powisle`: pilasters every ~19 m, segmental arches
@@ -298,6 +299,15 @@ spans (granite piers, steel arch ribs, red fascia, black railing, pier pedestals
   under the edges; the real arches' count and span, the spandrel ribs and whether the arches are open or
   filled in are not in the report (the photos stay on the Mac): QUESTIONS. Along Al. 3 Maja (s 296-430) the
   south arcade stands 3-5 m back under the deck, because the street runs under the deck's edge there.
+- 2026-11-03 (F's answer): the spandrel walls are gone. Each row is now 31 spans (the north row got piers at
+  s -19.1 and 404.5, measured clear): 4 beam spans by the west abutment on a 1.9 m steel girder, 27 open
+  reinforced-concrete arch ribs (1.6 m wide, 0.9 m deep at the crown to 1.8 m at the springings) with square
+  struts every ~3.2 m up to a 1.1 m steel edge girder with stiffeners (`_pv_span`). The 9 bays per row between
+  Kruczkowskiego's and Solec's pier buildings are closed by rendered walls 0.9 m behind the ribs with an arched
+  door and windows (solid; `_pv_infill`); five of them are parody bars (`PV_BARS`; storefronts.gd `VIADUKT`
+  neon, crowds.gd `VIADUKT` people, warm glass that glows at night, café tables with parasols). Open: which
+  spans and bays are really which, and the bars' real doors (QUESTIONS); a phone bench of the struts (each
+  strut is a box in the city mesh: +0 draw calls, ~+25k vertices).
 - The approaches between the towers have been lit since map round 2 (D7, `bake_lights` approach lamps); the
   night shots of 2026-11-03 show both abutments lit.
 
