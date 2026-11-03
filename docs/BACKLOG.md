@@ -56,6 +56,20 @@ experience". The plan, the road audit and the causes are in docs/GAMEPLAY_PLAN.m
 - [ ] 4.1 Running clubs read as a blue blob at crossings: mixed kit, pairs, spread out
 - [ ] 4.2 Varso Place masses from photos (the gap between the tower and Varso 1/2)
 
+## After the beta: driving extras and the city economy (F, 2026-11-03, plan only)
+
+F asked for research on arcade driving games and on business and economy games, for a layer after the
+beta: arrive broke, work, buy and run businesses (kebab stand, matcha bar, bistro, running club, a
+corner-shop parody that loses money), rent then buy cars and homes, end in a flat in Złota 44. Plan:
+`docs/design/city-economy.md`; designer summary: https://claude.ai/artifact/NR9RQ95srALR6rZ8GSF49h.
+Not before GAMEPLAY_PLAN phases 0-3. Role briefs for skills: `docs/roles/` (F adds them in claude.ai).
+- [ ] D1 driving extras: style tips on rides, traffic-light challenges, Sport-only drift, a 30-minute comfort playtest row
+- [ ] E1 game-day clock, save v3, bunk/room/studio, home spawn, car rental; `check_economy.gd`
+- [ ] E2 kebab stand, matcha bar, running club: tills, collection drives, managers, map icons
+- [ ] E3 levels with sign swaps, street sets, bistro, padel, Ropucha 24/7, inspector and influencer events
+- [ ] E4 the rival developer: bids and race takeovers
+- [ ] E5 Złota 44 endgame, penthouse postgame
+
 ## Landmarks from photos: Chmielna 89, "Piramida" (F, 2026-11-03, later)
 
 F: "PKO Piramida looks bad". Chmielna 89 (~80 m, 2021-22), the glass wedge on V-shaped steel legs by
