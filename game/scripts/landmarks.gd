@@ -879,10 +879,11 @@ func _find_sites() -> void:
 	_find_hortus()
 	_find_moderna()
 	# Plac Krasińskich (CITY_INVENTORY 22 and 79, 2026-11-02): the Uprising Monument and the palace.
+	# Sąd Najwyższy's colonnade (2026-11-02): green ribbed columns instead of OSM's white boxes.
+	# Found (and built) before the monument: its beams' cells would cover the monument's tap.
+	_find_sad_najwyzszy()
 	_find_pomnik_powstania()
 	_find_krasinski()
-	# Sąd Najwyższy's colonnade (2026-11-02): green ribbed columns instead of OSM's white boxes.
-	_find_sad_najwyzszy()
 	# Plac Zbawiciela (Marszałkowska street by street, 2026-11-01): the basilica, a model.
 	_find_zbawiciela()
 	# F's ask (2026-11-01): every church designed by the same rules (the church kit).
