@@ -3697,11 +3697,35 @@ const SURFACE_STYLE := {
 }
 
 
+## Paved surfaces that are really lawn (OpenStreetMap tags them `paving`): the Royal Castle's
+## Lower Garden's sunken lawn carpet (Ogród Dolny, restored 2019; GUGiK orthophoto and the
+## castle's photos, docs/landmarks/specs/zamek.md "Gardens"). Each is the outline's vertex mean.
+const LAWN_CARPETS := [Vector2(-484.6, -1614.6)]
+const LAWN_CARPET := "#78a84a"
+
+
+func _is_lawn_carpet(flat: Array) -> bool:
+	var c := Vector2.ZERO
+	var n := 0
+	for i in range(0, flat.size() - 1, 2):
+		c += Vector2(flat[i], flat[i + 1])
+		n += 1
+	if n == 0:
+		return false
+	c /= n
+	for at: Vector2 in LAWN_CARPETS:
+		if c.distance_to(at) < 3.0:
+			return true
+	return false
+
+
 ## Loop 3b-2: a surface the bake put on a bridge deck (`dk`: a bridge's pavement or tram bed,
 ## bake_roads.py level_surfaces) is laid on the deck; the rest on the ground's own triangles.
 func _build_surfaces(st) -> void:
 	for a in data.get("surfaces", []):
 		var style: Array = SURFACE_STYLE.get(a["k"], ["#cfc7b5", 0.0])
+		if a["k"] == "paving" and _is_lawn_carpet(a["p"]):
+			style = [LAWN_CARPET, style[1]]
 		_layer = float(style[1])
 		_dk = int(a.get("dk", -1))
 		if _dk >= 0:
@@ -3928,10 +3952,36 @@ const BARRIER_STYLE := {
 }
 
 
+## The Royal Castle's gardens map their fountain basins, the vases' round beds and the round
+## path nodes as small closed `wall` rings; drawn 1.9 m high they stood as grey drums. Inside
+## GARDEN_RINGS a closed wall ring under 6 m across is a low stone kerb instead.
+const GARDEN_RINGS := Rect2(-620.0, -1700.0, 190.0, 220.0)
+const GARDEN_RING := ["#d8d2c4", 0.3, 0.45]
+
+
+func _garden_ring(flat: Array) -> bool:
+	var n := flat.size() / 2
+	if n < 4 or not GARDEN_RINGS.has_point(Vector2(flat[0], flat[1])):
+		return false
+	var first := Vector2(flat[0], flat[1])
+	if first.distance_to(Vector2(flat[n * 2 - 2], flat[n * 2 - 1])) > 0.3:
+		return false
+	var c := Vector2.ZERO
+	for i in n - 1:
+		c += Vector2(flat[i * 2], flat[i * 2 + 1])
+	c /= n - 1
+	for i in n:
+		if c.distance_to(Vector2(flat[i * 2], flat[i * 2 + 1])) > 6.0:
+			return false
+	return true
+
+
 func _build_barriers(st) -> void:
 	_uv2 = Vector2(0.5, -1.0)
 	for l in data.get("lines", []):
 		var style: Array = BARRIER_STYLE.get(l["k"], ["#999999", 0.3, 1.0])
+		if l["k"] == "wall" and _garden_ring(l["p"]):
+			style = GARDEN_RING
 		# Loop 3b: a stop's platform is kerb height (0.25 m), not a wall: like the kerbs and
 		# islands, the car drives over it (check_drive.gd found buses brushing them).
 		_wall_along(st, _pts(l["p"]), float(style[1]), float(style[2]), Color(style[0]), l["k"] != "platform")

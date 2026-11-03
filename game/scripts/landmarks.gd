@@ -228,6 +228,9 @@ const INFO := {
 	"zamek": ["Zamek Królewski",
 			"Zniszczony w 1944 roku, odbudowany w latach 1971–1984.",
 			"Destroyed in 1944, rebuilt in 1971–1984."],
+	"arkady": ["Arkady Kubickiego i ogrody zamkowe",
+			"Arkady z 1821 roku, na nich Ogród Górny, niżej Ogród Dolny.",
+			"Kubicki's arcades of 1821, the Upper Garden on top, the Lower below."],
 	"barbakan": ["Barbakan",
 			"Ceglana brama dawnych murów miejskich, odbudowana po wojnie.",
 			"A brick gate of the old city walls, rebuilt after the war."],
@@ -900,6 +903,7 @@ func _find_sites() -> void:
 	_find_aleksander()
 	# The Barbican (2026-11-02): a model instead of a skin.
 	_find_barbakan()
+	_find_arkady()
 	# Powiśle's new flats (2026-11-02): Piano House and Cube House, models from their outlines.
 	_find_piano_house()
 	_find_cube_house()
@@ -1297,8 +1301,10 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_mark_zone(s)  # the mass stays LoD2's, in its skin; the portico is ours
 				_build_teatr(s)
 			"zamek":
-				_mark_zone(s)  # the mass stays LoD2's, in its skin; the stone plinth is ours
+				_mark_zone(s)  # the mass stays LoD2's, in its skin; the towers' helms, the Vistula front, the plinth are ours
 				_build_zamek(s)
+			"arkady":
+				_build_arkady(s)
 			"sw_krzyz":
 				_mark_zone(s)  # the mass stays LoD2's, in its skin; the facade and towers are ours
 				_build_krzyz(s)
@@ -2077,7 +2083,7 @@ func _build_palace(site: Dictionary) -> void:
 ## building.gdshader from the disc's UV (the point on the dial in radii, x to the right as
 ## seen from outside, y up, both minus 10 so the shader takes it for a roof) and show the
 ## time in Warsaw (main.gd sets `clock_hands` once a minute).
-func _dial(c: Vector2, y: float, n: Vector2, r: float) -> void:
+func _dial(c: Vector2, y: float, n: Vector2, r: float, face := Color("#f4ecd6"), ink := Color("#26232a")) -> void:
 	var side := Vector2(-n.y, n.x)
 	var n3 := Vector3(n.x, 0.0, n.y)
 	var centre := Vector3(c.x, y, c.y) + n3 * 0.05
@@ -2090,17 +2096,16 @@ func _dial(c: Vector2, y: float, n: Vector2, r: float) -> void:
 		var e1 := Vector3(side.x * cos(t1), sin(t1), side.y * cos(t1))
 		_quad(centre + e0 * r * 1.12, centre + e1 * r * 1.12, centre + e1 * r, centre + e0 * r, n3, GOLD)
 	_mode = M_DIAL
-	var face := centre + n3 * 0.04
+	var disc := centre + n3 * 0.04
 	# `side` points to the left of someone looking at the dial from outside.
 	for k in seg:
 		var t0 := TAU * k / seg
 		var t1 := TAU * (k + 1) / seg
-		_tri(face, face + Vector3(side.x * cos(t0), sin(t0), side.y * cos(t0)) * r,
-				face + Vector3(side.x * cos(t1), sin(t1), side.y * cos(t1)) * r, n3, Color("#f4ecd6"),
+		_tri(disc, disc + Vector3(side.x * cos(t0), sin(t0), side.y * cos(t0)) * r,
+				disc + Vector3(side.x * cos(t1), sin(t1), side.y * cos(t1)) * r, n3, face,
 				Vector2(-10, -10), Vector2(-cos(t0) - 10.0, sin(t0) - 10.0), Vector2(-cos(t1) - 10.0, sin(t1) - 10.0), -1.0)
 	_mode = M_STONE
-	var ink := Color("#26232a")
-	var front := face + n3 * 0.05
+	var front := disc + n3 * 0.05
 	for k in 12:
 		var t := TAU * k / 12.0
 		var dir := Vector3(side.x * cos(t), sin(t), side.y * cos(t))
@@ -3527,7 +3532,7 @@ func _sloped(poly: PackedVector2Array, y0: float, hi: float, lo: float, wall: Co
 ## windows between piers (plastered and stone fronts), M_STONE a plain wall (brick, the science
 ## centre's dark slabs). Colours from photographs, a step paler than life.
 const ZAMEK_WALL := "#cf9580"  # salmon plaster (was #c87560: it read brick-red and loud)
-const ZAMEK_ROOF := "#8d6350"  # reddish-brown tile (was #6e5a4e: it went near-black on the shaded slopes)
+const ZAMEK_ROOF := "#ad5c3f"  # terracotta tile (photos #c0502e, calmed; was #8d6350, read brown)
 const ZAMEK_STONE := Color("#e2d8c4")
 const SKINS := [
 	{"key": "teatr", "osm": "Teatr Wielki", "mode": M_MONUMENT, "wall": "#ddd2b6", "roof": "#7fa894"},
@@ -8437,10 +8442,14 @@ const TEATR_SCULPT := Color("#d9d2bf")
 const TEATR_COLS := [-11.9, -8.5, -5.1, -1.7, 1.7, 5.1, 8.5, 11.9]
 
 
-## The Royal Castle (Zamek Królewski): the mass stays LoD2's (its pentagon round the courtyard,
-## the Clock Tower, the Senate Tower), in salmon plaster; the model adds the pale stone plinth the
-## real walls stand on, run round the mapped outline a seventy centimetres proud of the wall and stepped
-## with the escarpment (spec docs/landmarks/specs/zamek.md).
+## The Royal Castle (Zamek Królewski). Pass 1 kept LoD2's mass in its skin and added the stone
+## plinth; pass 2 (2026-11-02, from 13 Commons photos and the GUGiK orthophoto, refs/zamek/ on the
+## Mac) adds what makes it read as the castle: the Clock Tower's shaft with its cream quoins, the
+## gate, the iron balcony, four clock dials, and its green copper helm with the lantern, a second
+## onion and the spire; the two square corner turrets of the west front with their bulbous caps;
+## the cream-white Vistula front over a rusticated ground floor with its cornice; the oval central
+## risalit with its copper dome and gilt figures; and the row of tubbed ball trees on the terrace
+## in front of it. Spec docs/landmarks/specs/zamek.md.
 func _build_zamek(site: Dictionary) -> void:
 	var ring: PackedVector2Array = site["zone"][0]
 	if ring.size() < 3:
@@ -8463,6 +8472,412 @@ func _build_zamek(site: Dictionary) -> void:
 			var b := p.lerp(q, float(k + 1) / steps) + out * 0.7
 			_g = minf(map.terrain_height(a.x, a.y), map.terrain_height(b.x, b.y))
 			_wall(a, b, _g - 1.0, _g + 2.2, out, ZAMEK_STONE, p.distance_to(a))
+	_zamek_vistula(ring)
+	_zamek_dome()
+	_zamek_clock_tower()
+	for c: Vector2 in ZAMEK_TURRETS:
+		_zamek_turret(c)
+	_zamek_tubs()
+
+
+## Pass 2's colours (the photos' hues, calmed to the palette) and places (the orthophoto and the
+## mapped parts, world x and z).
+const ZAMEK_CREAM := Color("#e6dbc0")     # quoins, cornices, the gate's surround, the lantern
+const ZAMEK_VISTULA := Color("#e9e1cf")   # the Vistula (Saxon) front, cream-white
+const ZAMEK_RUSTIC := Color("#cbb6a6")    # its rusticated ground floor, pinkish grey
+const ZAMEK_COPPER := Color("#6f9e86")    # the helms and the dome, green copper
+const ZAMEK_GILT := Color("#d6b04c")
+const ZAMEK_DIAL := Color("#1f2a3a")      # the clock faces: dark blue, gilt numerals
+const ZAMEK_IRON := Color("#2b2a2a")
+const ZAMEK_GATE := Color("#2f2a26")
+## The Clock Tower (Wieża Zegarowa) in the middle of the west front, and the front's way north.
+const ZAMEK_CLOCK := Vector2(-671.0, -1519.3)
+const ZAMEK_FRONT := Vector2(0.0605, -0.9982)
+## The square corner turrets at the two ends of the west front.
+const ZAMEK_TURRETS := [Vector2(-675.0, -1476.7), Vector2(-669.6, -1565.7)]
+## The courtyard (the ground the Vistula front's storeys count from) and that front's eave.
+const ZAMEK_YARD := Vector2(-632.0, -1517.0)
+const ZAMEK_EAVE := 17.0
+## The oval central risalit: a drum standing 1.5 m out of the front, and its dome.
+const ZAMEK_DOME := Vector2(-597.2, -1566.0)
+const ZAMEK_DOME_R := 7.0
+## The row of tubs on the terrace in front of the Vistula front, 7 m out, one every 4 m.
+const ZAMEK_TUBS := [Vector2(-590.4, -1580.2), Vector2(-572.4, -1530.2)]
+
+
+## The Vistula front: every edge of the outline facing east (x > -615): a rusticated ground floor
+## and two storeys of windows in cream-white, 0.35 m proud of the skin, to the eave, under a
+## cream cornice.
+func _zamek_vistula(ring: PackedVector2Array) -> void:
+	var yard: float = map.terrain_height(ZAMEK_YARD.x, ZAMEK_YARD.y)
+	var top := yard + ZAMEK_EAVE
+	var n := ring.size()
+	var run := 0.0
+	for i in n:
+		var p := ring[i]
+		var q := ring[(i + 1) % n]
+		if p.distance_to(q) < 0.4:
+			continue
+		var out := _out(ring, p, q)
+		if out.x < 0.55 or (p.x + q.x) * 0.5 < -615.0:
+			continue
+		var a := p + out * 0.35
+		var b := q + out * 0.35
+		var foot: float = minf(map.terrain_height(a.x, a.y), map.terrain_height(b.x, b.y))
+		_g = yard
+		_mode = M_MONUMENT
+		_wall(a, b, minf(foot, yard) - 0.5, yard + 4.6, out, ZAMEK_RUSTIC, run)
+		_wall(a, b, yard + 4.6, top, out, ZAMEK_VISTULA, run)
+		_mode = M_STONE
+		_wall(a + out * 0.05, b + out * 0.05, yard + 4.4, yard + 4.8, out, ZAMEK_CREAM, run)
+		_wall(p + out * 0.75, q + out * 0.75, top - 0.2, top + 0.7, out, ZAMEK_CREAM, run)
+		_ledge(a, b, p + out * 0.75, q + out * 0.75, top + 0.7, ZAMEK_CREAM)
+		run += p.distance_to(q)
+
+
+## A flat strip between two parallel segments (a cornice's top), through `_cap` so the strips of
+## two edges meeting at a corner don't overlap (z-fight).
+func _ledge(a: Vector2, b: Vector2, c: Vector2, d: Vector2, y: float, col: Color) -> void:
+	var quad := PackedVector2Array([a, b, d, c])
+	if Geometry2D.is_polygon_clockwise(quad):
+		quad.reverse()
+	_cap(quad, y, col)
+
+
+## The oval central risalit of the Vistula front: a drum of windows to above the eave, a cornice,
+## a green copper dome with a lantern and a gilt ball, and three gilt figure groups on its rim.
+func _zamek_dome() -> void:
+	_o = Vector2.ZERO
+	_a = Vector2(1, 0)
+	_b = Vector2(0, 1)
+	var yard: float = map.terrain_height(ZAMEK_YARD.x, ZAMEK_YARD.y)
+	var top := yard + ZAMEK_EAVE
+	_g = yard
+	var c := ZAMEK_DOME
+	var r := ZAMEK_DOME_R
+	_prism(_circle(c, r, 12), yard - 0.5, top + 1.2, ZAMEK_VISTULA, Color(0, 0, 0, 0), M_MONUMENT)
+	_prism(_circle(c, r + 0.4, 12), top + 1.2, top + 2.0, ZAMEK_CREAM, ZAMEK_CREAM, M_STONE, M_STONE)
+	_mode = M_STONE
+	var prof := [[r - 0.2, 2.0], [r - 0.8, 3.6], [r - 2.4, 5.4], [r - 4.6, 6.6], [1.0, 7.1]]
+	for k in prof.size() - 1:
+		_frustum(_circle(c, float(prof[k][0]), 12), top + float(prof[k][1]), _circle(c, float(prof[k + 1][0]), 12),
+				top + float(prof[k + 1][1]), ZAMEK_COPPER.lightened(0.03 * k), ZAMEK_COPPER)
+	_prism(_circle(c, 0.9, 6), top + 7.1, top + 8.6, ZAMEK_CREAM, Color(0, 0, 0, 0), M_STONE)
+	_frustum(_circle(c, 1.1, 6), top + 8.6, _circle(c, 0.15, 6), top + 9.6, ZAMEK_COPPER)
+	_prism(_circle(c + Vector2(0.0, 0.0), 0.35, 6), top + 9.6, top + 10.3, ZAMEK_GILT, ZAMEK_GILT, M_STONE, M_STONE)
+	# the figure groups on the rim, facing the river
+	var face := Vector2(0.93, -0.36)
+	for turn: float in [-0.7, 0.0, 0.7]:
+		var at := c + face.rotated(turn) * (r - 0.1)
+		_prism(_square(at, 0.45), top + 2.0, top + 4.1, ZAMEK_GILT.darkened(0.08), ZAMEK_GILT, M_STONE, M_STONE)
+
+
+## The Clock Tower: the shaft (0.3 m proud of the mapped one) with cream quoins and string
+## courses, the gate to the courtyard, the iron balcony two thirds up, a dial on every face, the
+## cornice with a gilt frieze, then the helm: the copper onion, the open lantern, a second onion,
+## the spire with two gilt balls and a flag (56 m).
+func _zamek_clock_tower() -> void:
+	_o = ZAMEK_CLOCK
+	_a = ZAMEK_FRONT
+	_b = Vector2(_a.y, -_a.x)  # out of the front, west to Plac Zamkowy
+	var sq := _w(0.0, 9.0)
+	var g: float = map.terrain_height(sq.x, sq.y)
+	_g = g
+	var wall := Color(ZAMEK_WALL)
+	var h := 4.6
+	_lbox(0.0, 0.0, h, h, g - 0.6, g + 29.5, wall, M_MONUMENT, wall)
+	for su: float in [-1.0, 1.0]:
+		for sv: float in [-1.0, 1.0]:
+			_lbox(su * h, sv * h, 0.45, 0.45, g + 0.3, g + 29.5, ZAMEK_CREAM, M_STONE, ZAMEK_CREAM)
+	for y: float in [12.6, 19.0]:
+		_lbox(0.0, 0.0, h + 0.2, h + 0.2, g + y, g + y + 0.45, ZAMEK_CREAM, M_STONE, ZAMEK_CREAM)
+	# the gate: a cream rusticated surround, the dark passage
+	_mode = M_STONE
+	_wall(_w(-2.8, h + 0.05), _w(2.8, h + 0.05), g - 0.3, g + 6.4, _b, ZAMEK_CREAM)
+	_wall(_w(-2.0, h + 0.1), _w(2.0, h + 0.1), g - 0.3, g + 5.0, _b, ZAMEK_GATE)
+	_lbox(0.0, h + 0.15, 0.7, 0.15, g + 5.4, g + 6.2, ZAMEK_GILT, M_STONE, ZAMEK_GILT)
+	# the balcony on the square's side
+	_lbox(0.0, h + 0.7, 2.4, 0.7, g + 19.6, g + 19.85, ZAMEK_IRON, M_STONE, ZAMEK_IRON)
+	_lbox(0.0, h + 1.38, 2.4, 0.02, g + 19.85, g + 20.8, ZAMEK_IRON, M_STONE, ZAMEK_IRON)
+	# the dials, one on each face
+	for f: Vector2 in [Vector2(0, 1), Vector2(0, -1), Vector2(1, 0), Vector2(-1, 0)]:
+		var nrm := _a * f.x + _b * f.y
+		_dial(_w(f.x * (h + 0.02), f.y * (h + 0.02)), g + 24.0, nrm, 1.7, ZAMEK_DIAL, ZAMEK_GILT)
+	_lbox(0.0, 0.0, h + 0.4, h + 0.4, g + 29.5, g + 30.3, ZAMEK_CREAM, M_STONE, ZAMEK_CREAM)
+	_lbox(0.0, 0.0, h + 0.15, h + 0.15, g + 30.3, g + 30.7, ZAMEK_GILT, M_STONE, ZAMEK_GILT)
+	# the helm
+	var c := ZAMEK_CLOCK
+	_mode = M_STONE
+	var prof := [[4.4, 30.7], [4.4, 32.0], [5.0, 33.6], [4.6, 35.2], [3.2, 37.0], [1.9, 38.4]]
+	for k in prof.size() - 1:
+		_frustum(_circle(c, float(prof[k][0]), 8), g + float(prof[k][1]), _circle(c, float(prof[k + 1][0]), 8),
+				g + float(prof[k + 1][1]), ZAMEK_COPPER.lightened(0.03 * k), ZAMEK_COPPER)
+	_prism(_circle(c, 1.8, 8), g + 38.4, g + 42.0, ZAMEK_CREAM, Color(0, 0, 0, 0), M_MONUMENT)
+	_prism(_circle(c, 2.05, 8), g + 42.0, g + 42.4, ZAMEK_CREAM, ZAMEK_COPPER, M_STONE, M_STONE)
+	_mode = M_STONE
+	var cap := [[1.6, 42.4], [2.1, 43.4], [1.6, 44.6], [0.6, 45.8], [0.2, 46.4]]
+	for k in cap.size() - 1:
+		_frustum(_circle(c, float(cap[k][0]), 8), g + float(cap[k][1]), _circle(c, float(cap[k + 1][0]), 8),
+				g + float(cap[k + 1][1]), ZAMEK_COPPER, ZAMEK_COPPER)
+	_prism(_circle(c, 0.14, 4), g + 46.4, g + 55.6, ZAMEK_COPPER, ZAMEK_COPPER, M_STONE, M_STONE)
+	for y: float in [49.6, 55.6]:
+		_prism(_circle(c, 0.42, 6), g + y, g + y + 0.75, ZAMEK_GILT, ZAMEK_GILT, M_STONE, M_STONE)
+	_wall(c + _a * 0.15, c + _a * 1.6, g + 53.6, g + 54.6, _b, ZAMEK_COPPER)
+	_wall(c + _a * 1.6, c + _a * 0.15, g + 53.6, g + 54.6, -_b, ZAMEK_COPPER)
+	_o = ZAMEK_CLOCK
+	_collide(_rect(0.0, 0.0, h, h))
+
+
+## A corner turret of the west front: a square shaft out of the roof with cream quoins, a
+## cornice, a bulbous copper cap, a small open lantern, a cap and a spire with a gilt ball (31 m).
+func _zamek_turret(c: Vector2) -> void:
+	_o = c
+	_a = ZAMEK_FRONT
+	_b = Vector2(_a.y, -_a.x)
+	var sq := _w(0.0, 7.0)
+	var g: float = map.terrain_height(sq.x, sq.y)
+	_g = g
+	var wall := Color(ZAMEK_WALL)
+	_lbox(0.0, 0.0, 2.25, 2.25, g - 0.5, g + 20.5, wall, M_MONUMENT, wall)  # from the ground, inside the mass
+	for su: float in [-1.0, 1.0]:
+		for sv: float in [-1.0, 1.0]:
+			_lbox(su * 2.25, sv * 2.25, 0.3, 0.3, g + 11.0, g + 20.5, ZAMEK_CREAM, M_STONE, ZAMEK_CREAM)
+	_lbox(0.0, 0.0, 2.55, 2.55, g + 20.5, g + 21.1, ZAMEK_CREAM, M_STONE, ZAMEK_CREAM)
+	_mode = M_STONE
+	var prof := [[2.1, 21.1], [2.6, 22.3], [2.2, 23.4], [1.2, 24.5], [0.75, 25.0]]
+	for k in prof.size() - 1:
+		_frustum(_circle(c, float(prof[k][0]), 8), g + float(prof[k][1]), _circle(c, float(prof[k + 1][0]), 8),
+				g + float(prof[k + 1][1]), ZAMEK_COPPER.lightened(0.03 * k), ZAMEK_COPPER)
+	_prism(_circle(c, 0.7, 6), g + 25.0, g + 26.6, ZAMEK_CREAM, Color(0, 0, 0, 0), M_STONE)
+	_frustum(_circle(c, 0.9, 6), g + 26.6, _circle(c, 0.15, 6), g + 28.2, ZAMEK_COPPER)
+	_prism(_circle(c, 0.08, 4), g + 28.2, g + 30.6, ZAMEK_COPPER, ZAMEK_COPPER, M_STONE, M_STONE)
+	_prism(_circle(c, 0.3, 6), g + 29.2, g + 29.8, ZAMEK_GILT, ZAMEK_GILT, M_STONE, M_STONE)
+
+
+## The tubs of the Upper Garden's terrace (Krajobraz's design: "a row of tubs with spherical trees
+## marks the terrace edges"): one every 4 m along the Vistula front.
+func _zamek_tubs() -> void:
+	_o = Vector2.ZERO
+	_a = Vector2(1, 0)
+	_b = Vector2(0, 1)
+	var a: Vector2 = ZAMEK_TUBS[0]
+	var b: Vector2 = ZAMEK_TUBS[1]
+	var n := maxi(int(a.distance_to(b) / 4.0), 1)
+	for k in n + 1:
+		var p := a.lerp(b, float(k) / n)
+		_tub(p, float(map.terrain_height(p.x, p.y)), k)
+
+
+## A garden tub with a ball-headed tree (a clipped maple on a bare stem): a painted barrel with a
+## white rim, the stem, the ball.
+const TUB_PAINT := [Color("#b8473a"), Color("#4c6b4a"), Color("#4c6b4a")]
+const TUB_RIM := Color("#efece4")
+const TUB_LEAF := Color("#4f7f36")
+const TUB_BARK := Color("#5a4636")
+
+
+func _tub(p: Vector2, g: float, k: int) -> void:
+	_g = g
+	var none := Color(0, 0, 0, 0)
+	_prism(_square(p, 0.45), g, g + 0.6, TUB_PAINT[k % TUB_PAINT.size()], none, M_STONE)
+	_prism(_square(p, 0.48), g + 0.6, g + 0.78, TUB_RIM, TUB_BARK, M_STONE, M_STONE)
+	_prism(_square(p, 0.06), g + 0.78, g + 2.0, TUB_BARK, none, M_STONE)
+	_mode = M_STONE
+	_frustum(_circle(p, 0.35, 6), g + 1.9, _circle(p, 0.78, 6), g + 2.45, TUB_LEAF.darkened(0.08))
+	_frustum(_circle(p, 0.78, 6), g + 2.45, _circle(p, 0.32, 6), g + 3.05, TUB_LEAF, TUB_LEAF.lightened(0.06))
+
+
+# --- Arkady Kubickiego and the castle gardens ---------------------------------------------------
+
+## Kubicki's Arcades (Jakub Kubicki, 1818-1821) under the castle's Vistula terrace, and the gardens
+## Ogród Park Krajobraz restored on and below them (krajobraz.com.pl/projekt/zamek-krolewski: the
+## Upper Garden on the arcades' vault, 2015; the Lower Garden down to Wisłostrada, 2019). The
+## mapped building stood as a grey box; the model is the arcade wall facing the Lower Garden in
+## terracotta plaster with cream-ringed round arches every 12 m, a cream cornice and an iron
+## railing, the white stone portal block in the middle, and the Upper Garden's lawn on its top at
+## the terrace's level; then tubbed ball trees along the terrace edge and white vases on pedestals
+## round the Lower Garden's sunken lawn carpet (its grass is map_builder's LAWN_CARPETS). The
+## gardens' hedges, paths and flowerbeds are the map's own; the fountains are park_details'.
+## Spec docs/landmarks/specs/zamek.md "Gardens".
+const ARK_PLASTER := Color("#c8693f")
+const ARK_STONE := Color("#e4dfd2")
+const ARK_LAWN := Color("#74a24c")
+const ARK_DARK := Color("#3a2c26")
+const ARK_GRAVEL := Color("#cfcbc0")
+const ARK_WATER := Color("#5ea8d8")
+## The Upper Garden's big fountain (a tulip bowl in a round basin), on the vault.
+const ARK_FOUNTAIN := Vector2(-556.8, -1585.8)
+## The portal block's middle (the mapped outline's bump on its east side).
+const ARK_PORTAL := Vector2(-546.9, -1590.0)
+## The Lower Garden's white vases, both long sides of the lawn carpet: on the round beds the map
+## has there (map_builder draws their rings low, GARDEN_RINGS).
+const ARK_VASES := [Vector2(-520.4, -1580.7), Vector2(-507.6, -1585.8), Vector2(-492.3, -1591.9),
+		Vector2(-478.1, -1597.4), Vector2(-463.5, -1603.2), Vector2(-449.0, -1608.9), Vector2(-534.4, -1614.5),
+		Vector2(-521.6, -1619.5), Vector2(-506.2, -1625.6), Vector2(-492.0, -1631.2), Vector2(-477.5, -1637.0),
+		Vector2(-462.8, -1642.7)]
+## Fountains on the ground (in the map's basin rings): the Upper Garden's small one by the castle
+## and the one in the Lower Garden's west hedge quarter; centre, water radius.
+const ARK_POOLS := [[Vector2(-585.5, -1574.5), 1.0], [Vector2(-537.5, -1656.4), 2.0]]
+## The site's reach: the arcades and both gardens (the sectors build what lies in it).
+const ARK_BOX := Rect2(-612.0, -1700.0, 162.0, 215.0)
+
+
+func _find_arkady() -> void:
+	var outline := _landmark("Arkady Kubickiego")
+	if outline.size() < 3:
+		return
+	_add_site("arkady", [outline])
+	if not sites.is_empty() and sites[-1]["key"] == "arkady":
+		sites[-1]["box"] = (sites[-1]["box"] as Rect2).merge(ARK_BOX)
+
+
+func _build_arkady(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["zone"][0]
+	if ring.size() < 3:
+		return
+	_o = Vector2.ZERO
+	_a = Vector2(1, 0)
+	_b = Vector2(0, 1)
+	var n := ring.size()
+	# the two levels: the Lower Garden at the wall's foot, the terrace on its top
+	var low := INF
+	var up := -INF
+	for i in n:
+		var p := ring[i]
+		var q := ring[(i + 1) % n]
+		if p.distance_to(q) < 0.5:
+			continue
+		var out := _out(ring, p, q)
+		var m := (p + q) * 0.5
+		if out.x > 0.3:
+			low = minf(low, map.terrain_height(m.x + out.x * 3.0, m.y + out.y * 3.0))
+		elif out.x < -0.3:
+			up = maxf(up, map.terrain_height(m.x + out.x * 6.0, m.y + out.y * 6.0))
+	if low == INF:
+		low = _ground_under(ring)
+	if up == -INF:
+		up = low
+	var top := maxf(up + 0.15, low + 7.5)
+	_g = low
+	var run := 0.0
+	for i in n:
+		var p := ring[i]
+		var q := ring[(i + 1) % n]
+		var len := p.distance_to(q)
+		if len < 0.3:
+			continue
+		var out := _out(ring, p, q)
+		var foot: float = minf(map.terrain_height(p.x + out.x, p.y + out.y), map.terrain_height(q.x + out.x, q.y + out.y)) - 0.5
+		var portal := ((p + q) * 0.5).distance_to(ARK_PORTAL) < 9.5
+		var face := ARK_STONE if portal else ARK_PLASTER
+		_mode = M_STONE
+		_wall(p, q, foot, top - 0.7, out, face if out.x > 0.3 else ARK_PLASTER.darkened(0.06), run)
+		_wall(p + out * 0.25, q + out * 0.25, top - 0.7, top, out, ARK_STONE, run)
+		_ledge(p, q, p + out * 0.25, q + out * 0.25, top, ARK_STONE)
+		if out.x > 0.3:
+			# the arches: round-headed, ringed in cream, one every 12 m (a big one in the portal)
+			if portal and len > 4.0:
+				_ark_arch(p, q, out, len * 0.5, 3.5, foot + 0.5, minf(top - 1.2, foot + 6.8))
+			elif len >= 8.0:
+				var count := maxi(floori(len / 12.0), 1)
+				for k in count:
+					_ark_arch(p, q, out, (k + 0.5) * len / count, 3.0, foot + 0.5, minf(top - 1.5, foot + 5.5))
+			# the railing on the edge, a post at each end
+			var ra := p + out * 0.1
+			var rb := q + out * 0.1
+			for post: Vector2 in [ra, rb]:
+				_prism(_square(post, 0.05), top, top + 1.0, ZAMEK_IRON, ZAMEK_IRON, M_STONE, M_STONE)
+			for side: float in [1.0, -1.0]:
+				_wall(ra if side > 0.0 else rb, rb if side > 0.0 else ra, top + 0.9, top + 1.0, out * side, ZAMEK_IRON)
+				_wall(ra if side > 0.0 else rb, rb if side > 0.0 else ra, top, top + 0.12, out * side, ZAMEK_IRON)
+		run += len
+	# the Upper Garden on the vault: where the terrain has no terrace (the cloud's flat ground) the
+	# vault gets a lawn of its own; the gravel walk along the edge always (it hides the terrain's
+	# slope down to the wall's top)
+	if top > up + 1.0:
+		_cap(ring, top + 0.01, ARK_LAWN)
+	for i in n:
+		var p := ring[i]
+		var q := ring[(i + 1) % n]
+		if p.distance_to(q) < 0.3:
+			continue
+		var out := _out(ring, p, q)
+		if out.x > 0.3:
+			_ledge(p, q, p - out * 3.5, q - out * 3.5, top + 0.06, ARK_GRAVEL)
+	_ark_fountain(ARK_FOUNTAIN, top)
+	# tubs along the terrace edge, 3 m in from the railing, one every 10 m
+	var tub_k := 0
+	for i in n:
+		var p := ring[i]
+		var q := ring[(i + 1) % n]
+		var len := p.distance_to(q)
+		var out := _out(ring, p, q)
+		if out.x <= 0.3 or len < 10.0 or ((p + q) * 0.5).distance_to(ARK_PORTAL) < 9.5:
+			continue
+		var count := floori(len / 10.0)
+		for j in count:
+			var t := (j + 0.5) / count
+			_tub(p.lerp(q, t) - out * 3.0, top, tub_k)
+			tub_k += 1
+	# the Lower Garden's vases round the lawn carpet, the fountains' water
+	for v: Vector2 in ARK_VASES:
+		_vase(v, float(map.terrain_height(v.x, v.y)))
+	for pool: Array in ARK_POOLS:
+		var pc: Vector2 = pool[0]
+		var pr: float = pool[1]
+		var py: float = map.terrain_height(pc.x, pc.y)
+		_g = py
+		_cap(_circle(pc, pr, 10), py + 0.38, ARK_WATER)
+		_prism(_circle(pc, 0.07, 4), py + 0.38, py + 1.6, ARK_WATER.lightened(0.5), ARK_WATER.lightened(0.6), M_STONE, M_STONE)
+	_g = low
+	_collide(ring)
+
+
+## A round-headed arch on the wall p→q: a cream ring and the dark opening inside it, `at` metres
+## along the wall, half as wide as `half`, from y0 to the crown at y1 (the head a half circle).
+func _ark_arch(p: Vector2, q: Vector2, out: Vector2, at: float, half: float, y0: float, y1: float) -> void:
+	var d := (q - p).normalized()
+	var mid := p + d * at
+	var n3 := Vector3(out.x, 0.0, out.y)
+	for layer in 2:
+		var push := 0.04 if layer == 0 else 0.08
+		var hw := half + 0.45 if layer == 0 else half
+		var crown := y1 + 0.45 if layer == 0 else y1
+		var col := ARK_STONE if layer == 0 else ARK_DARK
+		var spring := crown - hw
+		var l := mid - d * hw + out * push
+		var r := mid + d * hw + out * push
+		_quad(Vector3(l.x, y0, l.y), Vector3(r.x, y0, r.y), Vector3(r.x, spring, r.y), Vector3(l.x, spring, l.y), n3, col)
+		var c := Vector3(mid.x + out.x * push, spring, mid.y + out.y * push)
+		var seg := 6
+		for s in seg:
+			var t0 := PI * s / seg
+			var t1 := PI * (s + 1) / seg
+			var e0 := Vector3(d.x * cos(t0), sin(t0), d.y * cos(t0)) * hw
+			var e1 := Vector3(d.x * cos(t1), sin(t1), d.y * cos(t1)) * hw
+			_tri(c, c + e0, c + e1, n3, col, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+
+
+## The Upper Garden's fountain: a round stone basin 6 m across with its water, a tulip bowl on a
+## stem in the middle, a jet.
+func _ark_fountain(c: Vector2, y: float) -> void:
+	_g = y
+	_prism(_circle(c, 3.6, 10), y, y + 0.15, ARK_GRAVEL.darkened(0.05), ARK_GRAVEL, M_STONE, M_STONE)
+	_prism(_circle(c, 3.1, 10), y + 0.15, y + 0.6, ARK_STONE, ARK_STONE, M_STONE, M_STONE)
+	_cap(_circle(c, 2.8, 10), y + 0.62, ARK_WATER)
+	_mode = M_STONE
+	_frustum(_circle(c, 0.25, 6), y + 0.6, _circle(c, 0.3, 6), y + 1.3, ARK_STONE)
+	_frustum(_circle(c, 0.3, 8), y + 1.3, _circle(c, 1.1, 8), y + 1.8, ARK_STONE, ARK_WATER)
+	_prism(_circle(c, 0.07, 4), y + 1.8, y + 2.7, ARK_WATER.lightened(0.5), ARK_WATER.lightened(0.6), M_STONE, M_STONE)
+
+
+## A white garden vase on a square pedestal.
+func _vase(p: Vector2, g: float) -> void:
+	_g = g
+	_prism(_square(p, 0.32), g - 0.1, g + 1.0, ARK_STONE.darkened(0.04), ARK_STONE, M_STONE, M_STONE)
+	_mode = M_STONE
+	_frustum(_circle(p, 0.16, 6), g + 1.0, _circle(p, 0.4, 6), g + 1.5, ARK_STONE)
+	_frustum(_circle(p, 0.4, 6), g + 1.5, _circle(p, 0.3, 6), g + 1.85, ARK_STONE, ARK_DARK.lightened(0.2))
 
 
 ## The Barbican (Barbakan; Gianbattista of Venice's brick outwork of 1548 in front of the Nowomiejska
