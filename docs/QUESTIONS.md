@@ -281,7 +281,11 @@ Newest first. One entry per question.
   0/100/220/340/480/640 and 850 (was ... 850 and 1100) so the final comes in about an hour, an
   estimate from the pay tables. Default built: that. To check: F times a fresh save on the phone;
   whether the on-screen edge arrow should also show the star, and whether a short goal line belongs
-  on the driving screen (today it is on the full map only).
+  on the driving screen (today it is on the full map only). **Default built 2026-11-03**
+  (`main_nudge.gd`): both, as a nudge rather than a fixture: the goal line is a toast when the
+  step changes, the gold "★ N m" edge arrow shows for 25 s then and after every 150 s of free
+  driving, never over another target. Alternatives: the arrow always on while free, or a goal
+  chip under the minimap; the timings are for F's run on the phone.
 
 - **2026-10-31 · gameplay · the game map** — Teleport: free and unlimited, by holding a spot for
   0.6 s; refused during a race, a job, a rescue, a police chase and the first-drive guide. The

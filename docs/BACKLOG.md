@@ -1339,8 +1339,17 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   the minimap (pinned to the rim at any distance) and the full map (a goal card under the title, a
   legend); side quests keep a ringed dot in their colour and the start squares (now on the full map
   too); the ladder's gates lowered to 0/100/220/340/480/640/850 for a ~1 h main line.
-  Left: a timed fresh-save run on the phone (the hour is an estimate); the edge arrow on the screen
-  could carry the star too; maybe a short goal line on the driving screen (QUESTIONS.md).
+  Left: a timed fresh-save run on the phone (the hour is an estimate). ~~The edge arrow on the
+  screen could carry the star too; maybe a short goal line on the driving screen~~ Done
+  (2026-11-03, `main_nudge.gd`): when the step changes (the guide ends, a rung is beaten, the
+  final opens) a goal line toast "★ Znajdź i mrugnij: …" 4 s later, and for 25 s the screen-edge
+  arrow in the main line's gold ("★ 2489 m") to the next rival or, at night, the final's start;
+  it comes back for 25 s after every 150 s of free driving. Only while nothing else is on (job,
+  race, rescue, ride, quest pin, guide hint); held on the title, in camera moments and in Spacer;
+  hidden while flying (the races are car quests). Found on the way and fixed: the screen-edge
+  arrow (any target's) could sit under the minimap, the wallet or the pedals; it now slides along
+  the edge clear of them (`check_hud`, fails on the old code at 3 screen sizes). Left: the phone
+  feel (is 150 s right, is the toast enough of a goal line).
 
 ## High priority: landmark and skyscraper models (the user, 2026-10-30)
 - **Złota 44 rebuilt from F's photos** (2026-11-02, spec `docs/landmarks/specs/zlota44.md`):
