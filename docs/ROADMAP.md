@@ -140,6 +140,15 @@ then the Launch gate.
 - [x] Junction lines checked against photos (Mac, 2026-11-03, 0.1 m GUGiK crops): the guide dashes and hatch
       edges are real; the defect was grass medians laid across junctions: 29 short pieces now painted as
       hatched areas (`bake_roads.py` `_median_in_junction`, check_streets S5 119 → 90)
+- [x] Open courtyards from above (F, 2026-11-03): the GUGiK blocks already show their courts; the
+      hand-built Ministry of Finance, National Museum and Hotel Bristol now cut theirs out too (187 courts
+      traced from the LoD2 roofs, `tools/bake_courts.py`, `game/data/courts.json`, verify step `courts`)
+  - [ ] OSM-only buildings (no LoD2 model) keep a multipolygon's outer ring only: bake_osm to keep the
+        inner rings and map_builder to draw them (a Mac re-bake; BACKLOG "Open courtyards")
+  - [x] Hotel Europejski's courtyard: its LoD2 (2018, mid-renovation) is roofed over; the photo rebuild
+        (PR #402) hand-models the court, so "europejski" stays out of `COURT_SITES`
+- [ ] Grow the map north-east to take in Koneser, Park Fontann and Ząbkowska (F, 2026-11-03: not now,
+      backlog only; QUESTIONS 2026-11-02 and 2026-11-03)
 
 ### Left: landmarks and street details
 - [x] City inventory, street by street (F, 2026-11-02): every characteristic place in the box ranked S/A/B
