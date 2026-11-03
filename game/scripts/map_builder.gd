@@ -2615,6 +2615,23 @@ func top_height(x: float, z: float, radius := 0.0) -> float:
 const _SPREAD := [-1.0, 0.0, 1.0]
 
 
+## The tallest roof in the square `reach` m round (x, z), read every 8 m of the roof grid (or the
+## ground's height there when nothing stands): the helicopter's height cap (heli.gd `ceiling_at`).
+func tallest_near(x: float, z: float, reach: float) -> float:
+	var top := ground_height(x, z)
+	if _roof_nx <= 0 or _roof_nz <= 0:
+		return top
+	var i0 := clampi(floori((x - reach - _roof_x0) / ROOF_CELL), 0, _roof_nx - 1)
+	var i1 := clampi(floori((x + reach - _roof_x0) / ROOF_CELL), 0, _roof_nx - 1)
+	var j0 := clampi(floori((z - reach - _roof_z0) / ROOF_CELL), 0, _roof_nz - 1)
+	var j1 := clampi(floori((z + reach - _roof_z0) / ROOF_CELL), 0, _roof_nz - 1)
+	for j in range(j0, j1 + 1, 2):
+		var row := j * _roof_nx
+		for i in range(i0, i1 + 1, 2):
+			top = maxf(top, _roof[row + i])
+	return top
+
+
 ## The landmark (an index into landmark_info, or -1) a ray from the camera meets first:
 ## it walks the ray in 1 m steps against the roof grid (whatever stands in a cell is
 ## treated as filling it up to its top) and the ground.
