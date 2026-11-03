@@ -10,7 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-03
-- Bracka has its two department stores: the dark stone Vipkac with a glass top floor and trees on its roof terrace, and the 1914 Jabłkowski Brothers' store with arched shop windows and two white columns at the door; by Plac Trzech Krzyży the white banded Szeraton hotel stands with its glass drum and name crown on the corner.
+- Bracka has its two department stores: the dark stone Vipkac with a glass top floor and trees on its roof terrace, and the 1914 Jabłkowski Brothers' store with arched shop windows and two white columns at the door; by Plac Trzech Krzyży the white banded Szeraton hotel stands with its glass drum and name crown on the corner. Next to Vipkac, the grey granite bank building of 1931 fills the Jerozolimskie corner by Nowy Świat, with its gilded monogram over the middle.
 - The website now leads with the beta: join on iPhone through TestFlight, or request Android access with a short form. The open-source story moved to the footer and a quieter "How it's made" section.
 - With colour-safe markers on (Settings, accessibility), race rings are now chequered like a finish line and a rescue pickup's ring is dashed, so you can tell them apart without relying on colour.
 - Praga's old streets get evenings: six neon bar signs (ŚWIAT PO PRASKU, BARISTA Z PODWÓRKA, WINO ZE SKRZYNKI, KRAINA WINA, KIJOWSKA DWÓJKA, POD KUFLEM ZA ROGIEM) around Okrzei, Wrzesińska, Kijowska and Targowa, and people outside with a drink after dark.

@@ -63,6 +63,7 @@ const BUDGET := {
 	"vitkac": 1400,
 	"jablkowscy": 1450,
 	"sheraton": 2400,
+	"bgk": 2700,
 	"hotel_kasztel": 330,
 	"hotel_canaletto": 330,
 	"hotel_starowka": 330,

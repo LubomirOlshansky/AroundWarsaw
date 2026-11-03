@@ -516,6 +516,9 @@ const INFO := {
 	"jablkowscy": ["Dom Towarowy Braci Jabłkowskich",
 			"Bracka 25, 1914: secesja, łuki witryn i dwie kolumny przy wejściu.",
 			"Bracka 25, 1914: Art Nouveau, arched windows, two columns at the door."],
+	"bgk": ["Gmach Banku Gospodarstwa Krajowego",
+			"Al. Jerozolimskie 7, 1928–31: kamienny gmach Rudolfa Świerczyńskiego.",
+			"Al. Jerozolimskie 7, 1928–31: Rudolf Świerczyński's granite bank."],
 	"sheraton": ["Szeraton Grand",
 			"Hotel przy placu Trzech Krzyży: pasy na fasadzie, wieża na rogu.",
 			"A hotel on Plac Trzech Krzyży: banded fronts, a drum on the corner."],
@@ -733,6 +736,8 @@ static func tower_colour(key: String, fallback: Color) -> Color:
 		return JAB_WALL
 	if key == "sheraton":
 		return SHER_WHITE
+	if key == "bgk":
+		return BGK_STONE
 	if key == "florian":
 		return FL_BRICK
 	if key == "mpw":
@@ -962,6 +967,8 @@ func _find_sites() -> void:
 	_find_krasinski()
 	# Bracka and Plac Trzech Krzyży (CITY_INVENTORY 80-82, 2026-11-03): Vitkac, Jabłkowski's, the Sheraton.
 	_find_bracka()
+	# The BGK building next to Vitkac (F, 2026-11-03), from the Mac photo gather.
+	_find_bgk()
 	# Plac Zbawiciela (Marszałkowska street by street, 2026-11-01): the basilica, a model.
 	_find_zbawiciela()
 	# F's ask (2026-11-01): every church designed by the same rules (the church kit).
@@ -1507,6 +1514,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_jablkowscy(s)
 			"sheraton":
 				_build_sheraton(s)
+			"bgk":
+				_build_bgk(s)
 			"krolewska":
 				pass  # a skin with no card: drawn by the builder, not on the picking grid
 			_:
@@ -19849,3 +19858,121 @@ func _build_pasta(site: Dictionary) -> void:
 		var seg: Array = line[k]
 		var d := 0.06 * (k % 2)  # every other stroke a little forward, so joints do not z-fight
 		_beam(pt.call(seg[0], seg[1], d), pt.call(seg[2], seg[3], d), 0.28, KP_GOLD)
+
+
+# --- Gmach Banku Gospodarstwa Krajowego (photo report, 2026-11-03) --------------------------------
+
+## The BGK building, Al. Jerozolimskie 7 (Rudolf Świerczyński, 1928-31), next to Vitkac towards
+## Nowy Świat, from the Mac photo gather (docs/landmarks/photo-reports/bgk.md: 8 Commons photos, the
+## ortho, the OSM outline checked on it). OpenStreetMap leaves the outline unnamed (an 'office',
+## 27.4 m): found by a point in it. A grey granite block: a darker 5.5 m base of grouped tall
+## windows, four rusticated storeys of paired windows in stone bays, a string course, two smooth
+## storeys, the heavy cornice at 26 m and a set-back attic of small windows; the two corner blocks
+## (the Bracka end and the Nowy Świat corner) rise two storeys more, the east one with the relief
+## frieze under its top; the gilded monogram over the middle of the Jerozolimskie front between two
+## pilasters. The roof signs of the two institutions in it are left out (real marks).
+## Frame: u along the Jerozolimskie front from its west end, +v out of it (north). Spec bgk.md.
+const BGK_AT := Vector2(-262.0, 312.0)       # a point in the outline (OSM relation 71489)
+const BGK_O := Vector2(-298.0, 301.0)        # the front's west end
+const BGK_A := Vector2(0.95123, -0.30855)    # along the front, to (-229.6, 278.9)
+const BGK_FRONT := 71.9
+const BGK_BASE := 5.5
+const BGK_FLOOR := 3.3
+const BGK_STRING := 18.7     # the string course over the four rusticated storeys
+const BGK_CORNICE := 25.6
+const BGK_ATTIC := 29.0
+const BGK_TOWER := 34.0      # the corner blocks
+const BGK_STONE := Color("#9a9c99")
+const BGK_STONE_DARK := Color("#78797a")
+const BGK_BASE_COL := Color("#6b6d6e")
+const BGK_FRIEZE := Color("#b3b0a6")
+const BGK_WINDOW := Color("#4a3a36")   # dark brown frames and glass, seen together
+const BGK_GILT := Color("#c8b070")
+const BGK_ROOF := Color("#6f7173")
+
+
+func _find_bgk() -> void:
+	var q := _tallest_at(BGK_AT)
+	if q.size() < 3 or not Geometry2D.is_point_in_polygon(BGK_O.lerp(BGK_O + BGK_A * BGK_FRONT, 0.5) + Vector2(-BGK_A.y, BGK_A.x) * 3.0, q):
+		return
+	_add_site("bgk", [_largest(Geometry2D.offset_polygon(q, 1.5, Geometry2D.JOIN_MITER))])
+	if not sites.is_empty() and sites[-1]["key"] == "bgk":
+		sites[-1]["ring"] = _simplify(q, 0.4)
+		sites[-1]["raw"] = q
+
+
+## Paired windows along a ring's walls: a bay every `step` metres holding two panes `w` wide,
+## `gap` apart, from h0 to h1 over the ground, 7 cm proud (the BGK's stone bays).
+func _pair_bays(ring: PackedVector2Array, h0: float, h1: float, step: float, w: float, gap: float, col: Color) -> void:
+	var keep := _mode
+	_mode = M_GLASS
+	for i in ring.size():
+		var a := ring[i]
+		var b := ring[(i + 1) % ring.size()]
+		var length := a.distance_to(b)
+		var n := floori((length - 1.0) / step)
+		if n < 1:
+			continue
+		var e := (b - a) / length
+		var out := _out(ring, a, b)
+		var t0 := (length - n * step) * 0.5 + step * 0.5
+		for k in n:
+			for sd: float in [-1.0, 1.0]:
+				var p := a + e * (t0 + k * step + sd * (gap + w) * 0.5) + out * 0.07
+				_wall(p - e * w * 0.5, p + e * w * 0.5, _g + h0, _g + h1, out, col, t0 + k * step)
+	_mode = keep
+
+
+func _build_bgk(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	_g = _ground_under(ring)
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	_o = BGK_O
+	_a = BGK_A
+	_b = Vector2(BGK_A.y, -BGK_A.x)   # out of the front, north
+	# Windows first (7 cm proud): the base's grouped tall windows, four rusticated storeys and two
+	# smooth ones of paired windows.
+	_bays(ring, 0.9, BGK_BASE - 0.6, 3.9, 2.6, BGK_WINDOW)
+	for k in 6:
+		var y0 := BGK_BASE + BGK_FLOOR * k + 0.7 + (0.4 if k >= 4 else 0.0)
+		_pair_bays(ring, y0, y0 + 2.0, 3.9, 1.1, 0.5, BGK_WINDOW)
+	# The mass: the darker base, the stone, the string course, the cornice.
+	_prism(ring, g - 0.6, g + BGK_BASE, BGK_BASE_COL, none, M_STONE)
+	_prism(ring, g + BGK_BASE, g + BGK_CORNICE, BGK_STONE, none, M_STONE)
+	_band(ring, 0.25, g + BGK_BASE - 0.3, g + BGK_BASE + 0.2, BGK_STONE_DARK)
+	_band(ring, 0.3, g + BGK_STRING - 0.1, g + BGK_STRING + 0.5, BGK_STONE_DARK)
+	var eave := _largest(Geometry2D.offset_polygon(ring, 0.6, Geometry2D.JOIN_MITER))
+	_prism(eave, g + BGK_CORNICE, g + BGK_CORNICE + 0.9, BGK_STONE.lightened(0.05), BGK_ROOF, M_STONE, M_STONE)
+	# The set-back attic storey of small square windows.
+	var attic := _simplify(_largest(Geometry2D.offset_polygon(ring, -1.6, Geometry2D.JOIN_MITER)), 0.4)
+	if attic.size() >= 3:
+		_bays(attic, BGK_CORNICE + 1.5, BGK_CORNICE + 2.5, 3.9, 1.0, BGK_WINDOW)
+		_prism(attic, g + BGK_CORNICE + 0.9, g + BGK_ATTIC, BGK_STONE.lightened(0.03), BGK_ROOF, M_STONE, M_STONE)
+	# The two corner blocks, two storeys over the attic, cut from the outline less 1.2 m.
+	var inner := _largest(Geometry2D.offset_polygon(ring, -1.2, Geometry2D.JOIN_MITER))
+	var corners := [_rect(6.0, -9.0, 10.0, 11.0), _rect(66.0, -10.0, 12.0, 12.0)]
+	for c in corners.size():
+		var cut := Geometry2D.intersect_polygons(inner, corners[c])
+		if cut.is_empty():
+			continue
+		var blk := _simplify(_largest(cut), 0.3)
+		if blk.size() < 3:
+			continue
+		var top := BGK_TOWER - (1.0 if c == 0 else 0.0)
+		_bays(blk, BGK_ATTIC + 0.8, BGK_ATTIC + 2.6, 3.9, 1.1, BGK_WINDOW)
+		_prism(blk, g + BGK_CORNICE + 0.9, g + top, BGK_STONE, BGK_ROOF, M_STONE, M_STONE)
+		_parapet(blk, g + top, 0.7, BGK_STONE_DARK)
+		if c == 1:  # the relief frieze under the east block's top
+			_band(blk, 0.15, g + top - 3.2, g + top - 1.0, BGK_FRIEZE)
+	# The middle of the Jerozolimskie front: two pilasters, a tall window between, the gilded
+	# monogram on the pier over it.
+	var mu := BGK_FRONT * 0.5
+	for sd: float in [-1.0, 1.0]:
+		_lbox(mu + sd * 2.1, 0.3, 0.45, 0.3, g - 0.6, g + BGK_STRING, BGK_STONE.lightened(0.06), M_STONE)
+	_mode = M_GLASS
+	_wall(_w(mu - 1.2, 0.07), _w(mu + 1.2, 0.07), g + 0.4, g + 9.0, _b, BGK_WINDOW.darkened(0.1), mu)
+	_mode = M_STONE
+	var mono := _w(mu, 0.1)
+	_disc(Vector3(mono.x, g + 11.2, mono.y), Vector3(_b.x, 0.0, _b.y), 1.0, 10, BGK_GILT)
+	_collide_raw(site)

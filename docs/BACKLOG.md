@@ -307,6 +307,9 @@ spans (granite piers, steel arch ribs, red fascia, black railing, pier pedestals
   night shots of 2026-11-03 show both abutments lit.
 
 ## Bracka and Plac Trzech Krzyży: Vitkac, Jabłkowski's, the Sheraton (CITY_INVENTORY 80-82, 2026-11-03)
+- The BGK building (CITY_INVENTORY 146, F asked 2026-11-03) built too (site `bgk`). Left: its three
+  light wells, the stepped south side's real heights, the balconettes; the block behind it on
+  Mysia, Mysia 2 (OSM landmark 'Polska Grupa Energetyczna'), is still plain.
 - Built from the Mac photo reports (sites `vitkac`, `jablkowscy`, `sheraton`). Left: the Mac look
   check (QUESTIONS); Jabłkowski's stained-glass windows lit at night through the front; the Sheraton's
   glazed restaurant pavilion with white umbrellas on the forecourt (its spot needs the photo).
