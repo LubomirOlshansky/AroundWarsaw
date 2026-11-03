@@ -23,9 +23,8 @@ const DATA := [
 		"Modele drzew 3D (LoD1): CC BY 4.0, uproszczone ‖ 3D trees: CC BY 4.0, simplified",
 	]],
 	["Gra", "The game", [
-		"Around Warsaw: darmowa gra fanów, otwarty kod ‖ a free open-source fan game",
-		"Kod, modele, dźwięki, muzyka i teksty: licencja MIT ‖ code, art, sound, music, text: MIT",
-		"github.com/LubomirOlshansky/AroundWarsaw",
+		"Around Warsaw: darmowa gra fanów ‖ a free fan game",
+		"Kod, modele, dźwięki, muzyka i teksty: wszelkie prawa zastrzeżone ‖ code, art, sound, music, text: all rights reserved",
 		"Marki w grze to parodie ‖ brands in the game are parodies",
 	]],
 	["Silnik", "Engine and add-ons", [

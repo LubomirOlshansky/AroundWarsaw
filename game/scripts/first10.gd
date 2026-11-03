@@ -100,7 +100,7 @@ const HINT_COLOUR := Color("#ffd23f")
 ## The end card: the jobs it needs, its words ([Polish, English]), its button ("POLISH|ENGLISH",
 ## hud.gd) and the repo's name (README's; as text, no link).
 const END_JOBS := 10
-const REPO := "github.com/LubomirOlshansky/AroundWarsaw"
+const REPO := "aroundwarsaw.app"
 const END_TITLE := ["DZIĘKI ZA GRĘ!", "Thanks for playing!"]
 const END_BODY := [
 	"To już koniec dema. Trzy mosty twoje, kebaby dowiezione, a Palma… dalej sztuczna.",
@@ -109,7 +109,7 @@ const END_BODY := [
 const END_FREE := ["Miasto zostaje otwarte: jedź, dokąd chcesz. Syrenki i kasety czekają.",
 	"The city stays open: drive wherever you like. Syrenki and tapes still wait."]
 ## One line for both languages (the card has room for one): the data, the licence, the code.
-const END_CREDITS := "© OpenStreetMap (ODbL), GUGiK · MIT"
+const END_CREDITS := "© OpenStreetMap (ODbL), GUGiK"
 const END_BUTTON := "JEDŹ DALEJ|FREE ROAM"
 const END_COLOUR := Color("#ffd23f")
 ## The director's words, [Polish, English] (each at most 70 characters).

@@ -126,9 +126,14 @@ it is merged into the city's one building mesh. Shots (cloud, both paths): from 
 
 ## 9. Open *(Mac look check, QUESTIONS)*
 
-- LoD2's own Clock Tower top and turrets: whether any of it pokes through the helms, and the
-  Vistula front's real eave against LoD2's (a salmon band would show above the cream cornice).
-- Which way the tower's gate faces and whether the real tower has dials on all four faces.
+- ~~LoD2's tower and the Vistula eave; the gate's side and the dials.~~ F's look check
+  (2026-11-03): the gate faces west and there are four dials (kept). LoD2 carried the Clock
+  Tower's shaft 3.5 m past the model's cornice and its helm as a salmon mass to 46.7 m: it is cut
+  30.0 m over the square inside a 12 m ring (`Landmarks.lod2_tops`, map_builder `_top_lod2`),
+  hidden in the cornice. The salmon band over the river front was LoD2's steep roof slopes (the
+  skins' 0.7 roof threshold painted them wall) and its walls up to 0.9 m proud of the model's
+  front: the skin's `steep` 0.3 tiles them, and its `pale` edges (the outline's river edges,
+  3 m) paint those walls cream (map_builder `_skin_run`). The turret caps were clean.
 - The arcades against the real terrain: the wall's top meeting the terrace, the gravel walk.
 - Not built: the courtyard's fan-pattern setts and the yard walls' colours; the Vistula front's
   two gabled side risalits and loggias; the dormers; the Lower Garden's stairs and boskets beyond

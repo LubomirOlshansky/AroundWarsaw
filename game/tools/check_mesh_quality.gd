@@ -92,7 +92,7 @@ const BUDGET := {
 	"dtc": 1730,
 	"europejski": 8000,
 	"flaga": 170,
-	"forest": 1500,
+	"forest": 4900,
 	"gpy": 250,
 	"gaulle": 880,
 	"rondo": 7000,
@@ -133,7 +133,7 @@ const BUDGET := {
 	"plater49": 140,
 	"platinum_a": 80,
 	"platinum_b": 80,
-	"poniatowski": 2700,
+	"poniatowski": 4800,  # 2026-11-03: the towers strengthened (F), 2556 -> 4574 tris over four groups; +0 draw calls
 	"prezydencki": 1050,
 	"q22": 960,
 	"rondo1": 630,
