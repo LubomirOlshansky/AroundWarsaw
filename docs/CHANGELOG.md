@@ -11,9 +11,13 @@ someone writes its lines.
 
 ## 2026-11-02
 - Behind the three department stores at the start, Pasaż Wiecha has its two-storey shop pavilions (dark shop windows under a white band), tall white Y-shaped lamp masts, café tables under white parasols and people sitting at them.
+- The WKD commuter line's two stops are in the city: Śródmieście WKD by the Aleje has its two concrete "propeller" roofs over the stairs down to the cutting, and Ochota WKD by Plac Zawiszy its heavy concrete roof on V-shaped legs over the platform.
+- Plac Krasińskich has the Warsaw Uprising Monument: bronze insurgents running out from under two falling granite slabs, and beside them the descent into the sewers; behind the lawn stands Pałac Krasińskich in white, with its green copper roof, pediments and statues.
+- With a gamepad, the hints name the buttons the way your pad prints them (×, R2 and L2 on a PlayStation pad; B and ZR on a Nintendo one), and crashes and bumps rumble the pad instead of the phone.
 - Sliding along a building no longer wedges the car in a gap or a notch between two houses (it got stuck and towed by the glass corner on the Chmielna square): the car slides on past them everywhere in the city.
 - The POLIN museum in Muranów stands as it is: a box of grey-green glass fins split by the tall sand-coloured canyon of its entrance, a glazed slot across the roof and a big glass lens on the west side, with the Ghetto Heroes Monument on the square in front, its bronze fighters, steps and menorahs.
 - In your first race Pani Halina waits at the start until you move, and if you sit still she tells you to step on it and follow the pink arrow, with a finger showing how to drive.
+- One-way streets that bikes may ride both ways show it like in Warsaw, with a white bike and arrow against the traffic, and bike symbols mark the bus lanes open to bikes and the shared lanes.
 - Warsaw's monuments are on the map: about 300 statues, busts, memorial stones and talking benches stand where the real ones do, Ogród Saski's sandstone statues stand at their real spots, and 520 Uprising memorial plaques hang on the walls with candles below them.
 - The quest list on the full map works with a gamepad (X switches between car and helicopter quests, the D-pad picks one, Y takes it) and lists more to do: the "Na czasie" trend deliveries, Cringulo's van, the Friday pistachio drop, the next rival on the ladder (the arrow follows them through traffic), Seba's night race and the peacock stuck on a roof. While something is on, it shows at the top of the list.
 - Driving onto a bridge ramp at an angle no longer drops you under the bridge: the car climbs onto the ramp, at Most Poniatowskiego, Towarowa and the Vistula boulevard road too.
