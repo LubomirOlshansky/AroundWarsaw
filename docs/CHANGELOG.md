@@ -11,9 +11,11 @@ someone writes its lines.
 
 ## 2026-11-03
 - Stuck somewhere with the car going nowhere? After a few seconds a POMOC DROGOWA button comes up at the top of the screen; one tap and the tow truck puts you back on the road.
+- On Świętokrzyska the main post office stands in its pale salmon plaster, with a little grey-silver dome on the Jasna corner and six white columns under a red POCZTA band at the door; on Zielna the PAST-a tower rises 51 m, with tall arches and castle-like merlons at the top, a gilt anchor on the roof and white-and-red banners down the front.
 - Warszawa Wschodnia stands on Praga's side of the tracks: a long glass hall under a flat roof with a zig-zag folded edge on green V-shaped legs, WARSZAWA WSCHODNIA in white letters over the platforms, and rust-brown roofs on columns over its five island platforms.
 
 ## 2026-11-02
+- The Warsaw Rising Museum stands on Przyokopowa: the red-brick tram power station with its tall arched windows, the tower with the white Kotwica and the flag on top, and in Freedom Park the long black Wall of Remembrance with its bell.
 - Most Poniatowskiego looks like itself: four cream towers with arcaded pavilions, belfries and battlements at the ends, grey steel arches under the deck on granite piers, a red girder and a black iron railing along both edges, and a coat of arms on a stone pedestal over every pier.
 - Behind the three department stores at the start, Pasaż Wiecha has its two-storey shop pavilions (dark shop windows under a white band), tall white Y-shaped lamp masts, café tables under white parasols and people sitting at them.
 - The WKD commuter line's two stops are in the city: Śródmieście WKD by the Aleje has its two concrete "propeller" roofs over the stairs down to the cutting, and Ochota WKD by Plac Zawiszy its heavy concrete roof on V-shaped legs over the platform.

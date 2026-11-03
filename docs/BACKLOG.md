@@ -274,6 +274,20 @@ Built from photos gathered on the Mac (`refs/pomnik_powstania/`, `refs/krasinski
 - The palace's pediment relief is a flat recessed field, the cartouche over the central window and the roof statues of the garden front are not modelled; the dormer and chimney counts are rough (the report says so). The garden's round parterre and the pond's sculpture are the park's (the fountain is already there).
 - F's look check on the Mac or the phone: the slabs' lean, the fighters' size, the roof's green.
 
+## Poczta Główna and PAST-a (CITY_INVENTORY 76 and 78, 2026-11-03)
+Built from the Mac photo reports (`refs/poczta/`, `refs/pasta/`) and LoD2, specs `poczta.md` and
+`pasta.md` (sites `poczta` 588 tris, `pasta` 476). Found and left:
+- Poczta: the colonnade's place on the Świętokrzyska face (on the hall's axis) and the columns
+  standing 2 m out from LoD2's wall are estimates (a real colonnade may be recessed into the front);
+  LoD2 already has a raised lump at the corner, the drum and dome are sunk round it. The wall reads
+  grey-pink in the cloud's renderer: check the salmon on the phone. The back (the street to the south)
+  and the courtyard are LoD2's as they are.
+- PAST-a: OSM's outline (21 x 26 m with a notch at the south-west) is taken as the tower; the ortho
+  puts its roof ~8 m further west. The lower wings north and south are LoD2's, not the report's steep
+  roofs and tall chimneys of 1910 (they are gone today). The plaque's text and the Virtuti cross are a
+  plain white stone; the flags on poles are not drawn, only the two long banners.
+- F's look check on the Mac or the phone: the dome's size, the band's red, the tower's colour.
+
 ## POLIN and the Ghetto Heroes Monument (F, 2026-11-02)
 Built from photos gathered on the Mac (`refs/polin/`) and the LoD2 roof, spec `polin.md`. Found and left:
 - The east front's two long dark band windows (~10 m, 4-5 m up) and the small lit slot south of the canyon are not drawn.
@@ -281,6 +295,15 @@ Built from photos gathered on the Mac (`refs/polin/`) and the LoD2 roof, spec `p
 - The canyon's interior (the main hall, the bridge) and the lens's mullions are not modelled; the plaza's dark inlay line, the yellow bollards and the sunken SE service stair are the map's or missing.
 - The monument's lions under the menorahs and the plaques at the relief's foot are not modelled.
 - LoD2 shows a 3 m hump over the west roof that the ortho does not: a LoD2 artefact, not built.
+
+## Muzeum Powstania Warszawskiego (F, 2026-11-02)
+Built from photos gathered on the Mac (`refs/mpw/`: 25 Commons photos, the GUGiK ortho, REPORT.md and PARTS.md) and LoD2, site `mpw`, spec `mpw.md`. Found and left:
+- W2's stepped gable at its mid-point (about 17 m), the corbel-table friezes and blind lancets (one cream band stands for them), the brick courses, the roof terrace railing.
+- The white four-storey wing with the red-white banners north of W1 (about x -2960..-2948, z 148..160): the report could not place it, so it is not built.
+- Freedom Park's objects: the photo screens, the armoured car and black granite monument at the wall's north end, the B-24 Liberator replica, the airmen's memorials, the pink-grey terrace and the gravel court; the wall's names (plates) are plain granite; the wall's south end under the trees is a guess (ortho 105 m, sources say 156 m).
+- The Tobruk stands at OSM's spot (-2926, 117); the museum's own bunker may be elsewhere in the park.
+- OSM leftovers seen on the ortho: pale pavilion roofs at x -2890..-2865, z 125..140 have no outline; a thin-triangle outline at x -2851..-2841, z 285..320 is a bad polygon.
+- The fence's return along Grzybowska is not built (its line was uncertain).
 
 ## Skwer Linearny na Złotej and Dom pod Orłami (F, 2026-11-02)
 
