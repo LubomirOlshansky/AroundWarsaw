@@ -45,6 +45,7 @@ func _initialize() -> void:
 	_ordinary()
 	_wanderer()
 	_busy()
+	_rider()
 	_quick()
 	_scripted()
 	_judge()
@@ -115,7 +116,15 @@ class Toy:
 	var scripted := false
 	var heli_call_at := INF
 	var rescue_ok := true
+	var rider := false        # takes every Podwózka request (rides.gd: the first at 120 s, then a gap)
+	var ride_s := 150.0
+	var ride_gap := 90.0
+	var honour_hold := true   # the rides honour the guide's hold (false: as before the hold)
+	var held := false         # set by _play from First10.due (first10.gd `_hold_offers`)
 	# the state
+	var next_ride := 120.0
+	var ride_until := -1.0
+	var rides_taken := 0
 	var ordered := false
 	var delivered_t := -1.0
 	var busy_until := -1.0
@@ -135,7 +144,7 @@ class Toy:
 	var earned := false
 
 	func facts() -> Dictionary:
-		var busy := t < busy_until or (t >= job_from and t < job_to) or t < calling_until
+		var busy := t < busy_until or (t >= job_from and t < job_to) or t < calling_until or t < ride_until
 		return {"input": t >= input_at, "free": not busy, "ordered": ordered, "delivered_t": delivered_t,
 				"raced": raced, "calling": t < calling_until, "race_next": 0.0, "trap": trap, "rang": rang,
 				"rescued": rescued, "heli_call": t >= heli_call_at and not rescued, "tape": tape,
@@ -143,6 +152,13 @@ class Toy:
 
 	## The world moves on by itself.
 	func step() -> void:
+		var free_now: bool = facts()["free"]
+		if held and honour_hold:
+			next_ride = maxf(next_ride, t + 30.0)  # rides.gd HOLD_GAP
+		if rider and t >= next_ride and free_now and not (held and honour_hold):
+			ride_until = t + ride_s
+			next_ride = ride_until + ride_gap
+			rides_taken += 1
 		if not ordered and t >= order_at:
 			ordered = true
 			busy_until = t + deliver_s
@@ -192,6 +208,7 @@ func _play(toy: Toy, seconds: float) -> Array:
 	while toy.t < seconds:
 		toy.step()
 		var f := toy.facts()
+		toy.held = not First10.due(toy.t, f, done).is_empty()
 		if not done.has("done"):
 			for id in First10.met(f):
 				if not done.has(id):
@@ -265,6 +282,36 @@ func _busy() -> void:
 	var done: Dictionary = r[0]
 	_expect(_at(done, "rescue") >= 330.0 - 0.01 and _at(done, "rescue") < 331.0, "the call waits for the job (220-330 s): %.1f" % _at(done, "rescue"))
 	_summary.append("busy: the call at %.0f s" % _at(done, "rescue"))
+
+
+## Run 12 (2026-11-03): a player who takes every Podwózka request kept the first call waiting
+## 83 s past its window. The guide holds new requests while a beat is due (first10.gd `due`), so
+## the race and the call land in their windows and the rides come between the beats.
+func _rider() -> void:
+	var toy := Toy.new()
+	toy.input_at = 1.0
+	toy.order_at = 15.0
+	toy.deliver_s = 20.0
+	toy.rider = true
+	var r := _play(toy, 1000.0)
+	var done: Dictionary = r[0]
+	var bad := First10.judge(done, r[1])
+	_expect(bad.is_empty(), "the rider's beats in their windows: %s" % [bad])
+	_expect(toy.rides_taken >= 2, "the rider still gets rides between the beats: %d" % toy.rides_taken)
+	var old := Toy.new()
+	old.input_at = 1.0
+	old.order_at = 15.0
+	old.deliver_s = 20.0
+	old.rider = true
+	old.honour_hold = false
+	var o := _play(old, 1000.0)
+	_expect(not First10.judge(o[0], o[1]).is_empty(), "without the hold the rider meets a beat late (the test means something)")
+	# due: what the director waits to fire, and nothing once the guide is over.
+	var f := {"free": false, "ordered": true, "delivered_t": 40.0, "race_next": 0.0, "earned": true}
+	_expect(First10.due(100.0, f, {"finger": 1.0, "stand": 10.0, "order": 15.0}) == ["race"], "Halina due at 100 s while busy: %s" % [First10.due(100.0, f, {"finger": 1.0, "stand": 10.0, "order": 15.0})])
+	_expect(First10.due(100.0, f, {"done": 900.0}).is_empty(), "nothing due once the guide is over")
+	_expect(First10.due(20.0, f, {"finger": 1.0, "stand": 10.0, "order": 15.0}).is_empty(), "nothing due at 20 s (Halina not before %.0f s)" % First10.RACE_EARLIEST)
+	_summary.append("rider: %d rides, the call at %.0f s (%s without the hold)" % [toy.rides_taken, _at(done, "rescue"), ", ".join(First10.judge(o[0], o[1]))])
 
 
 ## The first-10 polish: the short first order is done in ~20 s; Halina still waits for

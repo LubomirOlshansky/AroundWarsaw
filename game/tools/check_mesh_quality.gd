@@ -113,8 +113,11 @@ const BUDGET := {
 	"poczta": 710,
 	"pasta": 580,
 	"msn": 500,
-	"norblin": 1480,
-	"browary": 3600,
+	# Norblin on its real block (2026-11-02, photo report): two blocks, Plater and Galwan, about
+	# three times the first footprint, arched windows round their courts, green roofs and terraces.
+	"norblin": 4500,
+	# Browary + the Central Garden's gravel path, café clearings and the sedum roofs (2026-11-02).
+	"browary": 3800,
 	"koszyki": 1370,
 	"elektrownia": 1950,
 	"mpw": 3200,
