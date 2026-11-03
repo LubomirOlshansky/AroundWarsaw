@@ -258,6 +258,17 @@ Run 11 (P2, the flying half, 2026-11-02) timed out after the heli beat (the Mac 
 Run 12 (2026-11-03): PT-14 closed (the helicopter climbs after landing; run 11's harness mixed its keys); PT-17 suspect, a car circling on Plac Dąbrowskiego until the tow. The rescue beat waited 83 s past its window while a ride and a chase were on (the same hold as the race above).
 PT-15, PT-16, PT-17 fixed 2026-11-03 (PLAYTEST.md): no ride request over Halina's call or a rival's prompt (and none of those over a request card); the delivered / order-dropped card goes by itself after 12 s or 25 m (it waited for OK for ever, the likely reason one order looked driven six times and the race waited until 203 s); Jasna's 24 m shallow bay by Plac Dąbrowskiego bridged (bays up to 30 x 2.5 m city-wide). Still open for F: the guide's beats wait while any job is on (the design question above); verify all three on the next P2 run.
 
+## Most Poniatowskiego (F, 2026-11-02)
+Built from photos gathered on the Mac (`refs/poniatowski/`, report `docs/landmarks/photo-reports/poniatowski.md`),
+spec `poniatowski.md`: the four tower groups (arcaded pavilions, 20 m shafts, south stair turrets) and the river
+spans (granite piers, steel arch ribs, red fascia, black railing, pier pedestals). Found and left:
+- Two of the five piers are estimates (on the east floodplain under trees), and the west span (~104 m) may hide a
+  pier near the west bank (photo 22): QUESTIONS.
+- Not modelled: the north groups' curved ramps, the small arcade beyond each shaft, the merlon scrolls and the
+  insets over the arches, the bases' brick panels and balconies, the real tram catenary masts.
+- The concrete arch viaduct over Powiśle (the report has it) is still the bake's flat deck on posts.
+- The approaches between the towers stay unlit at night (the bake lights `bridge=*` roads only; item below).
+
 ## Plac Krasińskich: the Uprising Monument and the palace (CITY_INVENTORY 22 and 79, 2026-11-02)
 Built from photos gathered on the Mac (`refs/pomnik_powstania/`, `refs/krasinski/`) and LoD2, specs
 `pomnik_powstania.md` and `krasinski.md` (sites `pomnik_powstania` 1514 tris, `krasinski` 1508). Found and left:
@@ -819,9 +830,12 @@ Built (cloud, Sonnet): eight shopfronts (`Storefronts.KRAKOWSKIE`, 93 venue sign
   at the west end; ~540 tris). Left: Mac/phone look (the propellers' twist and pier, the parapet
   boxes' open end, Ochota's stair: the report guessed its spot; the report's ortho reading put the
   slab ~10 m south of OSM's platform, built on OSM's).
-- S3c-e: Wschodnia and Gdańska sit at the map's east and north edges (the land past the edge is
-  drawn since 2026-11-01, below; the cloud shots' missing ground inside the map is the cloud's flat
-  ground quad, not the Mac's): mostly off the map, low priority.
+- S3c Warszawa Wschodnia built 2026-11-03 from the Mac photo report (site `wschodnia`, spec
+  `wschodnia.md`). Left for the Mac or the phone: the hall's height (10.4 m is a guess, no LoD2),
+  the fascia's pleat size and depth, the struts' spacing and colours, whether the letters sit on a
+  plain board, which platforms have roofs (the five long ones are roofed; the two short ones east
+  of them by the suburban hall are bare) and the roofs' length. Gdańska (S3d) is still open: at
+  the map's north edge, the ortho shows it being rebuilt.
 - ~~L4 Most Średnicowy's look, after a Mac photo check.~~ Built 2026-11-01 (below).
 - Photo checks on the Mac for every station model (built from published descriptions).
   **Mac photo check, 2026-11-01** (main 03a26dc; Commons photos in refs/ochota, powisle,
@@ -1626,8 +1640,7 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
   need a landing spot designed in.
 - The baked ground AO and the lamp light map still use the LoD2 footprints: Centralna's canopy
   (wider than the LoD2 hall) casts no AO, and lamp pools are not cut by the stadium's skin.
-- Most Poniatowskiego's towers have no mapped height: plinth to 1.2 m over the deck, top 15 m
-  over it, a guess; Varso I and II stay OSM extrusions (loop 1 lowered Varso 2's floating
+- Varso I and II stay OSM extrusions (loop 1 lowered Varso 2's floating
   80-90 m top to the ground; Varso 1's 71-81 m top rests on its 71 m part for a little over
   half its footprint and overhangs a 10 m part for the rest, so it stays).
 - The title skyline's Varso stays shorter than the Palace (in the city it is 310 m to 237 m).
@@ -1970,9 +1983,6 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
 - Tunnel 2 (the link under Most Poniatowskiego's west abutment) is shallow (30 m long, ramps of
   8 % from both portals, ~1.5 m under the grid): it passes under the abutment's approach fill,
   whose retaining walls open over it (the wall's foot at the mouth's top).
-- Most Poniatowskiego's towers keep their guessed heights (top 15 m over the deck); their
-  footprints come from the outline by the deck (16 x 3.5-5 m), thinner than the photo suggests.
-  The rounded second outline (a stair annex down to the boulevard) is no longer drawn.
 - The bus is swept on main roads and links only (lane classes 0-1): traffic sends a bus into a
   residential or living street with a 5 % weight (`traffic.gd _choose_next`), where a rigid
   12 m box at OpenStreetMap's square corners hits walls. For gameplay-dev: keep buses to classes
@@ -2319,10 +2329,6 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
   joint share one end line.
 - **Tram stop shelters** left out where mapped on the rails (14): place them on the stop's
   platform instead (the nearest `platforms` edge on the track's side).
-- **River piers** (art): Most Poniatowskiego (an arch bridge on masonry piers) and Most
-  Średnicowy stand on the same thin concrete posts as the viaducts; a river-pier style (wider,
-  stone, cutwaters) would read more like Warsaw. A design call. (Most Średnicowy has its stone
-  piers since 2026-11-01; Poniatowskiego is still open.)
 - Most Świętokrzyski, the Jana Pawła II viaduct and the Wisłostrada tunnel end at the map's rim
   (the diorama's void beyond): the bigger map moves the rim past them (known, DEMO.md 4.4).
 
