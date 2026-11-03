@@ -1103,8 +1103,15 @@ VHS pulse), colour-safe markers (drop-off beacon blue, patrol lights white/blue)
   (2026-11-01): `Access.tint` turns the success green blue and the fail red a lighter vermilion in
   the cards, the status panel and its 1ST badge, banners, notes, the ticker, the target arrow, the
   minimap target and the speech bubbles (`check_settings` "colour-safe tint" covers every script's
-  green and red constant). Left: 3D markers other than the drop-off beacon (race and rescue
-  rings) and a look on the phone.
+  green and red constant). ~~Left: 3D markers other than the drop-off beacon (race and rescue
+  rings)~~ Done (2026-11-03, `beacon.gd`): with colour-safe on, the ring's shape is the second cue,
+  so the race and rescue rings no longer differ by hue alone: the rescue pickup (someone waiting) is
+  16 dashes, the race finish and checkpoints a chequer of ~1.2 m blocks in the race colour and white,
+  the drop-off a full ring tinted blue; a placed beacon re-draws when the setting changes mid-call
+  (the drop-off's colour was fixed at load before). `check_settings` "colour-safe beacons" (fails
+  with the shapes off). Not done: the side jobs' rings (kebab, słoiki, rides, roundup, Mlask) stay
+  full rings; they differ from each other by colour only but never show two at once. Left: a look
+  on the phone (does the chequer read at the iso camera's scale, is a dash gap clear on dark asphalt).
 
 ## Ground vertex compression, to re-apply on the Mac (stale PR #53 triage, 2026-11-01)
 - PR #53 (commit b343d60, branch `claude/project-thread-ldyr9u`) stores the ground's meshes with

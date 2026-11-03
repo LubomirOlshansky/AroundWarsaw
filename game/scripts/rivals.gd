@@ -319,6 +319,7 @@ func setup(lane_graph: LaneGraph, traffic_node: Traffic, hud_layer: CanvasLayer,
 	_beacon = Beacon.new()
 	world.add_child(_beacon)
 	_beacon.setup(RACE_COLOUR, Color("#2b2c2f"))
+	_beacon.pattern = Beacon.Pattern.CHEQUER  # colour-safe: a finish line (beacon.gd)
 	_beacon.waving = true
 	_cooldown.resize(RIVALS.size())
 	for i in RIVALS.size():
