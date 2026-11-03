@@ -5689,82 +5689,159 @@ func _tier_ends(tier: PackedVector2Array, v: float) -> Vector2:
 
 # --- Most Poniatowskiego's towers ---------------------------------------------------------------
 
-## Four stone towers at the ends of the river span, from the bank to well over the deck:
-## a plinth, a shaft with a cornice, an open arcade on top, a pointed roof and a finial.
+## Built from the Mac photo set (refs/poniatowski, report docs/landmarks/photo-reports/
+## poniatowski.md; spec docs/landmarks/specs/poniatowski.md). Each of the four groups on the
+## abutments: a crenellated arcaded pavilion along the deck's outer edge (the bake's seat, ~15 x
+## 4-5 m), a square shaft at its land end standing out over the lower road, and on the south
+## groups a stair turret. Heights over the deck walk: the pavilion's merlons 7.5 m, the shaft's
+## cornice 16 m, the belfry's crown 19 m, the corner balls 20 m; below the deck the stone base
+## runs down to the boulevard (~9.6 m).
+const PT_CREAM := Color("#e8dfc8")
+const PT_SHADE := Color("#cfc4a8")
+const PT_BASE := Color("#b9b2a2")
+const PT_DARK := Color("#3a3640")
+const PT_GLASS := Color("#4a5560")
+const PT_ROOF := Color("#8f8a80")
+## The shaft: half size, and how far its centre stands landwards past the pavilion's land end
+## (along) and out from its deck-side face (across). check_roads.py C10 mirrors these.
+const PT_SHAFT := 3.5
+const PT_SHAFT_U := 0.5
+const PT_SHAFT_V := 3.5
+## The south groups' stair turret: centre in the seat's frame (land +u, out +v), radius.
+const PT_TURRET := Vector3(3.5, 9.5, 2.5)
+
+
 func _build_towers(site: Dictionary) -> void:
-	var stone := Color("#cbbfa6")
-	var dark := Color("#3a3640")
 	var seats: Array = site.get("towers", [])
-	for n in (seats.size() if not seats.is_empty() else (site["zone"] as Array).size()):
-		var c: Vector2
-		var hu := 0.0
-		var hv := 0.0
-		var deck := 0.0
-		var g := 0.0
+	var count: int = seats.size() if not seats.is_empty() else (site["zone"] as Array).size()
+	var cs: Array[Vector2] = []
+	var axes: Array[Vector2] = []
+	var hus: Array[float] = []
+	var hvs: Array[float] = []
+	var gs: Array[float] = []
+	var decks: Array[float] = []
+	for n in count:
 		if not seats.is_empty():
 			# Loop 3b (R7): the bake's seat.
 			var t: Dictionary = seats[n]
-			c = Vector2(float(t["c"][0]), float(t["c"][1]))
-			_a = Vector2(float(t["a"][0]), float(t["a"][1]))
-			_b = Vector2(-_a.y, _a.x)
-			_o = c
-			hu = float(t["hu"])
-			hv = float(t["hv"])
-			g = float(t["base"])
-			deck = float(t["deck"])
-			_g = g
-		else:
-			var poly: PackedVector2Array = Geometry2D.offset_polygon(site["zone"][n], -3.0)[0]
-			c = _centre(poly)
-			# The tower's own axes, from its longest edge.
-			var best := 0.0
-			for i in poly.size():
-				var e := poly[(i + 1) % poly.size()] - poly[i]
-				if e.length() > best:
-					best = e.length()
-					_a = e.normalized()
-			_b = Vector2(-_a.y, _a.x)
-			_o = c
-			for q in poly:
-				var l := _local(q)
-				hu = maxf(hu, absf(l.x))
-				hv = maxf(hv, absf(l.y))
-			hu = minf(hu, 8.0)
-			hv = minf(hv, 6.0)
-			_g = map.terrain_height(c.x, c.y)
-			deck = _g
-			for d in [Vector2(14, 0), Vector2(-14, 0), Vector2(0, 14), Vector2(0, -14)]:
-				deck = maxf(deck, map.ground_height(c.x + d.x, c.y + d.y))
-			g = _g
-		var top := deck + 15.0
-		_lbox(0.0, 0.0, hu + 0.6, hv + 0.6, g - 0.5, deck + 1.2, stone.darkened(0.12), M_STONE)
-		_lbox(0.0, 0.0, hu, hv, deck + 1.2, top - 4.5, stone, M_STONE)
-		_lbox(0.0, 0.0, hu + 0.5, hv + 0.5, top - 4.5, top - 3.8, stone.lightened(0.1), M_STONE)
-		_lbox(0.0, 0.0, hu - 0.3, hv - 0.3, top - 3.8, top, stone, M_STONE)
-		# The arcade: dark arched openings on all four faces.
-		for f2 in 4:
-			var nu: float = [1.0, -1.0, 0.0, 0.0][f2]
-			var nv: float = [0.0, 0.0, 1.0, -1.0][f2]
-			var n2: Vector2 = _a * nu + _b * nv
-			var side := Vector2(-n2.y, n2.x)
-			var half := (hv if nu != 0.0 else hu) - 0.3
-			var face := (hu if nu != 0.0 else hv) - 0.3 + 0.05
-			for k in 2:
-				var cpos := c + n2 * face + side * (half * (-0.45 if k == 0 else 0.45))
-				var w := side * half * 0.28
+			cs.append(Vector2(float(t["c"][0]), float(t["c"][1])))
+			axes.append(Vector2(float(t["a"][0]), float(t["a"][1])))
+			hus.append(float(t["hu"]))
+			hvs.append(float(t["hv"]))
+			gs.append(float(t["base"]))
+			decks.append(float(t["deck"]))
+			continue
+		var poly: PackedVector2Array = Geometry2D.offset_polygon(site["zone"][n], -3.0)[0]
+		var c := _centre(poly)
+		var best := 0.0
+		var ax := Vector2.RIGHT
+		for i in poly.size():
+			var e := poly[(i + 1) % poly.size()] - poly[i]
+			if e.length() > best:
+				best = e.length()
+				ax = e.normalized()
+		var hu := 0.0
+		var hv := 0.0
+		for q in poly:
+			hu = maxf(hu, absf((q - c).dot(ax)))
+			hv = maxf(hv, absf((q - c).dot(Vector2(-ax.y, ax.x))))
+		var deck: float = map.terrain_height(c.x, c.y)
+		for d in [Vector2(14, 0), Vector2(-14, 0), Vector2(0, 14), Vector2(0, -14)]:
+			deck = maxf(deck, map.ground_height(c.x + d.x, c.y + d.y))
+		cs.append(c)
+		axes.append(ax)
+		hus.append(minf(hu, 8.0))
+		hvs.append(minf(hv, 3.0))
+		gs.append(map.terrain_height(c.x, c.y))
+		decks.append(deck)
+	var mid := Vector2.ZERO
+	for c in cs:
+		mid += c / maxf(cs.size(), 1)
+	for n in count:
+		var c: Vector2 = cs[n]
+		# The frame: +u towards the land, +v out away from the deck (from the pair's middle).
+		var pair := c
+		var near := INF
+		for m in count:
+			if m != n and cs[m].distance_to(c) < near:
+				near = cs[m].distance_to(c)
+				pair = (cs[m] + c) * 0.5
+		_a = axes[n] * (1.0 if (c - mid).dot(axes[n]) > 0.0 else -1.0)
+		_b = Vector2(-_a.y, _a.x)
+		if (c - pair).dot(_b) < 0.0:
+			_b = -_b
+		_o = c
+		_g = gs[n]
+		_pt_group(hus[n], hvs[n], gs[n], decks[n], c.y > pair.y)
+
+
+## One tower group in the frame _pt_group's caller set: the pavilion u -hu..hu, v -hv..hv
+## (v = -hv the deck side), the shaft and, on a south group, the stair turret.
+func _pt_group(hu: float, hv: float, g: float, deck: float, south: bool) -> void:
+	var d := deck
+	# The pavilion: grey stone base to the deck, cream walls, a string course, merlons to 7.5 m.
+	_lbox(0.0, 0.0, hu + 0.3, hv + 0.3, g - 0.5, d, PT_BASE, M_STONE)
+	_lbox(0.0, 0.0, hu, hv, d, d + 5.6, PT_CREAM, M_STONE, PT_ROOF)
+	_lbox(0.0, 0.0, hu + 0.15, hv + 0.15, d + 4.5, d + 4.9, PT_SHADE, M_STONE)
+	_attic(_rect(0.0, 0.0, hu, hv), d + 5.6, 1.9, PT_CREAM)
+	# The arcade: round arches on short columns open to the walk; glazed arched windows to the river.
+	var bays := maxi(3, roundi(2.0 * hu / 3.0))
+	var bay := 2.0 * hu / bays
+	for k in bays:
+		var u := -hu + (k + 0.5) * bay
+		_arch_panel(_w(u, -hv), _a, -_b, bay * 0.36, d, d + 3.5 - bay * 0.36, PT_DARK, 0.04, M_STONE)
+		_arch_panel(_w(u, hv), _a, _b, bay * 0.3, d + 0.9, d + 3.4 - bay * 0.3, PT_GLASS, 0.04, M_PAVILION)
+	for k in 2:
+		var u := hu * (1.0 if k == 0 else -1.0)
+		var o := _a * (1.0 if k == 0 else -1.0)
+		_arch_panel(_w(u, 0.0), _b, o, minf(hv * 0.5, 1.2), d + 0.9, d + 2.8, PT_GLASS, 0.04, M_PAVILION)
+	# The shaft at the land end: stone base with an arched portal to the lower road, the cream
+	# shaft with small arched windows and a cornice at 16 m, the belfry with three slits a face,
+	# its merlon crown to 19 m and corner balls to 20 m.
+	var su := hu + PT_SHAFT_U
+	var sv := -hv + PT_SHAFT_V
+	var r := PT_SHAFT
+	_lbox(su, sv, r + 0.3, r + 0.3, g - 0.5, d + 0.4, PT_BASE, M_STONE)
+	_lbox(su, sv, r, r, d + 0.4, d + 15.3, PT_CREAM, M_STONE)
+	_lbox(su, sv, r + 0.35, r + 0.35, d + 15.3, d + 16.0, PT_SHADE, M_STONE, PT_ROOF)
+	_lbox(su, sv, r - 0.5, r - 0.5, d + 16.0, d + 18.0, PT_CREAM, M_STONE, PT_ROOF)
+	_attic(_rect(su, sv, r - 0.5, r - 0.5), d + 18.0, 1.0, PT_CREAM)
+	for f in 4:
+		var nu: float = [1.0, -1.0, 0.0, 0.0][f]
+		var nv: float = [0.0, 0.0, 1.0, -1.0][f]
+		var out := _a * nu + _b * nv
+		var along := Vector2(-out.y, out.x)
+		var face := _w(su + nu * r, sv + nv * r)
+		var belfry := _w(su + nu * (r - 0.5), sv + nv * (r - 0.5))
+		for k in 3:
+			_arch_panel(belfry + along * (k - 1) * 1.6, along, out, 0.3, d + 16.3, d + 17.3, PT_DARK, 0.04, M_STONE)
+		_arch_panel(face, along, out, 0.5, d + 8.0, d + 9.6, PT_DARK, 0.04, M_STONE)
+		_arch_panel(face, along, out, 0.45, d + 11.6, d + 12.6, PT_DARK, 0.04, M_STONE)
+		if nv > 0.0 or nu > 0.0:
+			# The portals under the deck, to the boulevard.
+			_arch_panel(_w(su + nu * (r + 0.3), sv + nv * (r + 0.3)), along, out, 1.5, g, g + 3.0, PT_DARK, 0.04, M_STONE)
+		for side in [-1.0, 1.0]:
+			if f < 2:
+				var ball := _w(su + nu * (r - 0.5), sv + side * (r - 0.5))
+				_prism(_circle(ball, 0.28, 4), d + 19.0, d + 19.5, PT_CREAM, PT_CREAM, M_STONE, M_STONE)
 				_mode = M_STONE
-				_quad(Vector3(cpos.x - w.x, top - 3.3, cpos.y - w.y), Vector3(cpos.x + w.x, top - 3.3, cpos.y + w.y),
-						Vector3(cpos.x + w.x, top - 0.6, cpos.y + w.y), Vector3(cpos.x - w.x, top - 0.6, cpos.y - w.y),
-						Vector3(n2.x, 0, n2.y), dark)
-		_attic(_rect(0.0, 0.0, hu - 0.3, hv - 0.3), top, 1.0, stone.lightened(0.1))
-		_mode = M_STONE
-		_pyramid(_rect(0.0, 0.0, hu - 0.8, hv - 0.8), top, top + 6.0, Color("#6f7d78"))
-		_prism(_rect(0.0, 0.0, 0.35, 0.35), top + 5.5, top + 8.5, GOLD, GOLD, M_GOLD, M_GOLD)
-		if seats.is_empty():
-			_collide(_rect(0.0, 0.0, hu + 0.6, hv + 0.6))
-		else:
-			# Solid from the boulevard to over the deck (a car on either level stops at it).
-			_collide_span(_rect(0.0, 0.0, hu + 0.6, hv + 0.6), g - 1.0, deck + 6.0)
+				_pyramid(_circle(ball, 0.28, 4), d + 19.5, d + 20.0, PT_CREAM)
+	# The iron lantern on the shaft's walk-side face.
+	var lamp := _w(su, sv - r - 0.4)
+	_prism(_circle(lamp, 0.22, 4), d + 3.2, d + 3.8, Color("#ffd27a"), Color("#1e1e22"), M_LAMP, M_STONE)
+	if south:
+		# The stair turret at the foot of the flight down to the lower road.
+		var tc := _w(PT_TURRET.x, PT_TURRET.y)
+		_prism(_circle(tc, PT_TURRET.z, 8), g - 0.5, d + 2.0, PT_CREAM, PT_ROOF, M_STONE, M_STONE)
+		_attic(_circle(tc, PT_TURRET.z, 8), d + 2.0, 1.0, PT_CREAM)
+		# The flight from the pavilion's outer face out to the turret (its walls and landing).
+		_prism(_rect(PT_TURRET.x, (hv + PT_TURRET.y - PT_TURRET.z) * 0.5, 2.5,
+				(PT_TURRET.y - PT_TURRET.z - hv) * 0.5), g - 0.5, d - 0.4, PT_BASE, PT_SHADE, M_STONE, M_STONE)
+	# Solid from the boulevard to over the deck (a car on either level stops at it).
+	_collide_span(_rect(0.0, 0.0, hu + 0.6, hv + 0.6), g - 1.0, d + 6.0)
+	_collide_span(_rect(su, sv, r + 0.3, r + 0.3), g - 1.0, d + 6.0)
+	if south:
+		_collide_span(_circle(_w(PT_TURRET.x, PT_TURRET.y), PT_TURRET.z, 8), g - 1.0, d + 3.0)
 
 
 # --- Muzeum Narodowe and Plac Piłsudskiego (the museum and Plac loop, 2026-10-31) ----------------

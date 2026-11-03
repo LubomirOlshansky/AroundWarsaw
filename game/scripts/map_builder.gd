@@ -586,6 +586,7 @@ func _build_parts(marks, roofs_only: bool) -> void:
 	_build_rail_portals(walls)
 	_build_catenary(walls)
 	_build_srednicowy(walls)
+	_build_poniatowski(walls)
 	_build_garage_doors(walls)
 	_build_guard_rails(walls)
 	_build_shore()
@@ -1851,6 +1852,258 @@ func _ms_pier(st, o: Vector2, u: Vector2, n: Vector2, s: float, top: float) -> v
 			if nn.dot((a + b) * 0.5 - c) < 0.0:
 				nn = -nn
 			# Courses: the shaft in bands a shade apart every 1.2 m, as dressed stone reads.
+			var y := lo
+			var band := 0
+			while y < hi - 0.01:
+				var y2 := minf(y + 1.2, hi) if pts == poly else hi
+				var shade := col.darkened(0.06) if band % 2 == 1 else col
+				_quad(st, Vector3(a.x, y, a.y), Vector3(b.x, y, b.y), Vector3(b.x, y2, b.y), Vector3(a.x, y2, a.y),
+						Vector3(nn.x, 0.0, nn.y), shade)
+				y = y2
+				band += 1
+		_fill(st, pts, hi, col.lightened(0.05))
+	for i in poly.size():
+		var a := poly[i]
+		var b := poly[(i + 1) % poly.size()]
+		_wall_faces.append_array([Vector3(a.x, y0, a.y), Vector3(b.x, y0, b.y), Vector3(b.x, top, b.y),
+				Vector3(a.x, y0, a.y), Vector3(b.x, top, b.y), Vector3(a.x, top, a.y)])
+
+
+## Most Poniatowskiego's river spans (CITY_INVENTORY #14), from the Mac photo set (report
+## docs/landmarks/photo-reports/poniatowski.md, spec docs/landmarks/specs/poniatowski.md): a
+## steel deck-arch bridge, 506 m (Szyller, Marszewski and Paszkowski, 1914; the spans rebuilt
+## after 1915 and 1944). The bake gives it pairs of thin concrete posts every 38 m like any road
+## bridge; over the river those are skipped (`_poniatowski_skips`) and this draws the grey granite
+## piers with rounded cutwaters and, between them, grey steel open-web arch ribs under the deck
+## (the rib, posts and diagonal bracing up to a straight deck girder), the red fascia girder and
+## the black cast-iron balustrade along both edges, and over each pier a granite pedestal with
+## a cartouche standing out of the railing; in the walls surface (no new draw call).
+## Found from the north carriageway's deck piece that starts at PN_A; a bake without it keeps the
+## thin posts. The towers on the abutments are landmarks.gd's (`_build_towers`).
+const PN_A := Vector2(939.4, -132.6)
+## From PN_A to the bridge's frame: along it back to the west towers' line, across to its axis.
+const PN_BACK := 8.9
+const PN_AXIS := -6.67
+## Along the bridge from the west towers' line (the east towers stand at 515.6 m): the abutments'
+## river faces (the stone walls the bake seats there) and the river piers. The report reads three
+## pier centres off the orthophoto, (1036, -171), (1106, -195), (1178, -219), and estimates two
+## more on the east floodplain every ~72 m in x, (1250, -243), (1322, -267); the gravel rubble
+## OpenStreetMap maps round piers (s 163-195, 252-276) and the terrain grid's ridges (s 178, 265)
+## agree. Whether a pier hides near the west bank in the deck's shadow is open (QUESTIONS).
+const PN_ENDS := Vector2(6.0, 509.5)
+const PN_PIERS: Array[float] = [109.9, 183.9, 259.8, 335.7, 411.6]
+## Across the bridge from its axis (+ towards the south): the four girder planes (under the
+## footways' outer edges and between the carriageways and the tram tracks) and the piers' sides.
+const PN_GIRDERS: Array[float] = [-12.4, -4.6, 4.6, 12.4]
+const PN_SIDE := 12.0       ## the pier's straight sides end here; the cutwaters round past them
+## The deck's outer edges (the walks' outer parapets, map_builder's deck pieces: the walk's
+## half width + 1.6 m), north and south: the fascia girder and the railing on them.
+const PN_EDGE := Vector2(-14.7, 14.45)
+const PN_RAIL_STEP := 2.4
+const PN_HALF := 4.5        ## half a pier's thickness along the bridge (photo 29: ~9 m)
+const PN_SLAB := 1.3        ## the deck's road surface over the girders' top chord
+const PN_DEPTH_END := 7.5   ## girder depth at a pier (the arch's springing)
+const PN_DEPTH_MID := 1.6   ## and at mid-span (the arch's crown)
+const PN_PANELS := 12
+const PN_STEEL := Color("#7c8288")
+const PN_STONE := Color("#9c9a94")
+const PN_FASCIA := Color("#b8484e")
+const PN_IRON := Color("#1f1f22")
+
+
+## The bridge's frame [origin on its axis at the west towers, along, across, deck group], or []
+## when the bake has no such deck.
+func _poniatowski_frame() -> Array:
+	for d: Dictionary in _decks:
+		if d["k"] != "road":
+			continue
+		var pts: PackedVector2Array = d["pts"]
+		if pts[0].distance_to(PN_A) < 2.0 and pts[0].distance_to(pts[pts.size() - 1]) > 400.0:
+			var u := (pts[pts.size() - 1] - pts[0]).normalized()
+			var n := Vector2(-u.y, u.x)
+			return [pts[0] - u * PN_BACK + n * PN_AXIS, u, n, int(d["g"])]
+	return []
+
+
+## True for a bake pier the stone piers and arch girders replace (the river part).
+func _poniatowski_skips(f: Array, c: Vector2) -> bool:
+	if f.is_empty():
+		return false
+	var q: Vector2 = c - f[0]
+	var s: float = q.dot(f[1])
+	var t: float = q.dot(f[2])
+	return s > PN_ENDS.x and s < PN_ENDS.y and absf(t) < PN_SIDE + PN_HALF + 2.0
+
+
+func _build_poniatowski(st) -> void:
+	var f := _poniatowski_frame()
+	if f.is_empty():
+		return
+	_uv2 = Vector2(0.5, -1.0)
+	var o: Vector2 = f[0]
+	var u: Vector2 = f[1]
+	var n: Vector2 = f[2]
+	var g: int = f[3]
+	var u3 := Vector3(u.x, 0.0, u.y)
+	var n3 := Vector3(n.x, 0.0, n.y)
+	for s: float in PN_PIERS:
+		var c := o + u * s
+		if _in_sector and not _sector_rect.has_point(c):
+			continue
+		var top := INF
+		for t: float in PN_GIRDERS:
+			var p := o + u * s + n * t
+			top = minf(top, deck_height(g, p.x, p.y) - PN_SLAB - PN_DEPTH_END - 0.45)
+		_pn_pier(st, o, u, n, s, top)
+	var stops: Array[float] = [PN_ENDS.x]
+	for s: float in PN_PIERS:
+		stops.append(s - PN_HALF)
+		stops.append(s + PN_HALF)
+	stops.append(PN_ENDS.y)
+	for k in range(0, stops.size(), 2):
+		var s0: float = stops[k]
+		var s1: float = stops[k + 1]
+		for t: float in PN_GIRDERS:
+			var tops: Array[Vector3] = []
+			var bots: Array[Vector3] = []
+			for i in PN_PANELS + 1:
+				var a := float(i) / PN_PANELS
+				var p := o + u * lerpf(s0, s1, a) + n * t
+				var yt := deck_height(g, p.x, p.y) - PN_SLAB
+				var depth := PN_DEPTH_MID + (PN_DEPTH_END - PN_DEPTH_MID) * pow(2.0 * a - 1.0, 2.0)
+				tops.append(Vector3(p.x, yt, p.y))
+				bots.append(Vector3(p.x, yt - depth, p.y))
+			for i in PN_PANELS:
+				var m := (tops[i] + bots[i + 1]) * 0.5
+				if _in_sector and not _sector_rect.has_point(Vector2(m.x, m.z)):
+					continue  # the sector holding the panel's middle draws it
+				# The arch rib (the bottom chord, deeper), the top chord under the deck, the posts.
+				_pn_strut(st, bots[i], bots[i + 1], 0.8, 1.1, n3)
+				_pn_strut(st, tops[i] + Vector3.DOWN * 0.35, tops[i + 1] + Vector3.DOWN * 0.35, 0.6, 0.7, n3)
+				if i > 0:
+					_pn_strut(st, bots[i], tops[i], 0.4, 0.4, n3)
+				# The spandrel lattice: one diagonal per panel, falling towards mid-span.
+				if i * 2 < PN_PANELS:
+					_pn_strut(st, tops[i], bots[i + 1], 0.3, 0.3, n3)
+				else:
+					_pn_strut(st, bots[i], tops[i + 1], 0.3, 0.3, n3)
+			for i in [0, PN_PANELS]:
+				var e: Vector3 = bots[i]
+				if not _in_sector or _sector_rect.has_point(Vector2(e.x, e.z)):
+					_pn_strut(st, bots[i] + Vector3.DOWN * 0.45, tops[i], 0.8, 0.8, n3)
+		# Cross bracing between neighbouring girders at the arch rib, every other panel point.
+		for j in PN_GIRDERS.size() - 1:
+			for i in range(1, PN_PANELS, 2):
+				var a := float(i) / PN_PANELS
+				var s := lerpf(s0, s1, a)
+				var p0 := o + u * s + n * PN_GIRDERS[j]
+				var p1 := o + u * s + n * PN_GIRDERS[j + 1]
+				var pm := (p0 + p1) * 0.5
+				if _in_sector and not _sector_rect.has_point(pm):
+					continue
+				var depth := PN_DEPTH_MID + (PN_DEPTH_END - PN_DEPTH_MID) * pow(2.0 * a - 1.0, 2.0)
+				var y := deck_height(g, pm.x, pm.y) - PN_SLAB - depth
+				_pn_strut(st, Vector3(p0.x, y, p0.y), Vector3(p1.x, y, p1.y), 0.35, 0.45, u3)
+	_pn_edges(st, o, u, n, g)
+	_uv2 = Vector2.ZERO
+
+
+## Along both outer edges over the river: the red fascia girder on the parapet's face, the black
+## cast-iron railing on its top (posts, two rails), and over each pier a granite pedestal that
+## stands out of the railing with a cartouche (the governorates' arms) and a small turret top.
+func _pn_edges(st, o: Vector2, u: Vector2, n: Vector2, g: int) -> void:
+	var n3 := Vector3(n.x, 0.0, n.y)
+	for side in 2:
+		var e: float = PN_EDGE[side]
+		var sgn := signf(e)
+		var out := n * sgn
+		var out3 := n3 * sgn
+		var s := PN_ENDS.x
+		while s < PN_ENDS.y - 0.1:
+			var s2 := minf(s + PN_RAIL_STEP, PN_ENDS.y)
+			var p0 := o + u * s + n * e
+			var p1 := o + u * s2 + n * e
+			var pm := (p0 + p1) * 0.5
+			var on_pier := false
+			for ps: float in PN_PIERS:
+				if absf((s + s2) * 0.5 - ps) < 1.6:
+					on_pier = true
+			if _in_sector and not _sector_rect.has_point(pm):
+				s = s2
+				continue
+			var y0 := deck_height(g, p0.x, p0.y)
+			var y1 := deck_height(g, p1.x, p1.y)
+			var f0 := p0 + out * 0.08
+			var f1 := p1 + out * 0.08
+			_quad(st, Vector3(f0.x, y0 - 1.35, f0.y), Vector3(f1.x, y1 - 1.35, f1.y), Vector3(f1.x, y1 + 0.5, f1.y),
+					Vector3(f0.x, y0 + 0.5, f0.y), out3, PN_FASCIA)
+			if not on_pier:
+				var r0 := p0 - out * 0.15
+				var r1 := p1 - out * 0.15
+				_pn_strut(st, Vector3(r0.x, y0 + 1.2, r0.y), Vector3(r1.x, y1 + 1.2, r1.y), 0.09, 0.12, out3, PN_IRON)
+				_pn_strut(st, Vector3(r0.x, y0 + 0.75, r0.y), Vector3(r1.x, y1 + 0.75, r1.y), 0.05, 0.05, out3, PN_IRON)
+				_pn_strut(st, Vector3(r0.x, y0 + 0.55, r0.y), Vector3(r0.x, y0 + 1.2, r0.y), 0.1, 0.1, out3, PN_IRON)
+				# The ornamental panel's scroll, a diagonal pair between the posts.
+				var rm := (r0 + r1) * 0.5
+				var ym := (y0 + y1) * 0.5
+				_pn_strut(st, Vector3(r0.x, y0 + 0.6, r0.y), Vector3(rm.x, ym + 1.15, rm.y), 0.04, 0.04, out3, PN_IRON)
+				_pn_strut(st, Vector3(rm.x, ym + 1.15, rm.y), Vector3(r1.x, y1 + 0.6, r1.y), 0.04, 0.04, out3, PN_IRON)
+			s = s2
+		for ps: float in PN_PIERS:
+			var c := o + u * ps + n * (e + sgn * 0.3)
+			if _in_sector and not _sector_rect.has_point(c):
+				continue
+			var y := deck_height(g, c.x, c.y)
+			var basis := Basis(Vector3.UP, atan2(-u.x, -u.y))
+			_box_oriented(st, Vector3(c.x, y - 0.1, c.y), basis, Vector3(1.4, 3.6, 2.6), PN_STONE.lightened(0.08))
+			_box_oriented(st, Vector3(c.x, y + 1.85, c.y), basis, Vector3(1.7, 0.3, 2.9), PN_STONE.lightened(0.16))
+			_box_oriented(st, Vector3(c.x, y + 2.3, c.y), basis, Vector3(0.9, 0.6, 1.2), PN_STONE.lightened(0.08))
+			var k := c + out * 0.72
+			_box_oriented(st, Vector3(k.x, y + 0.6, k.y), basis, Vector3(0.06, 1.2, 1.0), Color("#a8323a"))
+
+
+## A steel member from a to b, w wide (along `side`, horizontal) and h deep.
+func _pn_strut(st, a: Vector3, b: Vector3, w: float, h: float, side: Vector3, col := PN_STEEL) -> void:
+	var z := b - a
+	var length := z.length()
+	if length < 0.05:
+		return
+	z /= length
+	var x := (side - z * side.dot(z)).normalized()
+	_box_oriented(st, (a + b) * 0.5, Basis(x, z.cross(x), z), Vector3(w, h, length), col)
+
+
+## One granite pier at s along the bridge, from below the river bed to `top`: a block across the
+## whole deck with a rounded cutwater at each end, a paler cap, dressed courses, solid.
+func _pn_pier(st, o: Vector2, u: Vector2, n: Vector2, s: float, top: float) -> void:
+	var local: Array[Vector2] = []
+	for end in [-1.0, 1.0]:
+		for k in 5:
+			var ang := PI * k / 4.0
+			local.append(Vector2(-cos(ang) * PN_HALF * end, end * (PN_SIDE + sin(ang) * PN_HALF)))
+	var c := o + u * s
+	var ground := INF
+	var poly := PackedVector2Array()
+	var cap := PackedVector2Array()
+	for q: Vector2 in local:
+		var p := o + u * (s + q.x) + n * q.y
+		poly.append(p)
+		cap.append(p + (p - c).normalized() * 0.45)
+		ground = minf(ground, terrain_height(p.x, p.y))
+	var y0 := ground - 1.5
+	var y1 := top - 0.7
+	for ring in [[poly, y0, y1, PN_STONE], [cap, y1, top, PN_STONE.lightened(0.12)]]:
+		var pts: PackedVector2Array = ring[0]
+		var lo: float = ring[1]
+		var hi: float = ring[2]
+		var col: Color = ring[3]
+		for i in pts.size():
+			var a := pts[i]
+			var b := pts[(i + 1) % pts.size()]
+			var e := (b - a).normalized()
+			var nn := Vector2(e.y, -e.x)
+			if nn.dot((a + b) * 0.5 - c) < 0.0:
+				nn = -nn
 			var y := lo
 			var band := 0
 			while y < hi - 0.01:
@@ -3844,9 +4097,12 @@ func _build_bridge_structures(st) -> void:
 					_wall_faces.append_array([Vector3(k0.x, ya - 0.2, k0.y), Vector3(k1.x, yb - 0.2, k1.y), Vector3(k1.x, yb + 1.6, k1.y),
 							Vector3(k0.x, ya - 0.2, k0.y), Vector3(k1.x, yb + 1.6, k1.y), Vector3(k0.x, ya + 1.6, k0.y)])
 	var ms := _srednicowy_frame()
+	var pn := _poniatowski_frame()
 	for p: Dictionary in data.get("decks", {}).get("piers", []):
 		if _srednicowy_skips(ms, Vector2(float(p["c"][0]), float(p["c"][1]))):
 			continue  # Most Średnicowy's stone piers stand here (`_build_srednicowy`)
+		if _poniatowski_skips(pn, Vector2(float(p["c"][0]), float(p["c"][1]))):
+			continue  # Most Poniatowskiego's stone piers and arches stand here (`_build_poniatowski`)
 		_pier(st, p, concrete.darkened(0.1))
 	_uv2 = Vector2.ZERO
 	if not _in_sector:
