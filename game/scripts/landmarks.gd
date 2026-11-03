@@ -498,6 +498,12 @@ const INFO := {
 	"grob": ["Grób Nieznanego Żołnierza",
 			"Trzy łuki ocalałe z Pałacu Saskiego. Wieczny ogień i warta.",
 			"Three arches left of the Saxon Palace. An eternal flame, a guard."],
+	"hotel_warszawa": ["Hotel Warszawa",
+			"Dawny Prudential z 1933 roku, pierwszy wieżowiec Warszawy. Kamienne lizeny, od 2018 znów hotel.",
+			"The 1933 Prudential, Warsaw's first skyscraper: stone pilasters, a hotel again since 2018."],
+	"cedet": ["Cedet",
+			"Dawny Centralny Dom Towarowy z 1951 roku: pasy szkła, zaokrąglony narożnik, przebudowa 2018.",
+			"The 1951 Central Department Store: ribbon glass, a rounded corner, rebuilt in 2018."],
 	"polin": ["POLIN Muzeum Historii Żydów Polskich",
 			"Muzeum z 2013 roku: szklana bryła przecięta kanionem holu, naprzeciw Pomnika Bohaterów Getta.",
 			"The 2013 museum: a glass box split by the canyon of its hall, facing the Ghetto Heroes Monument."],
@@ -886,6 +892,10 @@ func _find_sites() -> void:
 	_find_wiecha()
 	# Skwer Linearny na Złotej (F's photo, 2026-11-02): Dom pod Orłami over the new square.
 	_find_orly()
+	# City inventory item 4 (2026-11-02, Mac photos refs/hotel_warszawa, refs/cedet): Hotel Warszawa
+	# (the 1933 Prudential) on Plac Powstańców and Cedet on Al. Jerozolimskie at Krucza.
+	_find_hotel_warszawa()
+	_find_cedet()
 	# Muranów (2026-11-02, spec polin.md): POLIN and the Ghetto Heroes Monument before it.
 	_find_polin()
 	# The railway (docs/design/railway.md, S1): Warszawa Ochota's hall and its saddle roof.
@@ -1402,6 +1412,10 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_wiecha(s)
 			"orly":
 				_build_orly(s)
+			"hotel_warszawa":
+				_build_hotel_warszawa(s)
+			"cedet":
+				_build_cedet(s)
 			"polin":
 				_build_polin(s)
 			"getto":
@@ -5553,7 +5567,7 @@ func _build_stadium(site: Dictionary) -> void:
 
 
 ## A square beam from a to b, `w` wide (masts, cables). Cables stay out of the roof grid.
-func _beam(a: Vector3, b: Vector3, w: float, col: Color, solid := true) -> void:
+func _beam(a: Vector3, b: Vector3, w: float, col: Color, solid := true, mode := M_STONE) -> void:
 	var z := (b - a).normalized()
 	var x := Vector3.UP.cross(z)
 	if x.length_squared() < 0.001:
@@ -5561,7 +5575,7 @@ func _beam(a: Vector3, b: Vector3, w: float, col: Color, solid := true) -> void:
 	x = x.normalized() * w * 0.5
 	var y := z.cross(x).normalized() * w * 0.5
 	var keep := _mode
-	_mode = M_STONE
+	_mode = mode
 	var corners := [x + y, -x + y, -x - y, x - y]
 	for k in 4:
 		var c0: Vector3 = corners[k]
@@ -17459,6 +17473,491 @@ func _bulwary_fish(u: float, v: float, flen: float, yaw: float, col: Color, g: f
 	# The dorsal fin over the shoulder, a small raised sail.
 	var sh: Vector3 = pt.call(0.4)
 	_beam(sh + Vector3.UP * flen * 0.06, sh + Vector3.UP * flen * 0.2 + (tail - head).normalized() * flen * 0.05, 0.025 * flen, col.darkened(0.15))
+
+
+# --- Hotel Warszawa (the 1933 Prudential) -------------------------------------------------------
+## City inventory item 4 (2026-11-02; spec docs/landmarks/specs/hotel_warszawa.md, from the Mac's
+## photos and orthophoto in refs/hotel_warszawa). Marcin Weinfeld's stone tower on Plac
+## Powstańców: a wide shaft of eight full-height pilasters and seven columns of small deep
+## windows, a heavy cornice, a set-back two-storey crown with masts, a low two-storey base with a
+## three-opening portal under the word WARSZAWA, and two six-storey wings flush with the front.
+## Behind it a U of 25 m wings round a low glass-roofed hall. Local frame: u along the front
+## (north, towards Świętokrzyska), v out of the front (east, onto the square); the shaft's front
+## is v = 0, the outline's parts (centrum.json) give every rectangle below.
+const HW_O := Vector2(-770.5, -190.0)
+const HW_A := Vector2(-0.33035, -0.94386)   # along the front, south to north
+const HW_SHAFT := Rect2(-10.5, -15.6, 21.7, 15.6)   # u0, v0, width, depth (part 3482)
+const HW_CROWN := Rect2(-8.0, -14.4, 17.2, 13.0)    # the set-back crown box (part 3483)
+const HW_WING_N := Rect2(11.2, -5.5, 6.1, 6.4)      # the front wings (parts 11860, 11865)
+const HW_WING_S := Rect2(-16.5, -5.0, 6.0, 5.6)
+const HW_COURT := Rect2(-8.6, -47.4, 11.8, 31.8)    # the low hall in the middle (part 11857)
+const HW_BASE_TOP := 8.6     # the ground floor (5 m) and the low base storey
+const HW_STOREY := 3.8
+const HW_ROWS := 12          # the shaft's storeys over the base
+const HW_CORNICE := 54.2     # HW_BASE_TOP + 12 storeys
+const HW_CROWN_TOP := 66.2
+const HW_WINGS := 24.0
+const HW_BACK := 25.0
+const HW_STONE := Color("#dccaa6")
+const HW_PIER := Color("#ebdfc4")
+const HW_SHADE := Color("#cdbd9e")
+const HW_GLASS := Color("#5f7079")
+const HW_DARK := Color("#3c3733")
+const HW_COPPER := Color("#a5583f")
+const HW_ROOF := Color("#55504a")
+const HW_MEMBRANE := Color("#cfcbc4")
+const HW_HALL_GLASS := Color("#7f9faf")
+const HW_GLOW := Color("#dcc59a")    # the pilasters' and cornices' floodlight strips (M_LAMP)
+const HW_LETTERS := Color(0.45, 0.43, 0.4)
+
+
+func _find_hotel_warszawa() -> void:
+	var q := _landmark("Hotel Warszawa")
+	if q.size() < 3:
+		return
+	_add_site("hotel_warszawa", [_largest(Geometry2D.offset_polygon(q, 1.5, Geometry2D.JOIN_MITER))])
+	if not sites.is_empty() and sites[-1]["key"] == "hotel_warszawa":
+		sites[-1]["ring"] = _simplify(q, 0.3)
+
+
+## A local rectangle (u0, v0, width, depth) as a world ring.
+func _lrect(r: Rect2, grow := 0.0) -> PackedVector2Array:
+	return _rect(r.position.x + r.size.x * 0.5, r.position.y + r.size.y * 0.5, r.size.x * 0.5 + grow, r.size.y * 0.5 + grow)
+
+
+## Punched windows on one local face: the face runs along u (dir 1) at v = `v` facing +v (or −v
+## with out = −1), or along v at u = `v` facing ±u when `side`; `cols` centres, `rows` sill
+## heights over the ground, each pane w × h, 7 cm proud.
+func _hw_panes(side: bool, at: float, out: float, cols: Array, rows: Array, w: float, h: float, col: Color) -> void:
+	var keep := _mode
+	_mode = M_GLASS
+	var n := _b * out if not side else _a * out
+	for c: float in cols:
+		for y0: float in rows:
+			var p0: Vector2
+			var p1: Vector2
+			if side:
+				p0 = _w(at + out * 0.07, c - w * 0.5)
+				p1 = _w(at + out * 0.07, c + w * 0.5)
+			else:
+				p0 = _w(c - w * 0.5, at + out * 0.07)
+				p1 = _w(c + w * 0.5, at + out * 0.07)
+			_wall(p0, p1, _g + y0, _g + y0 + h, n, col, c * 3.0)
+	_mode = keep
+
+
+## Evenly spaced centres between a and b, n of them (bay middles).
+func _spread(a: float, b: float, n: int) -> Array:
+	var out := []
+	for k in n:
+		out.append(a + (b - a) * (k + 0.5) / n)
+	return out
+
+
+func _build_hotel_warszawa(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	_o = HW_O
+	_a = HW_A
+	_b = Vector2(-_a.y, _a.x)   # east, onto the square
+	_g = _ground_under(ring)
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	var s := HW_SHAFT
+	var u0 := s.position.x
+	var u1 := s.position.x + s.size.x
+	var vb := s.position.y
+	# Windows first (7 cm proud), so the walls behind them stay whole.
+	var rows := []
+	for r in HW_ROWS:
+		rows.append(HW_BASE_TOP + 0.9 + HW_STOREY * r)
+	var high := []   # the rows over the back wings' roofs (the side and back faces)
+	for y: float in rows:
+		if y > HW_BACK + 0.3:
+			high.append(y)
+	var front_cols := _spread(u0, u1, 7)
+	_hw_panes(false, 0.0, 1.0, front_cols, rows, 1.4, 1.8, HW_GLASS)
+	_hw_panes(false, 0.0, 1.0, front_cols, [5.7], 1.3, 1.6, HW_GLASS)   # the base storey's small row
+	_hw_panes(false, vb, -1.0, front_cols, high, 1.4, 1.8, HW_GLASS)
+	_hw_panes(true, u1, 1.0, _spread(vb, 0.0, 6), high, 1.4, 1.8, HW_GLASS)
+	_hw_panes(true, u0, -1.0, _spread(vb, 0.0, 6), high, 1.4, 1.8, HW_GLASS)
+	# The shaft.
+	_prism(_lrect(s), g - 0.6, g + HW_CORNICE, HW_STONE, none, M_STONE)
+	# The eight front pilasters (0.6 m wide, 0.3 m proud), base to cornice, each with a floodlight
+	# strip down its face; the doubled strips at the corners on the sides.
+	var pitch := s.size.x / 7.0
+	for k in 8:
+		var u := u0 + pitch * k
+		_lbox(u, 0.15, 0.3, 0.15, g + HW_BASE_TOP - 3.6, g + HW_CORNICE, HW_PIER, M_STONE, HW_PIER)
+		_hw_glow_strip(Vector2(u, 0.37), Vector2(0.0, 1.0), g + HW_BASE_TOP, g + HW_CORNICE - 0.4)
+	for side: float in [-1.0, 1.0]:
+		var uf := u1 if side > 0.0 else u0
+		for k in 7:
+			var v := vb + s.size.y * k / 6.0
+			_lbox(uf + side * 0.15, v, 0.15, 0.3, g + HW_BACK, g + HW_CORNICE, HW_PIER, M_STONE, HW_PIER)
+	# The string course over the base, the heavy cornice and its lit edge.
+	_prism(_lrect(s, 0.32), g + HW_BASE_TOP - 0.25, g + HW_BASE_TOP + 0.2, HW_SHADE, HW_SHADE, M_STONE, M_STONE)
+	_prism(_lrect(s, 1.0), g + HW_CORNICE, g + HW_CORNICE + 1.6, HW_PIER, HW_SHADE, M_STONE, M_STONE)
+	_mode = M_LAMP
+	_prism(_lrect(s, 1.08), g + HW_CORNICE + 1.35, g + HW_CORNICE + 1.55, HW_GLOW, none, M_LAMP)
+	_mode = M_STONE
+	# The crown: two storeys of five bays between six pilasters, an attic, the top cornice.
+	var c := HW_CROWN
+	var cy := HW_CORNICE + 1.6
+	var crows := [cy + 1.0, cy + 4.8]
+	var cc := _spread(c.position.x, c.position.x + c.size.x, 5)
+	var cv := _spread(c.position.y, c.position.y + c.size.y, 4)
+	_hw_panes(false, c.position.y + c.size.y, 1.0, cc, crows, 1.4, 1.9, HW_GLASS)
+	_hw_panes(false, c.position.y, -1.0, cc, crows, 1.4, 1.9, HW_GLASS)
+	_hw_panes(true, c.position.x + c.size.x, 1.0, cv, crows, 1.4, 1.9, HW_GLASS)
+	_hw_panes(true, c.position.x, -1.0, cv, crows, 1.4, 1.9, HW_GLASS)
+	_prism(_lrect(c), g + cy, g + HW_CROWN_TOP, HW_STONE, none, M_STONE)
+	var cf := c.position.y + c.size.y
+	for k in 6:
+		var u := c.position.x + c.size.x * k / 5.0
+		_lbox(u, cf + 0.12, 0.28, 0.12, g + cy, g + HW_CROWN_TOP, HW_PIER, M_STONE, HW_PIER)
+		_hw_glow_strip(Vector2(u, cf + 0.31), Vector2(0.0, 1.0), g + cy + 0.3, g + HW_CROWN_TOP - 0.3)
+	_prism(_lrect(c, 0.8), g + HW_CROWN_TOP, g + HW_CROWN_TOP + 1.2, HW_PIER, HW_ROOF, M_STONE, M_STONE)
+	_prism(_lrect(c, 0.88), g + HW_CROWN_TOP + 0.95, g + HW_CROWN_TOP + 1.15, HW_GLOW, none, M_LAMP)
+	_mode = M_STONE
+	# The roof: the lift head, two white masts and the flagpole with the white-and-red flag.
+	var top := g + HW_CROWN_TOP + 1.2
+	_lbox(2.5, -9.0, 2.2, 1.8, top, top + 2.6, HW_SHADE, M_STONE, HW_ROOF)
+	for m: Vector2 in [Vector2(-5.5, -4.0), Vector2(6.5, -12.0)]:
+		var p := _w(m.x, m.y)
+		_beam(Vector3(p.x, top, p.y), Vector3(p.x, top + 8.0, p.y), 0.22, Color("#e6e6e2"))
+	var fp := _w(0.6, -2.6)
+	_beam(Vector3(fp.x, top, fp.y), Vector3(fp.x, top + 6.5, fp.y), 0.12, Color("#e6e6e2"))
+	_hw_flag(fp, top + 5.0, 2.4)
+	# The two front wings, six storeys, one column of tall narrow windows by their outer edges.
+	for w: Rect2 in [HW_WING_N, HW_WING_S]:
+		var outer := w.position.x + w.size.x - 1.6 if w.position.x > 0.0 else w.position.x + 1.6
+		var fv := w.position.y + w.size.y
+		var tall := []
+		for k in 5:
+			tall.append(HW_BASE_TOP + 0.6 + HW_STOREY * k)
+		_hw_panes(false, fv, 1.0, [outer], tall, 1.1, 2.6, HW_GLASS)
+		_hw_panes(false, fv, 1.0, [outer], [1.2], 1.6, 3.0, HW_GLASS)
+		_prism(_lrect(w), g - 0.6, g + HW_WINGS, HW_STONE, HW_MEMBRANE, M_STONE, M_STONE)
+		_parapet(_lrect(w), g + HW_WINGS, 0.45, HW_SHADE)
+	# The portal: a stone porch a metre proud with three openings, WARSZAWA cut over it, a copper
+	# door either side, the shop-tall ground-floor windows beyond.
+	var pf := 1.1
+	_mode = M_STONE
+	for op: Vector3 in [Vector3(0.4, 1.6, 4.2), Vector3(-3.0, 0.8, 3.5), Vector3(3.8, 0.8, 3.5)]:
+		_wall(_w(op.x - op.y, pf + 0.06), _w(op.x + op.y, pf + 0.06), g, g + op.z, _b, HW_DARK)
+	_lbox(0.4, pf * 0.5, 4.7, pf * 0.5, g - 0.6, g + 5.2, HW_PIER, M_STONE, HW_SHADE)
+	for d: float in [-6.6, 7.6]:
+		_wall(_w(d - 0.7, 0.08), _w(d + 0.7, 0.08), g, g + 3.1, _b, HW_COPPER)
+	_hw_panes(false, 0.0, 1.0, [-8.9, 9.7], [0.9], 1.8, 3.4, HW_GLASS)
+	var scale := 0.42 / (Neon.ROW_H * Neon.PIXEL)
+	var mid := _w(0.4, pf + 0.1)
+	signs.append(["WARSZAWA", Vector3(mid.x, g + 4.55, mid.y), Vector3(_b.x, 0.0, _b.y), scale, HW_LETTERS])
+	# A granite step before the portal and three flagpoles on the square, north of it.
+	_lbox(0.4, pf + 1.2, 6.0, 1.2, g - 0.3, g + 0.14, Color("#bdb6a8"), M_STONE, Color("#c9c2b3"))
+	for k in 3:
+		var p := _w(12.5 + 1.6 * k, 4.0)
+		_beam(Vector3(p.x, g, p.y), Vector3(p.x, g + 9.0, p.y), 0.12, Color("#e6e6e2"))
+		_hw_flag(p, g + 7.6, 1.25)
+	# Behind: the U of 25 m wings (Świętokrzyska's, the west end, the south one) round the low hall.
+	var back := PackedVector2Array()
+	for q: Vector2 in [Vector2(-16.1, -5.0), Vector2(-10.5, -5.0), Vector2(-10.5, -15.6), Vector2(-8.6, -15.6),
+			Vector2(-8.6, -47.4), Vector2(3.2, -47.4), Vector2(3.2, -15.6), Vector2(11.2, -15.6), Vector2(11.2, -5.5),
+			Vector2(17.4, -5.5), Vector2(18.8, -54.4), Vector2(-16.1, -54.5)]:
+		back.append(_w(q.x, q.y))
+	var back_rows := []
+	for k in 6:
+		back_rows.append(3.6 + 3.6 * k)
+	_hw_back_panes(back, back_rows)
+	_prism(back, g - 0.6, g + HW_BACK, HW_STONE, HW_MEMBRANE, M_STONE, M_STONE)
+	_parapet(back, g + HW_BACK, 0.5, HW_SHADE)
+	for h: Vector2 in [Vector2(14.5, -20.0), Vector2(14.5, -32.0), Vector2(-12.5, -26.0), Vector2(-3.0, -51.0)]:
+		var hp := _w(h.x, h.y)
+		_prism(_circle(hp, 0.9, 8), g + HW_BACK, g + HW_BACK + 1.3, Color("#9a9a96"), Color("#7d7d79"), M_STONE, M_STONE)
+	# The hall: low stone walls under a glass ridge roof.
+	var ct := HW_COURT
+	_prism(_lrect(ct), g - 0.6, g + 7.5, HW_SHADE, none, M_STONE)
+	var cu0 := ct.position.x
+	var cu1 := ct.position.x + ct.size.x
+	var cm := (cu0 + cu1) * 0.5
+	var v0 := ct.position.y
+	var v1 := ct.position.y + ct.size.y
+	for half: Array in [[cu0, cm], [cu1, cm]]:
+		var ea: Vector2 = _w(half[0], v0)
+		var eb: Vector2 = _w(half[0], v1)
+		var ra: Vector2 = _w(half[1], v0)
+		var rb: Vector2 = _w(half[1], v1)
+		# The slope rises towards the ridge: its normal leans back the other way.
+		var lean := -1.0 if half[0] < cm else 1.0
+		var up := Vector3(_a.x * lean * 0.3, 1.0, _a.y * lean * 0.3).normalized()
+		_mode = M_GLASS_ROOF
+		_quad(Vector3(ea.x, g + 7.5, ea.y), Vector3(eb.x, g + 7.5, eb.y), Vector3(rb.x, g + 9.3, rb.y),
+				Vector3(ra.x, g + 9.3, ra.y), up, HW_HALL_GLASS)
+	# The hall roof's two gable ends.
+	_mode = M_STONE
+	for v: float in [v0, v1]:
+		var l := _w(cu0, v)
+		var r := _w(cu1, v)
+		var m := _w(cm, v)
+		var nv := -_b if v == v0 else _b
+		_tri(Vector3(l.x, g + 7.5, l.y), Vector3(r.x, g + 7.5, r.y), Vector3(m.x, g + 9.3, m.y), Vector3(nv.x, 0.0, nv.y), HW_SHADE,
+				Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+	_mode = M_STONE
+	_collide(ring)
+
+
+## A floodlight strip (M_LAMP) down a pilaster's face: 0.3 m wide at local `at`, facing `out`.
+func _hw_glow_strip(at: Vector2, out: Vector2, y0: float, y1: float) -> void:
+	var keep := _mode
+	_mode = M_LAMP
+	var n := _a * out.x + _b * out.y
+	var t := Vector2(-n.y, n.x)
+	var c := _w(at.x, at.y)
+	_wall(c - t * 0.15, c + t * 0.15, y0, y1, n, HW_GLOW)
+	_mode = keep
+
+
+## A small white-over-red flag off a pole at `p`, its top at `y`.
+func _hw_flag(p: Vector2, y: float, flen: float) -> void:
+	var keep := _mode
+	_mode = M_STONE
+	var d := _a
+	var n := Vector3(_b.x, 0.0, _b.y)
+	var q := p + d * flen
+	var h := flen * 0.32
+	_quad(Vector3(p.x, y, p.y), Vector3(q.x, y, q.y), Vector3(q.x, y - h, q.y), Vector3(p.x, y - h, p.y), n, Color("#f2f2ee"))
+	_quad(Vector3(p.x, y - h, p.y), Vector3(q.x, y - h, q.y), Vector3(q.x, y - 2.0 * h, q.y), Vector3(p.x, y - 2.0 * h, p.y), n,
+			Color("#c8203a"))
+	_mode = keep
+
+
+## Rows of small windows round the back wings' ring, on every edge that faces the street or the
+## hall (an edge against the shaft or a front wing is skipped; over the hall, from its roof up).
+func _hw_back_panes(back: PackedVector2Array, rows: Array) -> void:
+	var keep := _mode
+	_mode = M_GLASS
+	var hidden := [_lrect(HW_SHAFT, 0.5), _lrect(HW_WING_N, 0.5), _lrect(HW_WING_S, 0.5)]
+	var hall := _lrect(HW_COURT, 0.5)
+	var along := 0.0
+	for i in back.size():
+		var a := back[i]
+		var b := back[(i + 1) % back.size()]
+		var length := a.distance_to(b)
+		var e := (b - a) / length
+		var out := _out(back, a, b)
+		var probe := (a + b) * 0.5 + out * 1.0
+		var skip := false
+		for r: PackedVector2Array in hidden:
+			if Geometry2D.is_point_in_polygon(probe, r):
+				skip = true
+		var n := floori((length - 1.0) / 3.2)
+		if skip or n < 1:
+			along += length
+			continue
+		var over_hall := Geometry2D.is_point_in_polygon(probe, hall)
+		var t0 := (length - n * 3.2) * 0.5 + 1.6
+		for k in n:
+			var p := a + e * (t0 + k * 3.2) + out * 0.07
+			for y0: float in rows:
+				if over_hall and y0 < 8.2:
+					continue
+				_wall(p - e * 0.65, p + e * 0.65, _g + y0, _g + y0 + 1.8, out, HW_GLASS, along + t0 + k * 3.2)
+		along += length
+	_mode = keep
+
+
+# --- Cedet (the 1951 Central Department Store) --------------------------------------------------
+## City inventory item 4 (2026-11-02; spec docs/landmarks/specs/cedet.md, from the Mac's photos and
+## orthophoto in refs/cedet). Ihnatowicz and Romański's department store at Al. Jerozolimskie and
+## Krucza, rebuilt in 2018: a tall open ground floor of granite piers and recessed shop glass, five
+## storeys of continuous ribbon glass between cream rounded floor slabs, rounded street corners, a
+## ribbed cream cornice, a set-back glass pavilion on the roof whose roof plate sweeps up into two
+## wings at its ends, and the steel loop with its arrow on the avenue front (blue neon at night).
+## Local frame: u along Jerozolimskie (west to east), v out of the front (south, onto the avenue);
+## the corners are the mapped outline's (centrum.json "Cedet"), straightened.
+const CD_O := Vector2(-480.85, 314.3)
+const CD_A := Vector2(0.94992, -0.31249)
+## The outline's corners (local); a third value rounds that corner to that radius.
+const CD_RING := [Vector3(-36.0, 1.8, 5.0), Vector3(36.4, 0.9, 4.0), Vector3(32.2, -26.6, 0.0), Vector3(31.0, -28.6, 0.0),
+		Vector3(16.0, -28.6, 0.0), Vector3(15.8, -40.3, 0.0), Vector3(19.5, -40.4, 0.0), Vector3(-2.4, -67.2, 0.0),
+		Vector3(-26.3, -67.1, 0.0), Vector3(-30.1, -39.6, 0.0), Vector3(-16.6, -39.8, 0.0), Vector3(-16.0, -28.0, 0.0),
+		Vector3(-31.0, -27.7, 0.0), Vector3(-32.3, -26.0, 0.0)]
+const CD_GROUND := 6.5       # the open ground floor's height
+const CD_STOREY := 4.6       # five department-store storeys (LoD2: the main roof ~31 m up)
+const CD_FLOORS := 5
+const CD_CORNICE := 1.5
+const CD_PIER_STEP := 7.2
+const CD_SLAB := Color("#e6dfcf")
+const CD_SLAB_SHADE := Color("#cfc8b8")
+const CD_GLASS := Color("#2e4660")
+const CD_SHOP := Color("#28303a")
+const CD_FRAME := Color("#4a4742")
+const CD_GRANITE := Color("#b9b2a4")
+const CD_ROOF := Color("#6a6f76")
+const CD_PAVILION := Color("#2a3340")
+const CD_PLATE := Color("#d9d4c8")
+const CD_UNDER := Color("#3a3a3a")
+const CD_LOOP := Color("#3a5c9e")   # steel blue by day, the loop's blue neon at night (M_LAMP)
+
+
+func _find_cedet() -> void:
+	var q := _landmark("Cedet")
+	if q.size() < 3:
+		return
+	_add_site("cedet", [_largest(Geometry2D.offset_polygon(q, 1.5, Geometry2D.JOIN_MITER))])
+	if not sites.is_empty() and sites[-1]["key"] == "cedet":
+		sites[-1]["outline"] = q
+
+
+## A ring from local corners, each Vector3(u, v, r) rounded to radius r (an arc of 6 pieces).
+func _rounded_ring(corners: Array) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	var n := corners.size()
+	for i in n:
+		var c3: Vector3 = corners[i]
+		var c := Vector2(c3.x, c3.y)
+		if c3.z <= 0.0:
+			out.append(_w(c.x, c.y))
+			continue
+		var p3: Vector3 = corners[(i - 1 + n) % n]
+		var n3: Vector3 = corners[(i + 1) % n]
+		var d1 := (Vector2(p3.x, p3.y) - c).normalized()
+		var d2 := (Vector2(n3.x, n3.y) - c).normalized()
+		var half := d1.angle_to(d2) * 0.5
+		var t := c3.z / tan(absf(half))
+		var centre := c + (d1 + d2).normalized() * c3.z / sin(absf(half))
+		var a0 := c + d1 * t
+		var a1 := c + d2 * t
+		var ang0 := (a0 - centre).angle()
+		var sweep := wrapf((a1 - centre).angle() - ang0, -PI, PI)
+		for k in 7:
+			var p := centre + Vector2.from_angle(ang0 + sweep * k / 6.0) * c3.z
+			out.append(_w(p.x, p.y))
+	return out
+
+
+## The ring moved `d` metres out (in when negative), corner by corner (a mitre at each), so its
+## corners stay matched with the ring's.
+func _miter(ring: PackedVector2Array, d: float) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	var n := ring.size()
+	for i in n:
+		var p := ring[(i - 1 + n) % n]
+		var c := ring[i]
+		var q := ring[(i + 1) % n]
+		var n1 := _out(ring, p, c)
+		var n2 := _out(ring, c, q)
+		var m := (n1 + n2).normalized()
+		var k := maxf(m.dot(n1), 0.35)
+		out.append(c + m * d / k)
+	return out
+
+
+## A flat strip between two matched rings at y, facing up (or down).
+func _strip(inner: PackedVector2Array, outer: PackedVector2Array, y: float, col: Color, down := false) -> void:
+	var n := Vector3.DOWN if down else Vector3.UP
+	for i in inner.size():
+		var j := (i + 1) % inner.size()
+		_quad(Vector3(inner[i].x, y, inner[i].y), Vector3(inner[j].x, y, inner[j].y), Vector3(outer[j].x, y, outer[j].y),
+				Vector3(outer[i].x, y, outer[i].y), n, col)
+
+
+func _build_cedet(site: Dictionary) -> void:
+	var outline: PackedVector2Array = site["outline"]
+	_o = CD_O
+	_a = CD_A
+	_b = Vector2(-_a.y, _a.x)   # south, onto the avenue
+	var ring := _rounded_ring(CD_RING)
+	_g = _ground_under(ring)
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	var top := CD_GROUND + CD_STOREY * CD_FLOORS
+	# The ground floor: shop glass two metres back under the first slab, granite piers on the line.
+	var shop := _miter(ring, -1.8)
+	_prism(shop, g - 0.6, g + CD_GROUND, CD_SHOP, none, M_GLASS)
+	_mode = M_STONE
+	_strip(shop, ring, g + CD_GROUND - 0.02, CD_SLAB_SHADE, true)
+	# Piers and bay mullions along the store's walls (the south wing's: the avenue, Krucza and the
+	# east end), one every 7.2 m.
+	var bays: Array[Vector3] = []   # x, z of a bay line and its edge's index
+	for i in ring.size():
+		var a := ring[i]
+		var b := ring[(i + 1) % ring.size()]
+		var length := a.distance_to(b)
+		if length < 6.0 or _local((a + b) * 0.5).y < -29.0:
+			continue
+		var e := (b - a) / length
+		var o := _out(ring, a, b)
+		var n := floori(length / CD_PIER_STEP)
+		var t0 := (length - n * CD_PIER_STEP) * 0.5
+		for k in n + 1:
+			var p := a + e * (t0 + CD_PIER_STEP * k)
+			var c := p - o * 0.55
+			var pier := PackedVector2Array([c - e * 0.5 - o * 0.5, c + e * 0.5 - o * 0.5, c + e * 0.5 + o * 0.5, c - e * 0.5 + o * 0.5])
+			_prism(pier, g - 0.6, g + CD_GROUND - 0.02, CD_GRANITE, none, M_STONE)
+			# The mullion between bays over it, 0.3 m wide and 8 cm proud of the glass.
+			_wall(p - e * 0.15 + o * 0.08, p + e * 0.15 + o * 0.08, g + CD_GROUND, g + top, o, CD_FRAME)
+	# The glass storeys, then a cream rounded slab at every floor (0.35 m proud, 0.5 m tall).
+	_prism(ring, g + CD_GROUND, g + top, CD_GLASS, none, M_GLASS)
+	var lip := _miter(ring, 0.35)
+	for k in CD_FLOORS:
+		var y := g + CD_GROUND + CD_STOREY * k
+		_prism(lip, y - 0.12, y + 0.4, CD_SLAB, none, M_STONE)
+		_strip(ring, lip, y + 0.4, CD_SLAB)
+		_strip(ring, lip, y - 0.12, CD_SLAB_SHADE, true)
+	# The ribbed cornice and the roof.
+	var crown := _miter(ring, 0.25)
+	_prism(crown, g + top, g + top + CD_CORNICE, CD_SLAB, CD_ROOF, M_STONE, M_STONE)
+	var roof := g + top + CD_CORNICE
+	# The set-back pavilion over the middle of the avenue wing: dark glass, a cream roof plate a
+	# little over it, and the plate's ends swept up into the two wings (dark undersides).
+	_lbox(0.0, -14.5, 20.0, 9.5, roof, roof + 4.0, CD_PAVILION, M_GLASS, CD_PAVILION)
+	_lbox(0.0, -14.5, 22.0, 11.5, roof + 4.0, roof + 4.45, CD_PLATE, M_STONE, CD_PLATE)
+	_mode = M_STONE
+	for side: float in [-1.0, 1.0]:
+		var ia := _w(side * 22.0, -26.0)
+		var ib := _w(side * 22.0, -3.0)
+		var oa := _w(side * 28.5, -26.0)
+		var ob := _w(side * 28.5, -3.0)
+		var y0 := roof + 4.45
+		var y1 := roof + 7.2
+		var rise := Vector3(-_a.x * side * 2.75, 6.5, -_a.y * side * 2.75).normalized()
+		_quad(Vector3(ia.x, y0, ia.y), Vector3(ib.x, y0, ib.y), Vector3(ob.x, y1, ob.y), Vector3(oa.x, y1, oa.y), rise, CD_PLATE)
+		var y0u := y0 - 0.45
+		var y1u := y1 - 0.4
+		_quad(Vector3(ia.x, y0u, ia.y), Vector3(ib.x, y0u, ib.y), Vector3(ob.x, y1u, ob.y), Vector3(oa.x, y1u, oa.y), -rise, CD_UNDER)
+		# The tip's edge, so the plate has a thickness where the eye meets it.
+		_quad(Vector3(oa.x, y1u, oa.y), Vector3(ob.x, y1u, ob.y), Vector3(ob.x, y1, ob.y), Vector3(oa.x, y1, oa.y),
+				Vector3(_a.x * side, 0.0, _a.y * side), CD_PLATE)
+	# Roof plant: four round hoods on the avenue wing's inner edge, a field of fans on the north wing.
+	for u: float in [-8.0, -2.0, 4.0, 10.0]:
+		var hp := _w(u, -26.0)
+		_prism(_circle(hp, 0.9, 8), roof, roof + 1.2, Color("#9a9ea4"), Color("#80848a"), M_STONE, M_STONE)
+	for k in 6:
+		var fp := _w(-16.0 + 3.2 * (k % 3), -50.0 - 3.2 * (k / 3))
+		_prism(_circle(fp, 1.0, 8), roof, roof + 0.8, Color("#8e9298"), Color("#55595f"), M_STONE, M_STONE)
+	# The loop on the avenue front: three coils of steel tube and an arrowhead pointing west, 35 m
+	# across, between the second and fifth storeys; it glows blue at night.
+	var lc := Vector2(4.0, 2.3)
+	var yc := g + 19.0
+	var span := 26.0
+	var r := 4.5
+	var prev := Vector3.ZERO
+	for k in 49:
+		var t := float(k) / 48.0
+		var th := TAU * 3.0 * t
+		# The coil leans in and out (0.6 m) so where it crosses itself the tubes pass, not merge.
+		var p := _w(lc.x - span * 0.5 + span * t - r * cos(th), lc.y + 0.6 * cos(th))
+		var cur := Vector3(p.x, yc + r * sin(th), p.y)
+		if k > 0:
+			_beam(prev, cur, 0.35, CD_LOOP, false, M_LAMP)
+		prev = cur
+	for s: float in [-1.0, 1.0]:
+		var dv := 1.2 + 0.2 * s   # the two barbs a little apart in depth: they meet at the tip
+		var tip := _w(lc.x - span * 0.5 - r - 0.6, lc.y + dv)
+		var back := _w(lc.x - span * 0.5 - r + 1.8, lc.y + dv)
+		_beam(Vector3(tip.x, yc, tip.y), Vector3(back.x, yc + 1.9 * s, back.y), 0.35, CD_LOOP, false, M_LAMP)
+	_mode = M_STONE
+	_collide(outline)
 
 
 # --- Plac Krasińskich: Pomnik Powstania Warszawskiego and Pałac Krasińskich --------------------
