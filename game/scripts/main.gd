@@ -661,6 +661,23 @@ var fullmap_span := 0.0
 ## ZADANIA tab shown (the vehicle's) is tapped; a place's pick then closes the map.
 var quest_pick_flag := -1
 var map_jump := Vector2.INF
+## GAMEPLAY_PLAN 0.1, --teleport-test (verify step `teleport`): teleports to each of
+## TELEPORT_TESTS in turn and fails (push_error) if the car lands in a tunnel, off the level of the
+## ground or a deck there, or far from where it was asked; prints "teleport test: OK n/n".
+var teleport_test := false
+## [x, z, what]: above the four driven tunnels (the bug: a hold over a tunnel put the car on its
+## floor), by a portal, and plain streets.
+const TELEPORT_TESTS := [
+	[429.0, -800.0, "over Tunel Wisłostrady, north"],
+	[594.0, -586.0, "over Tunel Wisłostrady, south"],
+	[116.0, 1619.0, "over Aleja Armii Ludowej's tunnel under Trasa Łazienkowska"],
+	[42.0, 1618.0, "over Armii Ludowej's link tunnel"],
+	[-761.0, -1399.0, "over Aleja Solidarności's tunnel"],
+	[-315.0, -905.0, "over Karowa's short tunnel"],
+	[850.0, -94.0, "over an unnamed link tunnel"],
+	[-1013.0, -45.0, "Marszałkowska at the start"],
+	[-387.0, -187.0, "Nowy Świat"],
+]
 var hold_stick := Vector2.INF
 var hold_pedal := ""
 ## Testing aid (--clicks=X:Y:F,...): a mouse click (a touch, with the project's touch
@@ -1434,6 +1451,8 @@ func _build_world() -> void:
 		var why := _teleport_refusal()
 		print("teleport: --map-jump refusal: %s" % ("none" if why.is_empty() else why[1]))
 		_teleport_from_map.call_deferred(map_jump)
+	if teleport_test:
+		_teleport_test.call_deferred()
 	_stats = _make_stats()
 	# Loop 3g-1: the police's script time among the bench's lines.
 	if police != null:
@@ -3814,6 +3833,8 @@ func _parse_args() -> void:
 			_flag_traffic = Settings.parse_traffic(arg.trim_prefix("--traffic="))
 		elif arg == "--settings":
 			open_settings_at_start = true
+		elif arg == "--teleport-test":
+			teleport_test = true
 		elif arg.begins_with("--map-jump="):
 			# 2026-10-31: the full map's hold-to-teleport to x,z once the drive starts (tests).
 			var xz := arg.trim_prefix("--map-jump=").split(",")
@@ -4422,7 +4443,9 @@ func _teleport_from_map(p: Vector2) -> void:
 	if spot.is_empty():
 		print("teleport: no lane near %.0f, %.0f" % [p.x, p.y])
 		return
-	var to: Vector3 = spot[0]
+	# GAMEPLAY_PLAN 0.1: the lane point, or the nearest spot to it where the car's box is free
+	# (a parked car, a shelter, a tunnel portal's wall), as the tow does.
+	var to := _free_car_spot(spot[0], spot[1])
 	car.global_position = Vector3(to.x, to.y + 0.05, to.z)
 	car.rotation.y = spot[1]
 	car.vel = Vector3.ZERO
@@ -4430,6 +4453,32 @@ func _teleport_from_map(p: Vector2) -> void:
 	car.reset_physics_interpolation()
 	_cut_camera()
 	print("teleport: the car to %.0f, %.0f (asked %.0f, %.0f), heading %.0f" % [to.x, to.z, p.x, p.y, _compass_yaw(spot[1])])
+
+
+## GAMEPLAY_PLAN 0.1: --teleport-test (see TELEPORT_TESTS).
+func _teleport_test() -> void:
+	var bad := 0
+	for t: Array in TELEPORT_TESTS:
+		var asked := Vector2(t[0], t[1])
+		_teleport_from_map(asked)
+		var p := car.global_position
+		var ground: float = map.terrain_height(p.x, p.z)
+		var level: float = map.drive_height(p.x, p.z, p.y)
+		var why := ""
+		if map.in_tunnel(p.x, p.z, p.y) or p.y < ground - 1.0:
+			why = "in a tunnel (%.1f m under the ground)" % (ground - p.y)
+		elif absf(p.y - level) > 1.0:
+			why = "off the road's level (%.1f m)" % (p.y - level)
+		elif Vector2(p.x, p.z).distance_to(asked) > 110.0:
+			why = "%.0f m from where it was asked" % Vector2(p.x, p.z).distance_to(asked)
+		if why != "":
+			bad += 1
+			push_error("teleport test: %s: the car at %.0f, %.1f, %.0f is %s" % [t[2], p.x, p.y, p.z, why])
+		else:
+			print("teleport test: %s: %.0f, %.0f, %.1f m over the ground" % [t[2], p.x, p.z, p.y - ground])
+	if bad == 0:
+		print("teleport test: OK %d/%d" % [TELEPORT_TESTS.size(), TELEPORT_TESTS.size()])
+	get_tree().quit(1 if bad > 0 else 0)
 
 
 func _close_full_map() -> void:
@@ -4650,18 +4699,23 @@ func _lane_spot(at: Vector3, yaw: float) -> Array:
 	if graph == null:
 		return []
 	var p := Vector2(at.x, at.z)
+	# GAMEPLAY_PLAN 0.1 (F, 2026-11-03: a map teleport left the car on a tunnel): tunnel edges
+	# only when `at` is itself inside a tunnel, and lanes of the main network (traffic's strongly
+	# connected part) before the pockets off it, so the car can drive away from where it lands.
+	var no_tunnel: bool = not map.in_tunnel(at.x, at.z, at.y)
 	for heading in [Vector2(-sin(yaw), -cos(yaw)), Vector2.ZERO]:
-		var hit := graph.snap(p, 80.0, heading)
-		if hit.is_empty():
-			continue
-		var e: int = hit[0]
-		var lane_s: float = hit[2]
-		var h := graph.height(e, lane_s)
-		var q := graph.point_at(e, lane_s, graph.lane_offset(e, hit[1]))
-		if not _same_level(at, q, h) or map.in_water(q.x, q.y, h):
-			continue
-		var d := graph.direction(e, lane_s)
-		return [Vector3(q.x, h, q.y), atan2(-d.x, -d.y)]
+		for scc_only in [true, false]:
+			var hit := graph.snap(p, 80.0, heading, scc_only, false, no_tunnel)
+			if hit.is_empty():
+				continue
+			var e: int = hit[0]
+			var lane_s: float = hit[2]
+			var h := graph.height(e, lane_s)
+			var q := graph.point_at(e, lane_s, graph.lane_offset(e, hit[1]))
+			if not _same_level(at, q, h) or map.in_water(q.x, q.y, h):
+				continue
+			var d := graph.direction(e, lane_s)
+			return [Vector3(q.x, h, q.y), atan2(-d.x, -d.y)]
 	return []
 
 
@@ -4692,10 +4746,15 @@ func _node_spot(at: Vector3) -> Array:
 
 
 ## Loop 10a: a lane point q at height h is on the level of `at`: both on the ground (the
-## terrain, however high), or within 4 m of each other on a deck.
+## terrain, however high), or within 4 m of each other on a deck. GAMEPLAY_PLAN 0.1: on the
+## ground means within a metre of the terrain both ways (a tunnel's floor, metres under it, was
+## "on the ground" too); inside a tunnel, the level is the tunnel's (within 4 m, as on a deck).
 func _same_level(at: Vector3, q: Vector2, h: float) -> bool:
+	if map.in_tunnel(at.x, at.z, at.y):
+		return absf(h - at.y) <= 4.0
 	if at.y < map.terrain_height(at.x, at.z) + 0.5:
-		return h < map.terrain_height(q.x, q.y) + 1.0
+		var g: float = map.terrain_height(q.x, q.y)
+		return h < g + 1.0 and h > g - 1.0
 	return absf(h - at.y) <= 4.0
 
 
