@@ -12,6 +12,7 @@ someone writes its lines.
 ## 2026-11-03
 
 - The Forest office complex by Rondo Radosława is rebuilt from photos: its tower now steps up in three dark glass slabs with orange, red and green fins and PEPEO ŻUBR in the crown, the low wings wear the same colourful fins under black top floors and roof gardens, and the courtyard between them has grass steps, a rusty-steel pavilion and young trees.
+- Hotel Europejski on Krakowskie Przedmieście looks like the restored hotel today: rounded corners with two tiers of columns and curved balconies, rows of pedimented windows, tall arched shop windows, the HOTEL EUROPEJSKI name in gold over the street, a balustrade along the roof and the dark curved glass storey set back behind it. The University's main gate is narrower, as in life.
 - The website now leads with the beta: join on iPhone through TestFlight, or request Android access with a short form. The open-source story moved to the footer and a quieter "How it's made" section.
 - With colour-safe markers on (Settings, accessibility), race rings are now chequered like a finish line and a rescue pickup's ring is dashed, so you can tell them apart without relying on colour.
 - Praga's old streets get evenings: six neon bar signs (ŚWIAT PO PRASKU, BARISTA Z PODWÓRKA, WINO ZE SKRZYNKI, KRAINA WINA, KIJOWSKA DWÓJKA, POD KUFLEM ZA ROGIEM) around Okrzei, Wrzesińska, Kijowska and Targowa, and people outside with a drink after dark.
@@ -26,6 +27,7 @@ someone writes its lines.
 - The "delivered" card after a kebab or jar job now closes by itself after a few seconds or when you drive off, a ride request no longer pops up over Pani Halina's race challenge, and the car no longer bounces back and forth along a building front on Jasna by Plac Dąbrowskiego.
 - On Świętokrzyska the main post office stands in its pale salmon plaster, with a little grey-silver dome on the Jasna corner and six white columns under a red POCZTA band at the door; on Zielna the PAST-a tower rises 51 m, with tall arches and castle-like merlons at the top, a gilt anchor on the roof and white-and-red banners down the front.
 - Warszawa Wschodnia stands on Praga's side of the tracks: a long glass hall under a flat roof with a zig-zag folded edge on green V-shaped legs, WARSZAWA WSCHODNIA in white letters over the platforms, and rust-brown roofs on columns over its five island platforms.
+- Fewer grass islands sitting across junctions: where Warsaw paints a hatched area, the game now does too, and walls no longer stick out at the ends of the Port Praski bridge.
 
 ## 2026-11-02
 - The Vistula boulevards are dressed for summer: the concrete bar pavilions on the embankment have lawn roofs, glass fronts, umbrella terraces and string lights, colourful container bars and kiosks sell beer, lemonade and zapiekanki through lit hatches, and timber deck strips with striped deck chairs line the water from the Old Town to Tamka.
