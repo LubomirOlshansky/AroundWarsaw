@@ -21,9 +21,10 @@ OSM parts and public facts (HRA Architekci, finished 2022, tower 120 m and 29 st
 
 From the four OSM parts of 20 m and more in FOREST_BOX: the tower (120 m, about 51 x 37 m) cut
 along its long axis into slabs at u 17 and 34 m, tops 110, 115.5 and 120 m (the photos' step); the
-U-shaped west and south wing (20.8 m), the north wing (20.8 m) and the north-east wing (27.4 m,
-the terrace). Wings: glass to 4 m under the top, then the black storey set back 1.6 m. The
-photos suggest the wings may be a storey or two taller than OSM's 20.8 m *(photo check)*.
+U-shaped west and south wing (OSM 20.8 m), the north wing (OSM 20.8 m) and the north-east wing (27.4 m,
+the terrace). The two low wings are built 31 m high, eight storeys estimated from F's photos (F,
+2026-11-03), not OSM's 20.8 m; the terrace wing keeps 27.4 m for its crowd. Wings: glass to 4 m
+under the top, then the black storey set back 1.6 m.
 
 ## 3. Facade, base to top
 
@@ -41,7 +42,7 @@ photos suggest the wings may be a storey or two taller than OSM's 20.8 m *(photo
 ## 4. Roof
 
 - Tower: a 4.4 m plant box 2.4 m high on each slab.
-- Low wings (20.8 m): green roof on the black storey; on a 10 m grid inside it, corten planters
+- Low wings (31 m): green roof on the black storey; on a 10 m grid inside it, corten planters
   4.4 x 1.4 x 0.6 m with planted tops, timber deck squares 6 x 4 m and, every fifth spot, a
   copper-clad stair house 4 x 3.2 x 3 m (the aerials' brown boxes).
 - The 27.4 m wing: the terrace of 2026-11-01 kept (timber deck, glass balustrade, parasols and
@@ -86,7 +87,7 @@ courtyard of 43 trees in one site; 4077 measured plus 20 %, one landmark mesh, n
 | wing glass | prisms of the outlines | to top-4 m | 3 wings | M_SKIN S_FINS | 3 wings |
 | wing fins | blades | 0.34 m, every 1.5 m | wing faces | M_STONE | 3 wings |
 | black storeys | inset prisms | 4 m, 1.6 m in | wing tops | M_SKIN S_DARK | 3 wings |
-| gardens | planters, decks, stair houses | 10 m grid | 20.8 m roofs | M_STONE | 3 wings |
+| gardens | planters, decks, stair houses | 10 m grid | 31 m roofs | M_STONE | 3 wings |
 | terrace | deck, balustrade, planters, parasols | 26 x 54 m | wing, y 27.4 | M_STONE | 3 wings |
 | amphitheatre | 4 arc steps, 3 benches | r 4..8.8 m | (-3051, -2403.5) | M_STONE | 4 courtyard |
 | pavilion | 8-gon | r 3.2 m, 3.2 m | (-2973.5, -2398.5) | M_STONE | 4 courtyard |

@@ -7,10 +7,42 @@ Small problems that agents reported or that showed up in screenshots. They are f
 
 Built (spec `docs/landmarks/specs/forest.md`): the three-slab tower with crown bands, colour fins and PEPEO ŻUBR, the finned wings with black top storeys and roof gardens, the courtyard's amphitheatre, pavilion and 43 young trees. Left:
 
-- **Wing heights**: OSM gives 20.8 and 27.4 m; F's photos look like 8 to 10 storeys (up to ~35 m). Raising them moves the terrace crowd (crowds.gd DECKS `forest_terrace` top 27.4). Parked in QUESTIONS.
+- **Wing heights** (F, 2026-11-03: estimate from the photos): the low wings are 31 m, eight storeys under the black top storey, against OSM's 20.8 m; the 27.4 m terrace wing keeps OSM's height so its crowd's deck (crowds.gd `forest_terrace`) stays put.
 - **The roof crane and the tower's lobby**: the window-cleaning crane on the crown and the glazed double-height lobby are not modelled.
-- **`pocket_rings` / `_collide_raw` twins**: this PR adds `landmarks.gd` `pocket_rings` and the map_builder hunk exactly as PR #385 does (#385 is unmerged); whichever merges second keeps one copy.
 - **Older docs still name the real tenant** in a few places (CITY_INVENTORY, LANDMARKS, QUESTIONS, MUSIC, inventory candidates, wiki_build.py): a sweep to the parody is open.
+
+## Open courtyards (F, 2026-11-03)
+
+F: "some kamienica from the top have the hole in the center, I want it where it has one". Found: the
+GUGiK LoD2 blocks (most of the centre) already show their courts, since each model is roofed only
+where the building stands (shots from above at Hoża). The gap was the hand-built landmark models that
+lift a mapped outline: bake_osm keeps only a multipolygon's outer ring, so the Ministry of Finance,
+the National Museum and Hotel Bristol had one solid roof over real courts. Done: `tools/bake_courts.py`
+traces every closed-in, roofless patch of 30 m² or more inside a mapped outline from lod2.bin (187
+courts, `game/data/courts.json`, verify step `courts` checks it against today's map files);
+landmarks.gd `COURT_SITES` (mf, muzeum, bristol) cuts them out of the site's flat tops and walls them
+in, with window bays every 3.6 m and storey. The Palace already had its courts (`P_COURTS`). Open:
+- OSM-only buildings (no LoD2 model, mostly newer blocks: Oxygen, offices with atria) still lose their
+  inner rings in bake_osm (`main`'s multipolygon loop reads only `outer` members). Keep the inner rings
+  in centrum.json and let map_builder `_build_buildings` draw them (walls facing in, roof cut); needs
+  the raw OSM export, so a Mac re-bake (the cloud has no OSM access).
+- Hotel Europejski: its LoD2 model (2018, mid-renovation) is roofed over the court, so no court is
+  traced; the photo rebuild (PR #402) hand-models it (a 14 m ring, inner walls, glass roof at
+  8.5 m), so "europejski" stays out of `COURT_SITES` (no double court).
+- Other sites the trace finds courts in, left as built: Złota 44 (127 m², a gap of the 2018 survey
+  by the tower), Pasaż Wiecha (152 m²), St Anthony's and the Reformed church (64 and 37 m², small
+  cloister or light-well courts). Add a key to `COURT_SITES` after a look check.
+- Mac look check: the three courts from the helicopter and the game's angle, day and night (the court
+  walls' windows light like the model's own bays).
+
+## Grow the map north-east (F, 2026-11-03: not now)
+
+Koneser (1426, -2355), Park Fontann (the Multimedia Fountain Park, -868, -2208) and Ząbkowska's bar
+strip (x 1020-1080, z -2080 to -2110) lie in the map box's cut north-east corner (`centrum.json`
+"outside": z < -2045 east of x -1706). F (2026-11-03): add to the backlog, don't build yet. The job
+(map lane): grow bake_osm's map shape (tools/map_shape.py), re-bake the chain and the LoD2/terrain
+on the Mac, publish a new map pack, then build Koneser, the fountain park and Ząbkowska's bars from
+the photo reports already in (QUESTIONS 2026-11-02 and 2026-11-03).
 
 ## Vitkac quests and ride stories (F, 2026-11-03)
 
@@ -269,9 +301,6 @@ fixed 2026-11-02); PT-9 HUD overlaps confirmed.
   watch on the next P2 run that the nudge reads at phone size and that a red light mid-race (under
   5 s) never triggers the stall line. The heli/tape/garage beats pass headless only; P2 by hand
   (flying to the BUW roof, driving to Mirek) waits for an Autopilot run on the Mac.
-- Found with PT-7: a 9 m wide, 3 m deep recess in Jabłkowski's front on Bracka (-578,203) still
-  holds a car whose stick points into it (turned out once; a real recess, left open). Wider recesses
-  like it are not bridged on purpose (a car fits in them).
 - Found with PT-7: the camera's see-through ghost hides the wall the car is about to hit when it
   drives towards the camera (south on the default view): a player pushing into it sees no wall.
   A design question for the visuals lane (a ground outline or a faint base under the ghost?).
@@ -317,6 +346,19 @@ spans (granite piers, steel arch ribs, red fascia, black railing, pier pedestals
   south arcade stands 3-5 m back under the deck, because the street runs under the deck's edge there.
 - The approaches between the towers have been lit since map round 2 (D7, `bake_lights` approach lamps); the
   night shots of 2026-11-03 show both abutments lit.
+
+## Bracka and Plac Trzech Krzyży: Vitkac, Jabłkowski's, the Sheraton (CITY_INVENTORY 80-82, 2026-11-03)
+- The BGK building (CITY_INVENTORY 146, F asked 2026-11-03) built too (site `bgk`). Left: its three
+  light wells, the stepped south side's real heights, the balconettes; the block behind it on
+  Mysia, Mysia 2 (OSM landmark 'Polska Grupa Energetyczna'), is still plain.
+- Built from the Mac photo reports (sites `vitkac`, `jablkowscy`, `sheraton`). Left: the Mac look
+  check (QUESTIONS); Jabłkowski's stained-glass windows lit at night through the front; the Sheraton's
+  glazed restaurant pavilion with white umbrellas on the forecourt (its spot needs the photo).
+- Found and fixed: a landmark model's car walls skipped the slit and notch bridging (map_builder
+  `_bridge_pockets` only saw kept buildings), so the PT-7 slit by Jabłkowski's corner came back;
+  a site can now hand its outline over (`landmarks.gd` `pocket_rings`, opt-in, these three use it).
+  Older models (Dom pod Orłami, POLIN, the Bankowy palaces...) don't: worth a sweep with
+  `check_stuck_spots` along their fronts.
 
 ## Plac Krasińskich: the Uprising Monument and the palace (CITY_INVENTORY 22 and 79, 2026-11-02)
 Built from photos gathered on the Mac (`refs/pomnik_powstania/`, `refs/krasinski/`) and LoD2, specs
@@ -851,7 +893,7 @@ traffic queueing and going round parked cars (traffic.gd PARKED_LOOK / PARKED_WA
 - Left, all for the Mac photo check: real colours of both facades, the real storey count (Polonia 25.5 m
   and Bristol 27.4 m are mapped or estimated), where the entrances are, the mansards' true profile;
   the other grand hotels (Hotel Metropol 1960s block, Mercure Grand, Hotel Saski) stay generic;
-  Sheraton, Hilton, Holiday Inn and the Ibises are plain OSM extrusions.
+  Hilton, Holiday Inn and the Ibises are plain OSM extrusions (the Sheraton is a model since 2026-11-03).
 - Radisson Blu Sobieski (Plac Zawiszy 1) done 2026-11-02 as "Radysław Blu" (`sobieski`, spec `sobieski.md`) from the
   OSM outline, no photo: Mac check of band colours and order, storey count (31 m assumed), entrance. The Atlas Tower
   (-2230,1015) next door is a separate thread and untouched here.
