@@ -1224,6 +1224,7 @@ func _build_world() -> void:
 	heli = Heli.new()
 	heli.ground_height = map.ground_height
 	heli.top_height = map.top_height
+	heli.tallest_near = map.tallest_near
 	heli.set_map(map)  # map north: the L-shaped outline, not the bounding box
 	world.add_child(heli)
 	heli.landed.connect(_on_heli_landed)
@@ -6598,10 +6599,11 @@ func _update_camera(dt: float) -> void:
 	var size: float
 	var focus_rate := FollowCamera.FOCUS_RATE
 	if flying:
-		# Aim halfway down to the shadow so both stay in view, and widen the view
-		# a little, more when flying above the usual height.
-		focus.y -= heli.height_above * 0.5
-		var heli_view := base_size * HELI_VIEW + maxf(heli.height_above - Heli.CRUISE, 0.0) * 0.8
+		# Aim between the helicopter and its shadow so both stay in view near the usual height;
+		# higher up aim nearer the helicopter (the shadow leaves the view), so it stays in the
+		# middle of the screen, and widen the view a little, up to HELI_WIDEN_MAX.
+		focus.y -= heli.above_ground * heli_aim_share(heli.above_ground)
+		var heli_view := base_size * HELI_VIEW + heli_widen(heli.above_ground)
 		var heli_zoom := base_size * HELI_VIEW * 0.2 * clampf(speed / Heli.MAX_SPEED, 0.0, 1.0)
 		size = heli_view + heli_zoom
 		_view_size = fcam.zoom_step(_view_size, heli_view, heli_zoom, dt)
@@ -6648,11 +6650,37 @@ func _snap_to_pixels(p: Vector3, basis: Basis, size: float) -> Vector3:
 ## change size make the shadows' pixel edges crawl. It changes only when the player zooms.
 const FAR_MARGIN := 130.0
 
+## The helicopter's framing (GAMEPLAY_PLAN 3.1, 2026-11-03). The camera aims this share of the
+## height down from the helicopter: half way to the shadow up to AIM_LOW_TOP, AIM_HIGH from
+## AIM_HIGH_FROM up. At the 30° pitch the helicopter and its shadow are h·cos 30° apart on screen,
+## so the old fixed half put it at the top edge from ~250 m (12 % from the top at 330 m).
+const AIM_LOW_TOP := 50.0
+const AIM_HIGH_FROM := 140.0
+const AIM_HIGH := 0.1
+## The view widens 0.8 m a metre over cruise height, never more than this (m): wider showed the
+## map's edge and the sky past it from mid-map.
+const HELI_WIDEN_MAX := 140.0
+
+
+static func heli_aim_share(above_ground: float) -> float:
+	return lerpf(0.5, AIM_HIGH, smoothstep(AIM_LOW_TOP, AIM_HIGH_FROM, above_ground))
+
+
+static func heli_widen(above_ground: float) -> float:
+	return minf(maxf(above_ground - Heli.CRUISE, 0.0) * 0.8, HELI_WIDEN_MAX)
+
 
 func _camera_far(distance: float, size: float) -> float:
 	var t := 1.0 / tan(deg_to_rad(maxf(absf(camera_pitch), 5.0)))
 	var aspect := float(sv.size.x) / float(maxi(sv.size.y, 1))
-	var low: float = FAR_MARGIN + (heli.height_above if flying else 0.0)
+	# The view's centre ray meets the ground this far past the focus: the focus's height over the
+	# ground under it along the ray (1 / sin pitch), the camera's own aim over the helicopter's
+	# ground, not the roof under it (that cut the ground at the screen's top over tall buildings,
+	# leaving their upper floors floating over the sky's colour).
+	var above := 0.0
+	if flying:
+		above = maxf(cam_focus.y - minf(map.ground_height(cam_focus.x, cam_focus.z), heli.global_position.y - heli.above_ground), 0.0)
+	var low: float = FAR_MARGIN + above / sin(deg_to_rad(maxf(absf(camera_pitch), 5.0)))
 	# The widest this zoom gets: the car's view at top speed, the helicopter's as it is.
 	var widest := maxf(cam.size, size if flying else base_size * (1.0 + FollowCamera.SPEED_ZOOM))
 	var reach: float = maxf(CAMERA_DISTANCE, widest * 1.6) + 0.5 * widest * t + low

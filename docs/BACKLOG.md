@@ -3,6 +3,16 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## The helicopter high up (F's playtest, 2026-11-03; GAMEPLAY_PLAN 0.4 / 3.1)
+
+The framing, the far plane and the height cap are fixed (heli-view PR, `check_heli_view`; the
+cause and numbers are in GAMEPLAY_PLAN 3.1). Left:
+- Phone check (P15 on the Mac, F's yes): fly to the cap over the Palace, Varso and the east edge;
+  feel of the 220 m cap (it pulls the helicopter down at -11 m/s when it leaves a tower).
+- Horizon haze (plan fix 4) not built: no cut ground showed after the far fix; build it only if the
+  phone still shows a hard line. The far half of a 360 m view shows sector proxies for a few
+  seconds while they stream in.
+
 ## Open courtyards (F, 2026-11-03)
 
 F: "some kamienica from the top have the hole in the center, I want it where it has one". Found: the
