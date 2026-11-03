@@ -36,7 +36,7 @@ is the order of the next threads. Found while building it:
 - **Rule:** a tier S or A model starts from photos (F's or `refs/` on the Mac). About 50 outline builds wait
   for their Mac photo check (QUESTIONS); their photo re-pass is Part 3 item 9.
 - 455 named OSM outlines (tier C: tenements, offices, embassies) are plain blocks; street passes take them
-  street by street from Part 2.
+  street by street from Part 2. Done: Nowogrodzka's bar strip, pass 1 (2026-11-03, section below).
 
 ## Site analytics (F, 2026-11-02)
 
@@ -289,10 +289,17 @@ spec `poniatowski.md`: the four tower groups (arcaded pavilions, 20 m shafts, so
 spans (granite piers, steel arch ribs, red fascia, black railing, pier pedestals). Found and left:
 - Two of the five piers are estimates (on the east floodplain under trees), and the west span (~104 m) may hide a
   pier near the west bank (photo 22): QUESTIONS.
-- Not modelled: the north groups' curved ramps, the small arcade beyond each shaft, the merlon scrolls and the
-  insets over the arches, the bases' brick panels and balconies, the real tram catenary masts.
-- The concrete arch viaduct over Powiśle (the report has it) is still the bake's flat deck on posts.
-- The approaches between the towers stay unlit at night (the bake lights `bridge=*` roads only; item below).
+- Not modelled: the small arcade beyond each shaft, the merlon scrolls and the insets over the arches, the
+  bases' brick panels and balconies, the real tram catenary masts.
+- 2026-11-03: the Powiśle viaduct's arcade (`map_builder._build_powisle`: pilasters every ~19 m, segmental arches
+  with archivolts, ribbed spandrels and a cornice, big arches over Kruczkowskiego, Solec and Wybrzeże, the pier
+  buildings kept as the big piers) and the north groups' switchback stairs with lanterns (`landmarks._pt_ramp`;
+  lanterns on the south turrets too) are built. The pier layout is measured clear of every street and footway
+  under the edges; the real arches' count and span, the spandrel ribs and whether the arches are open or
+  filled in are not in the report (the photos stay on the Mac): QUESTIONS. Along Al. 3 Maja (s 296-430) the
+  south arcade stands 3-5 m back under the deck, because the street runs under the deck's edge there.
+- The approaches between the towers have been lit since map round 2 (D7, `bake_lights` approach lamps); the
+  night shots of 2026-11-03 show both abutments lit.
 
 ## Plac Krasińskich: the Uprising Monument and the palace (CITY_INVENTORY 22 and 79, 2026-11-02)
 Built from photos gathered on the Mac (`refs/pomnik_powstania/`, `refs/krasinski/`) and LoD2, specs
@@ -605,6 +612,23 @@ the Treasury palace's portico columns and wing pavilions; they now read in yello
 - Pałac Jabłonowskich (the old Ratusz with the clock tower) is on Plac Teatralny, not here, and is
   not modelled yet (OSM "Pałac Jabłonowskich", 39 points near (-990, -1185)); next to `teatr`.
 - Overlaps Za Żelazną Bramą (PR #215): none; it works west of Al. Jana Pawła II.
+
+## Nowogrodzka street by street (2026-11-03), pass 1
+The first tier C street pass (CITY_INVENTORY Part 2, Śródmieście): every Part 3 place with a Mac photo
+report was taken by an open thread or blocked (NBP: one photo; Koneser, the fountain park and Gdańska
+off the map), so this pass takes the bar strip between Marszałkowska and Bracka, 14 OSM bars and the
+street nearest the start area with no pass yet. Built (cloud, Opus):
+- Eight parody bar fascias at the OSM points of the real bars (`Storefronts.NOWOGRODZKA`: KWARTA at 4,
+  U HALINKI BAR at 10, ZA BARDZO at 11's gate, KRAFTOWNIA IPA DO DNA at 12, SCHRON PIWNY at 20,
+  PODWÓRKO 22 SZOTY at 22's gate, NALEWALNIA KIEDYŚ PO 4 at 27, DŻINIARNIA at 31); check_parodies 115 venues.
+- Pavement crowds outside them (`Crowds.NOWOGRODZKA`, seven spots, 8-14 people each, standing) on a
+  new `pub` curve (16:00 a few, 23:00-01:00 full, gone by 04:00) × `PUB_WEEKDAY` (Fri/Sat full, a
+  Tuesday 45 %), winter 60 %, rain 30 % (`pub_level`, check_crowds).
+Open:
+- Mac look check (QUESTIONS): the signs on the right walls and doors, the crowds on the pavement.
+- The yards of nos. 11 and 22 (the real bars sit 60-70 m in, in courtyards): a gate arch and a lit yard.
+- The houses (plaster, cornices, shop storeys) need photos; Mazowiecka's club street (10 OSM clubs) is
+  the next street of the same kind.
 
 ## Nowy Świat street by street (F, 2026-11-02), pass 1
 Built (cloud, Sonnet): eight parody shopfronts (`Storefronts.NOWY_SWIAT`, check_parodies 68 venues). Open:
@@ -2410,10 +2434,8 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
   lands on the water and shoals beside and under the bridge (orange arcs on Most Poniatowskiego's
   gravel shoals). Fix (shader, after loop 3c): scale the lamp light by whether the fragment is
   within ~2 m of the deck height `water.bin` already holds for that pixel.
-- **Most Poniatowskiego's approaches are unlit at night**: `bake_lights.bridge_lamps` lights only
-  `bridge=*` roads of 40 m or more; the abutments between the towers are approaches (`fills`).
-  Fix: give the fill JSON the structure membership (`blurred abutment`, `between two bridges`)
-  and light those too.
+- ~~**Most Poniatowskiego's approaches are unlit at night**~~: fixed in map round 2 (D7: lamps along a
+  structure's approaches every 20 m); checked at night 2026-11-03.
 - **Rail tracks ending at different heights**: at the Solec viaduct's west end one track's deck
   starts 1.2 m under its neighbours (piece of OSM 1480623763), at Kruczkowskiego 0.5 m (each
   track's measured R2 profile). Fix: hold the parallel tracks of one deck group to a common
