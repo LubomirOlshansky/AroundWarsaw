@@ -138,9 +138,12 @@ func setup(map_node: Node3D, data: Dictionary, world: Node3D, hud_layer: CanvasL
 	_pickup = Beacon.new()
 	world.add_child(_pickup)
 	_pickup.setup(PICKUP_COLOUR, Color("#e8762e"))
+	_pickup.pattern = Beacon.Pattern.DASHED  # colour-safe: someone waiting (beacon.gd)
 	_dropoff = Beacon.new()
 	world.add_child(_dropoff)
-	_dropoff.setup(_dropoff_colour(), Color("#f2efe8"))
+	# The plain green: the beacon tints it blue itself under colour-safe, also when the
+	# setting changes mid-call (it was fixed at load before).
+	_dropoff.setup(DROPOFF_COLOUR, Color("#f2efe8"))
 	_dropoff.waving = false
 	hud.card_pressed.connect(_on_card)
 	hud.pill_pressed.connect(func(): offer(number + 1))

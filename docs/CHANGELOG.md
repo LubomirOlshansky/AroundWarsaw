@@ -13,6 +13,7 @@ someone writes its lines.
 
 - The Poniatowski viaduct over Powiśle now stands on open concrete arches with struts under a steel deck, and its closed bays along Aleja 3 Maja hold five little bars with neon, lit windows and café tables.
 - Most Poniatowskiego now crosses the Vistula on eight spans, with a new stone pier at the west bank.
+- With colour-safe markers on (Settings, accessibility), race rings are now chequered like a finish line and a rescue pickup's ring is dashed, so you can tell them apart without relying on colour.
 - Praga's old streets get evenings: six neon bar signs (ŚWIAT PO PRASKU, BARISTA Z PODWÓRKA, WINO ZE SKRZYNKI, KRAINA WINA, KIJOWSKA DWÓJKA, POD KUFLEM ZA ROGIEM) around Okrzei, Wrzesińska, Kijowska and Targowa, and people outside with a drink after dark.
 - After the first ten minutes the game tells you where the story goes on: a short goal line ("Find and flash: Słoik z Radomia") when a new step opens, and now and then a gold arrow with a star at the screen's edge pointing to the next rival, only while you are not doing anything else. The screen-edge arrow also no longer hides under the minimap, the wallet or the pedals.
 - Wilcza and Poznańska get their bar nights: seven neon bar signs (MUZA NA BIS, CYGARNIA, GORĄCZKA PIĄTKOWA, AURA PO PRACY, MACKI I KUFLE, KASETA PRZEWIJANA, REPUBLIKA BANANOWA) and people with a drink on the pavement outside after dark.
@@ -27,6 +28,7 @@ someone writes its lines.
 - Warszawa Wschodnia stands on Praga's side of the tracks: a long glass hall under a flat roof with a zig-zag folded edge on green V-shaped legs, WARSZAWA WSCHODNIA in white letters over the platforms, and rust-brown roofs on columns over its five island platforms.
 
 ## 2026-11-02
+- The Vistula boulevards are dressed for summer: the concrete bar pavilions on the embankment have lawn roofs, glass fronts, umbrella terraces and string lights, colourful container bars and kiosks sell beer, lemonade and zapiekanki through lit hatches, and timber deck strips with striped deck chairs line the water from the Old Town to Tamka.
 - Fabryka Norblina stands on its real block between Łucka, Żelazna and Prosta, with its court of big candelabra plane trees open off the glass street and green roofs with garden terraces; Browary's Central Garden is a dense little wood of 22 young trees round a winding gravel path with café tables under dark-blue parasols, and the office blocks have green roofs.
 - Across the river in Praga, St Florian's cathedral stands with its two red-brick towers and tall green spires, and Bazar Różyckiego on Targowa is a maze of patched old stalls beside the new green kiosks.
 - Krakowskie Przedmieście is rebuilt from photos: Mickiewicz stands on his balustraded terrace with gilt-flame lanterns, the University gate has its white pavilions with statues and the crowned eagle, the Carmelite church its sandstone front and green copper globe, Hotel Bristol its open belvedere on the corner, and the Academy of Fine Arts its brick-red palace. Plac Piłsudskiego has its granite chequer, tall masts, the black stepped Smolensk memorial and the Piłsudski and Kaczyński statues.

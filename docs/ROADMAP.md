@@ -266,7 +266,10 @@ then the Launch gate.
       a cornice and mansard; `moderna` 70 tris: a pre-war tenement front and a glass wing with a
       penthouse, card "Modernka Powiśle"); specs `hortus.md`, `moderna.md`, Mac photo check parked
 - [x] Dobra and Tamka tenements, 2026-11-02: per-house plasters, cornice, string course, shop fronts (`tenement_trim.gd`, spec `dobra_tamka.md`, `check_tenement_trim`); Mac photo check parked
-- [ ] Powiśle left: boulevard dressing (deck strips, bar containers), the Mac photo checks (BACKLOG "Powiśle street by street")
+- [x] Boulevard dressing, 2026-11-02: the six bar pavilions on the embankment (lawn roofs, glass
+      fronts, terraces, bulbs, parody neon), 14 bar containers and kiosks, 17 timber deck strips
+      with leżaki (`bulwary_*` sites, spec `bulwary.md`, Mac photo check parked)
+- [ ] Powiśle left: the Mac photo checks (BACKLOG "Powiśle street by street")
 - [x] Street furniture along the main line's route (Krakowskie Przedmieście, Nowy Świat, the Old
       Town's edge, Plac Zbawiciela, the boulevards, Rondo Daszyńskiego)
 - [x] Office crowds at Rondo Daszyńskiego, 2026-11-02 (F; BACKLOG "Rondo Daszyńskiego office crowd"):
@@ -335,6 +338,8 @@ then the Launch gate.
   - [ ] RF4b Powiśle roof terraces, L-shaped hips; the phone bench and a Mac look
 
 ### Left: content and feel
+- [ ] **Vitkac quests** (F, 2026-11-03; backlog "Vitkac quests and ride stories"): the black-stone luxury block on Bracka as a quest place, with the quests built around it. Not started; the landmark is the 2026-11-03 photo build (PR #385)
+- [ ] **Every Podwózka ride gets its own passenger story** (F, 2026-11-03): a named passenger with request, pickup, in-ride and drop-off lines, e.g. the fancy couple from Wilanów going shopping at Vitkac. Not started
 - [x] Photo mode no longer lets the car reverse into buildings (its hold parks the car and puts it
       back on close), and the pause card's JAZDA tab has POMOC DROGOWA · unstuck, the tow to the
       nearest road on demand (F stuck after a photo on the iPhone, 2026-11-01; phone check parked)
@@ -350,15 +355,18 @@ then the Launch gate.
       verify step `rescues`. Phone check of both is open (below)
 - [ ] Loop 3i juice: sparks and dust (no particles yet), money pops, district ambiences,
       haptics working on the iPhone
-- [ ] DEMO 6.3 counts, rescues and słoiki: the second słoiki station is done (Dworzec Gdański,
-      `jobs.gd`); left: the Old Town tourist rescue (a "tourist fainted" street rescue exists)
+- [x] DEMO 6.3 counts, rescues and słoiki: the second słoiki station is done (Dworzec Gdański,
+      `jobs.gd`); the Old Town tourist rescue is the "fainted" call on Rynek Starego Miasta (ticked
+      2026-11-03: a stale duplicate of the line above)
 - [x] Crash sparks and dust, phone vibration fixed in code (2026-11-01, crash_fx.gd, haptics.gd;
       the feel on the iPhone and an Android phone still to check: QUESTIONS)
 - [x] Loop 3i juice leftovers (2026-11-01): money pops (`money_pop.gd`, a "+54 zł" over the vehicle and a coin ting; calm mode keeps it still) and district ambiences (`sfx.gd`: river, park, square, courtyard beds)
 - [x] Accessibility options (2026-11-01, Settings → DOSTĘP, `access.gd`): larger HUD text, calm
       (no flashing or shaking), colour-safe markers, vibration on/off, stop assist on/off.
       Left-handed layout added 2026-11-01 (DOSTĘP, `--left-handed`); colour-safe now also covers the
-      HUD's win green and fail red (2026-11-01, `Access.tint`). Text size now live (2026-11-01,
+      HUD's win green and fail red (2026-11-01, `Access.tint`), and the 3D race and rescue rings
+      (2026-11-03, `beacon.gd`: the rescue pickup's ring dashed, the race ring chequered with white,
+      the drop-off blue, switched live; `check_settings`). Text size now live (2026-11-01,
       `Hud.apply_text_scale`). Left to do: subtitles (BACKLOG)
 - [x] Wellness circles (F, 2026-11-02, `wellness.gd`, docs/design/wellness.md): sound healing (gong, bowls,
       "80 zł" board), techno yoga with hamsters in rolling balls, the 40+ club "waking the little girl" turning
