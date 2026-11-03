@@ -172,6 +172,7 @@ then the Launch gate.
 - [ ] Monuments pass (City inventory Part 3 item 6)
   - [x] Every OSM monument, sculpture, talking bench and memorial plaque in the box as a generic piece, plaques on their walls with candles (2026-11-02, tools/bake_monuments.py)
   - [x] Plac Piłsudskiego from photos: the Smolensk memorial, Piłsudski, Kaczyński, the masts and the granite chequer (2026-11-02, refs/pilsudskiego/)
+  - [x] Plac Piłsudskiego paving no longer reads as a chess board: half the panel contrast, thin dark bands, granite grain, panels fade out in wide views (2026-11-03, GAMEPLAY_PLAN Phase 0.5; phone look still open)
   - [ ] Photo builds: Nike, Słowacki and Starzyński, Mały Powstaniec and Kiliński, the Eastern memorial, Umschlagplatz (reports in docs/landmarks/photo-reports/)
 - [ ] Krajobraz places (F, 2026-11-02; docs/design/krajobraz-places.md, BACKLOG "Krajobraz places"): the newest public spaces as built
   - [x] K1 ul. Bracka's woonerf: its 22 missing young trees planted in the mapped beds (33 in all)
@@ -472,8 +473,9 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 
 ### Left: driving first (F, 2026-11-03; plan docs/GAMEPLAY_PLAN.md, detail in BACKLOG "Driving first")
 - [x] The plan: road audit, causes of the playtest's bugs, phases (2026-11-03, docs only)
+- [x] 0.1 Teleport and tow never land in a tunnel (2026-11-03, verify step `teleport`)
 - [x] Phase 0.2 chatter budget: one budget for every bubble, no comment on every bump, quiet while stuck, merged ride star toasts, "Gadatliwość miasta" setting (2026-11-03, `chatter.gd`, `check_chatter`; phone feel parked)
-- [ ] Phase 0: teleport/tow never in a tunnel, car visible under decks, heli framing and far plane, Plac Piłsudskiego paving
+- [ ] Phase 0: car visible under decks, heli framing and far plane, Plac Piłsudskiego paving
 - [ ] Phase 1: drivability sweep of every lane and turn, lane graph data fixes, Autopilot rows P11-P16
 - [ ] Phase 2: road fixes street by street with a score baseline in CI
 - [ ] Phase 3: lane assist, wall look-ahead, junction pick, deck cut; F's phone run
