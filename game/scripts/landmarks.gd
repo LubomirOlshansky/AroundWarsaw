@@ -17891,15 +17891,24 @@ func _hw_back_panes(back: PackedVector2Array, rows: Array) -> void:
 const CD_O := Vector2(-480.85, 314.3)
 const CD_A := Vector2(0.94992, -0.31249)
 ## The outline's corners (local); a third value rounds that corner to that radius.
-const CD_RING := [Vector3(-36.0, 1.8, 5.0), Vector3(36.4, 0.9, 4.0), Vector3(32.2, -26.6, 0.0), Vector3(31.0, -28.6, 0.0),
+const CD_RING := [Vector3(-36.0, 1.8, 11.0), Vector3(36.4, 0.9, 4.0), Vector3(32.2, -26.6, 0.0), Vector3(31.0, -28.6, 0.0),
 		Vector3(16.0, -28.6, 0.0), Vector3(15.8, -40.3, 0.0), Vector3(19.5, -40.4, 0.0), Vector3(-2.4, -67.2, 0.0),
 		Vector3(-26.3, -67.1, 0.0), Vector3(-30.1, -39.6, 0.0), Vector3(-16.6, -39.8, 0.0), Vector3(-16.0, -28.0, 0.0),
 		Vector3(-31.0, -27.7, 0.0), Vector3(-32.3, -26.0, 0.0)]
-const CD_GROUND := 6.5       # the open ground floor's height
-const CD_STOREY := 4.6       # five department-store storeys (LoD2: the main roof ~31 m up)
+## Heights (F's look check, 2026-11-03: 3.7 m glazed storeys over a taller ground floor; the LoD2
+## eave is 26.7 m over the pavement, so 6.7 + 5 x 3.7 + the 1.5 m cornice meets it).
+const CD_GROUND := 6.7       # the open ground floor's height
+const CD_STOREY := 3.7       # five glazed department-store storeys
 const CD_FLOORS := 5
 const CD_CORNICE := 1.5
 const CD_PIER_STEP := 7.2
+## The crown (local u, v; LoD2: the roof storey to ~29.5 m, the wings' tips ~31.5 m at u +-30).
+const CD_PAV := Rect2(-17.0, -25.6, 34.0, 25.0)    # the recessed pavilion's glass
+const CD_PLATE_R := Rect2(-19.0, -27.4, 38.0, 28.6)  # its roof plate, 2 m over the glass
+const CD_PAV_H := 2.9        # the pavilion's glass storey over the roof deck
+const CD_PLATE_T := 0.45     # the plate's (and the wings') thickness
+const CD_WING := 11.0        # each wing's reach beyond the plate (to u +-30)
+const CD_WING_RISE := 2.4    # how far its tip sweeps up over the plate
 const CD_SLAB := Color("#e6dfcf")
 const CD_SLAB_SHADE := Color("#cfc8b8")
 const CD_GLASS := Color("#2e4660")
@@ -17909,8 +17918,10 @@ const CD_GRANITE := Color("#b9b2a4")
 const CD_ROOF := Color("#6a6f76")
 const CD_PAVILION := Color("#2a3340")
 const CD_PLATE := Color("#d9d4c8")
-const CD_UNDER := Color("#3a3a3a")
-const CD_LOOP := Color("#3a5c9e")   # steel blue by day, the loop's blue neon at night (M_LAMP)
+const CD_UNDER := Color("#2f3033")   # the plate's and wings' undersides, in their own shadow
+const CD_SHADOW := Color("#3e4248")  # the deck under the wings
+const CD_PLANT := Color("#a9adb0")
+const CD_LOOP := Color("#7a7264")    # muted metallic grey-bronze by day (F, 2026-11-03); blue neon at night
 
 
 func _find_cedet() -> void:
@@ -18022,37 +18033,69 @@ func _build_cedet(site: Dictionary) -> void:
 	var crown := _miter(ring, 0.25)
 	_prism(crown, g + top, g + top + CD_CORNICE, CD_SLAB, CD_ROOF, M_STONE, M_STONE)
 	var roof := g + top + CD_CORNICE
-	# The set-back pavilion over the middle of the avenue wing: dark glass, a cream roof plate a
-	# little over it, and the plate's ends swept up into the two wings (dark undersides).
-	_lbox(0.0, -14.5, 20.0, 9.5, roof, roof + 4.0, CD_PAVILION, M_GLASS, CD_PAVILION)
-	_lbox(0.0, -14.5, 22.0, 11.5, roof + 4.0, roof + 4.45, CD_PLATE, M_STONE, CD_PLATE)
+	# The recessed pavilion (F, 2026-11-03): its dark glass storey 2 m back under a cream roof plate,
+	# whose shaded soffit reads as the recess from the street.
+	var pc := CD_PAV.get_center()
+	var pav := _rect(pc.x, pc.y, CD_PAV.size.x * 0.5, CD_PAV.size.y * 0.5)
+	_prism(pav, roof, roof + CD_PAV_H, CD_PAVILION, none, M_GLASS)
+	var y_pl := roof + CD_PAV_H
+	var r0 := CD_PLATE_R.position
+	var r1 := CD_PLATE_R.end
+	var plate := _rect(CD_PLATE_R.get_center().x, CD_PLATE_R.get_center().y, CD_PLATE_R.size.x * 0.5, CD_PLATE_R.size.y * 0.5)
+	_prism(plate, y_pl, y_pl + CD_PLATE_T, CD_PLATE, CD_PLATE, M_STONE, M_STONE)
 	_mode = M_STONE
+	_strip(pav, plate, y_pl - 0.01, CD_UNDER, true)
+	# The two wings: the plate's ends sweep up (flat at first, then steeper) to u +-30, open
+	# underneath. Top, a dark underside and the tip's edge, in four pieces each.
 	for side: float in [-1.0, 1.0]:
-		var ia := _w(side * 22.0, -26.0)
-		var ib := _w(side * 22.0, -3.0)
-		var oa := _w(side * 28.5, -26.0)
-		var ob := _w(side * 28.5, -3.0)
-		var y0 := roof + 4.45
-		var y1 := roof + 7.2
-		var rise := Vector3(-_a.x * side * 2.75, 6.5, -_a.y * side * 2.75).normalized()
-		_quad(Vector3(ia.x, y0, ia.y), Vector3(ib.x, y0, ib.y), Vector3(ob.x, y1, ob.y), Vector3(oa.x, y1, oa.y), rise, CD_PLATE)
-		var y0u := y0 - 0.45
-		var y1u := y1 - 0.4
-		_quad(Vector3(ia.x, y0u, ia.y), Vector3(ib.x, y0u, ib.y), Vector3(ob.x, y1u, ob.y), Vector3(oa.x, y1u, oa.y), -rise, CD_UNDER)
-		# The tip's edge, so the plate has a thickness where the eye meets it.
-		_quad(Vector3(oa.x, y1u, oa.y), Vector3(ob.x, y1u, ob.y), Vector3(ob.x, y1, ob.y), Vector3(oa.x, y1, oa.y),
-				Vector3(_a.x * side, 0.0, _a.y * side), CD_PLATE)
-	# Roof plant: four round hoods on the avenue wing's inner edge, a field of fans on the north wing.
-	for u: float in [-8.0, -2.0, 4.0, 10.0]:
-		var hp := _w(u, -26.0)
-		_prism(_circle(hp, 0.9, 8), roof, roof + 1.2, Color("#9a9ea4"), Color("#80848a"), M_STONE, M_STONE)
+		var u_in := r1.x if side > 0.0 else r0.x
+		var prev_u := u_in
+		var prev_y := y_pl + CD_PLATE_T
+		for k in range(1, 5):
+			var t := float(k) / 4.0
+			var u := u_in + side * CD_WING * t
+			var y := y_pl + CD_PLATE_T + CD_WING_RISE * pow(t, 1.7)
+			var ia := _w(prev_u, r0.y)
+			var ib := _w(prev_u, r1.y)
+			var oa := _w(u, r0.y)
+			var ob := _w(u, r1.y)
+			var slope := Vector2(u - prev_u, y - prev_y).normalized()
+			var up := Vector3(-_a.x * slope.y * side, absf(slope.x), -_a.y * slope.y * side).normalized()
+			var dt := CD_PLATE_T
+			_quad(Vector3(ia.x, prev_y, ia.y), Vector3(ib.x, prev_y, ib.y), Vector3(ob.x, y, ob.y), Vector3(oa.x, y, oa.y), up, CD_PLATE)
+			_quad(Vector3(ia.x, prev_y - dt, ia.y), Vector3(ib.x, prev_y - dt, ib.y), Vector3(ob.x, y - dt, ob.y),
+					Vector3(oa.x, y - dt, oa.y), -up, CD_UNDER)
+			# The wing's two long edges (front and back), so it has a thickness from the avenue.
+			for e: int in 2:
+				var vv := r1.y if e == 0 else r0.y
+				var pa := _w(prev_u, vv)
+				var pb := _w(u, vv)
+				var n2 := _b if e == 0 else -_b
+				_quad(Vector3(pa.x, prev_y - dt, pa.y), Vector3(pb.x, y - dt, pb.y), Vector3(pb.x, y, pb.y), Vector3(pa.x, prev_y, pa.y),
+						Vector3(n2.x, 0.0, n2.y), CD_SLAB_SHADE)
+			prev_u = u
+			prev_y = y
+		var ta := _w(prev_u, r0.y)
+		var tb := _w(prev_u, r1.y)
+		_quad(Vector3(ta.x, prev_y - CD_PLATE_T, ta.y), Vector3(tb.x, prev_y - CD_PLATE_T, tb.y), Vector3(tb.x, prev_y, tb.y),
+				Vector3(ta.x, prev_y, ta.y), Vector3(_a.x * side, 0.0, _a.y * side), CD_PLATE)
+		# The wing's shadow on the roof deck below it (the sun's from the south, so it falls a
+		# little north), a shade that reads from the helicopter as well as from the street.
+		var s0 := minf(u_in, prev_u)
+		var s1 := maxf(u_in, prev_u)
+		var sh := _rect((s0 + s1) * 0.5, (r0.y + r1.y) * 0.5 - 1.0, (s1 - s0) * 0.5, (r1.y - r0.y) * 0.5 - 0.6)
+		_quad(Vector3(sh[0].x, roof + 0.06, sh[0].y), Vector3(sh[1].x, roof + 0.06, sh[1].y), Vector3(sh[2].x, roof + 0.06, sh[2].y),
+				Vector3(sh[3].x, roof + 0.06, sh[3].y), Vector3.UP, CD_SHADOW)
+	# Roof plant (LoD2: a screened box at the back of the pavilion to ~35 m; the orthophoto's fans
+	# on the north wing).
+	_lbox(0.0, -22.6, 14.0, 3.6, y_pl + CD_PLATE_T, roof + 8.3, CD_PLANT, M_STONE, Color("#8e9296"))
 	for k in 6:
 		var fp := _w(-16.0 + 3.2 * (k % 3), -50.0 - 3.2 * (k / 3))
 		_prism(_circle(fp, 1.0, 8), roof, roof + 0.8, Color("#8e9298"), Color("#55595f"), M_STONE, M_STONE)
 	# The loop on the avenue front: three coils of steel tube and an arrowhead pointing west, 35 m
-	# across, between the second and fifth storeys; it glows blue at night.
+	# across, over the second to fifth storeys: grey-bronze by day, blue neon at night (M_LAMP + 0.5).
 	var lc := Vector2(4.0, 2.3)
-	var yc := g + 19.0
+	var yc := g + 15.8
 	var span := 26.0
 	var r := 4.5
 	var prev := Vector3.ZERO
@@ -18063,15 +18106,23 @@ func _build_cedet(site: Dictionary) -> void:
 		var p := _w(lc.x - span * 0.5 + span * t - r * cos(th), lc.y + 0.6 * cos(th))
 		var cur := Vector3(p.x, yc + r * sin(th), p.y)
 		if k > 0:
-			_beam(prev, cur, 0.35, CD_LOOP, false, M_LAMP)
+			_beam(prev, cur, 0.35, CD_LOOP, false, M_LAMP + 0.5)
 		prev = cur
 	for s: float in [-1.0, 1.0]:
 		var dv := 1.2 + 0.2 * s   # the two barbs a little apart in depth: they meet at the tip
 		var tip := _w(lc.x - span * 0.5 - r - 0.6, lc.y + dv)
 		var back := _w(lc.x - span * 0.5 - r + 1.8, lc.y + dv)
-		_beam(Vector3(tip.x, yc, tip.y), Vector3(back.x, yc + 1.9 * s, back.y), 0.35, CD_LOOP, false, M_LAMP)
+		_beam(Vector3(tip.x, yc, tip.y), Vector3(back.x, yc + 1.9 * s, back.y), 0.35, CD_LOOP, false, M_LAMP + 0.5)
 	_mode = M_STONE
-	_collide(outline)
+	# Car collision on the mapped outline, but round the Krucza corner on the model's 11 m curve
+	# (OSM barely rounds it: the car would stop 3.7 m short of the glass).
+	var wedge := Geometry2D.clip_polygons(_rect(-33.0, -1.0, 9.0, 9.0), ring)
+	var body := outline
+	for wpoly: PackedVector2Array in wedge:
+		var left := Geometry2D.clip_polygons(body, wpoly)
+		if not left.is_empty():
+			body = _largest(left)
+	_collide(body)
 
 
 # --- Plac Krasińskich: Pomnik Powstania Warszawskiego and Pałac Krasińskich --------------------

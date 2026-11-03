@@ -637,13 +637,21 @@ Newest first. One entry per question.
 - **YYYY-MM-DD · lane · item** — The question in one line? Options: A / B. Default built: A
   (or "nothing built: waits"). Where: PR #N, BACKLOG "section".
 -->
-- **2026-11-02 · landmarks · Hotel Warszawa and Cedet** — Built from `refs/hotel_warszawa/` and `refs/cedet/` on the Mac (Commons photos, the ortho, REPORT.md) and LoD2 (specs `hotel_warszawa.md`, `cedet.md`). Look check on the Mac or the phone against the photos: the hotel's front read as facing east onto the square (the portal on that side); Cedet's Krucza corner radius (the report reads 10-12 m, OSM barely rounds it; 5 m built), whether the east end is rounded (4 m built), the pavilion's extent and wing size, the storey height (4.6 m to fit LoD2's ~31 m roof, the photos suggest ~3.7 m), and the loop's day colour (steel blue built, the photos show patina green-grey). Default built as listed.
+- **2026-11-02 · landmarks · Hotel Warszawa** — Built from `refs/hotel_warszawa/` on the Mac (Commons photos, the ortho, REPORT.md) and LoD2 (spec `hotel_warszawa.md`). Look check on the Mac or the phone against the photos: the hotel's front read as facing east onto the square (the portal on that side). Default built as listed. (Cedet, asked in the same entry, is answered below.)
 
 ## Answered
 
 Move an entry here with the user's answer and the date; its item goes back to the top of the
 backlog. Lasting decisions also go into BACKLOG's "Decided" sections, DEMO.md or ROADMAP.
 
+- **2026-11-02 · landmarks · Cedet** — ~~Krucza corner radius (5 m built), the east end (4 m built),
+  the pavilion and wings, the storey height (4.6 m built), the loop's day colour (steel blue built)?~~
+  **Answered 2026-11-03 (F, landmark look check):** "Use 10–12 m as the working Krucza radius. The east end
+  also looks softened in the front photo, but its radius is unclear. Aim for 3.7 m glazed storeys, with a
+  taller ground floor and a recessed roof pavilion. Use muted metallic grey-bronze for the loop. Restore the
+  two upswept roof wings and their underside shadows first." Built 2026-11-03: r 11 m, the east end kept at
+  4 m, 5 x 3.7 m storeys over a 6.7 m ground floor (meets the LoD2 eave, 26.7 m), the pavilion 2 m back under
+  its plate, curved wings with dark undersides and shadows on the deck, a grey-bronze loop (blue neon at night).
 - **2026-10-30 · content · MW-3** — Queues stand at the place's point and the nearest footway
   until MW-2's storefronts exist; Smoła's queue lands in a passage hidden by a block from
   `--club=smola`. Default built: as said.
