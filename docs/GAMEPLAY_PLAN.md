@@ -399,8 +399,8 @@ look judgement, or the phone.
 | --- | --- | --- | --- |
 | 0.1 | Teleport and tow never land in a tunnel; box test before placing; `check_teleport` | 3.6 | **[Codex]** |
 | 0.2 | Chatter budget: priorities, rate cap, quiet while stuck, merged star toasts, setting; `check_chatter` (**done 2026-11-03**, `chatter.gd`) | 2 | **[Codex]** |
-| 0.3 | Car x-ray under decks | 3.5 option 1 | **[Codex]** |
-| 0.4 | Helicopter framing and far plane, height cap, horizon haze (**done 2026-11-03** but the haze, not needed after the far fix; `check_heli_view`) | 3.1 | Opus (camera feel + shots) |
+| 0.3 | Car x-ray under decks | 3.5 option 1 | done 2026-11-03 (`deck_hides`, `check_deck_xray`) |
+| 0.4 | Helicopter framing and far plane, height cap, horizon haze | 3.1 | done 2026-11-03 but the haze, not needed after the far fix (`check_heli_view`) |
 | 0.5 | Plac Piłsudskiego paving contrast | 3.4 | Sonnet + look check |
 
 **Phase 1: measure the roads**

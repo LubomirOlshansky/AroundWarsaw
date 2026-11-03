@@ -1135,6 +1135,40 @@ func in_tunnel(x: float, z: float, y: float) -> bool:
 	return not is_nan(t) and terrain_height(x, z) - t > 2.0
 
 
+## GAMEPLAY_PLAN 3.5 (0.3): a bridge or viaduct deck stands between the point `at` (the car's
+## middle) and the camera, `to_cam` the unit direction up to it (the ortho camera's back axis):
+## the ray meets a deck's slab (from UNDER_DECK_SLAB under its road to its parapet's top) between
+## UNDER_DECK and UNDER_DECK_TOP m over the point. Trasa Łazienkowska over Łazienkowska and
+## Myśliwiecka, Most Łazienkowski's land spans, the Poniatowski viaduct: main.gd shows the car
+## through the deck then, as in a tunnel. A car beside a deck, or under one the camera sees past,
+## stays drawn as it is. Up to ~18 deck lookups (drive_height does one): main.gd asks every
+## DECK_XRAY_EVERY frames.
+func deck_hides(at: Vector3, to_cam: Vector3) -> bool:
+	if to_cam.y < 0.05 or _decks.is_empty():
+		return false
+	if _deck_cells.is_empty():
+		_index_decks()
+	# Most of the map has no deck near: the deck cells along the ray first (4 points, under a
+	# cell apart), the costly corridor tests only if one holds a deck.
+	var any := false
+	for k in 4:
+		var q := at + to_cam * (lerpf(UNDER_DECK, UNDER_DECK_TOP, k / 3.0) / to_cam.y)
+		if _deck_any.has(Vector2i(floori(q.x / DECK_CELL), floori(q.z / DECK_CELL))):
+			any = true
+			break
+	if not any:
+		return false
+	var h := UNDER_DECK
+	while h <= UNDER_DECK_TOP:
+		var p := at + to_cam * (h / to_cam.y)
+		var y := at.y + h
+		for d in _decks_at(p.x, p.z):
+			if y >= d - UNDER_DECK_SLAB and y <= d + 1.0:
+				return true
+		h += UNDER_DECK_SLAB * 0.75
+	return false
+
+
 ## Loop 10a: how far into the water (river, pond or fountain) a point lies, in metres from
 ## the nearest dry texel, interpolated between the 2 m texels' centres; 0 on dry land and
 ## off the map. Four byte reads: cheap enough for the car every frame.
@@ -1286,6 +1320,13 @@ func deck_height(g: int, x: float, z: float) -> float:
 		return h
 	return h
 
+
+## GAMEPLAY_PLAN 3.5 (deck_hides): the camera ray's heights over the car tested for a deck (from
+## over the car's roof to the highest flyover over a street) and a deck's slab and girders under
+## its road.
+const UNDER_DECK := 2.5
+const UNDER_DECK_TOP := 24.0
+const UNDER_DECK_SLAB := 1.6
 
 const DECK_CELL := 16.0
 ## (cell x, cell z, group) -> segment codes (piece << 12 | segment), built on first use;

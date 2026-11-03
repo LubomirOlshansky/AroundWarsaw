@@ -60,7 +60,9 @@ experience". The plan, the road audit and the causes are in docs/GAMEPLAY_PLAN.m
   into something, stalled or offered the tow, and 5 s after; ambient waits while a card or the full
   map is up; the ride's star toasts merge into one; Settings → ŚWIAT → Gadatliwość miasta. Phone
   feel parked (QUESTIONS)
-- [ ] 0.3 The car is invisible under Trasa Łazienkowska and other decks: tunnel x-ray under decks too (Codex)
+- [x] 0.3 The car shows through Trasa Łazienkowska and other decks (2026-11-03): the tunnel x-ray
+  whenever a deck stands between the car and the camera (`map_builder.gd` `deck_hides`,
+  `check_deck_xray`); phone look open, the deck cut stays 3.x
 - [ ] 0.4 Helicopter high up: heli framed at the top, far plane clips the ground (floating buildings,
   blue sky), height cap, horizon haze
 - [ ] 0.5 Plac Piłsudskiego's paving reads as a chessboard: lower the panel contrast, speckle

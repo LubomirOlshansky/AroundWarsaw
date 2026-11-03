@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-03
 - Flying high in the helicopter now keeps it near the middle of the screen, and the city reaches the top edge instead of ending in blue sky with towers floating over it. Over most of the city the helicopter tops out at 220 m; near the tallest towers it can still climb above them.
+- Driving under Trasa Łazienkowska, Most Łazienkowski or a viaduct, you no longer lose your car: when a bridge hides it, it shows through as a warm outline, the way it already did in tunnels.
 - The city talks less when you are in trouble: stuck against a wall or pressing into traffic, nobody comments, and a bump only draws a shout now and then. At most two speech bubbles are up at once, a ride's lost stars come as one short note after the bumps stop, and Settings → World has a new "City chattiness" choice (Quiet, Some, Lots).
 - Plac Piłsudskiego no longer looks like a giant chess board: the granite panels differ only softly, thin darker joints outline them, and from far away you see just the grid of joints.
 - Cedet on Al. Jerozolimskie looks more like itself: its roof's two wings sweep up again with shade underneath, the Krucza corner is rounder, the glass storeys are lower over a taller shop floor, the top pavilion sits back under its roof, and the steel loop is grey-bronze by day (still blue neon at night).
