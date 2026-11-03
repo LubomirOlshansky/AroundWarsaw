@@ -40,8 +40,10 @@ the photo reports already in (QUESTIONS 2026-11-02 and 2026-11-03).
 
 F's playtest (13:22): "the map and buildings are good now; I want to make the driving the best
 experience". The plan, the road audit and the causes are in docs/GAMEPLAY_PLAN.md; its phases:
-- [ ] 0.1 Map teleport and tow land in a tunnel: `_lane_spot` accepts tunnel lanes as "the ground's
-  level"; skip tunnels, test the box first, `check_teleport` (Codex)
+- [x] 0.1 Map teleport and tow land in a tunnel (2026-11-03): `_same_level` took a tunnel's floor as
+  "the ground"; now tunnels only from inside one, main-network lanes first, the teleport checks the
+  car's box, a hold over the river lands on the bridge; verify step `teleport` (11 spots; 2 failed
+  before). Autopilot P12 checks the drive-off
 - [ ] 0.2 Chatter budget: one rate cap for bubbles and toasts, no comment per collision, quiet while
   stuck, merged star toasts, a "Gadatliwość miasta" setting, `check_chatter` (Codex)
 - [ ] 0.3 The car is invisible under Trasa Łazienkowska and other decks: tunnel x-ray under decks too (Codex)

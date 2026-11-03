@@ -470,7 +470,8 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 
 ### Left: driving first (F, 2026-11-03; plan docs/GAMEPLAY_PLAN.md, detail in BACKLOG "Driving first")
 - [x] The plan: road audit, causes of the playtest's bugs, phases (2026-11-03, docs only)
-- [ ] Phase 0: teleport/tow never in a tunnel, chatter budget, car visible under decks, heli framing and far plane, Plac Piłsudskiego paving
+- [x] 0.1 Teleport and tow never land in a tunnel (2026-11-03, verify step `teleport`)
+- [ ] Phase 0: chatter budget, car visible under decks, heli framing and far plane, Plac Piłsudskiego paving
 - [ ] Phase 1: drivability sweep of every lane and turn, lane graph data fixes, Autopilot rows P11-P16
 - [ ] Phase 2: road fixes street by street with a score baseline in CI
 - [ ] Phase 3: lane assist, wall look-ahead, junction pick, deck cut; F's phone run
