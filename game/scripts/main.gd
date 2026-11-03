@@ -61,9 +61,11 @@ const Trains := preload("res://scripts/trains.gd")
 const Pedestrians := preload("res://scripts/pedestrians.gd")
 const Rivals := preload("res://scripts/rivals.gd")
 const Bubbles := preload("res://scripts/bubbles.gd")
+const Chatter := preload("res://scripts/chatter.gd")
 const Models := preload("res://scripts/models.gd")
 const TimeOfDay := preload("res://scripts/time_of_day.gd")
 const Radio := preload("res://scripts/radio.gd")
+const OpeningAudio := preload("res://scripts/opening_audio.gd")
 const Title := preload("res://scripts/title.gd")
 const Wallet := preload("res://scripts/wallet.gd")
 const Dialogue := preload("res://scripts/dialogue.gd")
@@ -176,6 +178,11 @@ var zone_cap_on := false
 var zone_cap_flag := -1
 ## Loop 3b: the car seen through the ground inside a tunnel (tunnel_xray.gd).
 var _xray: Node3D
+## GAMEPLAY_PLAN 0.3: a deck hides the car from the camera (map_builder.gd `deck_hides`, ~0.1 ms
+## under a deck in the cloud check, 1 µs elsewhere), asked every DECK_XRAY_EVERY frames (the
+## silhouette a few frames late).
+const DECK_XRAY_EVERY := 4
+var _deck_hid := false
 var heli: Node3D
 var missions: Node
 var hud: CanvasLayer
@@ -303,6 +310,9 @@ var solo_look := "flat"
 var debug_roads := false
 ## Loop 3b: --tunnel starts the car (with --at) on the floor of a tunnel under that point.
 var start_in_tunnel := false
+## GAMEPLAY_PLAN 0.3: --under starts the car (with --at) on the road under a bridge or viaduct deck
+## there, not on top of it (the deck x-ray's shots).
+var start_under := false
 ## Loop 1: --ghost-debug=N paints the occlusion ghost for measuring (1: the ghosted
 ## fragments magenta and every other building green; 2: the ghost cut fully, no dither)
 ## and prints the ghost's ellipse in screen pixels with every screenshot.
@@ -660,6 +670,25 @@ var fullmap_span := 0.0
 ## ZADANIA tab shown (the vehicle's) is tapped; a place's pick then closes the map.
 var quest_pick_flag := -1
 var map_jump := Vector2.INF
+## GAMEPLAY_PLAN 0.1, --teleport-test (verify step `teleport`): teleports to each of
+## TELEPORT_TESTS in turn and fails (push_error) if the car lands in a tunnel, off the level of the
+## ground or a deck there, or far from where it was asked; prints "teleport test: OK n/n".
+var teleport_test := false
+## [x, z, what]: above the four driven tunnels (the bug: a hold over a tunnel put the car on its
+## floor), by a portal, and plain streets.
+const TELEPORT_TESTS := [
+	[429.0, -800.0, "over Tunel Wisłostrady, north"],
+	[594.0, -586.0, "over Tunel Wisłostrady, south"],
+	[116.0, 1619.0, "over Aleja Armii Ludowej's tunnel under Trasa Łazienkowska"],
+	[42.0, 1618.0, "over Armii Ludowej's link tunnel"],
+	[-761.0, -1399.0, "over Aleja Solidarności's tunnel"],
+	[-315.0, -905.0, "over Karowa's short tunnel"],
+	[850.0, -94.0, "over an unnamed link tunnel"],
+	[1347.0, 1077.0, "under Trasa Łazienkowska's deck on Solec"],
+	[1700.0, 973.0, "over the river by Most Łazienkowski"],
+	[-1013.0, -45.0, "Marszałkowska at the start"],
+	[-387.0, -187.0, "Nowy Świat"],
+]
 var hold_stick := Vector2.INF
 var hold_pedal := ""
 ## Testing aid (--clicks=X:Y:F,...): a mouse click (a touch, with the project's touch
@@ -987,6 +1016,7 @@ func _on_title_dismissed() -> void:
 ## launch (a fresh save), or forced by --cinematic=opening. While it plays the HUD is hidden and
 ## the guide's clock waits; both start when it ends (done or skipped by a tap).
 var _opening_on := false
+var _opening_audio: Node
 
 func _opening_due() -> bool:
 	if _flag_cinematic == "opening":
@@ -1004,6 +1034,9 @@ func _fly_in() -> void:
 		_opening_on = true
 		hud.visible = false
 		moments.ended.connect(_on_opening_ended, CONNECT_ONE_SHOT)
+		_opening_audio = OpeningAudio.new()
+		add_child(_opening_audio)
+		_opening_audio.start(radio)
 		moments.opening(vehicle.global_position, cam_yaw, camera_pitch,
 				PackedStringArray(["Śródmieście · Plac Defilad", "the centre of Warsaw"]))
 		return
@@ -1013,6 +1046,8 @@ func _fly_in() -> void:
 
 func _on_opening_ended(_what: String) -> void:
 	_opening_on = false
+	if _opening_audio != null:
+		_opening_audio.flight_ended()
 	hud.visible = not hide_hud
 	if first10 != null:
 		first10.begin()
@@ -1164,6 +1199,8 @@ func _build_world() -> void:
 		car.global_position.y = map.ground_height(start_at.x, start_at.z)
 		if start_in_tunnel and not is_nan(map.tunnel_floor_under(start_at.x, start_at.z)):
 			car.global_position.y = map.tunnel_floor_under(start_at.x, start_at.z)
+		elif start_under:
+			car.global_position.y = map.drive_height(start_at.x, start_at.z, map.terrain_height(start_at.x, start_at.z))
 	if start_heading != INF:
 		car.rotation.y = -deg_to_rad(start_heading)
 	cam_focus = car.global_position
@@ -1187,6 +1224,7 @@ func _build_world() -> void:
 	heli = Heli.new()
 	heli.ground_height = map.ground_height
 	heli.top_height = map.top_height
+	heli.tallest_near = map.tallest_near
 	heli.set_map(map)  # map north: the L-shaped outline, not the bounding box
 	world.add_child(heli)
 	heli.landed.connect(_on_heli_landed)
@@ -1262,6 +1300,14 @@ func _build_world() -> void:
 	bubbles = Bubbles.new()
 	bubbles.pt = hud.pt
 	bubbles.kmh = func() -> float: return absf(car.forward_speed) * 3.6
+	# Phase 0.2 (docs/GAMEPLAY_PLAN.md): one chatter budget (chatter.gd). Quiet while the car
+	# struggles or the stuck offer is up; ambient lines wait while a card is up; a driver's shout
+	# at a bump needs a real hit (car.bumped's closing speed); the level is the setting.
+	bubbles.struggle = func() -> bool: return not flying and (car.struggling() or hud.pill_shown("unstuck"))
+	bubbles.cards_up = hud.cards_up
+	bubbles.chatter.level = settings.chatter
+	car.bumped.connect(func(_c: Object, speed: float) -> void: bubbles.chatter.hit(speed * 3.6))
+	hud.chatter = bubbles.chatter
 	bubbles.project = func(p: Vector3) -> Vector2: return cam.unproject_position(p) * float(view.stretch_shrink)
 	hud.add_speech(bubbles)  # above the target pointer, below the panels (PT-10)
 	bubbles.process_mode = Node.PROCESS_MODE_PAUSABLE
@@ -1427,6 +1473,8 @@ func _build_world() -> void:
 		var why := _teleport_refusal()
 		print("teleport: --map-jump refusal: %s" % ("none" if why.is_empty() else why[1]))
 		_teleport_from_map.call_deferred(map_jump)
+	if teleport_test:
+		_teleport_test.call_deferred()
 	_stats = _make_stats()
 	# Loop 3g-1: the police's script time among the bench's lines.
 	if police != null:
@@ -3605,6 +3653,8 @@ func _parse_args() -> void:
 			solo_look = arg.trim_prefix("--solo-look=")
 		elif arg == "--tunnel":
 			start_in_tunnel = true
+		elif arg == "--under":
+			start_under = true
 		elif arg == "--debug-roads":
 			debug_roads = true
 		elif arg.begins_with("--lift="):
@@ -3807,6 +3857,8 @@ func _parse_args() -> void:
 			_flag_traffic = Settings.parse_traffic(arg.trim_prefix("--traffic="))
 		elif arg == "--settings":
 			open_settings_at_start = true
+		elif arg == "--teleport-test":
+			teleport_test = true
 		elif arg.begins_with("--map-jump="):
 			# 2026-10-31: the full map's hold-to-teleport to x,z once the drive starts (tests).
 			var xz := arg.trim_prefix("--map-jump=").split(",")
@@ -4409,13 +4461,21 @@ func _teleport_from_map(p: Vector2) -> void:
 		print("teleport: the helicopter to %.0f, %.0f" % [p.x, p.y])
 		return
 	var at := Vector3(p.x, map.terrain_height(p.x, p.y), p.y)
+	# GAMEPLAY_PLAN 0.1: a hold over the river, by a bridge, lands on the bridge (its deck's
+	# level), not on a bank road hundreds of metres away.
+	if graph != null and map.in_water(at.x, at.z, at.y):
+		var deck := graph.snap(p, 80.0, Vector2.ZERO, true, false, true)
+		if not deck.is_empty() and graph.e_dk[deck[0]] >= 0:
+			at.y = graph.height(deck[0], deck[2])
 	var spot := _lane_spot(at, car.rotation.y)
 	if spot.is_empty():
 		spot = _node_spot(at)
 	if spot.is_empty():
 		print("teleport: no lane near %.0f, %.0f" % [p.x, p.y])
 		return
-	var to: Vector3 = spot[0]
+	# GAMEPLAY_PLAN 0.1: the lane point, or the nearest spot to it where the car's box is free
+	# (a parked car, a shelter, a tunnel portal's wall), as the tow does.
+	var to := _free_car_spot(spot[0], spot[1])
 	car.global_position = Vector3(to.x, to.y + 0.05, to.z)
 	car.rotation.y = spot[1]
 	car.vel = Vector3.ZERO
@@ -4423,6 +4483,32 @@ func _teleport_from_map(p: Vector2) -> void:
 	car.reset_physics_interpolation()
 	_cut_camera()
 	print("teleport: the car to %.0f, %.0f (asked %.0f, %.0f), heading %.0f" % [to.x, to.z, p.x, p.y, _compass_yaw(spot[1])])
+
+
+## GAMEPLAY_PLAN 0.1: --teleport-test (see TELEPORT_TESTS).
+func _teleport_test() -> void:
+	var bad := 0
+	for t: Array in TELEPORT_TESTS:
+		var asked := Vector2(t[0], t[1])
+		_teleport_from_map(asked)
+		var p := car.global_position
+		var ground: float = map.terrain_height(p.x, p.z)
+		var level: float = map.drive_height(p.x, p.z, p.y)
+		var why := ""
+		if map.in_tunnel(p.x, p.z, p.y) or p.y < ground - 1.0:
+			why = "in a tunnel (%.1f m under the ground)" % (ground - p.y)
+		elif absf(p.y - level) > 1.0:
+			why = "off the road's level (%.1f m)" % (p.y - level)
+		elif Vector2(p.x, p.z).distance_to(asked) > 110.0:
+			why = "%.0f m from where it was asked" % Vector2(p.x, p.z).distance_to(asked)
+		if why != "":
+			bad += 1
+			push_error("teleport test: %s: the car at %.0f, %.1f, %.0f is %s" % [t[2], p.x, p.y, p.z, why])
+		else:
+			print("teleport test: %s: %.0f, %.0f, %.1f m over the ground" % [t[2], p.x, p.z, p.y - ground])
+	if bad == 0:
+		print("teleport test: OK %d/%d" % [TELEPORT_TESTS.size(), TELEPORT_TESTS.size()])
+	get_tree().quit(1 if bad > 0 else 0)
 
 
 func _close_full_map() -> void:
@@ -4444,7 +4530,7 @@ func _settings_state() -> Dictionary:
 			"auto": auto_name,
 			"master": settings.master, "music": settings.music, "effects": settings.effects, "perf": int(show_perf),
 			"fps": maxi(0, Settings.FPS.find(settings.fps)), "style": style_index, "vhs": int(vhs),
-			"weather": weather.state, "time": tod.mode, "wander": int(spacer != null and spacer.on), "zones": int(zone_cap_on), "handling": settings.handling, "sensitivity": settings.sensitivity,
+			"weather": weather.state, "time": tod.mode, "wander": int(spacer != null and spacer.on), "zones": int(zone_cap_on), "handling": settings.handling, "chatter": settings.chatter, "sensitivity": settings.sensitivity,
 			"text_large": int(settings.text_large), "calm": int(settings.calm), "color_safe": int(settings.color_safe),
 			"vibration": int(settings.vibration), "stop_assist": int(settings.stop_assist),
 			"left_handed": int(settings.left_handed), "lang": maxi(0, Lang.CODES.find(Lang.code))}
@@ -4545,6 +4631,9 @@ func _on_setting(key: String, value: Variant) -> void:
 		"handling":
 			settings.handling = clampi(int(value), 0, 1)
 			car.set_handling(settings.handling)
+		"chatter":
+			settings.chatter = clampi(int(value), 0, Chatter.GAPS.size() - 1)
+			bubbles.chatter.level = settings.chatter
 		"zones":
 			settings.zone_cap = int(value) == 1
 			zone_cap_on = settings.zone_cap
@@ -4643,18 +4732,23 @@ func _lane_spot(at: Vector3, yaw: float) -> Array:
 	if graph == null:
 		return []
 	var p := Vector2(at.x, at.z)
+	# GAMEPLAY_PLAN 0.1 (F, 2026-11-03: a map teleport left the car on a tunnel): tunnel edges
+	# only when `at` is itself inside a tunnel, and lanes of the main network (traffic's strongly
+	# connected part) before the pockets off it, so the car can drive away from where it lands.
+	var no_tunnel: bool = not map.in_tunnel(at.x, at.z, at.y)
 	for heading in [Vector2(-sin(yaw), -cos(yaw)), Vector2.ZERO]:
-		var hit := graph.snap(p, 80.0, heading)
-		if hit.is_empty():
-			continue
-		var e: int = hit[0]
-		var lane_s: float = hit[2]
-		var h := graph.height(e, lane_s)
-		var q := graph.point_at(e, lane_s, graph.lane_offset(e, hit[1]))
-		if not _same_level(at, q, h) or map.in_water(q.x, q.y, h):
-			continue
-		var d := graph.direction(e, lane_s)
-		return [Vector3(q.x, h, q.y), atan2(-d.x, -d.y)]
+		for scc_only in [true, false]:
+			var hit := graph.snap(p, 80.0, heading, scc_only, false, no_tunnel)
+			if hit.is_empty():
+				continue
+			var e: int = hit[0]
+			var lane_s: float = hit[2]
+			var h := graph.height(e, lane_s)
+			var q := graph.point_at(e, lane_s, graph.lane_offset(e, hit[1]))
+			if not _same_level(at, q, h) or map.in_water(q.x, q.y, h):
+				continue
+			var d := graph.direction(e, lane_s)
+			return [Vector3(q.x, h, q.y), atan2(-d.x, -d.y)]
 	return []
 
 
@@ -4685,10 +4779,15 @@ func _node_spot(at: Vector3) -> Array:
 
 
 ## Loop 10a: a lane point q at height h is on the level of `at`: both on the ground (the
-## terrain, however high), or within 4 m of each other on a deck.
+## terrain, however high), or within 4 m of each other on a deck. GAMEPLAY_PLAN 0.1: on the
+## ground means within a metre of the terrain both ways (a tunnel's floor, metres under it, was
+## "on the ground" too); inside a tunnel, the level is the tunnel's (within 4 m, as on a deck).
 func _same_level(at: Vector3, q: Vector2, h: float) -> bool:
+	if map.in_tunnel(at.x, at.z, at.y):
+		return absf(h - at.y) <= 4.0
 	if at.y < map.terrain_height(at.x, at.z) + 0.5:
-		return h < map.terrain_height(q.x, q.y) + 1.0
+		var g: float = map.terrain_height(q.x, q.y)
+		return h < g + 1.0 and h > g - 1.0
 	return absf(h - at.y) <= 4.0
 
 
@@ -5232,7 +5331,11 @@ func _process(dt: float) -> void:
 	if cam_log:
 		_cam_log_frame(dt)
 	var pos := _vehicle_position()
-	_xray.show_through(not flying and map.in_tunnel(pos.x, pos.z, pos.y))
+	# GAMEPLAY_PLAN 0.3: in a tunnel, or a bridge or viaduct deck between the car and the camera
+	# (Trasa Łazienkowska over the streets under it).
+	if Engine.get_process_frames() % DECK_XRAY_EVERY == 0:
+		_deck_hid = not flying and map.deck_hides(pos + Vector3.UP * 0.8, cam.global_transform.basis.z)
+	_xray.show_through(not flying and (map.in_tunnel(pos.x, pos.z, pos.y) or _deck_hid))
 	# Loop 3d-1: the pedestrian zones cap the player's car (police.md 5.6); the log says when.
 	# F's asks (2026-10-30): only with the Settings switch on (off by default).
 	var zone: String = ped_zones.at(car.global_position.x, car.global_position.z) if ped_zones != null and not flying else ""
@@ -6496,10 +6599,11 @@ func _update_camera(dt: float) -> void:
 	var size: float
 	var focus_rate := FollowCamera.FOCUS_RATE
 	if flying:
-		# Aim halfway down to the shadow so both stay in view, and widen the view
-		# a little, more when flying above the usual height.
-		focus.y -= heli.height_above * 0.5
-		var heli_view := base_size * HELI_VIEW + maxf(heli.height_above - Heli.CRUISE, 0.0) * 0.8
+		# Aim between the helicopter and its shadow so both stay in view near the usual height;
+		# higher up aim nearer the helicopter (the shadow leaves the view), so it stays in the
+		# middle of the screen, and widen the view a little, up to HELI_WIDEN_MAX.
+		focus.y -= heli.above_ground * heli_aim_share(heli.above_ground)
+		var heli_view := base_size * HELI_VIEW + heli_widen(heli.above_ground)
 		var heli_zoom := base_size * HELI_VIEW * 0.2 * clampf(speed / Heli.MAX_SPEED, 0.0, 1.0)
 		size = heli_view + heli_zoom
 		_view_size = fcam.zoom_step(_view_size, heli_view, heli_zoom, dt)
@@ -6546,11 +6650,37 @@ func _snap_to_pixels(p: Vector3, basis: Basis, size: float) -> Vector3:
 ## change size make the shadows' pixel edges crawl. It changes only when the player zooms.
 const FAR_MARGIN := 130.0
 
+## The helicopter's framing (GAMEPLAY_PLAN 3.1, 2026-11-03). The camera aims this share of the
+## height down from the helicopter: half way to the shadow up to AIM_LOW_TOP, AIM_HIGH from
+## AIM_HIGH_FROM up. At the 30° pitch the helicopter and its shadow are h·cos 30° apart on screen,
+## so the old fixed half put it at the top edge from ~250 m (12 % from the top at 330 m).
+const AIM_LOW_TOP := 50.0
+const AIM_HIGH_FROM := 140.0
+const AIM_HIGH := 0.1
+## The view widens 0.8 m a metre over cruise height, never more than this (m): wider showed the
+## map's edge and the sky past it from mid-map.
+const HELI_WIDEN_MAX := 140.0
+
+
+static func heli_aim_share(above_ground: float) -> float:
+	return lerpf(0.5, AIM_HIGH, smoothstep(AIM_LOW_TOP, AIM_HIGH_FROM, above_ground))
+
+
+static func heli_widen(above_ground: float) -> float:
+	return minf(maxf(above_ground - Heli.CRUISE, 0.0) * 0.8, HELI_WIDEN_MAX)
+
 
 func _camera_far(distance: float, size: float) -> float:
 	var t := 1.0 / tan(deg_to_rad(maxf(absf(camera_pitch), 5.0)))
 	var aspect := float(sv.size.x) / float(maxi(sv.size.y, 1))
-	var low: float = FAR_MARGIN + (heli.height_above if flying else 0.0)
+	# The view's centre ray meets the ground this far past the focus: the focus's height over the
+	# ground under it along the ray (1 / sin pitch), the camera's own aim over the helicopter's
+	# ground, not the roof under it (that cut the ground at the screen's top over tall buildings,
+	# leaving their upper floors floating over the sky's colour).
+	var above := 0.0
+	if flying:
+		above = maxf(cam_focus.y - minf(map.ground_height(cam_focus.x, cam_focus.z), heli.global_position.y - heli.above_ground), 0.0)
+	var low: float = FAR_MARGIN + above / sin(deg_to_rad(maxf(absf(camera_pitch), 5.0)))
 	# The widest this zoom gets: the car's view at top speed, the helicopter's as it is.
 	var widest := maxf(cam.size, size if flying else base_size * (1.0 + FollowCamera.SPEED_ZOOM))
 	var reach: float = maxf(CAMERA_DISTANCE, widest * 1.6) + 0.5 * widest * t + low

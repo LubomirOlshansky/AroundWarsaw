@@ -3,6 +3,84 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## The helicopter high up (F's playtest, 2026-11-03; GAMEPLAY_PLAN 0.4 / 3.1)
+
+The framing, the far plane and the height cap are fixed (heli-view PR, `check_heli_view`; the
+cause and numbers are in GAMEPLAY_PLAN 3.1). Left:
+- Phone check (P15 on the Mac, F's yes): fly to the cap over the Palace, Varso and the east edge;
+  feel of the 220 m cap (it pulls the helicopter down at -11 m/s when it leaves a tower).
+- Horizon haze (plan fix 4) not built: no cut ground showed after the far fix; build it only if the
+  phone still shows a hard line. The far half of a 360 m view shows sector proxies for a few
+  seconds while they stream in.
+
+## Open courtyards (F, 2026-11-03)
+
+F: "some kamienica from the top have the hole in the center, I want it where it has one". Found: the
+GUGiK LoD2 blocks (most of the centre) already show their courts, since each model is roofed only
+where the building stands (shots from above at Hoża). The gap was the hand-built landmark models that
+lift a mapped outline: bake_osm keeps only a multipolygon's outer ring, so the Ministry of Finance,
+the National Museum and Hotel Bristol had one solid roof over real courts. Done: `tools/bake_courts.py`
+traces every closed-in, roofless patch of 30 m² or more inside a mapped outline from lod2.bin (187
+courts, `game/data/courts.json`, verify step `courts` checks it against today's map files);
+landmarks.gd `COURT_SITES` (mf, muzeum, bristol) cuts them out of the site's flat tops and walls them
+in, with window bays every 3.6 m and storey. The Palace already had its courts (`P_COURTS`). Open:
+- OSM-only buildings (no LoD2 model, mostly newer blocks: Oxygen, offices with atria) still lose their
+  inner rings in bake_osm (`main`'s multipolygon loop reads only `outer` members). Keep the inner rings
+  in centrum.json and let map_builder `_build_buildings` draw them (walls facing in, roof cut); needs
+  the raw OSM export, so a Mac re-bake (the cloud has no OSM access).
+- Hotel Europejski: its LoD2 model (2018, mid-renovation) is roofed over the court, so no court is
+  traced; the photo rebuild (PR #402) hand-models it (a 14 m ring, inner walls, glass roof at
+  8.5 m), so "europejski" stays out of `COURT_SITES` (no double court).
+- Other sites the trace finds courts in, left as built: Złota 44 (127 m², a gap of the 2018 survey
+  by the tower), Pasaż Wiecha (152 m²), St Anthony's and the Reformed church (64 and 37 m², small
+  cloister or light-well courts). Add a key to `COURT_SITES` after a look check.
+- Mac look check: the three courts from the helicopter and the game's angle, day and night (the court
+  walls' windows light like the model's own bays).
+
+## Grow the map north-east (F, 2026-11-03: not now)
+
+Koneser (1426, -2355), Park Fontann (the Multimedia Fountain Park, -868, -2208) and Ząbkowska's bar
+strip (x 1020-1080, z -2080 to -2110) lie in the map box's cut north-east corner (`centrum.json`
+"outside": z < -2045 east of x -1706). F (2026-11-03): add to the backlog, don't build yet. The job
+(map lane): grow bake_osm's map shape (tools/map_shape.py), re-bake the chain and the LoD2/terrain
+on the Mac, publish a new map pack, then build Koneser, the fountain park and Ząbkowska's bars from
+the photo reports already in (QUESTIONS 2026-11-02 and 2026-11-03).
+
+## Driving first: the gameplay plan (F, 2026-11-03)
+
+F's playtest (13:22): "the map and buildings are good now; I want to make the driving the best
+experience". The plan, the road audit and the causes are in docs/GAMEPLAY_PLAN.md; its phases:
+- [x] 0.1 Map teleport and tow land in a tunnel (2026-11-03): `_same_level` took a tunnel's floor as
+  "the ground"; now tunnels only from inside one, main-network lanes first, the teleport checks the
+  car's box, a hold over the river lands on the bridge; verify step `teleport` (11 spots; 2 failed
+  before). Autopilot P12 checks the drive-off
+- [x] 0.2 Chatter budget (2026-11-03, `chatter.gd`, `check_chatter`): every bubble has a class (quest,
+  police, reaction, ambient); at most 2 up and one new every 4 s; one reaction in 20 s, none for a
+  bump under 15 km/h, a near miss once a minute; city lines silent while the car is pinned, pressing
+  into something, stalled or offered the tow, and 5 s after; ambient waits while a card or the full
+  map is up; the ride's star toasts merge into one; Settings → ŚWIAT → Gadatliwość miasta. Phone
+  feel parked (QUESTIONS)
+- [x] 0.3 The car shows through Trasa Łazienkowska and other decks (2026-11-03): the tunnel x-ray
+  whenever a deck stands between the car and the camera (`map_builder.gd` `deck_hides`,
+  `check_deck_xray`); phone look open, the deck cut stays 3.x
+- [ ] 0.4 Helicopter high up: heli framed at the top, far plane clips the ground (floating buildings,
+  blue sky), height cap, horizon haze
+- [ ] 0.5 Plac Piłsudskiego's paving reads as a chessboard: lower the panel contrast, speckle
+- [ ] 1.1 `check_drivability.gd`: every lane, turn and dead end with the player's car; per-street score
+- [ ] 1.2 Lane graph data: 101 nodes off the main network, 15 kinks over 45°, ~300 lanes under 2.5 m
+- [ ] 1.3 Autopilot rows P11-P16 (PLAYTEST.md)
+- [ ] 2.x Road fixes by street, forgiveness bevels, trap dead ends gated, score baseline in CI
+- [ ] 3.x Lane assist, wall look-ahead, junction pick, deck cut in the ghost, F's phone run
+- [ ] 4.1 Running clubs read as a blue blob at crossings: mixed kit, pairs, spread out
+- [ ] 4.2 Varso Place masses from photos (the gap between the tower and Varso 1/2)
+
+## Landmarks from photos: Chmielna 89, "Piramida" (F, 2026-11-03, later)
+
+F: "PKO Piramida looks bad". Chmielna 89 (~80 m, 2021-22), the glass wedge on V-shaped steel legs by
+the railway cutting next to Warta Tower; today an OSM extrusion. Later, photo way: a Mac gather
+`refs/chmielna89/` plus F's four photos (project files), then the wedge, the zigzag frame on the
+sloped face, the V legs, blue-grey glass. No bank name or logo (brands only as parodies).
+
 ## Vitkac quests and ride stories (F, 2026-11-03)
 
 F asked for two things; both are plan only, nothing is built (Sonnet for the lines, Opus for the quest design; docs/design/ gets the plan first).
@@ -36,7 +114,8 @@ is the order of the next threads. Found while building it:
   the Eastern memorial and Umschlagplatz from the Mac's photo reports (docs/landmarks/photo-reports/); each
   lands as a site and joins `bake_monuments.SKIP`. Then rows 113-116 and 142. ~~Plac Piłsudskiego's
   (Piłsudski, Smolensk, Kaczyński)~~ done 2026-11-02 (sites `smolensk`, `pilsudski`, `kaczynski`,
-  `plac_maszty`, the paving's chequer in ground.gdshader; spec `plac_pilsudskiego.md`).
+  `plac_maszty`, the paving's chequer in ground.gdshader; spec `plac_pilsudskiego.md`; the chequer
+  softened 2026-11-03 after the playtest read it as a chess board, phone look check open).
 - **Plaques without a wall:** 49 OSM plaques have no drawn wall within 12 m (free-standing ones, courtyards)
   and are left out; a post-mounted plaque piece would place them. A plaque's wall is the LoD2 footprint, so
   a deep shop recess can leave it on a pier rather than the door's wall (fine so far in shots).
@@ -260,9 +339,6 @@ fixed 2026-11-02); PT-9 HUD overlaps confirmed.
   watch on the next P2 run that the nudge reads at phone size and that a red light mid-race (under
   5 s) never triggers the stall line. The heli/tape/garage beats pass headless only; P2 by hand
   (flying to the BUW roof, driving to Mirek) waits for an Autopilot run on the Mac.
-- Found with PT-7: a 9 m wide, 3 m deep recess in Jabłkowski's front on Bracka (-578,203) still
-  holds a car whose stick points into it (turned out once; a real recess, left open). Wider recesses
-  like it are not bridged on purpose (a car fits in them).
 - Found with PT-7: the camera's see-through ghost hides the wall the car is about to hit when it
   drives towards the camera (south on the default view): a player pushing into it sees no wall.
   A design question for the visuals lane (a ground outline or a faint base under the ghost?).
@@ -278,6 +354,7 @@ Run 11 (P2, the flying half, 2026-11-02) timed out after the heli beat (the Mac 
 Run 12 (2026-11-03): PT-14 closed (the helicopter climbs after landing; run 11's harness mixed its keys); PT-17 suspect, a car circling on Plac Dąbrowskiego until the tow. The rescue beat waited 83 s past its window while a ride and a chase were on (the same hold as the race above).
 Runs 13-14 (2026-11-03): Powiśle met at 283 s; PT-17 not seen on one pass. Every Autopilot run on F's Mac is killed (-9) at about 6 minutes of play, so beats after that (the tape pickup, the garage at 570 s, the end card) can't be playtested with it yet: find the cause (memory with the editor, the game and the agent service on one Mac?) before the next long row.
 PT-15, PT-16, PT-17 fixed 2026-11-03 (PLAYTEST.md): no ride request over Halina's call or a rival's prompt (and none of those over a request card); the delivered / order-dropped card goes by itself after 12 s or 25 m (it waited for OK for ever, the likely reason one order looked driven six times and the race waited until 203 s); Jasna's 24 m shallow bay by Plac Dąbrowskiego bridged (bays up to 30 x 2.5 m city-wide). Verify all three on the next P2 run.
+PT-18 fixed 2026-11-03 (P11 run 20261103-152948, Solec under the Trasa): on the ramp up to the Trasa the mapped guard rail comes in pieces 0.9 m apart and the car's corner caught a piece's end (pinned at 1307, 959); under the ramp its pier stood 2 m off Solec's west kerb. Guard-rail gaps under 1.5 m on a deck now get a shallow collider V behind the rail line, so the bus cuts stay clear (map_builder GUARD_JOIN, GUARD_POCKET; 122 in the sectors round Solec) and the bake keeps piers 2 m further from a main road wherever their slide finds room (bake_structures PIER_ROADSIDE; 44 of 359 piers moved 1-2 m in centrum.json, the rest as baked). Six spots in `check_stuck_spots` (five fail on the old map). PLAYTEST.md's PT-18 row (PR #420) should read fixed. Still open from the same row: the car hidden by the deck (GAMEPLAY_PLAN 3.5, x-ray).
 The guide's beats behind jobs, built 2026-11-03 (default, QUESTIONS): while a beat that waits for a free moment (race, trap, rescue, tape, Powiśle, garage) is due or within 45 s (`first10.gd` `due`, HOLD_AHEAD), the guide holds what comes by itself: Podwózka requests (rides.gd `guide_hold`, the next one at least 30 s after the hold lets go) and the "Na czasie" offers (trend_job.gd). A job already under way runs on and the PODWÓZKA button still asks for a ride. `check_first10` "rider": a player who takes every request meets every beat in its window (without the hold the tape and Powiśle came at 546 s). Left: a player who chains kebab orders at the stand still holds the beats (the stand is the player's own choice; not held), and a ride taken just over 45 s before a beat still pushes it back up to ~2.5 min (inside the windows in the toy); the next P2 run should show both.
 
 ## Hotel Warszawa and Cedet (city inventory item 4, 2026-11-02)
@@ -290,6 +367,10 @@ Built from photos gathered on the Mac (`refs/hotel_warszawa/`, `refs/cedet/`) an
   generic 1.5 m mullions; the north wing has no crown pavilion of its own; the glazed lantern and link roof
   plant are not modelled; the ground-floor tenants' fascias (parodies) and the red neon at the east corner
   are not there.
+- Cedet after F's look check (2026-11-03): the east end's radius is unclear (4 m kept; check against a
+  straight-on photo of the Bracka corner); the wings' tips stand ~1 m over LoD2's 31.5 m so the sweep reads
+  from the street (lower them if a photo shows a flatter curve); the plant screen at the back of the
+  pavilion is LoD2's 35 m box, its louvres and colour are guesses.
 
 ## Most Poniatowskiego (F, 2026-11-02)
 Built from photos gathered on the Mac (`refs/poniatowski/`, report `docs/landmarks/photo-reports/poniatowski.md`),
@@ -323,6 +404,19 @@ spans (granite piers, steel arch ribs, red fascia, black railing, pier pedestals
   strut is a box in the city mesh: +0 draw calls, ~+25k vertices).
 - The approaches between the towers have been lit since map round 2 (D7, `bake_lights` approach lamps); the
   night shots of 2026-11-03 show both abutments lit.
+
+## Bracka and Plac Trzech Krzyży: Vitkac, Jabłkowski's, the Sheraton (CITY_INVENTORY 80-82, 2026-11-03)
+- The BGK building (CITY_INVENTORY 146, F asked 2026-11-03) built too (site `bgk`). Left: its three
+  light wells, the stepped south side's real heights, the balconettes; the block behind it on
+  Mysia, Mysia 2 (OSM landmark 'Polska Grupa Energetyczna'), is still plain.
+- Built from the Mac photo reports (sites `vitkac`, `jablkowscy`, `sheraton`). Left: the Mac look
+  check (QUESTIONS); Jabłkowski's stained-glass windows lit at night through the front; the Sheraton's
+  glazed restaurant pavilion with white umbrellas on the forecourt (its spot needs the photo).
+- Found and fixed: a landmark model's car walls skipped the slit and notch bridging (map_builder
+  `_bridge_pockets` only saw kept buildings), so the PT-7 slit by Jabłkowski's corner came back;
+  a site can now hand its outline over (`landmarks.gd` `pocket_rings`, opt-in, these three use it).
+  Older models (Dom pod Orłami, POLIN, the Bankowy palaces...) don't: worth a sweep with
+  `check_stuck_spots` along their fronts.
 
 ## Plac Krasińskich: the Uprising Monument and the palace (CITY_INVENTORY 22 and 79, 2026-11-02)
 Built from photos gathered on the Mac (`refs/pomnik_powstania/`, `refs/krasinski/`) and LoD2, specs
@@ -857,7 +951,7 @@ traffic queueing and going round parked cars (traffic.gd PARKED_LOOK / PARKED_WA
 - Left, all for the Mac photo check: real colours of both facades, the real storey count (Polonia 25.5 m
   and Bristol 27.4 m are mapped or estimated), where the entrances are, the mansards' true profile;
   the other grand hotels (Hotel Metropol 1960s block, Mercure Grand, Hotel Saski) stay generic;
-  Sheraton, Hilton, Holiday Inn and the Ibises are plain OSM extrusions.
+  Hilton, Holiday Inn and the Ibises are plain OSM extrusions (the Sheraton is a model since 2026-11-03).
 - Radisson Blu Sobieski (Plac Zawiszy 1) done 2026-11-02 as "Radysław Blu" (`sobieski`, spec `sobieski.md`) from the
   OSM outline, no photo: Mac check of band colours and order, storey count (31 m assumed), entrance. The Atlas Tower
   (-2230,1015) next door is a separate thread and untouched here.
@@ -1437,8 +1531,8 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   the hotel on Królewska is **Hotel Wiktoria** (a slab of ribbon windows on a dark podium, a
   card under the parody name); the Królewska edge (Dom bez Kantów, the Departament, the unnamed
   south-east block) in its own stone; the museum's wings 18.5 m and entrance block 25 m.
-  **Left**: Hotel Wiktoria's heights (slab 30 m, podium 8 m, 18 m deep), the museum's and
-  Europejski's are estimates to set from photos; the Królewska-edge colours are guesses; the
+  **Left**: Hotel Wiktoria's heights (slab 30 m, podium 8 m, 18 m deep), the museum's ~~and
+  Europejski's~~ are estimates to set from photos (Europejski rebuilt from F's photos 2026-11-03); the Królewska-edge colours are guesses; the
   unnamed south-east block has no card (its name isn't mapped); the Metropolitan's passages are
   dark panels, not open; the army museum's yard placement is a guess (east courtyard).
   Next candidates: tram stop platforms, kiosks (not in the baked data yet), Warsaw's green bins. **Left**: PZU Tower and JM Tower are towers since 2026-11-01 (first pass, colours to check on a Mac photo), and any model the user names next (docs/QUESTIONS.md).
@@ -2717,6 +2811,13 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
   test map. `shots.sh`'s `settings_panel` shot is MISSING (the paused game never reaches the shot
   frame): a shot-script issue, not the map.
 
+## From the Mac pass (2026-11-03)
+- **Oboźna's lane edge steps (C8)**: 0.77 m within 4 m at (-184, -605) and 0.50 m at (-97, -623), on the
+  slope down to Powiśle; the same on a fresh bake of origin/main, so not from the junction-median change.
+  Allowlisted in `tools/check_roads_allow.json` with this reason; judge on the 1 m terrain.
+- **check_gamepad P12** ("the full map's hint doesn't speak of the pad") fails on the merged main code
+  (2026-11-03), not from this PR: the full map's hint text needs its gamepad wording back (gameplay lane).
+
 ## From loop 3e (the structures, 2026-10-30)
 - **Most Łazienkowski's Praga end and the Czerniakowska interchange (R8)**: ~~where two ramps of one
   deck group part, a ramp's guard rail runs into the other's lanes~~ **Fixed (the joins loop,
@@ -2751,7 +2852,10 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
   lane) fixed by moving its `near` onto the bridge. The three geometry leftovers below were NOT
   touched: the cloud has no terrain.json, so `drop` (the parapet collider's test) and the deck
   heights differ from the Mac and check_drive cannot confirm a fix there; do them on the Mac.
-- **Wybrzeże Szczecińskie's deck over the Port Praski inlet (deck 4)** by Most Śląsko-Dąbrowski's
+- ~~**Wybrzeże Szczecińskie's deck over the Port Praski inlet (deck 4)**~~ **Fixed 2026-11-03 (Mac):** the bus
+  hit OSM `barrier=wall` lines mapped to the kerb at the deck's at-grade ends, not the parapet; `bake_structures.py`
+  now cuts barrier lines in a deck road's corridor where the deck runs below ground + `BARRIER_TOP` (2.5 m);
+  check_drive `--no-allow` 9/28 → 7/21 (also the fence at deck 76's ramp end, (2118, 743)). Was: by Most Śląsko-Dąbrowski's
   Praga end: a bus on the outer lane at its west end brushes the neighbouring piece's parapet (the
   gap between pieces keeps a collider where there is a drop): ~~6~~ 2 places left ((409, −1519) and
   (426, −1519), 6 spots: the 2 of them at the lane edge 1272 went with the wall change, not with a

@@ -11,10 +11,13 @@ Usage: python3 -I tools/check_streets.py [--map=DIR] [--list]
      middle of a junction where a dual carriageway crosses another (beside a one-way road's
      piece of up to 30 m between two halves of one crossing street), per 3 m cross-section.
   S4 grass medians on tram tracks: a raised grass median a tram track runs along or over.
+  S5 junction medians (2026-11-02): a grass median piece under 30 m long that a main road
+     crosses (its strip within 3 m, at an angle), where Warsaw paints (hatches) the gap.
 
 Prints each finding with its --at= (with --list), then `check_streets counts: S1 n, ...` and
-`check_streets: OK` (exit 0) or `check_streets: FAIL ...` (exit 1). S1, S2 and S4 fail; S3 is
-reported only (it also counts real median noses at a junction's edge).
+`check_streets: OK` (exit 0) or `check_streets: FAIL ...` (exit 1). S1, S2 and S4 fail; S3 and
+S5 are reported only (they also count real median noses at a junction's edge, S5 roundabouts'
+islands and refuges a zebra crosses, which stay raised).
 Today's map (map review B): before the fixes S1 58, S2 457, S3 20, S4 78; after S1 0, S2 0,
 S3 18, S4 0.
 """
@@ -309,7 +312,43 @@ def main():
                 found["S4"].append((x, z, "grass"))
                 break
 
-    rules = ("S1", "S2", "S3", "S4")
+    # S5: junction medians (2026-11-02): a grass median piece shorter than 30 m with a main road
+    # crossing it (its strip within 3 m, at an angle: |cos| under 0.94 to the piece's axis). The
+    # 0.1 m orthophoto at the Poniatowski ramps, Wał Miedzeszyński and Plac Trzech Krzyży shows
+    # asphalt or hatching there; bake_roads.bake_medians paints them (hatched). Reported: the
+    # ones left are roundabouts' islands, refuges a zebra crosses and real medians' ends.
+    full = Caps()
+    for r in roads:
+        run = offset(pairs(r["p"]), r.get("c", 0.0))
+        for a, b in zip(run, run[1:]):
+            full.add(a, b, r["w"] * 0.5, (a, b))
+    for m in d.get("medians", []):
+        if m["k"] != "grass" or not ground(m):
+            continue
+        s4 = m["s"]
+        near = [(s4[i], s4[i + 1]) for i in range(0, len(s4), 4)]
+        if sum(math.dist(a, b) for a, b in zip(near, near[1:])) >= 30.0:
+            continue
+        ax = unit(near[0], near[-1])
+        if ax is None:
+            continue
+        hit = None
+        for i in range(0, len(s4), 4):
+            for f in (0.0, 0.5, 1.0):
+                x, z = s4[i] + (s4[i + 2] - s4[i]) * f, s4[i + 1] + (s4[i + 3] - s4[i + 1]) * f
+                for a, b, half, _ in full.grid.at(x, z):
+                    u = unit(a, b)
+                    if u and abs(u[0] * ax[0] + u[1] * ax[1]) < 0.94 and segd(x, z, a, b) <= half + 3.0:
+                        hit = (x, z)
+                        break
+                if hit:
+                    break
+            if hit:
+                break
+        if hit:
+            found["S5"].append((hit[0], hit[1], f"grass median {len(near)} sections"))
+
+    rules = ("S1", "S2", "S3", "S4", "S5")
     for r in rules:
         if show:
             for x, z, what in found[r]:
@@ -318,7 +357,7 @@ def main():
     # S3 is reported, not failed: a real median nose at a junction's edge (Świętokrzyska by
     # Emilii Plater and Mariańska) looks the same to it; the junction boxes themselves are
     # bake_roads._junction_boxes' (3 on today's map, judged in the shots).
-    bad = [r for r in rules if found[r] and r != "S3"]
+    bad = [r for r in rules if found[r] and r not in ("S3", "S5")]
     if bad:
         print("check_streets: FAIL " + ", ".join(f"{r} {len(found[r])}" for r in bad) + " (--list prints them)")
         return 1
