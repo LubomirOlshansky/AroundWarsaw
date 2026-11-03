@@ -3336,6 +3336,13 @@ func _blocks(banner_only: bool) -> Array[Rect2]:
 		# A bubble's tail reaches past its card (bubbles.gd TAIL).
 		for r: Rect2 in speech.rects:
 			out.append(r.grow(10.0 * pt))
+	if not banner_only:
+		# The edge arrow keeps off the fixed controls too: pointing up-left it hid under the
+		# minimap and the wallet (the main line's arrow to a rival in the west, 2026-11-03).
+		for c: Control in [_zoom_out_button, _zoom_in_button, _minimap, _wallet, _koguty, _credit]:
+			if c != null and c.visible:
+				out.append(Rect2(c.position, c.size))
+		out.append_array(_pedal_rects())
 	return out
 
 

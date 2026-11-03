@@ -138,6 +138,7 @@ const Garage := preload("res://scripts/garage.gd")
 const First10 := preload("res://scripts/first10.gd")
 const StopAssist := preload("res://scripts/stop_assist.gd")
 const MainLine := preload("res://scripts/main_line.gd")
+const MainNudge := preload("res://scripts/main_nudge.gd")
 const MAP_PATH := "res://map/centrum.json"
 
 ## Visual styles to compare on the phone. lines = vertical resolution of the pixel image.
@@ -5721,6 +5722,11 @@ func _stop_assist() -> void:
 var _main_target := Vector2.INF
 var _main_t := 0.0
 var main_step: Dictionary = {}
+## The main line on the driving screen (main_nudge.gd): its goal line and gold edge arrow, shown
+## when nothing else is on (`_free_now`, from `_show_target`).
+var _nudge := MainNudge.new()
+var _nudge_arrow := false
+var _free_now := false
 
 
 func _guide_on() -> bool:
@@ -5763,10 +5769,18 @@ func _main_line_tick(dt: float) -> void:
 		f["end_seen"] = true
 	main_step = MainLine.step(f)
 	hud.set_main_line(main_step["at"], str(main_step["pl"]), str(main_step["en"]))
+	# Nothing comes by itself on the title, in a camera moment or in Spacer (spacer.gd).
+	var quiet := title != null or (moments != null and moments.playing()) or (spacer != null and spacer.on)
+	var n := _nudge.tick(MainLine.STEP_EVERY, main_step, _free_now, quiet)
+	_nudge_arrow = bool(n["arrow"])
+	if bool(n["toast"]):
+		hud.toast("★ " + str(main_step["pl"]), "★ " + str(main_step["en"]))
+		print("main line: goal line %s" % main_step["id"])
 
 
 ## The arrow and minimap dot for the mission target.
 func _show_target() -> void:
+	_free_now = false
 	if rivals != null and rivals.has_target():
 		var f: Vector3 = rivals.target_position()
 		var p := _vehicle_position()
@@ -5850,10 +5864,22 @@ func _show_target() -> void:
 		if notes != null and notes.is_found(spacer.hint_id):
 			spacer.dismiss()
 		return
+	# The main line's nudge (main_nudge.gd): now and then, while nothing else is on, the gold edge
+	# arrow to the next rival or the final's start; the minimap keeps its star (no side pin).
+	var ma: Vector2 = main_step.get("at", Vector2.INF)
+	if not missions.has_target() and _nudge_arrow and ma != Vector2.INF and Lines.shows(Lines.Line.CAR, flying):
+		var at_m := _vehicle_position()
+		var mm := roundi(Vector2(ma.x - at_m.x, ma.y - at_m.z).length())
+		var on_m := cam.unproject_position(Vector3(ma.x, map.ground_height(ma.x, ma.y) + 3.5, ma.y)) * float(view.stretch_shrink)
+		hud.set_target(on_m, "★ %d m" % mm, MainLine.COLOUR, mm > 12)
+		_put_target(Vector2.INF, Color.WHITE, false)
+		_free_now = true
+		return
 	if not missions.has_target():
 		hud.set_target(Vector2.ZERO, "", Color.WHITE, false)
 		_put_target(Vector2.INF, Color.WHITE, false)
 		_last_target_source = ""
+		_free_now = true
 		return
 	var t: Vector3 = missions.target_position()
 	var colour: Color = missions.target_colour()
