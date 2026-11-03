@@ -110,6 +110,8 @@ const BUDGET := {
 	"mennica": 650,
 	"mirowska": 2050,
 	"mf": 1870,
+	"poczta": 710,
+	"pasta": 580,
 	"msn": 500,
 	"norblin": 1480,
 	"browary": 3600,
@@ -159,6 +161,7 @@ const BUDGET := {
 	"bulwary_basen": 700,
 	"marina": 5200,
 	"stadion_pkp": 1900,
+	"wschodnia": 7000,
 	"srodmiescie": 580,
 	"wkd_srodmiescie": 460,
 	"wkd_ochota": 650,  # the stair has up to 40 steps on the real ground (6 on the flat stub)

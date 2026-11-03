@@ -140,6 +140,8 @@ then the Launch gate.
 - [ ] City inventory Part 3: the top not-done places, one thread each, photos first (Most Poniatowskiego,
       Muzeum Powstania, Pomnik Powstania, Hotel Warszawa and Cedet, Rondo ONZ towers, the monuments pass,
       Plac Bankowy, Świętokrzyska's NBP/Poczta/PAST-a, the outline builds' photo re-pass, Praga's faces)
+  - [x] Poczta Główna and PAST-a from the Mac photo reports (2026-11-03, specs `poczta.md`, `pasta.md`)
+  - [ ] Narodowy Bank Polski (waits on its photo report)
 - [ ] Monuments pass (City inventory Part 3 item 6)
   - [x] Every OSM monument, sculpture, talking bench and memorial plaque in the box as a generic piece, plaques on their walls with candles (2026-11-02, tools/bake_monuments.py)
   - [x] Plac Piłsudskiego from photos: the Smolensk memorial, Piłsudski, Kaczyński, the masts and the granite chequer (2026-11-02, refs/pilsudskiego/)
@@ -292,7 +294,8 @@ then the Launch gate.
   - [x] S3a Warszawa Stadion: the white hall with its sail, the red-and-white mosaic canopies, 2026-11-01; the roof sweeping up into a taller sail after the Mac photo check
   - [x] S3b Warszawa Śródmieście: the two glass stair pavilions by the Palace, 2026-11-01
   - [x] S3c-e the WKD stops: Śródmieście WKD's two concrete propellers over the stairs, Ochota WKD's slab on V legs, from the Mac photo gather, 2026-11-02
-  - [ ] S3c-e the other stations: Wschodnia, Gdańska (the map's edges, mostly off the map; Mac look first)
+  - [x] S3c-e Warszawa Wschodnia: the glazed hall under its folded-edge roof on green and white V struts, WARSZAWA WSCHODNIA on the fascia, rust-brown roofs over the five island platforms, from the Mac photo report, 2026-11-03; F's look parked
+  - [ ] S3d Warszawa Gdańska (the map's north edge, mostly off the map; the photo report shows it being rebuilt)
   - [x] Parks come alive (2026-11-01, `park_details.gd`, `tools/bake_park_details.py`): Ogród Saski, Ogród Krasińskich, Park Ujazdowski and the castle's park get sandstone statues, a fountain, a carousel, a playground, a gazebo, pergolas, a sundial, a footbridge, ducks and swans, squirrels, people on the benches, picnics and a yoga class; the Mac look check parked
   - [ ] Łazienki Królewskie (Palace on the Isle, Chopin monument, peacocks): south of the map's edge, waits for a map extension (QUESTIONS)
   - [x] The map's edges: the land runs on past the outline (ground fading into the sky, a tree line, blocks beyond, the rails and roads running out), Wschodnia and Gdańska first, 2026-11-01; the Mac look check parked

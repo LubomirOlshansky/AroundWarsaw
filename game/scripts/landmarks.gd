@@ -447,6 +447,12 @@ const INFO := {
 	"sejm": ["Sejm RP",
 			"Przy Wiejskiej.",
 			"On Wiejska."],
+	"poczta": ["Poczta Główna",
+			"Główna poczta przy Świętokrzyskiej, z kopułką na rogu Jasnej. Kolejka do okienka jak zawsze.",
+			"The main post office on Świętokrzyska, a small dome on the Jasna corner. A queue at the counter, as ever."],
+	"pasta": ["PAST-a",
+			"Wieża telefoniczna z 1908 roku. 20 sierpnia 1944 roku zdobyta przez powstańców z batalionu „Kiliński”.",
+			"The telephone tower of 1908. Taken by the insurgents of the Kiliński Battalion on 20 August 1944."],
 	"mf": ["Ministerstwo Finansów",
 			"Gmach z lat 1953–56 przy Świętokrzyskiej. Tu liczą cudze pieniądze.",
 			"1953–56 on Świętokrzyska: where the country's money is counted."],
@@ -516,6 +522,9 @@ const INFO := {
 	"stadion_pkp": ["Warszawa Stadion",
 			"Przystanek z 1958 roku pod stadionem: biała hala z żaglem i perony w czerwono-białej mozaice.",
 			"A 1958 stop by the stadium: a white hall with a sail and platforms in red-and-white mosaic."],
+	"wschodnia": ["Warszawa Wschodnia",
+			"Dworzec praski z 1969 roku, odnowiony na Euro 2012: przeszklona hala pod dachem z łamaną krawędzią na stalowych podporach V.",
+			"Praga's station of 1969, refitted for Euro 2012: a glazed hall under a roof with a folded edge on V-shaped steel struts."],
 	"barka_wieczor": ["Wieczorek nad Wisłą",
 			"Barka-bar pod Starówką: przeszklony dół, taras na dachu, dwa bary i parasole.",
 			"A bar barge below the Old Town: a glazed lower deck, a roof terrace, two bars."],
@@ -674,6 +683,8 @@ static func tower_colour(key: String, fallback: Color) -> Color:
 		return KOP_WALL
 	if key == "mf":
 		return MF_WALL
+	if key == "pasta":
+		return PASTA_WALL
 	if key == "barbakan":
 		return BARB_WALL
 	if key == "teresy":
@@ -866,6 +877,8 @@ func _find_sites() -> void:
 	# S2: Warszawa Powiśle's two pavilions and the platform canopies.
 	_find_powisle()
 	_find_stadion_pkp()
+	# S3e (2026-11-03, the Mac photo report wschodnia): Warszawa Wschodnia's hall and platform roofs.
+	_find_wschodnia()
 	# The river's bar barges and houseboats (2026-11-01, spec docs/landmarks/specs/barki.md).
 	_find_barges()
 	_find_marina()
@@ -909,6 +922,9 @@ func _find_sites() -> void:
 	_find_works()
 	# The Ministry of Finance (2026-11-01): a model instead of the mapped box.
 	_find_mf()
+	# Świętokrzyska's big three (2026-11-03, the Mac photo reports): PAST-a, a model instead of
+	# the mapped block (Poczta Główna is a kept skin, SKINS).
+	_find_pasta()
 	# Powiśle, street by street (2026-11-01): Ostrogski Castle and the Chopin Institute, Tamka 41.
 	_find_ostrogski()
 	# The Powiśle parish church (2026-11-01): a model instead of the mapped box.
@@ -1261,6 +1277,11 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_elektrownia(s)
 			"mf":
 				_build_mf(s)
+			"poczta":
+				_mark_zone(s)  # the mass stays LoD2's, in its skin; the front, the dome and the hall's glass are ours
+				_build_poczta(s)
+			"pasta":
+				_build_pasta(s)
 			"teatr":
 				_mark_zone(s)  # the mass stays LoD2's, in its skin; the portico is ours
 				_build_teatr(s)
@@ -1365,6 +1386,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_powisle(s)
 			"stadion_pkp":
 				_build_stadion_pkp(s)
+			"wschodnia":
+				_build_wschodnia(s)
 			"barka_wieczor", "barka_biala", "barka_marina", "barka_kaskada":
 				_build_barge(s)
 			"marina":
@@ -3534,6 +3557,9 @@ const SKINS := [
 	{"key": "sejm", "osm": "Sejm RP", "mode": M_MONUMENT, "wall": "#e2e0d8", "roof": "#8d8f8c"},
 	# Dom Partii (F's photo, 2026-11-01): the white stone block at Rondo de Gaulle'a; its extras
 	# (the roof sign, the courtyard) are the site `dom_partii_extras`.
+	# Poczta Główna (the Mac photo report, 2026-11-03): pale salmon plaster (POCZTA_WALL); its
+	# front, corner dome and glazed hall are the site's own model (_build_poczta).
+	{"key": "poczta", "osm": "Poczta Główna", "mode": M_MONUMENT, "wall": "#e5c8b4", "roof": "#77706b"},
 	{"key": "dom_partii", "osm": "Centrum Bankowo-Finansowe", "mode": M_MONUMENT, "wall": "#ebe8df", "roof": "#8e9091"},
 ]
 
@@ -12057,6 +12083,327 @@ func _stp_canopy(f: Array, hall_c: Vector2, pair_mid: Vector2) -> void:
 	_collide(sh)
 
 
+# --- Warszawa Wschodnia (the railway S3e, docs/landmarks/specs/wschodnia.md) -----------------
+# The main hall north of the tracks (1969, refitted for Euro 2012), from the Mac photo report
+# docs/landmarks/photo-reports/wschodnia.md: a long glazed hall under a flat roof whose edge is a
+# folded (zig-zag) concrete fascia, carried round the overhang on V-shaped steel struts, white-grey
+# on the Kijowska front, pale green on the track side; WARSZAWA WSCHODNIA in white letters on the
+# fascia. South-east of it the island platforms under long rust-brown roofs on a row of columns.
+# Neither the hall nor its roofs were drawn before (no LoD2 model, OSM's outline is not a
+# building): the corner was an empty forecourt by a bare yard. The hall's outline is OSM's; the
+# heights are estimates from the photos (no LoD2 here).
+
+const WSC_OSM := "Warszawa Wschodnia"
+const WSC_UNDER := 9.8         # the roof's underside (the glass's top) over the plinth's foot
+const WSC_TOP := 10.4          # the roof's top
+const WSC_FOLD_DEEP := 1.6     # how far the folded fascia's points hang under the top
+const WSC_FOLD := 3.0          # one pleat's width along the edge
+const WSC_FOLD_OUT := 0.45     # how far each deep point stands out from the roof's edge
+const WSC_EAVE := 3.2          # the overhang round the hall
+const WSC_STRUT_STEP := 7.5    # one V every so many metres along a long front
+const WSC_CANOPY_X := Vector2(1860.0, 2120.0)  # the platform roofs' run (the ortho)
+const WSC_EDGE_Z := -2043.0    # the map's cut on this side: no roof past it
+const WSC_CANOPY_H := 4.4      # the platform roofs' top over the platform
+const WSC_CANOPY_STEP := 6.0
+const WSC_GLASS := Color("#5f7a88")
+const WSC_FRAME := Color("#4a4f55")
+const WSC_FASCIA := Color("#3b3e43")    # the dark roof edge the letters stand on
+const WSC_ROOF := Color("#8f9296")
+const WSC_SOFFIT := Color("#c9c7c0")
+const WSC_GRANITE := Color("#8d8b86")
+const WSC_STRUT_N := Color("#d9dcdc")   # white-grey (the Kijowska front, photo 1)
+const WSC_STRUT_S := Color("#9cc38e")   # pale green (the track side, photo 4)
+const WSC_RUST := Color("#8e5a44")      # the platform roofs (the ortho)
+const WSC_POST := Color("#55524f")
+const WSC_SIGN := Color(0.95, 0.96, 1.0)
+
+
+func _find_wschodnia() -> void:
+	var q := _landmark(WSC_OSM)
+	if q.size() < 3:
+		return
+	var hall := _simplify(q, 0.6)
+	if Geometry2D.is_polygon_clockwise(hall):
+		hall.reverse()
+	_add_site("wschodnia", [_largest(Geometry2D.offset_polygon(hall, WSC_EAVE + 0.8, Geometry2D.JOIN_MITER))])
+	if sites.is_empty() or sites[-1]["key"] != "wschodnia":
+		return
+	sites[-1]["hall"] = hall
+	# The long island platforms beside it (the two short ones further east stay bare: the ortho
+	# shows five roofs).
+	var near := Rect2(1650.0, -2070.0, 560.0, 300.0)
+	var plats: Array = []
+	for pl in data.get("platforms", []):
+		if float(pl["h"]) < 0.5:
+			continue
+		var p := _pts(pl["p"])
+		if p.size() < 4 or not near.intersects(_box_of([p])):
+			continue
+		var f := _och_frame(_simplify(p, 0.3))
+		if float(f[3]) > 150.0:
+			plats.append([p, f])
+	sites[-1]["platforms"] = plats
+
+
+func _build_wschodnia(site: Dictionary) -> void:
+	var hall: PackedVector2Array = site["hall"]
+	var g := _ground_under(hall)
+	_g = g
+	var none := Color(0, 0, 0, 0)
+	var under := g + WSC_UNDER
+	var top := g + WSC_TOP
+	# The granite plinth, the glass walls lit from inside at night, their mullions and the
+	# mezzanine's band.
+	_prism(hall, g - 0.6, g + 0.4, WSC_GRANITE, none, M_STONE)
+	var keep := _mode
+	_prism(hall, g + 0.4, under, WSC_GLASS, none, M_PAVILION + 0.5)
+	_mode = keep
+	_mullions(hall, g + 0.4, under, 2.4, 0.05, WSC_FRAME)
+	for i in hall.size():
+		var a := hall[i]
+		var b := hall[(i + 1) % hall.size()]
+		if a.distance_to(b) < 1.0:
+			continue
+		var o := _out(hall, a, b) * 0.07
+		_quad(Vector3(a.x + o.x, g + 4.4, a.y + o.y), Vector3(b.x + o.x, g + 4.4, b.y + o.y),
+				Vector3(b.x + o.x, g + 4.75, b.y + o.y), Vector3(a.x + o.x, g + 4.75, a.y + o.y),
+				Vector3(o.x, 0.0, o.y).normalized(), WSC_FRAME)
+	# The roof: its top, the soffit under the overhang, the folded fascia round its edge.
+	var roof := _simplify(_largest(Geometry2D.offset_polygon(hall, WSC_EAVE, Geometry2D.JOIN_MITER)), 0.8)
+	if Geometry2D.is_polygon_clockwise(roof):
+		roof.reverse()
+	_mode = M_STONE
+	_cap(roof, top, WSC_ROOF)
+	_soffit(roof, under, WSC_SOFFIT)
+	_wsc_fascia(roof, under, top)
+	_wsc_roof_kit(hall, top)
+	# The V struts round the overhang, and the letters on the track side's long front.
+	var best := 0.0
+	var front := Vector4.ZERO
+	for i in hall.size():
+		var a := hall[i]
+		var b := hall[(i + 1) % hall.size()]
+		var len := a.distance_to(b)
+		var o := _out(hall, a, b)
+		if len < 14.0:
+			continue
+		var col := WSC_STRUT_S if o.y > 0.0 else WSC_STRUT_N
+		var d := (b - a) / len
+		var n := maxi(1, floori(len / WSC_STRUT_STEP))
+		for k in n:
+			var c := a + d * len * (k + 0.5) / n + o * (WSC_EAVE - 0.9)
+			# Each leg from its own foot (two legs from one point would share a face plane there).
+			for s in [-1.0, 1.0]:
+				var f0: Vector2 = c + d * 0.3 * float(s)
+				var t: Vector2 = c + d * 1.7 * float(s)
+				_beam(Vector3(f0.x, g - 0.2, f0.y), Vector3(t.x, under + 0.05, t.y), 0.26, col)
+			_prism(PackedVector2Array([c - d * 0.35 - o * 0.35, c + d * 0.35 - o * 0.35, c + d * 0.35 + o * 0.35,
+					c - d * 0.35 + o * 0.35]), g - 0.3, g + 0.35, WSC_GRANITE, WSC_GRANITE.lightened(0.05), M_STONE, M_STONE)
+		# The sign goes on the longest front facing the camera's side (south).
+		if o.dot(BEHIND_FACE) > 0.3 and len > best:
+			best = len
+			front = Vector4(a.x, a.y, b.x, b.y)
+	if best > 0.0:
+		var a := Vector2(front.x, front.y)
+		var b := Vector2(front.z, front.w)
+		var o := _out(hall, a, b)
+		var d := (b - a).normalized()
+		var mid := (a + b) * 0.5 + o * (WSC_EAVE + 0.05)
+		var k := 0.55
+		var gap := 0.6
+		var la: float = Neon.length_of("WARSZAWA") * k
+		var lb: float = Neon.length_of("WSCHODNIA") * k
+		var left := -(la + gap + lb) * 0.5
+		# Text reads left to right from outside: +right is (out.z, -out.x) in plan.
+		var right := Vector2(o.y, -o.x)
+		if right.dot(d) < 0.0:
+			d = -d
+		# A flat board over the pleats for the letters (the real ones stand on a plain band).
+		var y := top - 1.4
+		var half := (la + gap + lb) * 0.5 + 1.0
+		var bo := mid + o * (WSC_FOLD_OUT + 0.08 - 0.05)
+		_prism(PackedVector2Array([bo - right * half, bo + right * half, bo + right * half + o * 0.12,
+				bo - right * half + o * 0.12]), top - WSC_FOLD_DEEP - 0.1, top + 0.05, WSC_FASCIA.darkened(0.15), WSC_FASCIA, M_STONE, M_STONE)
+		mid = bo + o * 0.12
+		var pa := mid + right * (left + la * 0.5)
+		var pb := mid + right * (left + la + gap + lb * 0.5)
+		signs.append(["WARSZAWA", Vector3(pa.x, y, pa.y), Vector3(o.x, 0.0, o.y), k, WSC_SIGN])
+		signs.append(["WSCHODNIA", Vector3(pb.x, y, pb.y), Vector3(o.x, 0.0, o.y), k, WSC_SIGN])
+	_collide(hall)
+	for pf: Array in site.get("platforms", []):
+		_wsc_canopy(pf[0], pf[1])
+
+
+## The folded fascia: round the roof's edge a vertical plate whose foot zig-zags, its deep points
+## standing WSC_FOLD_OUT out, so the edge reads as concrete pleats (photo 1); both faces, and the
+## roof's top carried out over the pleats.
+func _wsc_fascia(roof: PackedVector2Array, under: float, top: float) -> void:
+	_mode = M_STONE
+	for i in roof.size():
+		var a := roof[i]
+		var b := roof[(i + 1) % roof.size()]
+		var len := a.distance_to(b)
+		if len < 0.3:
+			continue
+		var d := (b - a) / len
+		var o := _out(roof, a, b)
+		var n := maxi(2, roundi(len / WSC_FOLD))
+		if n % 2 == 1:
+			n += 1  # both corners shallow, so neighbouring edges meet
+		var pts: Array[Vector2] = []
+		var bots: Array[float] = []
+		var base: Array[Vector2] = []
+		for k in n + 1:
+			var p := a + d * len * k / n
+			var deep := k % 2 == 1
+			base.append(p)
+			pts.append(p + o * (WSC_FOLD_OUT if deep else 0.0))
+			bots.append(top - (WSC_FOLD_DEEP if deep else (top - under)))
+		for k in n:
+			var p0: Vector2 = pts[k]
+			var p1: Vector2 = pts[k + 1]
+			var v0 := Vector3(p0.x, bots[k], p0.y)
+			var v1 := Vector3(p1.x, bots[k + 1], p1.y)
+			var t0 := Vector3(p0.x, top, p0.y)
+			var t1 := Vector3(p1.x, top, p1.y)
+			var e := p1 - p0
+			var nrm := Vector2(e.y, -e.x).normalized()
+			if nrm.dot(o) < 0.0:
+				nrm = -nrm
+			var n3 := Vector3(nrm.x, 0.0, nrm.y)
+			# Alternate pleats a shade apart, as the folds catch the light.
+			var col := WSC_FASCIA if k % 2 == 0 else WSC_FASCIA.lightened(0.1)
+			_quad(v0, v1, t1, t0, n3, col)
+			_quad(v0, v1, t1, t0, -n3, WSC_SOFFIT.darkened(0.15))
+			# The top over the pleat, out from the roof's edge.
+			var b0: Vector2 = base[k]
+			var b1: Vector2 = base[k + 1]
+			if p0.distance_to(b0) > 0.01:
+				_tri(Vector3(b0.x, top, b0.y), Vector3(b1.x, top, b1.y), t0, Vector3.UP, WSC_ROOF,
+						Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+			if p1.distance_to(b1) > 0.01:
+				_tri(Vector3(b0.x, top, b0.y), Vector3(b1.x, top, b1.y), t1, Vector3.UP, WSC_ROOF,
+						Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+
+
+## The roof's kit: three glazed ridge lights along the hall (the lattice roof's glazed strips
+## seen from inside, photos 2-3) and a few plant boxes.
+func _wsc_roof_kit(hall: PackedVector2Array, top: float) -> void:
+	var f := _och_frame(hall)
+	_o = f[0]
+	_a = f[1]
+	_b = f[2]
+	var hu: float = f[3]
+	var hv: float = f[4]
+	var none := Color(0, 0, 0, 0)
+	var inner := _largest(Geometry2D.offset_polygon(hall, -3.0))
+	if inner.size() < 3:
+		inner = hall
+	for v in [-0.35, 0.0, 0.35]:
+		var strip := _rect(0.0, hv * float(v), hu - 8.0, 1.1)
+		for piece: PackedVector2Array in Geometry2D.intersect_polygons(strip, inner):
+			if absf(_area(piece)) < 12.0:
+				continue
+			var keep := _mode
+			_prism(piece, top, top + 0.7, WSC_GLASS.lightened(0.15), WSC_GLASS.lightened(0.3), M_PAVILION + 0.5, M_STONE)
+			_mode = keep
+	for u in [-0.55, -0.15, 0.3, 0.6]:
+		var c := _w(hu * float(u), hv * 0.62)
+		if Geometry2D.is_point_in_polygon(c, hall):
+			_prism(_rect(hu * float(u), hv * 0.62, 1.8, 1.2), top, top + 1.4, Color("#a9acaf"), Color("#b8babc"), M_STONE, M_STONE)
+
+
+## One island platform's roof over its run inside WSC_CANOPY_X: a rust-brown slab following the
+## platform's edges (cross-sections every WSC_CANOPY_STEP m), on a row of columns down its middle,
+## a lamp strip under it.
+func _wsc_canopy(p: PackedVector2Array, f: Array) -> void:
+	_o = f[0]
+	_a = f[1]
+	_b = f[2]
+	var hu: float = f[3]
+	var hv: float = f[4]
+	var floor_y: float = map.terrain_height(_o.x, _o.y) + 0.9
+	var top := floor_y + WSC_CANOPY_H
+	var low := top - 0.35
+	# The cross-sections: the platform's v extent at each step (none where it is too narrow or
+	# outside the roofs' run).
+	var secs: Array = []
+	var u := -hu + 2.0
+	while u <= hu - 2.0:
+		var strip := _rect(u, 0.0, 0.4, hv + 6.0)
+		var lo := INF
+		var hi := -INF
+		for piece: PackedVector2Array in Geometry2D.intersect_polygons(strip, p):
+			for q in piece:
+				var l := _local(q)
+				lo = minf(lo, l.y)
+				hi = maxf(hi, l.y)
+		var mid := _w(u, (lo + hi) * 0.5)
+		if hi - lo > 3.5 and hi - lo < 16.0 and mid.x >= WSC_CANOPY_X.x and mid.x <= WSC_CANOPY_X.y and mid.y > WSC_EDGE_Z:
+			secs.append(Vector3(u, lo + 0.35, hi - 0.35))
+		else:
+			secs.append(Vector3.INF)
+		u += WSC_CANOPY_STEP
+	var under := WSC_RUST.lightened(0.35)
+	var edge := WSC_RUST.darkened(0.2)
+	var n_post := 0
+	_mode = M_STONE
+	for k in secs.size() - 1:
+		if not _wsc_on(secs, k) or not _wsc_on(secs, k + 1):
+			continue
+		var s0: Vector3 = secs[k]
+		var s1: Vector3 = secs[k + 1]
+		var a0 := _w(s0.x, s0.y)
+		var a1 := _w(s1.x, s1.y)
+		var b0 := _w(s0.x, s0.z)
+		var b1 := _w(s1.x, s1.z)
+		# The top: two shallow slopes from a ridge down the middle, so the roof catches the light.
+		var r0 := _w(s0.x, (s0.y + s0.z) * 0.5)
+		var r1 := _w(s1.x, (s1.y + s1.z) * 0.5)
+		var ry := top + 0.25
+		for side in [[a0, a1, WSC_RUST], [b0, b1, WSC_RUST.darkened(0.12)]]:
+			var e0: Vector2 = side[0]
+			var e1: Vector2 = side[1]
+			var q0 := Vector3(e0.x, top, e0.y)
+			var q1 := Vector3(e1.x, top, e1.y)
+			var q2 := Vector3(r1.x, ry, r1.y)
+			var q3 := Vector3(r0.x, ry, r0.y)
+			var nrm := (q1 - q0).cross(q3 - q0).normalized()
+			if nrm.y < 0.0:
+				nrm = -nrm
+			_quad(q0, q1, q2, q3, nrm, side[2])
+		_quad(Vector3(a0.x, low, a0.y), Vector3(a1.x, low, a1.y), Vector3(b1.x, low, b1.y), Vector3(b0.x, low, b0.y), Vector3.DOWN, under)
+		var nb := Vector3(_b.x, 0.0, _b.y)
+		_quad(Vector3(a0.x, low, a0.y), Vector3(a1.x, low, a1.y), Vector3(a1.x, top, a1.y), Vector3(a0.x, top, a0.y), -nb, edge)
+		_quad(Vector3(b0.x, low, b0.y), Vector3(b1.x, low, b1.y), Vector3(b1.x, top, b1.y), Vector3(b0.x, top, b0.y), nb, edge)
+		# The run's ends.
+		var na := Vector3(_a.x, 0.0, _a.y)
+		if not _wsc_on(secs, k - 1):
+			_quad(Vector3(a0.x, low, a0.y), Vector3(b0.x, low, b0.y), Vector3(b0.x, top, b0.y), Vector3(a0.x, top, a0.y), -na, edge)
+		if not _wsc_on(secs, k + 2):
+			_quad(Vector3(a1.x, low, a1.y), Vector3(b1.x, low, b1.y), Vector3(b1.x, top, b1.y), Vector3(a1.x, top, a1.y), na, edge)
+		# The lamp strip down the middle (glows at night) and a column every other step.
+		var m0 := (s0.y + s0.z) * 0.5
+		var m1 := (s1.y + s1.z) * 0.5
+		var keep := _mode
+		_mode = M_LAMP
+		var l0 := _w(s0.x + 0.5, m0 - 0.15)
+		var l1 := _w(s1.x - 0.5, m1 - 0.15)
+		var l2 := _w(s1.x - 0.5, m1 + 0.15)
+		var l3 := _w(s0.x + 0.5, m0 + 0.15)
+		var ly := low - 0.03
+		_quad(Vector3(l0.x, ly, l0.y), Vector3(l1.x, ly, l1.y), Vector3(l2.x, ly, l2.y), Vector3(l3.x, ly, l3.y), Vector3.DOWN, Color(1.0, 0.93, 0.78))
+		_mode = keep
+		if n_post % 2 == 0:
+			_prism(_rect(s0.x + WSC_CANOPY_STEP * 0.5, (m0 + m1) * 0.5, 0.2, 0.2), floor_y - 0.3, low, WSC_POST, Color(0, 0, 0, 0), M_STONE)
+		n_post += 1
+
+
+## Whether cross-section k of a platform roof exists (inside the list and under the roof's run).
+func _wsc_on(secs: Array, k: int) -> bool:
+	return k >= 0 and k < secs.size() and (secs[k] as Vector3).is_finite()
+
+
 # --- The river's barges (2026-11-01, docs/landmarks/specs/barki.md) ---------------------------
 # OpenStreetMap maps the bar barges moored along the Vistula boulevards as buildings of kind
 # "boat" (and the houseboats in the harbour on the right bank as "houseboat"), with no height:
@@ -16557,3 +16904,176 @@ func _build_plac_masts(_site: Dictionary) -> void:
 		_a = Vector2(1.0, 0.0)
 		_b = Vector2(0.0, 1.0)
 		_collide(_rect(0.0, 0.0, 0.3, 0.3))
+
+
+# --- Świętokrzyska's big three: Poczta Główna and PAST-a (2026-11-03, from the Mac photo reports
+# docs/landmarks/photo-reports/poczta.md and pasta.md; specs docs/landmarks/specs/poczta.md, pasta.md)
+
+## Poczta Główna, Świętokrzyska 31/33: the eight-storey block from Świętokrzyska back to the
+## street behind, round a glazed central hall. The mass stays LoD2's (a kept skin in its pale
+## salmon plaster, SKINS); the model adds what the photo shows from the street: the round corner
+## tower at Jasna under a grey-silver dome and lantern, a colonnade of six white columns two
+## storeys high before the glazed entrance under a red band with POCZTA (a parody of the
+## operator's band), a recessed white window strip beside it, the tall arched windows of the
+## corner's ground floor, a cornice under the top storey, and the hall's roof (LoD2's hip) glazed.
+## Frame: u west along the Świętokrzyska face from its east end, +v out to the street.
+const POCZTA_O := Vector2(-906.2, -164.7)
+const POCZTA_AXIS := Vector2(-0.9493, 0.3146)
+const POCZTA_FACE := 54.4                  # the straight face's length (u)
+const POCZTA_DOME := Vector2(-0.5, -4.5)   # the corner tower's centre (u, v): ortho (-905, -159)
+const POCZTA_ENTRY := 26.5                 # the colonnade's middle (u): on the hall's axis
+const POCZTA_HALL := Rect2(11.5, -31.2, 30.5, 15.8)  # LoD2's hall (u, v), eaves ~8 m, ridge 13.2 m
+const POCZTA_WALL := "#e5c8b4"   # the report's #E3C3AE, a step paler
+const POCZTA_ROOF := "#77706b"
+const POCZTA_WHITE := Color("#f0ece4")
+const POCZTA_RED := Color("#c0262d")
+const POCZTA_SILVER := Color("#a7acb0")
+const POCZTA_GLASS := Color("#3a454e")
+const POCZTA_HALL_GLASS := Color("#7a8d98")
+const POCZTA_SIGN := Color(1.0, 0.86, 0.35)
+
+
+func _build_poczta(site: Dictionary) -> void:
+	_o = POCZTA_O
+	_a = POCZTA_AXIS.normalized()
+	_b = Vector2(-_a.y, _a.x)
+	_g = _ground_under((site["zone"] as Array)[0])
+	var g := _g
+	var wall := Color(POCZTA_WALL)
+	var none := Color(0, 0, 0, 0)
+	var e := POCZTA_ENTRY
+	# the entrance: a dark glazed recess behind six columns on a low podium, the entablature and
+	# the red band with the name
+	_mode = M_GLASS
+	_wall(_w(e + 8.6, 0.08), _w(e - 8.6, 0.08), g + 0.2, g + 8.2, _b, POCZTA_GLASS)
+	_mode = M_STONE
+	_lbox(e, 1.4, 9.2, 1.6, g - 0.4, g + 0.25, POCZTA_WHITE.darkened(0.12), M_STONE, POCZTA_WHITE.darkened(0.06))
+	for k in 6:
+		_column(e - 8.0 + k * 3.2, 2.0, 0.42, g + 0.25, g + 8.2, POCZTA_WHITE)
+	_lbox(e, 1.3, 9.2, 1.5, g + 8.2, g + 9.0, POCZTA_WHITE, M_STONE, POCZTA_WHITE.darkened(0.05))
+	_lbox(e, 1.3, 9.2, 1.5, g + 9.0, g + 10.4, POCZTA_RED, M_STONE, POCZTA_RED.darkened(0.25))
+	var at := _w(e, 2.8)
+	signs.append(["POCZTA", Vector3(at.x, g + 9.1, at.y), Vector3(_b.x, 0.0, _b.y), 0.55, POCZTA_SIGN])
+	_collide(_rect(e, 1.4, 9.2, 1.6))
+	# the recessed white window strip east of the entrance, from the pavement to the cornice
+	var su := e - 12.0
+	_lbox(su, 0.1, 1.1, 0.12, g - 0.2, g + 27.5, POCZTA_WHITE, M_STONE, POCZTA_WHITE)
+	_mode = M_GLASS
+	_wall(_w(su + 0.5, 0.26), _w(su - 0.5, 0.26), g + 3.6, g + 26.8, _b, POCZTA_GLASS)
+	_mode = M_STONE
+	# the corner's tall arched windows at street level, and the cornice under the top storey
+	for u: float in [4.2, 7.8, 11.4]:
+		_arch_win(_w(u, 0.0), -_a, _b, 1.05, g + 0.4, g + 4.4, POCZTA_GLASS)
+	_lbox((4.5 + POCZTA_FACE - 0.5) * 0.5, 0.2, (POCZTA_FACE - 0.5 - 4.5) * 0.5, 0.45, g + 26.2, g + 26.7,
+			POCZTA_WHITE.darkened(0.08), M_STONE, POCZTA_WHITE.darkened(0.12))
+	# the corner tower: a drum from the ground (hidden in the mass below the roof) up past the
+	# roof, a ring cornice, the dome in four bands, a lantern and its point
+	var c := _w(POCZTA_DOME.x, POCZTA_DOME.y)
+	_prism(_circle(c, 3.6, 14), g - 0.5, g + 33.0, wall, none, M_MONUMENT)
+	_prism(_circle(c, 4.0, 14), g + 30.0, g + 30.6, POCZTA_WHITE, POCZTA_WHITE, M_STONE, M_STONE)
+	_prism(_circle(c, 3.95, 14), g + 33.0, g + 33.6, POCZTA_WHITE, POCZTA_WHITE, M_STONE, M_STONE)
+	var angles := [0.0, 0.45, 0.85, 1.2, 1.45]
+	for k in 4:
+		var a0: float = angles[k]
+		var a1: float = angles[k + 1]
+		_mode = M_STONE
+		_frustum(_circle(c, 3.75 * cos(a0), 14), g + 33.6 + 4.0 * sin(a0),
+				_circle(c, 3.75 * cos(a1), 14), g + 33.6 + 4.0 * sin(a1), POCZTA_SILVER,
+				POCZTA_SILVER if k == 3 else none)
+	var top := g + 33.6 + 4.0 * sin(1.45)
+	_prism(_circle(c, 0.45, 8), top, top + 1.1, POCZTA_WHITE, POCZTA_SILVER, M_STONE, M_STONE)
+	_frustum(_circle(c, 0.55, 8), top + 1.1, _circle(c, 0.08, 8), top + 1.8, POCZTA_SILVER, POCZTA_SILVER)
+	# the central hall: LoD2's hipped roof glazed (a little over it), on walls hidden in LoD2's
+	var hc := POCZTA_HALL.get_center()
+	var hu := POCZTA_HALL.size.x * 0.5
+	var hv := POCZTA_HALL.size.y * 0.5
+	_prism(_rect(hc.x, hc.y, hu - 0.4, hv - 0.4), g - 0.5, g + 8.0, wall, none, M_STONE)
+	_mode = M_GLASS_ROOF
+	_frustum(_rect(hc.x, hc.y, hu + 0.3, hv + 0.3), g + 8.0, _rect(hc.x, hc.y, hu + 0.3 - (hv + 0.15), 0.15),
+			g + 13.5, POCZTA_HALL_GLASS, POCZTA_HALL_GLASS)
+	_mode = M_STONE
+
+
+## PAST-a, Zielna 37/39 (1904-1908, the Swedish telephone company's exchange; in the Uprising the
+## German strongpoint taken by the Kiliński Battalion on 20 August 1944). OpenStreetMap maps it as
+## one 54 m block and LoD2 has no model of it, so this is a model on its outline: a grey base
+## with the door, the Uprising plaque and nothing funny (warsaw-tone), the grey-brown tower of
+## pilaster strips (M_MONUMENT) to a cornice, the top storey an open loggia of tall round arches
+## (five on the long faces), a crenellated parapet like a castle's, and on the roof the gilt
+## anchor sign; two long white-and-red banners hang on the Zielna face. Its lower wings north and
+## south along Zielna stay LoD2's. Frame: u south along the Zielna face, +v out to the street.
+const PASTA_O := Vector2(-1201.5, -267.9)
+const PASTA_AXIS := Vector2(0.3543, 0.9353)
+const PASTA_LOGGIA := 43.0   # the cornice under the loggia storey (over the ground)
+const PASTA_TOP := 49.5      # the loggia's top, where the merlons start (~51.5 m with them)
+const PASTA_WALL := Color("#9c8574")   # the report's #8C7F72 warmed: grey-brown over the old brick
+const PASTA_BASE := Color("#6e655d")
+const PASTA_TRIM := Color("#b5a99b")
+const PASTA_DARK := Color("#2b2826")
+const PASTA_ROOF := Color("#5d5955")
+const PASTA_STONE := Color("#ece7dc")
+const PASTA_RED := Color("#c8303a")
+
+
+func _find_pasta() -> void:
+	var outline := _landmark("PAST-a")
+	if outline.size() < 3:
+		return
+	_add_site("pasta", [outline])
+	if not sites.is_empty() and sites[-1]["key"] == "pasta":
+		sites[-1]["ring"] = _simplify(outline, 0.8)
+
+
+func _build_pasta(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	_g = _ground_under(ring)
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	# the loggia's arches first (they stand off the wall by cm, so the wall behind stays whole)
+	for i in ring.size():
+		var a := ring[i]
+		var b := ring[(i + 1) % ring.size()]
+		var l := a.distance_to(b)
+		if l < 4.5:
+			continue
+		var n := clampi(roundi(l / 4.6), 1, 5)
+		var e := (b - a) / l
+		var out := _out(ring, a, b)
+		var pitch := l / n
+		var hw := minf(1.25, pitch * 0.3)
+		for k in n:
+			var p := a + e * (pitch * (k + 0.5))
+			_arch_panel(p, e, out, hw + 0.3, g + PASTA_LOGGIA + 0.9, g + PASTA_TOP - 1.2 - hw, PASTA_TRIM, 0.04, M_STONE)
+			_arch_panel(p, e, out, hw, g + PASTA_LOGGIA + 1.2, g + PASTA_TOP - 1.2 - hw, PASTA_DARK, 0.08, M_STONE)
+	var base := _largest(Geometry2D.offset_polygon(ring, 0.3, Geometry2D.JOIN_MITER))
+	_prism(base, g - 0.6, g + 4.2, PASTA_BASE, PASTA_BASE.lightened(0.05), M_STONE, M_STONE)
+	_prism(ring, g + 4.2, g + PASTA_LOGGIA, PASTA_WALL, none, M_MONUMENT)
+	var ledge := _largest(Geometry2D.offset_polygon(ring, 0.35, Geometry2D.JOIN_MITER))
+	_prism(ledge, g + PASTA_LOGGIA, g + PASTA_LOGGIA + 0.6, PASTA_TRIM, PASTA_TRIM, M_STONE, M_STONE)
+	_prism(ring, g + PASTA_LOGGIA + 0.6, g + PASTA_TOP, PASTA_WALL, PASTA_ROOF, M_STONE, M_STONE)
+	_attic(ring, g + PASTA_TOP, 2.0, PASTA_WALL.lightened(0.04))
+	_collide(ring)
+	# the Zielna face: the door, the plaque, the banners (white on the viewer's left when hung)
+	_o = PASTA_O
+	_a = PASTA_AXIS.normalized()
+	_b = Vector2(_a.y, -_a.x)
+	_lbox(10.6, 0.3, 1.8, 0.08, g - 0.2, g + 4.0, PASTA_TRIM, M_STONE, PASTA_TRIM)
+	_lbox(10.6, 0.35, 1.3, 0.08, g - 0.2, g + 3.5, PASTA_DARK, M_STONE, PASTA_DARK)
+	_lbox(14.6, 0.33, 0.75, 0.05, g + 1.4, g + 2.4, PASTA_STONE, M_STONE, PASTA_STONE)
+	for u: float in [4.5, 16.7]:
+		_lbox(u + 0.45, 0.06, 0.45, 0.04, g + 12.0, g + 36.0, PASTA_STONE, M_STONE, PASTA_STONE)
+		_lbox(u - 0.45, 0.06, 0.45, 0.04, g + 12.0, g + 36.0, PASTA_RED, M_STONE, PASTA_RED)
+	# the gilt anchor on the roof, facing Zielna, on a low plinth
+	var lc := _local(_centre(ring))
+	var y0 := g + PASTA_TOP + 0.6
+	_lbox(lc.x, lc.y, 0.8, 0.8, g + PASTA_TOP, y0, PASTA_BASE, M_STONE, PASTA_BASE.lightened(0.05))
+	var pt := func(s: float, h: float, d: float) -> Vector3:
+		var q := _w(lc.x + s, lc.y + d)
+		return Vector3(q.x, y0 + h, q.y)
+	var line := [[0.0, 0.1, 0.0, 4.2], [0.0, 4.2, 0.9, 4.2], [0.9, 4.2, 1.25, 3.75], [1.25, 3.75, 0.9, 3.3],
+			[0.9, 3.3, 0.0, 3.3], [-1.45, 1.8, -1.0, 0.7], [-1.0, 0.7, 0.0, 0.3], [0.0, 0.3, 1.0, 0.7],
+			[1.0, 0.7, 1.45, 1.8]]
+	for k in line.size():
+		var seg: Array = line[k]
+		var d := 0.06 * (k % 2)  # every other stroke a little forward, so joints do not z-fight
+		_beam(pt.call(seg[0], seg[1], d), pt.call(seg[2], seg[3], d), 0.28, KP_GOLD)
