@@ -11,7 +11,8 @@ extends SceneTree
 ## Sites that are only ground-level dressing (no part over about 2 m): the heli test expects it to
 ## fly over them, not to be stopped. bulwary_basen (K7, 2026-11-02): the splash pool, its 0.3 m
 ## rim and fish on 0.55 m plinths, under 2 m in all.
-const FLY_OVER := ["bulwary_basen"]
+## bazar (2026-11-02): Bazar Różyckiego's stalls and kiosks stand 2.5-3.4 m, under the 6 m floor the heli flies at.
+const FLY_OVER := ["bulwary_basen", "bazar"]
 
 var map: Node3D
 var _frames := 0
