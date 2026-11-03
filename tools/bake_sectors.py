@@ -128,6 +128,10 @@ SITE_PAD = 12.0
 # Building kinds landmarks.gd finds wherever they lie (the barges, 2026-11-01: _find_barges).
 SITE_KINDS = ("boat", "houseboat")
 SITE_AREAS = [
+    (-270.0, -1510.0, -20.0, -1260.0),      # the boulevards' bar pavilions (landmarks.gd BULWAR_PAW_BOX)
+    (25.0, -1110.0, 65.0, -1065.0),         # and their containers and kiosks (BULWAR_BAR_BOXES)
+    (195.0, -1068.0, 245.0, -1025.0),
+    (670.0, -575.0, 712.0, -525.0),
     (1250.0, -820.0, 1700.0, -370.0),       # Stadion Narodowy's masts (Rect2(1250, -820, 450, 450))
     (-1520.0, 472.5, -1320.0, 672.5),       # Warszawa Centralna (CENTRALNA ± its 146 x 92 m zone)
     (910.0, -165.0, 950.0, -105.0),         # Most Poniatowskiego's towers (the fallback search)

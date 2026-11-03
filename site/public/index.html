@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Around Warsaw · an open-source game about living in Warsaw</title>
-<meta name="description" content="An open-source arcade game for iPhone and Android, set in the real centre of Warsaw: missions, city lore and the night city&#x27;s humour. Built from open map data. Free beta.">
+<title>Around Warsaw · a small-car game about living in Warsaw</title>
+<meta name="description" content="An arcade game for iPhone and Android, set in the real centre of Warsaw: drive a small car through kebab runs, rescues and city lore. Free beta, join on TestFlight or request Android access.">
 <meta name="theme-color" content="#0b0d24">
 <meta name="color-scheme" content="dark">
 <link rel="canonical" href="https://aroundwarsaw.app/">
@@ -18,8 +18,8 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Around Warsaw">
 <meta property="og:url" content="https://aroundwarsaw.app/">
-<meta property="og:title" content="Around Warsaw · an open-source game about living in Warsaw">
-<meta property="og:description" content="An open-source arcade game for iPhone and Android, set in the real centre of Warsaw: missions, city lore and the night city&#x27;s humour. Built from open map data. Free beta.">
+<meta property="og:title" content="Around Warsaw · a small-car game about living in Warsaw">
+<meta property="og:description" content="An arcade game for iPhone and Android, set in the real centre of Warsaw: drive a small car through kebab runs, rescues and city lore. Free beta, join on TestFlight or request Android access.">
 <meta property="og:locale" content="en_GB">
 <meta property="og:image" content="https://aroundwarsaw.app/img/og.jpg">
 <meta property="og:image:width" content="1200">
@@ -48,8 +48,7 @@
       <a class="wide" href="#missions">Missions</a>
       <a class="nav-wiki" href="https://wiki.aroundwarsaw.app">Wiki</a>
       <a class="wide" href="/progress/">Progress</a>
-      <a class="wide" href="#open">Open source</a>
-      <a class="nav-beta" href="#beta">Get the beta</a>
+      <a class="nav-beta" href="#beta">Beta</a>
       <a class="lang" href="/pl/" hreflang="pl" lang="pl" aria-label="Polska wersja">PL</a>
     </nav>
   </div>
@@ -64,13 +63,12 @@
   </picture>
   <div class="hero-in"><div class="hero-text">
     <h1 id="title">Around<br>Warsaw</h1>
-    <p class="hook">An open-source game for iPhone and Android about living in Warsaw. Drive a small car through the real city centre: kebab runs at 3 a.m., rescues, and a notebook of 72 real places.</p>
+    <p class="hook">Drive a small car through the real centre of Warsaw: kebab runs at 3 a.m., rescues, and a notebook of 72 real places. A free game for iPhone and Android.</p>
     <div class="cta">
-      <a class="btn btn-primary" href="#beta">Get the beta<svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
-      <a class="btn btn-ghost" href="https://github.com/LubomirOlshansky/AroundWarsaw"><svg aria-hidden="true"><use href="#i-github"/></svg>Source on GitHub</a>
-      <a class="btn btn-ghost" href="https://wiki.aroundwarsaw.app">Design wiki<svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      <a class="btn btn-primary" href="/go/ios">Join on TestFlight<svg aria-hidden="true"><use href="#i-apple"/></svg></a>
+      <a class="btn btn-ghost" href="#android"><svg aria-hidden="true"><use href="#i-play"/></svg>Android: request access</a>
     </div>
-    <p class="cta-note">Free, no ads, MIT-licensed. Beta for iPhone and Android.</p>
+    <p class="cta-note">Free, no ads. The beta is open for iPhone and Android.</p>
   </div></div>
 </section>
 
@@ -131,16 +129,67 @@
   </div>
 </section>
 
+<section class="beta" id="beta" aria-labelledby="beta-title">
+  <div class="wrap beta-grid">
+    <div class="beta-intro">
+      <h2 id="beta-title">Join the beta</h2>
+      <p class="lede">The beta is free. On iPhone you can join right now. On Android I add each tester by hand, so send me the email of your Google account and I&#x27;ll let you in.</p>
+      <div class="plat">
+        <div class="plat-card" id="ios">
+          <h3><svg aria-hidden="true"><use href="#i-apple"/></svg>iPhone</h3>
+          <p>Open the link on your iPhone and install TestFlight, Apple&#x27;s app for betas. No request needed.</p>
+          <a class="btn btn-primary" href="/go/ios">Join on TestFlight<svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        </div>
+        <div class="plat-card" id="android">
+          <h3><svg aria-hidden="true"><use href="#i-play"/></svg>Android</h3>
+          <p>Fill in the form with the email of your Google Play account. Once I&#x27;ve added you, you get the Play link below. The phone needs Vulkan.</p>
+          <a class="btn btn-ghost" href="/go/android">Already added? Open on Google Play<svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        </div>
+      </div>
+    </div>
+
+    <form class="form" id="form" action="https://formspree.io/f/mykaeqjp" method="POST" novalidate>
+      <fieldset class="topics">
+        <legend>What is it about?</legend>
+        <label><input type="radio" name="topic" value="Beta invite" checked><span>Beta invite</span></label>
+        <label><input type="radio" name="topic" value="Feedback"><span>Feedback</span></label>
+        <label><input type="radio" name="topic" value="Something broke"><span>Something broke</span></label>
+        <label><input type="radio" name="topic" value="Idea"><span>An idea</span></label>
+      </fieldset>
+      <fieldset class="topics platform">
+        <legend>Your phone</legend>
+        <label><input type="radio" name="platform" value="iPhone"><span>iPhone</span></label>
+        <label><input type="radio" name="platform" value="Android" checked><span>Android</span></label>
+        <label><input type="radio" name="platform" value="—"><span>Doesn&#x27;t matter</span></label>
+      </fieldset>
+      <div class="field">
+        <label for="email">Email <span class="opt" data-opt>your Google Play email, for the invite</span></label>
+        <input id="email" name="email" type="email" autocomplete="email" inputmode="email" aria-describedby="email-err">
+        <p class="err" id="email-err" aria-live="polite"></p>
+      </div>
+      <div class="field">
+        <label for="message">Message <span class="opt" data-msg-opt>optional for an invite</span></label>
+        <textarea id="message" name="message" rows="5" maxlength="5000" aria-describedby="message-err"></textarea>
+        <p class="err" id="message-err" aria-live="polite"></p>
+      </div>
+      <input type="hidden" name="source" value="aroundwarsaw.app (en)">
+      <input type="hidden" name="_subject" id="subject" value="Around Warsaw: Beta invite">
+      <div class="hp" aria-hidden="true"><label for="_gotcha">Leave empty</label><input id="_gotcha" type="text" name="_gotcha" tabindex="-1" autocomplete="off"></div>
+      <button class="btn btn-primary send" type="submit">Send<svg aria-hidden="true"><use href="#i-arrow"/></svg></button>
+      <p class="legal">Sent through Formspree straight to the developer. Your email is used only for the invite or a reply. <a href="/privacy/">Privacy</a>.</p>
+      <p class="status" id="status" role="status" aria-live="polite" data-ok="Thanks! It&#x27;s on its way." data-fail="That didn&#x27;t go through. Try again, or write on Telegram." data-need-email="Add your email so the invite has somewhere to go." data-bad-email="That email doesn&#x27;t look right." data-need-msg="Write a few words first." data-sending="Sending…"></p>
+    </form>
+  </div>
+</section>
+
 <section class="open" id="open" aria-labelledby="open-title">
   <div class="wrap open-grid">
     <div>
-      <h2 id="open-title">Open source, built in public</h2>
-      <p class="lede">Around Warsaw is a free fan game made in the open. Read the code, browse the design wiki, follow what changed each day, or send a fix.</p>
+      <h2 id="open-title">How it&#x27;s made</h2>
+      <p class="lede">Around Warsaw is a free fan game made in public. Browse the design wiki or follow what changed each day.</p>
       <ul class="links open-links">
-        <li><a href="https://github.com/LubomirOlshansky/AroundWarsaw"><svg aria-hidden="true"><use href="#i-github"/></svg>Code on GitHub</a></li>
         <li><a href="https://wiki.aroundwarsaw.app">Design wiki</a></li>
         <li><a href="/progress/">Daily progress<svg aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
-        <li><a href="https://github.com/LubomirOlshansky/AroundWarsaw/blob/main/CONTRIBUTING.md">How to contribute</a></li>
       </ul>
     </div>
     <dl class="stack">
@@ -177,51 +226,6 @@
   </div>
 </section>
 
-<section class="beta" id="beta" aria-labelledby="beta-title">
-  <div class="wrap beta-grid">
-    <div class="beta-intro">
-      <h2 id="beta-title">Get the beta</h2>
-      <p class="lede">Leave your email and say which phone you have. You&#x27;ll get an invite with the next build. Or just tell me what to build next.</p>
-      <ul class="steps">
-        <li><svg aria-hidden="true"><use href="#i-apple"/></svg><span>iPhone: an invite to TestFlight, Apple&#x27;s app for betas.</span></li>
-        <li><svg aria-hidden="true"><use href="#i-play"/></svg><span>Android: an invite to the test on Google Play. The phone needs Vulkan.</span></li>
-      </ul>
-    </div>
-
-    <form class="form" id="form" action="https://formspree.io/f/mykaeqjp" method="POST" novalidate>
-      <fieldset class="topics">
-        <legend>What is it about?</legend>
-        <label><input type="radio" name="topic" value="Beta invite" checked><span>Beta invite</span></label>
-        <label><input type="radio" name="topic" value="Feedback"><span>Feedback</span></label>
-        <label><input type="radio" name="topic" value="Something broke"><span>Something broke</span></label>
-        <label><input type="radio" name="topic" value="Idea"><span>An idea</span></label>
-      </fieldset>
-      <fieldset class="topics platform">
-        <legend>Your phone</legend>
-        <label><input type="radio" name="platform" value="iPhone" checked><span>iPhone</span></label>
-        <label><input type="radio" name="platform" value="Android"><span>Android</span></label>
-        <label><input type="radio" name="platform" value="—"><span>Doesn&#x27;t matter</span></label>
-      </fieldset>
-      <div class="field">
-        <label for="email">Email <span class="opt" data-opt>for the invite or a reply</span></label>
-        <input id="email" name="email" type="email" autocomplete="email" inputmode="email" aria-describedby="email-err">
-        <p class="err" id="email-err" aria-live="polite"></p>
-      </div>
-      <div class="field">
-        <label for="message">Message <span class="opt" data-msg-opt>optional for an invite</span></label>
-        <textarea id="message" name="message" rows="5" maxlength="5000" aria-describedby="message-err"></textarea>
-        <p class="err" id="message-err" aria-live="polite"></p>
-      </div>
-      <input type="hidden" name="source" value="aroundwarsaw.app (en)">
-      <input type="hidden" name="_subject" id="subject" value="Around Warsaw: Beta invite">
-      <div class="hp" aria-hidden="true"><label for="_gotcha">Leave empty</label><input id="_gotcha" type="text" name="_gotcha" tabindex="-1" autocomplete="off"></div>
-      <button class="btn btn-primary send" type="submit">Send<svg aria-hidden="true"><use href="#i-arrow"/></svg></button>
-      <p class="legal">Sent through Formspree straight to the developer. Your email is used only for the invite or a reply. <a href="/privacy/">Privacy</a>.</p>
-      <p class="status" id="status" role="status" aria-live="polite" data-ok="Thanks! It&#x27;s on its way." data-fail="That didn&#x27;t go through. Try again, or write on Telegram." data-need-email="Add your email so the invite has somewhere to go." data-bad-email="That email doesn&#x27;t look right." data-need-msg="Write a few words first." data-sending="Sending…"></p>
-    </form>
-  </div>
-</section>
-
 </main>
 
 <footer class="foot">
@@ -232,6 +236,7 @@
       <li><a href="/progress/">Progress</a></li>
       <li><a href="/privacy/">Privacy</a></li>
       <li><a href="/support/">Support</a></li>
+      <li><a href="https://github.com/LubomirOlshansky/AroundWarsaw">Source on GitHub</a></li>
       <li><a href="https://github.com/LubomirOlshansky/AroundWarsaw/blob/main/CREDITS.md">Credits</a></li>
       <li><a href="https://t.me/olshansky93">Telegram</a></li>
       <li><a href="https://www.linkedin.com/in/lubomir-olshansky/">LinkedIn</a></li>
