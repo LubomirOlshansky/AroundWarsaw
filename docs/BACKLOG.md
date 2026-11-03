@@ -240,9 +240,6 @@ fixed 2026-11-02); PT-9 HUD overlaps confirmed.
   watch on the next P2 run that the nudge reads at phone size and that a red light mid-race (under
   5 s) never triggers the stall line. The heli/tape/garage beats pass headless only; P2 by hand
   (flying to the BUW roof, driving to Mirek) waits for an Autopilot run on the Mac.
-- Found with PT-7: a 9 m wide, 3 m deep recess in Jabłkowski's front on Bracka (-578,203) still
-  holds a car whose stick points into it (turned out once; a real recess, left open). Wider recesses
-  like it are not bridged on purpose (a car fits in them).
 - Found with PT-7: the camera's see-through ghost hides the wall the car is about to hit when it
   drives towards the camera (south on the default view): a player pushing into it sees no wall.
   A design question for the visuals lane (a ground outline or a faint base under the ghost?).
@@ -254,6 +251,16 @@ fixed 2026-11-02); PT-9 HUD overlaps confirmed.
 PT-9 (bubbles) fixed 2026-11-02: the tail of a bubble kept clear of the HUD ended in the air (a 22 pt stub) and pointed down even when its speaker was above; it now runs to the speaker, and a half-typed line keeps the wrapping of the whole line. The radio ticker's cut-off at the left edge (run 10, 1266x585) fixed 2026-11-02: it slid in from off screen; now it eases a few points inside the safe area and fades (`check_hud` checks every step of the slide). Still open: the KEBAB status label over BRAKE and the sound button did not reproduce in `check_hud` at 6 sizes nor in run 10 (`pt` is fixed when the HUD is built and not updated by a later window resize: a suspect, not shown); needs a frame with the window size.
 PT-13 (the order card went away without a tap) fixed 2026-11-02: it was the order's designed start after 9 s, unexplained; the card's GO now counts those seconds down.
 PT-10 (the order tracker over bubbles) fixed 2026-11-02: the target pointer draws under the speech bubbles and the panels and goes faint under the banner or a bubble; the edge arrow slides along the edge clear of bubbles and panels, and its distance sits past the arrow by the label's own size (`check_hud`: draw order, 72 directions, a bubble in the arrow's spot). Phone look open.
+
+## Bracka and Plac Trzech Krzyży: Vitkac, Jabłkowski's, the Sheraton (CITY_INVENTORY 80-82, 2026-11-03)
+- Built from the Mac photo reports (sites `vitkac`, `jablkowscy`, `sheraton`). Left: the Mac look
+  check (QUESTIONS); Jabłkowski's stained-glass windows lit at night through the front; the Sheraton's
+  glazed restaurant pavilion with white umbrellas on the forecourt (its spot needs the photo).
+- Found and fixed: a landmark model's car walls skipped the slit and notch bridging (map_builder
+  `_bridge_pockets` only saw kept buildings), so the PT-7 slit by Jabłkowski's corner came back;
+  a site can now hand its outline over (`landmarks.gd` `pocket_rings`, opt-in, these three use it).
+  Older models (Dom pod Orłami, POLIN, the Bankowy palaces...) don't: worth a sweep with
+  `check_stuck_spots` along their fronts.
 
 ## Plac Krasińskich: the Uprising Monument and the palace (CITY_INVENTORY 22 and 79, 2026-11-02)
 Built from photos gathered on the Mac (`refs/pomnik_powstania/`, `refs/krasinski/`) and LoD2, specs
@@ -708,7 +715,7 @@ traffic queueing and going round parked cars (traffic.gd PARKED_LOOK / PARKED_WA
 - Left, all for the Mac photo check: real colours of both facades, the real storey count (Polonia 25.5 m
   and Bristol 27.4 m are mapped or estimated), where the entrances are, the mansards' true profile;
   the other grand hotels (Hotel Metropol 1960s block, Mercure Grand, Hotel Saski) stay generic;
-  Sheraton, Hilton, Holiday Inn and the Ibises are plain OSM extrusions.
+  Hilton, Holiday Inn and the Ibises are plain OSM extrusions (the Sheraton is a model since 2026-11-03).
 - Radisson Blu Sobieski (Plac Zawiszy 1) done 2026-11-02 as "Radysław Blu" (`sobieski`, spec `sobieski.md`) from the
   OSM outline, no photo: Mac check of band colours and order, storey count (31 m assumed), entrance. The Atlas Tower
   (-2230,1015) next door is a separate thread and untouched here.
