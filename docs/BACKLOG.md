@@ -3,6 +3,38 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Open courtyards (F, 2026-11-03)
+
+F: "some kamienica from the top have the hole in the center, I want it where it has one". Found: the
+GUGiK LoD2 blocks (most of the centre) already show their courts, since each model is roofed only
+where the building stands (shots from above at Hoża). The gap was the hand-built landmark models that
+lift a mapped outline: bake_osm keeps only a multipolygon's outer ring, so the Ministry of Finance,
+the National Museum and Hotel Bristol had one solid roof over real courts. Done: `tools/bake_courts.py`
+traces every closed-in, roofless patch of 30 m² or more inside a mapped outline from lod2.bin (187
+courts, `game/data/courts.json`, verify step `courts` checks it against today's map files);
+landmarks.gd `COURT_SITES` (mf, muzeum, bristol) cuts them out of the site's flat tops and walls them
+in, with window bays every 3.6 m and storey. The Palace already had its courts (`P_COURTS`). Open:
+- OSM-only buildings (no LoD2 model, mostly newer blocks: Oxygen, offices with atria) still lose their
+  inner rings in bake_osm (`main`'s multipolygon loop reads only `outer` members). Keep the inner rings
+  in centrum.json and let map_builder `_build_buildings` draw them (walls facing in, roof cut); needs
+  the raw OSM export, so a Mac re-bake (the cloud has no OSM access).
+- Hotel Europejski: its LoD2 model (2018, mid-renovation) is roofed over the court, so no court is
+  traced; the photo rebuild (F's photos, 2026-11-03) should model the court.
+- Other sites the trace finds courts in, left as built: Złota 44 (127 m², a gap of the 2018 survey
+  by the tower), Pasaż Wiecha (152 m²), St Anthony's and the Reformed church (64 and 37 m², small
+  cloister or light-well courts). Add a key to `COURT_SITES` after a look check.
+- Mac look check: the three courts from the helicopter and the game's angle, day and night (the court
+  walls' windows light like the model's own bays).
+
+## Grow the map north-east (F, 2026-11-03: not now)
+
+Koneser (1426, -2355), Park Fontann (the Multimedia Fountain Park, -868, -2208) and Ząbkowska's bar
+strip (x 1020-1080, z -2080 to -2110) lie in the map box's cut north-east corner (`centrum.json`
+"outside": z < -2045 east of x -1706). F (2026-11-03): add to the backlog, don't build yet. The job
+(map lane): grow bake_osm's map shape (tools/map_shape.py), re-bake the chain and the LoD2/terrain
+on the Mac, publish a new map pack, then build Koneser, the fountain park and Ząbkowska's bars from
+the photo reports already in (QUESTIONS 2026-11-02 and 2026-11-03).
+
 ## Loud cars at Browary (F, 2026-11-02)
 
 City-life satire #1 built (`loud_cars.gd`, `check_loud_cars`): seven generic supercars at the Browary

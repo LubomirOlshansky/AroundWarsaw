@@ -109,7 +109,8 @@ const BUDGET := {
 	"mariensztat": 660,
 	"mennica": 650,
 	"mirowska": 2050,
-	"mf": 1870,
+	# Open courtyards (F, 2026-11-03): mf and muzeum gained their walled, windowed courts.
+	"mf": 2350,
 	"poczta": 710,
 	"pasta": 580,
 	"msn": 500,
@@ -122,7 +123,7 @@ const BUDGET := {
 	"elektrownia": 1950,
 	"mpw": 3200,
 	"metropolitan": 3100,
-	"muzeum": 840,
+	"muzeum": 1280,
 	"palace": 3900,
 	"pawilony": 2100,
 	"plater49": 140,

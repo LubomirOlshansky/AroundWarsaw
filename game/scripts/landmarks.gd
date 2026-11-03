@@ -597,6 +597,17 @@ var st  # the city's building surface (chunked_surface.gd)
 ## Replaced zones: {"key", "zone": Array[PackedVector2Array] (drop what stands inside),
 ## "keep": Array[PackedVector2Array] (but not inside these), "box": Rect2}.
 var sites: Array[Dictionary] = []
+## Courtyards (F, 2026-11-03: "some kamienica from the top have the hole in the center"): the
+## sites whose model lifts a mapped outline that OpenStreetMap draws round real courts (bake_osm
+## keeps only a multipolygon's outer ring), so their roofs came out solid. The courts are the
+## LoD2 roofs' (tools/bake_courts.py, game/data/courts.json).
+const COURT_SITES := ["mf", "muzeum", "bristol"]  # the Palace has its own (P_COURTS)
+const COURTS_PATH := "res://data/courts.json"
+const COURT_GLASS := Color("#3b4650")
+const COURT_STEP := 3.6    # m between the court walls' window bays
+const COURT_FLOOR := 3.6   # m per storey
+## The current site's courts while it builds (`_cap` leaves them open).
+var _holes: Array[PackedVector2Array] = []
 ## What the game shows when a landmark is tapped: [{key, name, pl, en, centre}], in id order.
 var info: Array[Dictionary] = []
 
@@ -631,6 +642,7 @@ func _init(builder, map_data: Dictionary) -> void:
 	map = builder
 	data = map_data
 	_find_sites()
+	_find_courts()
 	# Loop 3c: the info cards (and so the picking ids) for every site up front, in site order,
 	# so a sector built alone gives its landmarks the same ids as the whole city.
 	for s in sites:
@@ -712,6 +724,14 @@ static func tower_colour(key: String, fallback: Color) -> Color:
 	if key == "mpw":
 		return MPW_BRICK
 	return fallback
+
+
+## The court walls' colour: the model's own wall stone.
+func _court_wall_colour(key: String) -> Color:
+	match key:
+		"muzeum":
+			return MUZEUM_STONE
+	return tower_colour(key, Color("#d9d2c4"))
 
 
 ## Whether an OpenStreetMap building of the bake should still be drawn.
@@ -797,6 +817,34 @@ func _parts_in(poly: PackedVector2Array, test: Callable) -> Array[Dictionary]:
 		if box.has_point(c) and Geometry2D.is_point_in_polygon(c, poly) and test.call(bld):
 			out.append(bld)
 	return out
+
+
+## Courtyards (F, 2026-11-03): each COURT_SITES site gets the courts of game/data/courts.json
+## (tools/bake_courts.py: closed-in ground with no LoD2 roof over it) whose middle lies in its
+## zone, as `courts`; build() cuts them out of its flat tops and walls them in.
+func _find_courts() -> void:
+	if not FileAccess.file_exists(COURTS_PATH):
+		return
+	var parsed = JSON.parse_string(FileAccess.get_file_as_string(COURTS_PATH))
+	if not parsed is Dictionary:
+		return
+	var rings: Array[PackedVector2Array] = []
+	for flat: Array in parsed.get("courts", []):
+		rings.append(_pts(flat))
+	for s in sites:
+		if not COURT_SITES.has(s["key"]):
+			continue
+		var mine: Array[PackedVector2Array] = []
+		for r in rings:
+			var c := _centre(r)
+			if not (s["box"] as Rect2).has_point(c):
+				continue
+			for z: PackedVector2Array in s["zone"]:
+				if Geometry2D.is_point_in_polygon(c, z):
+					mine.append(r)
+					break
+		if not mine.is_empty():
+			s["courts"] = mine
 
 
 ## The zones each landmark replaces, from the map data.
@@ -1203,6 +1251,7 @@ func build(surface, near := Rect2(), only := "") -> void:
 		_id = k + 1
 		_walls.clear()
 		_caps.clear()
+		_holes = s.get("courts", [] as Array[PackedVector2Array])
 		built += 1
 		match key:
 			"palace":
@@ -1472,6 +1521,9 @@ func build(surface, near := Rect2(), only := "") -> void:
 					_build_tower(s)
 				elif s.has("skin"):
 					_mark_zone(s)
+		if not _holes.is_empty():
+			_court_walls(_court_wall_colour(key))
+			_holes = []
 	_id = 0
 	if not near.has_area():
 		print("landmarks: %d built in %d ms" % [built, Time.get_ticks_msec() - t0])
@@ -1629,6 +1681,11 @@ func _cap(poly: PackedVector2Array, y: float, col: Color) -> void:
 					next.append(q)
 		pieces = next
 	_caps.append([y, poly])
+	if not _holes.is_empty():
+		var open: Array[PackedVector2Array] = []
+		for pc in pieces:
+			open.append_array(_minus_holes(pc))
+		pieces = open
 	for pc in pieces:
 		# Mapped outlines that double back on themselves triangulate into overlapping
 		# triangles; Clipper's union untangles them (a hole comes back clockwise: skipped).
@@ -1649,6 +1706,100 @@ func _cap_piece(poly: PackedVector2Array, y: float, col: Color) -> void:
 			continue  # a sliver with a repeated corner: no area, nothing to draw
 		_tri(Vector3(a.x, y, a.y), Vector3(b.x, y, b.y), Vector3(c.x, y, c.y), Vector3.UP, col,
 				Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+
+
+## Courtyards (F, 2026-11-03): `poly` less the current site's courts (`_holes`), in pieces
+## that hold no hole (a piece left round a whole court is cut in two by a north-south line
+## through a point inside that court, then each half again). Counter-clockwise pieces only.
+func _minus_holes(poly: PackedVector2Array, depth := 0) -> Array[PackedVector2Array]:
+	var parts: Array[PackedVector2Array] = [poly]
+	for h in _holes:
+		var next: Array[PackedVector2Array] = []
+		for p in parts:
+			for q in Geometry2D.clip_polygons(p, h):
+				next.append(q)
+		parts = next
+	var out: Array[PackedVector2Array] = []
+	var enclosed := -1
+	for q in parts:
+		if q.size() < 3:
+			continue
+		if Geometry2D.is_polygon_clockwise(q):
+			enclosed = 0  # a court left whole inside a piece
+		else:
+			out.append(q)
+	if enclosed < 0 or depth > 6:
+		return out
+	# Split the piece at a point inside a court it holds whole, and take the courts from each half.
+	var lo := poly[0]
+	var hi := poly[0]
+	for q in poly:
+		lo = lo.min(q)
+		hi = hi.max(q)
+	var cut := INF
+	for h in _holes:
+		var idx := Geometry2D.triangulate_polygon(h)
+		if idx.size() < 3:
+			continue
+		var inner := (h[idx[0]] + h[idx[1]] + h[idx[2]]) / 3.0
+		if inner.x > lo.x and inner.x < hi.x and Geometry2D.is_point_in_polygon(inner, poly):
+			cut = inner.x
+			break
+	if cut == INF:
+		return out
+	var result: Array[PackedVector2Array] = []
+	for half in [PackedVector2Array([Vector2(lo.x - 1.0, lo.y - 1.0), Vector2(cut, lo.y - 1.0), Vector2(cut, hi.y + 1.0), Vector2(lo.x - 1.0, hi.y + 1.0)]),
+			PackedVector2Array([Vector2(cut, lo.y - 1.0), Vector2(hi.x + 1.0, lo.y - 1.0), Vector2(hi.x + 1.0, hi.y + 1.0), Vector2(cut, hi.y + 1.0)])]:
+		for piece in Geometry2D.intersect_polygons(poly, half):
+			if piece.size() >= 3 and not Geometry2D.is_polygon_clockwise(piece):
+				result.append_array(_minus_holes(piece, depth + 1))
+	return result
+
+
+## Courtyards (F, 2026-11-03): the walls round the current site's courts, facing in, from the
+## ground to the roof that rims each side (the highest flat top of the site 1 m behind it; a
+## side with none takes the court's highest), with a window bay every COURT_STEP m on every
+## storey.
+func _court_walls(wall: Color) -> void:
+	var keep := _mode
+	for h in _holes:
+		var tops := PackedFloat32Array()
+		var best := -INF
+		for i in h.size():
+			var a := h[i]
+			var b := h[(i + 1) % h.size()]
+			var behind := (a + b) * 0.5 - _out(h, a, b) * -1.0
+			var top := -INF
+			for c in _caps:
+				if float(c[0]) > top and Geometry2D.is_point_in_polygon(behind, c[1]):
+					top = float(c[0])
+			tops.append(top)
+			best = maxf(best, top)
+		if best == -INF:
+			continue
+		var run := 0.0
+		for i in h.size():
+			var a := h[i]
+			var b := h[(i + 1) % h.size()]
+			var inward := -_out(h, a, b)
+			var top := tops[i] if tops[i] > -INF else best
+			_mode = M_STONE
+			_wall(a, b, _g - 0.6, top, inward, wall, run)
+			var length := a.distance_to(b)
+			run += length
+			var n := floori((length - 1.5) / COURT_STEP)
+			if n < 1:
+				continue
+			_mode = M_GLASS
+			var e := (b - a) / length
+			var t0 := (length - n * COURT_STEP) * 0.5 + COURT_STEP * 0.5
+			var y := _g + 1.0
+			while y + 2.4 < top - 0.8:
+				for k in n:
+					var p := a + e * (t0 + k * COURT_STEP) + inward * 0.07
+					_wall(p - e * 0.7, p + e * 0.7, y, y + 2.4, inward, COURT_GLASS, floorf((t0 + k * COURT_STEP) / 1.5) * 1.5 + 0.05)
+				y += COURT_FLOOR
+	_mode = keep
 
 
 ## A flat top over a polygon with holes: cut into vertical slabs through every hole,
