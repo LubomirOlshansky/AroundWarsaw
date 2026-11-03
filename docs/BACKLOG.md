@@ -561,8 +561,8 @@ drive (gas, brake or the stick) for 8 s and still within 4 m of one spot, whatev
 wall nothing pins it against, a gap inside a building), POMOC DROGOWA comes up on the context button
 with one toast and a tap tows (car.gd `stalled`, main.gd `_stuck_offer_frame`, `check_stuck_offer`).
 Not while parked by the game, held by the stop assist, in the water or flying; the pinned car's own
-turn-out and tow still come first. Left: the phone look; a pad has no button for the context button
-(its toast points to Settings → JAZDA).
+turn-out and tow still come first. Left: the phone look. ~~A pad has no button for the context
+button~~ Done (2026-11-03): the pad's A presses it (see "The Mac App Store version and gamepads").
 
 **G15 · Stop assist and quest rings (P0, quick win).** F: "pomoc przy zatrzymaniu is not working
 well; make the start and end points bigger and add assistance to pickup". Task: ring 9 → 13 m,
@@ -995,7 +995,16 @@ hide while the pad is used and come back on a touch. Left:
 - Gamepad on real pads (iPhone and Mac): the button indices are checked on synthetic events only.
 - ~~Gamepad gaps: no per-family glyphs (A / cross) in the hints; no rumble.~~ Done (2026-11-02):
   `Gamepad.fmt` names the buttons per pad family, haptics.gd rumbles the pad while it is in use.
-  Left: the rumble's strength and the Nintendo button order on a real pad (beta). (The volume bars, the
+  Left: the rumble's strength and the Nintendo button order on a real pad (beta).
+- **The context button by pad (2026-11-03).** Found with G14: the top row's context button
+  (KASETA, START KURS, POMOC DROGOWA, PODWÓZKA's request, WEZWANIE) had no pad button, so a pad
+  player could not play the first ten minutes' tape beat at the boulevards, start a ride by button
+  or take the stuck offer's tow. Now A presses it when no card is on screen (main.gd `_primary`: a
+  ride, job, trend or rescue card first, then the context button, then the rescue line's own A),
+  the button reads "A · KASETA" while the pad is in use (the family's face: × on PlayStation,
+  B on Nintendo) and the stuck offer's and the rescue call's toasts name it (`check_gamepad` P15).
+  Left: on a real pad, whether A for both cards and the context button ever surprises (a card and
+  the button up at once: the card wins). (The volume bars, the
   notebook page, the garage card and the full map's stick pan / zoom / A teleport were done
   2026-11-01, check_gamepad P9-P12; the map's pad hint is one line in the player's language
   since the language work, 2026-11-02.)

@@ -387,7 +387,9 @@ then the Launch gate.
       and the full map (stick pan, RT / LT zoom, A teleport). Button names per pad family
       (PlayStation ×, R2 / L2; Nintendo B / A, ZR / ZL; Xbox and MFi A, RT / LT) in every pad hint
       and the pad's rumble for every buzz while it is in use (2026-11-02, `Gamepad.fmt`,
-      haptics.gd; `check_gamepad` P14, `check_juice` J2). Left: real pads on the phone (beta),
+      haptics.gd; `check_gamepad` P14, `check_juice` J2). The pad's A presses the top row's
+      context button (KASETA, START KURS, POMOC DROGOWA, WEZWANIE), which reads "A · ..." while the
+      pad is in use (2026-11-03, `check_gamepad` P15). Left: real pads on the phone (beta),
       the Nintendo layout guess (docs/store/mac-and-gamepad.md)
 - [x] Crash scenes (F, 2026-11-01, `crash_scenes.gd`, `check_crash_scenes`, PR "crash scenes"):
       every few minutes a fender bender ahead on a main road, two wrecks in the kerb lane, a

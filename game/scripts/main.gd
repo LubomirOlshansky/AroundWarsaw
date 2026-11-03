@@ -4589,7 +4589,7 @@ func _stuck_offer_frame() -> void:
 	if want and hud.pill_free():
 		hud.show_pill("POMOC DROGOWA", "tow truck", "unstuck")
 		if Gamepad.in_use():
-			hud.toast("Utknąłeś? Pomoc drogowa: Ustawienia → Jazda.", "Stuck? Tow truck: Settings → Driving.")
+			hud.toast(Gamepad.fmt("Utknąłeś? {a}: pomoc drogowa."), Gamepad.fmt("Stuck? {a}: tow truck."))
 		else:
 			hud.toast("Utknąłeś? Stuknij POMOC DROGOWA.", "Stuck? Tap TOW TRUCK.")
 		print("stuck offer: %.0f s trying at %.1f, %.1f, frame %d" % [car.stalled, car.global_position.x, car.global_position.z, frame])
@@ -6364,9 +6364,16 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 
 ## M / the pad's A: the mission card's first button (loop 2d-1: a Podwózka request or result first).
+## The context button comes after the cards (a card on screen is what A answers first) and before
+## the rescue line's own A (which offers the next call): the pad had no way to press KASETA, START
+## KURS or POMOC DROGOWA (2026-11-03).
 func _primary() -> void:
-	if (rides == null or not rides.primary()) and (jobs == null or not jobs.primary()) \
-			and (trend_job == null or not trend_job.primary()):
+	if (rides != null and rides.primary()) or (jobs != null and jobs.primary()) \
+			or (trend_job != null and trend_job.primary()):
+		return
+	if missions.state == missions.State.OFFER or missions.state == missions.State.RESULT:
+		missions.primary()
+	elif not hud.press_pill():
 		missions.primary()
 
 

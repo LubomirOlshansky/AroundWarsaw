@@ -31,6 +31,7 @@ var spent_usec := 0
 const Access := preload("res://scripts/access.gd")
 const Lang := preload("res://scripts/lang.gd")  # one language at a time: every pl/en pair below shows one
 const SettingsPanel := preload("res://scripts/settings_panel.gd")
+const Gamepad := preload("res://scripts/gamepad.gd")  # the pad's A on the context button (2026-11-03)
 const FullMap := preload("res://scripts/full_map.gd")
 const MapArt := preload("res://scripts/map_art.gd")
 const MainLine := preload("res://scripts/main_line.gd")
@@ -497,10 +498,7 @@ func _ready() -> void:
 	add_child(_speed)
 	_pill = _chip(self, "WEZWANIE", "rescue call", ACCENT)
 	# Loop 2d-1: the context button is shared; only a rescue call's press is pill_pressed.
-	_pill.pressed.connect(func():
-		if pill_owner == "call":
-			pill_pressed.emit()
-		context_pressed.emit(pill_owner))
+	_pill.pressed.connect(_on_pill)
 	_pill.visible = false
 	_radio_button = _chip(self, Lang.pick("RADIO wył.", "RADIO off"), "")
 	_radio_button.button_down.connect(func():
@@ -1146,11 +1144,45 @@ func language_changed(state: Dictionary) -> void:
 ## also emits context_pressed(owner).
 func show_pill(pl: String, en := "", owner := "call") -> void:
 	pill_owner = owner
-	_set_chip(_pill, pl, en, 96.0)
+	_pill_words = [pl, en]
+	_label_pill()
 	if not _pill.visible:
 		_pill.visible = true
 		_pill_t = 0.0
 		_mark()
+
+
+## The context button's words as shown, kept so the pad's button can be put in front of them
+## when the pad takes over (and taken off when a finger does).
+var _pill_words := ["", ""]
+
+
+## The context button's label: with the pad in use its button comes first ("A · KASETA"), so a
+## pad player sees which button presses it (2026-11-03: the pad had no way to press it).
+func _label_pill() -> void:
+	var pl: String = _pill_words[0]
+	var en: String = _pill_words[1]
+	if pad_mode:
+		pl = "%s · %s" % [Gamepad.key("a"), pl]
+		en = "%s · %s" % [Gamepad.key("a"), en] if en != "" else ""
+	_set_chip(_pill, pl, en, 96.0)
+
+
+## A press of the context button, by a finger or the pad's A (`press_pill`). Only a rescue
+## call's press is pill_pressed; every press is context_pressed(owner) (loop 2d-1).
+func _on_pill() -> void:
+	if pill_owner == "call":
+		pill_pressed.emit()
+	context_pressed.emit(pill_owner)
+
+
+## The pad's A (main.gd `_primary`): presses the context button when it is up, as a tap would.
+## False when it is not up, so A falls through to what it did before.
+func press_pill() -> bool:
+	if not _pill.visible:
+		return false
+	_on_pill()
+	return true
 
 
 ## Loop 2d-1: the context button is up and `owner`'s.
@@ -2765,6 +2797,8 @@ func _input(event: InputEvent) -> void:
 		# The gamepad loop: a finger takes over from the pad, pedals and all, on this very touch.
 		pad_mode = false
 		set_touch_off(_touch_base)
+		if _pill.visible:
+			_label_pill()
 	if (event is InputEventScreenTouch or event is InputEventMouseButton or event is InputEventKey \
 			or event is InputEventJoypadButton) and event.is_pressed():
 		input_ms = maxi(1, Time.get_ticks_msec())  # loop 3h slice 4: the ghost finger goes
@@ -3645,6 +3679,8 @@ func set_pad_mode(on: bool, touch_base: bool) -> void:
 		return
 	pad_mode = on
 	set_touch_off(on or touch_base)
+	if _pill.visible:
+		_label_pill()
 # --- end desktop: --no-touch -----------------------------------------------------------------
 
 
