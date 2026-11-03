@@ -36,6 +36,33 @@ strip (x 1020-1080, z -2080 to -2110) lie in the map box's cut north-east corner
 on the Mac, publish a new map pack, then build Koneser, the fountain park and Ząbkowska's bars from
 the photo reports already in (QUESTIONS 2026-11-02 and 2026-11-03).
 
+## Driving first: the gameplay plan (F, 2026-11-03)
+
+F's playtest (13:22): "the map and buildings are good now; I want to make the driving the best
+experience". The plan, the road audit and the causes are in docs/GAMEPLAY_PLAN.md; its phases:
+- [ ] 0.1 Map teleport and tow land in a tunnel: `_lane_spot` accepts tunnel lanes as "the ground's
+  level"; skip tunnels, test the box first, `check_teleport` (Codex)
+- [ ] 0.2 Chatter budget: one rate cap for bubbles and toasts, no comment per collision, quiet while
+  stuck, merged star toasts, a "Gadatliwość miasta" setting, `check_chatter` (Codex)
+- [ ] 0.3 The car is invisible under Trasa Łazienkowska and other decks: tunnel x-ray under decks too (Codex)
+- [ ] 0.4 Helicopter high up: heli framed at the top, far plane clips the ground (floating buildings,
+  blue sky), height cap, horizon haze
+- [ ] 0.5 Plac Piłsudskiego's paving reads as a chessboard: lower the panel contrast, speckle
+- [ ] 1.1 `check_drivability.gd`: every lane, turn and dead end with the player's car; per-street score
+- [ ] 1.2 Lane graph data: 101 nodes off the main network, 15 kinks over 45°, ~300 lanes under 2.5 m
+- [ ] 1.3 Autopilot rows P11-P16 (PLAYTEST.md)
+- [ ] 2.x Road fixes by street, forgiveness bevels, trap dead ends gated, score baseline in CI
+- [ ] 3.x Lane assist, wall look-ahead, junction pick, deck cut in the ghost, F's phone run
+- [ ] 4.1 Running clubs read as a blue blob at crossings: mixed kit, pairs, spread out
+- [ ] 4.2 Varso Place masses from photos (the gap between the tower and Varso 1/2)
+
+## Landmarks from photos: Chmielna 89, "Piramida" (F, 2026-11-03, later)
+
+F: "PKO Piramida looks bad". Chmielna 89 (~80 m, 2021-22), the glass wedge on V-shaped steel legs by
+the railway cutting next to Warta Tower; today an OSM extrusion. Later, photo way: a Mac gather
+`refs/chmielna89/` plus F's four photos (project files), then the wedge, the zigzag frame on the
+sloped face, the V legs, blue-grey glass. No bank name or logo (brands only as parodies).
+
 ## Vitkac quests and ride stories (F, 2026-11-03)
 
 F asked for two things; both are plan only, nothing is built (Sonnet for the lines, Opus for the quest design; docs/design/ gets the plan first).

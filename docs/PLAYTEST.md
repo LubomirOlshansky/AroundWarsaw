@@ -42,6 +42,12 @@ over one thing systematically: every kerb of a square, every ramp), **verify** (
 | P8 | The helicopter: take-off, landing on roofs, the rescue roofs | goal | landing on landmark roofs, clipping into towers | – | – |
 | P9 | Menus: pause card, map, garage, settings, POMOC DROGOWA | test | a button that does nothing, a screen you can't leave | – | – |
 | P10 | Police chase and the clamp; crash scenes | explore | a chase that pins the car, a scene that blocks a street for good | – | – |
+| P11 | Trasa Łazienkowska and Wisłostrada, both ways, under and over (GAMEPLAY_PLAN 1.6) | test | the car hidden under the deck, tunnel portals, ramps, long curves | – | – |
+| P12 | Teleport from the full map: 10 holds on tunnels, bridges, courtyards, the river bank | test | where the car lands; on a tunnel or a roof; heading against traffic | – | – |
+| P13 | Stuck on purpose: 60 s into walls, parked cars, a tram island | test | bubbles and toasts per 10 s; time to the tow offer | – | – |
+| P14 | Narrow streets: Frascati, Hoża, Ordynacka, Sienna, Aleja 3 Maja, living streets | explore | pinches, jolting kerbs, dead ends with no turn-round | – | – |
+| P15 | The helicopter high over Varso, the Palace and the map edge | test | sky past the edge, floating buildings, the heli's place on screen | – | – |
+| P16 | Trzy mosty at full speed | goal | every contact at race speed; the look-ahead on the bridges | – | – |
 
 **Budget.** The decision model bills to F's Aura account. One 10-minute row at a time; ask F
 before more than three rows in one go or anything longer than 15 minutes.
