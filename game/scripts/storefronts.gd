@@ -224,6 +224,14 @@ const VENUES := {
 	"wil_macki": [["MACKI", "I KUFLE"], NOWO_TEAL, 2.8],
 	"wil_kaseta": [["KASETA", "PRZEWIJANA"], NOWO_AMBER, 2.8],
 	"wil_banany": [["REPUBLIKA", "BANANOWA"], NOWO_MAGENTA, 3.0],
+	# Praga's old streets (street-by-street, 2026-11-03): parodies of the real bars' trades near Okrzei,
+	# Wrzesińska, Kijowska and Targowa; pre-war tenements, so warm amber and teal over the plaster.
+	"praga_swiat": [["ŚWIAT", "PO PRASKU"], NOWO_AMBER, 2.8],
+	"praga_barista": [["BARISTA", "Z PODWÓRKA"], NOWO_TEAL, 2.8],
+	"praga_skrzynka": [["WINO ZE", "SKRZYNKI"], NOWO_MAGENTA, 2.8],
+	"praga_kraina": [["KRAINA", "WINA"], NOWO_AMBER, 2.8],
+	"praga_kijowska": [["KIJOWSKA", "DWÓJKA"], NOWO_MAGENTA, 2.8],
+	"praga_kufel": [["POD KUFLEM", "ZA ROGIEM"], NOWO_TEAL, 2.8],
 	"nowy_paczki": [["PĄCZKARNIA", "TŁUSTE DNI"], NOWY_ROSE, 2.8],
 	"nowy_lody": [["LODY", "BEZ KOLEJKI"], NOWY_SKY, 2.8],
 	"nowy_ksiegarnia": [["KSIĘGARNIA", "PRZY KAWIE"], NOWY_CREAM, 2.8],
@@ -464,6 +472,17 @@ const WILCZA := {
 	"wil_kaseta": [52.22391, 21.01234],
 	"wil_banany": [52.22403, 21.01218],
 }
+## Praga's bars (street-by-street, 2026-11-03): six parody fascias at the OpenStreetMap points of the real bars
+## on Stefana Okrzei (nos. 8 and 26, where two bars share one door), Sierakowskiego 4A, Wrzesińska 4,
+## Kijowska 2 and Targowa 1. Ząbkowska's own bars lie outside the map (z < -2045).
+const PRAGA := {
+	"praga_swiat": [52.2510661, 21.0352787],
+	"praga_barista": [52.2489048, 21.0314672],
+	"praga_skrzynka": [52.249572, 21.0333065],
+	"praga_kraina": [52.249752, 21.0352705],
+	"praga_kijowska": [52.2498793, 21.0443072],
+	"praga_kufel": [52.2480169, 21.0455613],
+}
 ## A venue sign's letter pixel (m) and the smallest it shrinks to on a short wall.
 const VENUE_PX := 0.12
 const VENUE_PX_MIN := 0.08
@@ -571,7 +590,7 @@ func setup(data: Dictionary, places: Array) -> void:
 		if str(p.get("k", "")) == "kebab":
 			avoid.append(Vector2(float(p["x"]), float(p["z"])))
 	var with_cafes: Array = places.duplicate()
-	for table: Dictionary in [CAFES, LOUNGES, TRENDY, HYPE, CINEMAS, NOWY_SWIAT, POWISLE, MARSZALKOWSKA, KRAKOWSKIE, ZBAWICIELA, NOWOGRODZKA, MAZOWIECKA, WILCZA, zaglebie_table()]:
+	for table: Dictionary in [CAFES, LOUNGES, TRENDY, HYPE, CINEMAS, NOWY_SWIAT, POWISLE, MARSZALKOWSKA, KRAKOWSKIE, ZBAWICIELA, NOWOGRODZKA, MAZOWIECKA, WILCZA, PRAGA, zaglebie_table()]:
 		for id: String in table:
 			var ll: Array = table[id]
 			with_cafes.append({"id": id, "at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})
