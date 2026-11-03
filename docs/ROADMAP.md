@@ -15,6 +15,7 @@ item. Updated 2026-11-01 from the audit. v1.0 = the Demo and TestFlight gates in
 then the Launch gate.
 
 ### Done (built and checked headless)
+- [x] Opening fly-over sound: the announcer line (Opening_line_a) plays once with the flight, radio dipped to -20 dB, then swells to full (2026-11-03, PR pending; phone listen check open)
 - [x] WTS DESKA tennis club (hall + one padel court), players, DESKA neon and a friend's "Czwarty" phone call that sends you there (2026-11-01, PR pending; phone check open)
 - [x] Map: the 21 km² demo box in streamed sectors, 1 m terrain, map north (3c, 3d-1, 3d-2, 3e)
 - [x] Roads: checks C1-C10 and `check_drive` green on the Mac at the time (3a, 3b, 3b-2)
