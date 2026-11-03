@@ -170,6 +170,11 @@ the walls, garden terraces upstairs. **Game:** both are L2 sites (BACKLOG "Norbl
 add the candelabra planes and the Central Garden, and fold in that section's Mac checks.
 Sonnet. **Built 2026-11-02** (`planted_trees.py` kind `garden`): 5 candelabra planes in Norblin's
 court, 12 lindens, birches and maples in Browary's yard; climbers and terraces left for the Mac.
+**Rebuilt the same day from the Mac's photo reports** (docs/landmarks/photo-reports/norblin.md,
+browary.md): Norblin had been put on the wrong block ("Modsen"); its courts are now carved out of
+"Plater" and "Galwan" (`planted_trees.py` COURTS) with 4 candelabra planes and 8 more young trees,
+and Browary's garden holds 22 crowns round the S path (`PATHS`, the garden kind's `zone`, `target`,
+`inset`, `spread`). Climbers still left (no photo shows them).
 
 ## K7 Bulwary Wiślane, stages 1 and 2
 

@@ -2,10 +2,34 @@ extends Node3D
 ## A mission marker: a ring on the ground showing where to stop, a tall column of
 ## light that reads from across the map, and a tiny person (waving for help, or
 ## standing and waiting at the hospital).
+##
+## Colour-safe (access.gd, Settings → DOSTĘP) gives the marker a second cue besides its hue: the
+## colour passes through `Access.tint` (a success green turns blue), and the ring's shape says what
+## the marker is, so a race ring and a rescue ring no longer differ by colour alone:
+##   SOLID    the place to stop (drop-off, hospital, a job's door): a full ring, as always.
+##   DASHED   someone waiting to be picked up (a rescue call): 16 dashes with the ground between.
+##   CHEQUER  a race's finish or checkpoint: blocks about 1.2 m long in the marker's colour and
+##            white, like a finish line.
+## With colour-safe off every ring is solid. The beacon notices the setting changing on its own
+## (no restart), and rebuilds only its ring (a few dozen quads), never per frame.
+
+const Access := preload("res://scripts/access.gd")
 
 const COLUMN_HEIGHT := 170.0
+const RING_WIDTH := 0.6
+const DASHES := 16
+const CHEQUER_BLOCK := 1.2
+const CHEQUER_WHITE := Color("#f4f1ea")
+
+enum Pattern { SOLID, DASHED, CHEQUER }
 
 var waving := true
+## The ring's shape under colour-safe (see above); set it before or after `setup`.
+var pattern := Pattern.SOLID:
+	set(v):
+		pattern = v
+		if _ring != null:
+			_refresh()
 var _ring: MeshInstance3D
 var _ring_radius := 0.0
 var _ring_mat: StandardMaterial3D
@@ -14,6 +38,8 @@ var _column_mat: StandardMaterial3D
 var _person: Node3D
 var _arm: Node3D
 var _colour := Color.WHITE
+var _shown := Color.WHITE  # _colour as the player sees it (Access.tint)
+var _safe := false  # Access.color_safe the ring was last built for
 var _t := 0.0
 
 
@@ -22,7 +48,10 @@ func setup(colour: Color, shirt: Color) -> void:
 	_colour = colour
 	_ring_mat = StandardMaterial3D.new()
 	_ring_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	_ring_mat.albedo_color = colour
+	# The ring carries its colour in its vertices (the chequer's white blocks), so the
+	# material stays white.
+	_ring_mat.vertex_color_use_as_albedo = true
+	_ring_mat.vertex_color_is_srgb = true  # the same shade albedo_color gave it before
 	_ring = MeshInstance3D.new()
 	_ring.material_override = _ring_mat
 	_ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -46,21 +75,42 @@ func setup(colour: Color, shirt: Color) -> void:
 	_person = _make_person(shirt)
 	add_child(_person)
 	visible = false
+	_refresh()
 
 
 ## Changes the ring and column colour (one beacon serves both side jobs).
 func recolour(colour: Color) -> void:
+	if colour == _colour:
+		return
 	_colour = colour
-	_ring_mat.albedo_color = colour
-	_column_mat.albedo_color = colour
+	_refresh()
+
+
+## The colour the player sees now (after colour-safe's tint).
+func shown_colour() -> Color:
+	return _shown
+
+
+## The ring's mesh now (checks read its vertex colours and size).
+func ring_mesh() -> ArrayMesh:
+	return _ring.mesh
+
+
+## Re-reads colour-safe and the colour, and rebuilds the ring if it is placed.
+func _refresh() -> void:
+	_safe = Access.color_safe
+	_shown = Access.tint(_colour)
+	_column_mat.albedo_color = _shown
+	if _ring_radius > 0.0:
+		_ring.mesh = _ring_mesh(_ring_radius)
 
 
 ## Shows the marker at a spot; `radius` is the ring the vehicle has to stop in.
 func place(at: Vector3, radius: float, column := true, person := true) -> void:
 	global_position = at
-	if radius != _ring_radius:
+	if radius != _ring_radius or _safe != Access.color_safe:
 		_ring_radius = radius
-		_ring.mesh = _ring_mesh(radius)
+		_refresh()
 	_ring.visible = column
 	_column.visible = column
 	_person.visible = person
@@ -70,27 +120,40 @@ func place(at: Vector3, radius: float, column := true, person := true) -> void:
 func _process(dt: float) -> void:
 	if not visible:
 		return
+	if _safe != Access.color_safe:
+		_refresh()  # the player switched colour-safe in Settings
 	_t += dt
-	_column_mat.albedo_color = Color(_colour, 0.7 + 0.3 * sin(_t * 4.0))
+	_column_mat.albedo_color = Color(_shown, 0.7 + 0.3 * sin(_t * 4.0))
 	if waving:
 		_arm.rotation.z = -0.25 + 0.55 * sin(_t * 9.0)
 	else:
 		_arm.rotation.z = -2.95  # hanging down at the side
 
 
-## A flat ring 0.6 m wide, lifted a little so the ground layers don't cover it.
+## A flat ring RING_WIDTH wide, lifted a little so the ground layers don't cover it, in
+## `pattern`'s shape when colour-safe is on (a full ring otherwise).
 func _ring_mesh(radius: float) -> ArrayMesh:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var shape := pattern if _safe else Pattern.SOLID
 	var n := 32
+	if shape == Pattern.DASHED:
+		n = DASHES * 2
+	elif shape == Pattern.CHEQUER:
+		n = clampi(roundi(TAU * radius / CHEQUER_BLOCK / 2.0) * 2, 12, 96)  # even: blocks pair up
+	var inner := radius - RING_WIDTH
+	var y := Vector3(0, 0.4, 0)
 	for i in n:
+		if shape == Pattern.DASHED and i % 2 == 1:
+			continue  # the gap between two dashes
+		var c := CHEQUER_WHITE if shape == Pattern.CHEQUER and i % 2 == 1 else _shown
 		var a0 := TAU * i / n
 		var a1 := TAU * (i + 1) / n
 		var o0 := Vector3(cos(a0), 0.0, sin(a0))
 		var o1 := Vector3(cos(a1), 0.0, sin(a1))
-		var y := Vector3(0, 0.4, 0)
+		st.set_color(c)
 		# Clockwise seen from above (Godot's front faces).
-		for v in [o0 * radius, o1 * radius, o0 * (radius - 0.6), o1 * radius, o1 * (radius - 0.6), o0 * (radius - 0.6)]:
+		for v in [o0 * radius, o1 * radius, o0 * inner, o1 * radius, o1 * inner, o0 * inner]:
 			st.add_vertex(v + y)
 	return st.commit()
 
