@@ -469,6 +469,14 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [ ] G18 Park Ujazdowski and Zamek Ujazdowski (the castle) improved: its own landmark thread (Opus)
 - [x] The main line on the driving screen after the guide (2026-11-03, `main_nudge.gd`, `check_main_line`): a goal line toast when the step changes and the gold "★ N m" edge arrow to the next rival or the final's start for 25 s, back after 150 s of free driving, only while nothing else is on; the edge arrow keeps off the minimap, wallet, zoom buttons and pedals (`check_hud`). Phone feel parked (QUESTIONS)
 
+### Left: driving first (F, 2026-11-03; plan docs/GAMEPLAY_PLAN.md, detail in BACKLOG "Driving first")
+- [x] The plan: road audit, causes of the playtest's bugs, phases (2026-11-03, docs only)
+- [ ] Phase 0: teleport/tow never in a tunnel, chatter budget, car visible under decks, heli framing and far plane, Plac Piłsudskiego paving
+- [ ] Phase 1: drivability sweep of every lane and turn, lane graph data fixes, Autopilot rows P11-P16
+- [ ] Phase 2: road fixes street by street with a score baseline in CI
+- [ ] Phase 3: lane assist, wall look-ahead, junction pick, deck cut; F's phone run
+- [ ] Phase 4: running clubs that read, Varso Place masses, Chmielna 89 "Piramida" (later, photo way)
+
 ### Left: the phone (needs F's yes for each device run)
 - [ ] Bench on the iPhone 11 and 16 Pro Max on today's main against budget P (DEMO 7): frame,
       draw calls, memory, `--stream-soak`; the sector-load hitch; compressed map textures
