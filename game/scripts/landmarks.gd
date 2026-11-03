@@ -642,6 +642,10 @@ var signs: Array = []
 var pocket_rings: Array[PackedVector2Array] = []
 ## Circles ([centre, radius]) no tree may grow in: a landmark's overhang (Powiśle's saucer).
 var tree_free: Array = []
+## F's look check (2026-11-03): kept LoD2 parts a model replaces above a height, for map_builder
+## `_top_lod2`: [ring (world x, z), metres over the ground at `at`, at]. Set while finding the
+## sites, so the LoD2 pass (before `build`) sees them.
+var lod2_tops: Array = []
 ## Stadion Narodowy's grass embankment (2026-11-01): the old Stadion Dziesięciolecia's earth
 ## bank below the promenade, bare ground in the map, in one band per gap between two masts
 ## (`_find_embankment`). map_builder's _build_areas lays them as grass under every mapped area,
@@ -3777,7 +3781,10 @@ const ZAMEK_ROOF := "#ad5c3f"  # terracotta tile (photos #c0502e, calmed; was #8
 const ZAMEK_STONE := Color("#e2d8c4")
 const SKINS := [
 	{"key": "teatr", "osm": "Teatr Wielki", "mode": M_MONUMENT, "wall": "#ddd2b6", "roof": "#7fa894"},
-	{"key": "zamek", "osm": "Zamek Królewski", "mode": M_MONUMENT, "wall": ZAMEK_WALL, "roof": ZAMEK_ROOF},
+	# F's look check (2026-11-03): LoD2's steep roof slopes in the roof's tile (`steep`), and its
+	# walls on the river side of the courtyard in the Vistula front's cream (`pale`), not salmon.
+	{"key": "zamek", "osm": "Zamek Królewski", "mode": M_MONUMENT, "wall": ZAMEK_WALL, "roof": ZAMEK_ROOF,
+			"steep": 0.3},
 	{"key": "archikatedra", "osm": "Archikatedra pw. Świętego Jana Chrzciciela", "mode": M_GOTHIC, "wall": "#9a4b38", "roof": "#6e3a2e"},
 	{"key": "sw_anna", "osm": "Kościół pw. Świętej Anny", "mode": M_MONUMENT, "wall": "#e6dcc4", "roof": "#8a5a44"},
 	{"key": "sw_krzyz", "osm": "Kościół pw. Świętego Krzyża", "mode": M_MONUMENT, "wall": "#e3d9c0", "roof": "#5d6e64"},
@@ -3819,6 +3826,11 @@ func _find_skins() -> void:
 		_add_site(t["key"], [outline])
 		if not sites.is_empty() and sites[-1]["key"] == t["key"]:
 			sites[-1]["skin"] = {"mode": t["mode"], "wall": Color(t["wall"]), "roof": Color(t["roof"])}
+			if t.has("steep"):
+				sites[-1]["skin"]["steep"] = t["steep"]
+			if t["key"] == "zamek":
+				sites[-1]["skin"]["pale"] = {"wall": ZAMEK_VISTULA, "edges": _zamek_river_edges(outline), "near": 3.0}
+				_zamek_tops()
 
 
 # --- Muzeum Narodowe (the landmarks loop; a real model since the museum and Plac loop) ----------
@@ -9112,6 +9124,39 @@ func _ledge(a: Vector2, b: Vector2, c: Vector2, d: Vector2, y: float, col: Color
 	if Geometry2D.is_polygon_clockwise(quad):
 		quad.reverse()
 	_cap(quad, y, col)
+
+
+## The Vistula front's edges of the castle's outline (the ones `_zamek_vistula` fronts: facing east,
+## east of x -615), as pairs of ends, for the skin's `pale` walls (map_builder `_skin_run`): LoD2's
+## walls stand up to 0.9 m proud of the outline there (5 m at the risalits) and showed salmon
+## round and over the model's cream front (F's look check, 2026-11-03).
+func _zamek_river_edges(ring: PackedVector2Array) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	var n := ring.size()
+	for i in n:
+		var p := ring[i]
+		var q := ring[(i + 1) % n]
+		if p.distance_to(q) < 0.4:
+			continue
+		if _out(ring, p, q).x < 0.3 or (p.x + q.x) * 0.5 < -615.0:
+			continue
+		out.append(p)
+		out.append(q)
+	return out
+
+
+## The Clock Tower's LoD2 cut under the model's cornice (`lod2_tops`): LoD2 carries the shaft 3.5 m
+## past it and the helm as a salmon mass to 46.7 m, which stood out of the copper helm on every
+## side (F's look check, 2026-11-03). The ring is the shaft's square grown to 6 m a side from its
+## middle (LoD2's shaft is 4.5-4.7 m); the cut, 30.0 m over the square, hides inside the cornice
+## (29.5-30.3 m, 5.0 m), whose top caps it.
+func _zamek_tops() -> void:
+	var a := ZAMEK_FRONT
+	var b := Vector2(a.y, -a.x)
+	var ring := PackedVector2Array()
+	for c: Vector2 in [Vector2(-6, -6), Vector2(6, -6), Vector2(6, 6), Vector2(-6, 6)]:
+		ring.append(ZAMEK_CLOCK + a * c.x + b * c.y)
+	lod2_tops.append([ring, 30.0, ZAMEK_CLOCK + b * 9.0])
 
 
 ## The oval central risalit of the Vistula front: a drum of windows to above the eave, a cornice,

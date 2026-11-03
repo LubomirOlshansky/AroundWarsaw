@@ -3,6 +3,29 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Eastern Wall photo pass: Marszałkowska fronts, Sezam WACZEK, Coca-Cola sign (F, 2026-11-03)
+
+Plan only, nothing built (F paused new work; this wants his "go" for the Mac photo gather). Scope F set:
+- **Fronts of Junior, Sawa and Wars on Marszałkowska only.** Pasaż Wiecha's frontage is covered by
+  `dt_pawilony` (site `wiecha`). Today site `dtc` is a cloud model corrected by one Mac photo check
+  (2026-11-01); there is no `refs/dt_centrum/` REPORT, so redo it the photo way: Mac gather into
+  `refs/dt_centrum/` with SOURCES.md and a REPORT in game coordinates, then the build.
+- **Corner and glazing at Widok:** F's photo "Dawne Domy Towarowe Centrum, ul. Marszałkowska" (Wars's south corner on Widok,
+  H&M corner, huge printed banners over the glass, the rounded cornice with CCC / H&M / C&A / TK Maxx on the roof band)
+  is the reference where the Wars and Sawa models meet. Also the two aerials (Varso view, drone view): HalfPrice, adidas,
+  TK Maxx, H&M banners, green roof strips, plant on the roofs, the Amica tower behind.
+- **McDonald's = WACZEK at the former Sezam**, Świętokrzyska corner (the glass block with the SEZAM sign and the McDonald's
+  on its ground floor, F's photos), NOT on the Junior-Sawa-Wars fronts. Its own yellow wordmark and sign shape
+  (Storefronts.HYPE `waczek_*`, upside-down W). Add a `waczek_sezam` site; the Sezam block itself (the old Sezam
+  department store, now the glass office with the SEZAM name) is part of the same pass.
+- **Cola sign (F answered 2026-11-03):** put it on the rooftop at the Sezam/Centrum corner (Marszałkowska x Świętokrzyska), as an
+  original parody wordmark (real brand never used; the existing KOKA-KOLKA on `tower75` is the style to check against so the
+  two do not repeat). **Amica** gets a fictional appliance-brand name on its tower roof too (pick one, e.g. AMIKA is too close:
+  use something like ZMYWAKA or PRALKA PLUS, Polish, affectionate). Both are lit roof signs, `_dtc_sign` style.
+- **Chmielna:** keep the street clean, no excavation or roadworks. **Pasaż slabs:** the report's grey-white #D8D8D4 with a
+  slightly warm tint (palette change in the existing `wiecha` model).
+- Open for the gather: the Sezam corner's exact outline, the Żabka corner on Wars.
+
 ## The helicopter high up (F's playtest, 2026-11-03; GAMEPLAY_PLAN 0.4 / 3.1)
 
 The framing, the far plane and the height cap are fixed (heli-view PR, `check_heli_view`; the
@@ -971,7 +994,9 @@ F asked to bring the castle in line with Ogród Park Krajobraz's garden project
 `docs/landmarks/specs/zamek.md`): Clock Tower, turrets, terracotta roofs, the cream Vistula front
 and dome, Kubicki's Arcades (site `arkady`), tubs, fountains, vases, the Lower Garden's lawn
 carpet (`map_builder.LAWN_CARPETS`) and the gardens' low basin rings (`GARDEN_RINGS`).
-- Z1 Mac look check (QUESTIONS): LoD2's tower and eave against the model; the arcades on the terrain.
+- Z1 Mac look check: the arcades' top and gravel walk against the terrace, and the tubs and the Upper Garden
+  fountain on it. (LoD2's tower and eave: answered by F 2026-11-03 and fixed: LoD2's Clock Tower cut under the
+  model's cornice, LoD2's steep roof slopes in tile, its walls along the river front in the front's cream.)
 - Z2 The courtyard (Dziedziniec Wielki): fan-pattern setts, a granite walk from the gate, the
   yard walls pinkish-beige on the east and north wings.
 - Z3 The Vistula front's two gabled side risalits (14 m, pediment, corner statues) and the

@@ -37,6 +37,10 @@ then the Launch gate.
 - [x] Royal Castle pass 2 and its gardens (F, 2026-11-02; spec `zamek.md`): the Clock Tower and helm, corner
       turrets, the cream Vistula front with its dome, Kubicki's Arcades and the Upper and Lower Gardens from
       the Krajobraz project, photos and the orthophoto; Mac look check parked (QUESTIONS)
+- [x] Royal Castle's river front and helms after F's look check (2026-11-03): no salmon band between the pale
+      Vistula front and the roof (LoD2's steep slopes in tile, its river-side walls in the front's cream), LoD2's
+      Clock Tower cut under the model's cornice so nothing grey or salmon pokes through the copper helm; the
+      gate west and four dials kept
 - [x] Rondo Dmowskiego as it is: the paved island with its four crescent flower beds round the tram cross,
       Metro Centrum's blue tubes over all twelve underpass stairs and the Patelnia's, the Patelnia mural, a
       kiosk, a cart and the east tram shelter (F, 2026-11-02; spec `rondo-dmowskiego.md`; Mac look check parked)
@@ -158,6 +162,8 @@ then the Launch gate.
       backlog only; QUESTIONS 2026-11-02 and 2026-11-03)
 
 ### Left: landmarks and street details
+
+- [ ] Eastern Wall photo pass (F, 2026-11-03; plan in BACKLOG "Eastern Wall photo pass"): Marszałkowska fronts of Junior, Sawa and Wars from a Mac `refs/dt_centrum/` REPORT, the Widok corner, WACZEK at the former Sezam (Świętokrzyska), the rooftop cola parody sign at Sezam/Centrum and a fictional Amica brand, Pasaż slabs warm grey-white; high priority, waits on F's go for the Mac gather
 - [x] City inventory, street by street (F, 2026-11-02): every characteristic place in the box ranked S/A/B
       with its status (photo build, outline build, dress only, not done) in docs/CITY_INVENTORY.md, Part 2
       street by street from the map data (`tools/city_inventory.py`). Its Part 3 is the order of the next

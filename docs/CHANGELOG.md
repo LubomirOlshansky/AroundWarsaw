@@ -10,7 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-03
-
+- The Royal Castle's river front is pale right up to its tiled roof, with no salmon strip under the eaves, and the Clock Tower's copper helm stands clean, with no old tower block poking through it.
 - The Poniatowski viaduct over Powiśle now stands on open concrete arches with struts under a steel deck, and its closed bays along Aleja 3 Maja hold five little bars with neon, lit windows and café tables.
 - Most Poniatowskiego now crosses the Vistula on eight spans, with a new stone pier at the west bank.
 - The bridge's towers look sturdier: corner piers, cornices and bigger arched windows on the shafts, and deeper arcades on the pavilions.
