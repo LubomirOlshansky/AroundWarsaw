@@ -16,12 +16,15 @@ skill; one file per `refs/` folder. A cloud thread that needs to see a photo ask
 | [gdanska](gdanska.md) | Warszawa Gdańska (railway S3e; at the map's north edge) | 4 | 1 |
 | [hotel_warszawa](hotel_warszawa.md) | Hotel Warszawa (the 1933 Prudential) | 12 | 1 |
 | [jablkowskich](jablkowskich.md) | Dom Towarowy Braci Jabłkowskich (Bracka 25) | 5 | 1 |
+| [karowa18a](karowa18a.md) | Karowa 18a (stepped balcony block, Karowa bend) | 12 | 1 |
 | [kilinski](kilinski.md) | Pomnik Jana Kilińskiego | 4 | 1 |
 | [koneser](koneser.md) | Centrum Praskie Koneser (Ząbkowska 27/31) | 5 | 1 |
+| [kozia9](kozia9.md) | Kozia 9 (terraced block, back on Moliera; only 2 photos show it) | 9 | 1 |
 | [krakowskie](krakowskie.md) | Krakowskie Przedmieście (K1-K6 leftovers) | 29 | 3 |
 | [krasinski](krasinski.md) | Krasiński Palace (Pałac Krasińskich, Palace of the Commonwealth, Biblioteka Narodowa) | 17 | 1 |
 | [krasinskich](krasinskich.md) | Pomnik Powstania Warszawskiego (Plac Krasińskich) | 6 | 1 |
 | [maly_powstaniec](maly_powstaniec.md) | Pomnik Małego Powstańca | 4 | 1 |
+| [mlotek](mlotek.md) | Młotek (Smolna 8, 1976 tower) | 17 | 1 |
 | [mpw](mpw.md) | Muzeum Powstania Warszawskiego (Elektrownia Tramwajów Miejskich): | 25 | 1 |
 | [nbp](nbp.md) | Narodowy Bank Polski (Świętokrzyska 11/21) | 1 | 1 |
 | [nike](nike.md) | Pomnik Bohaterów Warszawy (Warszawska Nike) | 4 | 1 |
