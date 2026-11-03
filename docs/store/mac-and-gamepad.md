@@ -36,7 +36,7 @@ macOS, Windows and Android.
 | Left stick | Point / Fixed: point the way (further = more gas). Classic: steer | fly that way |
 | RT (R2) | gas (Classic) | climb |
 | LT (L2) or B (circle) | brake / reverse | sink (LT) |
-| A (cross) | the mission card's first button (M) | same |
+| A (cross) | the mission card's first button (M); with no card up, the top row's context button (KASETA, START KURS, POMOC DROGOWA) | same |
 | X (square) | the mission card's second button (K) | same |
 | Y (triangle) | car / helicopter (H) | land |
 | LB / RB held | the nitro, once bought at the garage (Shift) | |
@@ -65,8 +65,16 @@ Left for the gamepad (BACKLOG):
       garage opens on the paint worn, B or Start closes it. Opened by a finger, nothing takes focus.
 - [x] The full map with the pad (2026-11-01): the left stick pans, RT / LT zoom, A held on the
       cross at the centre teleports there; the hint says so.
-- [ ] Button glyphs per family (A / cross) in the HUD's hints; rumble on crashes
-      (`Input.start_joy_vibration` behind Settings' vibration switch, through haptics.gd).
+- [x] Button names per family in the hints, and rumble (2026-11-02). `gamepad.gd` sorts the pad
+      by its name (`family_of`: Sony → PlayStation, Nintendo, everything else incl. MFi → Xbox)
+      and fills `{a}`, `{rt}`, `{lb}` ... tokens in the hints (`fmt`): PlayStation × / Circle /
+      Square / Triangle (words: the HUD font has × but no ○ □ △), R2 / L2, R1 / L1; Nintendo the
+      swapped B / A / Y / X, ZR / ZL, L / R; Xbox A / B / X / Y, RT / LT, LB / RB. Every buzz
+      (crashes, knocks, pay) rumbles the pad instead of the phone while the pad is in use and
+      plugged in (`Input.start_joy_vibration`, weak motor = amplitude, strong = its square),
+      behind Settings' vibration switch, through haptics.gd. `check_gamepad` P14, `check_juice` J2.
+      Left for the beta: how each pad feels, and whether a Nintendo pad on iOS reports its
+      bottom button as index A (assumed by place, like SDL3; if iOS goes by label, swap the faces).
 
 ## The Mac App Store version (post-v1.0)
 

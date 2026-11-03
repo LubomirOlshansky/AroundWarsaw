@@ -105,6 +105,11 @@ const MARSZ_BLUE := Color(0.5, 0.75, 1.0)
 const KP_GOLD := Color(1.0, 0.8, 0.4)
 const KP_WINE := Color(0.9, 0.35, 0.5)
 const KP_BLUE := Color(0.6, 0.8, 1.0)
+## Nowogrodzka's bar strip (street-by-street, 2026-11-03): between Marszałkowska and Bracka, the
+## street of small bars and shot bars; late-night amber, magenta and teal so a row of them reads at night.
+const NOWO_AMBER := Color(1.0, 0.7, 0.2)
+const NOWO_MAGENTA := Color(1.0, 0.25, 0.7)
+const NOWO_TEAL := Color(0.2, 0.95, 0.85)
 ## The venues' fascias (vision 3.0-3.2): place id -> [the lines of the sign, tube colour, metres
 ## up (the sign's bottom)]. The words are the parody names of places.json (Glon na Powiślu: GLON).
 const VENUES := {
@@ -192,6 +197,23 @@ const VENUES := {
 	"pow_przy_solcu": [["PRZY SOLCU"], POWISLE_TUBE_C, 2.8],
 	# Zagłębie Kebabowe on Al. Solidarności (zaglebie.gd): Kino Femina's fascia and the five shops'.
 	# Nowy Świat's shopfronts (street-by-street pass, 2026-11-02): original names, no chains.
+	# Nowogrodzka's bars (street-by-street, 2026-11-03): parodies of the real bars' names or trades,
+	# never the names themselves.
+	"nowo_kwarta": [["KWARTA"], NOWO_AMBER, 2.8],
+	"nowo_halinka": [["U HALINKI", "BAR"], NOWO_MAGENTA, 2.8],
+	"nowo_za_bardzo": [["ZA BARDZO"], NOWO_TEAL, 3.0],
+	"nowo_kraftownia": [["KRAFTOWNIA", "IPA DO DNA"], NOWO_AMBER, 2.8],
+	"nowo_schron": [["SCHRON", "PIWNY"], NOWO_TEAL, 2.8],
+	"nowo_podworko": [["PODWÓRKO 22", "SZOTY"], NOWO_MAGENTA, 3.0],
+	"nowo_nalewalnia": [["NALEWALNIA", "KIEDYŚ PO 4"], NOWO_AMBER, 2.8],
+	"nowo_dziniarnia": [["DŻINIARNIA"], NOWO_TEAL, 2.8],
+	# Mazowiecka's club street (street-by-street, 2026-11-03): parodies of the real clubs' names or
+	# trades, one sign per address (Tygmont and La Pose share no. 6/8, Enklawa and Ritual no. 12).
+	"maz_tygrys": [["TYGRYS", "JAZZ"], NOWO_AMBER, 2.8],
+	"maz_szotownia": [["SZOTOWNIA"], NOWO_MAGENTA, 2.8],
+	"maz_szkic": [["SZKIC", "NOCĄ"], NOWO_TEAL, 2.8],
+	"maz_enklawka": [["ENKLAWKA"], NOWO_MAGENTA, 3.0],
+	"maz_pokoj": [["POKÓJ 12,5"], NOWO_AMBER, 2.8],
 	"nowy_paczki": [["PĄCZKARNIA", "TŁUSTE DNI"], NOWY_ROSE, 2.8],
 	"nowy_lody": [["LODY", "BEZ KOLEJKI"], NOWY_SKY, 2.8],
 	"nowy_ksiegarnia": [["KSIĘGARNIA", "PRZY KAWIE"], NOWY_CREAM, 2.8],
@@ -293,8 +315,9 @@ const HYPE := {
 	"waczek_swietokrzyska": [52.2364, 21.0160],
 	"waczek_plater": [52.2281, 21.0047],
 	"waczek_femina": [52.2424, 20.9980],
-	# KROWA 2.0, the milk bar on the Żelazna front of Norblin (the Mac look check parks the door).
-	"krowa_norblin": [52.23367, 20.99107],
+	# KROWA 2.0, the milk bar on the Żelazna front of Norblin (the block of "Plater", moved off
+	# "Modsen" with the factory's model, 2026-11-02; the Mac look check parks the door).
+	"krowa_norblin": [52.23246, 20.99205],
 	# MIESZANE MIESZANE, 40 m west of KEBAB KRÓL on the south pavement of Al. Solidarności (the Mac look check parks the door).
 	"kebab_mieszane": [52.24176, 20.99345],
 	# DALEJ DALLA GELATO on Tamka at Powiśle (the Mac look check parks the door).
@@ -391,6 +414,33 @@ const ZBAWICIELA := {
 	"zb_szarlotka": [52.21971, 21.01863],
 	"zb_plan_z": [52.22013, 21.01848],
 	"zb_po_mszy": [52.21967, 21.01722],
+}
+## Nowogrodzka's bars (street-by-street, 2026-11-03): eight parody fascias at the OpenStreetMap
+## points of the real bars on the strip between Marszałkowska and Bracka (house numbers 4, 10, 11,
+## 12, 20, 22, 27 and 31): a pint-and-quart pub, a bar run by Halinka, ZA BARDZO (one notch past
+## "very very"), a craft-beer tap room, a cellar bar, the courtyard of shot bars at no. 22, the
+## everything-at-one-price vodka bar (KIEDYŚ PO 4: it was 4 zł once) and a gin bar. Like the cafés, not notebook
+## places; the nearest address snaps each sign to a wall. ZA BARDZO and PODWÓRKO 22 hang at their
+## yards' gates on the street (OSM has the bars 60-70 m in, in the courtyards of nos. 11 and 22).
+const NOWOGRODZKA := {
+	"nowo_kwarta": [52.23017, 21.01838],
+	"nowo_halinka": [52.22980, 21.01661],
+	"nowo_za_bardzo": [52.22988, 21.01780],
+	"nowo_kraftownia": [52.22966, 21.01590],
+	"nowo_schron": [52.22941, 21.01470],
+	"nowo_podworko": [52.22921, 21.01404],
+	"nowo_nalewalnia": [52.22906, 21.01406],
+	"nowo_dziniarnia": [52.22894, 21.01362],
+}
+## Mazowiecka's clubs (street-by-street, 2026-11-03): five parody fascias at the OpenStreetMap points
+## of the real clubs (Tygmont, Czupito/Mazo, Sketch Nite, Enklawa/Ritual, Room 13); the nearest address
+## snaps each sign to a wall. Bank Club and Blu Club (no. 14) are Lombard's, places.json.
+const MAZOWIECKA := {
+	"maz_tygrys": [52.236993, 21.013325],
+	"maz_szotownia": [52.237075, 21.013000],
+	"maz_szkic": [52.237760, 21.012753],
+	"maz_enklawka": [52.237787, 21.013159],
+	"maz_pokoj": [52.237889, 21.012811],
 }
 ## A venue sign's letter pixel (m) and the smallest it shrinks to on a short wall.
 const VENUE_PX := 0.12
@@ -499,7 +549,7 @@ func setup(data: Dictionary, places: Array) -> void:
 		if str(p.get("k", "")) == "kebab":
 			avoid.append(Vector2(float(p["x"]), float(p["z"])))
 	var with_cafes: Array = places.duplicate()
-	for table: Dictionary in [CAFES, LOUNGES, TRENDY, HYPE, CINEMAS, NOWY_SWIAT, POWISLE, MARSZALKOWSKA, KRAKOWSKIE, ZBAWICIELA, zaglebie_table()]:
+	for table: Dictionary in [CAFES, LOUNGES, TRENDY, HYPE, CINEMAS, NOWY_SWIAT, POWISLE, MARSZALKOWSKA, KRAKOWSKIE, ZBAWICIELA, NOWOGRODZKA, MAZOWIECKA, zaglebie_table()]:
 		for id: String in table:
 			var ll: Array = table[id]
 			with_cafes.append({"id": id, "at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})

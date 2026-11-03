@@ -25,6 +25,15 @@ extends SceneTree
 ##   P13 (G13 leftovers) LB or RB held is the nitro and fed to the car in main.gd, no shoulder is a
 ##       press-command; the right stick turns the view once per flick (either way), not while held,
 ##       again after it comes back; a flick on the left stick turns nothing.
+##   P14 (glyphs, 2026-11-02) a pad's name sorts into its family (Sony, Nintendo, else Xbox), every
+##       family prints every button token, `fmt` fills the hints per family and language, every
+##       {token} in a Gamepad.fmt line in scripts/ is known, and no string names RT / LT / LB / RB
+##       by hand (a hint says {rt} / {lt}).
+##   P15 (2026-11-03) A presses the context button (KASETA, START KURS, POMOC DROGOWA, WEZWANIE)
+##       when it is up and nothing when it is not; with the pad in use the button reads "A · ...",
+##       a finger takes the "A" off again; main.gd answers a card before the context button.
+##   P16 (2026-11-03) with the pad in use and the nitro bought its disc stays as the tank's gauge
+##       (one pedal rect, at the disc), none without the nitro, the pedals again after a touch.
 ##   godot --headless --path game --script res://tools/check_gamepad.gd
 
 const Gamepad := preload("res://scripts/gamepad.gd")
@@ -35,6 +44,7 @@ const NotebookPage := preload("res://scripts/notebook_page.gd")
 const Garage := preload("res://scripts/garage.gd")
 const Wallet := preload("res://scripts/wallet.gd")
 const Dialogue := preload("res://scripts/dialogue.gd")
+const Lang := preload("res://scripts/lang.gd")
 
 var fails: Array[String] = []
 
@@ -52,6 +62,8 @@ func _initialize() -> void:
 	for a: String in counts:
 		if InputMap.action_get_events(a).size() != counts[a]:
 			fails.append("P1 a second install() added events to %s" % a)
+
+	_glyphs()
 
 	# P2
 	_axis(JOY_AXIS_LEFT_X, 1.0)
@@ -354,7 +366,113 @@ func _ui() -> void:
 	if jumped.size() != 1 or jumped[0].distance_to(want) > 1.0 or fm.visible:
 		fails.append("P12 A held: teleports %s (want one at %s), map open %s" % [jumped, want, fm.visible])
 	fm._input(_press(JOY_BUTTON_A, false))
+	fm.visible = false
+
+	# P15
+	_context(hud)
 	_finish()
+
+
+## P15: the pad's A presses the context button (hud.gd `press_pill`, main.gd `_primary`).
+func _context(hud: CanvasLayer) -> void:
+	Gamepad.family = Gamepad.XBOX
+	var got: Array[String] = []
+	var calls := [0]
+	hud.context_pressed.connect(func(o: String) -> void: got.append(o))
+	hud.pill_pressed.connect(func() -> void: calls[0] += 1)
+	var pill: Button = hud.get("_pill")
+	var top := pill.get_child(0).get_child(0) as Label
+	hud.hide_pill()
+	if hud.press_pill() or not got.is_empty():
+		fails.append("P15 A pressed a context button that was not up (%s)" % [got])
+	hud.set_pad_mode(false, false)
+	hud.show_pill("KASETA", "time tape", "tape")
+	if top.text.begins_with("A · "):
+		fails.append("P15 the pill names the pad's A without a pad: \"%s\"" % top.text)
+	hud.set_pad_mode(true, false)
+	if not top.text.begins_with("A · "):
+		fails.append("P15 the pad took over and the pill doesn't name A: \"%s\"" % top.text)
+	if not hud.press_pill() or got != ["tape"] or calls[0] != 0:
+		fails.append("P15 A on KASETA: presses %s, rescue presses %d" % [got, calls[0]])
+	hud.show_pill("WEZWANIE", "rescue call", "call")
+	if not top.text.begins_with("A · "):
+		fails.append("P15 a new pill in pad mode doesn't name A: \"%s\"" % top.text)
+	hud.press_pill()
+	if got != ["tape", "call"] or calls[0] != 1:
+		fails.append("P15 A on WEZWANIE: presses %s, rescue presses %d" % [got, calls[0]])
+	hud.set_pad_mode(false, false)
+	if top.text.begins_with("A · "):
+		fails.append("P15 a finger took over and the pill still names A: \"%s\"" % top.text)
+	hud.hide_pill()
+	# P16: the nitro's tank stays on screen while the pad hides the pedals.
+	hud.set_nitro(true, 0.5)
+	hud.set_pad_mode(true, false)
+	var rects: Array = hud._pedal_rects()
+	var nc: Vector2 = hud._nitro_centre()
+	if rects.size() != 1 or not (rects[0] as Rect2).has_point(nc):
+		fails.append("P16 pad mode with the nitro: pedal rects %s, the disc at %s" % [rects, nc])
+	hud.set_nitro(false, 1.0)
+	if not hud._pedal_rects().is_empty():
+		fails.append("P16 pad mode without the nitro keeps %s" % [hud._pedal_rects()])
+	hud.set_pad_mode(false, false)
+	hud.set_nitro(true, 1.0)
+	if hud._pedal_rects().size() < 3:
+		fails.append("P16 a finger back: only %d pedal rects" % hud._pedal_rects().size())
+	hud.set_nitro(false, 1.0)
+	# main.gd: A answers a card first, then the context button, then the rescue line's own A.
+	var main_text := FileAccess.get_file_as_string("res://scripts/main.gd")
+	var body := main_text.substr(main_text.find("func _primary("), 700)
+	var cards := body.find("trend_job.primary()")
+	var pill_at := body.find("hud.press_pill()")
+	if cards < 0 or pill_at < cards:
+		fails.append("P15 main.gd _primary doesn't press the context button after the cards")
+
+
+## P14: the button faces per pad family.
+func _glyphs() -> void:
+	var names := {
+		"DualSense Wireless Controller": Gamepad.PLAYSTATION, "DUALSHOCK 4 Wireless Controller": Gamepad.PLAYSTATION,
+		"PS4 Controller": Gamepad.PLAYSTATION, "Sony Interactive Entertainment Wireless Controller": Gamepad.PLAYSTATION,
+		"Pro Controller": Gamepad.NINTENDO, "Nintendo Switch Pro Controller": Gamepad.NINTENDO, "Joy-Con (L/R)": Gamepad.NINTENDO,
+		"Xbox Wireless Controller": Gamepad.XBOX, "Backbone One": Gamepad.XBOX, "": Gamepad.XBOX,
+	}
+	for n: String in names:
+		if Gamepad.family_of(n) != names[n]:
+			fails.append("P14 \"%s\" read as %s, not %s" % [n, Gamepad.family_of(n), names[n]])
+	for fam: String in Gamepad.FACES:
+		for token: String in Gamepad.FACES[Gamepad.XBOX]:
+			if not (Gamepad.FACES[fam] as Dictionary).has(token):
+				fails.append("P14 %s has no face for {%s}" % [fam, token])
+	var lang0 := Lang.code
+	var want := [
+		[Gamepad.XBOX, Lang.EN, "Hold {a} · {rt} / {lt} · {y}", "Hold A · RT / LT · Y"],
+		[Gamepad.PLAYSTATION, Lang.EN, "Hold {a} · {rt} / {lt} · {y}", "Hold × · R2 / L2 · Triangle"],
+		[Gamepad.PLAYSTATION, Lang.PL, "{x}: AUTO · {y}: bierz", "kwadrat: AUTO · trójkąt: bierz"],
+		[Gamepad.NINTENDO, Lang.EN, "{a} {b} {x} {y} {lb} / {rb}", "B A Y X L / R"],
+	]
+	for w: Array in want:
+		Gamepad.family = w[0]
+		Lang.code = w[1]
+		if Gamepad.fmt(w[2]) != w[3]:
+			fails.append("P14 %s/%s: \"%s\" -> \"%s\", want \"%s\"" % [w[0], w[1], w[2], Gamepad.fmt(w[2]), w[3]])
+	Lang.code = lang0
+	Gamepad.family = Gamepad.XBOX
+	# The source: every token known, no bare trigger / shoulder names in a hint.
+	var token_re := RegEx.create_from_string("\\{([a-z0-9]+)\\}")
+	var bare_re := RegEx.create_from_string("\"[^\"]*\\b(RT|LT|LB|RB) / (RT|LT|LB|RB)\\b[^\"]*\"")
+	for f in DirAccess.get_files_at("res://scripts/"):
+		if not f.ends_with(".gd") or f == "gamepad.gd":
+			continue
+		var text := FileAccess.get_file_as_string("res://scripts/" + f)
+		for line in text.split("\n"):
+			if line.strip_edges().begins_with("#"):
+				continue
+			if line.contains("Gamepad.fmt("):
+				for m in token_re.search_all(line):
+					if not (Gamepad.FACES[Gamepad.XBOX] as Dictionary).has(m.get_string(1)):
+						fails.append("P14 %s: unknown token {%s}" % [f, m.get_string(1)])
+			if bare_re.search(line) != null:
+				fails.append("P14 %s names pad buttons outside Gamepad.fmt: %s" % [f, line.strip_edges().left(80)])
 
 
 func _finish() -> void:

@@ -1221,6 +1221,7 @@ func _build_world() -> void:
 	hud.set_left_handed(Access.left_handed)  # accessibility (2026-11-01)
 	hud.set_touch_off(no_touch)  # desktop: --no-touch
 	hud.settings_pressed.connect(_open_settings)
+	hud.context_pressed.connect(_on_context_pressed)  # the stuck offer's tow (2026-11-03)
 	hud.settings_panel.changed.connect(_on_setting)
 	hud.settings_panel.closed.connect(_close_settings)
 	hud.map_pressed.connect(_open_full_map)  # F's asks: a tap on the minimap
@@ -2365,8 +2366,8 @@ func _build_garage(world: Node3D) -> void:
 		garage.preset_upgrades(upgrades_flag)
 	garage.upgraded.connect(func(id: String) -> void:
 		if id == "nitro":
-			hud.toast("Nitro gotowe: przytrzymaj błyskawicę przy klaksonie (Shift, LB / RB na padzie).",
-					"Nitro fitted: hold the bolt by the horn (Shift, LB / RB on a pad)."))
+			hud.toast(Gamepad.fmt("Nitro gotowe: przytrzymaj błyskawicę przy klaksonie (Shift, {lb} / {rb} na padzie)."),
+					Gamepad.fmt("Nitro fitted: hold the bolt by the horn (Shift, {lb} / {rb} on a pad).")))
 	if garage_flag:
 		_put_at_garage()
 	garage.opened.connect(func() -> void:
@@ -4576,6 +4577,34 @@ func _unstuck() -> void:
 	_tow_to_lane("unstuck")
 
 
+## The stuck offer (G14's "later", 2026-11-03; F: "if the user is stuck in textures, click and
+## move to the main road"): driven for Car.STALL_TIME s and still in one spot (car.gd `stalled`,
+## whatever holds it: a wall nothing pins it against, a gap inside a building), POMOC DROGOWA comes
+## up on the context button once it is free, with one toast; a tap tows (`_unstuck`). It goes when
+## the car leaves the spot, takes to the air or is towed. The pinned car's own turn-out and tow
+## (car.gd) still come first: this is for what they miss.
+func _stuck_offer_frame() -> void:
+	var want: bool = not flying and not autopilot and _bench_ghost == null and title == null \
+			and not car.in_water and car.stalled >= Car.STALL_TIME \
+			and not (fotka != null and fotka.is_open())
+	if want and hud.pill_free():
+		hud.show_pill("POMOC DROGOWA", "tow truck", "unstuck")
+		if Gamepad.in_use():
+			hud.toast(Gamepad.fmt("Utknąłeś? {a}: pomoc drogowa."), Gamepad.fmt("Stuck? {a}: tow truck."))
+		else:
+			hud.toast("Utknąłeś? Stuknij POMOC DROGOWA.", "Stuck? Tap TOW TRUCK.")
+		print("stuck offer: %.0f s trying at %.1f, %.1f, frame %d" % [car.stalled, car.global_position.x, car.global_position.z, frame])
+	elif not want and hud.pill_shown("unstuck"):
+		hud.hide_pill()
+
+
+## The context button's press (hud.context_pressed): the stuck offer's tow is the game's own.
+func _on_context_pressed(owner: String) -> void:
+	if owner == "unstuck":
+		hud.hide_pill()
+		_unstuck()
+
+
 ## The car onto the nearest lane facing its way (else just the nearest free spot), stopped.
 func _tow_to_lane(why: String) -> void:
 	var at := car.global_position
@@ -4590,6 +4619,9 @@ func _tow_to_lane(why: String) -> void:
 	car.vel = Vector3.ZERO
 	car.forward_speed = 0.0
 	car.reset_physics_interpolation()
+	car.reset_stall()
+	if hud.pill_shown("unstuck"):
+		hud.hide_pill()
 	hud.toast("Pomoc drogowa: wyciągnięci!", "Towed free")
 	_cut_camera()
 	print("%s: moved to %.1f, %.1f" % [why, spot.x, spot.z])
@@ -5181,6 +5213,7 @@ func _process(dt: float) -> void:
 	_read_input(dt)
 	_moment_frame(dt)  # loop MW-6: --egg, --tape, --fotka and the VHS of a tape
 	_water_frame(dt)
+	_stuck_offer_frame()  # G14's "later": POMOC DROGOWA on the context button when stuck
 	Haptics.tick(dt, not flying and absf(car.forward_speed) > 3.0)
 	if autopilot or _bench_ghost != null:
 		_autopilot(dt)
@@ -6103,7 +6136,7 @@ func _toggle_vehicle() -> void:
 	if not flying:
 		_take_off(Heli.CRUISE)
 		if Gamepad.in_use():
-			hud.toast("Helikopter: lewa gałka kieruje, RT / LT to wysokość", "Helicopter: steer with the left stick, RT / LT for height")
+			hud.toast(Gamepad.fmt("Helikopter: lewa gałka kieruje, {rt} / {lt} to wysokość"), Gamepad.fmt("Helicopter: steer with the left stick, {rt} / {lt} for height"))
 		else:
 			hud.toast("Helikopter: kieruj palcem, ▲ ▼ to wysokość", "Helicopter: steer with the stick, ▲ ▼ (Space / Shift) for height")
 		return
@@ -6357,9 +6390,16 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 
 ## M / the pad's A: the mission card's first button (loop 2d-1: a Podwózka request or result first).
+## The context button comes after the cards (a card on screen is what A answers first) and before
+## the rescue line's own A (which offers the next call): the pad had no way to press KASETA, START
+## KURS or POMOC DROGOWA (2026-11-03).
 func _primary() -> void:
-	if (rides == null or not rides.primary()) and (jobs == null or not jobs.primary()) \
-			and (trend_job == null or not trend_job.primary()):
+	if (rides != null and rides.primary()) or (jobs != null and jobs.primary()) \
+			or (trend_job != null and trend_job.primary()):
+		return
+	if missions.state == missions.State.OFFER or missions.state == missions.State.RESULT:
+		missions.primary()
+	elif not hud.press_pill():
 		missions.primary()
 
 

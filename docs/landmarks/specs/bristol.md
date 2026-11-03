@@ -1,58 +1,59 @@
 # Hotel Bristol (the corner tower): spec
 
-Site key `bristol` in `game/scripts/landmarks.gd` (`_build_bristol`). Written 2026-11-01 in a cloud thread (BACKLOG K5) from the OpenStreetMap outline in `centrum.json`; no photo, no LoD2 here. Values marked *(photo check)* wait for the Mac's `refs/`. The mass stays the kept LoD2 skin (sand plaster, brown roof); the model adds a round tower with a copper dome at the street corner.
+Site key `bristol` in `game/scripts/landmarks.gd` (`_build_bristol`). Rewritten 2026-11-02 in a cloud thread from the Mac's reference set `refs/krakowskie/` (photos 12-15; report `docs/landmarks/photo-reports/krakowskie.md` section 3) and the GUGiK LoD2 heights from the CI map pack. The mass stays the kept LoD2 skin, now cream (#e9e1c8) under a grey zinc mansard (#6f7477); the first pass had sand plaster, a brown roof and a copper dome.
 
 ## 1. Identity
 
-The grand hotel of 1901 (Krakowskie Przedmieście 42/44): the rounded street corner rises into a round tower with a copper dome, lantern and spire.
+The grand hotel of 1901 (Krakowskie Przedmieście 42/44): its rounded south-west corner at Karowa rises into a cream drum with pilasters, crowned by an **open round belvedere**: eight thin columns on a balustraded ring under a flat cream dome cap, ~5 m above the roof line.
 
 ## 2. Massing
 
-Centre (-557.8, -894.0) on the mapped corner, which rounds at about 4 m radius. A 12-sided drum r 3.4 m from the ground (inside the mass) to 32.4 m (the roof at OSM's 27.4 m, so a LoD2 roof a metre higher or lower shows no gap), eight pilasters, a ring cornice at 32.4..33.2 m, the dome to 37.4 m, lantern to 39.6 m, spire to 42.4 m, a gilt ball and tip to 43.4 m *(photo check: is the dome on this corner, its height)*.
+Centre (-557.8, -894.0) on the mapped corner, which rounds at ~4 m radius (the report read (-551, -889) off the ortho, outside the outline, so the outline wins). A 12-sided drum r 3.4 m from the ground (inside the mass) to 32.4 m (LoD2 roof at the corner 32.7 m over the street), eight pilasters from 6 m; ring 0.5 m, balustrade r 3.6 m 0.8 m; columns r 0.2 m at 3 m radius, 2.7 m tall; entablature ring; dome cap to 38.6 m; gilt finial to 39.8 m. A dark core (r 1.7 m) inside the columns reads as the open belvedere's shade.
 
-## 3. Facade
+## 3. Facade, base to top
 
-Drum with plaster walls and eight small pilasters; the cornice ring r 4.2 m; the dome in two frustums (r 3.9 to 3.1 to 1.4 m); a lantern (r 0.9 m, M_MONUMENT); a spire to a gilt ball.
+Drum in the cream plaster with windows (M_MONUMENT) and eight trim pilasters; the belvedere's ring, balustrade, columns and entablature in trim cream.
 
 ## 4. Roof
 
-Copper dome and spire (#6f9382).
+A flat cream dome cap in two frustums (r 3.3 to 2.0 to 0.5 m) and a gilt finial.
 
 ## 5. Colour and material
 
 | Part | Colour | Material code |
 | --- | --- | --- |
-| Plaster | #e4d2b4 | M_MONUMENT |
+| Plaster | #e9e1c8 | M_MONUMENT |
+| Shade, plinth | #cfc6ac | M_STONE |
 | Trim | #f1eadb | M_STONE |
-| Copper | #6f9382 | M_STONE |
+| Mansard (skin and body) | #6f7477 | M_STONE |
+| Belvedere core | #4a4842 | M_STONE |
 | Gilt | #c9a24a | M_STONE |
 
 No new material or draw call.
 
 ## 6. Ground and night
 
-No collision of its own (the hotel's mapped walls are the car's). Card: "Hotel Bristol". Open *(photo check)*: tower position, the dome's profile, the facade's real colours and its mansard.
+No collision of its own (the hotel's mapped walls are the car's). Card: "Hotel Bristol" (now "z belwederem na rogu"). Photo 15: warm floodlight at night, the corner canopy lit (the hotels pass's lit door covers the second).
 
 ## 7. Detail level and budget
 
-L2; 2013 triangles measured (tower and body), budget 2450 (`check_mesh_quality.gd`).
-
-Shot: `--at=-557.8,-894 --yaw=245 --pitch=-22 --size=45 --nohud --no-ghost`.
+L2; 2079 triangles measured (tower and body), budget 2450 (`check_mesh_quality.gd`).
 
 ## 8. Parts table
 
 | id | shape | size | position | material | feature |
 | --- | --- | --- | --- | --- | --- |
-| drum | 12-gon prism | r 3.4 m, 32.4 m high | ground to 32.4 m | M_MONUMENT | 2 massing |
-| pilasters | 8 prisms | r 0.3 m, 6.4 m high | round the drum, 26..32.4 m | M_STONE | 3 facade |
-| cornice ring | 12-gon prism | r 4.2 m, 0.8 m high | 32.4..33.2 m | M_STONE | 3 facade |
-| dome | 3 frustums | r 3.9 m to 1.4 m | 33.2..37.4 m | M_STONE | 4 roof |
-| lantern | prism | r 0.9 m, 1.6 m high | 38..39.6 m | M_MONUMENT | 4 roof |
-| spire, ball | frustums | r 1 m to 0.1 m; ball r 0.5 m | 39.6..43.4 m | M_STONE | 4 roof |
+| drum | 12-gon prism | r 3.4 m, to 32.4 m | the corner | M_MONUMENT | drum |
+| pilasters | 8 prisms | r 0.3 m | round the drum, 6-32.4 m | M_STONE | pilasters |
+| ring, balustrade | 12-gon prisms | r 3.9 / 3.6 m | 32.4-33.7 m | M_STONE | balustrade |
+| columns | 8 prisms | r 0.2 m, 2.7 m | r 3 m, 33.7-36.4 m | M_STONE | open belvedere |
+| core | 8-gon prism | r 1.7 m | 32.9-36.4 m | M_STONE #4a4842 | shade inside |
+| cap | ring, 2 frustums | r 3.5 to 0.5 m | 36.4-38.6 m | M_STONE | flat dome |
+| finial | prism | r 0.12 m, 1.2 m | top | M_STONE #c9a24a | finial |
 
 ## 9. The hotel's body (hotels pass, 2026-11-01)
 
-The mass was a kept skin with only the corner tower ours; the shared `_palace_hotel` builder now adds the rest on the mapped outline (simplified 0.9 m): the rusticated plinth with dark ground-floor openings, the balcony band, string course, cornice, a slate mansard (#5a5855) with a hipped dormer every 4.4 m (none within 7.5 m of the tower), and on the longest public front (the Krakowskie Przedmieście side) a forward bay with the lit door, a copper canopy (#6f9382) on two posts, a dark board with BRISTOL in gold neon and a pediment. Trim #f1eadb, wall and plinth as in section 5. Budget 2450 triangles now (2013 measured, the tower's 334 included); see `polonia.md` for the shared rows of the parts table.
+The mass was a kept skin with only the corner tower ours; the shared `_palace_hotel` builder now adds the rest on the mapped outline (simplified 0.9 m): the rusticated plinth with dark ground-floor openings, the balcony band, string course, cornice, a grey zinc mansard (#6f7477, photos 13-14) with a hipped dormer every 4.4 m (none within 7.5 m of the tower), and on the longest public front (the Krakowskie Przedmieście side) a forward bay with the lit door, an iron canopy (#2b2b2b, photo 14: dark iron and glass over the corner café) on two posts, a dark board with BRISTOL in gold neon and a pediment. Trim #f1eadb, wall and plinth as in section 5. Budget 2450 triangles (2079 measured with the 2026-11-02 belvedere); see `polonia.md` for the shared rows of the parts table.
 
 | id | shape | size | position | material | feature |
 | --- | --- | --- | --- | --- | --- |
