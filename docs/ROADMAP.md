@@ -441,6 +441,7 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [x] G16 Fewer text popups while driving on the road: ambient bubbles muted above 40 km/h, ambient toasts one per 20 s, traffic is a slider (2026-11-01, Sonnet)
 - [x] G17 Car stuck against other cars: held against traffic 1.5 s it ghosts through them for 3 s, tow after 8 s among cars (2026-11-02, check_steering `car_sandwich`)
 - [ ] G18 Park Ujazdowski and Zamek Ujazdowski (the castle) improved: its own landmark thread (Opus)
+- [x] The main line on the driving screen after the guide (2026-11-03, `main_nudge.gd`, `check_main_line`): a goal line toast when the step changes and the gold "★ N m" edge arrow to the next rival or the final's start for 25 s, back after 150 s of free driving, only while nothing else is on; the edge arrow keeps off the minimap, wallet, zoom buttons and pedals (`check_hud`). Phone feel parked (QUESTIONS)
 
 ### Left: the phone (needs F's yes for each device run)
 - [ ] Bench on the iPhone 11 and 16 Pro Max on today's main against budget P (DEMO 7): frame,
