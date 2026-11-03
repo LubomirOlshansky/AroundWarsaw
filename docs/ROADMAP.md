@@ -505,6 +505,11 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [ ] Phase 3: lane assist, wall look-ahead, junction pick, deck cut; F's phone run
 - [ ] Phase 4: running clubs that read, Varso Place masses, Chmielna 89 "Piramida" (later, photo way)
 
+### After the beta: driving extras and the city economy (F, 2026-11-03; plan docs/design/city-economy.md)
+- [x] Research and plan: arcade driving references, economy and business games, the "Od słoika do Złotej" ladder, phases D1 and E1-E5; role briefs in docs/roles/ (2026-11-03, docs only)
+- [ ] D1 driving extras (style tips, traffic-light challenges, Sport drift, comfort playtest)
+- [ ] E1-E5 the economy layer: rent and homes, first businesses, the street, the rival developer, Złota 44
+
 ### Left: the phone (needs F's yes for each device run)
 - [ ] Bench on the iPhone 11 and 16 Pro Max on today's main against budget P (DEMO 7): frame,
       draw calls, memory, `--stream-soak`; the sector-load hitch; compressed map textures
