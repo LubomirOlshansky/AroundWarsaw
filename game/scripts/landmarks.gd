@@ -228,6 +228,9 @@ const INFO := {
 	"zamek": ["Zamek Królewski",
 			"Zniszczony w 1944 roku, odbudowany w latach 1971–1984.",
 			"Destroyed in 1944, rebuilt in 1971–1984."],
+	"arkady": ["Arkady Kubickiego i ogrody zamkowe",
+			"Arkady z 1821 roku, na nich Ogród Górny, niżej Ogród Dolny.",
+			"Kubicki's arcades of 1821, the Upper Garden on top, the Lower below."],
 	"barbakan": ["Barbakan",
 			"Ceglana brama dawnych murów miejskich, odbudowana po wojnie.",
 			"A brick gate of the old city walls, rebuilt after the war."],
@@ -375,6 +378,9 @@ const INFO := {
 	"elektrownia": ["Elektrownia Powiśle",
 			"Dawna elektrownia na Dobrej, dziś sklepy i jedzenie pod kominami.",
 			"The old power station on Dobra, shops and food under its chimneys."],
+	"mpw": ["Muzeum Powstania Warszawskiego",
+			"Dawna elektrownia tramwajowa z 1908 roku. Wieża z Kotwicą, a w Parku Wolności Mur Pamięci z nazwiskami poległych.",
+			"The tram power station of 1908. The tower with the Kotwica, and in Freedom Park the Wall of Remembrance with the names of the fallen."],
 	"mirowska": ["Hala Mirowska",
 			"Ceglana hala targowa.",
 			"A brick market hall."],
@@ -689,6 +695,8 @@ static func tower_colour(key: String, fallback: Color) -> Color:
 		return BARB_WALL
 	if key == "teresy":
 		return TERESY_BRICK
+	if key == "mpw":
+		return MPW_BRICK
 	return fallback
 
 
@@ -896,6 +904,7 @@ func _find_sites() -> void:
 	_find_aleksander()
 	# The Barbican (2026-11-02): a model instead of a skin.
 	_find_barbakan()
+	_find_arkady()
 	# Powiśle's new flats (2026-11-02): Piano House and Cube House, models from their outlines.
 	_find_piano_house()
 	_find_cube_house()
@@ -920,6 +929,8 @@ func _find_sites() -> void:
 	_find_ujazdowski()
 	# F's ask (2026-11-01): Norblin, Browary Warszawskie, Hala Koszyki, Elektrownia Powiśle.
 	_find_works()
+	# F's ask (2026-11-02, CITY_INVENTORY #21): the Warsaw Rising Museum, from the Mac's photos.
+	_find_mpw()
 	# The Ministry of Finance (2026-11-01): a model instead of the mapped box.
 	_find_mf()
 	# Świętokrzyska's big three (2026-11-03, the Mac photo reports): PAST-a, a model instead of
@@ -1275,6 +1286,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_koszyki(s)
 			"elektrownia":
 				_build_elektrownia(s)
+			"mpw":
+				_build_mpw(s)
 			"mf":
 				_build_mf(s)
 			"poczta":
@@ -1286,8 +1299,10 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_mark_zone(s)  # the mass stays LoD2's, in its skin; the portico is ours
 				_build_teatr(s)
 			"zamek":
-				_mark_zone(s)  # the mass stays LoD2's, in its skin; the stone plinth is ours
+				_mark_zone(s)  # the mass stays LoD2's, in its skin; the towers' helms, the Vistula front, the plinth are ours
 				_build_zamek(s)
+			"arkady":
+				_build_arkady(s)
 			"sw_krzyz":
 				_mark_zone(s)  # the mass stays LoD2's, in its skin; the facade and towers are ours
 				_build_krzyz(s)
@@ -2076,7 +2091,7 @@ func _build_palace(site: Dictionary) -> void:
 ## building.gdshader from the disc's UV (the point on the dial in radii, x to the right as
 ## seen from outside, y up, both minus 10 so the shader takes it for a roof) and show the
 ## time in Warsaw (main.gd sets `clock_hands` once a minute).
-func _dial(c: Vector2, y: float, n: Vector2, r: float) -> void:
+func _dial(c: Vector2, y: float, n: Vector2, r: float, face := Color("#f4ecd6"), ink := Color("#26232a")) -> void:
 	var side := Vector2(-n.y, n.x)
 	var n3 := Vector3(n.x, 0.0, n.y)
 	var centre := Vector3(c.x, y, c.y) + n3 * 0.05
@@ -2089,17 +2104,16 @@ func _dial(c: Vector2, y: float, n: Vector2, r: float) -> void:
 		var e1 := Vector3(side.x * cos(t1), sin(t1), side.y * cos(t1))
 		_quad(centre + e0 * r * 1.12, centre + e1 * r * 1.12, centre + e1 * r, centre + e0 * r, n3, GOLD)
 	_mode = M_DIAL
-	var face := centre + n3 * 0.04
+	var disc := centre + n3 * 0.04
 	# `side` points to the left of someone looking at the dial from outside.
 	for k in seg:
 		var t0 := TAU * k / seg
 		var t1 := TAU * (k + 1) / seg
-		_tri(face, face + Vector3(side.x * cos(t0), sin(t0), side.y * cos(t0)) * r,
-				face + Vector3(side.x * cos(t1), sin(t1), side.y * cos(t1)) * r, n3, Color("#f4ecd6"),
+		_tri(disc, disc + Vector3(side.x * cos(t0), sin(t0), side.y * cos(t0)) * r,
+				disc + Vector3(side.x * cos(t1), sin(t1), side.y * cos(t1)) * r, n3, face,
 				Vector2(-10, -10), Vector2(-cos(t0) - 10.0, sin(t0) - 10.0), Vector2(-cos(t1) - 10.0, sin(t1) - 10.0), -1.0)
 	_mode = M_STONE
-	var ink := Color("#26232a")
-	var front := face + n3 * 0.05
+	var front := disc + n3 * 0.05
 	for k in 12:
 		var t := TAU * k / 12.0
 		var dir := Vector3(side.x * cos(t), sin(t), side.y * cos(t))
@@ -3526,7 +3540,7 @@ func _sloped(poly: PackedVector2Array, y0: float, hi: float, lo: float, wall: Co
 ## windows between piers (plastered and stone fronts), M_STONE a plain wall (brick, the science
 ## centre's dark slabs). Colours from photographs, a step paler than life.
 const ZAMEK_WALL := "#cf9580"  # salmon plaster (was #c87560: it read brick-red and loud)
-const ZAMEK_ROOF := "#8d6350"  # reddish-brown tile (was #6e5a4e: it went near-black on the shaded slopes)
+const ZAMEK_ROOF := "#ad5c3f"  # terracotta tile (photos #c0502e, calmed; was #8d6350, read brown)
 const ZAMEK_STONE := Color("#e2d8c4")
 const SKINS := [
 	{"key": "teatr", "osm": "Teatr Wielki", "mode": M_MONUMENT, "wall": "#ddd2b6", "roof": "#7fa894"},
@@ -8437,10 +8451,14 @@ const TEATR_SCULPT := Color("#d9d2bf")
 const TEATR_COLS := [-11.9, -8.5, -5.1, -1.7, 1.7, 5.1, 8.5, 11.9]
 
 
-## The Royal Castle (Zamek Królewski): the mass stays LoD2's (its pentagon round the courtyard,
-## the Clock Tower, the Senate Tower), in salmon plaster; the model adds the pale stone plinth the
-## real walls stand on, run round the mapped outline a seventy centimetres proud of the wall and stepped
-## with the escarpment (spec docs/landmarks/specs/zamek.md).
+## The Royal Castle (Zamek Królewski). Pass 1 kept LoD2's mass in its skin and added the stone
+## plinth; pass 2 (2026-11-02, from 13 Commons photos and the GUGiK orthophoto, refs/zamek/ on the
+## Mac) adds what makes it read as the castle: the Clock Tower's shaft with its cream quoins, the
+## gate, the iron balcony, four clock dials, and its green copper helm with the lantern, a second
+## onion and the spire; the two square corner turrets of the west front with their bulbous caps;
+## the cream-white Vistula front over a rusticated ground floor with its cornice; the oval central
+## risalit with its copper dome and gilt figures; and the row of tubbed ball trees on the terrace
+## in front of it. Spec docs/landmarks/specs/zamek.md.
 func _build_zamek(site: Dictionary) -> void:
 	var ring: PackedVector2Array = site["zone"][0]
 	if ring.size() < 3:
@@ -8463,6 +8481,412 @@ func _build_zamek(site: Dictionary) -> void:
 			var b := p.lerp(q, float(k + 1) / steps) + out * 0.7
 			_g = minf(map.terrain_height(a.x, a.y), map.terrain_height(b.x, b.y))
 			_wall(a, b, _g - 1.0, _g + 2.2, out, ZAMEK_STONE, p.distance_to(a))
+	_zamek_vistula(ring)
+	_zamek_dome()
+	_zamek_clock_tower()
+	for c: Vector2 in ZAMEK_TURRETS:
+		_zamek_turret(c)
+	_zamek_tubs()
+
+
+## Pass 2's colours (the photos' hues, calmed to the palette) and places (the orthophoto and the
+## mapped parts, world x and z).
+const ZAMEK_CREAM := Color("#e6dbc0")     # quoins, cornices, the gate's surround, the lantern
+const ZAMEK_VISTULA := Color("#e9e1cf")   # the Vistula (Saxon) front, cream-white
+const ZAMEK_RUSTIC := Color("#cbb6a6")    # its rusticated ground floor, pinkish grey
+const ZAMEK_COPPER := Color("#6f9e86")    # the helms and the dome, green copper
+const ZAMEK_GILT := Color("#d6b04c")
+const ZAMEK_DIAL := Color("#1f2a3a")      # the clock faces: dark blue, gilt numerals
+const ZAMEK_IRON := Color("#2b2a2a")
+const ZAMEK_GATE := Color("#2f2a26")
+## The Clock Tower (Wieża Zegarowa) in the middle of the west front, and the front's way north.
+const ZAMEK_CLOCK := Vector2(-671.0, -1519.3)
+const ZAMEK_FRONT := Vector2(0.0605, -0.9982)
+## The square corner turrets at the two ends of the west front.
+const ZAMEK_TURRETS := [Vector2(-675.0, -1476.7), Vector2(-669.6, -1565.7)]
+## The courtyard (the ground the Vistula front's storeys count from) and that front's eave.
+const ZAMEK_YARD := Vector2(-632.0, -1517.0)
+const ZAMEK_EAVE := 17.0
+## The oval central risalit: a drum standing 1.5 m out of the front, and its dome.
+const ZAMEK_DOME := Vector2(-597.2, -1566.0)
+const ZAMEK_DOME_R := 7.0
+## The row of tubs on the terrace in front of the Vistula front, 7 m out, one every 4 m.
+const ZAMEK_TUBS := [Vector2(-590.4, -1580.2), Vector2(-572.4, -1530.2)]
+
+
+## The Vistula front: every edge of the outline facing east (x > -615): a rusticated ground floor
+## and two storeys of windows in cream-white, 0.35 m proud of the skin, to the eave, under a
+## cream cornice.
+func _zamek_vistula(ring: PackedVector2Array) -> void:
+	var yard: float = map.terrain_height(ZAMEK_YARD.x, ZAMEK_YARD.y)
+	var top := yard + ZAMEK_EAVE
+	var n := ring.size()
+	var run := 0.0
+	for i in n:
+		var p := ring[i]
+		var q := ring[(i + 1) % n]
+		if p.distance_to(q) < 0.4:
+			continue
+		var out := _out(ring, p, q)
+		if out.x < 0.55 or (p.x + q.x) * 0.5 < -615.0:
+			continue
+		var a := p + out * 0.35
+		var b := q + out * 0.35
+		var foot: float = minf(map.terrain_height(a.x, a.y), map.terrain_height(b.x, b.y))
+		_g = yard
+		_mode = M_MONUMENT
+		_wall(a, b, minf(foot, yard) - 0.5, yard + 4.6, out, ZAMEK_RUSTIC, run)
+		_wall(a, b, yard + 4.6, top, out, ZAMEK_VISTULA, run)
+		_mode = M_STONE
+		_wall(a + out * 0.05, b + out * 0.05, yard + 4.4, yard + 4.8, out, ZAMEK_CREAM, run)
+		_wall(p + out * 0.75, q + out * 0.75, top - 0.2, top + 0.7, out, ZAMEK_CREAM, run)
+		_ledge(a, b, p + out * 0.75, q + out * 0.75, top + 0.7, ZAMEK_CREAM)
+		run += p.distance_to(q)
+
+
+## A flat strip between two parallel segments (a cornice's top), through `_cap` so the strips of
+## two edges meeting at a corner don't overlap (z-fight).
+func _ledge(a: Vector2, b: Vector2, c: Vector2, d: Vector2, y: float, col: Color) -> void:
+	var quad := PackedVector2Array([a, b, d, c])
+	if Geometry2D.is_polygon_clockwise(quad):
+		quad.reverse()
+	_cap(quad, y, col)
+
+
+## The oval central risalit of the Vistula front: a drum of windows to above the eave, a cornice,
+## a green copper dome with a lantern and a gilt ball, and three gilt figure groups on its rim.
+func _zamek_dome() -> void:
+	_o = Vector2.ZERO
+	_a = Vector2(1, 0)
+	_b = Vector2(0, 1)
+	var yard: float = map.terrain_height(ZAMEK_YARD.x, ZAMEK_YARD.y)
+	var top := yard + ZAMEK_EAVE
+	_g = yard
+	var c := ZAMEK_DOME
+	var r := ZAMEK_DOME_R
+	_prism(_circle(c, r, 12), yard - 0.5, top + 1.2, ZAMEK_VISTULA, Color(0, 0, 0, 0), M_MONUMENT)
+	_prism(_circle(c, r + 0.4, 12), top + 1.2, top + 2.0, ZAMEK_CREAM, ZAMEK_CREAM, M_STONE, M_STONE)
+	_mode = M_STONE
+	var prof := [[r - 0.2, 2.0], [r - 0.8, 3.6], [r - 2.4, 5.4], [r - 4.6, 6.6], [1.0, 7.1]]
+	for k in prof.size() - 1:
+		_frustum(_circle(c, float(prof[k][0]), 12), top + float(prof[k][1]), _circle(c, float(prof[k + 1][0]), 12),
+				top + float(prof[k + 1][1]), ZAMEK_COPPER.lightened(0.03 * k), ZAMEK_COPPER)
+	_prism(_circle(c, 0.9, 6), top + 7.1, top + 8.6, ZAMEK_CREAM, Color(0, 0, 0, 0), M_STONE)
+	_frustum(_circle(c, 1.1, 6), top + 8.6, _circle(c, 0.15, 6), top + 9.6, ZAMEK_COPPER)
+	_prism(_circle(c + Vector2(0.0, 0.0), 0.35, 6), top + 9.6, top + 10.3, ZAMEK_GILT, ZAMEK_GILT, M_STONE, M_STONE)
+	# the figure groups on the rim, facing the river
+	var face := Vector2(0.93, -0.36)
+	for turn: float in [-0.7, 0.0, 0.7]:
+		var at := c + face.rotated(turn) * (r - 0.1)
+		_prism(_square(at, 0.45), top + 2.0, top + 4.1, ZAMEK_GILT.darkened(0.08), ZAMEK_GILT, M_STONE, M_STONE)
+
+
+## The Clock Tower: the shaft (0.3 m proud of the mapped one) with cream quoins and string
+## courses, the gate to the courtyard, the iron balcony two thirds up, a dial on every face, the
+## cornice with a gilt frieze, then the helm: the copper onion, the open lantern, a second onion,
+## the spire with two gilt balls and a flag (56 m).
+func _zamek_clock_tower() -> void:
+	_o = ZAMEK_CLOCK
+	_a = ZAMEK_FRONT
+	_b = Vector2(_a.y, -_a.x)  # out of the front, west to Plac Zamkowy
+	var sq := _w(0.0, 9.0)
+	var g: float = map.terrain_height(sq.x, sq.y)
+	_g = g
+	var wall := Color(ZAMEK_WALL)
+	var h := 4.6
+	_lbox(0.0, 0.0, h, h, g - 0.6, g + 29.5, wall, M_MONUMENT, wall)
+	for su: float in [-1.0, 1.0]:
+		for sv: float in [-1.0, 1.0]:
+			_lbox(su * h, sv * h, 0.45, 0.45, g + 0.3, g + 29.5, ZAMEK_CREAM, M_STONE, ZAMEK_CREAM)
+	for y: float in [12.6, 19.0]:
+		_lbox(0.0, 0.0, h + 0.2, h + 0.2, g + y, g + y + 0.45, ZAMEK_CREAM, M_STONE, ZAMEK_CREAM)
+	# the gate: a cream rusticated surround, the dark passage
+	_mode = M_STONE
+	_wall(_w(-2.8, h + 0.05), _w(2.8, h + 0.05), g - 0.3, g + 6.4, _b, ZAMEK_CREAM)
+	_wall(_w(-2.0, h + 0.1), _w(2.0, h + 0.1), g - 0.3, g + 5.0, _b, ZAMEK_GATE)
+	_lbox(0.0, h + 0.15, 0.7, 0.15, g + 5.4, g + 6.2, ZAMEK_GILT, M_STONE, ZAMEK_GILT)
+	# the balcony on the square's side
+	_lbox(0.0, h + 0.7, 2.4, 0.7, g + 19.6, g + 19.85, ZAMEK_IRON, M_STONE, ZAMEK_IRON)
+	_lbox(0.0, h + 1.38, 2.4, 0.02, g + 19.85, g + 20.8, ZAMEK_IRON, M_STONE, ZAMEK_IRON)
+	# the dials, one on each face
+	for f: Vector2 in [Vector2(0, 1), Vector2(0, -1), Vector2(1, 0), Vector2(-1, 0)]:
+		var nrm := _a * f.x + _b * f.y
+		_dial(_w(f.x * (h + 0.02), f.y * (h + 0.02)), g + 24.0, nrm, 1.7, ZAMEK_DIAL, ZAMEK_GILT)
+	_lbox(0.0, 0.0, h + 0.4, h + 0.4, g + 29.5, g + 30.3, ZAMEK_CREAM, M_STONE, ZAMEK_CREAM)
+	_lbox(0.0, 0.0, h + 0.15, h + 0.15, g + 30.3, g + 30.7, ZAMEK_GILT, M_STONE, ZAMEK_GILT)
+	# the helm
+	var c := ZAMEK_CLOCK
+	_mode = M_STONE
+	var prof := [[4.4, 30.7], [4.4, 32.0], [5.0, 33.6], [4.6, 35.2], [3.2, 37.0], [1.9, 38.4]]
+	for k in prof.size() - 1:
+		_frustum(_circle(c, float(prof[k][0]), 8), g + float(prof[k][1]), _circle(c, float(prof[k + 1][0]), 8),
+				g + float(prof[k + 1][1]), ZAMEK_COPPER.lightened(0.03 * k), ZAMEK_COPPER)
+	_prism(_circle(c, 1.8, 8), g + 38.4, g + 42.0, ZAMEK_CREAM, Color(0, 0, 0, 0), M_MONUMENT)
+	_prism(_circle(c, 2.05, 8), g + 42.0, g + 42.4, ZAMEK_CREAM, ZAMEK_COPPER, M_STONE, M_STONE)
+	_mode = M_STONE
+	var cap := [[1.6, 42.4], [2.1, 43.4], [1.6, 44.6], [0.6, 45.8], [0.2, 46.4]]
+	for k in cap.size() - 1:
+		_frustum(_circle(c, float(cap[k][0]), 8), g + float(cap[k][1]), _circle(c, float(cap[k + 1][0]), 8),
+				g + float(cap[k + 1][1]), ZAMEK_COPPER, ZAMEK_COPPER)
+	_prism(_circle(c, 0.14, 4), g + 46.4, g + 55.6, ZAMEK_COPPER, ZAMEK_COPPER, M_STONE, M_STONE)
+	for y: float in [49.6, 55.6]:
+		_prism(_circle(c, 0.42, 6), g + y, g + y + 0.75, ZAMEK_GILT, ZAMEK_GILT, M_STONE, M_STONE)
+	_wall(c + _a * 0.15, c + _a * 1.6, g + 53.6, g + 54.6, _b, ZAMEK_COPPER)
+	_wall(c + _a * 1.6, c + _a * 0.15, g + 53.6, g + 54.6, -_b, ZAMEK_COPPER)
+	_o = ZAMEK_CLOCK
+	_collide(_rect(0.0, 0.0, h, h))
+
+
+## A corner turret of the west front: a square shaft out of the roof with cream quoins, a
+## cornice, a bulbous copper cap, a small open lantern, a cap and a spire with a gilt ball (31 m).
+func _zamek_turret(c: Vector2) -> void:
+	_o = c
+	_a = ZAMEK_FRONT
+	_b = Vector2(_a.y, -_a.x)
+	var sq := _w(0.0, 7.0)
+	var g: float = map.terrain_height(sq.x, sq.y)
+	_g = g
+	var wall := Color(ZAMEK_WALL)
+	_lbox(0.0, 0.0, 2.25, 2.25, g - 0.5, g + 20.5, wall, M_MONUMENT, wall)  # from the ground, inside the mass
+	for su: float in [-1.0, 1.0]:
+		for sv: float in [-1.0, 1.0]:
+			_lbox(su * 2.25, sv * 2.25, 0.3, 0.3, g + 11.0, g + 20.5, ZAMEK_CREAM, M_STONE, ZAMEK_CREAM)
+	_lbox(0.0, 0.0, 2.55, 2.55, g + 20.5, g + 21.1, ZAMEK_CREAM, M_STONE, ZAMEK_CREAM)
+	_mode = M_STONE
+	var prof := [[2.1, 21.1], [2.6, 22.3], [2.2, 23.4], [1.2, 24.5], [0.75, 25.0]]
+	for k in prof.size() - 1:
+		_frustum(_circle(c, float(prof[k][0]), 8), g + float(prof[k][1]), _circle(c, float(prof[k + 1][0]), 8),
+				g + float(prof[k + 1][1]), ZAMEK_COPPER.lightened(0.03 * k), ZAMEK_COPPER)
+	_prism(_circle(c, 0.7, 6), g + 25.0, g + 26.6, ZAMEK_CREAM, Color(0, 0, 0, 0), M_STONE)
+	_frustum(_circle(c, 0.9, 6), g + 26.6, _circle(c, 0.15, 6), g + 28.2, ZAMEK_COPPER)
+	_prism(_circle(c, 0.08, 4), g + 28.2, g + 30.6, ZAMEK_COPPER, ZAMEK_COPPER, M_STONE, M_STONE)
+	_prism(_circle(c, 0.3, 6), g + 29.2, g + 29.8, ZAMEK_GILT, ZAMEK_GILT, M_STONE, M_STONE)
+
+
+## The tubs of the Upper Garden's terrace (Krajobraz's design: "a row of tubs with spherical trees
+## marks the terrace edges"): one every 4 m along the Vistula front.
+func _zamek_tubs() -> void:
+	_o = Vector2.ZERO
+	_a = Vector2(1, 0)
+	_b = Vector2(0, 1)
+	var a: Vector2 = ZAMEK_TUBS[0]
+	var b: Vector2 = ZAMEK_TUBS[1]
+	var n := maxi(int(a.distance_to(b) / 4.0), 1)
+	for k in n + 1:
+		var p := a.lerp(b, float(k) / n)
+		_tub(p, float(map.terrain_height(p.x, p.y)), k)
+
+
+## A garden tub with a ball-headed tree (a clipped maple on a bare stem): a painted barrel with a
+## white rim, the stem, the ball.
+const TUB_PAINT := [Color("#b8473a"), Color("#4c6b4a"), Color("#4c6b4a")]
+const TUB_RIM := Color("#efece4")
+const TUB_LEAF := Color("#4f7f36")
+const TUB_BARK := Color("#5a4636")
+
+
+func _tub(p: Vector2, g: float, k: int) -> void:
+	_g = g
+	var none := Color(0, 0, 0, 0)
+	_prism(_square(p, 0.45), g, g + 0.6, TUB_PAINT[k % TUB_PAINT.size()], none, M_STONE)
+	_prism(_square(p, 0.48), g + 0.6, g + 0.78, TUB_RIM, TUB_BARK, M_STONE, M_STONE)
+	_prism(_square(p, 0.06), g + 0.78, g + 2.0, TUB_BARK, none, M_STONE)
+	_mode = M_STONE
+	_frustum(_circle(p, 0.35, 6), g + 1.9, _circle(p, 0.78, 6), g + 2.45, TUB_LEAF.darkened(0.08))
+	_frustum(_circle(p, 0.78, 6), g + 2.45, _circle(p, 0.32, 6), g + 3.05, TUB_LEAF, TUB_LEAF.lightened(0.06))
+
+
+# --- Arkady Kubickiego and the castle gardens ---------------------------------------------------
+
+## Kubicki's Arcades (Jakub Kubicki, 1818-1821) under the castle's Vistula terrace, and the gardens
+## Ogród Park Krajobraz restored on and below them (krajobraz.com.pl/projekt/zamek-krolewski: the
+## Upper Garden on the arcades' vault, 2015; the Lower Garden down to Wisłostrada, 2019). The
+## mapped building stood as a grey box; the model is the arcade wall facing the Lower Garden in
+## terracotta plaster with cream-ringed round arches every 12 m, a cream cornice and an iron
+## railing, the white stone portal block in the middle, and the Upper Garden's lawn on its top at
+## the terrace's level; then tubbed ball trees along the terrace edge and white vases on pedestals
+## round the Lower Garden's sunken lawn carpet (its grass is map_builder's LAWN_CARPETS). The
+## gardens' hedges, paths and flowerbeds are the map's own; the fountains are park_details'.
+## Spec docs/landmarks/specs/zamek.md "Gardens".
+const ARK_PLASTER := Color("#c8693f")
+const ARK_STONE := Color("#e4dfd2")
+const ARK_LAWN := Color("#74a24c")
+const ARK_DARK := Color("#3a2c26")
+const ARK_GRAVEL := Color("#cfcbc0")
+const ARK_WATER := Color("#5ea8d8")
+## The Upper Garden's big fountain (a tulip bowl in a round basin), on the vault.
+const ARK_FOUNTAIN := Vector2(-556.8, -1585.8)
+## The portal block's middle (the mapped outline's bump on its east side).
+const ARK_PORTAL := Vector2(-546.9, -1590.0)
+## The Lower Garden's white vases, both long sides of the lawn carpet: on the round beds the map
+## has there (map_builder draws their rings low, GARDEN_RINGS).
+const ARK_VASES := [Vector2(-520.4, -1580.7), Vector2(-507.6, -1585.8), Vector2(-492.3, -1591.9),
+		Vector2(-478.1, -1597.4), Vector2(-463.5, -1603.2), Vector2(-449.0, -1608.9), Vector2(-534.4, -1614.5),
+		Vector2(-521.6, -1619.5), Vector2(-506.2, -1625.6), Vector2(-492.0, -1631.2), Vector2(-477.5, -1637.0),
+		Vector2(-462.8, -1642.7)]
+## Fountains on the ground (in the map's basin rings): the Upper Garden's small one by the castle
+## and the one in the Lower Garden's west hedge quarter; centre, water radius.
+const ARK_POOLS := [[Vector2(-585.5, -1574.5), 1.0], [Vector2(-537.5, -1656.4), 2.0]]
+## The site's reach: the arcades and both gardens (the sectors build what lies in it).
+const ARK_BOX := Rect2(-612.0, -1700.0, 162.0, 215.0)
+
+
+func _find_arkady() -> void:
+	var outline := _landmark("Arkady Kubickiego")
+	if outline.size() < 3:
+		return
+	_add_site("arkady", [outline])
+	if not sites.is_empty() and sites[-1]["key"] == "arkady":
+		sites[-1]["box"] = (sites[-1]["box"] as Rect2).merge(ARK_BOX)
+
+
+func _build_arkady(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["zone"][0]
+	if ring.size() < 3:
+		return
+	_o = Vector2.ZERO
+	_a = Vector2(1, 0)
+	_b = Vector2(0, 1)
+	var n := ring.size()
+	# the two levels: the Lower Garden at the wall's foot, the terrace on its top
+	var low := INF
+	var up := -INF
+	for i in n:
+		var p := ring[i]
+		var q := ring[(i + 1) % n]
+		if p.distance_to(q) < 0.5:
+			continue
+		var out := _out(ring, p, q)
+		var m := (p + q) * 0.5
+		if out.x > 0.3:
+			low = minf(low, map.terrain_height(m.x + out.x * 3.0, m.y + out.y * 3.0))
+		elif out.x < -0.3:
+			up = maxf(up, map.terrain_height(m.x + out.x * 6.0, m.y + out.y * 6.0))
+	if low == INF:
+		low = _ground_under(ring)
+	if up == -INF:
+		up = low
+	var top := maxf(up + 0.15, low + 7.5)
+	_g = low
+	var run := 0.0
+	for i in n:
+		var p := ring[i]
+		var q := ring[(i + 1) % n]
+		var len := p.distance_to(q)
+		if len < 0.3:
+			continue
+		var out := _out(ring, p, q)
+		var foot: float = minf(map.terrain_height(p.x + out.x, p.y + out.y), map.terrain_height(q.x + out.x, q.y + out.y)) - 0.5
+		var portal := ((p + q) * 0.5).distance_to(ARK_PORTAL) < 9.5
+		var face := ARK_STONE if portal else ARK_PLASTER
+		_mode = M_STONE
+		_wall(p, q, foot, top - 0.7, out, face if out.x > 0.3 else ARK_PLASTER.darkened(0.06), run)
+		_wall(p + out * 0.25, q + out * 0.25, top - 0.7, top, out, ARK_STONE, run)
+		_ledge(p, q, p + out * 0.25, q + out * 0.25, top, ARK_STONE)
+		if out.x > 0.3:
+			# the arches: round-headed, ringed in cream, one every 12 m (a big one in the portal)
+			if portal and len > 4.0:
+				_ark_arch(p, q, out, len * 0.5, 3.5, foot + 0.5, minf(top - 1.2, foot + 6.8))
+			elif len >= 8.0:
+				var count := maxi(floori(len / 12.0), 1)
+				for k in count:
+					_ark_arch(p, q, out, (k + 0.5) * len / count, 3.0, foot + 0.5, minf(top - 1.5, foot + 5.5))
+			# the railing on the edge, a post at each end
+			var ra := p + out * 0.1
+			var rb := q + out * 0.1
+			for post: Vector2 in [ra, rb]:
+				_prism(_square(post, 0.05), top, top + 1.0, ZAMEK_IRON, ZAMEK_IRON, M_STONE, M_STONE)
+			for side: float in [1.0, -1.0]:
+				_wall(ra if side > 0.0 else rb, rb if side > 0.0 else ra, top + 0.9, top + 1.0, out * side, ZAMEK_IRON)
+				_wall(ra if side > 0.0 else rb, rb if side > 0.0 else ra, top, top + 0.12, out * side, ZAMEK_IRON)
+		run += len
+	# the Upper Garden on the vault: where the terrain has no terrace (the cloud's flat ground) the
+	# vault gets a lawn of its own; the gravel walk along the edge always (it hides the terrain's
+	# slope down to the wall's top)
+	if top > up + 1.0:
+		_cap(ring, top + 0.01, ARK_LAWN)
+	for i in n:
+		var p := ring[i]
+		var q := ring[(i + 1) % n]
+		if p.distance_to(q) < 0.3:
+			continue
+		var out := _out(ring, p, q)
+		if out.x > 0.3:
+			_ledge(p, q, p - out * 3.5, q - out * 3.5, top + 0.06, ARK_GRAVEL)
+	_ark_fountain(ARK_FOUNTAIN, top)
+	# tubs along the terrace edge, 3 m in from the railing, one every 10 m
+	var tub_k := 0
+	for i in n:
+		var p := ring[i]
+		var q := ring[(i + 1) % n]
+		var len := p.distance_to(q)
+		var out := _out(ring, p, q)
+		if out.x <= 0.3 or len < 10.0 or ((p + q) * 0.5).distance_to(ARK_PORTAL) < 9.5:
+			continue
+		var count := floori(len / 10.0)
+		for j in count:
+			var t := (j + 0.5) / count
+			_tub(p.lerp(q, t) - out * 3.0, top, tub_k)
+			tub_k += 1
+	# the Lower Garden's vases round the lawn carpet, the fountains' water
+	for v: Vector2 in ARK_VASES:
+		_vase(v, float(map.terrain_height(v.x, v.y)))
+	for pool: Array in ARK_POOLS:
+		var pc: Vector2 = pool[0]
+		var pr: float = pool[1]
+		var py: float = map.terrain_height(pc.x, pc.y)
+		_g = py
+		_cap(_circle(pc, pr, 10), py + 0.38, ARK_WATER)
+		_prism(_circle(pc, 0.07, 4), py + 0.38, py + 1.6, ARK_WATER.lightened(0.5), ARK_WATER.lightened(0.6), M_STONE, M_STONE)
+	_g = low
+	_collide(ring)
+
+
+## A round-headed arch on the wall p→q: a cream ring and the dark opening inside it, `at` metres
+## along the wall, half as wide as `half`, from y0 to the crown at y1 (the head a half circle).
+func _ark_arch(p: Vector2, q: Vector2, out: Vector2, at: float, half: float, y0: float, y1: float) -> void:
+	var d := (q - p).normalized()
+	var mid := p + d * at
+	var n3 := Vector3(out.x, 0.0, out.y)
+	for layer in 2:
+		var push := 0.04 if layer == 0 else 0.08
+		var hw := half + 0.45 if layer == 0 else half
+		var crown := y1 + 0.45 if layer == 0 else y1
+		var col := ARK_STONE if layer == 0 else ARK_DARK
+		var spring := crown - hw
+		var l := mid - d * hw + out * push
+		var r := mid + d * hw + out * push
+		_quad(Vector3(l.x, y0, l.y), Vector3(r.x, y0, r.y), Vector3(r.x, spring, r.y), Vector3(l.x, spring, l.y), n3, col)
+		var c := Vector3(mid.x + out.x * push, spring, mid.y + out.y * push)
+		var seg := 6
+		for s in seg:
+			var t0 := PI * s / seg
+			var t1 := PI * (s + 1) / seg
+			var e0 := Vector3(d.x * cos(t0), sin(t0), d.y * cos(t0)) * hw
+			var e1 := Vector3(d.x * cos(t1), sin(t1), d.y * cos(t1)) * hw
+			_tri(c, c + e0, c + e1, n3, col, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+
+
+## The Upper Garden's fountain: a round stone basin 6 m across with its water, a tulip bowl on a
+## stem in the middle, a jet.
+func _ark_fountain(c: Vector2, y: float) -> void:
+	_g = y
+	_prism(_circle(c, 3.6, 10), y, y + 0.15, ARK_GRAVEL.darkened(0.05), ARK_GRAVEL, M_STONE, M_STONE)
+	_prism(_circle(c, 3.1, 10), y + 0.15, y + 0.6, ARK_STONE, ARK_STONE, M_STONE, M_STONE)
+	_cap(_circle(c, 2.8, 10), y + 0.62, ARK_WATER)
+	_mode = M_STONE
+	_frustum(_circle(c, 0.25, 6), y + 0.6, _circle(c, 0.3, 6), y + 1.3, ARK_STONE)
+	_frustum(_circle(c, 0.3, 8), y + 1.3, _circle(c, 1.1, 8), y + 1.8, ARK_STONE, ARK_WATER)
+	_prism(_circle(c, 0.07, 4), y + 1.8, y + 2.7, ARK_WATER.lightened(0.5), ARK_WATER.lightened(0.6), M_STONE, M_STONE)
+
+
+## A white garden vase on a square pedestal.
+func _vase(p: Vector2, g: float) -> void:
+	_g = g
+	_prism(_square(p, 0.32), g - 0.1, g + 1.0, ARK_STONE.darkened(0.04), ARK_STONE, M_STONE, M_STONE)
+	_mode = M_STONE
+	_frustum(_circle(p, 0.16, 6), g + 1.0, _circle(p, 0.4, 6), g + 1.5, ARK_STONE)
+	_frustum(_circle(p, 0.4, 6), g + 1.5, _circle(p, 0.3, 6), g + 1.85, ARK_STONE, ARK_DARK.lightened(0.2))
 
 
 ## The Barbican (Barbakan; Gianbattista of Venice's brick outwork of 1548 in front of the Nowomiejska
@@ -13603,6 +14027,487 @@ func _build_elektrownia(site: Dictionary) -> void:
 	var far_b := _farthest(ring, far_a)
 	for p: Vector2 in [far_a, far_b]:
 		_works_chimney(p + (c - p).normalized() * 3.0, 48.0, 2.0, WORKS_BRICK)
+
+
+# --- Muzeum Powstania Warszawskiego (2026-11-02, spec docs/landmarks/specs/mpw.md) ------------
+
+## The Warsaw Rising Museum, Grzybowska 79 / Przyokopowa 28: the tram power station of 1904-1908
+## (OSM "Elektrownia Tramwajów Miejskich"), the museum since 2004. Built from F's Mac photo pass
+## (refs/mpw/: 25 Commons photos, the GUGiK ortho and REPORT.md/PARTS.md in game coordinates) and
+## LoD2's heights. On Przyokopowa the west leg in orange-red brick: two corner blocks (W1, W3)
+## under cream attics and between them the long arcade hall (W2): brick piers, eleven tall
+## round-arched windows with a blind fourth bay, paired small arches under them, a cream frieze
+## and attic. Behind it the halls in pale render under grey-blue metal gables (ridges N-S in the
+## middle, E-W with red steel grids on the gables facing Freedom Park), the low yard wing with
+## the museum doors, and at the halls' south-east corner the observation tower: a steel frame,
+## a concrete shaft whose east face tapers out as a wedge carrying the white Kotwica, the black
+## mesh platform and cabin at 28-31.5 m, the flag. Around it: the hipped brick office block, the
+## gatehouse with its pinnacles, the KASA pavilion, the brick fence with railings on Przyokopowa,
+## the Tobruk bunker, and in the park the curved black granite Wall of Remembrance with the bell.
+## Frame: u east, v south from the outline's NW corner, turned with its west wall (2.4 degrees).
+const MPW_O := Vector2(-2955.1, 160.4)
+const MPW_B := Vector2(0.0422, 1.0)                 # along the west wall, to the south
+const MPW_BRICK := Color("#b4553f")
+const MPW_BAND := Color("#8a4a3c")                  # archivolts and shaded brick
+const MPW_CREAM := Color("#d9cdb5")
+const MPW_RENDER := Color("#a09b94")                # the yard-side halls
+const MPW_METAL := Color("#8394a0")                 # standing-seam gables (lit a5b5c0, shaded 596577)
+const MPW_FLAT := Color("#8f9396")
+const MPW_GLASS := Color("#3a4248")
+const MPW_RED := Color("#9a2a25")                   # the steel grids on the east gables
+const MPW_CONCRETE := Color("#8a8a88")
+const MPW_STEEL := Color("#2a2523")
+const MPW_WHITE := Color("#f2f0ea")
+const MPW_GRANITE := Color("#3a3b3d")
+const MPW_TILE := Color("#b5683f")
+const MPW_ROOF_DARK := Color("#4a4e52")
+## The west leg's blocks and the halls: [u0, u1, v0, v1, eaves, top] in the frame.
+const MPW_W1 := [-0.8, 9.5, 0.0, 12.0, 15.0, 19.0]
+const MPW_W2 := [0.0, 18.0, 12.0, 63.5, 14.0, 15.5]
+const MPW_W2N := [9.5, 18.0, 4.5, 12.0, 14.0, 15.5]
+const MPW_W3 := [-0.8, 18.3, 63.5, 73.5, 15.0, 17.0]
+const MPW_LOW := [9.5, 52.3, 0.3, 4.5, 7.0, 7.0]
+## [u0, u1, v0, v1, eaves, ridge, ridge along u]
+const MPW_HALLS := [
+	[18.0, 40.6, 4.5, 23.0, 12.0, 16.5, false],   # M1
+	[18.0, 40.6, 27.0, 44.5, 12.0, 16.0, false],  # M2
+	[40.6, 57.7, 4.5, 23.0, 12.0, 17.0, true],    # E1, its gable to the park
+	[40.6, 57.7, 27.0, 45.0, 11.0, 15.0, true],   # E2
+	[18.0, 57.7, 23.0, 27.0, 12.0, 14.0, true],   # the cross gable between them
+]
+const MPW_TOWER := [48.8, 55.8, 32.7, 40.7]
+## The Wall of Remembrance (world x, z), from the ortho; its south end under the trees is a guess.
+const MPW_WALL := [Vector2(-2903.0, 141.0), Vector2(-2891.0, 167.0), Vector2(-2879.0, 192.0),
+		Vector2(-2866.0, 218.0), Vector2(-2858.0, 236.0), Vector2(-2848.0, 255.0)]
+const MPW_BELL := Vector2(-2873.0, 204.0)
+const MPW_OFFICE := Vector2(-2931.0, 130.0)         # the hipped office block's centre
+const MPW_OFFICE_AXIS := Vector2(0.9673, -0.2543)
+const MPW_GATEHOUSE := Rect2(-2959.0, 142.3, 9.4, 6.1)
+const MPW_KASA := Rect2(-2911.5, 139.5, 7.0, 11.5)
+const MPW_TOBRUK := Vector2(-2926.0, 117.0)
+
+
+func _mpw_a() -> Vector2:
+	var b := MPW_B.normalized()
+	return Vector2(b.y, -b.x)
+
+
+func _mpw_frame() -> void:
+	_o = MPW_O
+	_b = MPW_B.normalized()
+	_a = Vector2(_b.y, -_b.x)
+
+
+func _mpw_rect(u0: float, u1: float, v0: float, v1: float) -> PackedVector2Array:
+	return _rect((u0 + u1) * 0.5, (v0 + v1) * 0.5, (u1 - u0) * 0.5, (v1 - v0) * 0.5)
+
+
+## The office block's plan in its own frame (25 x 14 m, turned 15 degrees).
+func _mpw_office() -> PackedVector2Array:
+	var a := MPW_OFFICE_AXIS.normalized()
+	var b := Vector2(-a.y, a.x)
+	var c := MPW_OFFICE
+	return PackedVector2Array([c - a * 11.0 - b * 6.6, c + a * 11.0 - b * 6.6, c + a * 11.0 + b * 6.6, c - a * 11.0 + b * 6.6])
+
+
+## The Wall of Remembrance as one mitred band `half` either side of its line.
+func _mpw_wall_band(half: float) -> PackedVector2Array:
+	var left := PackedVector2Array()
+	var right := PackedVector2Array()
+	var n := MPW_WALL.size()
+	for i in n:
+		var p: Vector2 = MPW_WALL[i]
+		var d0: Vector2 = (p - MPW_WALL[i - 1]).normalized() if i > 0 else (MPW_WALL[1] - p).normalized()
+		var d1: Vector2 = (MPW_WALL[i + 1] - p).normalized() if i < n - 1 else d0
+		var t := (d0 + d1).normalized()
+		var m := Vector2(-t.y, t.x)
+		var s := half / maxf(m.dot(Vector2(-d0.y, d0.x)), 0.5)
+		left.append(p + m * s)
+		right.append(p - m * s)
+	right.reverse()
+	left.append_array(right)
+	return left
+
+
+func _find_mpw() -> void:
+	var outline := _landmark("Elektrownia Tramwajów Miejskich")
+	if outline.size() < 3:
+		return
+	var gate := MPW_GATEHOUSE
+	var kasa := MPW_KASA
+	var zone: Array = [outline, _mpw_office(), _mpw_wall_band(3.0),
+		PackedVector2Array([gate.position, Vector2(gate.end.x, gate.position.y), gate.end, Vector2(gate.position.x, gate.end.y)]),
+		PackedVector2Array([kasa.position, Vector2(kasa.end.x, kasa.position.y), kasa.end, Vector2(kasa.position.x, kasa.end.y)]),
+		_circle(MPW_TOBRUK, 4.0, 8)]
+	_add_site("mpw", zone)
+	if not sites.is_empty() and sites[-1]["key"] == "mpw":
+		sites[-1]["ring"] = outline
+
+
+## A round-headed window on a wall: a rim (an archivolt) behind its pane; `glass` transparent
+## (alpha 0) leaves the rim alone (a blind arch).
+func _mpw_win(at: Vector2, along: Vector2, out: Vector2, hw: float, sill: float, spring: float, glass: Color,
+		rim := MPW_BAND) -> void:
+	_arch_panel(at, along, out, hw + 0.25, _g + sill - 0.2, _g + spring, rim, 0.04, M_STONE)
+	if glass.a > 0.0:
+		_arch_panel(at, along, out, hw, _g + sill, _g + spring, glass, 0.08, M_GLASS)
+
+
+## A block of the west leg: brick to the eaves, a cream attic to its top, a flat roof.
+func _mpw_block(b: Array) -> void:
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	_prism(_mpw_rect(b[0], b[1], b[2], b[3]), g - 0.6, g + float(b[4]), MPW_BRICK, none, M_STONE, M_STONE)
+	_prism(_mpw_rect(b[0], b[1], b[2], b[3]), g + float(b[4]), g + float(b[5]), MPW_CREAM, MPW_FLAT, M_STONE, M_STONE)
+
+
+## A hall in pale render under a metal gable. Ridge along u: its gables face east and west.
+func _mpw_hall(h: Array) -> void:
+	var g := _g
+	var u0: float = h[0]
+	var u1: float = h[1]
+	var v0: float = h[2]
+	var v1: float = h[3]
+	var eave: float = h[4]
+	var rise: float = float(h[5]) - eave
+	_prism(_mpw_rect(u0, u1, v0, v1), g - 0.6, g + eave, MPW_RENDER, Color(0, 0, 0, 0), M_STONE, M_STONE)
+	if h[6]:
+		_gable(u1, u0, (v0 + v1) * 0.5, (v1 - v0) * 0.5, g + eave, rise, MPW_RENDER, MPW_METAL)
+	else:
+		var ka := _a
+		var kb := _b
+		_a = kb
+		_b = ka
+		_gable(v0, v1, (u0 + u1) * 0.5, (u1 - u0) * 0.5, g + eave, rise, MPW_RENDER, MPW_METAL)
+		_a = ka
+		_b = kb
+
+
+## The red steel grid on an east gable at u: six posts, four rails, clipped by the roof's slope.
+func _mpw_grid(u: float, v0: float, v1: float, eave: float, ridge: float) -> void:
+	var g := _g
+	var mid := (v0 + v1) * 0.5
+	var half := (v1 - v0) * 0.5
+	var height := func(v: float) -> float:
+		return eave + (ridge - eave) * (1.0 - absf(v - mid) / half)
+	for k in 6:
+		var v := lerpf(v0 + 0.6, v1 - 0.6, k / 5.0)
+		var p := _w(u + 0.15, v)
+		_beam(Vector3(p.x, g + 0.4, p.y), Vector3(p.x, g + float(height.call(v)) - 0.4, p.y), 0.25, MPW_RED)
+	for k in 4:
+		var y := 2.0 + (eave - 2.0) * k / 3.0
+		var a := _w(u + 0.15, v0 + 0.6)
+		var b := _w(u + 0.15, v1 - 0.6)
+		_beam(Vector3(a.x, g + y, a.y), Vector3(b.x, g + y, b.y), 0.25, MPW_RED)
+
+
+func _build_mpw(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	_mpw_frame()
+	_g = _ground_under(ring)
+	var g := _g
+	var east := _a
+	var south := _b
+	_mode = M_STONE
+	# The west leg on Przyokopowa: the arcade hall between the two corner blocks.
+	for blk: Array in [MPW_W1, MPW_W2, MPW_W2N, MPW_W3]:
+		_mpw_block(blk)
+	# W2's street front: eleven bays between brick piers (the fourth from the north blind), the
+	# paired small arches of the ground floor under one archivolt, a small arch over them, the
+	# tall fan windows, and the cream frieze under the attic.
+	for i in 11:
+		var v := 14.1 + 4.6 * i
+		var at := _w(0.0, v)
+		if i == 3:
+			_mpw_win(at, south, -east, 1.2, 6.2, 9.4, Color(0, 0, 0, 0), MPW_CREAM)
+		else:
+			_mpw_win(at, south, -east, 1.2, 6.2, 9.4, MPW_GLASS)
+		_arch_panel(at, south, -east, 1.4, g + 0.6, g + 2.3, MPW_BAND, 0.04, M_STONE)
+		for s: float in [-0.7, 0.7]:
+			_arch_panel(_w(0.0, v + s), south, -east, 0.42, g + 0.8, g + 2.3, MPW_GLASS, 0.08, M_GLASS)
+		_mpw_win(at, south, -east, 0.4, 4.0, 4.8, MPW_GLASS)
+	for i in 12:
+		var v := 11.8 + 4.6 * i
+		if v < 12.3:
+			continue
+		_prism(_mpw_rect(-0.3, 0.0, v - 0.3, v + 0.3), g - 0.6, g + 14.0, MPW_BRICK, Color(0, 0, 0, 0), M_STONE, M_STONE)
+	_wall(_w(-0.05, 12.0), _w(-0.05, 63.5), g + 12.2, g + 13.6, -east, MPW_CREAM)
+	# W2's yard side to the gravel court: tall windows.
+	for v: float in [47.0, 51.6, 56.2, 60.8]:
+		_mpw_win(_w(18.0, v), south, east, 1.1, 5.4, 9.0, MPW_GLASS)
+	# W1 (north corner): three floors of arched windows, a pair and a single to the street, one to
+	# Grzybowska's side; the city's arms on the street face.
+	for sill: float in [1.0, 5.4, 9.6]:
+		for v: float in [2.8, 7.1, 8.9]:
+			_mpw_win(_w(-0.8, v), south, -east, 0.55, sill, sill + 1.65, MPW_GLASS)
+		_mpw_win(_w(4.3, 0.0), east, -south, 0.55, sill, sill + 1.65, MPW_GLASS)
+		# W3 (south corner): three narrow windows to the street, two to the south.
+		for v: float in [66.0, 68.5, 71.0]:
+			_mpw_win(_w(-0.8, v), south, -east, 0.45, sill, sill + 1.7, MPW_GLASS)
+		for u: float in [5.0, 12.0]:
+			_mpw_win(_w(u, 73.5), east, south, 0.45, sill, sill + 1.7, MPW_GLASS)
+	var arms := _w(-0.85, 5.1)
+	_disc(Vector3(arms.x, g + 12.4, arms.y), Vector3(-east.x, 0.0, -east.y), 0.8, 8, MPW_CREAM)
+	arms = _w(-0.9, 5.1)
+	_disc(Vector3(arms.x, g + 12.4, arms.y), Vector3(-east.x, 0.0, -east.y), 0.5, 8, MPW_RED)
+	# The low yard wing: the museum's doors under a cream arch, a row of small arched windows.
+	_prism(_mpw_rect(MPW_LOW[0], MPW_LOW[1], MPW_LOW[2], MPW_LOW[3]), g - 0.6, g + 7.0, MPW_CREAM.darkened(0.03),
+			Color("#55585c"), M_STONE, M_STONE)
+	_arch_panel(_w(14.5, 0.3), east, -south, 3.6, g + 0.0, g + 3.4, MPW_CREAM.lightened(0.05), 0.04, M_STONE)
+	for u: float in [12.4, 14.5, 16.6]:
+		_arch_panel(_w(u, 0.3), east, -south, 0.7, g + 0.0, g + 2.1, MIROWSKA_DOOR, 0.08, M_GLASS)
+	for k in 9:
+		_mpw_win(_w(22.0 + 3.5 * k, 0.3), east, -south, 0.35, 3.0, 4.2, MPW_GLASS, MPW_CREAM.darkened(0.12))
+	# The halls behind, the red grids on their park gables, their windows and doors.
+	for h: Array in MPW_HALLS:
+		_mpw_hall(h)
+	_mpw_grid(57.7, 4.5, 23.0, 12.0, 17.0)
+	_mpw_grid(57.7, 27.0, 45.0, 11.0, 15.0)
+	_mode = M_GLASS
+	_wall(_w(57.75, 12.5), _w(57.75, 15.5), g, g + 4.0, east, MIROWSKA_DOOR)
+	_mode = M_STONE
+	for v: float in [8.5, 18.5]:
+		_mpw_win(_w(57.7, v), south, east, 0.4, 6.5, 8.5, MPW_GLASS, MPW_CREAM)
+	for u: float in [21.0, 26.4, 31.8, 37.2, 46.0, 52.0]:
+		_mpw_win(_w(u, 44.5 if u < 40.6 else 45.0), east, south, 0.7, 3.2, 6.8, MPW_GLASS, MPW_CREAM)
+	# The light strip on W2's flat roof.
+	_prism(_mpw_rect(8.0, 11.0, 14.0, 61.0), g + 15.5, g + 15.8, Color("#b8bcbf"), Color("#b8bcbf"), M_STONE, M_STONE)
+	_mpw_tower()
+	_collide(ring)
+	# The grounds.
+	_mpw_office_block()
+	_mpw_gatehouse()
+	_mpw_kasa()
+	_mpw_fence()
+	_mpw_tobruk()
+	_mpw_wall_of_remembrance()
+
+
+## The observation tower (2004): a steel frame to 14 m, the concrete shaft to the platform at
+## 28 m, its east face a wedge leaning out to 1.5 m with the white Kotwica; the black mesh
+## platform, the cabin to 31.5 m and the flag at 36 m. Lit blue-white under the platform at night.
+func _mpw_tower() -> void:
+	_mpw_frame()
+	var g := _g
+	var east := _a
+	var t: Array = MPW_TOWER
+	var u0: float = t[0]
+	var u1: float = t[1]
+	var v0: float = t[2]
+	var v1: float = t[3]
+	var vc := (v0 + v1) * 0.5
+	# the steel frame: four corner columns, crossed braces on the two open faces above the roofs
+	for c: Vector2 in [Vector2(u0, v0), Vector2(u1, v0), Vector2(u1, v1), Vector2(u0, v1)]:
+		var p := _w(c.x, c.y)
+		_beam(Vector3(p.x, g, p.y), Vector3(p.x, g + 14.2, p.y), 0.4, Color("#4a4846"))
+	for f: Array in [[Vector2(u1, v0), Vector2(u1, v1)], [Vector2(u0, v0), Vector2(u1, v0)], [Vector2(u0, v1), Vector2(u1, v1)]]:
+		var a := _w(f[0].x, f[0].y)
+		var b := _w(f[1].x, f[1].y)
+		# the two braces of a cross a beam's width apart, so their faces never share a plane
+		var off := (a + b) * 0.5 - _w((u0 + u1) * 0.5, vc)
+		off = off.normalized() * 0.3
+		_beam(Vector3(a.x + off.x, g + 10.5, a.y + off.y), Vector3(b.x + off.x, g + 14.0, b.y + off.y), 0.22, Color("#4a4846"))
+		_beam(Vector3(b.x + off.x * 2.0, g + 10.5, b.y + off.y * 2.0), Vector3(a.x + off.x * 2.0, g + 14.0, a.y + off.y * 2.0), 0.22,
+				Color("#4a4846"))
+	_prism(_mpw_rect(u0 + 2.0, u1 - 2.0, v0 + 2.0, v1 - 2.0), g, g + 14.0, MPW_CONCRETE.darkened(0.15), Color(0, 0, 0, 0), M_STONE, M_STONE)
+	# the shaft and the wedge on its east face
+	_prism(_mpw_rect(u0, u1, v0, v1), g + 14.0, g + 27.5, MPW_CONCRETE, MPW_CONCRETE, M_STONE, M_STONE)
+	var w0 := _mpw_rect(u1, u1 + 0.05, vc - 3.5, vc + 3.5)
+	var w1 := _mpw_rect(u1, u1 + 1.5, vc - 3.5, vc + 3.5)
+	_frustum(w0, g + 12.0, w1, g + 27.5, MPW_CONCRETE.lightened(0.04), MPW_CONCRETE)
+	# the Kotwica on the wedge: the P on the stem, the W of the anchor's arms below
+	var n3 := Vector3(east.x * 15.5, -1.5, east.y * 15.5).normalized()
+	var face := func(s: float, y: float, proud: float) -> Vector3:
+		var lean := 1.5 * (y - 12.0) / 15.5
+		var p := _w(u1 + lean, vc - s)
+		return Vector3(p.x, g + y, p.y) + n3 * proud
+	var strokes := [
+		[Vector2(0.0, -1.0), Vector2(0.0, 2.1), 0.04],
+		[Vector2(0.0, 2.1), Vector2(0.8, 2.0), 0.07], [Vector2(0.8, 2.0), Vector2(1.05, 1.5), 0.1],
+		[Vector2(1.05, 1.5), Vector2(0.8, 1.0), 0.07], [Vector2(0.8, 1.0), Vector2(0.0, 0.9), 0.1],
+		[Vector2(-1.5, -0.6), Vector2(-0.8, -2.1), 0.07], [Vector2(-0.8, -2.1), Vector2(0.0, -1.0), 0.1],
+		[Vector2(0.0, -1.0), Vector2(0.8, -2.1), 0.07], [Vector2(0.8, -2.1), Vector2(1.5, -0.6), 0.1],
+	]
+	for st_: Array in strokes:
+		var p: Vector2 = st_[0] * 1.3
+		var q: Vector2 = st_[1] * 1.3
+		var pr: float = st_[2]
+		var d := (q - p).normalized()
+		var side := Vector2(-d.y, d.x) * 0.26
+		var ext := d * 0.12
+		var a := p - ext
+		var b := q + ext
+		_quad(face.call(a.x + side.x, 20.0 + a.y + side.y, pr), face.call(b.x + side.x, 20.0 + b.y + side.y, pr),
+				face.call(b.x - side.x, 20.0 + b.y - side.y, pr), face.call(a.x - side.x, 20.0 + a.y - side.y, pr), n3, MPW_WHITE)
+	# the platform on its cantilever, the mesh rail, the cabin, the light under it, the flag
+	var pu0 := u0 - 2.0
+	var pv1 := v1 + 1.0
+	_prism(_mpw_rect(pu0, u1, v0, pv1), g + 27.5, g + 28.0, MPW_STEEL, MPW_STEEL.lightened(0.1), M_STONE, M_STONE)
+	_parapet(_mpw_rect(pu0, u1, v0, pv1), g + 28.0, 1.1, MPW_STEEL)
+	var cu := (pu0 + u1) * 0.5
+	var cv := (v0 + pv1) * 0.5
+	_prism(_mpw_rect(cu - 2.5, cu + 2.5, cv - 2.5, cv + 2.5), g + 28.0, g + 31.5, MPW_STEEL, MPW_STEEL.darkened(0.1), M_STONE, M_STONE)
+	_mode = M_LAMP
+	_prism(_mpw_rect(pu0 + 1.0, u1 - 1.0, v0 + 1.0, pv1 - 1.0), g + 27.2, g + 27.5, Color("#bfd8ff"), Color(0, 0, 0, 0), M_LAMP, M_LAMP)
+	_mode = M_STONE
+	var pole := _w(cu, cv)
+	_beam(Vector3(pole.x, g + 31.5, pole.y), Vector3(pole.x, g + 36.0, pole.y), 0.15, Color("#d8d8d4"))
+	var f0 := _w(cu, cv + 0.08)
+	var f1 := _w(cu, cv + 2.6)
+	for k in 2:
+		var y0 := g + 35.2 - 0.8 * k
+		var col := Color.WHITE if k == 0 else Color("#d4213d")
+		for nn: Vector2 in [east, -east]:
+			_quad(Vector3(f0.x, y0 - 0.8, f0.y), Vector3(f1.x, y0 - 0.8, f1.y), Vector3(f1.x, y0, f1.y), Vector3(f0.x, y0, f0.y),
+					Vector3(nn.x, 0.0, nn.y), col)
+
+
+## The power station's office block (now the museum's offices): four storeys in brick with cream
+## pilaster strips between the window columns, an orange tiled hipped roof, two chimneys.
+func _mpw_office_block() -> void:
+	_o = MPW_OFFICE
+	_a = MPW_OFFICE_AXIS.normalized()
+	_b = Vector2(-_a.y, _a.x)
+	var ring := _mpw_office()
+	_g = _ground_under(ring)
+	var g := _g
+	_prism(ring, g - 0.6, g + 12.5, MPW_BRICK, Color(0, 0, 0, 0), M_STONE, M_STONE)
+	_hip(0.0, 0.0, 11.3, 6.9, g + 12.5, 4.5, MPW_TILE)
+	for side: Array in [[11.0, 6.6, _b, _a], [11.0, -6.6, -_b, _a], [6.6, 11.0, _a, _b], [6.6, -11.0, -_a, _b]]:
+		var half: float = side[0]
+		var at: float = side[1]
+		var out: Vector2 = side[2]
+		var along: Vector2 = side[3]
+		var base := _o + out * absf(at)
+		var cols := floori(half * 2.0 / 3.2)
+		var t0 := -cols * 1.6
+		for k in cols + 1:
+			var s := t0 + 3.2 * k
+			var p := base + out * 0.03 + along * s
+			_wall(p - along * 0.6, p + along * 0.6, g + 0.4, g + 12.3, out, Color("#a8a29a"))
+		_mode = M_GLASS
+		for k in cols:
+			var s := t0 + 3.2 * k + 1.6
+			var p := base + out * 0.06 + along * s
+			for sill: float in [1.0, 4.3, 7.6, 10.4]:
+				_wall(p - along * 0.5, p + along * 0.5, g + sill, g + sill + 1.6, out, Color("#4a3a32"))
+		_mode = M_STONE
+	for s: float in [-6.0, 6.0]:
+		_lbox(s, 1.5, 0.45, 0.45, g + 14.0, g + 17.8, MPW_BRICK, M_STONE, MPW_BAND)
+	_collide(ring)
+
+
+## The gatehouse at the gate: brick, a dark metal gable, three stepped pinnacles with tile caps.
+func _mpw_gatehouse() -> void:
+	var r := MPW_GATEHOUSE
+	_o = Vector2.ZERO
+	_a = Vector2.RIGHT
+	_b = Vector2.DOWN
+	var ring := PackedVector2Array([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)])
+	_g = _ground_under(ring)
+	var g := _g
+	var cz := r.get_center().y
+	_prism(ring, g - 0.6, g + 3.5, MPW_BRICK, Color(0, 0, 0, 0), M_STONE, M_STONE)
+	_gable(r.end.x, r.position.x, cz, r.size.y * 0.5, g + 3.5, 3.0, MPW_BRICK, MPW_ROOF_DARK)
+	for p: Vector2 in [Vector2(r.position.x + 0.3, cz), Vector2(r.end.x - 0.3, cz), Vector2(r.get_center().x, r.position.y + 0.3)]:
+		_pinnacle(p.x, p.y, 0.55, g + 3.0, 4.5, MPW_BRICK)
+	_collide(ring)
+
+
+## The KASA (ticket) pavilion in the yard: brick, a grey metal gable, three blind arches round
+## the door on its yard (north) end.
+func _mpw_kasa() -> void:
+	var r := MPW_KASA
+	_o = Vector2.ZERO
+	_a = Vector2.DOWN
+	_b = Vector2.RIGHT
+	var ring := PackedVector2Array([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)])
+	_g = _ground_under(ring)
+	var g := _g
+	var cx := r.get_center().x
+	_prism(ring, g - 0.6, g + 3.2, MPW_BRICK, Color(0, 0, 0, 0), M_STONE, M_STONE)
+	_gable(r.position.y, r.end.y, cx, r.size.x * 0.5, g + 3.2, 2.3, MPW_BRICK, Color("#7e8790"))
+	for s: float in [-2.2, 0.0, 2.2]:
+		_arch_panel(Vector2(cx + s, r.position.y), Vector2.RIGHT, Vector2.UP, 0.75, g + 0.2, g + 2.4,
+				MPW_CREAM if s != 0.0 else MPW_CREAM.darkened(0.05), 0.04, M_STONE)
+	_arch_panel(Vector2(cx, r.position.y), Vector2.RIGHT, Vector2.UP, 0.55, g + 0.0, g + 2.0, MIROWSKA_DOOR, 0.08, M_GLASS)
+	_collide(ring)
+
+
+## The brick fence on Przyokopowa: a low wall with a cream coping, pinnacled posts every 6.5 m,
+## black railings; the black steel gate north of the museum and the line north of the gatehouse.
+func _mpw_fence() -> void:
+	_o = Vector2.ZERO
+	_a = Vector2.RIGHT
+	_b = Vector2.DOWN
+	var west := func(z: float) -> Vector2:
+		return Vector2(MPW_O.x - 3.0 + (z - MPW_O.y) * MPW_B.x, z)
+	for run: Array in [[155.0, 235.0], [114.0, 142.0]]:
+		var p0: Vector2 = west.call(run[0])
+		var p1: Vector2 = west.call(run[1])
+		_g = _ground_under(PackedVector2Array([p0, p1]))
+		var g := _g
+		var d := (p1 - p0).normalized()
+		var n := Vector2(-d.y, d.x)
+		var band := PackedVector2Array([p0 - n * 0.2, p1 - n * 0.2, p1 + n * 0.2, p0 + n * 0.2])
+		_prism(band, g - 0.4, g + 1.2, MPW_BRICK, MPW_CREAM, M_STONE, M_STONE)
+		var length := p0.distance_to(p1)
+		var posts := ceili(length / 6.5)
+		for k in posts + 1:
+			var p := p0 + d * (length * k / posts)
+			_prism(_square(p, 0.25), g - 0.4, g + 2.0, MPW_BRICK, Color(0, 0, 0, 0), M_STONE, M_STONE)
+			_pyramid(_square(p, 0.3), g + 2.0, g + 2.5, MPW_BRICK.darkened(0.08))
+		_beam(Vector3(p0.x, g + 2.35, p0.y), Vector3(p1.x, g + 2.35, p1.y), 0.08, MPW_STEEL)
+		var bars := floori(length / 1.6)
+		for k in range(1, bars):
+			var p := p0 + d * (length * k / bars)
+			for side: float in [-1.0, 1.0]:
+				_wall(p - d * 0.03, p + d * 0.03, g + 1.2, g + 2.35, n * side, MPW_STEEL)
+		_collide(PackedVector2Array([p0, p1]))
+	# the gate between the two runs, on its brick posts
+	var q0: Vector2 = west.call(148.0)
+	var q1: Vector2 = west.call(155.0)
+	_g = _ground_under(PackedVector2Array([q0, q1]))
+	var gg := _g
+	for p: Vector2 in [q0, q1]:
+		_prism(_square(p, 0.35), gg - 0.4, gg + 3.5, MPW_BRICK, Color(0, 0, 0, 0), M_STONE, M_STONE)
+		_pyramid(_square(p, 0.42), gg + 3.5, gg + 4.1, MPW_BRICK.darkened(0.08))
+	var e := (q1 - q0).normalized()
+	var m := Vector2(-e.y, e.x)
+	_prism(PackedVector2Array([q0 + e * 0.35 - m * 0.08, q1 - e * 0.35 - m * 0.08, q1 - e * 0.35 + m * 0.08, q0 + e * 0.35 + m * 0.08]),
+			gg, gg + 2.5, Color("#313133"), Color("#313133"), M_STONE, M_STONE)
+
+
+## The Tobruk (Ringstand 58c) in the park: a low round concrete shell with its gun opening.
+func _mpw_tobruk() -> void:
+	_g = _ground_under(_circle(MPW_TOBRUK, 1.8, 8))
+	var g := _g
+	_frustum(_circle(MPW_TOBRUK, 1.8, 8), g - 0.2, _circle(MPW_TOBRUK, 1.0, 8), g + 0.7, Color("#8d8b84"), Color("#8d8b84"))
+	_prism(_circle(MPW_TOBRUK, 0.45, 8), g + 0.7, g + 0.72, Color("#2a2a28"), Color("#2a2a28"), M_STONE, M_STONE)
+
+
+## The Wall of Remembrance (Mur Pamięci) in Freedom Park: a gently curved black granite wall,
+## 4 m high and about 120 m long, the names of the fallen on it; the bell "Monter" in its recess.
+func _mpw_wall_of_remembrance() -> void:
+	var band := _mpw_wall_band(0.3)
+	_g = _ground_under(band)
+	var g := _g
+	_prism(band, g - 0.5, g + 4.0, MPW_GRANITE, MPW_GRANITE.lightened(0.1), M_STONE, M_STONE)
+	_collide(band)
+	# the recess on the museum (west) side and the bell in it
+	var p2: Vector2 = MPW_WALL[2]
+	var p3: Vector2 = MPW_WALL[3]
+	var d := (p3 - p2).normalized()
+	var n := Vector2(-d.y, d.x)
+	if n.x > 0.0:
+		n = -n
+	var c := p2 + d * (MPW_BELL - p2).dot(d)
+	_mode = M_GLASS
+	_wall(c + n * 0.33 - d * 0.9, c + n * 0.33 + d * 0.9, g + 1.1, g + 3.3, n, Color("#141516"))
+	_mode = M_STONE
+	var b := c + n * 0.75
+	_frustum(_circle(b, 0.22, 8), g + 2.35, _circle(b, 0.42, 8), g + 1.45, Color("#4a3f36"), Color("#4a3f36"))
+	_prism(_circle(b, 0.1, 6), g + 2.35, g + 3.0, MPW_STEEL, Color(0, 0, 0, 0), M_STONE, M_STONE)
 
 
 # --- Ministerstwo Finansów (the landmarks lane, 2026-11-01, spec docs/landmarks/specs/mf.md) -----
