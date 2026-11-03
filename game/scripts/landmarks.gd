@@ -5258,7 +5258,7 @@ func _build_forest(site: Dictionary) -> void:
 		if h >= tallest - 0.5:
 			_forest_tower(poly, g)
 		else:
-			_forest_wing(poly, g, FOREST_WING_H if h < 25.0 else h)
+			_forest_wing(poly, g, FOREST_WING_H if h < 25.0 else h, h >= 25.0)
 		# The car's walls on the mapped outline, handed to the pocket bridging too.
 		_collide(poly)
 		pocket_rings.append(poly)
@@ -5338,7 +5338,7 @@ func _forest_sign(slab: PackedVector2Array, top: float) -> void:
 
 ## A wing: glass behind the colour fins up to a planted ledge, the black-clad top storey set
 ## back 1.6 m, and on its roof the garden (or, on the 27.4 m wing, the terrace with its crowd).
-func _forest_wing(poly: PackedVector2Array, g: float, h: float) -> void:
+func _forest_wing(poly: PackedVector2Array, g: float, h: float, terrace: bool) -> void:
 	var glass_top := g + h - 4.0
 	_prism(poly, g, glass_top, FOREST_LOW, FOREST_GREEN.darkened(0.1), M_SKIN + S_FINS / 16.0, M_STONE)
 	_forest_fins(poly, g + 4.0, glass_top, 1.5, 0.34, 0.12, h)
@@ -5352,7 +5352,7 @@ func _forest_wing(poly: PackedVector2Array, g: float, h: float) -> void:
 	if hedge.size() >= 3:
 		_prism(hedge, glass_top, glass_top + 0.7, FOREST_GREEN.darkened(0.12), Color(0, 0, 0, 0), M_STONE, M_STONE)
 	_no_roof = false
-	if h >= 25.0:
+	if terrace:
 		_forest_terrace(top_ring, g + h)
 	else:
 		_forest_garden(top_ring, g + h)
