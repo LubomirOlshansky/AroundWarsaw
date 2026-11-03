@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-02
 - Hotel Warszawa, the old Prudential, stands as Warsaw's first skyscraper on Plac Powstańców: cream stone with eight tall pilasters, a stepped crown with masts and a flag, WARSZAWA cut over the door, and floodlit stripes at night. Down the avenue Cedet, the old department store by Krucza, has its ribbon glass between cream floor bands, rounded corners, the swept-up roof wings and the big steel loop that glows blue at night.
+- The WKD commuter line's two stops are in the city: Śródmieście WKD by the Aleje has its two concrete "propeller" roofs over the stairs down to the cutting, and Ochota WKD by Plac Zawiszy its heavy concrete roof on V-shaped legs over the platform.
 - Plac Krasińskich has the Warsaw Uprising Monument: bronze insurgents running out from under two falling granite slabs, and beside them the descent into the sewers; behind the lawn stands Pałac Krasińskich in white, with its green copper roof, pediments and statues.
 - With a gamepad, the hints name the buttons the way your pad prints them (×, R2 and L2 on a PlayStation pad; B and ZR on a Nintendo one), and crashes and bumps rumble the pad instead of the phone.
 - Sliding along a building no longer wedges the car in a gap or a notch between two houses (it got stuck and towed by the glass corner on the Chmielna square): the car slides on past them everywhere in the city.
