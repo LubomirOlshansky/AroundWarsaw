@@ -11,11 +11,13 @@ someone writes its lines.
 
 ## 2026-11-03
 - The road from Nowy Świat down to Most Poniatowskiego crosses Powiśle on a viaduct of grey concrete arches, with big arches over Kruczkowskiego, Solec and Wybrzeże, and the bridge's north towers have their curved stone stairs down to the boulevard, lit by iron lanterns at night.
+- Stuck somewhere with the car going nowhere? After a few seconds a POMOC DROGOWA button comes up at the top of the screen; one tap and the tow truck puts you back on the road.
 - The "delivered" card after a kebab or jar job now closes by itself after a few seconds or when you drive off, a ride request no longer pops up over Pani Halina's race challenge, and the car no longer bounces back and forth along a building front on Jasna by Plac Dąbrowskiego.
 - On Świętokrzyska the main post office stands in its pale salmon plaster, with a little grey-silver dome on the Jasna corner and six white columns under a red POCZTA band at the door; on Zielna the PAST-a tower rises 51 m, with tall arches and castle-like merlons at the top, a gilt anchor on the roof and white-and-red banners down the front.
 - Warszawa Wschodnia stands on Praga's side of the tracks: a long glass hall under a flat roof with a zig-zag folded edge on green V-shaped legs, WARSZAWA WSCHODNIA in white letters over the platforms, and rust-brown roofs on columns over its five island platforms.
 
 ## 2026-11-02
+- Across the river in Praga, St Florian's cathedral stands with its two red-brick towers and tall green spires, and Bazar Różyckiego on Targowa is a maze of patched old stalls beside the new green kiosks.
 - Krakowskie Przedmieście is rebuilt from photos: Mickiewicz stands on his balustraded terrace with gilt-flame lanterns, the University gate has its white pavilions with statues and the crowned eagle, the Carmelite church its sandstone front and green copper globe, Hotel Bristol its open belvedere on the corner, and the Academy of Fine Arts its brick-red palace. Plac Piłsudskiego has its granite chequer, tall masts, the black stepped Smolensk memorial and the Piłsudski and Kaczyński statues.
 - The Royal Castle gets its Clock Tower back: dark-blue clock faces and a green copper onion helm with a lantern and spire, green-capped corner turrets, terracotta roofs, and a cream river front with a copper dome; below it Kubicki's Arcades now show their round arches, with the restored Upper Garden on top (tubbed ball trees, a fountain) and the Lower Garden's lawn, vases and fountains in front.
 - The Warsaw Rising Museum stands on Przyokopowa: the red-brick tram power station with its tall arched windows, the tower with the white Kotwica and the flag on top, and in Freedom Park the long black Wall of Remembrance with its bell.
