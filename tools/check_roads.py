@@ -84,6 +84,12 @@ COLOURS = {"C1": (255, 60, 60), "C2": (255, 140, 0), "C3": (255, 230, 0), "C4": 
            "C9": (190, 120, 255), "C10": (255, 170, 170), "C11": (255, 255, 120)}
 
 
+# Most Poniatowskiego's tower shafts and stair turrets (landmarks.gd PT_SHAFT, PT_SHAFT_U,
+# PT_SHAFT_V, PT_TURRET): the shaft's half size, its centre past the seat's land end and out
+# from its deck-side face; the turret's (along, out, radius) in the seat's frame.
+PT_SHAFT, PT_SHAFT_U, PT_SHAFT_V = 3.5, 0.5, 3.5
+PT_TURRET = (3.5, 9.5, 2.5)
+
 def pairs(f):
     return list(zip(f[0::2], f[1::2]))
 
@@ -538,18 +544,36 @@ class Landmarks:
         # Most Poniatowskiego's towers. Loop 3b (R7): the bake's seats (`towers`,
         # tools/bake_structures.py), as landmarks.gd builds them: the plinth (0.6 m round the
         # shaft) is the collider, the zone is the one the bake wrote.
+        # Since the photo build (landmarks.gd `_pt_group`) each group is also its shaft at the
+        # land end (PT_SHAFT*) and, on the south groups, a stair turret (PT_TURRET), both solid.
         seats = d.get("towers", [])
         if len(seats) == 4:
             self.towers = []
             zone = []
+            mx = sum(t["c"][0] for t in seats) / 4.0
+            mz = sum(t["c"][1] for t in seats) / 4.0
             for t in seats:
                 cx, cz = t["c"]
                 ax = t["a"]
+                if (cx - mx) * ax[0] + (cz - mz) * ax[1] < 0.0:
+                    ax = (-ax[0], -ax[1])
                 bv = (-ax[1], ax[0])
+                other = min((o for o in seats if o is not t), key=lambda o: math.dist(o["c"], t["c"]))
+                px, pz = (cx + other["c"][0]) * 0.5, (cz + other["c"][1]) * 0.5
+                if (cx - px) * bv[0] + (cz - pz) * bv[1] < 0.0:
+                    bv = (-bv[0], -bv[1])
+
+                def at(u, v):
+                    return (cx + ax[0] * u + bv[0] * v, cz + ax[1] * u + bv[1] * v)
                 hu, hv = t["hu"] + 0.6, t["hv"] + 0.6
-                rect = [(cx + ax[0] * u + bv[0] * v, cz + ax[1] * u + bv[1] * v) for u, v in ((-hu, -hv), (hu, -hv), (hu, hv), (-hu, hv))]
+                rect = [at(u, v) for u, v in ((-hu, -hv), (hu, -hv), (hu, hv), (-hu, hv))]
                 self.towers.append(rect)
                 self.colliders.append(("poniatowski tower", rect))
+                su, sv, r = t["hu"] + PT_SHAFT_U, -t["hv"] + PT_SHAFT_V, PT_SHAFT + 0.3
+                self.colliders.append(("poniatowski tower", [at(su + u, sv + v) for u, v in ((-r, -r), (r, -r), (r, r), (-r, r))]))
+                if cz > pz:
+                    tu, tv, tr = PT_TURRET
+                    self.colliders.append(("poniatowski tower", [at(tu + tr * math.cos(k * math.pi / 4), tv + tr * math.sin(k * math.pi / 4)) for k in range(8)]))
                 zone.append(pairs(t["zone"]))
             self.zones.append(("poniatowski", zone, []))
             return
