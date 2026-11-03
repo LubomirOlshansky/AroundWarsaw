@@ -3,7 +3,6 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
-<<<<<<< HEAD
 ## Eastern Wall photo pass: Marszałkowska fronts, Sezam WACZEK, Coca-Cola sign (F, 2026-11-03)
 
 Plan only, nothing built (F paused new work; this wants his "go" for the Mac photo gather). Scope F set:
@@ -26,7 +25,7 @@ Plan only, nothing built (F paused new work; this wants his "go" for the Mac pho
 - **Chmielna:** keep the street clean, no excavation or roadworks. **Pasaż slabs:** the report's grey-white #D8D8D4 with a
   slightly warm tint (palette change in the existing `wiecha` model).
 - Open for the gather: the Sezam corner's exact outline, the Żabka corner on Wars.
-=======
+
 ## Open courtyards (F, 2026-11-03)
 
 F: "some kamienica from the top have the hole in the center, I want it where it has one". Found: the
@@ -59,7 +58,6 @@ strip (x 1020-1080, z -2080 to -2110) lie in the map box's cut north-east corner
 (map lane): grow bake_osm's map shape (tools/map_shape.py), re-bake the chain and the LoD2/terrain
 on the Mac, publish a new map pack, then build Koneser, the fountain park and Ząbkowska's bars from
 the photo reports already in (QUESTIONS 2026-11-02 and 2026-11-03).
->>>>>>> origin/main
 
 ## Vitkac quests and ride stories (F, 2026-11-03)
 
