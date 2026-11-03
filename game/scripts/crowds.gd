@@ -258,6 +258,18 @@ const NOWOGRODZKA := {
 	"pub_nowo_22": [Vector2(-680.0, 528.0), 14, 16.0],
 	"pub_nowo_27": [Vector2(-695.0, 547.0), 10, 14.0],
 }
+## Mazowiecka's club street (street-by-street, 2026-11-03): people in the queues and smokers on the
+## pavement outside the clubs of Mazowiecka between Świętokrzyska and Królewska, on the `club` curve
+## (`club_level`: the existing clubs' curve, fullest 01-02, thinning by 05, the clubs' own WEEKDAY factor, so
+## Friday and Saturday nights). id -> [spot (the pavement in front of the doors, game coordinates),
+## most people, radius]. The fascias are storefronts.gd's MAZOWIECKA.
+const MAZOWIECKA := {
+	"club_maz_tygmont": [Vector2(-745.0, -342.0), 10, 10.0],
+	"club_maz_sketch": [Vector2(-748.0, -413.0), 14, 12.0],
+	"club_maz_room": [Vector2(-754.0, -440.0), 12, 12.0],
+	"club_maz_bank": [Vector2(-751.0, -460.0), 12, 12.0],
+	"club_maz_lombard": [Vector2(-760.0, -497.0), 10, 10.0],
+}
 ## The pub crowd's weekday factor *guess*, Monday first, by the night's day (01:00 Saturday is
 ## Friday's night): milder than the clubs', the strip is never empty after work.
 const PUB_WEEKDAY := [0.45, 0.45, 0.55, 0.75, 1.0, 1.0, 0.4]
@@ -624,6 +636,13 @@ static func pub_level(hour: float, weekday: int, month: int, rain: bool) -> floa
 			* (0.3 if rain else 1.0), 1.0)
 
 
+## Mazowiecka's club crowd level 0..1: the `club` curve × WEEKDAY (past midnight counts as the
+## evening before); winter keeps 60 % (the queue stands in the snow), rain 0.3 (under the awnings) *guess*.
+static func club_level(hour: float, weekday: int, month: int, rain: bool) -> float:
+	return minf(curve_at("club", hour) * float(WEEKDAY[night_day(hour, weekday) - 1]) * maxf(month_factor(month), 0.6)
+			* (0.3 if rain else 1.0), 1.0)
+
+
 ## First scene item 6: the start's street level 0..1 (FIRST_SCENE): the `street` curve, winter keeps
 ## 60 % (people still buy papers and coffee), rain a third *guess*.
 static func street_level(hour: float, month: int, rain: bool) -> float:
@@ -866,6 +885,9 @@ func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
 	for pid: String in NOWOGRODZKA:
 		var ps: Array = NOWOGRODZKA[pid]
 		_add_site({"id": pid, "kind": "chill", "pub": true, "sit": false, "at": ps[0], "max": int(ps[1]), "radius": float(ps[2])})
+	for kid: String in MAZOWIECKA:
+		var ks: Array = MAZOWIECKA[kid]
+		_add_site({"id": kid, "kind": "chill", "club": true, "sit": false, "at": ks[0], "max": int(ks[1]), "radius": float(ks[2])})
 	for fid: String in FIRST_SCENE:
 		var fs: Array = FIRST_SCENE[fid]
 		_add_site({"id": fid, "kind": "chill", "street": true, "sit": bool(fs[4]), "at": first_scene_at(float(fs[0]), float(fs[1])),
@@ -1754,6 +1776,8 @@ func tick(step: float) -> void:
 				var lvl := street_level(hour, month, rain) if bool(s.get("street", false)) else chill_level(hour, month, rain)
 				if bool(s.get("pub", false)):
 					lvl = pub_level(hour, weekday, month, rain)
+				if bool(s.get("club", false)):
+					lvl = club_level(hour, weekday, month, rain)
 				want = roundi(int(s["max"]) * k * lvl)
 			"stop":
 				want = roundi(int(s["max"]) * k * stop_level(hour, weekday, rain))

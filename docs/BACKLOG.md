@@ -619,8 +619,19 @@ street nearest the start area with no pass yet. Built (cloud, Opus):
 Open:
 - Mac look check (QUESTIONS): the signs on the right walls and doors, the crowds on the pavement.
 - The yards of nos. 11 and 22 (the real bars sit 60-70 m in, in courtyards): a gate arch and a lit yard.
-- The houses (plaster, cornices, shop storeys) need photos; Mazowiecka's club street (10 OSM clubs) is
-  the next street of the same kind.
+- The houses (plaster, cornices, shop storeys) need photos. Mazowiecka's club street followed (below).
+
+## Mazowiecka's club street (2026-11-03), pass 1
+Tier C street pass, same pattern as Nowogrodzka (cloud, Sonnet). Built:
+- Five parody club fascias at the OSM points of the real clubs (`Storefronts.MAZOWIECKA`: TYGRYS JAZZ at
+  6/8, SZOTOWNIA at 9, SZKIC NOCĄ at 11A, ENKLAWKA at 12, POKÓJ 12,5 at 13). One sign per address: La Pose
+  shares 6/8 with Tygmont, Mazo 9 with Czupito, Ritual 12 with Enklawa; Bank Club and Blu Club (no. 14)
+  are the existing LOMBARD of places.json. check_parodies counts the new table.
+- Pavement queues and smokers (`Crowds.MAZOWIECKA`, five spots, 10-14 people, standing) on a new `club`
+  curve (the clubs' own: fullest 01:00-03:00, gone by 06:00) × the clubs' `WEEKDAY` (Fri/Sat full, a
+  weekday a fifth), winter 60 %, rain 30 % (`club_level`, check_crowds).
+Open: Mac look check (QUESTIONS); a bouncer-and-rope dressing at the doors; the northern pedestrian
+stretch toward Królewska; the houses need photos.
 
 ## Nowy Świat street by street (F, 2026-11-02), pass 1
 Built (cloud, Sonnet): eight parody shopfronts (`Storefronts.NOWY_SWIAT`, check_parodies 68 venues). Open:
