@@ -123,7 +123,7 @@ const BUDGET := {
 	"plater49": 140,
 	"platinum_a": 80,
 	"platinum_b": 80,
-	"poniatowski": 380,
+	"poniatowski": 1850,
 	"prezydencki": 1050,
 	"q22": 960,
 	"rondo1": 630,
