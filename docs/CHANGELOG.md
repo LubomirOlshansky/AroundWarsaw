@@ -10,11 +10,16 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-03
+- Stuck somewhere with the car going nowhere? After a few seconds a POMOC DROGOWA button comes up at the top of the screen; one tap and the tow truck puts you back on the road.
+- The "delivered" card after a kebab or jar job now closes by itself after a few seconds or when you drive off, a ride request no longer pops up over Pani Halina's race challenge, and the car no longer bounces back and forth along a building front on Jasna by Plac Dąbrowskiego.
 - On Świętokrzyska the main post office stands in its pale salmon plaster, with a little grey-silver dome on the Jasna corner and six white columns under a red POCZTA band at the door; on Zielna the PAST-a tower rises 51 m, with tall arches and castle-like merlons at the top, a gilt anchor on the roof and white-and-red banners down the front.
 - Warszawa Wschodnia stands on Praga's side of the tracks: a long glass hall under a flat roof with a zig-zag folded edge on green V-shaped legs, WARSZAWA WSCHODNIA in white letters over the platforms, and rust-brown roofs on columns over its five island platforms.
 
 ## 2026-11-02
 - Fabryka Norblina stands on its real block between Łucka, Żelazna and Prosta, with its court of big candelabra plane trees open off the glass street and green roofs with garden terraces; Browary's Central Garden is a dense little wood of 22 young trees round a winding gravel path with café tables under dark-blue parasols, and the office blocks have green roofs.
+- Across the river in Praga, St Florian's cathedral stands with its two red-brick towers and tall green spires, and Bazar Różyckiego on Targowa is a maze of patched old stalls beside the new green kiosks.
+- Krakowskie Przedmieście is rebuilt from photos: Mickiewicz stands on his balustraded terrace with gilt-flame lanterns, the University gate has its white pavilions with statues and the crowned eagle, the Carmelite church its sandstone front and green copper globe, Hotel Bristol its open belvedere on the corner, and the Academy of Fine Arts its brick-red palace. Plac Piłsudskiego has its granite chequer, tall masts, the black stepped Smolensk memorial and the Piłsudski and Kaczyński statues.
+- The Royal Castle gets its Clock Tower back: dark-blue clock faces and a green copper onion helm with a lantern and spire, green-capped corner turrets, terracotta roofs, and a cream river front with a copper dome; below it Kubicki's Arcades now show their round arches, with the restored Upper Garden on top (tubbed ball trees, a fountain) and the Lower Garden's lawn, vases and fountains in front.
 - The Warsaw Rising Museum stands on Przyokopowa: the red-brick tram power station with its tall arched windows, the tower with the white Kotwica and the flag on top, and in Freedom Park the long black Wall of Remembrance with its bell.
 - Most Poniatowskiego looks like itself: four cream towers with arcaded pavilions, belfries and battlements at the ends, grey steel arches under the deck on granite piers, a red girder and a black iron railing along both edges, and a coat of arms on a stone pedestal over every pier.
 - Behind the three department stores at the start, Pasaż Wiecha has its two-storey shop pavilions (dark shop windows under a white band), tall white Y-shaped lamp masts, café tables under white parasols and people sitting at them.
@@ -106,6 +111,7 @@ someone writes its lines.
 - The big hotel on Plac Zawiszy is a real building now, in colourful postmodern bands of salmon, yellow, mint and teal with magenta stripes and a lit canopy, under the parody name Radysław Blu (with a card).
 - The helicopter's camera now turns with it while you fly, like the car's, instead of swinging round only after you stop.
 - Getting wedged between traffic cars no longer ends the drive: push against them for a moment and your car slips through, and after eight seconds in a jam it is towed onto the road.
+- Hotel Warszawa, the old Prudential, stands as Warsaw's first skyscraper on Plac Powstańców: cream stone with eight tall pilasters, a stepped crown with masts and a flag, WARSZAWA cut over the door, and floodlit stripes at night. Down the avenue Cedet, the old department store by Krucza, has its ribbon glass between cream floor bands, rounded corners, the swept-up roof wings and the big steel loop that glows blue at night.
 
 ## 2026-11-01
 - New by the Vistula: the WTS DESKA tennis club (a parody of the real club) on Zaruskiego, under Most Łazienkowski: a closed tennis hall, one outdoor glass padel court lit at night with four people playing, and a DESKA neon on the clubhouse. A friend now phones from the club: their fourth player hurt a leg at pole dance, so drive or fly to the DESKA court and play; the club has its own notebook page.

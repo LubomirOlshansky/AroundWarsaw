@@ -32,6 +32,9 @@ then the Launch gate.
 - [x] Warsaw Spire rebuilt to the real shape (F's photos, 2026-11-02; spec `spire.md`): a shaft that widens
       upward over a lit glass lobby, a domed roof with a fin and two masts, the mirrored entrance canopy on
       V legs, the two curved 15-storey wings and the paved plaza; Mac look check parked (QUESTIONS)
+- [x] Royal Castle pass 2 and its gardens (F, 2026-11-02; spec `zamek.md`): the Clock Tower and helm, corner
+      turrets, the cream Vistula front with its dome, Kubicki's Arcades and the Upper and Lower Gardens from
+      the Krajobraz project, photos and the orthophoto; Mac look check parked (QUESTIONS)
 - [x] Rondo Dmowskiego as it is: the paved island with its four crescent flower beds round the tram cross,
       Metro Centrum's blue tubes over all twelve underpass stairs and the Patelnia's, the Patelnia mural, a
       kiosk, a cart and the east tram shelter (F, 2026-11-02; spec `rondo-dmowskiego.md`; Mac look check parked)
@@ -102,6 +105,7 @@ then the Launch gate.
   - [x] PT-8 Pani Halina rolled up in front of the car on narrow Hoża and pinned it for her whole prompt, 2026-11-02 (`check_ladder`)
   - [x] PT-13 the first order card started without a tap: GO counts down to the order's own start, 2026-11-02
   - [x] PT-9 radio ticker cut off at the left edge at 2.16:1, and PT-10 the order tracker over speech bubbles and its distance into its arrow, 2026-11-02 (`check_hud`; phone look open)
+  - [x] PT-15 taxi card over Pani Halina's flash-back, PT-16 the delivered card never closing (one order "driven six times"), PT-17 car ping-ponging in a shallow facade bay on Jasna by Plac Dąbrowskiego, 2026-11-03 (`check_stuck_spots`)
 - [x] Larger HUD text fits the phones (2026-11-02, this PR): panels with no room step their own text down (never below normal), `check_hud` large-text pass is a gate
 - [ ] The phone's own text size drives the HUD: needs a native read (BACKLOG "Accessibility follow-ups")
 - [ ] A full `tools/verify.sh` and `--ios` on the Mac on today's main, both city paths
@@ -141,11 +145,15 @@ then the Launch gate.
 - [ ] City inventory Part 3: the top not-done places, one thread each, photos first (Most Poniatowskiego,
       Muzeum Powstania, Pomnik Powstania, Hotel Warszawa and Cedet, Rondo ONZ towers, the monuments pass,
       Plac Bankowy, Świętokrzyska's NBP/Poczta/PAST-a, the outline builds' photo re-pass, Praga's faces)
+  - [x] Hotel Warszawa and Cedet from the Mac's photos (item 4, 2026-11-02, specs `hotel_warszawa.md`, `cedet.md`)
+  - [x] Praga's faces from the Mac's photo reports (2026-11-02): St Florian's cathedral (site `florian`) and Bazar
+        Różyckiego (site `bazar`); Koneser and the Multimedia Fountain Park are off the map (QUESTIONS)
   - [x] Poczta Główna and PAST-a from the Mac photo reports (2026-11-03, specs `poczta.md`, `pasta.md`)
   - [ ] Narodowy Bank Polski (waits on its photo report)
 - [ ] Monuments pass (City inventory Part 3 item 6)
   - [x] Every OSM monument, sculpture, talking bench and memorial plaque in the box as a generic piece, plaques on their walls with candles (2026-11-02, tools/bake_monuments.py)
-  - [ ] Photo builds: Nike, Słowacki and Starzyński, Mały Powstaniec and Kiliński, Plac Piłsudskiego's, the Eastern memorial, Umschlagplatz (Mac photo pass)
+  - [x] Plac Piłsudskiego from photos: the Smolensk memorial, Piłsudski, Kaczyński, the masts and the granite chequer (2026-11-02, refs/pilsudskiego/)
+  - [ ] Photo builds: Nike, Słowacki and Starzyński, Mały Powstaniec and Kiliński, the Eastern memorial, Umschlagplatz (reports in docs/landmarks/photo-reports/)
 - [ ] Krajobraz places (F, 2026-11-02; docs/design/krajobraz-places.md, BACKLOG "Krajobraz places"): the newest public spaces as built
   - [x] K1 ul. Bracka's woonerf: its 22 missing young trees planted in the mapped beds (33 in all)
   - [x] K2 ul. Chmielna: 65 young elms and planes in its tree pits (85 in all), granite paving, Ali's stone and plate
@@ -164,7 +172,7 @@ then the Launch gate.
 - [x] All churches designed by one set of rules (F, 2026-11-01; rules and inventory in
       docs/design/churches.md): the church kit, 22 parish churches as models with a card each
       (spec churches.md); Zbawiciela (#226), św. Teresy (#225) and the older fronts already done.
-      Open: Mac photo check of each (QUESTIONS), Praga cathedral, Archikatedra's tower, the
+      Open: Mac photo check of each (QUESTIONS), Archikatedra's tower, the
       Dominican and Capuchin monasteries
 - [x] Plac Zamkowy's houses (F, 2026-11-01): a pastel palette in place of OpenStreetMap's mud
       colours, the plac and Krakowskie Przedmieście's first houses in the historic dress, and a
@@ -277,7 +285,8 @@ then the Launch gate.
         Kazimierzowski's skin, Pałac Potockich and the Kordegarda, Bristol's corner dome, 2026-11-01
         (spots and heights estimated; Mac photo check)
   - [x] K6 Chopin benches, Prus and Wyszyński statues, granite setts, Pałac Czapskich's skin, 2026-11-01
-  - [ ] KP photo gather on the Mac (refs/krakowskie/, QUESTIONS 2026-11-02): then Czapski's model, the second Potocki guardhouse, awnings and café gardens
+  - [x] KP photo gather on the Mac (refs/krakowskie/) and the rebuild from it, 2026-11-02: Mickiewicz on his terrace, the University gate's pavilions, Kazimierzowski's portico, Bristol's belvedere, Pałac Czapskich whole, Potocki's gates, the Kordegarda, the Carmelite front, Europejski's colour
+  - [ ] KP street dressing from the photos: café gardens, bollards, awnings; the setts' extent south of Kopernik (no ground photo yet)
   - [x] KP street by street pass 1: eight neon shopfronts along the royal route, 2026-11-02 (Mac look check)
   - [x] K6 the black Chopin benches, Prus's and Wyszyński's statues, the granite setts on the
         carriageway, Pałac Czapskich's skin and card, 2026-11-01 (Mac look check)
@@ -410,6 +419,7 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [x] G13 Upgrade shop: Audi TT parody (faster car), nitro, tuning, paid in zł (Opus design, Sonnet content) · 2026-11-02, the Ołdi TT 2,500 zł, Kebab Boost nitro 600 zł, tyres and engine levels 1-3; phone check and nitro flame/sound open (BACKLOG G13a, G13b)
 - [x] G13c Police keep pace with the upgraded car (0.8 of the player's real top speed), the pad's nitro on LB / RB, the view's turn on the right stick (2026-11-02; phone feel parked in QUESTIONS)
 - [x] G14 POMOC DROGOWA (unstuck) and NOWA GRA (two-tap reset) at the top of Settings → Jazda (quick win)
+- [x] G14 later: stuck for 8 s (driving and getting nowhere), POMOC DROGOWA comes up on screen and a tap tows the car to the road (2026-11-03, `check_stuck_offer`; phone look open)
 - [x] Language choice (F, 2026-11-02): POLSKI / ENGLISH on the title screen and in Settings → DŹWIĘK → Język; the whole game shows one language, saved in settings, the phone's language by default (`lang.gd`, `check_language`; the phone look check is parked in QUESTIONS)
 - [x] G15 Stop assist works better: bigger quest start and end rings, looser "stopped", longer look-ahead (quick win; phone check)
 - [x] G16 Fewer text popups while driving on the road: ambient bubbles muted above 40 km/h, ambient toasts one per 20 s, traffic is a slider (2026-11-01, Sonnet)

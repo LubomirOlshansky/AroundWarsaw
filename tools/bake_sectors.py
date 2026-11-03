@@ -195,6 +195,7 @@ SITE_AREAS = [
     (-1058, -1559, -985, -1487),   # church_cerkiew
     (-1609, -268, -1529, -188),   # church_nozykow
     (1575.0, 1570.0, 1605.0, 1610.0),       # the sailing marina's club house (landmarks.gd MARINA_AT, unnamed in OSM)
+    (1025.0, -2032.0, 1135.0, -1962.0),     # Bazar Różyckiego's stalls (landmarks.gd BAZAR_BOX, unnamed retail outlines)
 ]
 
 

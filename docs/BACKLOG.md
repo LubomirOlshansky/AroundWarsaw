@@ -26,8 +26,10 @@ is the order of the next threads. Found while building it:
   wall plaques with candles (Tchorek's Uprising plaques and the rest), built in park_details' per-cell
   meshes (+3 draw calls on the bench route). Checks `monuments` and `monumentmesh`.
 - **Monuments pass, part 2 (open):** photo builds of Nike, Słowacki, Starzyński, Mały Powstaniec, Kiliński,
-  Plac Piłsudskiego's (Piłsudski, Smolensk, Kaczyński), the Eastern memorial and Umschlagplatz from Mac photos
-  (refs/); each lands as a site and joins `bake_monuments.SKIP`. Then rows 113-116 and 142.
+  the Eastern memorial and Umschlagplatz from the Mac's photo reports (docs/landmarks/photo-reports/); each
+  lands as a site and joins `bake_monuments.SKIP`. Then rows 113-116 and 142. ~~Plac Piłsudskiego's
+  (Piłsudski, Smolensk, Kaczyński)~~ done 2026-11-02 (sites `smolensk`, `pilsudski`, `kaczynski`,
+  `plac_maszty`, the paving's chequer in ground.gdshader; spec `plac_pilsudskiego.md`).
 - **Plaques without a wall:** 49 OSM plaques have no drawn wall within 12 m (free-standing ones, courtyards)
   and are left out; a post-mounted plaque piece would place them. A plaque's wall is the LoD2 footprint, so
   a deep shop recess can leave it on a pier rather than the door's wall (fine so far in shots).
@@ -265,6 +267,20 @@ fixed 2026-11-02); PT-9 HUD overlaps confirmed.
 PT-9 (bubbles) fixed 2026-11-02: the tail of a bubble kept clear of the HUD ended in the air (a 22 pt stub) and pointed down even when its speaker was above; it now runs to the speaker, and a half-typed line keeps the wrapping of the whole line. The radio ticker's cut-off at the left edge (run 10, 1266x585) fixed 2026-11-02: it slid in from off screen; now it eases a few points inside the safe area and fades (`check_hud` checks every step of the slide). Still open: the KEBAB status label over BRAKE and the sound button did not reproduce in `check_hud` at 6 sizes nor in run 10 (`pt` is fixed when the HUD is built and not updated by a later window resize: a suspect, not shown); needs a frame with the window size.
 PT-13 (the order card went away without a tap) fixed 2026-11-02: it was the order's designed start after 9 s, unexplained; the card's GO now counts those seconds down.
 PT-10 (the order tracker over bubbles) fixed 2026-11-02: the target pointer draws under the speech bubbles and the panels and goes faint under the banner or a bubble; the edge arrow slides along the edge clear of bubbles and panels, and its distance sits past the arrow by the label's own size (`check_hud`: draw order, 72 directions, a bubble in the arrow's spot). Phone look open.
+Run 11 (P2, the flying half, 2026-11-02) timed out after the heli beat (the Mac sandbox ended, no frames): PT-14 (the helicopter stuck at ground height after landing), PT-15 (a taxi card over the race flash-back) and PT-16 (one order driven six times) are suspects. Design question for the guide: every beat waits while an order is on, so a new player who keeps delivering meets the race at 203 s instead of ~75 s; should the race or a later beat cut in after the first delivery?
+Run 12 (2026-11-03): PT-14 closed (the helicopter climbs after landing; run 11's harness mixed its keys); PT-17 suspect, a car circling on Plac Dąbrowskiego until the tow. The rescue beat waited 83 s past its window while a ride and a chase were on (the same hold as the race above).
+PT-15, PT-16, PT-17 fixed 2026-11-03 (PLAYTEST.md): no ride request over Halina's call or a rival's prompt (and none of those over a request card); the delivered / order-dropped card goes by itself after 12 s or 25 m (it waited for OK for ever, the likely reason one order looked driven six times and the race waited until 203 s); Jasna's 24 m shallow bay by Plac Dąbrowskiego bridged (bays up to 30 x 2.5 m city-wide). Still open for F: the guide's beats wait while any job is on (the design question above); verify all three on the next P2 run.
+
+## Hotel Warszawa and Cedet (city inventory item 4, 2026-11-02)
+Built from photos gathered on the Mac (`refs/hotel_warszawa/`, `refs/cedet/`) and the LoD2 heights, specs
+`hotel_warszawa.md` and `cedet.md`. Found and left:
+- Hotel: the shaft's corner pilasters are single (the photos show doubled, stepped strips); the U behind is
+  one 25 m height (LoD2 has lower bits); the glazed pavilion and rounded corner at the block's south-east
+  foot belong to the next outline south (not built); the lift head and masts are placed from the report.
+- Cedet: the cornice's fine vertical ribbing and the 3-pane / 2-sash split of each bay are the shader's
+  generic 1.5 m mullions; the north wing has no crown pavilion of its own; the glazed lantern and link roof
+  plant are not modelled; the ground-floor tenants' fascias (parodies) and the red neon at the east corner
+  are not there.
 
 ## Most Poniatowskiego (F, 2026-11-02)
 Built from photos gathered on the Mac (`refs/poniatowski/`, report `docs/landmarks/photo-reports/poniatowski.md`),
@@ -393,7 +409,7 @@ add it to the plan." Rules and the full inventory (39 named religious buildings,
 - **Open, Mac:** the front end and tower count of every kit church; the gables on the real LoD2
   walls (do they stand on the right edges, z-fight, read at phone zoom); the palette against
   photos of Plac Zamkowy's west side (Kamienica pod Messalką, Baryczków).
-- **Open, build:** Praga cathedral, Archikatedra's tower and apse, the Dominican, Capuchin,
+- **Open, build:** Archikatedra's tower and apse, the Dominican, Capuchin,
   Franciscan and Pallotine monasteries; lit belfries at night; the Kościół Niepokalanego Poczęcia
   outline is only 20 x 14 m (a chapel, check its name).
 - **Roofs (owned by the gameplay pass thread):** F's "roofs on the old city look strange, a lot of
@@ -550,8 +566,13 @@ levels 1-3 at 150-400 zł. Saved in the [garage] section (no version bump). Left
 game, and unstuck: if the user is stuck in textures, click and move to the main road". POMOC
 DROGOWA (PR #231) lived at the bottom of the Jazda tab. Task: both buttons in a row at the top of
 Settings → Jazda (the first tab); NOWA GRA asks a second tap within 4 s, then wipes the save
-(`_on_new_game`). Later: show a "stuck? tow" toast when the car has been pinned for 8 s.
-Files: settings_panel.gd, main.gd.
+(`_on_new_game`). Files: settings_panel.gd, main.gd. The "later" is done (2026-11-03): trying to
+drive (gas, brake or the stick) for 8 s and still within 4 m of one spot, whatever holds the car (a
+wall nothing pins it against, a gap inside a building), POMOC DROGOWA comes up on the context button
+with one toast and a tap tows (car.gd `stalled`, main.gd `_stuck_offer_frame`, `check_stuck_offer`).
+Not while parked by the game, held by the stop assist, in the water or flying; the pinned car's own
+turn-out and tow still come first. Left: the phone look; a pad has no button for the context button
+(its toast points to Settings → JAZDA).
 
 **G15 · Stop assist and quest rings (P0, quick win).** F: "pomoc przy zatrzymaniu is not working
 well; make the start and end points bigger and add assistance to pickup". Task: ring 9 → 13 m,
@@ -767,6 +788,23 @@ traffic queueing and going round parked cars (traffic.gd PARKED_LOOK / PARKED_WA
   map has no New Town data north of Freta), PURO Stare Miasto (-1094,-1018) has a mapped hotel
   building but no front, the unnamed 4.3 m hotel at (-819,-1419).
 
+## Royal Castle and its gardens (F, 2026-11-02)
+
+F asked to bring the castle in line with Ogród Park Krajobraz's garden project
+(krajobraz.com.pl/projekt/zamek-krolewski) and to look for more sources. Pass 2 done (spec
+`docs/landmarks/specs/zamek.md`): Clock Tower, turrets, terracotta roofs, the cream Vistula front
+and dome, Kubicki's Arcades (site `arkady`), tubs, fountains, vases, the Lower Garden's lawn
+carpet (`map_builder.LAWN_CARPETS`) and the gardens' low basin rings (`GARDEN_RINGS`).
+- Z1 Mac look check (QUESTIONS): LoD2's tower and eave against the model; the arcades on the terrain.
+- Z2 The courtyard (Dziedziniec Wielki): fan-pattern setts, a granite walk from the gate, the
+  yard walls pinkish-beige on the east and north wings.
+- Z3 The Vistula front's two gabled side risalits (14 m, pediment, corner statues) and the
+  four-arch loggias with balustraded balconies; dormers on the whole roof ring.
+- Z4 The south quarter garden: the embroidered parterre (gravel and box scrollwork) by the SE
+  corner, x -581..-568, z -1522..-1492; the Lower Garden's L-shaped bosket and hedge fan.
+- Z5 Pałac pod Blachą as a model (copper-green hipped roof, cream walls, attic statues).
+- Z6 Plac Zamkowy's granite slab paving round the Column.
+
 ## Mariensztat and Krakowskie Przedmieście: review (F, 2026-11-01)
 
 F asked whether Mariensztat and Krakowskie Przedmieście are modelled well. Cloud shots (OSM
@@ -805,6 +843,19 @@ the OSM outlines, no photos; specs in docs/landmarks/specs/):
 - ~~K5 Hotel Bristol's corner dome~~ (`bristol`, tower 334 tris; its body done in the hotels pass,
   see "Grand hotels"). Left: Mac photo check that the dome is on this corner, its profile and the
   facade's colours.
+- **Photo rebuild (2026-11-02)** from `refs/krakowskie/` (29 Commons photos, three orthos; report
+  docs/landmarks/photo-reports/krakowskie.md): Mickiewicz moved to (-626, -1078) and rebuilt facing the
+  street on his 16 x 10 m terrace (balustrade, two flights, four gilt-flame candelabra, 13.5 m pedestal
+  and poet); the University gate moved to (-462, -642) and rebuilt (white pavilions with statues in
+  niches, curved gables, lanterns, the crowned-eagle gate, side gates, urn piers); Pałac Kazimierzowski
+  ochre with a red roof and its white portico; Pałac Czapskich built whole (brick-red, white trim,
+  pediment, red hips, facing east); Pałac Potockich cream under orange-red roofs, its two street gates;
+  the Kordegarda in white stone with arched windows and a statued attic (no portico); the Carmelite
+  front in sandstone with its paired columns, temple front, copper globe and lantern turrets (2.2 m
+  further out, on the outline's risalit); Bristol cream with a zinc mansard and the open belvedere;
+  Europejski paler. The "southern guardhouse" is the south wing's end, now in the skin's colours.
+  Left: Mac/phone look check (QUESTIONS), café gardens/bollards/awnings (below), the setts south of
+  Kopernik, Prus's and Wyszyński's spots.
 - ~~K6 small things~~ done 2026-11-01: the black Chopin benches (`map_builder`
   `_split_chopin_benches`), Prus's and Wyszyński's statues (`prus` 100 tris, `wyszynski` 122;
   spots from their published coordinates, facings guessed), the carriageway's granite setts
@@ -825,8 +876,11 @@ Plan: docs/design/railway.md. One PR per item, in this order:
 ## Krakowskie Przedmieście street by street (F, 2026-11-02), pass 1
 Built (cloud, Sonnet): eight shopfronts (`Storefronts.KRAKOWSKIE`, 93 venue signs in check_parodies), original names, at the mapped house numbers 20/22, 19, 27, 56, 45, 58/60, 64, 69. Open:
 - Mac look check of the eight signs (QUESTIONS); move them to real doors.
-- Shop awnings, café gardens (Bristol, Europejski, Czytelnik-style), a horse carriage rank, pavement details: need photos.
-- Left from K1-K6: the second Potocki guardhouse, Pałac Czapskich's own model (landmarks thread owns models).
+- Shop awnings, café gardens (Bristol, Europejski, Czytelnik-style), pavement details: photos 26-29 of
+  `refs/krakowskie/` now describe them (low black or wooden barriers, white and dark-red umbrellas, wooden
+  decks, planters; white awnings on the west row near Bednarska; granite bollards ~0.8 m every ~4 m along
+  the walk edge; black cast-iron lamps every ~25 m): next item. No carriage rank in the photos or the ortho.
+- ~~Left from K1-K6: the second Potocki guardhouse, Pałac Czapskich's own model~~ done 2026-11-02 (photo rebuild above).
 
 ## Powiśle street by street (F, 2026-11-01)
 - Built: Ostrogski Castle + Chopin Institute, the Teresy church, the boulevard Syrenka, Dworzec
