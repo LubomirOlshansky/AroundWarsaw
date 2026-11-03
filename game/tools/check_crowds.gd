@@ -311,6 +311,14 @@ func _check_sites(c: Crowds) -> void:
 	# Nowy Świat pass 2: the café street's chill spots are sites with people.
 	_expect(Crowds.NOWY_SWIAT.size() >= 4 and Crowds.NOWY_SWIAT.keys().all(func(id: String) -> bool: return c.by_id.has(id)),
 			"Nowy Świat: %d chill spots are sites" % Crowds.NOWY_SWIAT.size())
+	# Nowogrodzka street-by-street (2026-11-03): the bar strip's pavement crowds, a Friday night's,
+	# 01:00 Saturday still Friday's, empty in the morning, a Tuesday half, rain a third.
+	_expect(Crowds.NOWOGRODZKA.size() >= 6 and Crowds.NOWOGRODZKA.keys().all(func(id: String) -> bool: return c.by_id.has(id)),
+			"Nowogrodzka: %d pub spots are sites" % Crowds.NOWOGRODZKA.size())
+	_expect(Crowds.pub_level(23.5, 5, 7, false) == 1.0 and is_equal_approx(Crowds.pub_level(1.0, 6, 7, false), 0.85)
+			and Crowds.pub_level(10.0, 5, 7, false) == 0.0 and Crowds.pub_level(23.5, 2, 7, false) < 0.5
+			and Crowds.pub_level(23.5, 5, 1, false) >= 0.6 and Crowds.pub_level(23.5, 5, 7, true) <= 0.3,
+			"Nowogrodzka: the pub crowd by hour, night, month and rain")
 	# F, 2026-11-01: DALEJ DALLA GELATO, the Powiśle gelateria: a line in snow too.
 	_expect(Crowds.gelato_queue(10.0, 2, 7)[0] == 0 and Crowds.gelato_queue(21.5, 2, 7)[0] == 0
 			and Crowds.gelato_queue(16.0, 2, 7) == [Crowds.GELATO_MAX, "lody"]

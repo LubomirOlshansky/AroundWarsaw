@@ -233,6 +233,9 @@ Proposed order for the next threads (photos first, see "Why some places were reb
 9. Photo re-pass of the outline builds on the first ten minutes' routes: Varso, Złote Tarasy, Teatr Wielki, Krakowskie Przedmieście (7, 8, 18, 24-27). Krakowskie Przedmieście's gather list is parked in QUESTIONS (2026-11-02).
 10. Praga's faces: the cathedral of St Michael and St Florian, Koneser, Bazar Różyckiego, Wschodnia (84-86, 73). The cathedral and the bazaar built from the Mac's photo reports 2026-11-02; Koneser and the fountain park (88) lie in the box's cut north-east corner, off the map.
 
+Tier C street passes (Part 2's named outlines and points, street by street, no photo builds): Nowogrodzka's
+bar strip, pass 1 (2026-11-03: eight parody bar fascias, pavement crowds at night); next Mazowiecka's clubs.
+
 <!-- streets:start -->
 ## Part 2. Street by street
 

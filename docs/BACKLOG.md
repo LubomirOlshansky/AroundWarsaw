@@ -36,7 +36,7 @@ is the order of the next threads. Found while building it:
 - **Rule:** a tier S or A model starts from photos (F's or `refs/` on the Mac). About 50 outline builds wait
   for their Mac photo check (QUESTIONS); their photo re-pass is Part 3 item 9.
 - 455 named OSM outlines (tier C: tenements, offices, embassies) are plain blocks; street passes take them
-  street by street from Part 2.
+  street by street from Part 2. Done: Nowogrodzka's bar strip, pass 1 (2026-11-03, section below).
 
 ## Site analytics (F, 2026-11-02)
 
@@ -604,6 +604,23 @@ the Treasury palace's portico columns and wing pavilions; they now read in yello
 - Pałac Jabłonowskich (the old Ratusz with the clock tower) is on Plac Teatralny, not here, and is
   not modelled yet (OSM "Pałac Jabłonowskich", 39 points near (-990, -1185)); next to `teatr`.
 - Overlaps Za Żelazną Bramą (PR #215): none; it works west of Al. Jana Pawła II.
+
+## Nowogrodzka street by street (2026-11-03), pass 1
+The first tier C street pass (CITY_INVENTORY Part 2, Śródmieście): every Part 3 place with a Mac photo
+report was taken by an open thread or blocked (NBP: one photo; Koneser, the fountain park and Gdańska
+off the map), so this pass takes the bar strip between Marszałkowska and Bracka, 14 OSM bars and the
+street nearest the start area with no pass yet. Built (cloud, Opus):
+- Eight parody bar fascias at the OSM points of the real bars (`Storefronts.NOWOGRODZKA`: KWARTA at 4,
+  U HALINKI BAR at 10, ZA BARDZO at 11's gate, KRAFTOWNIA IPA DO DNA at 12, SCHRON PIWNY at 20,
+  PODWÓRKO 22 SZOTY at 22's gate, NALEWALNIA KIEDYŚ PO 4 at 27, DŻINIARNIA at 31); check_parodies 115 venues.
+- Pavement crowds outside them (`Crowds.NOWOGRODZKA`, seven spots, 8-14 people each, standing) on a
+  new `pub` curve (16:00 a few, 23:00-01:00 full, gone by 04:00) × `PUB_WEEKDAY` (Fri/Sat full, a
+  Tuesday 45 %), winter 60 %, rain 30 % (`pub_level`, check_crowds).
+Open:
+- Mac look check (QUESTIONS): the signs on the right walls and doors, the crowds on the pavement.
+- The yards of nos. 11 and 22 (the real bars sit 60-70 m in, in courtyards): a gate arch and a lit yard.
+- The houses (plaster, cornices, shop storeys) need photos; Mazowiecka's club street (10 OSM clubs) is
+  the next street of the same kind.
 
 ## Nowy Świat street by street (F, 2026-11-02), pass 1
 Built (cloud, Sonnet): eight parody shopfronts (`Storefronts.NOWY_SWIAT`, check_parodies 68 venues). Open:
