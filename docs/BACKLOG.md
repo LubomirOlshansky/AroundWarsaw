@@ -19,7 +19,8 @@ in, with window bays every 3.6 m and storey. The Palace already had its courts (
   in centrum.json and let map_builder `_build_buildings` draw them (walls facing in, roof cut); needs
   the raw OSM export, so a Mac re-bake (the cloud has no OSM access).
 - Hotel Europejski: its LoD2 model (2018, mid-renovation) is roofed over the court, so no court is
-  traced; the photo rebuild (F's photos, 2026-11-03) should model the court.
+  traced; the photo rebuild (PR #402) hand-models it (a 14 m ring, inner walls, glass roof at
+  8.5 m), so "europejski" stays out of `COURT_SITES` (no double court).
 - Other sites the trace finds courts in, left as built: Złota 44 (127 m², a gap of the 2018 survey
   by the tower), Pasaż Wiecha (152 m²), St Anthony's and the Reformed church (64 and 37 m², small
   cloister or light-well courts). Add a key to `COURT_SITES` after a look check.

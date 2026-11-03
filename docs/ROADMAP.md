@@ -140,8 +140,8 @@ then the Launch gate.
       traced from the LoD2 roofs, `tools/bake_courts.py`, `game/data/courts.json`, verify step `courts`)
   - [ ] OSM-only buildings (no LoD2 model) keep a multipolygon's outer ring only: bake_osm to keep the
         inner rings and map_builder to draw them (a Mac re-bake; BACKLOG "Open courtyards")
-  - [ ] Hotel Europejski's courtyard: its LoD2 (2018, mid-renovation) is roofed over, so it waits for
-        the photo rebuild
+  - [x] Hotel Europejski's courtyard: its LoD2 (2018, mid-renovation) is roofed over; the photo rebuild
+        (PR #402) hand-models the court, so "europejski" stays out of `COURT_SITES`
 - [ ] Grow the map north-east to take in Koneser, Park Fontann and Ząbkowska (F, 2026-11-03: not now,
       backlog only; QUESTIONS 2026-11-02 and 2026-11-03)
 
