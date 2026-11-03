@@ -165,6 +165,7 @@ then the Launch gate.
   - [x] K2b Chmielna's 64 benches (2026-11-02; the Atlantic fountain's rim was already there)
   - [x] K9 the stadium's grounds: tree rows on the four entrance avenues, pollarded willow groups (80 trees)
   - [x] K6 Browary's Central Garden yard (12 young trees) and Norblin's court (5 candelabra planes), 2026-11-02 (Mac photo check of the places; wall climbers and upstairs terraces not modelled)
+  - [x] K6 rebuilt from the Mac's photo reports, 2026-11-02: Norblin moved onto its real block (Plater, Galwan) with its courts open, 4 candelabra planes and 8 more young trees, green roofs and the terraces upstairs; Browary's Central Garden at 22 trees round an S-shaped gravel path with café clearings, sedum roofs and the north slab's roof garden (climbers and the glass street's roof left)
   - [ ] K10 Muzeum Historii Polski is off the map (QUESTIONS)
 - [x] Stadion Leguminy (Legia's ground on Łazienkowska, F, 2026-11-01): modelled from the mapped bowl outline (site `legia`, spec legia.md); Mac photo check parked (QUESTIONS)
 
@@ -437,6 +438,7 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [x] Rescue call card says where the person is (PT-12, 2026-11-02): distance and compass direction on the card, English hint no longer quotes the Polish label
 - [x] Race card shows its goal in full and tells the player to drive (PT-11, 2026-11-02): "WYŚCIG · POD PALMĘ", hint "Jedź pod Palmę! … Różowa strzałka pokaże drogę."
 - [x] First race waits for a new player and tells them to drive (PT-11 design half, 2026-11-02): Halina holds at the line until the car moves, GAZ! banner + ghost finger + her line after 2 s still, a nudge if stopped mid-race; heli, tape, Powiśle and garage beats pass the headless first10 replay
+- [x] The guide's beats no longer wait behind back-to-back rides (run 12, 2026-11-03): while a beat is due or 45 s away, no Podwózka request or "Na czasie" offer comes by itself (the PODWÓZKA button still asks); a player who takes every ride meets Halina, the call, the tape and Powiśle in their windows (`check_first10` rider)
 - [ ] P2 by hand on the Mac (Autopilot): fly to the BUW cassette and drive to Mirek's garage as a new player would
 - [ ] A 30-minute soak with no crash or soft-lock; the HUD re-checked at 375, 390 and 440 pt (PT-9 bubble tails fixed 2026-11-02, `check_hud` covers them; the phone look is open)
 

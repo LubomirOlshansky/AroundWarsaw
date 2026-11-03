@@ -308,8 +308,9 @@ const HYPE := {
 	"waczek_swietokrzyska": [52.2364, 21.0160],
 	"waczek_plater": [52.2281, 21.0047],
 	"waczek_femina": [52.2424, 20.9980],
-	# KROWA 2.0, the milk bar on the Żelazna front of Norblin (the Mac look check parks the door).
-	"krowa_norblin": [52.23367, 20.99107],
+	# KROWA 2.0, the milk bar on the Żelazna front of Norblin (the block of "Plater", moved off
+	# "Modsen" with the factory's model, 2026-11-02; the Mac look check parks the door).
+	"krowa_norblin": [52.23246, 20.99205],
 	# MIESZANE MIESZANE, 40 m west of KEBAB KRÓL on the south pavement of Al. Solidarności (the Mac look check parks the door).
 	"kebab_mieszane": [52.24176, 20.99345],
 	# DALEJ DALLA GELATO on Tamka at Powiśle (the Mac look check parks the door).

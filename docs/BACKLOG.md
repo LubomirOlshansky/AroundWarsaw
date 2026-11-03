@@ -158,6 +158,17 @@ fresh thread per item; ul. Złota and Zgoda stay with the Skwer Linearny thread.
   yard, at spots clear of walls, roads, lamps and the scanned trees. Left (Mac photo check, QUESTIONS):
   the real positions (the Leżakownia's vaults, the candelabras' places), the climbers on the walls
   and the garden terraces upstairs (not modelled), and the tree count in the Browary yard.
+  **Rebuilt 2026-11-02 from the Mac's photo reports** (docs/landmarks/photo-reports/norblin.md,
+  browary.md, GUGiK ortho): the first pass had put Norblin (model and planes) on the wrong block,
+  OSM's "Modsen" north of Łucka. Now the site stands on "Plater" and "Galwan", their two courts are
+  carved open (`planted_trees.py` COURTS), 4 candelabra planes stand in the court north of the glass
+  street with young trees on Żelazna, along the glass street and in the west court; green sedum roofs
+  with plant rooms and the terraces upstairs; the guessed chimney is gone. Browary's Central Garden
+  has 22 crowns (the scan's 5 and 17 young ones) round an S-shaped gravel path with two café
+  clearings (white tables, dark-blue parasols), 4 trees by Willa Schielego, sedum roofs on the office
+  blocks and a roof garden on the north slab; the 12 trees misplaced on the yard west of the lawn are
+  gone. Left: climbers (no photo), the glass street's roof (the map's 2018 LoD2 halls stand where the
+  ortho shows the street), the AK memorial boulder (not located), the Grzybowska plaza's granite grid.
 - [x] K7 Bulwary Wiślane stages 1-2 (2026-11-02, site `bulwary_basen`, spec bulwary_basen.md): the
   splash pool and 3 fish (the 6 pavilions are the boulevard dressing, PR #310). Left: the amphitheatre, trampolines and the "living river"
   garden (not in OSM, need the orthophoto), and the Mac look check (QUESTIONS).
@@ -258,7 +269,8 @@ PT-13 (the order card went away without a tap) fixed 2026-11-02: it was the orde
 PT-10 (the order tracker over bubbles) fixed 2026-11-02: the target pointer draws under the speech bubbles and the panels and goes faint under the banner or a bubble; the edge arrow slides along the edge clear of bubbles and panels, and its distance sits past the arrow by the label's own size (`check_hud`: draw order, 72 directions, a bubble in the arrow's spot). Phone look open.
 Run 11 (P2, the flying half, 2026-11-02) timed out after the heli beat (the Mac sandbox ended, no frames): PT-14 (the helicopter stuck at ground height after landing), PT-15 (a taxi card over the race flash-back) and PT-16 (one order driven six times) are suspects. Design question for the guide: every beat waits while an order is on, so a new player who keeps delivering meets the race at 203 s instead of ~75 s; should the race or a later beat cut in after the first delivery?
 Run 12 (2026-11-03): PT-14 closed (the helicopter climbs after landing; run 11's harness mixed its keys); PT-17 suspect, a car circling on Plac Dąbrowskiego until the tow. The rescue beat waited 83 s past its window while a ride and a chase were on (the same hold as the race above).
-PT-15, PT-16, PT-17 fixed 2026-11-03 (PLAYTEST.md): no ride request over Halina's call or a rival's prompt (and none of those over a request card); the delivered / order-dropped card goes by itself after 12 s or 25 m (it waited for OK for ever, the likely reason one order looked driven six times and the race waited until 203 s); Jasna's 24 m shallow bay by Plac Dąbrowskiego bridged (bays up to 30 x 2.5 m city-wide). Still open for F: the guide's beats wait while any job is on (the design question above); verify all three on the next P2 run.
+PT-15, PT-16, PT-17 fixed 2026-11-03 (PLAYTEST.md): no ride request over Halina's call or a rival's prompt (and none of those over a request card); the delivered / order-dropped card goes by itself after 12 s or 25 m (it waited for OK for ever, the likely reason one order looked driven six times and the race waited until 203 s); Jasna's 24 m shallow bay by Plac Dąbrowskiego bridged (bays up to 30 x 2.5 m city-wide). Verify all three on the next P2 run.
+The guide's beats behind jobs, built 2026-11-03 (default, QUESTIONS): while a beat that waits for a free moment (race, trap, rescue, tape, Powiśle, garage) is due or within 45 s (`first10.gd` `due`, HOLD_AHEAD), the guide holds what comes by itself: Podwózka requests (rides.gd `guide_hold`, the next one at least 30 s after the hold lets go) and the "Na czasie" offers (trend_job.gd). A job already under way runs on and the PODWÓZKA button still asks for a ride. `check_first10` "rider": a player who takes every request meets every beat in its window (without the hold the tape and Powiśle came at 546 s). Left: a player who chains kebab orders at the stand still holds the beats (the stand is the player's own choice; not held), and a ride taken just over 45 s before a beat still pushes it back up to ~2.5 min (inside the windows in the toy); the next P2 run should show both.
 
 ## Hotel Warszawa and Cedet (city inventory item 4, 2026-11-02)
 Built from photos gathered on the Mac (`refs/hotel_warszawa/`, `refs/cedet/`) and the LoD2 heights, specs
@@ -712,8 +724,9 @@ the four sites as L2 models on their mapped outlines, `chill_*` crowds in their 
 (`crowds.gd` CHILL, `chill_level`) and KROWA 2.0, the milk bar queue on Norblin's Żelazna front
 (`MILK`, `milk_queue`, venue sign in `storefronts.gd`). Open, for the Mac look check (no photos in
 the cloud, the cloud's picture of each place is thin):
-- Norblin: which wings are historic brick and which new; the chimney's real place; the door of the
-  milk bar (the lat/lon is a guess on the Żelazna front, 33 m from Żelazna 59A).
+- Norblin: which wings are historic brick and which new; the door of the milk bar (moved with the
+  site onto Plater's Żelazna front, 2026-11-02, still a guess). The chimney was dropped (the photo
+  report's ortho shows none); Verit, the low block on Prosta, is still the map's plain building.
 - Browary: roofs (pitched, not flat), the Brama's arch, the chimney's count and place, the real
   heights (OSM gives 37 m for the gate block, built at 30).
 - Koszyki: the real roof (iron truss under glass) and the 1909 facade's details on Koszykowa.
