@@ -44,7 +44,7 @@ extends SceneTree
 ## in pieces 0.9 m apart with the parapet 0.5 m behind: a car sliding along it put its front corner
 ## in a gap and caught the next piece's end, pinned at (1307, 959) (the playtest's 1.6 s stop at
 ## (1308, 960)). Under the ramp, its pier stood 2 m off Solec's west kerb: a car on the kerb lane
-## drifting 5° west hit it head on. Fixed: guard rail gaps under 1.5 m are closed for the car
+## drifting 5° west hit it head on. Fixed: guard rail gaps under 1.5 m on a deck get a shallow V behind the rail line (lanes cut through stay clear)
 ## (map_builder.gd GUARD_JOIN), and piers keep 2 m more room beside a main road wherever their
 ## slide finds it (tools/bake_structures.py PIER_ROADSIDE; 44 of 359 piers moved 1-2 m). All but
 ## the last spot fail on the old map; a car that leaves Solec 3 m or more onto the verge can still

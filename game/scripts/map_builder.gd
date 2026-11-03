@@ -1250,6 +1250,27 @@ func _decks_at(x: float, z: float, feet = null) -> PackedFloat32Array:
 
 ## The height of deck group g at a point (its nearest piece, projected onto it), or the
 ## terrain for g < 0. Things baked onto a bridge (markings, kerbs, tram tracks) use it.
+## PT-18: the nearest point of deck group g's centrelines to p (p itself when there is none).
+func _deck_centre(g: int, p: Vector2) -> Vector2:
+	if _deck_cells.is_empty():
+		_index_decks()
+	var best := INF
+	var out := p
+	var cell := Vector2i(floori(p.x / DECK_CELL), floori(p.y / DECK_CELL))
+	for dz in range(-1, 2):
+		for dx in range(-1, 2):
+			for code: int in _deck_cells.get(Vector3i(cell.x + dx, cell.y + dz, g), PackedInt32Array()):
+				var pts: PackedVector2Array = _decks[code >> 12]["pts"]
+				var k := code & 4095
+				var a := pts[k]
+				var ab := pts[k + 1] - a
+				var q := a + ab * clampf((p - a).dot(ab) / maxf(ab.length_squared(), 0.000001), 0.0, 1.0)
+				if p.distance_squared_to(q) < best:
+					best = p.distance_squared_to(q)
+					out = q
+	return out
+
+
 func deck_height(g: int, x: float, z: float) -> float:
 	if g < 0:
 		return terrain_height(x, z)
@@ -4482,6 +4503,8 @@ func _pier(st, p: Dictionary, col: Color) -> void:
 ## solid for the car.
 ## Two rails' ends closer than this get a collider across the gap (narrower than a car).
 const GUARD_JOIN := 1.5
+## ...the V's depth behind the rail's line, at most (and under half the gap).
+const GUARD_POCKET := 0.4
 var guard_joins := 0
 func _build_guard_rails(st) -> void:
 	_uv2 = Vector2(0.5, -1.0)
@@ -4522,24 +4545,37 @@ func _build_guard_rails(st) -> void:
 		if poly.size() > 1:
 			ends.append([poly[0], dk, ends.size() / 2])
 			ends.append([poly[poly.size() - 1], dk, ends.size() / 2])
-	# PT-18: the gaps under GUARD_JOIN between two rails' ends (on Solec's ramp up to the Trasa
-	# the mapped rail comes in pieces 0.9 m apart, the parapet 0.5 m behind) are closed for the
-	# car: its front corner slid into one and caught the next rail's end, pinned.
+	# PT-18: the gaps under GUARD_JOIN between two rails' ends on a deck (on Solec's ramp up to the
+	# Trasa the rail comes in pieces 0.9 m apart, cut where a bus's box brushes it, the parapet 0.5 m
+	# behind) get a shallow V behind the rail's line: a car's front corner that slid into the gap
+	# caught the next piece's end and was pinned; now it glides out. Behind the line, so the lanes
+	# the cut cleared stay clear.
 	for i in ends.size():
 		for j in range(i + 1, ends.size()):
 			var e0: Array = ends[i]
 			var e1: Array = ends[j]
-			if e0[2] == e1[2] or e0[1] != e1[1]:
+			if e0[2] == e1[2] or e0[1] != e1[1] or int(e0[1]) < 0:
 				continue
 			var a: Vector2 = e0[0]
 			var b: Vector2 = e1[0]
 			var gap := a.distance_to(b)
 			if gap < 0.05 or gap > GUARD_JOIN:
 				continue
+			var mid := (a + b) * 0.5
+			var nrm := Vector2(-(b - a).y, (b - a).x) / gap
+			if nrm.dot(mid - _deck_centre(e0[1], mid)) < 0.0:
+				nrm = -nrm
+			var m := mid + nrm * minf(GUARD_POCKET, gap * 0.45)
 			var ga := deck_height(e0[1], a.x, a.y)
+			var gm := deck_height(e0[1], m.x, m.y)
 			var gb := deck_height(e0[1], b.x, b.y)
-			_wall_faces.append_array([Vector3(a.x, ga - 0.3, a.y), Vector3(b.x, gb - 0.3, b.y), Vector3(b.x, gb + 1.6, b.y),
-					Vector3(a.x, ga - 0.3, a.y), Vector3(b.x, gb + 1.6, b.y), Vector3(a.x, ga + 1.6, a.y)])
+			for seg in [[a, ga, m, gm], [m, gm, b, gb]]:
+				var p0: Vector2 = seg[0]
+				var p1: Vector2 = seg[2]
+				var y0: float = seg[1]
+				var y1: float = seg[3]
+				_wall_faces.append_array([Vector3(p0.x, y0 - 0.3, p0.y), Vector3(p1.x, y1 - 0.3, p1.y), Vector3(p1.x, y1 + 1.6, p1.y),
+						Vector3(p0.x, y0 - 0.3, p0.y), Vector3(p1.x, y1 + 1.6, p1.y), Vector3(p0.x, y0 + 1.6, p0.y)])
 			guard_joins += 1
 	_uv2 = Vector2.ZERO
 
