@@ -8,6 +8,8 @@ A day in the log that CHANGELOG.md does not cover yet gets lines made from the l
 so a new day shows up before anyone writes it up. Each entry also counts the log's updates that day.
 """
 
+from __future__ import annotations
+
 import datetime
 import html
 import re

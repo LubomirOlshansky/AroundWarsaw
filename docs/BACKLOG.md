@@ -235,12 +235,19 @@ covers the minimap and +/- buttons (not reproduced on main: check_hud sweep clea
 stops the car dead in 0.2-0.4 s with no slide; is that the arcade feel we want, or should it
 bounce or slide off a wall? Runs 4-8 (Krucza, Mokotowska,
 Świętokrzyska, Królewska): no wall bugs on the streets themselves (the on-road stops were bumps
-into traffic cars); PT-7 (the tow fires by the curved glass building) suspect, PT-8 (a 6 km/h crawl
-during Pani Halina's prompt: she was put in front of the car, fixed 2026-11-02); PT-9 HUD overlaps confirmed.
+into traffic cars); PT-7 fixed 2026-11-02 (a notch and a slit in the block's front at the Chmielna square; low collider walls
+across slits and notches city-wide), PT-8 (a 6 km/h crawl during Pani Halina's prompt: she was put in front of the car,
+fixed 2026-11-02); PT-9 HUD overlaps confirmed.
 - PT-11 follow-up (2026-11-02): the first race's start hold and GAZ! nudges are in (check_first10);
   watch on the next P2 run that the nudge reads at phone size and that a red light mid-race (under
   5 s) never triggers the stall line. The heli/tape/garage beats pass headless only; P2 by hand
   (flying to the BUW roof, driving to Mirek) waits for an Autopilot run on the Mac.
+- Found with PT-7: a 9 m wide, 3 m deep recess in Jabłkowski's front on Bracka (-578,203) still
+  holds a car whose stick points into it (turned out once; a real recess, left open). Wider recesses
+  like it are not bridged on purpose (a car fits in them).
+- Found with PT-7: the camera's see-through ghost hides the wall the car is about to hit when it
+  drives towards the camera (south on the default view): a player pushing into it sees no wall.
+  A design question for the visuals lane (a ground outline or a faint base under the ghost?).
 - Found with PT-1: a free spot (`main.gd _free_car_spot`, a tow) only tests the box against the
   wall faces, so a spot fully inside a solid outline (a building, now a 0.9 m platform) counts as
   free. Not seen in play; reject spots inside platforms and footprints if it shows up.
@@ -249,6 +256,14 @@ during Pani Halina's prompt: she was put in front of the car, fixed 2026-11-02);
 PT-9 (bubbles) fixed 2026-11-02: the tail of a bubble kept clear of the HUD ended in the air (a 22 pt stub) and pointed down even when its speaker was above; it now runs to the speaker, and a half-typed line keeps the wrapping of the whole line. The radio ticker's cut-off at the left edge (run 10, 1266x585) fixed 2026-11-02: it slid in from off screen; now it eases a few points inside the safe area and fades (`check_hud` checks every step of the slide). Still open: the KEBAB status label over BRAKE and the sound button did not reproduce in `check_hud` at 6 sizes nor in run 10 (`pt` is fixed when the HUD is built and not updated by a later window resize: a suspect, not shown); needs a frame with the window size.
 PT-13 (the order card went away without a tap) fixed 2026-11-02: it was the order's designed start after 9 s, unexplained; the card's GO now counts those seconds down.
 PT-10 (the order tracker over bubbles) fixed 2026-11-02: the target pointer draws under the speech bubbles and the panels and goes faint under the banner or a bubble; the edge arrow slides along the edge clear of bubbles and panels, and its distance sits past the arrow by the label's own size (`check_hud`: draw order, 72 directions, a bubble in the arrow's spot). Phone look open.
+
+## Plac Krasińskich: the Uprising Monument and the palace (CITY_INVENTORY 22 and 79, 2026-11-02)
+Built from photos gathered on the Mac (`refs/pomnik_powstania/`, `refs/krasinski/`) and LoD2, specs
+`pomnik_powstania.md` and `krasinski.md` (sites `pomnik_powstania` 1514 tris, `krasinski` 1508). Found and left:
+- The Supreme Court's colonnade behind the monument is green (ribbed green glass, ~#738483); OSM tags its columns "marble #deeded", so the game draws them white and the court as plain blocks. A Sąd Najwyższy model is its own item.
+- The monument's heights and the groups' facing are estimates from photos (no published height, no aerial); the bronze is simplified to blocky figures. The plaza's dark granite bands, the blue-green light strips, the floor plaque, the juniper beds and the brick wall with the Kotwica on the Długa side are not drawn; the 1 August candles are not there.
+- The palace's pediment relief is a flat recessed field, the cartouche over the central window and the roof statues of the garden front are not modelled; the dormer and chimney counts are rough (the report says so). The garden's round parterre and the pond's sculpture are the park's (the fountain is already there).
+- F's look check on the Mac or the phone: the slabs' lean, the fighters' size, the roof's green.
 
 ## POLIN and the Ghetto Heroes Monument (F, 2026-11-02)
 Built from photos gathered on the Mac (`refs/polin/`) and the LoD2 roof, spec `polin.md`. Found and left:
@@ -360,7 +375,9 @@ Twelve ideas, plans in docs/design/city-life-satire.md. Built: #11 MIESZANE MIES
 - Fixed: gaps under 3 m between cycle path ends, ways split into pieces, spikes and sharp corners (`tools/cycleways.py`; riders turned back at every gap).
 - Fixed (idea #9, 2026-11-02): the cycle crossings get Warsaw's white square edges (P-11, `map_builder.gd` `_build_crossings`) and the paths 660 white bike pictograms (P-23), 282 just past a crossing facing the riders coming off it, the rest every ~110 m (`tools/bike_marks.py`, run by bake_osm after car_free, idempotent CLI).
 - Measured (2026-11-02): counting cycle crossings as joins, only 41 path ends stop 3-8 m from the next path (the old "600" counted paths only), 90 stop 8-20 m, 124 more than 20 m (map edge, or the path goes on as a footway).
-- Open (needs the raw OSM export, the Mac only): `python3 -I tools/compare_cycleways.py --list` gives the share of OSM's cycle network we draw by class (track, shared foot-and-bike path, painted lane, bus lane open to bikes, sharrows, contraflow, crossing) and the longest undrawn stretches; fix the missing links by data in the bake. Shared paths (`footway` + `bicycle=designated`) draw as footway today; Warsaw's are mostly grey pavers, but a `segregated=yes` one has a red half.
+- Measured against OSM (2026-11-02, the Mac's export, `tools/compare_cycleways.py --list`): separate paths 100 % of 65.8 km, crossings 100 %, painted lanes 97 % of 9.8 km; the gap was the on-street network: 33.3 km of contraflow one-ways (`oneway:bicycle=no`), 850 m of bus lanes open to bikes, 574 m of sharrows.
+- Fixed (2026-11-02): `tools/bike_network.py` (bake_osm, or the CLI with `--osm`) paints 524 contraflow bikes with an arrow against the one-way by the car's left kerb, 14 bikes in the bus lanes, 23 sharrows with chevrons: contraflow 91 %, bus lanes 100 %, sharrows 58 %.
+- Open: the rest of the contraflow (narrow streets under 2 m per side, junction-only ways: Grzymały-Siedleckiego, Oczki, part of Hoża); sharrows on the map-north bridge ways; the two shared foot-and-bike paths (684 m, grey pavers like Warsaw's, a `segregated=yes` one has a red half in reality).
 - Open: more riders on the main routes (Wisłostrada, Marszałkowska, Świętokrzyska; city-life-satire.md #9); riders' side offset jumps at a join; the 19 deck paths untouched by cycleways.py.
 
 ## Gdański Business Center (F, 2026-11-02)
@@ -809,11 +826,17 @@ Built (cloud, Sonnet): eight shopfronts (`Storefronts.KRAKOWSKIE`, 93 venue sign
   mosaic's pattern).
 - ~~S3b Warszawa Śródmieście~~ Done 2026-11-01 (site `srodmiescie`, spec `srodmiescie.md`, 476 tris).
   Left: Mac photo check (the glazing, the fascia, the lettering).
+- ~~S3c-e the WKD stops~~ Done 2026-11-02 from F's Mac photo gather (`refs/wkd_srodmiescie/`,
+  `refs/wkd_ochota/`, reports in `docs/landmarks/photo-reports/`): sites `wkd_srodmiescie` (the two
+  concrete "propellers" on a raked wedge pier and a post over the stairs, white parapet boxes, the
+  ŚRÓDMIEŚCIE board, an arrows logo; 378 tris) and `wkd_ochota` (the slab on V legs over the island
+  platform, replacing OSM's 5 m "retail" box there, blue benches, red-brown edge strips, a stair up
+  at the west end; ~540 tris). Left: Mac/phone look (the propellers' twist and pier, the parapet
+  boxes' open end, Ochota's stair: the report guessed its spot; the report's ortho reading put the
+  slab ~10 m south of OSM's platform, built on OSM's).
 - S3c-e: Wschodnia and Gdańska sit at the map's east and north edges (the land past the edge is
   drawn since 2026-11-01, below; the cloud shots' missing ground inside the map is the cloud's flat
-  ground quad, not the Mac's); the WKD entrances (Śródmieście WKD's "propeller" roof, Ochota WKD):
-  the OSM outlines there don't match the descriptions (a 90 m, 2.5 m shelter by Centralna; the
-  platforms by Ochota are tram stops), so they wait for photos.
+  ground quad, not the Mac's): mostly off the map, low priority.
 - ~~L4 Most Średnicowy's look, after a Mac photo check.~~ Built 2026-11-01 (below).
 - Photo checks on the Mac for every station model (built from published descriptions).
   **Mac photo check, 2026-11-01** (main 03a26dc; Commons photos in refs/ochota, powisle,
@@ -896,7 +919,9 @@ the Mac and for gamepads, and the Mac in the beta plan. Built: gamepad support (
 Settings (focus ring, LB / RB tabs) and the full map; the title takes A / Y / B; the touch pedals
 hide while the pad is used and come back on a touch. Left:
 - Gamepad on real pads (iPhone and Mac): the button indices are checked on synthetic events only.
-- Gamepad gaps: no per-family glyphs (A / cross) in the hints; no rumble. (The volume bars, the
+- ~~Gamepad gaps: no per-family glyphs (A / cross) in the hints; no rumble.~~ Done (2026-11-02):
+  `Gamepad.fmt` names the buttons per pad family, haptics.gd rumbles the pad while it is in use.
+  Left: the rumble's strength and the Nintendo button order on a real pad (beta). (The volume bars, the
   notebook page, the garage card and the full map's stick pan / zoom / A teleport were done
   2026-11-01, check_gamepad P9-P12; the map's pad hint is one line in the player's language
   since the language work, 2026-11-02.)
@@ -1034,8 +1059,9 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   their checks (`first10`, `first10-run`, `opening`, `cassettes`, `save`, `hud`), merge #115 then
   #121. Built, not verified on the phone.
 - **The first scene's open items** (design/first-scene.md items 4-5; BACKLOG "High priority: the
-  first scene"): the pavilions and towers behind the Eastern Wall stores (a solid OSM block, needs
-  Mac photos). The park strip's benches and lamps and the lowered kerbs were built 2026-11-02. The paving, the crossings' tactile pads and the
+  first scene"): the pavilions and Pasaż Wiecha behind the Eastern Wall stores were built
+  2026-11-02 from the Mac photo report (site `wiecha`, first_scene.gd PASAZ; the phone look and
+  the open points are in QUESTIONS "Pasaż Wiecha"). The park strip's benches and lamps and the lowered kerbs were built 2026-11-02. The paving, the crossings' tactile pads and the
   tram platforms' edges were built 2026-11-02 (first-scene.md "Items 4 and 5 as built"); items 6-7
   (pedestrians and sound at the start) built 2026-11-02; both phone checks parked.
 
@@ -1307,6 +1333,12 @@ plan: docs/design/start-area-real.md (items R1-R8, ticked in ROADMAP "v1.0 check
   2025 year in search and the trade press. A Mac pass could add Wykop's own tags.
 
 ## High priority: the first scene and the Museum of Modern Art (the user, 2026-10-31)
+- **Found 2026-11-02 (Pasaż Wiecha build):** the default camera looks north-west, so the
+  pavilions' shopfronts on the pasaż (their west faces) face away from it: from the start the
+  player sees their roofs, south ends and the masts; the fronts show when the camera turns
+  (`--yaw=225`). The strip in front of Scena Relax is one LoD2 mass with the theatre, so it was
+  left in that model. The 1960s slabs above the pasaż are cream-ochre (spec D, 2026-11-01) but
+  the photo report calls them grey-white #D8D8D4: parked in QUESTIONS.
 - **Muzeum Sztuki Nowoczesnej as it is** (the user, 2026-10-31): the new white box on Plac
   Defilad's east edge (Thomas Phifer, opened 2024). Today it is plain white LoD2 parts with no
   model and no card. Wanted: one long, low, matte white box, the arcade of square columns at its
@@ -1406,7 +1438,7 @@ golden-image shots runtime vs `--prebuilt`,
   their pavements never shows (it stands on the museum's side instead). **2026-11-01 (Mac photo
   check, spec B):** the Rotunda re-pass done (spec `docs/landmarks/specs/rotunda.md`: green-grey
   glass between 52 silver mullions, the folded-plate crown with its teeth, the oculus, the
-  canopies, Widok Towers' green grid); only the phone can show the teeth and the signs' size. Left: the pavilions and towers behind the stores, Plac Defilad's paving and park strip,
+  canopies, Widok Towers' green grid); only the phone can show the teeth and the signs' size. Left: Plac Defilad's paving and park strip (the pavilions behind the stores done 2026-11-02, site `wiecha`),
   the tram stops and kerbs (item 5), the photo check on the Mac. **Items 6-7 (life and sound) built
   2026-11-02** (first-scene.md "Items 6 and 7 as built"). Found then, open: the café sitters sit on
   the footway by the tables, not on the chairs (a seat list per café set would fix it); the

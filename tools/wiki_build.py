@@ -21,6 +21,8 @@ The Markdown converter knows what the docs use: headings, paragraphs, nested lis
 code, **bold**, *italic*, ~~struck~~, `code` and [links](url).
 """
 
+from __future__ import annotations
+
 import argparse
 import ast
 import datetime
@@ -442,6 +444,7 @@ class Site:
         return f'<div class="pics">{"".join(figs)}</div>'
 
     def page(self, path: str, title: str, body: str, intro: str = "", toc: list | None = None) -> None:
+        title, body, intro = scrub(title), scrub(body), scrub(intro)
         nav = "".join(
             f'<a href="/{p}"{" aria-current=page" if p == path else ""}><span class="ni">{icon}</span>{esc(t)}</a>'
             for p, t, icon in NAV)
@@ -685,7 +688,7 @@ def page_progress(site: Site) -> dict:
 # ---- model progress -------------------------------------------------------------------------------
 
 # Names that never appear on the public wiki (the generator scrubs them from the inventory's text).
-SCRUB = [(re.compile(r"Pekao( Tower)?", re.I), "the bank-named tower")]
+SCRUB = [(re.compile(r"(Bank )?Pekao( Tower)?", re.I), "the bank-named tower")]
 
 # Part 1's status mark -> (stage, chip colour). "Researching" is a row whose Next cell says
 # "photos gathered" (the Mac's refs/<slug>/ and REPORT exist) or that is marked in progress.

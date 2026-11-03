@@ -386,8 +386,8 @@ func _hint_words() -> void:
 	# One line in the player's language (Lang.pick, as _build makes it).
 	var label := (_hint.get_child(0) as VBoxContainer).get_child(0) as Label
 	if Gamepad.in_use():
-		label.text = Lang.pick("Przytrzymaj A, by się przenieść pod krzyżyk · lewa gałka przesuwa · RT / LT przybliża",
-				"Hold A to jump to the cross · left stick pans · RT / LT zoom")
+		label.text = Gamepad.fmt(Lang.pick("Przytrzymaj {a}, by się przenieść pod krzyżyk · lewa gałka przesuwa · {rt} / {lt} przybliża",
+				"Hold {a} to jump to the cross · left stick pans · {rt} / {lt} zoom"))
 	else:
 		label.text = Lang.pick("Przytrzymaj miejsce, by się tam przenieść", "Hold a spot to jump there")
 
@@ -710,7 +710,7 @@ func _fill_quests() -> void:
 		# G12b: the pad's words for the card (A stays the teleport hold).
 		var keys := Label.new()
 		keys.name = "pad_keys"
-		keys.text = Lang.pick("X: AUTO / HELI · krzyżak: wybór · Y: bierz", "X: CAR / HELI · D-pad: pick · Y: take")
+		keys.text = Gamepad.fmt(Lang.pick("{x}: AUTO / HELI · krzyżak: wybór · {y}: bierz", "{x}: CAR / HELI · D-pad: pick · {y}: take"))
 		keys.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		keys.custom_minimum_size.x = QUEST_W * pt
 		keys.add_theme_font_size_override("font_size", _px(T_SUB))
