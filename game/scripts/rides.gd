@@ -66,6 +66,8 @@ const DETOUR_MAX := 1500.0
 const FIRST_OFFER := 120.0
 const OFFER_GAP := Vector2(75.0, 120.0)
 const OFFER_LIFE := 10.0
+## A held request (`guide_hold`) comes at least this long after the hold lets go.
+const HOLD_GAP := 30.0
 const PILL_DELAY := 1.2
 const CHAT_GAP := Vector2(25.0, 40.0)
 ## The river spots: a waypoint RIVER_INLAND m in from the water's edge, dry for RIVER_DRY m all
@@ -118,6 +120,9 @@ var flying := false
 var away := false
 ## Loop MW-6: Spacer (spacer.gd): a request comes only when the PODWÓZKA button is tapped.
 var quiet := false
+## The first-10 guide (first10.gd `_hold_offers`): a beat is due, so no request comes by itself
+## until it has fired; the PODWÓZKA button still asks for one.
+var guide_hold := false
 ## Testing: --autopilot drives the app's route (--ignore-app: the shortest one); --parody-log
 ## prints `ride:` lines; --ride-quirk, --passenger and --stars force the quirk, the passenger
 ## type and the live rating's start.
@@ -509,7 +514,9 @@ func _idle_tick(dt: float) -> void:
 	# The context button is the call's while one rings.
 	_set_pill(missions.state == Missions.State.CLOSED)
 	_offer_in -= dt
-	if (_offer_in <= 0.0 and not quiet) or (_pill_at >= 0.0 and _t - _pill_at >= PILL_DELAY):
+	if guide_hold:
+		_offer_in = maxf(_offer_in, HOLD_GAP)  # a beat comes first; a request a while after it
+	if (_offer_in <= 0.0 and not quiet and not guide_hold) or (_pill_at >= 0.0 and _t - _pill_at >= PILL_DELAY):
 		_pill_at = -1.0
 		_offer_in = _rng.randf_range(OFFER_GAP.x, OFFER_GAP.y)
 		_offer_here()
