@@ -59,12 +59,17 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		# Varso Place's name stone on the corner plaza (Krajobraz K3; a parody, never the real mark).
 		"VERSO PLACE",
 		# The Skyliner's crown (docs/design/city-life-satire.md #12): a small agency with a large nose.
-		"NOSE AGENCY",
+		"NOSE AGENCY", "NOSE", "AGENCY",
+		# Warsaw Unit's crown (the photo report, 2026-11-03): a parody of the insurer's logo.
+		"WARTKA",
 		# Poczta Główna's red band over the colonnade (a parody of the operator's own band).
 		"POCZTA",
 		# The Vistula boulevards' bar pavilions and containers (docs/landmarks/specs/bulwary.md):
 		# parody bar names and what the hatches sell.
-		"CUDAK", "POMOSTEK", "RZECZKA", "LEMONIADA", "ZAPIEKANKI"]
+		"CUDAK", "POMOSTEK", "RZECZKA", "LEMONIADA", "ZAPIEKANKI",
+		# Towarowa 22 built as finished (2026-11-03): the drone port, the superblock's name and the
+		# gilded last crane's plaque (the "Warsaw of the future" jokes).
+		"WARSZAWA 2050", "DRONOPORT", "TOWAROWA 22", "OSTATNI ŻURAW WOLI"]
 ## Tube colours (linear, bright): pink, cyan, violet, and a few words' usual colours.
 const PINK := Color(1.0, 0.1, 0.55)
 const CYAN := Color(0.1, 0.9, 1.0)

@@ -10,6 +10,8 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-03
+- The towers round Rondo Daszyńskiego look like themselves now: Skyliner's roof is cut on a slant with a glass fin and a black crown carrying the NOSE AGENCY sign, Warsaw Unit has its black crown and dark stripes, and Mennica, Generation Park and the HUB get their real glass and flat tops, with the HUB's cream round-ended hotel beside them.
+- Towarowa 22 by Rondo Daszyńskiego is finished already, years ahead of the real one: a row of towers along Towarowa (a 150 m tower with a drone port on top, a terracotta one with a wavy crown), the old printing hall's frame painted yellow over a garden, Park Słowa, and in it a gilded monument to the last crane of Wola.
 - Hotel Europejski on Krakowskie Przedmieście looks like the restored hotel today: rounded corners with two tiers of columns and curved balconies, rows of pedimented windows, tall arched shop windows, the HOTEL EUROPEJSKI name in gold over the street, a balustrade along the roof and the dark curved glass storey set back behind it. The University's main gate is narrower, as in life.
 - The website now leads with the beta: join on iPhone through TestFlight, or request Android access with a short form. The open-source story moved to the footer and a quieter "How it's made" section.
 - With colour-safe markers on (Settings, accessibility), race rings are now chequered like a finish line and a rescue pickup's ring is dashed, so you can tell them apart without relying on colour.

@@ -39,6 +39,8 @@ then the Launch gate.
       Metro Centrum's blue tubes over all twelve underpass stairs and the Patelnia's, the Patelnia mural, a
       kiosk, a cart and the east tram shelter (F, 2026-11-02; spec `rondo-dmowskiego.md`; Mac look check parked)
 - [x] Arkadka redesign, roof car park, BANK PEPEO sign and the Forest roof terrace (F, 2026-11-01; spec `arkadia.md`; Mac photo check parked)
+- [x] Towarowa 22 built as finished, the "Warsaw of the future": tower row, the printing hall's yellow frame over a garden, Park Słowa, a drone port and the gilded last crane of Wola (F, 2026-11-03; spec `towarowa22.md`, from F's renders; look check parked)
+- [x] Rondo Daszyńskiego towers rebuilt from Mac photos: Skyliner, Warsaw Unit, Mennica Legacy, Generation Park Y, The Warsaw HUB and its hotel tower (F, 2026-11-03; reports in docs/landmarks/photo-reports/; Mac look check parked)
 
 
 - [x] Powiśle streets: eight small neon-signed shops on Tamka, Dobra, Browarna, Topiel and Solec (F, 2026-11-02; signs only, positions need a Mac look)

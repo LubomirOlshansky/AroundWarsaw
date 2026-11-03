@@ -72,14 +72,34 @@ const TOWERS := [
 	{"key": "plater49", "osm": "InterContinental", "style": S_GRID, "glass": "#5f7f9a", "roof": "#c3c7c9", "sign": "INTERKONTI"},
 	{"key": "cosmopolitan", "osm": "Cosmopolitan", "style": S_RIBBON, "glass": "#4d6574", "roof": "#dfe2e0"},
 	{"key": "wtt", "osm": "Warsaw Trade Tower", "style": S_BANDS, "glass": "#3d6a7a", "roof": "#8d979c"},
-	{"key": "skyliner", "osm": "Skyliner", "style": S_FINS, "glass": "#2f6190", "roof": "#9aa6b0", "sign": "NOSE AGENCY"},
-	{"key": "unit", "osm": "Warsaw Unit", "style": S_BANDS, "glass": "#4f87ba", "roof": "#8a96a0"},
-	{"key": "mennica", "osm": "Mennica Legacy Tower", "style": S_FINS, "glass": "#6d95ba", "roof": "#b5c0c9", "crest": "slope"},
-	{"key": "gpy", "osm": "Generation Park Y", "style": S_DARK, "glass": "#46525e", "roof": "#6c747c", "crest": "slope"},
-	# The Warsaw HUB's two 130 m towers (unnamed in OpenStreetMap: found by a point, `at`, in
-	# the tallest building there), white fins on pale glass, their tops cut on a slope.
-	{"key": "hub_b", "at": Vector2(-2677.0, 576.0), "style": S_FINS, "glass": "#8fb2c8", "roof": "#c9d2d8", "crest": "slope"},
-	{"key": "hub_c", "at": Vector2(-2677.0, 633.0), "style": S_FINS, "glass": "#8fb2c8", "roof": "#c9d2d8", "crest": "slope"},
+	# The Rondo Daszyńskiego towers rebuilt from the Mac's photo reports (F, 2026-11-03;
+	# docs/landmarks/photo-reports/skyliner.md, warsaw_unit.md, mennica.md, gpy.md, warsaw_hub.md).
+	# `crown_from`: parts standing from that height up are the black crown block (`crown`);
+	# `crown_sign`: the `sign` goes on that block (in `sign_col`), not on the shaft; `slope_to`: the
+	# roof's cut rises towards that side; `fin`: a glass plate on the cut's high corner; `strips`:
+	# dark vertical strips at the long faces' ends and middles; `top`: a part's height cap.
+	# Skyliner: dark teal glass in a fine storey grid, the roof cut rising to the east (the Rondo)
+	# with a glass fin on the high corner, the black crown block (130-180 m) and the mast at the
+	# north end; no real sign up there, so the parody NOSE AGENCY sits on the block's east face.
+	{"key": "skyliner", "osm": "Skyliner", "style": S_BANDS, "glass": "#3a5f7c", "roof": "#59636b", "sign": "NOSE AGENCY",
+			"crown_from": 125.0, "crown": "#1e2226", "crown_sign": true, "slope_to": Vector2(1.0, 0.0), "fin": "#7fa7c8"},
+	# Warsaw Unit: sky-blue glass between black strips (each corner and the middle of the long
+	# faces), the 22 m black crown block (180-202 m) with the insurer's logo, here WARTKA in red.
+	{"key": "unit", "osm": "Warsaw Unit", "style": S_BANDS, "glass": "#6f99c2", "roof": "#8a96a0", "sign": "WARTKA",
+			"crown_from": 168.0, "crown": "#1b1e22", "crown_sign": true, "sign_col": Color(1.0, 0.15, 0.12), "strips": "#20252c"},
+	# Mennica Legacy Tower: silver-blue glass with vertical silver fins, a flat top (no crown).
+	{"key": "mennica", "osm": "Mennica Legacy Tower", "style": S_FINS, "glass": "#86a6c4", "roof": "#b5c0c9"},
+	# Generation Park Y: blue glass in a white grid (white piers every 3 m), a flat roof; 140 m.
+	{"key": "gpy", "osm": "Generation Park Y", "style": S_GRID, "glass": "#6b94b8", "roof": "#8d969c"},
+	# The Warsaw HUB's two glass towers (unnamed in OpenStreetMap: found by a point, `at`, in
+	# the tallest building there): blue-green glass, flat roofs; B (the south one) stands about
+	# 15 % lower than A in the photos though OSM gives both 130 m.
+	{"key": "hub_b", "at": Vector2(-2677.0, 576.0), "style": S_BANDS, "glass": "#6a93b3", "roof": "#b8bcbf"},
+	{"key": "hub_c", "at": Vector2(-2677.0, 633.0), "style": S_BANDS, "glass": "#6a93b3", "roof": "#b8bcbf", "top": 112.0},
+	# The HUB's third, round-ended tower is the hotel (85 m): cream fins over narrow windows, a
+	# dark band over the glazed ground floors.
+	{"key": "crowne", "at": Vector2(-2706.0, 512.0), "style": S_TILE, "glass": "#e8e4da", "roof": "#b8bcbf", "cool": true,
+			"band": "#3a3c40"},
 	{"key": "skysawa", "osm": "Skysawa", "style": S_BANDS, "glass": "#7e93a3", "roof": "#a7b0b6"},
 	# Błękitny Wieżowiec (Plac Bankowy 2, 1991): untinted reflective float glass that mirrors the
 	# sky, hence blue (its first cladding was copper, the "Golden Tower"; spec blekitny.md).
@@ -393,6 +413,9 @@ const INFO := {
 	"forest": ["Forest",
 			"Biurowiec z zielonymi tarasami i 120-metrową wieżą.",
 			"An office block of planted terraces and a 120 m tower."],
+	"towarowa22": ["Towarowa 22",
+			"Superkwartał na miejscu drukarni Domu Słowa Polskiego: wieże, ogrody i park. W grze już gotowy, w prawdziwej Warszawie jeszcze się buduje.",
+			"A superblock on the old Dom Słowa Polskiego printing works: towers, gardens and a park. Finished in the game; in the real Warsaw still being built."],
 	"gbc": ["Gdański Business Center",
 			"Biurowce przy Inflanckiej: szklana wieża ze ściętym czubkiem i dwa dziesięciopiętrowe bloki z białymi pasami pięter.",
 			"The offices on Inflancka: a glass tower with a slanted crown and two ten-storey blocks with white floor bands."],
@@ -857,6 +880,7 @@ func _find_sites() -> void:
 	_find_rynek()
 	_find_arkadia()
 	_find_forest()
+	_find_towarowa22()
 	_find_gbc()
 	_find_flag()
 	_find_swieto()
@@ -1247,6 +1271,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_arkadia(s)
 			"forest":
 				_build_forest(s)
+			"towarowa22":
+				_build_towarowa22(s)
 			"gbc":
 				_build_gbc(s)
 			"flaga":
@@ -2831,6 +2857,8 @@ func _build_tower(site: Dictionary) -> void:
 	var boxes: Array[Rect2] = []
 	var top_h := 0.0
 	var top_poly := PackedVector2Array()
+	var sign_poly := PackedVector2Array()
+	var sign_h := 0.0
 	for b in parts:
 		boxes.append(_box_of([_pts(b["p"])]))
 		if float(b["h"]) > top_h:
@@ -2871,20 +2899,47 @@ func _build_tower(site: Dictionary) -> void:
 		var small := boxes[k].size.length() < 9.0
 		var base := g + mh - (0.4 if mh < 0.5 else 0.0)
 		if small:
-			# A mast, a spire's piece or a ring: plain painted steel in its mapped colour.
+			# A mast, a spire's piece or a ring: plain painted steel in its mapped colour. It starts on
+			# the roof of the part it stands on (Skyliner's mast on its crown block: no faces inside).
+			var foot := _centre(poly)
+			for j in parts.size():
+				if j != k and not boxes[j].size.length() < 9.0 and boxes[j].has_point(foot) \
+						and Geometry2D.is_point_in_polygon(foot, _pts(parts[j]["p"])) and float(parts[j]["h"]) < h:
+					base = maxf(base, g + float(parts[j]["h"]) - 0.4)
 			var c := _osm(b["c"], roof)
 			_prism(poly, base, g + h, c, c.lightened(0.1), M_STONE, M_STONE)
 			continue
+		if spec.has("top"):
+			h = minf(h, float(spec["top"]))
 		var wall := glass
-		if spec.get("mapped", false):
+		var part_skin := skin
+		var crown := spec.has("crown_from") and mh >= float(spec["crown_from"]) - 0.5
+		if crown:
+			wall = Color(spec["crown"])
+			part_skin = M_SKIN + float(S_DARK) / 16.0
+			# Cladding 6 cm proud of the shaft's plane, so where the block's face runs on in the
+			# shaft's (Skyliner's north face) the two never share a plane.
+			var proud := Geometry2D.offset_polygon(poly, 0.06)
+			if proud.size() == 1:
+				poly = proud[0]
+		elif spec.get("mapped", false):
 			wall = _osm(b["c"], glass)  # mapped in its own colours (Chałubińskiego 8's white ribs)
 		elif h < top_h * 0.3 and h < 40.0:
 			# The podium: the tower's glass, a step warmer and darker.
 			wall = glass.darkened(0.12).lerp(Color("#b8a88c"), 0.0 if spec.get("cool", false) else 0.15)
 		if spec.get("crest", "") == "slope" and h >= top_h - 0.5:
 			_sloped(poly, base, g + h, g + h - 24.0, wall, roof, skin)
+		elif spec.has("slope_to") and not crown and h >= 100.0:
+			_tower_cut(poly, base, g + h, spec, wall, roof, part_skin)
 		else:
-			_prism(poly, base, g + h, wall, roof, skin, M_SKIN)
+			_prism(poly, base, g + h, wall, roof, part_skin, M_SKIN)
+			if crown and spec.get("crown_sign", false) and h > sign_h and not small:
+				sign_poly = poly  # the crown block's highest part (Skyliner's mast is taller)
+				sign_h = h
+			if spec.has("strips") and not crown and h >= 100.0:
+				_tower_strips(poly, base + 2.0, g + h, Color(spec["strips"]))
+			if spec.has("band") and h >= top_h - 0.5:
+				_tower_band(poly, g + 8.5, g + 11.5, Color(spec["band"]))
 			if spec.get("crest", "") == "frame" and h >= top_h - 0.5:
 				# Rondo 1: an open frame round the top, from the roof to 192 m.
 				_prism(poly, g + h, g + 192.0, wall, Color(0, 0, 0, 0), M_SKIN + float(S_FRAME) / 16.0)
@@ -2892,7 +2947,127 @@ func _build_tower(site: Dictionary) -> void:
 				_chamfered_top(poly, g + h, wall)
 		if mh < 2.0:
 			_collide(poly)
+	if spec.has("top"):
+		top_h = minf(top_h, float(spec["top"]))
+	if sign_poly.size() >= 3:
+		# The sign on the crown block, not on the shaft (_dusk_details skips it); a name of two
+		# words on a narrow block goes in two rows, so the letters stay readable from the street.
+		var words := str(spec["sign"]).split(" ")
+		var narrow := _box_of([sign_poly]).size.length() < 40.0
+		if words.size() > 1 and narrow:
+			for n in words.size():
+				_crown_signs(sign_poly, g + sign_h, words[n], spec.get("sign_col", DUSK_WARM), 4.0 + 7.0 * n, 0.85)
+		else:
+			_crown_signs(sign_poly, g + sign_h, str(spec["sign"]), spec.get("sign_col", DUSK_WARM), 4.0, 0.8)
 	_dusk_details(spec, top_poly, g, top_h)
+
+
+## Skyliner's cut roof (the photo report, 2026-11-03): the shaft's top falls 24 m from the side
+## `slope_to` points at to the far side, and a glass fin stands on the high edge, rising 20 m over
+## it. Walls from `y0`; the roof is the sloped plane.
+func _tower_cut(poly: PackedVector2Array, y0: float, hi: float, spec: Dictionary, wall: Color, roof: Color, skin: float) -> void:
+	var axis: Vector2 = (spec["slope_to"] as Vector2).normalized()
+	var c := _centre(poly)
+	var lo_d := INF
+	var hi_d := -INF
+	for q in poly:
+		lo_d = minf(lo_d, (q - c).dot(axis))
+		hi_d = maxf(hi_d, (q - c).dot(axis))
+	var top := func(q: Vector2) -> float:
+		return lerpf(hi - 24.0, hi, inverse_lerp(lo_d, hi_d, (q - c).dot(axis)))
+	var keep := _mode
+	_mode = skin
+	var run := 0.0
+	for i in poly.size():
+		var a := poly[i]
+		var b := poly[(i + 1) % poly.size()]
+		var ta: float = top.call(a)
+		var tb: float = top.call(b)
+		var n := _out(poly, a, b)
+		var nv := Vector3(n.x, 0.0, n.y)
+		var l := a.distance_to(b)
+		# The straight part through _wall (it clips what the site's other walls already cover in
+		# the plane: the mast's and the crown's), the sloped strip over it as one triangle or two.
+		var low := minf(ta, tb)
+		_wall(a, b, y0, low, n, wall, run)
+		if absf(ta - tb) > 0.01:
+			if ta > tb:
+				_tri(Vector3(a.x, low, a.y), Vector3(b.x, low, b.y), Vector3(a.x, ta, a.y), nv, wall,
+						Vector2(run, low - _g), Vector2(run + l, low - _g), Vector2(run, ta - _g), ta - _g)
+			else:
+				_tri(Vector3(a.x, low, a.y), Vector3(b.x, low, b.y), Vector3(b.x, tb, b.y), nv, wall,
+						Vector2(run, low - _g), Vector2(run + l, low - _g), Vector2(run + l, tb - _g), tb - _g)
+		run += l
+	_mode = M_STONE
+	# The sloped roof over the outline, untangled first (a mapped outline that doubles back would
+	# triangulate into overlapping triangles: _cap does the same).
+	for flat in Geometry2D.merge_polygons(poly, PackedVector2Array()):
+		if flat.size() >= 3 and not Geometry2D.is_polygon_clockwise(flat):
+			_cut_roof(flat, top, roof)
+	if spec.has("fin"):
+		_cut_fin(poly, c, axis, hi, top, Color(spec["fin"]))
+	_mode = keep
+
+
+func _cut_roof(poly: PackedVector2Array, top: Callable, roof: Color) -> void:
+	var idx := Geometry2D.triangulate_polygon(poly)
+	for i in range(0, idx.size(), 3):
+		var p0 := poly[idx[i]]
+		var p1 := poly[idx[i + 1]]
+		var p2 := poly[idx[i + 2]]
+		var v0 := Vector3(p0.x, top.call(p0), p0.y)
+		var v1 := Vector3(p1.x, top.call(p1), p1.y)
+		var v2 := Vector3(p2.x, top.call(p2), p2.y)
+		var nrm := (v1 - v0).cross(v2 - v0).normalized()
+		if nrm.y < 0.0:
+			nrm = -nrm
+		_tri(v0, v1, v2, nrm, roof, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+
+
+## Skyliner's glass fin: a plate along the cut's high edge, 0.6 m thick, 20 m over the cut.
+func _cut_fin(poly: PackedVector2Array, c: Vector2, axis: Vector2, hi: float, top: Callable, col: Color) -> void:
+	var best := 0
+	var best_dot := -INF
+	for i in poly.size():
+		var d := ((poly[i] + poly[(i + 1) % poly.size()]) * 0.5 - c).dot(axis)
+		if d > best_dot and poly[i].distance_to(poly[(i + 1) % poly.size()]) > 10.0:
+			best_dot = d
+			best = i
+	var a := poly[best]
+	var b := poly[(best + 1) % poly.size()]
+	var inward := -_out(poly, a, b)
+	# 0.1 m in from the face, so the plate never shares the shaft's plane.
+	var f0 := a.lerp(b, 0.15) + inward * 0.1
+	var f1 := a.lerp(b, 0.6) + inward * 0.1
+	var fin := PackedVector2Array([f0, f1, f1 + inward * 0.6, f0 + inward * 0.6])
+	_prism(fin, minf(top.call(f0), top.call(f1)) - 1.0, hi + 20.0, col, col.lightened(0.2), M_PAVILION + 0.5, M_STONE)
+
+
+## Warsaw Unit's black strips (the photo report): a 4.5 m strip at each end and in the middle of
+## every long face, 0.15 m proud of the glass, from `y0` to `y1`.
+func _tower_strips(poly: PackedVector2Array, y0: float, y1: float, col: Color) -> void:
+	var longest := 0.0
+	for i in poly.size():
+		longest = maxf(longest, poly[i].distance_to(poly[(i + 1) % poly.size()]))
+	for i in poly.size():
+		var a := poly[i]
+		var b := poly[(i + 1) % poly.size()]
+		var l := a.distance_to(b)
+		if l < longest * 0.5 or l < 20.0:
+			continue
+		var e := (b - a) / l
+		var o := _out(poly, a, b) * 0.15
+		for t: float in [0.0, 0.5 * l - 2.25, l - 4.5]:
+			var p0 := a + e * t
+			var p1 := a + e * (t + 4.5)
+			_prism(PackedVector2Array([p0, p1, p1 + o, p0 + o]), y0, y1, col, col, M_SKIN + float(S_DARK) / 16.0, M_STONE)
+
+
+## The hotel's dark band over its glazed ground floors (the HUB photo report), 0.2 m proud.
+func _tower_band(poly: PackedVector2Array, y0: float, y1: float, col: Color) -> void:
+	var wide := Geometry2D.offset_polygon(poly, 0.2)
+	if wide.size() == 1:
+		_prism(wide[0], y0, y1, col, col, M_STONE, M_STONE)
 
 
 ## Novotel's cut-off top (the Rondo photos): the shaft ends in two setbacks, 1.4 m in and 2.8 m
@@ -2916,7 +3091,7 @@ func _dusk_details(spec: Dictionary, poly: PackedVector2Array, g: float, top_h: 
 		return
 	if spec.get("marriott", false):
 		_marriott(poly, g, top_h)
-	if spec.has("sign"):
+	if spec.has("sign") and not spec.get("crown_sign", false):
 		_crown_signs(poly, g + top_h, str(spec["sign"]), DUSK_WARM, 3.0,
 				0.75 if spec.get("marriott", false) else 0.7)
 	if spec.has("base_sign"):
@@ -5119,6 +5294,355 @@ func _forest_terrace(poly: PackedVector2Array, y: float) -> void:
 							y + 2.6, y + 3.3, FOREST_PARASOL[(k / 2) % FOREST_PARASOL.size()])
 				k += 1
 	_no_roof = false
+
+
+# --- Towarowa 22 (the Wola superblock, built as it will look) ----------------------------------
+
+## Towarowa 22 (F, 2026-11-03): the "superkwartał" between Towarowa, Pańska and Miedziana, on the
+## old Dom Słowa Polskiego printing works. Today mostly a building site; the game builds it as
+## finished, from the developers' masterplan renders and the photos F attached (JEMS Architekci's
+## plan; docs/landmarks/specs/towarowa22.md): a row of towers along Towarowa (a 150 m office tower
+## on an 85 m podium at the Pańska corner, a white terraced tower, a terracotta tower with a wavy
+## crown, a dark tower, a low teal office), the round-tanked block and Apartamenty Gutenberga on
+## Nowa Wronia, the old printing hall turned into a yellow steel frame over a garden with its
+## pavilion, and Park Słowa. What stands already (the Office House and its pergola, M7, the
+## octagon) stays the map's. The "Warsaw of the future" jokes: a drone port on the big tower
+## (WARSZAWA 2050 on its crown) and, in the park, a gilded monument to Wola's last tower crane.
+## Frame: u along Towarowa's east carriageway (south-south-east, from about Pańska), v across it
+## (east-north-east, towards Miedziana), metres.
+const T22_O := Vector2(-2635.5, 470.0)
+const T22_A := Vector2(0.4719, 0.8815)
+const T22_B := Vector2(0.8815, -0.4719)
+## Footprints [u0, u1, v0, v1, height] in that frame (the render's massing, the map's free ground:
+## the car park at the Srebrna end and the paths along it stay).
+const T22_AFI := [18.0, 56.0, 16.0, 50.0, 150.0]
+const T22_PODIUM := [18.0, 62.0, 52.0, 92.0, 85.0]
+const T22_WHITE := [70.0, 100.0, 20.0, 54.0, 124.0]
+const T22_PINK := [112.0, 140.0, 20.0, 54.0, 112.0]
+const T22_PINK_LOW := [108.0, 146.0, 60.0, 92.0, 34.0]
+const T22_DARK := [156.0, 184.0, 20.0, 54.0, 96.0]
+const T22_DUO := [196.0, 250.0, 16.0, 58.0, 36.0]
+const T22_DUO_B := [196.0, 250.0, 64.0, 92.0, 26.0]
+const T22_TANKS := [106.0, 172.0, 108.0, 136.0, 28.0]
+const T22_GUT := [205.0, 282.0, 108.0, 178.0, 20.0]
+const T22_HALL := [118.0, 198.0, 146.0, 200.0, 15.0]
+const T22_PAVILION := [108.0, 200.0, 204.0, 218.0, 6.0]
+const T22_PARK := [125.0, 208.0, 224.0, 276.0, 0.0]
+## The old printing hall's whole mapped outline (u 108..201, v 141..220) goes: the frame, the
+## garden and the pavilion stand in it.
+const T22_DSP := [106.0, 203.0, 139.0, 222.0, 0.0]
+const T22_GREEN := Color("#6f9a4a")
+const T22_YELLOW := Color("#e9c21c")
+const T22_PAVING := Color("#b9806a")
+const T22_NEON := Color(0.35, 1.0, 0.85)
+const T22_GOLD := Color("#d9ae3c")
+
+
+func _t22_rect(r: Array, grow := 0.0) -> PackedVector2Array:
+	var u0: float = r[0] - grow
+	var u1: float = r[1] + grow
+	var v0: float = r[2] - grow
+	var v1: float = r[3] + grow
+	return PackedVector2Array([T22_O + T22_A * u0 + T22_B * v0, T22_O + T22_A * u1 + T22_B * v0,
+			T22_O + T22_A * u1 + T22_B * v1, T22_O + T22_A * u0 + T22_B * v1])
+
+
+## Ground over a rect of the frame that follows the terrain (the plot falls about a metre or two):
+## 10 m cells, each corner `dy` over the ground there.
+func _t22_ground(r: Array, dy: float, col: Color) -> void:
+	var nu := maxi(1, ceili((float(r[1]) - float(r[0])) / 10.0))
+	var nv := maxi(1, ceili((float(r[3]) - float(r[2])) / 10.0))
+	for i in nu:
+		for j in nv:
+			var u0: float = lerpf(r[0], r[1], float(i) / nu)
+			var u1: float = lerpf(r[0], r[1], float(i + 1) / nu)
+			var v0: float = lerpf(r[2], r[3], float(j) / nv)
+			var v1: float = lerpf(r[2], r[3], float(j + 1) / nv)
+			var q: Array[Vector3] = []
+			for p: Vector2 in [_w(u0, v0), _w(u1, v0), _w(u1, v1), _w(u0, v1)]:
+				q.append(Vector3(p.x, map.terrain_height(p.x, p.y) + dy, p.y))
+			_tri(q[0], q[1], q[2], Vector3.UP, col, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+			_tri(q[0], q[2], q[3], Vector3.UP, col, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+
+
+func _find_towarowa22() -> void:
+	var zone: Array = []
+	for r: Array in [T22_AFI, T22_PODIUM, T22_WHITE, T22_PINK, T22_PINK_LOW, T22_DARK, T22_DUO, T22_DUO_B,
+			T22_TANKS, T22_GUT, T22_DSP, T22_PARK]:
+		zone.append(_t22_rect(r))
+	_add_site("towarowa22", zone)
+	# The 2023 laser scan's trees on the building site stay out of the new blocks.
+	for r: Array in [T22_AFI, T22_PODIUM, T22_WHITE, T22_PINK, T22_PINK_LOW, T22_DARK, T22_DUO, T22_DUO_B,
+			T22_TANKS, T22_GUT, T22_DSP]:
+		var poly := _t22_rect(r, 1.5)
+		tree_free.append([poly, 0.0, _box_of([poly])])
+
+
+func _build_towarowa22(_site: Dictionary) -> void:
+	_o = T22_O
+	_a = T22_A
+	_b = T22_B
+	var g := INF
+	for r: Array in [T22_AFI, T22_DUO, T22_GUT, T22_DSP, T22_PARK]:
+		g = minf(g, _ground_under(_t22_rect(r)))
+	_g = g
+	# The Towarowa row.
+	var afi := _t22_box(T22_AFI, g, Color("#9db3c3"), Color("#7d8a94"), S_GRID)
+	var podium := _t22_box(T22_PODIUM, g, Color("#a9bccb"), T22_GREEN, S_GRID)
+	_t22_garden(podium, g + T22_PODIUM[4])
+	_t22_dronport(afi, g + T22_AFI[4])
+	_t22_box(T22_WHITE, g, Color("#ece8e0"), Color("#d8d4cc"), S_PUNCHED)
+	_t22_steps(T22_WHITE, g + T22_WHITE[4])
+	var pink := _t22_box(T22_PINK, g, Color("#c97a70"), T22_GREEN, S_PUNCHED)
+	_t22_waves(pink, g + T22_PINK[4], Color("#c97a70"))
+	_t22_garden(_t22_box(T22_PINK_LOW, g, Color("#ece7dc"), T22_GREEN, S_SLAB), g + T22_PINK_LOW[4])
+	var dark := _t22_box(T22_DARK, g, Color("#3c444c"), T22_GREEN, S_FINS)
+	_t22_garden(dark, g + T22_DARK[4])
+	_t22_garden(_t22_box(T22_DUO, g, Color("#5e9196"), T22_GREEN, S_BANDS), g + T22_DUO[4])
+	_t22_garden(_t22_box(T22_DUO_B, g, Color("#a7c2c2"), T22_GREEN, S_BANDS), g + T22_DUO_B[4])
+	# Nowa Wronia: the block with the four round tanks on its roof, and Apartamenty Gutenberga
+	# (two towers on a planted podium).
+	var tanks := _t22_box(T22_TANKS, g, Color("#f0eee8"), Color("#cfd2d0"), S_SLAB)
+	for k in 4:
+		var c := _w(lerpf(T22_TANKS[0], T22_TANKS[1], (k + 0.5) / 4.0), (T22_TANKS[2] + T22_TANKS[3]) * 0.5)
+		_prism(_circle(c, 4.2, 12), g + T22_TANKS[4], g + T22_TANKS[4] + 4.5, Color("#dfe9ee"), Color("#eef2f2"), M_PAVILION + 0.5, M_STONE)
+	_t22_garden(_t22_box(T22_GUT, g, Color("#e8e2d6"), T22_GREEN, S_SLAB), g + T22_GUT[4])
+	for t: Array in [[214.0, 238.0, 114.0, 142.0, 58.0], [252.0, 276.0, 146.0, 172.0, 50.0]]:
+		_t22_garden(_t22_box(t, g + T22_GUT[4], Color("#efeae0"), T22_GREEN, S_PUNCHED), g + T22_GUT[4] + t[4])
+	# Nowa Wronia's brick paving, the walk between the rows; under all of it, the finished
+	# quarter's light paving where the building site's bare ground was.
+	_no_roof = true
+	_mode = M_STONE
+	_t22_ground([10.0, 256.0, 8.0, 95.0], 0.04, Color("#cfc6b6"))
+	_t22_ground([100.0, 290.0, 106.0, 222.0], 0.04, Color("#cfc6b6"))
+	_t22_ground([122.0, 211.0, 222.0, 280.0], 0.04, Color("#cfc6b6"))
+	_t22_ground([97.0, 282.0, 95.0, 106.0], 0.07, T22_PAVING)
+	_t22_ground([102.0, 108.0, 136.0, 222.0], 0.11, T22_PAVING)
+	_no_roof = false
+	_t22_hall(g)
+	_t22_park(g)
+	_t22_crane(g)
+	_mode = M_STONE
+
+
+## A block of the superblock: walls in its skin from `y0` up its height, a flat top; the car's
+## wall at street level. Returns its plan.
+func _t22_box(r: Array, y0: float, wall: Color, roof: Color, style: int) -> PackedVector2Array:
+	var poly := _t22_rect(r)
+	_prism(poly, y0, y0 + float(r[4]), wall, roof, M_SKIN + style / 16.0, M_STONE)
+	if y0 <= _g + 0.5:
+		_collide(poly)
+	return poly
+
+
+## A green roof: the planted top and a low hedge just inside the edge.
+func _t22_garden(poly: PackedVector2Array, y: float) -> void:
+	var rim := Geometry2D.offset_polygon(poly, -0.8)
+	if rim.size() != 1:
+		return
+	_mode = M_STONE
+	_cap(rim[0], y + 0.15, T22_GREEN.lightened(0.06))
+	var inner := Geometry2D.offset_polygon(poly, -1.6)
+	if inner.size() == 1:
+		_prism(inner[0], y, y + 0.9, T22_GREEN.darkened(0.15), Color(0, 0, 0, 0), M_STONE)
+
+
+## The white tower's stepped top: two smaller boxes set back on the roof, as the render has.
+func _t22_steps(r: Array, y: float) -> void:
+	_lbox(r[0] + 9.0, r[2] + 11.0, 8.0, 9.0, y, y + 6.6, Color("#ece8e0"), M_SKIN + S_PUNCHED / 16.0, T22_GREEN)
+	_lbox(r[1] - 8.0, r[3] - 9.0, 6.0, 7.0, y, y + 9.9, Color("#ece8e0"), M_SKIN + S_PUNCHED / 16.0, Color("#d8d4cc"))
+
+
+## The terracotta tower's wavy crown: a parapet that rises and falls in round scallops 5 m
+## apart round the roof garden (both faces, so it reads from inside the roof too).
+func _t22_waves(poly: PackedVector2Array, y: float, col: Color) -> void:
+	_mode = M_STONE
+	var rev := PackedVector2Array(poly)
+	rev.reverse()
+	for ring: PackedVector2Array in [poly, rev]:
+		for i in ring.size():
+			var a := ring[i]
+			var b := ring[(i + 1) % ring.size()]
+			var n := ceili(a.distance_to(b) / 0.8)
+			var out := _out(ring, a, b)
+			for k in n:
+				var t := (k + 0.5) / n * a.distance_to(b)
+				var f := fposmod(t, 5.0) / 5.0 * 2.0 - 1.0
+				var h := 1.4 + 3.2 * sqrt(maxf(0.0, 1.0 - f * f))
+				_wall(a.lerp(b, float(k) / n), a.lerp(b, float(k + 1) / n), y, y + h, out, col.darkened(0.06))
+	_t22_garden(poly, y)
+
+
+## The drone port on the 150 m tower (the "Warsaw of the future"): a dark pad with an amber
+## ring, a drone taxi hovering over it with its rotor discs and a red light, and WARSZAWA 2050
+## on the crown's two street faces (towards Rondo Daszyńskiego and towards Pańska).
+func _t22_dronport(poly: PackedVector2Array, y: float) -> void:
+	var c := _centre(poly)
+	_mode = M_STONE
+	_prism(_circle(c, 11.0, 16), y, y + 0.4, Color("#5a6066"), Color("#33383d"), M_STONE, M_STONE)
+	_prism(_circle(c, 9.6, 16), y + 0.4, y + 0.45, Color("#e8a42c"), Color("#e8a42c"), M_STONE, M_STONE)
+	_prism(_circle(c, 9.0, 16), y + 0.45, y + 0.5, Color("#33383d"), Color("#33383d"), M_STONE, M_STONE)
+	# The pad's D, in two strokes of paint.
+	_cap(PackedVector2Array([c + _a * -3.0 + _b * -3.5, c + _a * -1.6 + _b * -3.5, c + _a * -1.6 + _b * 3.5, c + _a * -3.0 + _b * 3.5]), y + 0.55, Color("#f2efe6"))
+	var arc := PackedVector2Array()
+	for k in 9:
+		var ang := -PI * 0.5 + PI * k / 8.0
+		arc.append(c + _a * (-1.6 + cos(ang) * 4.0) + _b * (sin(ang) * 3.5))
+	for k in 9:
+		var ang := PI * 0.5 - PI * k / 8.0
+		arc.append(c + _a * (-1.6 + cos(ang) * 2.6) + _b * (sin(ang) * 2.2))
+	_cap(arc, y + 0.56, Color("#f2efe6"))
+	# The drone taxi, 7 m over the pad: a white cab, four arms, four rotor discs.
+	var hy := y + 7.0
+	_prism(_square(c, 1.4), hy, hy + 1.3, Color("#f4f4f2"), Color("#e0e2e4"), M_STONE, M_STONE)
+	_prism(_square(c, 1.0), hy + 1.3, hy + 1.8, Color("#4a6b86"), Color("#4a6b86"), M_PAVILION + 0.5, M_STONE)
+	for d: Vector2 in [Vector2(1, 1), Vector2(1, -1), Vector2(-1, 1), Vector2(-1, -1)]:
+		var tip := c + d.normalized() * 4.2
+		_prism(PackedVector2Array([c + Vector2(-d.y, d.x).normalized() * 0.18, tip + Vector2(-d.y, d.x).normalized() * 0.18,
+				tip - Vector2(-d.y, d.x).normalized() * 0.18, c - Vector2(-d.y, d.x).normalized() * 0.18]), hy + 0.9, hy + 1.15,
+				Color("#2c2f33"), Color("#2c2f33"), M_STONE, M_STONE)
+		_prism(_circle(tip, 1.9, 10), hy + 1.25, hy + 1.32, Color("#9aa3aa"), Color("#c3c9ce"), M_STONE, M_STONE)
+	_prism(_square(c + _b * 1.45, 0.2), hy + 0.5, hy + 0.9, Color("#ff2a2a"), Color("#ff2a2a"), M_LAMP, M_LAMP)
+	var k := 2.6 / (Neon.ROW_H * Neon.PIXEL)
+	var west := c - _b * (T22_AFI[3] - T22_AFI[2]) * 0.5
+	signs.append(["WARSZAWA 2050", Vector3(west.x, y - 5.0, west.y), Vector3(-_b.x, 0.0, -_b.y), k, T22_NEON])
+	var north := c - _a * (T22_AFI[1] - T22_AFI[0]) * 0.5
+	signs.append(["DRONOPORT", Vector3(north.x, y - 5.0, north.y), Vector3(-_a.x, 0.0, -_a.y), k * 0.8, T22_NEON])
+	# The podium's name over Pańska.
+	var front := _w(T22_PODIUM[0], (T22_PODIUM[2] + T22_PODIUM[3]) * 0.5)
+	signs.append(["TOWAROWA 22", Vector3(front.x, _g + float(T22_PODIUM[4]) - 4.0, front.y), Vector3(-_a.x, 0.0, -_a.y), k * 0.7, Color(1.0, 0.82, 0.55)])
+
+
+## The old printing hall (Dom Słowa Polskiego, 1950s): its steel frame kept as a yellow
+## lattice over a garden (the render), and the low pavilion beside it with its round skylights.
+func _t22_hall(g: float) -> void:
+	var r := T22_HALL
+	var top := g + float(r[4])
+	_mode = M_STONE
+	_no_roof = true
+	# The garden under the frame: lawn and a ring of trees.
+	_t22_ground([r[0] + 0.5, r[1] - 0.5, r[2] + 0.5, r[3] - 0.5], 0.1, Color("#6d8f4c"))
+	for iu in 6:
+		for iv in 3:
+			var p := _w(lerpf(r[0] + 7.0, r[1] - 7.0, iu / 5.0), lerpf(r[2] + 9.0, r[3] - 9.0, iv / 2.0))
+			var tp := p + _a * (3.0 if iv == 1 else 0.0)
+			_varso_tree(tp, map.terrain_height(tp.x, tp.y), 9.0 + float((iu * 3 + iv) % 3), 3.2)
+	_no_roof = false
+	# Columns every 10 m along the long sides, 8 m on the ends; a top chord all round; trusses
+	# across every 10 m with diagonals.
+	var nu := int((r[1] - r[0]) / 10.0)
+	for k in nu + 1:
+		var u: float = lerpf(r[0], r[1], float(k) / nu)
+		for v: float in [r[2], r[3]]:
+			_lbox(u, v, 0.45, 0.45, g, top, T22_YELLOW, M_STONE, T22_YELLOW)
+		# The cross truss: two chords and diagonals.
+		_t22_bar(_w(u, r[2]), _w(u, r[3]), top - 0.5, top, 0.3)
+		_t22_bar(_w(u, r[2]), _w(u, r[3]), top - 3.0, top - 2.5, 0.3)
+		var nv := 6
+		for j in nv:
+			var v0: float = lerpf(r[2], r[3], float(j) / nv)
+			var v1: float = lerpf(r[2], r[3], float(j + 1) / nv)
+			_t22_diag(_w(u, v0), _w(u, v1), top - 2.75 if j % 2 == 0 else top - 0.25, top - 0.25 if j % 2 == 0 else top - 2.75)
+	for v: float in [r[2], r[3], (r[2] + r[3]) * 0.5]:
+		_t22_bar(_w(r[0], v), _w(r[1], v), top - 0.5, top, 0.3)
+	_collide(_t22_rect(r))
+	# The pavilion: one glazed storey under a green roof with four round skylights.
+	var p := T22_PAVILION
+	var pav := _t22_rect(p)
+	_prism(pav, g, g + float(p[4]), Color("#8fb0bd"), T22_GREEN, M_GLASS, M_STONE)
+	_collide(pav)
+	for k in 4:
+		var c := _w(lerpf(p[0] + 18.0, p[1] - 18.0, k / 3.0), (p[2] + p[3]) * 0.5)
+		_mode = M_PAVILION + 0.5
+		_frustum(_circle(c, 3.4, 12), g + float(p[4]), _circle(c, 2.6, 12), g + float(p[4]) + 1.6, Color("#d7e4ea"), Color("#e6eef0"))
+	_mode = M_STONE
+
+
+## A straight steel bar from a to b (plan) between two heights, `w` wide.
+func _t22_bar(a: Vector2, b: Vector2, y0: float, y1: float, w: float) -> void:
+	var d := (b - a).normalized()
+	var n := Vector2(-d.y, d.x) * w * 0.5
+	_prism(PackedVector2Array([a + n, b + n, b - n, a - n]), y0, y1, T22_YELLOW, T22_YELLOW.darkened(0.08), M_STONE, M_STONE)
+
+
+## A diagonal bar in a vertical plane from (a, ya) to (b, yb).
+func _t22_diag(a: Vector2, b: Vector2, ya: float, yb: float) -> void:
+	var d := (b - a).normalized()
+	var n := Vector2(-d.y, d.x) * 0.1  # inside the chords' 0.3 m: no shared face
+	var dy := 0.25
+	for s: float in [1.0, -1.0]:
+		var o := n * s
+		var nrm := Vector3(o.x, 0.0, o.y).normalized()
+		_quad(Vector3(a.x + o.x, ya - dy, a.y + o.y), Vector3(b.x + o.x, yb - dy, b.y + o.y),
+				Vector3(b.x + o.x, yb + dy, b.y + o.y), Vector3(a.x + o.x, ya + dy, a.y + o.y), nrm, T22_YELLOW)
+
+
+## Park Słowa: a lawn with a looping path, a playground's soft disc and trees.
+func _t22_park(g: float) -> void:
+	var r := T22_PARK
+	_no_roof = true
+	_mode = M_STONE
+	_t22_ground(r, 0.1, Color("#79a052"))
+	var loop := PackedVector2Array()
+	var loop_in := PackedVector2Array()
+	var c := _w((r[0] + r[1]) * 0.5, (r[2] + r[3]) * 0.5)
+	for k in 24:
+		var ang := TAU * k / 24.0
+		loop.append(c + _a * cos(ang) * 30.0 + _b * sin(ang) * 18.0)
+	for k in range(23, -1, -1):
+		var ang := TAU * k / 24.0
+		loop_in.append(c + _a * cos(ang) * 27.6 + _b * sin(ang) * 15.6)
+	for k in 24:
+		var k1 := (k + 1) % 24
+		var mid := (loop[k] + loop_in[23 - k]) * 0.5
+		_cap(PackedVector2Array([loop[k], loop[k1], loop_in[23 - k1], loop_in[23 - k]]), map.terrain_height(mid.x, mid.y) + 0.16, Color("#d8c9a8"))
+	var play := c - _a * 12.0
+	_cap(_circle(play, 7.0, 16), map.terrain_height(play.x, play.y) + 0.16, Color("#d0603f"))
+	var pool := c + _a * 10.0 + _b * 3.0
+	_cap(_circle(pool, 5.0, 16), map.terrain_height(pool.x, pool.y) + 0.16, Color("#4f8fb8"))
+	for k in 14:
+		var ang := TAU * k / 14.0 + 0.2
+		var p := c + _a * cos(ang) * 36.0 + _b * sin(ang) * 22.0
+		if Geometry2D.is_point_in_polygon(p, _t22_rect(r, -2.0)):
+			_varso_tree(p, map.terrain_height(p.x, p.y), 8.0 + float(k % 3) * 1.5, 3.0)
+	_no_roof = false
+
+
+## The joke of the future: the last tower crane of Wola, gilded on a plinth in Park Słowa, its
+## jib over the lawn; the plaque says OSTATNI ŻURAW WOLI ("the last crane of Wola").
+func _t22_crane(g: float) -> void:
+	var at := _w(T22_PARK[1] - 10.0, T22_PARK[2] + 9.0)
+	_mode = M_STONE
+	var plinth := _square(at, 2.6)
+	_prism(plinth, g, g + 1.2, Color("#8d8a84"), Color("#a3a09a"), M_STONE, M_STONE)
+	_collide(plinth)
+	var mast := 26.0
+	_prism(_square(at, 0.8), g + 1.2, g + 1.2 + mast, T22_GOLD, T22_GOLD, M_GOLD, M_GOLD)
+	var y := g + 1.2 + mast
+	# The cab and the slewing ring.
+	_prism(_square(at + _b * 1.1, 1.0), y - 2.6, y, Color("#f2efe6"), T22_GOLD, M_STONE, M_GOLD)
+	# The jib (towards the lawn, -u) and the counter-jib with its weights.
+	var tip := at - _a * 22.0
+	_t22_gold_bar(at + _a * 0.8, tip, y, y + 1.0)
+	var back := at + _a * 8.0
+	_t22_gold_bar(at, back, y, y + 0.8)
+	_prism(PackedVector2Array([back - _a * 2.6 + _b * 1.0, back + _b * 1.0, back - _b * 1.0, back - _a * 2.6 - _b * 1.0]), y - 1.6, y,
+			Color("#8d8a84"), Color("#8d8a84"), M_STONE, M_STONE)
+	# The tower head and its ties.
+	_prism(_square(at, 0.5), y, y + 4.5, T22_GOLD, T22_GOLD, M_GOLD, M_GOLD)
+	# The hook block, hanging.
+	var hook := at - _a * 15.0
+	_prism(_square(hook, 0.06), y - 9.0, y, Color("#2c2f33"), Color(0, 0, 0, 0), M_STONE)
+	_prism(_square(hook, 0.45), y - 10.0, y - 9.0, T22_GOLD, T22_GOLD, M_GOLD, M_GOLD)
+	var k := 0.45 / (Neon.ROW_H * Neon.PIXEL)
+	var face := at - _b * 2.65
+	signs.append(["OSTATNI ŻURAW WOLI", Vector3(face.x, g + 0.35, face.y), Vector3(-_b.x, 0.0, -_b.y), k, T22_GOLD.lightened(0.3)])
+
+
+func _t22_gold_bar(a: Vector2, b: Vector2, y0: float, y1: float) -> void:
+	var d := (b - a).normalized()
+	var n := Vector2(-d.y, d.x) * 0.55
+	_prism(PackedVector2Array([a + n, b + n, b - n, a - n]), y0, y1, T22_GOLD, T22_GOLD, M_GOLD, M_GOLD)
 
 
 ## Gdański Business Center (Inflancka, by Dworzec Gdański; spec docs/landmarks/specs/gbc.md):
