@@ -255,6 +255,9 @@ const FIRST_SCENE := {
 	"street_kiosk": [145.0, -18.5, 7, 8.0, false],
 	"street_pavilions": [194.5, 31.0, 10, 10.0, true],
 	"street_north": [196.0, -26.0, 8, 10.0, false],
+	# Pasaż Wiecha behind the stores (2026-11-02): its north café garden (the one on the square by
+	# Chmielna lies past the start box's edge).
+	"street_wiecha_north": [90.0, 69.0, 8, 8.0, true],
 }
 ## The boulevard's reach (m) round a BULWARY spot: the view this near it is "on the boulevards".
 const BULWARY_R := 90.0
