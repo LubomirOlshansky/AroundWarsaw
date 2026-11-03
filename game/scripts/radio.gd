@@ -79,6 +79,12 @@ var duck_db := 0.0:
 	set(value):
 		duck_db = value
 		_apply_level()
+## Opening sound (2026-11-03): dB under the station's level while the announcer's line plays over
+## the flyover (opening_audio.gd moves it: down to a quiet bed, then back up to 0).
+var bed_db := 0.0:
+	set(value):
+		bed_db = value
+		_apply_level()
 ## Loop MW-5: the save (wallet.gd `tracks`, `track_chapters`, `chapters_done`); null: only the
 ## free tracks play.
 var wallet: Node
@@ -565,7 +571,7 @@ func _settle() -> void:
 func _apply_level() -> void:
 	if _player == null:
 		return
-	var db := VOLUME_DB + duck_db
+	var db := VOLUME_DB + duck_db + bed_db
 	if is_rerun():
 		db += RERUN_DB
 	if _moment_t > 0.0:
