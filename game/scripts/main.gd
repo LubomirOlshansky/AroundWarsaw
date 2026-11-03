@@ -64,6 +64,7 @@ const Bubbles := preload("res://scripts/bubbles.gd")
 const Models := preload("res://scripts/models.gd")
 const TimeOfDay := preload("res://scripts/time_of_day.gd")
 const Radio := preload("res://scripts/radio.gd")
+const OpeningAudio := preload("res://scripts/opening_audio.gd")
 const Title := preload("res://scripts/title.gd")
 const Wallet := preload("res://scripts/wallet.gd")
 const Dialogue := preload("res://scripts/dialogue.gd")
@@ -987,6 +988,7 @@ func _on_title_dismissed() -> void:
 ## launch (a fresh save), or forced by --cinematic=opening. While it plays the HUD is hidden and
 ## the guide's clock waits; both start when it ends (done or skipped by a tap).
 var _opening_on := false
+var _opening_audio: Node
 
 func _opening_due() -> bool:
 	if _flag_cinematic == "opening":
@@ -1004,6 +1006,9 @@ func _fly_in() -> void:
 		_opening_on = true
 		hud.visible = false
 		moments.ended.connect(_on_opening_ended, CONNECT_ONE_SHOT)
+		_opening_audio = OpeningAudio.new()
+		add_child(_opening_audio)
+		_opening_audio.start(radio)
 		moments.opening(vehicle.global_position, cam_yaw, camera_pitch,
 				PackedStringArray(["Śródmieście · Plac Defilad", "the centre of Warsaw"]))
 		return
@@ -1013,6 +1018,8 @@ func _fly_in() -> void:
 
 func _on_opening_ended(_what: String) -> void:
 	_opening_on = false
+	if _opening_audio != null:
+		_opening_audio.flight_ended()
 	hud.visible = not hide_hud
 	if first10 != null:
 		first10.begin()
