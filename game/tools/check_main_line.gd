@@ -9,10 +9,15 @@ extends SceneTree
 ##   in chapter 3; then the jobs left to the end card (Polish plurals), then done (no line);
 ## - every line is Polish and English, at most MAX_CHARS characters (the full map's goal card);
 ## - the pacing (the retune of 2026-10-31): race wins alone stop at rung 2, and the side quests'
-##   respect the ladder needs in all (the final's threshold less six wins) is SIDE_MIN-SIDE_MAX.
+##   respect the ladder needs in all (the final's threshold less six wins) is SIDE_MIN-SIDE_MAX;
+## - the nudge on the driving screen (main_nudge.gd): the guide's end brings the goal line after
+##   TOAST_DELAY s and the gold arrow for SHOW s, both only while free and not quiet; busy pauses
+##   the arrow; it comes back after GAP s of free driving; a step with no place gives the goal line
+##   and no arrow; "done" gives neither.
 ##   godot --headless --path game --script res://tools/check_main_line.gd
 
 const MainLine := preload("res://scripts/main_line.gd")
+const MainNudge := preload("res://scripts/main_nudge.gd")
 const Ladder := preload("res://scripts/ladder.gd")
 const MAX_CHARS := 60
 const SIDE_MIN := 150
@@ -91,9 +96,62 @@ func _initialize() -> void:
 	_expect(stuck == 2, "race wins alone stop at rung %d (want 2)" % stuck)
 	var side := Ladder.FINAL_RESPECT - 100 * Ladder.RUNGS.size()
 	_expect(side >= SIDE_MIN and side <= SIDE_MAX, "side quests' respect to the final: %d (want %d-%d)" % [side, SIDE_MIN, SIDE_MAX])
+	_check_nudge()
 	if _problems == 0:
 		print("main_line: OK (side respect to the final %d)" % side)
 		quit(0)
 	else:
 		print("main_line: %d problems" % _problems)
 		quit(1)
+
+
+## Runs the nudge for `seconds` in 0.25 s looks; returns [toasts, seconds with the arrow].
+func _run(n: MainNudge, step: Dictionary, seconds: float, free := true, quiet := false) -> Array:
+	var toasts := 0
+	var arrow := 0.0
+	var t := 0.0
+	while t < seconds - 0.001:
+		var o := n.tick(0.25, step, free, quiet)
+		toasts += 1 if o["toast"] else 0
+		arrow += 0.25 if o["arrow"] else 0.0
+		t += 0.25
+	return [toasts, arrow]
+
+
+func _check_nudge() -> void:
+	var guide := MainLine.step({"guide": true})
+	var rival := MainLine.step({"next": 1, "open": true, "rival": "Słoik z Radomia", "rival_at": Vector2(-300, 50)})
+	var locked := MainLine.step({"next": 2, "open": false, "respect": 180, "need": 220, "rival": "Bulwar Bartek"})
+	var done := MainLine.step({"next": Ladder.FINAL + 1, "end_seen": true})
+	var n := MainNudge.new()
+	var r := _run(n, guide, 60.0)
+	_expect(r[0] == 0 and r[1] == 0.0, "the guide's own steps get no nudge: %s" % [r])
+	# The guide ends: the goal line after TOAST_DELAY, the arrow for SHOW.
+	r = _run(n, rival, MainNudge.TOAST_DELAY - 0.5)
+	_expect(r[0] == 0, "goal line waits %.0f s: %s" % [MainNudge.TOAST_DELAY, r])
+	r = _run(n, rival, 1.0)
+	_expect(r[0] == 1, "goal line after the delay: %s" % [r])
+	var rest := MainNudge.SHOW - MainNudge.TOAST_DELAY - 0.5
+	r = _run(n, rival, rest)
+	_expect(r[0] == 0 and absf(r[1] - rest) < 0.3 and n.show_left() < 0.01, "arrow for SHOW s in all: %s" % [r])
+	r = _run(n, rival, MainNudge.GAP - 2.0)
+	_expect(r[1] == 0.0, "no arrow between nudges: %s" % [r])
+	r = _run(n, rival, 30.0, false)
+	_expect(r[1] == 0.0, "busy: no arrow: %s" % [r])
+	r = _run(n, rival, MainNudge.GAP - 2.0)
+	_expect(r[1] == 0.0, "busy restarts the free count: %s" % [r])
+	r = _run(n, rival, 4.0)
+	_expect(r[1] > 0.0, "the arrow comes back after GAP s free: %s" % [r])
+	# A busy player keeps the step change's nudge until free; quiet holds it too.
+	n = MainNudge.new()
+	r = _run(n, rival, 40.0, false)
+	_expect(r[0] == 0 and r[1] == 0.0, "busy at the change: held: %s" % [r])
+	r = _run(n, rival, 40.0, true, true)
+	_expect(r[0] == 0 and r[1] == 0.0, "quiet: held: %s" % [r])
+	r = _run(n, rival, MainNudge.SHOW + 5.0)
+	_expect(r[0] == 1 and r[1] >= MainNudge.SHOW - 0.3, "free again: line and arrow: %s" % [r])
+	# No place: the line only; done: nothing.
+	r = _run(n, locked, MainNudge.GAP * 2.0)
+	_expect(r[0] == 1 and r[1] == 0.0, "respect step: line, no arrow: %s" % [r])
+	r = _run(n, done, MainNudge.GAP * 2.0)
+	_expect(r[0] == 0 and r[1] == 0.0, "done: nothing: %s" % [r])

@@ -210,7 +210,7 @@ const PLAN_C_ID := "plan_c"
 ## yard), most people, radius to look for footways (m)]. A spot that finds no footway puts its
 ## people in a loose spiral round the point.
 const CHILL := {
-	"chill_norblin": [Vector2(-2262.0, 56.0), 30, 34.0],
+	"chill_norblin": [Vector2(-2236.0, 204.0), 30, 34.0],  # the court's mouth on the glass street (photo report)
 	"chill_browary": [Vector2(-2503.0, -100.0), 36, 36.0],
 	"chill_koszyki": [Vector2(-884.0, 1266.0), 30, 30.0],
 	"chill_elektrownia": [Vector2(285.0, -738.0), 34, 36.0],
@@ -243,6 +243,47 @@ const NOWY_SWIAT := {
 	"chill_nowy_3": [Vector2(-386.0, -231.0), 10, 20.0],
 	"chill_nowy_4": [Vector2(-356.0, -72.0), 12, 22.0],
 }
+## Nowogrodzka's bar strip (street-by-street, 2026-11-03): people with a glass and a cigarette on
+## the pavement in front of the bars between Marszałkowska and Bracka, on the `pub` curve (a few
+## after work, fullest 22-01, thinning by 03; `pub_level`). id -> [spot (the pavement in front of
+## the real bars' OSM points, game coordinates; the yards of nos. 11 and 22 at their gates), most
+## people, radius]. The same machinery as CHILL, standing more than
+## sitting; the bars' parody fascias are storefronts.gd's NOWOGRODZKA.
+const NOWOGRODZKA := {
+	"pub_nowo_kwarta": [Vector2(-383.0, 423.0), 8, 12.0],
+	"pub_nowo_bardzo": [Vector2(-423.0, 455.0), 12, 14.0],
+	"pub_nowo_halinka": [Vector2(-502.0, 475.0), 10, 14.0],
+	"pub_nowo_kraft": [Vector2(-553.0, 480.0), 8, 12.0],
+	"pub_nowo_23": [Vector2(-625.0, 520.0), 12, 14.0],
+	"pub_nowo_22": [Vector2(-680.0, 528.0), 14, 16.0],
+	"pub_nowo_27": [Vector2(-695.0, 547.0), 10, 14.0],
+}
+## Wilcza and Poznańska's bars (street-by-street, 2026-11-03): people with a glass and a cigarette on the
+## pavement in front of the bars, on the `pub` curve like NOWOGRODZKA. id -> [spot (game coordinates),
+## most people, radius]. The fascias are storefronts.gd's WILCZA.
+const WILCZA := {
+	"pub_wil_muza": [Vector2(-409.1, 958.5), 10, 14.0],
+	"pub_wil_goraczka": [Vector2(-505.9, 1005.2), 14, 14.0],
+	"pub_wil_aura": [Vector2(-548.1, 831.8), 8, 12.0],
+	"pub_wil_macki": [Vector2(-799.0, 1031.9), 12, 14.0],
+	"pub_wil_kaseta": [Vector2(-794.9, 1122.0), 8, 12.0],
+	"pub_wil_banany": [Vector2(-805.8, 1108.7), 10, 12.0],
+}
+## Mazowiecka's club street (street-by-street, 2026-11-03): people in the queues and smokers on the
+## pavement outside the clubs of Mazowiecka between Świętokrzyska and Królewska, on the `club` curve
+## (`club_level`: the existing clubs' curve, fullest 01-02, thinning by 05, the clubs' own WEEKDAY factor, so
+## Friday and Saturday nights). id -> [spot (the pavement in front of the doors, game coordinates),
+## most people, radius]. The fascias are storefronts.gd's MAZOWIECKA.
+const MAZOWIECKA := {
+	"club_maz_tygmont": [Vector2(-745.0, -342.0), 10, 10.0],
+	"club_maz_sketch": [Vector2(-748.0, -413.0), 14, 12.0],
+	"club_maz_room": [Vector2(-754.0, -440.0), 12, 12.0],
+	"club_maz_bank": [Vector2(-751.0, -460.0), 12, 12.0],
+	"club_maz_lombard": [Vector2(-760.0, -497.0), 10, 10.0],
+}
+## The pub crowd's weekday factor *guess*, Monday first, by the night's day (01:00 Saturday is
+## Friday's night): milder than the clubs', the strip is never empty after work.
+const PUB_WEEKDAY := [0.45, 0.45, 0.55, 0.75, 1.0, 1.0, 0.4]
 ## First scene item 6 (docs/design/first-scene.md, 2026-11-02): the start's own street life, people at
 ## first_scene.gd's furniture on Marszałkowska by Plac Defilad, so the first frame of play has
 ## people standing on both pavements and not only walkers. id -> [s, t in first_scene.gd's frame
@@ -316,6 +357,9 @@ const CURVES := {
 	# after-work hours fullest, never empty from 8 to 21
 	"street": {7: 0.3, 8: 0.5, 9: 0.6, 10: 0.65, 11: 0.75, 12: 0.9, 13: 1.0, 14: 0.95, 15: 0.9, 16: 0.95, 17: 1.0,
 			18: 1.0, 19: 0.85, 20: 0.7, 21: 0.5, 22: 0.35, 23: 0.2, 0: 0.1},
+	# *guess*: Nowogrodzka's bars (NOWOGRODZKA): a few after work, fullest 22-01, gone by 04
+	"pub": {16: 0.1, 17: 0.15, 18: 0.25, 19: 0.4, 20: 0.55, 21: 0.75, 22: 0.9, 23: 1.0, 0: 1.0, 1: 0.85, 2: 0.55,
+			3: 0.25},
 	# *guess*: 20 walkers at the edges of 05-09, 40 at the peak
 	"dawn": {5: 0.5, 6: 1.0, 7: 1.0, 8: 0.4},
 }
@@ -595,6 +639,21 @@ static func chill_level(hour: float, month: int, rain: bool) -> float:
 	return curve_at("chill", hour) * maxf(month_factor(month), 0.35) * (0.15 if rain else 1.0)
 
 
+## Nowogrodzka's pub crowd level 0..1: the `pub` curve × PUB_WEEKDAY (past midnight counts as the
+## evening before, as the clubs do); winter keeps 60 % (they smoke outside in the snow), rain 0.3
+## (under the doorways) *guess*.
+static func pub_level(hour: float, weekday: int, month: int, rain: bool) -> float:
+	return minf(curve_at("pub", hour) * float(PUB_WEEKDAY[night_day(hour, weekday) - 1]) * maxf(month_factor(month), 0.6)
+			* (0.3 if rain else 1.0), 1.0)
+
+
+## Mazowiecka's club crowd level 0..1: the `club` curve × WEEKDAY (past midnight counts as the
+## evening before); winter keeps 60 % (the queue stands in the snow), rain 0.3 (under the awnings) *guess*.
+static func club_level(hour: float, weekday: int, month: int, rain: bool) -> float:
+	return minf(curve_at("club", hour) * float(WEEKDAY[night_day(hour, weekday) - 1]) * maxf(month_factor(month), 0.6)
+			* (0.3 if rain else 1.0), 1.0)
+
+
 ## First scene item 6: the start's street level 0..1 (FIRST_SCENE): the `street` curve, winter keeps
 ## 60 % (people still buy papers and coffee), rain a third *guess*.
 static func street_level(hour: float, month: int, rain: bool) -> float:
@@ -834,6 +893,15 @@ func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
 	for cid: String in yards:
 		var cs: Array = yards[cid]
 		_add_site({"id": cid, "kind": "chill", "at": cs[0], "max": int(cs[1]), "radius": float(cs[2])})
+	for pid: String in NOWOGRODZKA:
+		var ps: Array = NOWOGRODZKA[pid]
+		_add_site({"id": pid, "kind": "chill", "pub": true, "sit": false, "at": ps[0], "max": int(ps[1]), "radius": float(ps[2])})
+	for wid: String in WILCZA:
+		var ws: Array = WILCZA[wid]
+		_add_site({"id": wid, "kind": "chill", "pub": true, "sit": false, "at": ws[0], "max": int(ws[1]), "radius": float(ws[2])})
+	for kid: String in MAZOWIECKA:
+		var ks: Array = MAZOWIECKA[kid]
+		_add_site({"id": kid, "kind": "chill", "club": true, "sit": false, "at": ks[0], "max": int(ks[1]), "radius": float(ks[2])})
 	for fid: String in FIRST_SCENE:
 		var fs: Array = FIRST_SCENE[fid]
 		_add_site({"id": fid, "kind": "chill", "street": true, "sit": bool(fs[4]), "at": first_scene_at(float(fs[0]), float(fs[1])),
@@ -1720,6 +1788,10 @@ func tick(step: float) -> void:
 						float(s["open"]), float(s["close"]), k)
 			"chill":
 				var lvl := street_level(hour, month, rain) if bool(s.get("street", false)) else chill_level(hour, month, rain)
+				if bool(s.get("pub", false)):
+					lvl = pub_level(hour, weekday, month, rain)
+				if bool(s.get("club", false)):
+					lvl = club_level(hour, weekday, month, rain)
 				want = roundi(int(s["max"]) * k * lvl)
 			"stop":
 				want = roundi(int(s["max"]) * k * stop_level(hour, weekday, rain))

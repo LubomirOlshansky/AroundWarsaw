@@ -11,7 +11,8 @@ extends SceneTree
 ## Sites that are only ground-level dressing (no part over about 2 m): the heli test expects it to
 ## fly over them, not to be stopped. bulwary_basen (K7, 2026-11-02): the splash pool, its 0.3 m
 ## rim and fish on 0.55 m plinths, under 2 m in all.
-const FLY_OVER := ["bulwary_basen"]
+## bazar (2026-11-02): Bazar Różyckiego's stalls and kiosks stand 2.5-3.4 m, under the 6 m floor the heli flies at.
+const FLY_OVER := ["bulwary_basen", "bazar"]
 
 var map: Node3D
 var _frames := 0
@@ -160,6 +161,8 @@ func _fly_checks() -> int:
 			c = Vector2(935.0, -128.0)  # the west pair
 		elif info["key"] == "swieto":
 			c = Vector2(735.0, -896.0)  # the pylon at 45 m (the site is a long strip: its middle is open air)
+		elif info["key"] == "arkady":
+			c = Vector2(-560.0, -1606.0)  # the arcades' middle (the box holds the gardens: its middle is a lawn)
 		var heli: Node3D = Heli.new()
 		heli.ground_height = map.ground_height
 		heli.top_height = map.top_height
@@ -180,7 +183,11 @@ func _fly_checks() -> int:
 		if info["key"] in ["elektrownia", "stadion_pkp", "ostrogski", "mpw"]:
 			c = top_at  # open yards and platforms (Ostrogski's courtyard between its two blocks): the box's middle is air, aim at the tallest cell
 		var alt := clampf(top * 0.5, 6.0, 45.0)
-		if info["key"] == "tr":
+		if info["key"] == "arkady":
+			alt = 5.0  # the arcade wall stands 7.5 m over the Lower Garden; the castle's roofs in the box are higher
+		elif info["key"] == "zamek":
+			alt = 22.0  # the Clock Tower's thin helm (56 m) would lift the heli over the 25 m roofs into the yard
+		elif info["key"] == "tr":
 			alt = 6.0  # a building site: the cranes are thin, the theatre's closed floors stand 9 m
 		elif info["key"] == "sw_anna":
 			alt = 8.0  # the bell tower's trim (38 m) stands in the box but away from the nave the heli aims at

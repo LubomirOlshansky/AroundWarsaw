@@ -1,50 +1,53 @@
 # Pomnik Adama Mickiewicza (Mickiewicz's monument): spec
 
-Site key `mickiewicz` in `game/scripts/landmarks.gd` (`_build_mickiewicz`). Written 2026-11-01 in a cloud thread (BACKLOG K2) from the OpenStreetMap outline in `centrum.json`; no photo, no LoD2 here. Values marked *(photo check)* wait for the Mac's `refs/`. The spot is the lawn's centre (the OSM point of Skwer Adama Mickiewicza), *not* confirmed.
+Site key `mickiewicz` in `game/scripts/landmarks.gd` (`_build_mickiewicz`, helpers `_kp_balustrade`, `_kp_candelabrum`, `_kp_figure`). Written 2026-11-02 in a cloud thread from the Mac's reference set `refs/krakowskie/` (29 Wikimedia Commons photos, three GUGiK orthophotos at 0.137 m/px; report `docs/landmarks/photo-reports/krakowskie.md`, authors and licences there) plus the GUGiK LoD2 heights from the CI map pack. It replaces the 2026-11-01 first pass, which had the OpenStreetMap outline only. Report section 1, photos 1-4.
 
 ## 1. Identity
 
-The 1898 monument by Cyprian Godebski (unveiled 1898, the poet's centenary), in Skwer Mickiewicza at Krakowskie Przedmieście: a bronze poet, his right hand raised, on a tall granite pedestal with bronze plaques, in a ring of lamp posts.
+Cyprian Godebski's monument of 1898 in its own fenced lawn square on the east side of Krakowskie Przedmieście, **facing the street (west)**: a raised granite terrace with a balustrade and four bronze candelabra with gilt flames, a stepped pedestal with a cartouche and a bronze wreath, a tall shaft with a medallion, the poet standing with his right hand on his chest.
 
 ## 2. Massing
 
-Free-standing; frame: origin (-626.6, -1073.6), u along the street (axis (0.259, 0.966), south), +v to the street (west). Three granite steps (6 x 6 m down to 4 x 4 m), plinth 1.2..1.8 m, pedestal 2.3 m square to 5.2 m, cornice to 5.7 m, figure to 8.15 m *(photo check: real height about 4 m of bronze)*.
+Frame: origin the plinth's centre (-626, -1078) (ortho; OSM node (-626, -1075)), u south along the street (0.259, 0.966), +v west to the street. Terrace 16 x 10 m, 1.6 m high; a street flight of eight steps 6 m wide (v 5..7.8), a north flight of four 4 m wide. Pedestal steps 5.2 and 4.2 m square, die 3.4 m to 3.2 m over the terrace, shaft 2.1 m square to 9.4 m, cornice, statue 4.5 m: 16 m over the street in all (13.5 m from the terrace, the report's 13-14 m).
 
-## 3. Facade
+## 3. Facade, base to top
 
-Pedestal faces carry a bronze plaque each (1.4 x 2 m, 2.4..4.4 m up). The figure: a cloaked body (frustum r 0.7 to 0.3 m, 5.7..7.7 m), a head (r 0.17 m) and a raised right arm (a thin box).
+Balustrade 0.95 m (plinth, rail, a die every 2.2-3.9 m: single balusters are below a pixel from the camera) on the front either side of the flight, both sides (the north one open for its flight) and the back. Cartouche on the die's street face, the bronze wreath group at its foot, a bronze medallion (r 0.65 m) on the shaft.
 
 ## 4. Roof
 
-No roof. Four lamp posts (iron, r 0.1 m, 2.4 m) with pale lantern heads at the steps' corners (3.6 m out).
+No roof. The four candelabra (5 m: bronze base and stem, three lit globes, gilt flame) on the terrace's corners.
 
 ## 5. Colour and material
 
 | Part | Colour | Material code |
 | --- | --- | --- |
-| Granite | #8d8a86 | M_STONE |
-| Bronze (figure, plaques) | #4a4a42 | M_STONE |
-| Posts | #3a3d40 | M_STONE |
-| Lantern heads | #f0dfae | M_STONE |
+| Granite terrace, pedestal | #cfcac0 | M_STONE |
+| Balustrade | #d8d4cc | M_STONE |
+| Statue, wreath, medallion (patina) | #4a5048 | M_STONE |
+| Candelabra bronze | #3a3a32 | M_STONE |
+| Gilt flames | #c9a13a | M_STONE |
+| Globes | #f0dfae | M_LAMP |
 
 No new material or draw call.
 
 ## 6. Ground and night
 
-Car stopped by a ring round the steps. Card: "Pomnik Adama Mickiewicza". The lawn's trees and lamps inside the 5.2 m zone are dropped. Open *(photo check)*: the exact spot on the lawn, the facing, the fence and corner lanterns' real shape.
+The lawn, rose beds and trees stay the map's; the zone (the terrace and flights) drops what stood on it. The car stops at the terrace. The globes glow at night. Card "Pomnik Adama Mickiewicza".
 
 ## 7. Detail level and budget
 
-L2; 282 triangles measured, budget 340 (`check_mesh_quality.gd`).
-
-Shot: `--at=-626.6,-1073.6 --yaw=245 --pitch=-25 --size=22 --nohud --no-ghost`.
+L2, triangle budget 1150 (built 1078; `check_mesh_quality.gd`).
 
 ## 8. Parts table
 
 | id | shape | size | position | material | feature |
 | --- | --- | --- | --- | --- | --- |
-| steps | 3 boxes | 6, 5, 4 m square, 0.4 m each | centre, -0.4..0.8 m | M_STONE | 2 massing |
-| plinth, pedestal, cornice | 3 boxes | 2.9, 2.3, 2.8 m square | 1.2..5.7 m | M_STONE | 2 massing |
-| plaques | 4 thin boxes | 1.4 x 2 m | four faces, 2.4..4.4 m | M_STONE | 3 facade |
-| figure | 2 frustums, prism, box | r 0.7 m to 0.3 m; head r 0.17 m | 5.7..8.15 m | M_STONE | 2 massing |
-| lamp posts | 4 posts, 4 heads | r 0.1 m, 2.95 m high | corners, 3.6 m out | M_STONE | 6 night |
+| terrace | box | 16 x 10 x 1.6 m | centre | M_STONE #cfcac0 | raised terrace |
+| flights | 8 + 4 boxes | 6 m and 4 m wide, 0.2 / 0.4 m risers | west, north | M_STONE | stairs |
+| balustrade | plinth, rail, dies | 0.95 m | terrace edges | M_STONE #d8d4cc | balustrade |
+| candelabra | prisms, frustums | 5 m | four corners | M_STONE, M_LAMP | gilt flames |
+| pedestal | 3 boxes + cornice | 5.2 to 3.4 m square | centre | M_STONE | stepped pedestal |
+| cartouche, wreath | boxes | 1.6 x 1.2, 2.8 x 0.8 m | street face | M_STONE | ornament |
+| shaft | box + disc | 2.1 m square, 5.8 m | centre | M_STONE | medallion |
+| poet | figure | 4.5 m | top | M_STONE #4a5048 | hand on chest |

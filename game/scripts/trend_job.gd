@@ -141,6 +141,8 @@ var flying := false
 var away := false
 ## Spacer: no request comes by itself.
 var quiet := false
+## The first-10 guide (first10.gd `_hold_offers`): a beat is due, no offer until it has fired.
+var guide_hold := false
 var autopilot := false
 ## --trend-job=4: the drop never ends (the test run).
 var force_drop := false
@@ -278,7 +280,7 @@ func secondary() -> bool:
 
 
 func _free() -> bool:
-	if flying or away or quiet or car.in_water or missions.has_target():
+	if flying or away or quiet or guide_hold or car.in_water or missions.has_target():
 		return false
 	if not (missions.state == Missions.State.CLOSED or missions.state == Missions.State.RINGING):
 		return false

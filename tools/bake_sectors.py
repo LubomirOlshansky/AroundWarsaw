@@ -121,9 +121,6 @@ SITE_NAMES = ["Pałac Kultury i Nauki", "Złote Tarasy", "Lumen", "Skylight", "R
               "Puro Warszawa Centrum",
               # Level 26, the rooftop club on the Atlas Tower (landmarks.gd _build_level26_club reads its crown)
               "Atlas Tower",
-              # Fabryka Norblina (landmarks.gd _find_works: its tall wing is found among the parts
-              # under the outline OSM names "Modsen")
-              "Modsen",
               # Hortus (2026-11-02): its tenement-style flats on Drewniana, unnamed in OSM, found
               # by landmarks.gd HORTUS_FLATS_AT next to the outline
               "Hortus",
@@ -201,6 +198,7 @@ SITE_AREAS = [
     (-1058, -1559, -985, -1487),   # church_cerkiew
     (-1609, -268, -1529, -188),   # church_nozykow
     (1575.0, 1570.0, 1605.0, 1610.0),       # the sailing marina's club house (landmarks.gd MARINA_AT, unnamed in OSM)
+    (1025.0, -2032.0, 1135.0, -1962.0),     # Bazar Różyckiego's stalls (landmarks.gd BAZAR_BOX, unnamed retail outlines)
 ]
 
 
