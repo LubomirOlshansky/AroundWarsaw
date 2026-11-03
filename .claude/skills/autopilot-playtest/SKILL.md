@@ -61,6 +61,7 @@ per event, to its trace file:
 - **Phone shape**: the editor's game view is 16:9 and can't be resized from a run; set the root
   window's content scale to 1266x585 (aspect keep) at the start, and log
   `get_viewport().get_visible_rect()`. Edge cut-offs (PT-9) only show at the phone's shape.
+- **Flying**: cruise at about 50 m and come down only within 30 m of the target (run 13 aimed at the cassette's height and flew into the ground).
 - **Story beats (P2)**: offer options from the guide's own state (`first10.gd` `fired`), not the
   agent's memory, and give each beat a real drive or fly option (run 10 only waited at the race
   and lost it). An edge check on rects misses text that slides off while it animates: look at
@@ -78,7 +79,7 @@ per event, to its trace file:
 - A **stuck** is under 1.2 m/s for over 2 s with the gas held; when one lasts 10 s, reverse or
   `--at=` back to the route and go on, so a trap costs time but doesn't end the run.
 - **Keys**: the game reads `physical_keycode` (main.gd `_unhandled_key_input`: H, Q, E, C...), so an injected key event must set it, or H "does nothing" (run 12). The HELI button always works. During a job that rides in the car the helicopter is refused with a toast, by design.
-- **Short runs**: on F's Mac the run's sandbox ended (-9) about 5-6 minutes into the second episode in runs 11 and 12, so keep each run to one episode of 8 minutes or less and split a long row (P2's second half) into two runs; flush the trace every tick and describe frames as they come in.
+- **Short runs**: on F's Mac the run's sandbox ended (-9) about 5-6 minutes into the second episode in runs 11-14, even in a single episode (runs 13-14), at about 6 minutes of play: plan rows that need under 6 minutes, start what you test in the first 2-3 minutes, and restart the editor before a run; flush the trace every tick and describe frames as they come in.
 - After the run, frame-describer on the frames of every stop and height event: a hard stop can
   be a kerb, a tram island or just a traffic car, and only the picture tells.
 
