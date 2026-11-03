@@ -111,6 +111,7 @@ someone writes its lines.
 - The big hotel on Plac Zawiszy is a real building now, in colourful postmodern bands of salmon, yellow, mint and teal with magenta stripes and a lit canopy, under the parody name Radysław Blu (with a card).
 - The helicopter's camera now turns with it while you fly, like the car's, instead of swinging round only after you stop.
 - Getting wedged between traffic cars no longer ends the drive: push against them for a moment and your car slips through, and after eight seconds in a jam it is towed onto the road.
+- Hotel Warszawa, the old Prudential, stands as Warsaw's first skyscraper on Plac Powstańców: cream stone with eight tall pilasters, a stepped crown with masts and a flag, WARSZAWA cut over the door, and floodlit stripes at night. Down the avenue Cedet, the old department store by Krucza, has its ribbon glass between cream floor bands, rounded corners, the swept-up roof wings and the big steel loop that glows blue at night.
 
 ## 2026-11-01
 - New by the Vistula: the WTS DESKA tennis club (a parody of the real club) on Zaruskiego, under Most Łazienkowski: a closed tennis hall, one outdoor glass padel court lit at night with four people playing, and a DESKA neon on the clubhouse. A friend now phones from the club: their fourth player hurt a leg at pole dance, so drive or fly to the DESKA court and play; the club has its own notebook page.

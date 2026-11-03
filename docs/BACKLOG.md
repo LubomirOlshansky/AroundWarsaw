@@ -261,6 +261,17 @@ Run 12 (2026-11-03): PT-14 closed (the helicopter climbs after landing; run 11's
 PT-15, PT-16, PT-17 fixed 2026-11-03 (PLAYTEST.md): no ride request over Halina's call or a rival's prompt (and none of those over a request card); the delivered / order-dropped card goes by itself after 12 s or 25 m (it waited for OK for ever, the likely reason one order looked driven six times and the race waited until 203 s); Jasna's 24 m shallow bay by Plac Dąbrowskiego bridged (bays up to 30 x 2.5 m city-wide). Verify all three on the next P2 run.
 The guide's beats behind jobs, built 2026-11-03 (default, QUESTIONS): while a beat that waits for a free moment (race, trap, rescue, tape, Powiśle, garage) is due or within 45 s (`first10.gd` `due`, HOLD_AHEAD), the guide holds what comes by itself: Podwózka requests (rides.gd `guide_hold`, the next one at least 30 s after the hold lets go) and the "Na czasie" offers (trend_job.gd). A job already under way runs on and the PODWÓZKA button still asks for a ride. `check_first10` "rider": a player who takes every request meets every beat in its window (without the hold the tape and Powiśle came at 546 s). Left: a player who chains kebab orders at the stand still holds the beats (the stand is the player's own choice; not held), and a ride taken just over 45 s before a beat still pushes it back up to ~2.5 min (inside the windows in the toy); the next P2 run should show both.
 
+## Hotel Warszawa and Cedet (city inventory item 4, 2026-11-02)
+Built from photos gathered on the Mac (`refs/hotel_warszawa/`, `refs/cedet/`) and the LoD2 heights, specs
+`hotel_warszawa.md` and `cedet.md`. Found and left:
+- Hotel: the shaft's corner pilasters are single (the photos show doubled, stepped strips); the U behind is
+  one 25 m height (LoD2 has lower bits); the glazed pavilion and rounded corner at the block's south-east
+  foot belong to the next outline south (not built); the lift head and masts are placed from the report.
+- Cedet: the cornice's fine vertical ribbing and the 3-pane / 2-sash split of each bay are the shader's
+  generic 1.5 m mullions; the north wing has no crown pavilion of its own; the glazed lantern and link roof
+  plant are not modelled; the ground-floor tenants' fascias (parodies) and the red neon at the east corner
+  are not there.
+
 ## Most Poniatowskiego (F, 2026-11-02)
 Built from photos gathered on the Mac (`refs/poniatowski/`, report `docs/landmarks/photo-reports/poniatowski.md`),
 spec `poniatowski.md`: the four tower groups (arcaded pavilions, 20 m shafts, south stair turrets) and the river

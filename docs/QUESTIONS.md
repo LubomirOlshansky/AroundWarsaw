@@ -627,6 +627,7 @@ Newest first. One entry per question.
 - **YYYY-MM-DD · lane · item** — The question in one line? Options: A / B. Default built: A
   (or "nothing built: waits"). Where: PR #N, BACKLOG "section".
 -->
+- **2026-11-02 · landmarks · Hotel Warszawa and Cedet** — Built from `refs/hotel_warszawa/` and `refs/cedet/` on the Mac (Commons photos, the ortho, REPORT.md) and LoD2 (specs `hotel_warszawa.md`, `cedet.md`). Look check on the Mac or the phone against the photos: the hotel's front read as facing east onto the square (the portal on that side); Cedet's Krucza corner radius (the report reads 10-12 m, OSM barely rounds it; 5 m built), whether the east end is rounded (4 m built), the pavilion's extent and wing size, the storey height (4.6 m to fit LoD2's ~31 m roof, the photos suggest ~3.7 m), and the loop's day colour (steel blue built, the photos show patina green-grey). Default built as listed.
 
 ## Answered
 
