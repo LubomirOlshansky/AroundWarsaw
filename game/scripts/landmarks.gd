@@ -6092,12 +6092,23 @@ func _pt_group(hu: float, hv: float, g: float, deck: float, south: bool) -> void
 	_lbox(0.0, 0.0, hu + 0.15, hv + 0.15, d + 4.5, d + 4.9, PT_SHADE, M_STONE)
 	_attic(_rect(0.0, 0.0, hu, hv), d + 5.6, 1.9, PT_CREAM)
 	# The arcade: round arches on short columns open to the walk; glazed arched windows to the river.
+	# F's look check (2026-11-03): "strengthen the pavilion arcades": the bays read flat, so each
+	# bay now stands between piers 0.35 m proud on both faces (photo 14's square piers), the walk's
+	# arches open taller and wider with a keystone, and an impost band and a plinth run along.
 	var bays := maxi(3, roundi(2.0 * hu / 3.0))
 	var bay := 2.0 * hu / bays
 	for k in bays:
 		var u := -hu + (k + 0.5) * bay
-		_arch_panel(_w(u, -hv), _a, -_b, bay * 0.36, d, d + 3.5 - bay * 0.36, PT_DARK, 0.04, M_STONE)
-		_arch_panel(_w(u, hv), _a, _b, bay * 0.3, d + 0.9, d + 3.4 - bay * 0.3, PT_GLASS, 0.04, M_PAVILION)
+		_arch_panel(_w(u, -hv), _a, -_b, bay * 0.4, d, d + 3.7 - bay * 0.4, PT_DARK, 0.04, M_STONE)
+		_arch_panel(_w(u, hv), _a, _b, bay * 0.32, d + 0.9, d + 3.5 - bay * 0.32, PT_GLASS, 0.04, M_PAVILION)
+		for side: float in [-1.0, 1.0]:
+			_lbox(u, side * (hv + 0.12), 0.18, 0.12, d + 3.55, d + 4.15, PT_SHADE, M_STONE)
+	for k in bays + 1:
+		var u := -hu + k * bay
+		for side: float in [-1.0, 1.0]:
+			_lbox(u, side * (hv + 0.17), 0.3, 0.17, d, d + 4.5, PT_SHADE, M_STONE)
+	_lbox(0.0, 0.0, hu + 0.12, hv + 0.12, d, d + 0.45, PT_BASE, M_STONE)
+	_lbox(0.0, 0.0, hu + 0.08, hv + 0.08, d + 2.95, d + 3.15, PT_SHADE, M_STONE)
 	for k in 2:
 		var u := hu * (1.0 if k == 0 else -1.0)
 		var o := _a * (1.0 if k == 0 else -1.0)
@@ -6110,9 +6121,24 @@ func _pt_group(hu: float, hv: float, g: float, deck: float, south: bool) -> void
 	var r := PT_SHAFT
 	_lbox(su, sv, r + 0.3, r + 0.3, g - 0.5, d + 0.4, PT_BASE, M_STONE)
 	_lbox(su, sv, r, r, d + 0.4, d + 15.3, PT_CREAM, M_STONE)
-	_lbox(su, sv, r + 0.35, r + 0.35, d + 15.3, d + 16.0, PT_SHADE, M_STONE, PT_ROOF)
-	_lbox(su, sv, r - 0.5, r - 0.5, d + 16.0, d + 18.0, PT_CREAM, M_STONE, PT_ROOF)
-	_attic(_rect(su, sv, r - 0.5, r - 0.5), d + 18.0, 1.0, PT_CREAM)
+	# F's look check (2026-11-03): "strengthen the shafts". Corner piers 0.25 m proud the whole
+	# height, two string courses, a corbel table under the cornice, a taller belfry and crown.
+	for cu: float in [-1.0, 1.0]:
+		for cv: float in [-1.0, 1.0]:
+			_lbox(su + cu * (r - 0.3), sv + cv * (r - 0.3), 0.55, 0.55, d + 0.4, d + 15.3, PT_SHADE, M_STONE)
+	for y: float in [d + 6.6, d + 10.9]:
+		_lbox(su, sv, r + 0.32, r + 0.32, y, y + 0.35, PT_SHADE, M_STONE)
+	for f in 4:
+		var nu: float = [1.0, -1.0, 0.0, 0.0][f]
+		var nv: float = [0.0, 0.0, 1.0, -1.0][f]
+		for k in 4:
+			var a := -r + 1.3 + k * (2.0 * r - 2.6) / 3.0
+			var cu := su + nu * (r + 0.18) + absf(nv) * a
+			var cv := sv + nv * (r + 0.18) + absf(nu) * a
+			_lbox(cu, cv, 0.3, 0.3, d + 14.55, d + 15.3, PT_SHADE, M_STONE)
+	_lbox(su, sv, r + 0.45, r + 0.45, d + 15.3, d + 16.0, PT_SHADE, M_STONE, PT_ROOF)
+	_lbox(su, sv, r - 0.5, r - 0.5, d + 16.0, d + 18.3, PT_CREAM, M_STONE, PT_ROOF)
+	_attic(_rect(su, sv, r - 0.5, r - 0.5), d + 18.3, 1.3, PT_CREAM)
 	for f in 4:
 		var nu: float = [1.0, -1.0, 0.0, 0.0][f]
 		var nv: float = [0.0, 0.0, 1.0, -1.0][f]
@@ -6121,18 +6147,21 @@ func _pt_group(hu: float, hv: float, g: float, deck: float, south: bool) -> void
 		var face := _w(su + nu * r, sv + nv * r)
 		var belfry := _w(su + nu * (r - 0.5), sv + nv * (r - 0.5))
 		for k in 3:
-			_arch_panel(belfry + along * (k - 1) * 1.6, along, out, 0.3, d + 16.3, d + 17.3, PT_DARK, 0.04, M_STONE)
-		_arch_panel(face, along, out, 0.5, d + 8.0, d + 9.6, PT_DARK, 0.04, M_STONE)
-		_arch_panel(face, along, out, 0.45, d + 11.6, d + 12.6, PT_DARK, 0.04, M_STONE)
+			_arch_panel(belfry + along * (k - 1) * 1.6, along, out, 0.36, d + 16.25, d + 17.6, PT_DARK, 0.04, M_STONE)
+		_arch_panel(face, along, out, 0.7, d + 7.4, d + 9.8, PT_DARK, 0.04, M_STONE)
+		for k in [-1.0, 1.0]:
+			_arch_panel(face + along * k * 0.85, along, out, 0.36, d + 11.6, d + 13.0, PT_DARK, 0.04, M_STONE)
+		if nv >= 0.0 and nu >= 0.0:
+			_arch_panel(face, along, out, 0.42, d + 3.0, d + 4.6, PT_DARK, 0.04, M_STONE)
 		if nv > 0.0 or nu > 0.0:
 			# The portals under the deck, to the boulevard.
 			_arch_panel(_w(su + nu * (r + 0.3), sv + nv * (r + 0.3)), along, out, 1.5, g, g + 3.0, PT_DARK, 0.04, M_STONE)
 		for side in [-1.0, 1.0]:
 			if f < 2:
 				var ball := _w(su + nu * (r - 0.5), sv + side * (r - 0.5))
-				_prism(_circle(ball, 0.28, 4), d + 19.0, d + 19.5, PT_CREAM, PT_CREAM, M_STONE, M_STONE)
+				_prism(_circle(ball, 0.32, 4), d + 19.3, d + 19.8, PT_CREAM, PT_CREAM, M_STONE, M_STONE)
 				_mode = M_STONE
-				_pyramid(_circle(ball, 0.28, 4), d + 19.5, d + 20.0, PT_CREAM)
+				_pyramid(_circle(ball, 0.32, 4), d + 19.8, d + 20.4, PT_CREAM)
 	# The iron lantern on the shaft's walk-side face.
 	var lamp := _w(su, sv - r - 0.4)
 	_prism(_circle(lamp, 0.22, 4), d + 3.2, d + 3.8, Color("#ffd27a"), Color("#1e1e22"), M_LAMP, M_STONE)

@@ -10,6 +10,10 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-03
+
+- The Poniatowski viaduct over Powiśle now stands on open concrete arches with struts under a steel deck, and its closed bays along Aleja 3 Maja hold five little bars with neon, lit windows and café tables.
+- Most Poniatowskiego now crosses the Vistula on eight spans, with a new stone pier at the west bank.
+- The bridge's towers look sturdier: corner piers, cornices and bigger arched windows on the shafts, and deeper arcades on the pavilions.
 - Flying high in the helicopter now keeps it near the middle of the screen, and the city reaches the top edge instead of ending in blue sky with towers floating over it. Over most of the city the helicopter tops out at 220 m; near the tallest towers it can still climb above them.
 - Solec under Trasa Łazienkowska drives clean: the car no longer gets caught on the guard rail of the ramp up to the Trasa or on the pillar beside Solec's kerb.
 - Driving under Trasa Łazienkowska, Most Łazienkowski or a viaduct, you no longer lose your car: when a bridge hides it, it shows through as a warm outline, the way it already did in tunnels.
