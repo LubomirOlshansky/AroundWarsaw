@@ -16,6 +16,8 @@ const Models := preload("res://scripts/models.gd")
 const Trains := preload("res://scripts/trains.gd")
 const MapEdge := preload("res://scripts/map_edge.gd")
 const EdgeRoadworks := preload("res://scripts/edge_roadworks.gd")
+## Pasaż Wiecha's white Y masts stand where the map has its lamps (first_scene.gd PASAZ).
+const FirstScene := preload("res://scripts/first_scene.gd")
 ## Tile size for instanced things (trees, lamps, parked cars). Loop 2b: 512 m (was 256): one
 ## MultiMesh is one draw call, and the iPhone pays per draw call, not per instance.
 const INSTANCE_TILE := 512.0
@@ -5694,6 +5696,8 @@ func _build_street_furniture() -> void:
 	for i in range(0, list.size() - 1, 2):
 		var x := float(list[i])
 		var z := float(list[i + 1])
+		if FirstScene.on_pasaz(Vector2(x, z)):
+			continue  # first_scene.gd's Y mast stands here
 		var t := Transform3D(Basis(Vector3.UP, fposmod(x * 0.37 + z * 0.11, TAU)), Vector3(x, terrain_height(x, z), z))
 		if Vector2(x, z).distance_to(Vector2(CANDELABRAS.x, CANDELABRAS.y)) < CANDELABRAS.z:
 			candelabras.append(t)

@@ -61,7 +61,7 @@ often, known to every visitor; **B** characteristic, known to locals, gives a st
 | --- | --- | --- | --- | --- | --- |
 | 1 | Pałac Kultury i Nauki | Plac Defilad / Marszałkowska | landmark | ★ | stone colour and the 30th-floor terrace (QUESTIONS) |
 | 2 | Rotunda (OSM: Rotunda PKO) | Marszałkowska (Rondo Dmowskiego) | landmark pavilion | ★ | none |
-| 3 | Domy Towarowe Centrum: Junior, Sawa, Wars | Marszałkowska | department stores | ★ | the pavilions behind them (ROADMAP first-scene 4-5) |
+| 3 | Domy Towarowe Centrum: Junior, Sawa, Wars | Marszałkowska | department stores | ★ | Pasaż Wiecha and its pavilions behind them built 2026-11-02 (site `wiecha`); phone look |
 | 4 | Muzeum Sztuki Nowoczesnej | Marszałkowska (Plac Defilad) | museum | ★ | R8: the ribbon and the roofline |
 | 5 | Złota 44 | Złota | upscale flats, skyscraper | ★ | Mac look check |
 | 6 | Warsaw Spire | Plac Europejski | office skyscraper | ★ | Mac look check |
