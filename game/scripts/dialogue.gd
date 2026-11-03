@@ -15,6 +15,7 @@ extends Node
 ## Loop 2b: time spent in this script's per-frame work since the bench last read it (µs).
 var spent_usec := 0
 
+const Chatter := preload("res://scripts/chatter.gd")
 const PATH := "res://data/dialogue.json"
 const SHOUT_GAP := 9.0          # seconds between two drivers' shouts
 const HOST_GAP := Vector2(60.0, 120.0)
@@ -109,22 +110,35 @@ func notes(l: Array) -> Dictionary:
 
 
 ## Speaks a line of `group` over `anchor` (a Node3D or a Callable giving a world
-## position); returns the line, or [] if there was none.
+## position); returns the line, or [] if there was none. Phase 0.2: `kind` is the line's class in
+## the chatter budget (chatter.gd, QUEST by default); a line the budget drops is not used up and
+## gives [].
 func say(anchor: Variant, speaker: String, group: String, tag := "", seconds := 4.0,
-		accent := Color("#ffd23f"), height := 2.6, prefer := false) -> Array:
+		accent := Color("#ffd23f"), height := 2.6, prefer := false, kind := Chatter.QUEST, key := "") -> Array:
+	if bubbles != null:
+		if kind == Chatter.AMBIENT and bubbles.muted():
+			return []  # G16
+		if not bubbles.allows(kind, key) and not bubbles.is_talking(anchor):
+			return []
 	var l := line(group, tag, prefer)
 	if l.is_empty() or bubbles == null:
 		return l
-	bubbles.say(anchor, speaker, l[0], l[1], seconds, accent, height)
+	if not bubbles.say(anchor, speaker, l[0], l[1], seconds, accent, height, kind, key):
+		return []
 	return l
 
 
-## `say` for ambient chatter: nothing (and no line used up) while the player drives fast (G16).
+## `say` for ambient chatter: nothing (and no line used up) while the player drives fast (G16),
+## while the car struggles, while a card is up or inside the budget's gap (chatter.gd).
 func say_ambient(anchor: Variant, speaker: String, group: String, tag := "", seconds := 4.0,
 		accent := Color("#ffd23f"), height := 2.6, prefer := false) -> Array:
-	if bubbles != null and bubbles.muted():
-		return []
-	return say(anchor, speaker, group, tag, seconds, accent, height, prefer)
+	return say(anchor, speaker, group, tag, seconds, accent, height, prefer, Chatter.AMBIENT)
+
+
+## `say` for someone reacting to the player (a shout, a near miss, a horn): chatter.gd REACTION.
+func say_reaction(anchor: Variant, speaker: String, group: String, tag := "", seconds := 4.0,
+		accent := Color("#ffd23f"), height := 2.6, prefer := false, key := "") -> Array:
+	return say(anchor, speaker, group, tag, seconds, accent, height, prefer, Chatter.REACTION, key)
 
 
 # --- drivers' shouts ------------------------------------------------------------------
@@ -132,7 +146,7 @@ func say_ambient(anchor: Variant, speaker: String, group: String, tag := "", sec
 ## The player's car hit an AI car (traffic.bumped_driver).
 func on_driver_bumped(d) -> void:
 	if d.node == null and not d.ghost and _rng.randf() < 0.7:
-		_shout(d)
+		_shout(d, "bump")
 
 
 ## An AI car has been held up behind the stopped player (traffic.blocked_by_player).
@@ -141,8 +155,10 @@ func on_driver_blocked(d) -> void:
 		_shout(d)
 
 
-func _shout(d) -> void:
-	if _shout_wait > 0.0 or bubbles == null:
+## Phase 0.2: a reaction (chatter.gd): one in its window, a bump's only for a hard enough hit,
+## none while the car struggles.
+func _shout(d, key := "") -> void:
+	if _shout_wait > 0.0 or bubbles == null or not bubbles.allows(Chatter.REACTION, key):
 		return
 	_shout_wait = SHOUT_GAP
 	# The bubble follows this car while it lives; a pooled car reused for another
@@ -153,7 +169,7 @@ func _shout(d) -> void:
 		if not d.active or d.slot != slot or d.kind != kind:
 			return Vector3.INF
 		return d.pos + Vector3(0, d.size.y + 0.4, 0)
-	say(anchor, DRIVERS[clampi(kind, 0, DRIVERS.size() - 1)], "traffic", "", 3.0, Color("#e2574c"))
+	say_reaction(anchor, DRIVERS[clampi(kind, 0, DRIVERS.size() - 1)], "traffic", "", 3.0, Color("#e2574c"), 2.6, false, key)
 
 
 # --- the radio host -------------------------------------------------------------------

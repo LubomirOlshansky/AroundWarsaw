@@ -1135,6 +1135,40 @@ func in_tunnel(x: float, z: float, y: float) -> bool:
 	return not is_nan(t) and terrain_height(x, z) - t > 2.0
 
 
+## GAMEPLAY_PLAN 3.5 (0.3): a bridge or viaduct deck stands between the point `at` (the car's
+## middle) and the camera, `to_cam` the unit direction up to it (the ortho camera's back axis):
+## the ray meets a deck's slab (from UNDER_DECK_SLAB under its road to its parapet's top) between
+## UNDER_DECK and UNDER_DECK_TOP m over the point. Trasa Łazienkowska over Łazienkowska and
+## Myśliwiecka, Most Łazienkowski's land spans, the Poniatowski viaduct: main.gd shows the car
+## through the deck then, as in a tunnel. A car beside a deck, or under one the camera sees past,
+## stays drawn as it is. Up to ~18 deck lookups (drive_height does one): main.gd asks every
+## DECK_XRAY_EVERY frames.
+func deck_hides(at: Vector3, to_cam: Vector3) -> bool:
+	if to_cam.y < 0.05 or _decks.is_empty():
+		return false
+	if _deck_cells.is_empty():
+		_index_decks()
+	# Most of the map has no deck near: the deck cells along the ray first (4 points, under a
+	# cell apart), the costly corridor tests only if one holds a deck.
+	var any := false
+	for k in 4:
+		var q := at + to_cam * (lerpf(UNDER_DECK, UNDER_DECK_TOP, k / 3.0) / to_cam.y)
+		if _deck_any.has(Vector2i(floori(q.x / DECK_CELL), floori(q.z / DECK_CELL))):
+			any = true
+			break
+	if not any:
+		return false
+	var h := UNDER_DECK
+	while h <= UNDER_DECK_TOP:
+		var p := at + to_cam * (h / to_cam.y)
+		var y := at.y + h
+		for d in _decks_at(p.x, p.z):
+			if y >= d - UNDER_DECK_SLAB and y <= d + 1.0:
+				return true
+		h += UNDER_DECK_SLAB * 0.75
+	return false
+
+
 ## Loop 10a: how far into the water (river, pond or fountain) a point lies, in metres from
 ## the nearest dry texel, interpolated between the 2 m texels' centres; 0 on dry land and
 ## off the map. Four byte reads: cheap enough for the car every frame.
@@ -1250,6 +1284,27 @@ func _decks_at(x: float, z: float, feet = null) -> PackedFloat32Array:
 
 ## The height of deck group g at a point (its nearest piece, projected onto it), or the
 ## terrain for g < 0. Things baked onto a bridge (markings, kerbs, tram tracks) use it.
+## PT-18: the nearest point of deck group g's centrelines to p (p itself when there is none).
+func _deck_centre(g: int, p: Vector2) -> Vector2:
+	if _deck_cells.is_empty():
+		_index_decks()
+	var best := INF
+	var out := p
+	var cell := Vector2i(floori(p.x / DECK_CELL), floori(p.y / DECK_CELL))
+	for dz in range(-1, 2):
+		for dx in range(-1, 2):
+			for code: int in _deck_cells.get(Vector3i(cell.x + dx, cell.y + dz, g), PackedInt32Array()):
+				var pts: PackedVector2Array = _decks[code >> 12]["pts"]
+				var k := code & 4095
+				var a := pts[k]
+				var ab := pts[k + 1] - a
+				var q := a + ab * clampf((p - a).dot(ab) / maxf(ab.length_squared(), 0.000001), 0.0, 1.0)
+				if p.distance_squared_to(q) < best:
+					best = p.distance_squared_to(q)
+					out = q
+	return out
+
+
 func deck_height(g: int, x: float, z: float) -> float:
 	if g < 0:
 		return terrain_height(x, z)
@@ -1286,6 +1341,13 @@ func deck_height(g: int, x: float, z: float) -> float:
 		return h
 	return h
 
+
+## GAMEPLAY_PLAN 3.5 (deck_hides): the camera ray's heights over the car tested for a deck (from
+## over the car's roof to the highest flyover over a street) and a deck's slab and girders under
+## its road.
+const UNDER_DECK := 2.5
+const UNDER_DECK_TOP := 24.0
+const UNDER_DECK_SLAB := 1.6
 
 const DECK_CELL := 16.0
 ## (cell x, cell z, group) -> segment codes (piece << 12 | segment), built on first use;
@@ -4480,8 +4542,14 @@ func _pier(st, p: Dictionary, col: Color) -> void:
 
 ## Guard rails (bridge edges and mapped barrier=guard_rail): a steel beam on posts,
 ## solid for the car.
+## Two rails' ends closer than this get a collider across the gap (narrower than a car).
+const GUARD_JOIN := 1.5
+## ...the V's depth behind the rail's line, at most (and under half the gap).
+const GUARD_POCKET := 0.4
+var guard_joins := 0
 func _build_guard_rails(st) -> void:
 	_uv2 = Vector2(0.5, -1.0)
+	var ends: Array = []  # [the end, its deck, which rail]
 	var steel := Color("#a7abb0")
 	var post := Color("#6c7075")
 	for g in data.get("guards", []):
@@ -4515,6 +4583,41 @@ func _build_guard_rails(st) -> void:
 			run += length
 			_wall_faces.append_array([Vector3(a.x, ga - 0.3, a.y), Vector3(b.x, gb - 0.3, b.y), Vector3(b.x, gb + 1.6, b.y),
 					Vector3(a.x, ga - 0.3, a.y), Vector3(b.x, gb + 1.6, b.y), Vector3(a.x, ga + 1.6, a.y)])
+		if poly.size() > 1:
+			ends.append([poly[0], dk, ends.size() / 2])
+			ends.append([poly[poly.size() - 1], dk, ends.size() / 2])
+	# PT-18: the gaps under GUARD_JOIN between two rails' ends on a deck (on Solec's ramp up to the
+	# Trasa the rail comes in pieces 0.9 m apart, cut where a bus's box brushes it, the parapet 0.5 m
+	# behind) get a shallow V behind the rail's line: a car's front corner that slid into the gap
+	# caught the next piece's end and was pinned; now it glides out. Behind the line, so the lanes
+	# the cut cleared stay clear.
+	for i in ends.size():
+		for j in range(i + 1, ends.size()):
+			var e0: Array = ends[i]
+			var e1: Array = ends[j]
+			if e0[2] == e1[2] or e0[1] != e1[1] or int(e0[1]) < 0:
+				continue
+			var a: Vector2 = e0[0]
+			var b: Vector2 = e1[0]
+			var gap := a.distance_to(b)
+			if gap < 0.05 or gap > GUARD_JOIN:
+				continue
+			var mid := (a + b) * 0.5
+			var nrm := Vector2(-(b - a).y, (b - a).x) / gap
+			if nrm.dot(mid - _deck_centre(e0[1], mid)) < 0.0:
+				nrm = -nrm
+			var m := mid + nrm * minf(GUARD_POCKET, gap * 0.45)
+			var ga := deck_height(e0[1], a.x, a.y)
+			var gm := deck_height(e0[1], m.x, m.y)
+			var gb := deck_height(e0[1], b.x, b.y)
+			for seg in [[a, ga, m, gm], [m, gm, b, gb]]:
+				var p0: Vector2 = seg[0]
+				var p1: Vector2 = seg[2]
+				var y0: float = seg[1]
+				var y1: float = seg[3]
+				_wall_faces.append_array([Vector3(p0.x, y0 - 0.3, p0.y), Vector3(p1.x, y1 - 0.3, p1.y), Vector3(p1.x, y1 + 1.6, p1.y),
+						Vector3(p0.x, y0 - 0.3, p0.y), Vector3(p1.x, y1 + 1.6, p1.y), Vector3(p0.x, y0 + 1.6, p0.y)])
+			guard_joins += 1
 	_uv2 = Vector2.ZERO
 
 
