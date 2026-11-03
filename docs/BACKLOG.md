@@ -296,6 +296,15 @@ Built from photos gathered on the Mac (`refs/polin/`) and the LoD2 roof, spec `p
 - The monument's lions under the menorahs and the plaques at the relief's foot are not modelled.
 - LoD2 shows a 3 m hump over the west roof that the ortho does not: a LoD2 artefact, not built.
 
+## Muzeum Powstania Warszawskiego (F, 2026-11-02)
+Built from photos gathered on the Mac (`refs/mpw/`: 25 Commons photos, the GUGiK ortho, REPORT.md and PARTS.md) and LoD2, site `mpw`, spec `mpw.md`. Found and left:
+- W2's stepped gable at its mid-point (about 17 m), the corbel-table friezes and blind lancets (one cream band stands for them), the brick courses, the roof terrace railing.
+- The white four-storey wing with the red-white banners north of W1 (about x -2960..-2948, z 148..160): the report could not place it, so it is not built.
+- Freedom Park's objects: the photo screens, the armoured car and black granite monument at the wall's north end, the B-24 Liberator replica, the airmen's memorials, the pink-grey terrace and the gravel court; the wall's names (plates) are plain granite; the wall's south end under the trees is a guess (ortho 105 m, sources say 156 m).
+- The Tobruk stands at OSM's spot (-2926, 117); the museum's own bunker may be elsewhere in the park.
+- OSM leftovers seen on the ortho: pale pavilion roofs at x -2890..-2865, z 125..140 have no outline; a thin-triangle outline at x -2851..-2841, z 285..320 is a bad polygon.
+- The fence's return along Grzybowska is not built (its line was uncertain).
+
 ## Skwer Linearny na Złotej and Dom pod Orłami (F, 2026-11-02)
 
 - Built: Złota between Marszałkowska and Jasna is the linear park that opened on 3 August 2026
