@@ -3,6 +3,15 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Forest rebuilt from F's photos (F, 2026-11-03)
+
+Built (spec `docs/landmarks/specs/forest.md`): the three-slab tower with crown bands, colour fins and PEPEO ŻUBR, the finned wings with black top storeys and roof gardens, the courtyard's amphitheatre, pavilion and 43 young trees. Left:
+
+- **Wing heights**: OSM gives 20.8 and 27.4 m; F's photos look like 8 to 10 storeys (up to ~35 m). Raising them moves the terrace crowd (crowds.gd DECKS `forest_terrace` top 27.4). Parked in QUESTIONS.
+- **The roof crane and the tower's lobby**: the window-cleaning crane on the crown and the glazed double-height lobby are not modelled.
+- **`pocket_rings` / `_collide_raw` twins**: this PR adds `landmarks.gd` `pocket_rings` and the map_builder hunk exactly as PR #385 does (#385 is unmerged); whichever merges second keeps one copy.
+- **Older docs still name the real tenant** in a few places (CITY_INVENTORY, LANDMARKS, QUESTIONS, MUSIC, inventory candidates, wiki_build.py): a sweep to the parody is open.
+
 ## Vitkac quests and ride stories (F, 2026-11-03)
 
 F asked for two things; both are plan only, nothing is built (Sonnet for the lines, Opus for the quest design; docs/design/ gets the plan first).

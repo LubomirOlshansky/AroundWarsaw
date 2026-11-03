@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-03
 
+- The Forest office complex by Rondo Radosława is rebuilt from photos: its tower now steps up in three dark glass slabs with orange, red and green fins and PEPEO ŻUBR in the crown, the low wings wear the same colourful fins under black top floors and roof gardens, and the courtyard between them has grass steps, a rusty-steel pavilion and young trees.
 - The website now leads with the beta: join on iPhone through TestFlight, or request Android access with a short form. The open-source story moved to the footer and a quieter "How it's made" section.
 - With colour-safe markers on (Settings, accessibility), race rings are now chequered like a finish line and a rescue pickup's ring is dashed, so you can tell them apart without relying on colour.
 - Praga's old streets get evenings: six neon bar signs (ŚWIAT PO PRASKU, BARISTA Z PODWÓRKA, WINO ZE SKRZYNKI, KRAINA WINA, KIJOWSKA DWÓJKA, POD KUFLEM ZA ROGIEM) around Okrzei, Wrzesińska, Kijowska and Targowa, and people outside with a drink after dark.

@@ -62,7 +62,7 @@ Car stops at the outline (`_collide`). The shop storey glows at night; the car p
 ## 7. Detail level and budget
 
 L2, triangle budget 20300 (an exception to the L2 limit: a 300 m mall with its car park; 16900 measured plus 20 %; the parked cars are 1500 x 10 of it, in the one landmark
-mesh, no new draw call); Forest budget 1500 (1244 measured plus 20 %). Shots: `--at=-2780,-2480 --yaw=20 --pitch=-25 --size=90` and
+mesh, no new draw call); the Forest has its own spec since 2026-11-03 (`forest.md`). Shots: `--at=-2780,-2480 --yaw=20 --pitch=-25 --size=90` and
 `--at=-2945,-2405 --yaw=250 --pitch=-35 --size=45`.
 
 ## 8. Parts table

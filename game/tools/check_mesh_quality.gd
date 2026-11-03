@@ -88,7 +88,7 @@ const BUDGET := {
 	"dtc": 1730,
 	"europejski": 480,
 	"flaga": 170,
-	"forest": 1500,
+	"forest": 4900,
 	"gpy": 250,
 	"gaulle": 880,
 	"rondo": 7000,
