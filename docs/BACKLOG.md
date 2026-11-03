@@ -16,7 +16,9 @@ Small problems that agents reported or that showed up in screenshots. They are f
   RD-2 Mennica's open arcade of round steel columns with the copper lobby, its curved plan, the
   west building's curved glass front and the plaza (fountain, ring sculpture); RD-3 GPY's irregular
   black patches and the Z/X wings' roof terraces; RD-4 the HUB's chamfered plans and the podium
-  skylight; RD-5 a Mac look check of all five (no night photos on Commons).
+  skylight; RD-5 a Mac look check of all five (no night photos on Commons); RD-6 a small dark
+  triangle floats over the Rondo between Skyliner and the HUB (seen from about yaw 45, 150 m up;
+  already on main before this lane, source not found yet).
 
 ## Open courtyards (F, 2026-11-03)
 
