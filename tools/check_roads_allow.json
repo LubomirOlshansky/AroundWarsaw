@@ -1902,6 +1902,17 @@
    "name": "tree",
    "reason": "map north (2026-10-31): a scanned tree beside Jana Pawła II's viaduct by Arkadia; bake_structures trim_crowns shrank its crown to the floor (CROWN_MIN, 40 %), which still reaches the viaduct footway's deck by 1.9 m; the scan's trees are kept as counted",
    "source": "GUGiK laser-scanned trees (trees3d); OpenStreetMap way 243199078 (footway, bridge=viaduct)"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    176,
+    -1876
+   ],
+   "r": 6,
+   "name": "Olszowa",
+   "reason": "Mac pass (2026-11-03): the Mac's re-bake from data/raw no longer fills the terrain-grid pit at Olszowa's east end (main's bake had a pit fill from (188, -1885) to (181, -1880)), so against the map pack's terrain the street reads 13 % over 6 m (limit 12 %). Same grid-pit class as the two Olszowa entries above; why the fill dropped (the bake's `crowded` test or a terrain difference between the Mac and map-pack-1) is parked in QUESTIONS",
+   "source": "tools/bake_roads.py fill_pits; GUGiK NMT 10 m grid (game/map/terrain.json, map-pack-1); tools/check_roads.py"
   }
  ]
 }
