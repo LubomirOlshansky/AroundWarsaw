@@ -145,6 +145,8 @@ then the Launch gate.
 - [ ] City inventory Part 3: the top not-done places, one thread each, photos first (Most Poniatowskiego,
       Muzeum Powstania, Pomnik Powstania, Hotel Warszawa and Cedet, Rondo ONZ towers, the monuments pass,
       Plac Bankowy, Świętokrzyska's NBP/Poczta/PAST-a, the outline builds' photo re-pass, Praga's faces)
+  - [x] Praga's faces from the Mac's photo reports (2026-11-02): St Florian's cathedral (site `florian`) and Bazar
+        Różyckiego (site `bazar`); Koneser and the Multimedia Fountain Park are off the map (QUESTIONS)
   - [x] Poczta Główna and PAST-a from the Mac photo reports (2026-11-03, specs `poczta.md`, `pasta.md`)
   - [ ] Narodowy Bank Polski (waits on its photo report)
 - [ ] Monuments pass (City inventory Part 3 item 6)
@@ -168,7 +170,7 @@ then the Launch gate.
 - [x] All churches designed by one set of rules (F, 2026-11-01; rules and inventory in
       docs/design/churches.md): the church kit, 22 parish churches as models with a card each
       (spec churches.md); Zbawiciela (#226), św. Teresy (#225) and the older fronts already done.
-      Open: Mac photo check of each (QUESTIONS), Praga cathedral, Archikatedra's tower, the
+      Open: Mac photo check of each (QUESTIONS), Archikatedra's tower, the
       Dominican and Capuchin monasteries
 - [x] Plac Zamkowy's houses (F, 2026-11-01): a pastel palette in place of OpenStreetMap's mud
       colours, the plac and Krakowskie Przedmieście's first houses in the historic dress, and a
@@ -419,6 +421,7 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [x] G13 Upgrade shop: Audi TT parody (faster car), nitro, tuning, paid in zł (Opus design, Sonnet content) · 2026-11-02, the Ołdi TT 2,500 zł, Kebab Boost nitro 600 zł, tyres and engine levels 1-3; phone check and nitro flame/sound open (BACKLOG G13a, G13b)
 - [x] G13c Police keep pace with the upgraded car (0.8 of the player's real top speed), the pad's nitro on LB / RB, the view's turn on the right stick (2026-11-02; phone feel parked in QUESTIONS)
 - [x] G14 POMOC DROGOWA (unstuck) and NOWA GRA (two-tap reset) at the top of Settings → Jazda (quick win)
+- [x] G14 later: stuck for 8 s (driving and getting nowhere), POMOC DROGOWA comes up on screen and a tap tows the car to the road (2026-11-03, `check_stuck_offer`; phone look open)
 - [x] Language choice (F, 2026-11-02): POLSKI / ENGLISH on the title screen and in Settings → DŹWIĘK → Język; the whole game shows one language, saved in settings, the phone's language by default (`lang.gd`, `check_language`; the phone look check is parked in QUESTIONS)
 - [x] G15 Stop assist works better: bigger quest start and end rings, looser "stopped", longer look-ahead (quick win; phone check)
 - [x] G16 Fewer text popups while driving on the road: ambient bubbles muted above 40 km/h, ambient toasts one per 20 s, traffic is a slider (2026-11-01, Sonnet)

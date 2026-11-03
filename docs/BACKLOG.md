@@ -387,7 +387,7 @@ add it to the plan." Rules and the full inventory (39 named religious buildings,
 - **Open, Mac:** the front end and tower count of every kit church; the gables on the real LoD2
   walls (do they stand on the right edges, z-fight, read at phone zoom); the palette against
   photos of Plac Zamkowy's west side (Kamienica pod Messalką, Baryczków).
-- **Open, build:** Praga cathedral, Archikatedra's tower and apse, the Dominican, Capuchin,
+- **Open, build:** Archikatedra's tower and apse, the Dominican, Capuchin,
   Franciscan and Pallotine monasteries; lit belfries at night; the Kościół Niepokalanego Poczęcia
   outline is only 20 x 14 m (a chapel, check its name).
 - **Roofs (owned by the gameplay pass thread):** F's "roofs on the old city look strange, a lot of
@@ -544,8 +544,13 @@ levels 1-3 at 150-400 zł. Saved in the [garage] section (no version bump). Left
 game, and unstuck: if the user is stuck in textures, click and move to the main road". POMOC
 DROGOWA (PR #231) lived at the bottom of the Jazda tab. Task: both buttons in a row at the top of
 Settings → Jazda (the first tab); NOWA GRA asks a second tap within 4 s, then wipes the save
-(`_on_new_game`). Later: show a "stuck? tow" toast when the car has been pinned for 8 s.
-Files: settings_panel.gd, main.gd.
+(`_on_new_game`). Files: settings_panel.gd, main.gd. The "later" is done (2026-11-03): trying to
+drive (gas, brake or the stick) for 8 s and still within 4 m of one spot, whatever holds the car (a
+wall nothing pins it against, a gap inside a building), POMOC DROGOWA comes up on the context button
+with one toast and a tap tows (car.gd `stalled`, main.gd `_stuck_offer_frame`, `check_stuck_offer`).
+Not while parked by the game, held by the stop assist, in the water or flying; the pinned car's own
+turn-out and tow still come first. Left: the phone look; a pad has no button for the context button
+(its toast points to Settings → JAZDA).
 
 **G15 · Stop assist and quest rings (P0, quick win).** F: "pomoc przy zatrzymaniu is not working
 well; make the start and end points bigger and add assistance to pickup". Task: ring 9 → 13 m,
