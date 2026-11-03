@@ -333,6 +333,8 @@ then the Launch gate.
   - [ ] RF4b Powiśle roof terraces, L-shaped hips; the phone bench and a Mac look
 
 ### Left: content and feel
+- [ ] **Vitkac quests** (F, 2026-11-03; backlog "Vitkac quests and ride stories"): the black-stone luxury block on Bracka as a quest place, with the quests built around it. Not started; the landmark is the 2026-11-03 photo build (PR #385)
+- [ ] **Every Podwózka ride gets its own passenger story** (F, 2026-11-03): a named passenger with request, pickup, in-ride and drop-off lines, e.g. the fancy couple from Wilanów going shopping at Vitkac. Not started
 - [x] Photo mode no longer lets the car reverse into buildings (its hold parks the car and puts it
       back on close), and the pause card's JAZDA tab has POMOC DROGOWA · unstuck, the tow to the
       nearest road on demand (F stuck after a photo on the iPhone, 2026-11-01; phone check parked)
