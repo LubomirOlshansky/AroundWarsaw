@@ -675,6 +675,8 @@ const TELEPORT_TESTS := [
 	[-761.0, -1399.0, "over Aleja Solidarności's tunnel"],
 	[-315.0, -905.0, "over Karowa's short tunnel"],
 	[850.0, -94.0, "over an unnamed link tunnel"],
+	[1347.0, 1077.0, "under Trasa Łazienkowska's deck on Solec"],
+	[1700.0, 973.0, "over the river by Most Łazienkowski"],
 	[-1013.0, -45.0, "Marszałkowska at the start"],
 	[-387.0, -187.0, "Nowy Świat"],
 ]
@@ -4437,6 +4439,12 @@ func _teleport_from_map(p: Vector2) -> void:
 		print("teleport: the helicopter to %.0f, %.0f" % [p.x, p.y])
 		return
 	var at := Vector3(p.x, map.terrain_height(p.x, p.y), p.y)
+	# GAMEPLAY_PLAN 0.1: a hold over the river, by a bridge, lands on the bridge (its deck's
+	# level), not on a bank road hundreds of metres away.
+	if graph != null and map.in_water(at.x, at.z, at.y):
+		var deck := graph.snap(p, 80.0, Vector2.ZERO, true, false, true)
+		if not deck.is_empty() and graph.e_dk[deck[0]] >= 0:
+			at.y = graph.height(deck[0], deck[2])
 	var spot := _lane_spot(at, car.rotation.y)
 	if spot.is_empty():
 		spot = _node_spot(at)
