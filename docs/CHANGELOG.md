@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-03
+- Flying high in the helicopter now keeps it near the middle of the screen, and the city reaches the top edge instead of ending in blue sky with towers floating over it. Over most of the city the helicopter tops out at 220 m; near the tallest towers it can still climb above them.
 - The opening flight over Warsaw now has a voice: the radio announcer's welcome plays once while the camera flies down to your car, over a very quiet radio, and the radio swells to full volume as the game begins.
 - Bracka has its two department stores: the dark stone Vipkac with a glass top floor and trees on its roof terrace, and the 1914 Jabłkowski Brothers' store with arched shop windows and two white columns at the door; by Plac Trzech Krzyży the white banded Szeraton hotel stands with its glass drum and name crown on the corner. Next to Vipkac, the grey granite bank building of 1931 fills the Jerozolimskie corner by Nowy Świat, with its gilded monogram over the middle.
 - From above, the Ministry of Finance, the National Museum and Hotel Bristol now show their open courtyards (a tree-lined court at the ministry, the paved museum court, Bristol's light well) instead of one solid roof.
