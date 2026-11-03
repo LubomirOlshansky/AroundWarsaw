@@ -9,6 +9,9 @@ that day here, in plain words a player would understand (no file names, no spoil
 rows in the progress log but no section here is listed automatically from the log's labels until
 someone writes its lines.
 
+## 2026-11-03
+- Warszawa Wschodnia stands on Praga's side of the tracks: a long glass hall under a flat roof with a zig-zag folded edge on green V-shaped legs, WARSZAWA WSCHODNIA in white letters over the platforms, and rust-brown roofs on columns over its five island platforms.
+
 ## 2026-11-02
 - Most Poniatowskiego looks like itself: four cream towers with arcaded pavilions, belfries and battlements at the ends, grey steel arches under the deck on granite piers, a red girder and a black iron railing along both edges, and a coat of arms on a stone pedestal over every pier.
 - Behind the three department stores at the start, Pasaż Wiecha has its two-storey shop pavilions (dark shop windows under a white band), tall white Y-shaped lamp masts, café tables under white parasols and people sitting at them.
