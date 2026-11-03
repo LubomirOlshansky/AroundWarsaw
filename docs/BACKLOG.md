@@ -2735,6 +2735,13 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
   test map. `shots.sh`'s `settings_panel` shot is MISSING (the paused game never reaches the shot
   frame): a shot-script issue, not the map.
 
+## From the Mac pass (2026-11-03)
+- **Oboźna's lane edge steps (C8)**: 0.77 m within 4 m at (-184, -605) and 0.50 m at (-97, -623), on the
+  slope down to Powiśle; the same on a fresh bake of origin/main, so not from the junction-median change.
+  Allowlisted in `tools/check_roads_allow.json` with this reason; judge on the 1 m terrain.
+- **check_gamepad P12** ("the full map's hint doesn't speak of the pad") fails on the merged main code
+  (2026-11-03), not from this PR: the full map's hint text needs its gamepad wording back (gameplay lane).
+
 ## From loop 3e (the structures, 2026-10-30)
 - **Most Łazienkowski's Praga end and the Czerniakowska interchange (R8)**: ~~where two ramps of one
   deck group part, a ramp's guard rail runs into the other's lanes~~ **Fixed (the joins loop,
@@ -2769,7 +2776,10 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
   lane) fixed by moving its `near` onto the bridge. The three geometry leftovers below were NOT
   touched: the cloud has no terrain.json, so `drop` (the parapet collider's test) and the deck
   heights differ from the Mac and check_drive cannot confirm a fix there; do them on the Mac.
-- **Wybrzeże Szczecińskie's deck over the Port Praski inlet (deck 4)** by Most Śląsko-Dąbrowski's
+- ~~**Wybrzeże Szczecińskie's deck over the Port Praski inlet (deck 4)**~~ **Fixed 2026-11-03 (Mac):** the bus
+  hit OSM `barrier=wall` lines mapped to the kerb at the deck's at-grade ends, not the parapet; `bake_structures.py`
+  now cuts barrier lines in a deck road's corridor where the deck runs below ground + `BARRIER_TOP` (2.5 m);
+  check_drive `--no-allow` 9/28 → 7/21 (also the fence at deck 76's ramp end, (2118, 743)). Was: by Most Śląsko-Dąbrowski's
   Praga end: a bus on the outer lane at its west end brushes the neighbouring piece's parapet (the
   gap between pieces keeps a collider where there is a drop): ~~6~~ 2 places left ((409, −1519) and
   (426, −1519), 6 spots: the 2 of them at the lane edge 1272 went with the wall change, not with a
