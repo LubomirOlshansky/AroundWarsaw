@@ -17,6 +17,14 @@ signal landed
 const MAX_SPEED := 35.0      # m/s, about 126 km/h
 const CRUISE := 45.0         # default height above the ground, metres
 const MAX_HEIGHT := 360.0    # above the ground; Varso's spire tops out at 310 m
+## The height cap (GAMEPLAY_PLAN 3.1, 2026-11-03): over most of the city the helicopter tops out
+## at OPEN_CEILING, so the view stays on the city instead of the map's edge and the sky past it;
+## near a tall building it may climb to that roof plus ROOF_CLEAR (Varso's spire: MAX_HEIGHT).
+## The roofs are read CEILING_REACH m round the helicopter (`tallest_near`) every CEILING_EVERY s.
+const OPEN_CEILING := 220.0
+const ROOF_CLEAR := 60.0
+const CEILING_REACH := 140.0
+const CEILING_EVERY := 0.25
 const CLIMB_RATE := 12.0     # m/s the wanted height moves while climb is held
 const RADIUS := 3.0          # footprint tested against roofs (the fuselage, not the blade tips)
 const STEP := 0.6            # a ledge this low is flown up onto instead of blocking
@@ -36,6 +44,8 @@ var landing := false
 ## anything (ground, deck, roof) within a radius of a point.
 var ground_height: Callable = func(_x: float, _z: float) -> float: return 0.0
 var top_height: Callable = func(_x: float, _z: float, _r: float) -> float: return 0.0
+## The tallest roof in the square of a reach round a point (map_builder.gd `tallest_near`).
+var tallest_near: Callable = func(_x: float, _z: float, _r: float) -> float: return 0.0
 var bounds := Rect2(-1000, -1000, 2000, 2000)
 ## Map north (the L-shaped map, 2026-10-31): the corners of `bounds` that are not map, each grown
 ## by the 12 m pad (map_builder.gd `in_map(p, -PAD)` is false inside them); the game sets them
@@ -51,6 +61,11 @@ var alt_target := CRUISE
 ## Skids above whatever is under the helicopter, and that surface's height.
 var height_above := 0.0
 var surface := 0.0
+## Skids above the ground (not a roof): the camera frames by this, so it doesn't jump at a roof's edge.
+var above_ground := 0.0
+## The highest the helicopter may hold here (above the ground): see OPEN_CEILING.
+var ceiling := MAX_HEIGHT
+var _ceiling_wait := 0.0
 ## True on a frame where a building stopped the helicopter.
 var blocked := false
 
@@ -87,6 +102,7 @@ func place(at: Vector3, yaw: float, height_above_ground: float) -> void:
 	_acc = Vector3.ZERO
 	landing = false
 	alt_target = height_above_ground
+	_ceiling_wait = 0.0
 	_spin = 0.6
 	reset_physics_interpolation()
 	_shadow.reset_physics_interpolation()
@@ -143,7 +159,11 @@ func _step(dt: float) -> void:
 	# over, so lifting off a tall roof answers the stick at once.
 	var ground: float = ground_height.call(nx, nz)
 	surface = top_height.call(nx, nz, RADIUS)
-	alt_target = clampf(alt_target + climb * CLIMB_RATE * dt, surface - ground, MAX_HEIGHT)
+	_ceiling_wait -= dt
+	if _ceiling_wait <= 0.0:
+		_ceiling_wait = CEILING_EVERY
+		ceiling = ceiling_at(nx, nz, ground)
+	alt_target = clampf(alt_target + climb * CLIMB_RATE * dt, surface - ground, maxf(ceiling, surface - ground))
 	var target_y := surface if landing else ground + alt_target
 	var want_vy := clampf((target_y - p.y) * 1.5, -11.0, 13.0)
 	vy = lerpf(vy, want_vy, 1.0 - exp(-3.0 * dt))
@@ -153,6 +173,7 @@ func _step(dt: float) -> void:
 		vy = maxf(vy, 0.0)
 	global_position = Vector3(nx, y, nz)
 	height_above = y - surface
+	above_ground = y - ground
 	if landing and height_above < 0.05 and speed() < 1.0:
 		landing = false
 		alt_target = surface - ground
@@ -227,6 +248,13 @@ func clamp_to_map(from: Vector2, to: Vector2) -> Vector2:
 			else:
 				n.y = side_z
 	return n
+
+
+## The height cap at (x, z) over the ground `ground`: OPEN_CEILING, or the tallest roof within
+## CEILING_REACH plus ROOF_CLEAR, never over MAX_HEIGHT.
+func ceiling_at(x: float, z: float, ground: float) -> float:
+	var top: float = tallest_near.call(x, z, CEILING_REACH)
+	return clampf(top - ground + ROOF_CLEAR, OPEN_CEILING, MAX_HEIGHT)
 
 
 ## True when the top of anything near (x, z) stands above the skids at height y.
