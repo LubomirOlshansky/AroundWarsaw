@@ -38,6 +38,9 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		"ROBUR",
 		# HOTEL PIURE's rooftop date bar (G3).
 		"LORETKA",
+		# Arkadka from F's photos (2026-11-03): Westfield as "west field" in Polish, the
+		# hypermarket, the DIY store and the cinema on the sign tower.
+		"ZACHODNIE", "POLE", "KARFUREK", "MERLINEK", "KINO SITKO",
 		# The railway (docs/design/railway.md, S2): the round pavilion's letters at Powiśle.
 		"WARSZAWA", "POWIŚLE",
 		# S3a: Warszawa Stadion's roof letters.

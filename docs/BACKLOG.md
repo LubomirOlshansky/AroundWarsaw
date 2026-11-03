@@ -2931,7 +2931,12 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
 - Build time: the monolithic build 58 → 75 s (the set fills' corridor tests in `terrain_height`).
 
 ## From map north (Rondo Radosława, Arkadia, Forest; 2026-10-31)
-- ~~Arkadia roof car park and the Forest's look~~ **Done 2026-11-01** (F's ask): Arkadka redesigned and its roof car park modelled (static cars), the Forest wears BANK PEPEO and has a roof terrace with a crowd (spec `arkadia.md`). Left: Mac photo check (colours, skylights, entrances); a drivable deck for DEMO 6.4; the terrace's bar kiosk and lounge.
+- ~~Arkadia roof car park and the Forest's look~~ **Done 2026-11-01** (F's ask): Arkadka redesigned and its roof car park modelled (static cars), the Forest wears BANK PEPEO and has a roof terrace with a crowd (spec `arkadia.md`). Left: a drivable deck for DEMO 6.4; the terrace's bar kiosk and lounge.
+- ~~Arkadia's photo check (colours, skylights, entrances)~~ **Done 2026-11-03** from F's ten photos: the round fountain plaza kept clear, a curved glass entrance between four stone piers with canopies and a fan of six glass gables, the square sign tower (ZACHODNIE POLE crown, KARFUREK / MERLINEK / KINO SITKO panels, a pink screen), the dark glass office wing, the brick wing with render pilasters and yellow awnings, the rotunda corner, the letter sign on the lawns (spec `arkadia.md`). Found, open:
+  - Arkadia's plaza paving (dark radial stripes) and the dry fountain's jets: the map draws OSM's fountain as water (map lane).
+  - K8's rope course stands west of the mall; the real green "worm" is south-east of the plaza (OSM `playground` at (−2738, −2387)), whose `park` polygon is self-crossing, so `bake_park_details.py` can't place it there yet.
+  - The OSM service road across Arkadia's plaza: check traffic never uses it.
+  - Arkadia's summer open-air cinema on the lawns (F's photo): a content idea.
 - **For the landmarks lane** (docs/DEMO.md 2.1 "Hand-over"): Rondo Radosława's flag mast (not in
   OpenStreetMap; the surface model has a 57.8 m column at (−2,850, −2,295)) and the island round it,
   Forest's tower (OSM part 923445779, 120 m; drawn today as OSM blocks), Arkadia (LoD2 today; its roof

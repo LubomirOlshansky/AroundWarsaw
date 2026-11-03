@@ -388,8 +388,8 @@ const INFO := {
 			"Ceglana hala przy Żelaznej Bramie, bliźniaczka Mirowskiej.",
 			"A brick market hall by Żelazna Brama, Mirowska's twin."],
 	"arkadia": ["Arkadka",
-			"Największe centrum handlowe w mieście, przy rondzie Radosława.",
-			"The city's biggest mall, by Rondo Radosława."],
+			"Największe centrum handlowe w mieście, przy rondzie Radosława: okrągły plac z fontanną, wieża z neonem i parking na dachu.",
+			"The city's biggest mall, by Rondo Radosława: a round fountain plaza, a sign tower and a car park on the roof."],
 	"forest": ["Forest",
 			"Biurowiec z zielonymi tarasami i 120-metrową wieżą.",
 			"An office block of planted terraces and a 120 m tower."],
@@ -4973,38 +4973,89 @@ func _build_kaskada(site: Dictionary) -> void:
 
 # --- Map north: Arkadia, the Forest tower, Rondo Radosława's flag (the landmarks loop) -----------
 
-## Arkadia (2004), the city's biggest mall, by Rondo Radosława (docs/DEMO.md 2.1 "Hand-over"):
-## its OpenStreetMap outline lifted as one block, a glass storey lit from inside under pale
-## panels to 21 m, the grey roof deck of its car park, and the 37 m tower over the west
-## entrance with the parody of its name, ARKADKA, on both faces. One card.
-const ARKADIA_TOWER := Vector2(-2778.0, -2470.0)
+## Arkadia (2004), the city's biggest mall, by Rondo Radosława, rebuilt from F's ten photos
+## (2026-11-03, spec docs/landmarks/specs/arkadia.md): the round fountain plaza in front of the
+## south-west entrance; the square sign tower with ZACHODNIE POLE on its crown, the shops' logo
+## panels and a big screen; the glass entrance between four stone piers with canopies and the fan
+## of glass gables behind it; the dark glass office wing on the left; the brick and render wing
+## with the rotunda corner and its yellow café awnings on the right; the roof car park; the big
+## letter sign by the lawns. All names are parodies (ZACHODNIE POLE is "Westfield" in Polish).
+const ARKADIA_TOWER := Vector2(-2779.0, -2466.0)
+const ARKADIA_R := 29.5                                # the entrance arc round the plaza (OSM)
+const ARKADIA_ARC := Vector2(-104.0, 4.0)             # its ends, degrees round the fountain
+const ARKADIA_FOUNTAIN := Vector2(-2761.0, -2443.0)   # OSM's fountain, the plaza's middle
+const ARKADIA_ROTUNDA := Vector2(-2705.0, -2413.0)
+const ARKADIA_SIGN := Vector2(-2797.0, -2361.0)       # the big letters on the lawns' flowerbed, towards the rondo
 const ARKADIA_TOP := 21.0
 const ARKADIA_SHOP := 5.6
-const ARKADIA_CREAM := Color("#e6dccb")
-const ARKADIA_TERRA := Color("#c47a55")
+const ARKADIA_PANEL := Color("#dcdbd5")
+const ARKADIA_STONE := Color("#cbb38e")
+const ARKADIA_BRICK := Color("#a9583c")
+const ARKADIA_RENDER := Color("#dcc9a6")
+const ARKADIA_DARK := Color("#2d3a44")
+const ARKADIA_YELLOW := Color("#f2c230")
 const ARKADIA_STRIP_GAP := 70.0
 const ARKADIA_DECK_REACH := 200.0
 const ARKADIA_CARS_MAX := 1500
 const ARKADIA_ROOF := Color("#77797a")
 const ARKADIA_RED := Color(1.0, 0.18, 0.22)
+const ARKADIA_WHITE := Color(0.97, 0.97, 1.0)
 func _find_arkadia() -> void:
 	var outline := _landmark("Westfield Arkadia")
 	if outline.size() >= 3:
 		_add_site("arkadia", [outline])
+		# The letter sign stands on the lawns 40 m off the outline: the box reaches it, so the
+		# sector that holds the sign builds the site.
+		var box: Rect2 = sites[-1]["box"]
+		sites[-1]["box"] = box.expand(ARKADIA_SIGN + Vector2(8.0, 8.0)).expand(ARKADIA_SIGN - Vector2(8.0, 8.0))
 
 
 func _build_arkadia(site: Dictionary) -> void:
-	var poly := _simplify(site["zone"][0], 1.5)
+	var raw: PackedVector2Array = site["zone"][0]
+	# The plaza: the mapped outline wraps round it; nothing of the mall stands inside its circle.
+	var court := _circle(ARKADIA_FOUNTAIN, ARKADIA_R, 48)
+	var poly := _arkadia_cut(_simplify(raw, 1.5), court)
 	_g = _ground_under(poly)
 	var g := _g
 	var none := Color(0, 0, 0, 0)
-	# Three bands (docs/landmarks/specs/arkadia.md): the lit shop-front glass, cream plaster
-	# with punched windows, and a terracotta band under the roof deck's cornice.
-	_prism(poly, g - 0.5, g + ARKADIA_SHOP, Color("#a9c6d2"), none, M_PAVILION)
-	_prism(poly, g + ARKADIA_SHOP, g + ARKADIA_TOP - 4.0, ARKADIA_CREAM, none, M_SKIN + S_PUNCHED / 16.0)
-	_prism(poly, g + ARKADIA_TOP - 4.0, g + ARKADIA_TOP - 1.0, ARKADIA_TERRA, none, M_STONE)
-	_prism(poly, g + ARKADIA_TOP - 1.0, g + ARKADIA_TOP, Color("#e9e4d8"), ARKADIA_ROOF, M_STONE, M_STONE)
-	_arkadia_parapet(poly, g)
+	# Three masses: the office wing (west, along Jana Pawła II), the brick wing with the rotunda
+	# (the south-east face), and the main block behind them.
+	var office_box := _box_poly(Rect2(-2860.0, -2600.0, 64.0, 160.0))
+	var sd := (Vector2(-2545.0, -2517.0) - Vector2(-2700.0, -2404.0)).normalized()
+	var r0 := Vector2(-2700.0, -2404.0)
+	var sn := Vector2(-sd.y, sd.x)
+	if sn.dot(Vector2(-2690.0, -2570.0) - r0) < 0.0:
+		sn = -sn  # into the mall
+	# (Deeper at its west end: the low stair block between the rotunda and the entrance.)
+	var wing_strip := PackedVector2Array([r0 - sd * 45.0 - sn * 12.0, r0 + sd * 210.0 - sn * 12.0,
+			r0 + sd * 210.0 + sn * 26.0, r0 + sd * 12.0 + sn * 26.0, r0 - sd * 45.0 + sn * 52.0])
+	var office: Array = Geometry2D.intersect_polygons(poly, office_box)
+	var wing: Array = Geometry2D.intersect_polygons(poly, wing_strip)
+	var main: Array = [poly]
+	for cut: PackedVector2Array in [office_box, wing_strip]:
+		var next: Array = []
+		for p: PackedVector2Array in main:
+			next.append_array(Geometry2D.clip_polygons(p, cut))
+		main = next
+	var deck := poly
+	var deck_area := -1.0
+	# The main block: lit shop glass, pale panels with a row of windows, a grey cornice, the deck.
+	for p: PackedVector2Array in main:
+		if Geometry2D.is_polygon_clockwise(p) != Geometry2D.is_polygon_clockwise(poly):
+			continue  # a hole piece
+		_prism(p, g - 0.5, g + ARKADIA_SHOP, Color("#a9c6d2"), none, M_PAVILION)
+		_prism(p, g + ARKADIA_SHOP, g + ARKADIA_TOP - 1.0, ARKADIA_PANEL, none, M_SKIN + S_PUNCHED / 16.0)
+		_prism(p, g + ARKADIA_TOP - 1.0, g + ARKADIA_TOP, Color("#b9bab6"), ARKADIA_ROOF, M_STONE, M_STONE)
+		_arkadia_parapet(p, g)
+		if absf(_area(p)) > deck_area:
+			deck_area = absf(_area(p))
+			deck = p
+	# The roof car park keeps off the entrance hall's glass gables.
+	deck = _arkadia_cut(deck, _arkadia_sector(0.0, 66.0, ARKADIA_ARC.x - 8.0, ARKADIA_ARC.y + 8.0))
+	for p: PackedVector2Array in office:
+		_arkadia_office(p, g)
+	for p: PackedVector2Array in wing:
+		_arkadia_wing(p, g, r0, sd, sn)
 	var c := _centre(poly)
 	var sxx := 0.0
 	var szz := 0.0
@@ -5020,7 +5071,7 @@ func _build_arkadia(site: Dictionary) -> void:
 		var m := c + across * (k * ARKADIA_STRIP_GAP)
 		var strip := PackedVector2Array([m - axis * 200.0 - across * 5.0, m + axis * 200.0 - across * 5.0,
 				m + axis * 200.0 + across * 5.0, m - axis * 200.0 + across * 5.0])
-		for piece: PackedVector2Array in Geometry2D.intersect_polygons(strip, poly):
+		for piece: PackedVector2Array in Geometry2D.intersect_polygons(strip, deck):
 			var inner := PackedVector2Array()
 			var pc := _centre(piece)
 			for q in piece:
@@ -5038,43 +5089,245 @@ func _build_arkadia(site: Dictionary) -> void:
 					_pyramid(ring, g + ARKADIA_TOP + 0.8, g + ARKADIA_TOP + 4.6, Color("#a7c8d6"))
 	# The roof car park (the deck holds the city's biggest car park): cars in back-to-back rows.
 	_mode = M_STONE
-	_arkadia_cars(poly, g, c, axis, across)
+	_arkadia_cars(deck, g, c, axis, across)
 	# Four stair and lift cores at the deck's corners and a mast of floodlights every 45 m.
-	_arkadia_cores(poly, g, c)
-	# The entrance rotunda: glass drum, twelve white fins, a crown with the name on four faces.
-	var t := _circle(ARKADIA_TOWER, 9.9, 12)
-	_prism(t, g + ARKADIA_TOP, g + 30.0, Color("#9fc0cf"), none, M_PAVILION)
-	_prism(t, g + 30.0, g + 37.0, Color("#f1efe9"), Color("#d8d6d0"), M_STONE, M_STONE)
-	for k in 12:
-		var d := Vector2.from_angle(TAU * k / 12.0 + 0.26)
-		var tn := Vector2(-d.y, d.x)
-		var p := ARKADIA_TOWER + d * 9.7
-		_prism(PackedVector2Array([p - tn * 0.22, p + tn * 0.22, p + tn * 0.22 + d * 0.6, p - tn * 0.22 + d * 0.6]),
-				g + ARKADIA_TOP, g + 30.0, Color("#f1efe9"), Color("#f1efe9"), M_STONE, M_STONE)
-	_prism(_circle(ARKADIA_TOWER, 10.4, 12), g + 29.4, g + 29.8, Color("#d8d6d0"), Color("#d8d6d0"), M_STONE, M_STONE)
-	for d: Vector2 in [Vector2(0.0, 1.0), Vector2(0.0, -1.0), Vector2(1.0, 0.0), Vector2(-1.0, 0.0)]:
-		var at := ARKADIA_TOWER + d * 7.0
-		signs.append(["ARKADKA", Vector3(at.x, g + 31.4, at.y), Vector3(d.x, 0.0, d.y), 1.15, ARKADIA_RED])
-	# Entrances: a flat canopy on two posts over the middle of the three longest faces, with the name.
-	var order: Array = []
-	for i in poly.size():
-		order.append([poly[i].distance_to(poly[(i + 1) % poly.size()]), i])
-	order.sort_custom(func(x: Array, y: Array) -> bool: return x[0] > y[0])
-	for e in mini(3, order.size()):
-		var i: int = order[e][1]
-		var a := poly[i]
-		var b := poly[(i + 1) % poly.size()]
-		var tn := (b - a).normalized()
-		var on := _out(poly, a, b)
-		var mid := (a + b) * 0.5
-		var cano := PackedVector2Array([mid - tn * 8.0, mid + tn * 8.0, mid + tn * 8.0 + on * 3.4, mid - tn * 8.0 + on * 3.4])
-		_prism(cano, g + 4.7, g + 5.2, Color("#3c4448"), Color("#4a5357"), M_STONE, M_STONE)
-		for sgn: float in [-1.0, 1.0]:
-			var pp := mid + tn * (7.4 * sgn) + on * 3.0
-			_prism(_circle(pp, 0.18, 4), g, g + 4.7, Color("#c9cdd0"), none, M_STONE)
-		var sp := mid + on * 0.08
-		signs.append(["ARKADKA", Vector3(sp.x, g + 7.4, sp.y), Vector3(on.x, 0.0, on.y), 0.7, ARKADIA_RED])
-	_collide(poly)
+	_arkadia_cores(deck, g, c)
+	_arkadia_entrance(g)
+	_arkadia_tower(g)
+	_arkadia_rotunda(g)
+	_arkadia_plaza(g)
+	# The car stops at the mapped outline less the forecourt, the tower and the rotunda.
+	_collide(_arkadia_cut(raw, court))
+	_collide(_circle(ARKADIA_ROTUNDA, 13.0, 12))
+
+
+## `poly` less `cut`, the biggest piece (the outline stays one ring).
+func _arkadia_cut(poly: PackedVector2Array, cut: PackedVector2Array) -> PackedVector2Array:
+	var best := poly
+	var area := -1.0
+	for p: PackedVector2Array in Geometry2D.clip_polygons(poly, cut):
+		if Geometry2D.is_polygon_clockwise(p) != Geometry2D.is_polygon_clockwise(poly):
+			continue
+		var a := absf(_area(p))
+		if a > area:
+			area = a
+			best = p
+	return best
+
+
+## The office wing (photos 3, 9): four storeys of dark glass to 18 m along Jana Pawła II, pale
+## floor slabs showing at each storey, a dark cornice; its south face lined with cypresses (OSM).
+func _arkadia_office(p: PackedVector2Array, g: float) -> void:
+	var none := Color(0, 0, 0, 0)
+	_prism(p, g - 0.5, g + 18.0, ARKADIA_DARK, none, M_SKIN + S_DARK / 16.0)
+	var out := Geometry2D.offset_polygon(p, 0.35, Geometry2D.JOIN_MITER)
+	if out.size() == 1:
+		for y: float in [4.6, 9.0, 13.4]:
+			_prism(out[0], g + y, g + y + 0.35, Color("#c9ccce"), none, M_STONE)
+		_prism(out[0], g + 18.0, g + 18.9, Color("#22292f"), Color("#5f6468"), M_STONE, M_STONE)
+
+
+## The brick and render wing on the south-east face (photos 4, 8): shop glass, terracotta brick
+## boxes between pale render pilasters every 22 m, a pale cornice at 13 m, under the main deck.
+func _arkadia_wing(p: PackedVector2Array, g: float, r0: Vector2, sd: Vector2, sn: Vector2) -> void:
+	var none := Color(0, 0, 0, 0)
+	_prism(p, g - 0.5, g + 4.8, Color("#b7cbd2"), none, M_PAVILION)
+	_prism(p, g + 4.8, g + 12.6, ARKADIA_BRICK, none, M_STONE)
+	_prism(p, g + 12.6, g + 13.6, ARKADIA_RENDER, Color("#8d8f8e"), M_STONE, M_STONE)
+	_arkadia_parapet_at(p, g + 13.6, 0.9)
+	# On the street face's long edges: render pilasters every 22 m between the brick boxes, and
+	# yellow awnings over the shop fronts nearest the rotunda.
+	for i in p.size():
+		var a := p[i]
+		var b := p[(i + 1) % p.size()]
+		var on := _out(p, a, b)
+		var elen := a.distance_to(b)
+		if on.dot(-sn) < 0.9 or elen < 12.0:
+			continue
+		var e := (b - a) / elen
+		var s := 8.0
+		while s < elen - 4.0:
+			var at := a + e * s + on * 0.35
+			_prism(PackedVector2Array([at - e * 2.2, at + e * 2.2, at + e * 2.2 - on * 1.2, at - e * 2.2 - on * 1.2]),
+					g, g + 13.9, ARKADIA_RENDER, ARKADIA_RENDER, M_STONE, M_STONE)
+			var mid := a + e * (s + 11.0)
+			var dr := mid.distance_to(ARKADIA_ROTUNDA)
+			if dr > 15.0 and dr < 60.0 and s + 15.0 < elen:
+				_arkadia_awning(mid + on * 0.2, e, on, 7.6, g + 4.2)
+			s += 22.0
+
+
+## A sloped café awning: `w` wide along `along`, 3 m out along `out` from `at`, dropping 0.9 m.
+func _arkadia_awning(at: Vector2, along: Vector2, out: Vector2, w: float, y: float) -> void:
+	var a := at - along * (w * 0.5)
+	var b := at + along * (w * 0.5)
+	var c := b + out * 3.0
+	var d := a + out * 3.0
+	var up := Vector3(out.x * 0.3, 1.0, out.y * 0.3).normalized()
+	_mode = M_STONE
+	_quad(Vector3(a.x, y, a.y), Vector3(b.x, y, b.y), Vector3(c.x, y - 0.9, c.y), Vector3(d.x, y - 0.9, d.y), up, ARKADIA_YELLOW)
+	_quad(Vector3(a.x, y - 0.05, a.y), Vector3(b.x, y - 0.05, b.y), Vector3(c.x, y - 0.95, c.y), Vector3(d.x, y - 0.95, d.y), -up, ARKADIA_YELLOW.darkened(0.25))
+	_quad(Vector3(d.x, y - 0.9, d.y), Vector3(c.x, y - 0.9, c.y), Vector3(c.x, y - 1.3, c.y), Vector3(d.x, y - 1.3, d.y),
+			Vector3(out.x, 0.0, out.y), ARKADIA_YELLOW.darkened(0.08))
+
+
+## A ring sector round the fountain: radii r0..r1, angles d0..d1 (degrees, plan).
+func _arkadia_sector(r0: float, r1: float, d0: float, d1: float) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	var n := maxi(int((d1 - d0) / 6.0), 2)
+	for i in n + 1:
+		out.append(ARKADIA_FOUNTAIN + Vector2.from_angle(deg_to_rad(lerpf(d0, d1, float(i) / n))) * r1)
+	if r0 <= 0.01:
+		out.append(ARKADIA_FOUNTAIN)
+		return out
+	for i in n + 1:
+		out.append(ARKADIA_FOUNTAIN + Vector2.from_angle(deg_to_rad(lerpf(d1, d0, float(i) / n))) * r0)
+	return out
+
+
+## The main entrance (photos 4, 6, 10): a curved glass wall round the plaza between four stone
+## piers, three bays, each with a low canopy (planted on top) at 5 m and a deep pale cornice at
+## 19 m; the name over the middle bay; behind it six glass gables fanning back over the mall.
+func _arkadia_entrance(g: float) -> void:
+	var r := ARKADIA_R
+	var d0 := ARKADIA_ARC.x
+	var d1 := ARKADIA_ARC.y
+	_prism(_arkadia_sector(r - 0.4, r + 2.0, d0, d1), g - 0.5, g + 20.0, Color("#a3c2cf"), Color("#8d9090"), M_PAVILION, M_STONE)
+	var bay := (d1 - d0) / 3.0
+	for k in 4:
+		var dk := d0 + k * bay
+		var w := rad_to_deg(1.5 / r)
+		_prism(_arkadia_sector(r - 1.2, r + 2.4, dk - w, dk + w), g - 0.5, g + 21.6, ARKADIA_STONE, ARKADIA_STONE.darkened(0.1), M_STONE, M_STONE)
+	for k in 3:
+		var a0 := d0 + k * bay + 3.5
+		var a1 := d0 + (k + 1) * bay - 3.5
+		_prism(_arkadia_sector(r - 4.6, r, a0, a1), g + 5.0, g + 5.6, Color("#3a3f44"), Color("#6f9a4a"), M_STONE, M_STONE)
+		_prism(_arkadia_sector(r - 5.0, r, a0, a1), g + 18.4, g + 19.6, Color("#ece9e1"), Color("#c9c7c0"), M_STONE, M_STONE)
+	var mid := Vector2.from_angle(deg_to_rad((d0 + d1) * 0.5))
+	var at := ARKADIA_FOUNTAIN + mid * (r - 0.15)
+	# (Two words: the neon atlas holds about eleven letters a word.)
+	signs.append(["ZACHODNIE", Vector3(at.x, g + 14.0, at.y), Vector3(-mid.x, 0.0, -mid.y), 0.62, ARKADIA_RED])
+	signs.append(["POLE", Vector3(at.x, g + 12.4, at.y), Vector3(-mid.x, 0.0, -mid.y), 0.62, ARKADIA_RED])
+	signs.append(["ARKADKA", Vector3(at.x, g + 11.0, at.y), Vector3(-mid.x, 0.0, -mid.y), 0.42, ARKADIA_WHITE])
+	# The glass gables over the entrance hall, radial like a fan.
+	for k in 6:
+		var d := Vector2.from_angle(deg_to_rad(d0 + 10.0 + k * (d1 - d0 - 20.0) / 5.0))
+		_arkadia_gable(ARKADIA_FOUNTAIN + d * (r + 3.0), ARKADIA_FOUNTAIN + d * (r + 34.0), Vector2(-d.y, d.x), 3.0, g + ARKADIA_TOP, 4.2)
+
+
+## A pitched glass roof: ridge from p0 to p1 at y + h, eaves `hw` out each side along `side`.
+func _arkadia_gable(p0: Vector2, p1: Vector2, side: Vector2, hw: float, y: float, h: float) -> void:
+	var l0 := p0 - side * hw
+	var r0 := p0 + side * hw
+	var l1 := p1 - side * hw
+	var r1 := p1 + side * hw
+	var glass := Color("#a7c8d6")
+	_mode = M_GLASS_ROOF
+	var nl := Vector3(-side.x, 1.4, -side.y).normalized()
+	var nr := Vector3(side.x, 1.4, side.y).normalized()
+	_quad(Vector3(l0.x, y, l0.y), Vector3(l1.x, y, l1.y), Vector3(p1.x, y + h, p1.y), Vector3(p0.x, y + h, p0.y), nl, glass)
+	_quad(Vector3(r0.x, y, r0.y), Vector3(p0.x, y + h, p0.y), Vector3(p1.x, y + h, p1.y), Vector3(r1.x, y, r1.y), nr, glass.darkened(0.08))
+	_mode = M_STONE
+	var f := (p0 - p1).normalized()
+	_tri(Vector3(l0.x, y, l0.y), Vector3(r0.x, y, r0.y), Vector3(p0.x, y + h, p0.y), Vector3(f.x, 0.0, f.y), Color("#ece9e1"),
+			Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+	_tri(Vector3(l1.x, y, l1.y), Vector3(r1.x, y, r1.y), Vector3(p1.x, y + h, p1.y), Vector3(-f.x, 0.0, -f.y), Color("#ece9e1"),
+			Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+
+
+## The sign tower (photos 2, 4, 10): a pale rendered base with the big screen, a shaft of grey
+## corner piers round dark louvres carrying the shops' logo panels, and the sign box on top with
+## ZACHODNIE POLE over ARKADKA on all four faces, 49 m up. Square to the office wing.
+func _arkadia_tower(g: float) -> void:
+	var none := Color(0, 0, 0, 0)
+	var t := ARKADIA_TOWER
+	_o = t
+	_a = Vector2.RIGHT
+	_b = Vector2.DOWN
+	_lbox(0.0, 0.0, 6.0, 6.0, g - 0.5, g + 14.0, Color("#c8c9c6"), M_STONE, Color("#a9aba8"))
+	_lbox(0.0, 0.0, 5.3, 5.3, g + 14.0, g + 41.0, Color("#30353a"), M_SKIN + S_FINS / 16.0, Color("#555a5e"))
+	for cu: float in [-5.3, 5.3]:
+		for cv: float in [-5.3, 5.3]:
+			_lbox(cu, cv, 0.75, 0.75, g + 14.0, g + 41.0, Color("#9a9da0"), M_STONE, Color("#8a8d90"))
+	for cu: float in [-5.0, 5.0]:
+		for cv: float in [-5.0, 5.0]:
+			_lbox(cu, cv, 0.25, 0.25, g + 41.0, g + 42.6, Color("#6d7174"), M_STONE)
+	_lbox(0.0, 0.0, 7.6, 7.6, g + 42.6, g + 49.4, Color("#d7d8d6"), M_STONE, Color("#bfc1c0"))
+	for d: Vector2 in [Vector2(0.0, 1.0), Vector2(1.0, 0.0), Vector2(0.0, -1.0), Vector2(-1.0, 0.0)]:
+		var at := t + d * 7.7
+		var n3 := Vector3(d.x, 0.0, d.y)
+		signs.append(["ZACHODNIE", Vector3(at.x, g + 46.3, at.y), n3, 0.72, ARKADIA_RED])
+		signs.append(["POLE", Vector3(at.x, g + 44.6, at.y), n3, 0.72, ARKADIA_RED])
+		signs.append(["ARKADKA", Vector3(at.x, g + 43.2, at.y), n3, 0.5, ARKADIA_WHITE])
+	# Logo panels on the plaza (south) and entrance (east) faces: KARFUREK, MERLINEK's green
+	# roof, KINO SITKO (parodies of the hypermarket, the DIY store and the cinema).
+	for d: Vector2 in [Vector2(0.0, 1.0), Vector2(1.0, 0.0)]:
+		var n3 := Vector3(d.x, 0.0, d.y)
+		var side := Vector2(-d.y, d.x)
+		var at := t + d * 5.6
+		var pan := PackedVector2Array([at - side * 4.4, at + side * 4.4, at + side * 4.4 + d * 0.3, at - side * 4.4 + d * 0.3])
+		_prism(pan, g + 33.0, g + 37.6, Color("#f4f4f2"), Color("#f4f4f2"), M_STONE, M_STONE)
+		var lo := at + d * 0.32
+		signs.append(["KARFUREK", Vector3(lo.x, g + 34.6, lo.y), n3, 0.55, Color(0.15, 0.35, 1.0)])
+		# MERLINEK: a green triangle (a roof) over its name.
+		var a3 := at + d * 0.35
+		var p0 := a3 - side * 3.0
+		var p1 := a3 + side * 3.0
+		_mode = M_LAMP
+		_tri(Vector3(p0.x, g + 27.0, p0.y), Vector3(p1.x, g + 27.0, p1.y), Vector3(a3.x, g + 31.4, a3.y), n3, Color("#3fae49"),
+				Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0, false)
+		signs.append(["MERLINEK", Vector3(lo.x, g + 25.2, lo.y), n3, 0.45, Color(0.3, 0.9, 0.35)])
+		signs.append(["KINO SITKO", Vector3(lo.x, g + 20.4, lo.y), n3, 0.5, Color(1.0, 0.55, 0.1)])
+	# The big screen on the base's plaza face, a lit panel with an advert.
+	var sc := t + Vector2(1.2, 6.2)
+	_prism(PackedVector2Array([sc + Vector2(-4.6, 0.0), sc + Vector2(4.6, 0.0), sc + Vector2(4.6, 0.6), sc + Vector2(-4.6, 0.6)]),
+			g + 2.6, g + 13.2, Color("#d93d8e"), Color("#333333"), M_LAMP, M_STONE)
+	signs.append(["PROMOCJA", Vector3(sc.x, g + 7.0, sc.y + 0.65), Vector3(0.0, 0.0, 1.0), 0.55, ARKADIA_WHITE])
+	_collide(_rect(0.0, 0.0, 6.0, 6.0))
+
+
+## The rotunda on the brick wing's corner (photos 4, 8): a glass ground floor under yellow café
+## awnings, a rendered drum with windows, a pale cornice ring and a parapet round its roof plant.
+func _arkadia_rotunda(g: float) -> void:
+	var none := Color(0, 0, 0, 0)
+	var r := ARKADIA_ROTUNDA
+	_prism(_circle(r, 13.0, 20), g - 0.5, g + 4.6, Color("#b7cbd2"), none, M_PAVILION)
+	_prism(_circle(r, 13.0, 20), g + 4.6, g + 12.4, ARKADIA_RENDER, none, M_SKIN + S_PUNCHED / 16.0)
+	_prism(_circle(r, 13.7, 20), g + 12.4, g + 13.4, Color("#ece6d8"), Color("#9a9c9b"), M_STONE, M_STONE)
+	_arkadia_parapet_at(_circle(r, 13.6, 20), g + 13.4, 1.0)
+	_prism(_circle(r, 6.0, 12), g + 13.4, g + 15.6, Color("#c9cbc9"), Color("#b0b2b1"), M_STONE, M_STONE)
+	# Awnings on the faces towards the plaza and the street (west round to south-east).
+	for k in 6:
+		var ang := deg_to_rad(40.0 + k * 30.0)
+		var d := Vector2(cos(ang), sin(ang))
+		_arkadia_awning(r + d * 13.05, Vector2(-d.y, d.x), d, 6.4, g + 4.3)
+
+
+## The plaza (photos 4, 5): jets in the paved fountain and the big letter sign on its plinth by
+## the lawns (ZACHODNIE POLE in red over ARKADKA in white).
+func _arkadia_plaza(g: float) -> void:
+	# Fountain jets: a ring of eight and one in the middle.
+	var f := ARKADIA_FOUNTAIN
+	var fg: float = map.terrain_height(f.x, f.y)
+	for k in 9:
+		var p := f if k == 8 else f + Vector2.from_angle(TAU * k / 8.0) * 6.5
+		_prism(_circle(p, 0.3, 6), fg, fg + (3.2 if k == 8 else 1.8), Color("#e6f3fa"), Color("#f4fbff"), M_STONE, M_STONE)
+	# The letter sign: a grey plinth square to the way to the rondo.
+	var s := ARKADIA_SIGN
+	var sg: float = map.terrain_height(s.x, s.y)
+	var face := (Vector2(-2850.0, -2295.0) - s).normalized()
+	var side := Vector2(-face.y, face.x)
+	var plinth := PackedVector2Array([s - side * 5.2 - face * 1.0, s + side * 5.2 - face * 1.0,
+			s + side * 5.2 + face * 1.0, s - side * 5.2 + face * 1.0])
+	_prism(plinth, sg - 0.3, sg + 1.9, Color("#5b5f63"), Color("#6a6e72"), M_STONE, M_STONE)
+	var right := Vector2(face.y, -face.x)  # neon_signs.gd place(): the word's left-to-right
+	var w1 := s + right * -1.6 + face * 0.2
+	var w2 := s + right * 3.05 + face * 0.2
+	signs.append(["ZACHODNIE", Vector3(w1.x, sg + 1.9, w1.y), Vector3(face.x, 0.0, face.y), 0.48, ARKADIA_RED])
+	signs.append(["POLE", Vector3(w2.x, sg + 1.9, w2.y), Vector3(face.x, 0.0, face.y), 0.48, ARKADIA_RED])
+	var low := s + face * 1.05
+	signs.append(["ARKADKA", Vector3(low.x, sg + 0.35, low.y), Vector3(face.x, 0.0, face.y), 0.34, ARKADIA_WHITE])
+	_collide(plinth)
 
 
 ## Arkadia's width of a plan polygon along `dir`.
@@ -5096,10 +5349,24 @@ func _arkadia_parapet(poly: PackedVector2Array, g: float) -> void:
 	var inner: PackedVector2Array = inset[0]
 	var rev := PackedVector2Array(inner)
 	rev.reverse()
-	var y := g + ARKADIA_TOP
-	_prism(poly, y, y + 1.1, Color("#e9e4d8"), Color(0, 0, 0, 0), M_STONE)
-	_prism(rev, y, y + 1.1, Color("#d6d1c4"), Color(0, 0, 0, 0), M_STONE)
-	_cap_holes(poly, [inner], y + 1.1, Color("#f2eee4"))
+	_arkadia_ring(poly, inner, rev, g + ARKADIA_TOP, 1.1)
+
+
+## A parapet `h` high round `poly` standing on height `y` (the lower wings' roofs).
+func _arkadia_parapet_at(poly: PackedVector2Array, y: float, h: float) -> void:
+	var inset := Geometry2D.offset_polygon(poly, -0.4)
+	if inset.size() != 1:
+		return
+	var inner: PackedVector2Array = inset[0]
+	var rev := PackedVector2Array(inner)
+	rev.reverse()
+	_arkadia_ring(poly, inner, rev, y, h)
+
+
+func _arkadia_ring(poly: PackedVector2Array, inner: PackedVector2Array, rev: PackedVector2Array, y: float, h: float) -> void:
+	_prism(poly, y, y + h, Color("#e9e4d8"), Color(0, 0, 0, 0), M_STONE)
+	_prism(rev, y, y + h, Color("#d6d1c4"), Color(0, 0, 0, 0), M_STONE)
+	_cap_holes(poly, [inner], y + h, Color("#f2eee4"))
 
 
 ## Parked cars on the deck: back-to-back rows of bays 2.7 m wide, 4.6 m long, a 5.9 m drive aisle
