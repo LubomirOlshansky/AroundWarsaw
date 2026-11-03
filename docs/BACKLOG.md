@@ -40,8 +40,10 @@ the photo reports already in (QUESTIONS 2026-11-02 and 2026-11-03).
 
 F's playtest (13:22): "the map and buildings are good now; I want to make the driving the best
 experience". The plan, the road audit and the causes are in docs/GAMEPLAY_PLAN.md; its phases:
-- [ ] 0.1 Map teleport and tow land in a tunnel: `_lane_spot` accepts tunnel lanes as "the ground's
-  level"; skip tunnels, test the box first, `check_teleport` (Codex)
+- [x] 0.1 Map teleport and tow land in a tunnel (2026-11-03): `_same_level` took a tunnel's floor as
+  "the ground"; now tunnels only from inside one, main-network lanes first, the teleport checks the
+  car's box, a hold over the river lands on the bridge; verify step `teleport` (11 spots; 2 failed
+  before). Autopilot P12 checks the drive-off
 - [ ] 0.2 Chatter budget: one rate cap for bubbles and toasts, no comment per collision, quiet while
   stuck, merged star toasts, a "Gadatliwość miasta" setting, `check_chatter` (Codex)
 - [ ] 0.3 The car is invisible under Trasa Łazienkowska and other decks: tunnel x-ray under decks too (Codex)
@@ -348,6 +350,10 @@ Built from photos gathered on the Mac (`refs/hotel_warszawa/`, `refs/cedet/`) an
   generic 1.5 m mullions; the north wing has no crown pavilion of its own; the glazed lantern and link roof
   plant are not modelled; the ground-floor tenants' fascias (parodies) and the red neon at the east corner
   are not there.
+- Cedet after F's look check (2026-11-03): the east end's radius is unclear (4 m kept; check against a
+  straight-on photo of the Bracka corner); the wings' tips stand ~1 m over LoD2's 31.5 m so the sweep reads
+  from the street (lower them if a photo shows a flatter curve); the plant screen at the back of the
+  pavilion is LoD2's 35 m box, its louvres and colour are guesses.
 
 ## Most Poniatowskiego (F, 2026-11-02)
 Built from photos gathered on the Mac (`refs/poniatowski/`, report `docs/landmarks/photo-reports/poniatowski.md`),

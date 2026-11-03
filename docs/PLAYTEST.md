@@ -119,3 +119,62 @@ agents](https://www.ea.com/seed/news/gameplay-testing-curiosity), [Augmenting au
 testing with deep RL](https://arxiv.org/pdf/2103.15819)); exploratory test sessions with a charter
 and a time box ([Exploratory testing strategies for video
 games](https://sol.sbc.org.br/index.php/sbgames/article/view/27667)).
+
+## 5. Driving-first cases (P11-P16, GAMEPLAY_PLAN 1.6)
+
+The rows above in detail, written for the harness (section 2 of the autopilot-playtest skill
+applies to all of them: trace every stop, unstick, height jump and clip with game time, world
+x, z and heading; one episode under 6 minutes; phone shape 1266x585). Each case is one option the
+agent is forced through in turn. **Pass** is what a player should see; anything else is a PT row.
+
+**P11 Trasa Łazienkowska and Wisłostrada** (`--at=919,1291`, Aleja Armii Ludowej west of the
+bridge, heading east)
+- C11.1 East along Armii Ludowej onto Most Łazienkowski (1042..2126, 814..1218) to the far end,
+  then back. Pass: no stop, no unstick, the car never 1 m under `drive_height`.
+- C11.2 Under the Trasa's deck: Solec north and south where it passes under (1347,1077), Rondo
+  Sedlaczka and Myśliwiecka (800,1335), Wał Miedzeszyński on the east bank (2075,835). Pass: no
+  stop; **frame every second under the deck**:
+  the car must be visible (today it is not: GAMEPLAY_PLAN 3.5; after 0.3 the x-ray shows it).
+- C11.3 Through Aleja Armii Ludowej's tunnel (116,1619 and 41,1636) both ways. Pass: the x-ray
+  silhouette on; the portals entered and left without a stop.
+- C11.4 Wisłostrada north from 265,-836 through Tunel Wisłostrady (429,-800 → 594,-586) and back.
+  Pass: as C11.3.
+
+**P12 Teleport from the full map** (any start; the map's hold-to-teleport, or `--map-jump=` per
+episode). Ten holds, each followed by 3 s of gas:
+- C12.1-C12.4 Over the tunnels: 429,-800; 594,-586; 116,1619; -761,-1399. Pass: the car stands on
+  the street above (never in the tunnel, never 1 m under `drive_height`) and drives off (0.1 fix;
+  the headless `teleport` step checks the landing, this checks the drive-off).
+- C12.5 On Most Łazienkowski over the river (1700,973). Pass: on the deck or a bank road, never in the
+  river.
+- C12.6 Under the Trasa's deck on Solec (1347,1077). Pass: on the road under it, visible.
+- C12.7-C12.8 A courtyard (Hoża, -700,900) and a gated service road off Nowy Świat. Pass: lands
+  on a public street lane, can drive away.
+- C12.9 The river bank by the boulevards (300,-700). Pass: on a road, not the beach or water.
+- C12.10 The start (-1013,-45). Pass: on Marszałkowska heading with the traffic.
+
+**P13 Stuck on purpose** (`--at=-1013,-45`, Marszałkowska at the start, traffic on)
+- C13.1 60 s pressing into the tram-stop fence and the shelter. Log every bubble and toast with
+  its time. Pass after 0.2: at most 2 bubbles and 1 toast in any 10 s; no comment per hit.
+- C13.2 60 s nose into a parked car on Świętokrzyska. Pass: the tow offer (POMOC DROGOWA) within
+  10 s of getting nowhere; the chatter rule as C13.1.
+- C13.3 Repeated bumps into a traffic car at 15-20 km/h. Pass: one driver shout at most per 20 s.
+
+**P14 Narrow streets** (one street per option; lanes under 2.5 m from the GAMEPLAY_PLAN audit)
+- C14.1 Frascati (127,850). C14.2 Hoża east to west (-107,669 → -1339,1113). C14.3 Ordynacka
+  (-219,-222). C14.4 Sienna (-1835,336). C14.5 Aleja 3 Maja (668,-70). C14.6 Three living
+  streets near the start. Pass: no stop on the carriageway; log every kerb jolt and every dead end
+  where the car can't turn round in three tries (with x, z).
+
+**P15 The helicopter high** (HELI at the start, then climb)
+- C15.1 Climb to the top over the Palace of Culture, hold 10 s, frame every 2 s. C15.2 Fly to Varso
+  (-1700,620) at the top. C15.3 Fly east to the map edge (x 2100) at the top. Pass: no flat sky
+  inside the city's outline, no building floating over sky, the helicopter in the middle third of
+  the screen (fixed by 0.4; before it, log what you see).
+
+**P16 Trzy mosty at full speed** (the final race; `--trzy-mosty` needs the ladder beaten, so drive
+its route as a free drive: Rondo Daszyńskiego → Most Śląsko-Dąbrowski → Most Świętokrzyski → Most
+Poniatowskiego → the stadium's south stands, 10.1 km)
+- C16.1 The route at top speed, split into three episodes of one bridge each (the 6 minute limit).
+  Pass: no stop on the route; log every contact with speed lost and whether the look-ahead showed
+  the turn in time (frames 1 s before each bridge head).
