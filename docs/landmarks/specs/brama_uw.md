@@ -1,49 +1,49 @@
-# Brama Główna Uniwersytetu Warszawskiego (the University's main gate): spec
+# Brama Główna Uniwersytetu (the University's main gate): spec
 
-Site key `brama_uw` in `game/scripts/landmarks.gd` (`_build_brama_uw`). Written 2026-11-01 in a cloud thread (BACKLOG K3) from the OpenStreetMap outline in `centrum.json`; no photo, no LoD2 here. Values marked *(photo check)* wait for the Mac's `refs/`. Pałac Kazimierzowski behind it is a kept skin (site `kazimierzowski`, pale yellow plaster, a card, no model). The gate's spot (-494.5, -684) is *not* confirmed: it is where the campus entrance opens in the street's east frontage.
+Site key `brama_uw` in `game/scripts/landmarks.gd` (`_build_brama_uw`). Written 2026-11-02 in a cloud thread from the Mac's reference set `refs/krakowskie/` (29 Wikimedia Commons photos, three GUGiK orthophotos at 0.137 m/px; report `docs/landmarks/photo-reports/krakowskie.md`, authors and licences there) plus the GUGiK LoD2 heights from the CI map pack. It replaces the 2026-11-01 first pass, which had the OpenStreetMap outline only. Report section 2, photos 5-11.
 
 ## 1. Identity
 
-The campus's door on Krakowskie Przedmieście 26/28 (the University since 1816): two stone pylons with urns, an iron gate, and iron railings on stone plinths to either side.
+Stefan Szyller's main gate of the University of Warsaw (1910), Krakowskie Przedmieście 26/28, facing the street (WSW): two white pavilions with statues in niches (Minerva, Apollo), curved gables with cartouches, lanterns and finials; the black wrought-iron gate with a crowned eagle between them; a narrow iron side gate and an urn pier outside each. The lime avenue behind it leads to Pałac Kazimierzowski (`kazimierzowski.md`).
 
 ## 2. Massing
 
-Frame: origin (-494.5, -684.0), u along the street (axis (0.364, 0.932), south), +v to the street (west). 28 m along the pavement: pylons at u -3.8 and 3.8 (2 m square plinth, 1.6 m shafts to 5.1 m, caps and urns to 6.6 m), end piers at u 14 and -14 to 2.8 m, the gate's 6 m between the pylons, 3.15 m tall with 7 bars to 3.4 m.
+Frame: origin (-462, -642) on the east building line (ortho, ±4 m; the first pass guessed (-494.5, -684)), u south along the street (0.37, 0.93), +v out to the street. Pavilions at u ±5.2, 4.4 x 4.4 m, 7 m to the cornice, gable steps to 10 m, lantern to 12.8 m, finial to 14 m. Central opening 6 m; side gates 3 m (u ±7.2..10.4); piers at u ±10.6 with urns to 5.1 m. 22 m in all: the report's 24 m does not fit between the mapped neighbours (the gap is ~19 m), so the piers stand 1 m inside. The mapped 4.3 m "guardhouse" at (-465, -646) (the north pavilion) is replaced.
 
-## 3. Facade
+## 3. Facade, base to top
 
-Pylons: a plinth band, a plain shaft, a cornice, a hipped cap and an urn. Railings: a 0.9 m stone plinth wall with five iron bars and a rail on top (to 2.3 m).
+Plinth, white body with corner pilasters on the street face, a round-headed niche with a standing statue, cornice, two stepped gable blocks with a cartouche disc, octagonal lantern, cone cap, gilt finial. Gate: two rails, nine bars, an overthrow at 4.6 m, the eagle (body and wings) with a gilt crown to 6 m.
 
 ## 4. Roof
 
-No roof; the pylon caps are small hips.
+No roof: the gable steps and lanterns crown the pavilions.
 
 ## 5. Colour and material
 
 | Part | Colour | Material code |
 | --- | --- | --- |
-| Stone | #d8cdb4 | M_STONE |
-| Plinth | #b3a994 | M_STONE |
+| Pavilions, piers | #f2f0ea | M_STONE |
+| Mouldings, plinth, urns | #dcd6c8 | M_STONE |
+| Niches | #dcd6c8 darkened | M_STONE |
 | Iron | #25282a | M_STONE |
-
-No new material or draw call.
+| Finials, crown | #c9a24a | M_STONE |
 
 ## 6. Ground and night
 
-A collision ring along the whole 29 m (a car cannot enter the campus). Card: "Brama Główna Uniwersytetu". Open *(photo check)*: the gate's true spot and width, the pylons' shape and finials.
+The campus road, the avenue's limes and the street lamps are the map's. The car meets a wall across the gate (11 x 2.3 m). Card "Brama Główna Uniwersytetu".
 
 ## 7. Detail level and budget
 
-L2; 458 triangles measured, budget 550 (`check_mesh_quality.gd`).
-
-Shot: `--at=-494.5,-684 --yaw=245 --pitch=-22 --size=40 --nohud --no-ghost`.
+L2, triangle budget 950 (built 868).
 
 ## 8. Parts table
 
 | id | shape | size | position | material | feature |
 | --- | --- | --- | --- | --- | --- |
-| pylons | 2 x (plinth, shaft, cornice, hip, urn) | 2 m plinth, 1.6 m shaft, 6.6 m high | u +-3.8 | M_STONE | 2 massing |
-| gate | 2 rails, 7 bars | 6 m wide, 3.4 m high | between the pylons | M_STONE | 3 gate |
-| plinth walls | 2 boxes | 9 x 0.6 m, 1.2 m high | u +-9.3 | M_STONE | 3 railings |
-| end piers | 2 boxes | 1 m square, 3.1 m high | u +-14 | M_STONE | 3 railings |
-| railings | 10 bars, 2 rails | 0.1 m bars, 1.4 m high | u 5.9..12.3 both sides | M_STONE | 3 railings |
+| pavilions | boxes | 4.4 x 4.4 x 7 m | u ±5.2 | M_STONE #f2f0ea | white pavilions |
+| gables | 3 stepped boxes, disc | to 10 m | pavilion tops | M_STONE | curved gable, cartouche |
+| lanterns | prism, cone, finial | to 14 m | pavilion tops | M_STONE | lantern |
+| niches, statues | arch panel, figure | 1.6 x 3.8 m, 2.6 m | street faces | M_STONE | Minerva, Apollo |
+| main gate | rails, bars, eagle | 6 x 4.6 m | centre | M_STONE #25282a | crowned eagle |
+| side gates | rails, bars | 3.2 x 2.9 m | u ±8.8 | M_STONE | iron gates |
+| piers | box, urn | 1 x 1 x 3.9 m | u ±10.6 | M_STONE | urns |
