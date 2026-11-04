@@ -3,13 +3,14 @@
 One page for steering the game, generated from the repo: `python3 -I tools/console.py`
 writes `build/console/index.html` (gitignored). Open it in a browser; it works offline.
 
-- **Overview**: progress cards, stage bars, history over runs (`history.json` beside the page), the
+- **Overview**: progress rings, the "Needs F" list, the city in numbers (cafés, kebab stands, trees, lamps, km of street…), stage bars, history over runs (`history.json` beside the page), the
   v1.0 checklist, recent merges.
 - **City map**: every ranked place (colour by stage, tier, data used or district), the tier C outlines,
   street life, shops, transit, monuments, park details, trees, lamps, signals, parked cars, buildings,
   roads by class, trams, rails, cycle paths, bridges, tunnels and the game's content points. Sliders
   for marker and building filters, an area picker (whole map, a district, or a circle with a radius),
   and counts and km that follow the area.
+- **Pipeline**: the ranked places as a board by stage (Planned, Dress only, Researching, Done from outline, Done from photos), filter by tier, district and search; a click opens the place's detail drawer (data used, next step, files, renders).
 - **Content**: the authored content as tables (activities, notebook places, eggs, Fotka spots, Syrenki,
   cassettes, speed traps, districts) with the file to edit.
 - **Approvals**: what waits for F (docs/QUESTIONS.md Waiting, A/B mentions, ROADMAP checks still open).
