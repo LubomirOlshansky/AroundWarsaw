@@ -108,6 +108,21 @@ verified is re-run one tier up with the whole task, not patched. Performance and
 the phone never go below Opus. Only the main session spawns agents; an agent that wants a
 helper asks for one in its report.
 
+## Review sheet, status page and resumable bakes (from the Isometric Istanbul docs, 2026-11-04)
+
+- **Review sheet.** A look change (roofs, façades, night, signs, a landmark) takes the same fixed
+  cameras before and after: `tools/shots.sh --set=... --tag=before` (on main), then `--tag=after`,
+  then `python3 -I tools/shot_sheet.py BEFORE_DIR AFTER_DIR`. The PR shows one sheet, and F picks
+  from it instead of asking for single shots. Compare different looks the same way: identical
+  input, one sheet.
+- **Status page.** `python3 -I tools/status_page.py` writes `build/status/index.html`: a map of the
+  city with one dot per ranked place (CITY_INVENTORY Part 1) coloured by stage, click for the
+  details, the percentages by stage, tier and district, and the ROADMAP v1.0 checklist. It reads the
+  repo every time, so a landed place changes its colour once its row in Part 1 does. A row that lands
+  without a dot: add its map name to `ALIASES` in that script.
+- **Resumable map bake.** `tools/bake_all.sh --resume` skips the steps that already finished after
+  a failed or interrupted run (stamps in `build/bake/done/`); a run without it starts clean.
+
 ## The documents
 
 | Document | Holds | Updated |
