@@ -175,6 +175,7 @@ then the Launch gate.
       landmark threads
 - [x] Model progress page on the wiki (F, 2026-11-02): wiki.aroundwarsaw.app/models/, generated from docs/CITY_INVENTORY.md
       Part 1 (stage per place: planned, researching, done from outline, done from photos), linked from Progress.
+- [ ] Tiny Warsaw list on our map (F, 2026-11-04; docs/design/tinywarsaw-area-plan.md, list in docs/inventory/tinywarsaw_area.md): 550 of their 1,393 names lie in our box, 430 still plain blocks; plan P1-P8 and the merged backlog groups
 - [ ] City inventory Part 3: the top not-done places, one thread each, photos first (Most Poniatowskiego,
       Muzeum Powstania, Pomnik Powstania, Hotel Warszawa and Cedet, Rondo ONZ towers, the monuments pass,
       Plac Bankowy, Świętokrzyska's NBP/Poczta/PAST-a, the outline builds' photo re-pass, Praga's faces)

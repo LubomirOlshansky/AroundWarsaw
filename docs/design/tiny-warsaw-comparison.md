@@ -57,6 +57,9 @@ gallery list (1,393 entries) and the page text.
    landmarks read small must be judged from screenshots. Ask F for 4-8 gallery screenshots, or
    run the Mac browser, then add them here. Do not store or commit their images.
 
+F then asked for their list filtered on our area, with places and the rest of our backlog as one plan:
+docs/design/tinywarsaw-area-plan.md (tables in docs/inventory/tinywarsaw_area.md, tool tools/tinywarsaw_area.py).
+
 ## 4. Not done, on purpose
 
 - No models, textures or screenshots copied or kept in the repo.
