@@ -240,6 +240,11 @@ starting point for the A/B, measured on the phone; Cruise is the default profile
 | > 75° (head-on) | stops, 1.2 m/s back, pinned after 1.5 s | keeps 30 % as a bounce **and** a yaw kick of 35-50° towards the freer side (a box-cast left and right), so the next frame drives away; no pin possible | 20 %, smaller kick |
 | a corner of a building or wall (convex) | corner slip only for small things | pivot round it (GTA 2): the contact point becomes a pivot, the car keeps 80 % and rotates round the corner | |
 
+F (2026-11-04): "97 % of the speed is too arcade; test it later." So these numbers are the
+upper end of a range, not the pick: collision v2 reads them from one table (a "Zderzenia" /
+collisions strength setting or a test flag with 2-3 presets, e.g. grind keep 97 / 90 / 80 %),
+and F chooses on the phone. Start the A/B at the middle preset.
+
 That is not trivial: a hard hit still costs 45 % of the speed, sparks, a sound and a haptic, and
 (through the game, not physics) a ride star, race time, police interest. It just never leaves the
 player facing a wall at 0 km/h.

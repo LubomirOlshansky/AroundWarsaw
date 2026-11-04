@@ -189,7 +189,7 @@ bridges and estacades, ~100 stairwell walls at 1.9 m, 64 canopies as solid 4 m b
 Found: since Classic became the default controls (2026-11-04) the wall follow (point-to-steer only)
 is gone, so a head-on hit stops the car dead again (road-objects.md 1.1).
 - [x] Research, object audit, census, pipeline, collision targets, skill and agent (2026-11-04, docs + tool)
-- [ ] 1 Collision rework v2: response by impact angle, wall follow for Classic, head-on kick, corner pivot, traffic shove (4.2-4.3) behind `--collide=v2` and a setting; RO3/RO4 cases
+- [ ] 1 Collision rework v2: response by impact angle, wall follow for Classic, head-on kick, corner pivot, traffic shove (4.2-4.3) behind `--collide=v2` and a setting; RO3/RO4 cases. F: 97 % kept on a graze feels too arcade: presets (97 / 90 / 80 %), A/B from the middle, F picks on the phone
 - [ ] 2 `check_lane_drive` contact log, `--street=`, sloppy driver, the 4.5 numbers (after #427)
 - [ ] 3 First sweep: Marszałkowska, Świętokrzyska, Jerozolimskie (S1-S3 cloud, S4-S5 Mac batch)
 - [ ] 4 Stairwell balustrades (1 m) and metro canopies city-wide; canopies on posts (rules B5, B6)
@@ -198,7 +198,7 @@ is gone, so a head-on hit stops the car dead again (road-objects.md 1.1).
 - [ ] 7 The override file `game/data/road_objects.json`, `--classify`, the baseline in `check_map_data.py`
 - [ ] Census: apply `_by_road` to platforms (over-counted now); 48 lanes through buildings (gateways) to look at
 - [x] Street-level photos in the cloud (2026-11-04): F allowed the hosts and made a Mapillary app (`MAPILLARY_TOKEN`); `tools/street_photos.py` finds the photos facing a point; added to the model-from-photos skill, object-modeler and road-auditor
-- [ ] Allow `panoramax.openstreetmap.fr` too (Panoramax's images for Warsaw are stored there; the search works without it)
+- [x] `panoramax.openstreetmap.fr` allowed too (F, 2026-11-04)
 
 ## After the beta: driving extras and the city economy (F, 2026-11-03, plan only)
 
