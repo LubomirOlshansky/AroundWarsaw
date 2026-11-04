@@ -379,6 +379,7 @@ then the Launch gate.
 
 ### Left: content and feel
 - [ ] **"Betonowy album", collect every modernist building** (F, 2026-11-03; docs/design/modernism-collection.md section 2): Pani Wanda's lost slides as Fotka Kadr shots, five story slides, the Emilia then card, the "Betonowa" paint for the whole album. Designed, not built; ships with the nine ★ buildings and grows as M1-M17 land
+- [ ] **Bar-crawl taxi quests** (F, 2026-11-04; backlog "Bar-crawl taxi quests"): drive a company of 3-5 through three to five famous bars (existing parody fascias on Nowogrodzka, Mazowiecka, Wilcza, the Powiśle viaduct, the boulevards, Dom Partii, Praga) against the clock; mood, waiting at the kerb, tips, four routes. Plan only, not started (PAUSE)
 - [ ] **Vitkac quests** (F, 2026-11-03; backlog "Vitkac quests and ride stories"): the black-stone luxury block on Bracka as a quest place, with the quests built around it. Not started; the landmark is the 2026-11-03 photo build (PR #385)
 - [ ] **Every Podwózka ride gets its own passenger story** (F, 2026-11-03): a named passenger with request, pickup, in-ride and drop-off lines, e.g. the fancy couple from Wilanów going shopping at Vitkac. Not started
 - [x] Photo mode no longer lets the car reverse into buildings (its hold parks the car and puts it
