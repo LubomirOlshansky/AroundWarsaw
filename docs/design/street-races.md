@@ -294,3 +294,103 @@ inside, with no stops. The headless escape run (`verify.sh --only=police-runs`, 
 
 **Open for the phone:** whether Halina and Słoik still feel too easy for F (the Autopilot player
 won by 150 m), the mid-ladder for a skilled player (Bartek, Seba), and the chase's escape feel.
+
+---
+
+## 8. Street racer leaderboard: "Ranking ulicy" (F, 2026-11-04, design only)
+
+F: "add a leaderboard for street racers in the app: when you race, you go higher". Not built yet;
+this is the design to build after R3-R5.
+
+### 8.1 What it is and how it sits with the ladder
+
+- **The ladder stays the main line.** Ladder.gd's six rungs and Trzy mosty are "beat each rival
+  once" and gate the story. The ranking is the long tail beside it: every race after (and
+  during) the ladder moves you on one board, so racing keeps a point after the rungs are beaten.
+- **One board of 20 drivers, all made up:** the six ladder rivals plus 14 new street names
+  (parody tone, warsaw-tone skill: a courier on an e-bike-turned-hatch, a Mokotów dentist in an
+  estate, a Bielany granny's grandson, a food-truck driver, a driving-school instructor who
+  races in the "L" car...). Each has a car, a home area, a points total and a short line. The
+  player starts last, #20, as "Nowy z Centralnej".
+- **Rank by points, "Punkty Ulicy" (PU).** Each driver has PU; the board sorts by them. The
+  ladder rivals start high (Seba #1 with Trzy mosty's king's line), the new names fill 6-20.
+
+### 8.2 How rank goes up and down
+
+| Event | PU change | Why |
+| --- | --- | --- |
+| Win against a driver ranked above you | +40 + 4 × the places between you (max +100) | climbing is beating the people above you |
+| Win against a driver at or below you | +10 | a race is never worthless, but no farming the bottom |
+| Win by more than 10 s | +5 bonus; by less than 1 s, "fotofinisz" +10 | close races are the fun ones (section 1) |
+| Lose to a driver above you | −5 | low risk to try your luck upward |
+| Lose to a driver below you | −20, and they gain 20 | an upset is news on the board |
+| Rematch of the same driver the same game day | half PU | no grinding one rival |
+| Trzy mosty won | straight to #1 while you hold it | the final crowns the king |
+
+- **The board moves without you, a little.** Once per game day (the economy plan's clock, E1;
+  until then once per real session) 2-3 NPC races are "run off screen" between neighbours on the
+  board, ±10-30 PU, so places shuffle and someone may pass you. The board shows them as news:
+  "Kurier Krzysiek ograł Słoika na Wilczej".
+- **Defence challenges.** When a driver passes you, or one just below you is within 30 PU, they
+  may flash you in town (rivals.gd's normal challenge): win to keep your place, decline once
+  free, twice and you drop one place ("unikasz wyścigu"). At most one a game day.
+- **Never stuck at the top or bottom:** the top 3 defend more often; the bottom 5 can't drop
+  below 0 PU.
+
+### 8.3 Rewards and unlocks (tiers)
+
+| Tier | Places | Name | Unlock |
+| --- | --- | --- | --- |
+| 1 | 20-16 | Słoik za kółkiem | the board itself, the first defence challenges |
+| 2 | 15-11 | Kierowca z dzielnicy | a paint and an underglow colour in Mirek's garage |
+| 3 | 10-6 | Taksiarz bez licencji | a horn and a rival who calls you for races (a phone call, like the jobs) |
+| 4 | 5-2 | Legenda Warszawy | a title on the race card, a garage discount, the "time attack" board (8.4) |
+| 5 | 1 | Król Wisły | the crown on the car's tag, Seba's rematch lines, the end-card mention |
+
+Money stays with the stakes (pay-tables.md); the board pays in rank, looks and lines, so it
+doesn't break the economy plan.
+
+### 8.4 Best times per route ("Czasówki")
+
+Every race finish already records the player's best time (`wallet.record("race:<finish>")`).
+The board gets a second tab: one row per finish with your best time and the rivals' "ghost
+times" (the time each rival drives it in racer mode, measured by `tools/race_ai.sh`, stored as
+data). Beat a rival's time on a route for a star. This is the natural thing to put online later.
+
+### 8.5 The screen
+
+- **Where:** the phone in the pause card ("APKA: WYŚCIGI", next to the full map and the
+  notebook), and a small "#12 ↑3" chip on the race result card after every race.
+- **Ranking tab:** 20 rows: place, the change since you last looked (↑/↓), the driver's colour
+  dot and name, PU, tier badge; your row highlighted and kept in view; the row above you marked
+  "następny cel" (next target). Tap a row: the driver's card (car, line, where they cruise, a
+  "pokaż na mapie" button that puts their dot on the full map).
+- **News strip:** the last three board events (your wins, NPC upsets, defences).
+- **Czasówki tab:** 11 finishes, your time, the best rival time, stars.
+- Polish first with English under it (Lang.pick), large-text safe (Access x1.25), colour-safe
+  (tier badges have a shape, not only a colour).
+
+### 8.6 Local first, online later
+
+- **v1 local only:** the board is the player against 19 made-up drivers, saved in the wallet's
+  save (a new `[ranking]` section: PU per driver, the news, the last-seen places). No accounts, no
+  network, nothing in privacy.md changes.
+- **Online later (F decides):** only the Czasówki best times, through Game Center (iOS) and Play
+  Games (Android) leaderboards: the platforms handle accounts and cheating reports, and we keep
+  "collects no personal data" true in our own code. Needs F's yes, the store listings updated, the
+  privacy page reviewed, and a check that times from tuned cars are fair (one board per car class,
+  or stock-car only). The fictional ranking stays local: other players would make the made-up
+  drivers meaningless.
+
+### 8.7 Build plan
+
+| # | Task | Notes |
+| --- | --- | --- |
+| L1 | `ranking.gd` (pure rules: PU table, tiers, NPC shuffle, defence due) + `check_ranking.gd`; save `[ranking]`; 14 new drivers' names, cars, lines | Sonnet for the names and lines (warsaw-tone), Opus for the rules |
+| L2 | The APKA: WYŚCIGI screen and the result-card chip; the news strip | Sonnet, a look check on the phone |
+| L3 | Defence challenges in town and the tier unlocks in the garage | gameplay, Opus |
+| L4 | Czasówki tab with rival ghost times from `race_ai.sh` | after R3 changes routes |
+| L5 | Online best times (Game Center / Play Games) | only with F's yes |
+
+Order: after R3-R5 (the races themselves first), before the economy layer's E4 (the rival
+developer's race takeovers can reuse the board's drivers).
