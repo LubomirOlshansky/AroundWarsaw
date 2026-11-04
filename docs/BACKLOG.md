@@ -150,6 +150,28 @@ experience". The plan, the road audit and the causes are in docs/GAMEPLAY_PLAN.m
 - [ ] 4.1 Running clubs read as a blue blob at crossings: mixed kit, pairs, spread out
 - [ ] 4.2 Varso Place masses from photos (the gap between the tower and Varso 1/2)
 
+## Street races: rivals that race (F, 2026-11-04)
+
+F: racers like Pani Halina drive very slowly and by the rules, never take a shorter way; races
+don't look competitive or fun. Research, code audit and plan: `docs/design/street-races.md`.
+Causes found: race rivals are town cars with pace 1.25-1.5 x the speed limit (62-75 km/h vs the
+player's 108), 3.3-3.9 m/s² vs 15, 20 km/h right angles, stop for 40 % of reds and every crossing
+car, queue behind buses and the player, legal shortest-by-metres routes only; the first race's band
+holds Halina 25 m behind the player (pace 0.4-0.85). F (2026-11-04): "make the racers and the
+police smarter, then test with Autopilot": R1, R2, R4's numbers and the police chasers built
+(street-races.md section 6), measured with `tools/race_ai.sh`.
+- [x] R1 racer driving mode: race top speed from the player's car, 7-10 m/s², corners by radius, through reds, overtake traffic and the player, slip out of junction knots (2026-11-04)
+- [x] R2 fair rubber band: the first race with Halina in front to chase, every race's band by rung, boosts only off screen (2026-11-04)
+- [ ] R3 routes by time, wrong-way hops by personality, authored shortcuts (`race_links.json`)
+- [x] R4 part 1: racing share, pull, corner grip, band and aim per rung (2026-11-04)
+- [ ] R4 part 2: aggression (nudges, blocking), mistakes near the player, Słoik's satnav wrong turn
+- [x] Police chasers in racer mode: quicker pull, corners by radius, careful through reds, round traffic; top speed still 0.8 of the player's (2026-11-04)
+- [ ] Phone feel of the races and chases (F's next device run); Autopilot row P17
+- [ ] R5 show the race: rival edge arrow, gap in seconds, lead-change line, slipstream, close-finish card
+- [ ] R6 the city reacts (honks, police on the rival); R7 race kinds (later)
+- [x] Race-AI runs: `tools/race_ai.sh` (every rival vs an average and a skilled autopilot), `--race-debug` (2026-11-04)
+- [ ] A headless `check_race_ai.gd` in verify (the runs take ~25 min: too long for verify; a short fixed-route version)
+
 ## After the beta: driving extras and the city economy (F, 2026-11-03, plan only)
 
 F asked for research on arcade driving games and on business and economy games, for a layer after the

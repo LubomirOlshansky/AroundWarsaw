@@ -48,6 +48,7 @@ over one thing systematically: every kerb of a square, every ramp), **verify** (
 | P14 | Narrow streets: Frascati, Hoża, Ordynacka, Sienna, Aleja 3 Maja, living streets | explore | pinches, jolting kerbs, dead ends with no turn-round | – | – |
 | P15 | The helicopter high over Varso, the Palace and the map edge | test | sky past the edge, floating buildings, the heli's place on screen | – | – |
 | P16 | Trzy mosty at full speed | goal | every contact at race speed; the look-ahead on the bridges | – | – |
+| P17 | Street races and police chases with the racer AI (street-races.md R1/R2, 2026-11-04): `--race=3` (Pani Halina), `--race=5` (Zbyszek), `--police=1` | goal | does the rival look fast and race (leads, passes, takes reds), is it close at the end, does it ever stand still or look silly; can the chaser be escaped | 2026-11-04 (runs 20261104-115030, -120021, -120641) | Halina won by the agent by 155 m (she 57 km/h average, raced, one 3.5 s stand at -827, 487: RACE_KNOT now 1.5 s), Zbyszek by 151 m (led until 38 s); chase not escaped by a slow agent (inconclusive); a touch with a dark car at the Palm ring |
 
 **Budget.** The decision model bills to F's Aura account. One 10-minute row at a time; ask F
 before more than three rows in one go or anything longer than 15 minutes.

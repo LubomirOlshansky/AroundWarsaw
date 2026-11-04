@@ -248,6 +248,12 @@ var start_flying := false
 var _start_alt := 0.0
 var start_mission := 0
 var autopilot := false
+## Street races (2026-11-04): --ghost-pace=X, the autopilot's speed factor in a race (rivals.gd
+## `ghost_pace`, default 1.8: an average player; 2.4 a quick one; "racer" (99): a skilled player who
+## uses the whole car on the roads, traffic.gd's racer mode at the car's top), for the race-AI runs.
+var ghost_pace := 0.0
+## --race-debug: traffic.gd prints what holds a racer that stands still (once a second).
+var race_debug := false
 var _wash_on := false
 var building_mat: ShaderMaterial
 var post_mat: ShaderMaterial
@@ -1503,6 +1509,7 @@ func _build_world() -> void:
 func _build_life(data: Dictionary, world: Node3D) -> void:
 	var t0 := Time.get_ticks_msec()
 	traffic = Traffic.new()
+	traffic.race_debug = race_debug
 	traffic.count_overlaps = _traffic_overlaps
 	world.add_child(traffic)
 	traffic.setup(graph, map, cam, data)
@@ -1530,6 +1537,8 @@ func _build_life(data: Dictionary, world: Node3D) -> void:
 	rivals = Rivals.new()
 	add_child(rivals)
 	rivals.autopilot = autopilot
+	if ghost_pace > 0.0:
+		rivals.ghost_pace = ghost_pace
 	rivals.wallet = wallet
 	rivals.tod = tod  # loop 3h slice 3: the final waits for the night
 	rivals.setup(graph, traffic, hud, bubbles, missions, map, world, car, data)
@@ -3700,6 +3709,11 @@ func _parse_args() -> void:
 			start_mission = maxi(1, int(arg.trim_prefix("--mission=")))
 		elif arg == "--autopilot":
 			autopilot = true
+		elif arg == "--race-debug":
+			race_debug = true
+		elif arg.begins_with("--ghost-pace="):
+			var gp := arg.trim_prefix("--ghost-pace=")
+			ghost_pace = 99.0 if gp == "racer" else float(gp)
 		elif arg == "--no-traffic":
 			no_traffic = true
 		elif arg == "--lineup":
