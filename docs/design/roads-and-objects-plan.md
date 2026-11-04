@@ -109,7 +109,27 @@ pedestrian lights, 29 utility poles, 27 bins, 14 junction boxes, 10 manholes, 8 
 | Utility poles / junction boxes / CCTV / hydrants | 197 / 50 / 14 / 3 | none | | | |
 | Cones and temporary barriers | 38 | none (only edge roadworks) | | | |
 
-Whole map: the census is running (about 15 minutes for the 5 × 4.5 km box); its table lands here in this PR.
+**Whole map** (110,153 features, 10,660 covered 30 m cells; a fresh fetch takes about 20 minutes,
+then 4 s from the cache):
+
+| Class | Mapillary | Game (in covered cells) | Matched | Mapillary only | Game only |
+| --- | --- | --- | --- | --- | --- |
+| Street lights | 13,957 | 3,694 | 2,436 | 11,521 | 1,295 |
+| Traffic lights (vehicles) | 3,583 | 1,062 | 887 | 2,696 | 176 |
+| Zebra crossings | 2,354 | 529 | 116 | 2,238 | 413 |
+| Stop lines | 540 | 548 | 184 | 356 | 364 |
+| Lane arrows | 2,198 | 872 | 378 | 1,820 | 494 |
+| Bins / benches / bike racks | 1,175 / 547 / 219 | 1,070 / 1,194 / 1,033 | 151 / 181 / 75 | | 920 / 1,022 / 959 |
+| Traffic signs | 31,622 | none | | | |
+| Shop signs and ads | 11,952 | none | | | |
+| Utility poles / manholes / junction boxes / CCTV / hydrants | 4,402 / 1,005 / 944 / 248 / 59 | none | | | |
+| Cones and temporary barriers | 1,389 | none (edge roadworks only) | | | |
+
+Across the map, 83 % of the game's vehicle signals and 66 % of its lamps have a detection within
+12 m. The game's 2,436 matched lamps against ~14,000 merged detections suggest the real streets
+carry two to three times the lamps the game draws, even allowing for duplicates. Bins, benches and
+racks barely match either way: they are small and the cameras face the road, so those classes say
+little.
 
 What it says, and how to use it:
 
