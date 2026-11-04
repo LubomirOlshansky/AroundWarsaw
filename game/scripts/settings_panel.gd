@@ -61,7 +61,7 @@ const DRIVE := [["Wskaż", "Point"], ["Klasycznie", "Classic"]]
 const CAMERA := [["Wł.", "On"], ["Wył.", "Off"]]
 ## What each scheme (drive_controls.gd POINT, CLASSIC, FIXED) does, in a line.
 const CONTROLS_SAY := [
-	["Pokaż palcem, dokąd jechać. Kamera czeka, aż puścisz.", "Point where to go. The camera waits until you let go."],
+	["Pokaż palcem, dokąd jechać. Kamera jedzie za autem.", "Point where to go. The camera follows the car."],
 	["Kierownica lewo–prawo, gaz i hamulec po prawej.", "Steer left–right; GAS and BRAKE on the right."],
 	["Pokaż palcem, dokąd jechać. Kamera stoi: obróć ją dwoma palcami.", "Point where to go. The camera stays put: twist two fingers to turn it."],
 ]
