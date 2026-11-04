@@ -501,6 +501,7 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [x] 0.3 The car visible under decks (2026-11-03): its warm silhouette through Trasa Łazienkowska, Most Łazienkowski's land spans and the viaducts whenever a deck hides it from the camera (`check_deck_xray`); phone look open
 - [x] Phase 0.4 helicopter high up: framed in the screen's middle, no blue sky or floating towers, 220 m cap except by towers (GAMEPLAY_PLAN 0.4, 2026-11-03, PR pending; phone check open)
 - [ ] Phase 1: drivability sweep of every lane and turn, lane graph data fixes, Autopilot rows P11-P16
+      (2026-11-04: P14 and the Trzy mosty legs drive clean steered, `check_lane_drive`; left: P15 flights, P16 frames)
 - [ ] Phase 2: road fixes street by street with a score baseline in CI
 - [ ] Phase 3: lane assist, wall look-ahead, junction pick, deck cut; F's phone run
 - [ ] Phase 4: running clubs that read, Varso Place masses, Chmielna 89 "Piramida" (later, photo way)
