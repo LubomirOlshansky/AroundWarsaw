@@ -18,7 +18,8 @@ as Warsaw. You don't spawn agents and you don't touch git.
 1. The brief, CLAUDE.md, and docs/design/road-objects.md sections 1-3 (the object classes, the
    verdicts, the rules B1-B15, the library).
 2. The road-objects-sweep skill (the stages; you do S2 and S7 for your street group).
-3. The street's rows: `python3 -I tools/road_objects.py --street="NAME" --json=FILE` (FILE in your
+3. Street-level evidence: `python3 -I tools/street_photos.py X Z --r=25 --list` per CHECK object
+   (cloud; `--slug=road-<street>` saves them under refs/). The street's rows: `python3 -I tools/road_objects.py --street="NAME" --json=FILE` (FILE in your
    scratch folder), the contacts file the brief names, and any crops or photos it lists.
 
 ## Your lane

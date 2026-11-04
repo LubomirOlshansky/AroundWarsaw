@@ -23,7 +23,8 @@ Contents:
 5. [Making narrow Warsaw streets drive well](#5-making-narrow-warsaw-streets-drive-well)
 6. [Skills, agents and tests that run it](#6-skills-agents-and-tests-that-run-it)
 7. [Order of work and the first steps](#7-order-of-work-and-the-first-steps)
-8. [Sources](#8-sources)
+8. [How the agents work, and how F checks progress](#8-how-the-agents-work-and-how-f-checks-progress)
+9. [Sources](#9-sources)
 
 ---
 
@@ -165,7 +166,7 @@ object, a texture, a decal).
 | S2 **Rules** | the automatic verdict from map context (3.3) | cloud | `tools/road_objects.py --classify` (to build, in the same file) |
 | S3 **Drive evidence** | which objects the real car actually touches: `check_lane_drive` along every lane of the street (and `check_drivability` when it exists) with a contact log (point, normal, collider, speed lost); each contact is matched to the census id it hit | cloud (headless Godot, the cloud recipe) or Mac | `check_lane_drive.gd --street=NAME --contacts=FILE` (to add to #427's check) |
 | S4 **Aerial evidence** | for every CHECK and every contact: a 40 × 40 m crop of the GUGiK orthophoto with the object and the lanes drawn on it (`tools/overlay_ortho.py`, `overlay_structures.py`) | **Mac** (the orthophoto is in `data/work/demo/ortho.bmp`; GUGiK is blocked from the cloud) | `overlay_ortho.py` per row (a `--rows=FILE` batch mode to add) |
-| S5 **Street-level evidence** | the nearest open street-level photos of each CHECK object | **Mac** (the cloud's network policy blocks the hosts today) | Mapillary (CC BY-SA 4.0, a free client token from F's account), Panoramax (open licences, no key), KartaView (CC BY-SA). **Never Google Street View** (licence forbids deriving data); Bing Streetside only to corroborate, never copied. Photos are evidence for the decision, not textures: nothing from them is drawn in the game |
+| S5 **Street-level evidence** | the nearest open street-level photos of each CHECK object, facing it | **cloud** (`tools/street_photos.py X Z --list`; F allowed the hosts and made a Mapillary app 2026-11-04) | Mapillary (CC BY-SA 4.0, the client token `MAPILLARY_TOKEN` from F's free developer app), Panoramax (open licences, no key), KartaView (CC BY-SA). **Never Google Street View** (licence forbids deriving data); Bing Streetside only to corroborate, never copied. Photos are evidence for the decision, not textures: nothing from them is drawn in the game |
 | S6 **F's photos** | landmarks and anything tier S/A (the photos-only rule): F's own photos or a `refs/<slug>/` Mac gather | Mac / F | `model-from-photos` skill |
 | S7 **Decide** | an agent (`road-auditor`, section 6) reads S1-S6 per street and writes the verdicts into `game/data/road_objects.json` (`{id: [verdict, style, note]}`), the one override file the bake and `map_builder.gd` read | cloud | the skill `road-objects-sweep` |
 | S8 **Apply** | REMOVE / SOFTEN / RETEXTURE / REPLACE by id in the bake (`bake_structures` reads the override file next to `clear_carriageways`) or in `map_builder.gd` (styles, soft colliders) | cloud + Mac re-bake | |
@@ -394,14 +395,65 @@ Driving first. Each line is one thread and one PR.
 | 7 | The rest of the centre street by street (the census order), with the override file and the baseline | the sweep skill, one group per thread | the Mac for evidence |
 
 Recommended first steps for F: say yes to **1** (the biggest feel change, and it fixes the head-on
-stop that the Classic default brought back), let **2** follow #427, and pick whether **3** may
-use the Mac for the orthophoto crops and open street-level photos (Mapillary needs a free token
-from F's account; or allow `graph.mapillary.com` and `api.panoramax.xyz` in the cloud
-environment's network settings so the cloud can fetch them).
+stop that the Classic default brought back), let **2** follow #427, and let **3** use the Mac
+for the orthophoto crops. The street-level photos now come from the cloud: F allowed
+`graph.mapillary.com`, `*.fbcdn.net` and `api.panoramax.xyz` and made a Mapillary developer app
+(2026-11-04, token in the environment as `MAPILLARY_TOKEN`). Panoramax's own images sit on
+`panoramax.openstreetmap.fr`, which needs allowing too before they can be saved.
+
+F (2026-11-04) liked the plan. The progress console F asked for at the same time (a local map of
+every built thing by approach, data used, roads, objects, and what waits for F) is its own thread
+("Build city progress console"); the census JSON here is one of its layers.
 
 ---
 
-## 8. Sources
+## 8. How the agents work, and how F checks progress
+
+### 8.1 Who does what in one street sweep
+
+```
+coordinator (project chat)        hands out one street group per thread, the merge queue
+  └─ thread session (Opus)        runs the road-objects-sweep skill, owns the PR
+       ├─ scout (Haiku)           counts: census rows per class, contact logs, before/after tables
+       ├─ road-auditor (Opus)     the judgement: a verdict per object with its evidence, the CHECK list
+       ├─ object-modeler (Sonnet) builds the RETEXTURE / REPLACE styles and models from a spec
+       ├─ gameplay-dev (Sonnet)   applies a specified collision or assist change
+       └─ qa-tester (Sonnet)      verify.sh, shots, check_lane_drive before/after
+  Mac (only with F's yes)         orthophoto crops, Commons photos, Autopilot rows, the phone
+```
+
+A sweep thread, start to end:
+
+1. **Measure** (cloud, minutes): `road_objects.py --street=` for the group, `check_lane_drive
+   --only=` both ways and on `--prebuilt` → the "before" (contacts per km, speed kept, unsticks).
+2. **Evidence** (cloud): `street_photos.py` for every object the rules can't decide; one batch
+   request to the Mac for the orthophoto crops.
+3. **Decide**: road-auditor writes a verdict per object; anything it can't back up stays CHECK.
+4. **Apply**: the override file by id, the bake or map builder rule, the library styles and models.
+5. **Verify**: the same drive → the "after"; stuck spots joined; shots day and night; bench if
+   anything was added.
+6. **PR**: before/after table, the CHECK and A/B list, BACKLOG and ROADMAP ticked; merge when green
+   and the coordinator gives the slot.
+
+### 8.2 What F looks at, and when
+
+| Where | What it shows | When it changes |
+| --- | --- | --- |
+| **The PR** of each street group | the before/after table (contacts per km, speed kept, unsticks), the verdict counts, shots of the changed objects | every sweep |
+| **ROADMAP "v1.0 checklist"**, "Left: road objects and collisions" | one ticked line per finished step | every PR |
+| **BACKLOG** "Road objects and collisions" | the open steps and new finds | every PR |
+| **QUESTIONS** | every CHECK and A/B that waits for F: what was built as the default, what to look at | when a sweep parks one |
+| **The progress console** (its own thread) | the map: every object by verdict, streets by score, buildings by approach and data used, what waits for F | after each merge |
+| **The phone** | the feel: Cruise and Sport, collision v2 on and off | F's device runs |
+
+What needs F, always: the A/B feel calls (collision v2, soft fences, lane assist strength), any
+landmark's photo look check, device runs, and the Mac runs (Autopilot rows bill F's Aura account).
+Everything else a sweep decides itself and lists in its PR.
+
+
+---
+
+## 9. Sources
 
 - GAMEPLAY_PLAN 1.1's sources (Game Developer on arcade track design, top-down racing cameras;
   Jalopnik on Art of Rally's camera).

@@ -34,11 +34,11 @@ hand in the thread and say so in the PR; the first sweep thread builds what it n
 3. Everything below "sure" is CHECK, with the evidence it needs:
    - **orthophoto crop** (Mac: `tools/overlay_ortho.py OUT.png X Z 20` per object; the GUGiK
      orthophoto is only on the Mac);
-   - **open street-level photo** (Mac, or the cloud once the network allows the hosts:
-     Mapillary with F's free token, Panoramax, KartaView; never Google Street View);
+   - **open street-level photo** (cloud: `python3 -I tools/street_photos.py X Z --r=25
+     --slug=road-<street>`, Mapillary with `MAPILLARY_TOKEN` and Panoramax; never Google Street View);
    - **F's photo** (landmarks, tier S/A: photos only);
    - **A/B playtest** (a feel question: both versions behind a flag, Autopilot row + the numbers).
-4. Ask the Mac for the CHECK evidence in ONE batch per street group (a list of crops and photo
+4. Ask the Mac for the orthophoto crops in ONE batch per street group (a list of crops and photo
    lookups for a Mac session), never one by one. A device or Remote Control session starts only
    in reply to F's own message.
 

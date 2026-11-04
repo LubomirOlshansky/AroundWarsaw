@@ -197,7 +197,8 @@ is gone, so a head-on hit stops the car dead again (road-objects.md 1.1).
 - [ ] 6 Narrow streets: drive hull 0.3-0.5 m behind facades, parked cars every other one, no kerb jolt under 8 m
 - [ ] 7 The override file `game/data/road_objects.json`, `--classify`, the baseline in `check_map_data.py`
 - [ ] Census: apply `_by_road` to platforms (over-counted now); 48 lanes through buildings (gateways) to look at
-- [ ] Street-level evidence: Mapillary needs a free token from F's account, or the cloud network to allow `graph.mapillary.com` and `api.panoramax.xyz` (blocked 2026-11-04)
+- [x] Street-level photos in the cloud (2026-11-04): F allowed the hosts and made a Mapillary app (`MAPILLARY_TOKEN`); `tools/street_photos.py` finds the photos facing a point; added to the model-from-photos skill, object-modeler and road-auditor
+- [ ] Allow `panoramax.openstreetmap.fr` too (Panoramax's images for Warsaw are stored there; the search works without it)
 
 ## After the beta: driving extras and the city economy (F, 2026-11-03, plan only)
 
