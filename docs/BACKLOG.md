@@ -3,6 +3,15 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Developer console follow-ups (F, 2026-11-04)
+
+Built: `tools/console.py` (README in `console/`). Open: C-1 road-objects census layer (tools/road_objects.py, PR #429) and
+Mapillary-derived points once that lane lands; C-2 render pairs (before/after, A/B) from `tools/shot_sheet.py` with a
+"pick one" state kept in the page; C-3 a Story tab (dialogue lines, quest chains, radio) and a Gameplay tab (tuning
+constants by system, with the Settings screens); C-4 per-place data fields in CITY_INVENTORY (approach, sources) so
+the "data used" colour is exact; C-5 a per-building design layer for the 115 hand-built sites (needs their positions
+baked into a small JSON); C-6 deploy decision (subdomain, access) for F.
+
 ## Towarowa 22 and the Rondo Daszyńskiego towers (F, 2026-11-03)
 
 - **Towarowa 22 built as finished** (site `towarowa22`, spec `docs/landmarks/specs/towarowa22.md`, from F's
