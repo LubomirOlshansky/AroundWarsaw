@@ -262,6 +262,12 @@ autopilot as an average driver (`--ghost-pace=1.8`: the town car's corners, 1.8 
 and as a skilled one (`--ghost-pace=racer`: racer mode at the car's own top). Results in
 section 7.
 
+**R5 part 1** (beta values, 2026-11-04, `docs/design/beta-values.md` section 2): the route to the
+finish on the minimap (Trzy mosty: to the next bridge, again at each checkpoint), the gap in seconds
+(`rivals.gd time_gap`, `gap_words`: metres over the trailing car's speed, at least 8 m/s; "łeb w
+łeb!" under 6 m), a lead-change toast and tick (past 8 m the other way, once in 6 s, not in the first
+3 s) and the finish margin on the card. Not built: the rival's own edge arrow, slipstream (A/B).
+
 ---
 
 ## 7. Results (2026-11-04)

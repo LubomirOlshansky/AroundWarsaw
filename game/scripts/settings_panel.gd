@@ -233,8 +233,22 @@ func _build() -> void:
 	_segments(drive[1], "camera", CAMERA)
 	_heading(drive[1], "Prowadzenie", "Handling")
 	_segments(drive[1], "handling", HANDLING)
-	_heading(drive[1], "Strefy piesze 20 km/h", "Pedestrian zones 20 km/h")
-	_segments(drive[1], "zones", ON_OFF)
+	# Beta values (2026-11-04): the lane assist (lane_assist.gd), Classic only, off by default,
+	# side by side with the pedestrian zones (a fourth row made the panel too tall for the phone).
+	var pair := HBoxContainer.new()
+	pair.add_theme_constant_override("separation", _px(8))
+	pair.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	drive[1].add_child(pair)
+	var zones := VBoxContainer.new()
+	zones.add_theme_constant_override("separation", _px(6))
+	pair.add_child(zones)
+	_heading(zones, "Strefy piesze 20 km/h", "Pedestrian zones 20 km/h")
+	_segments(zones, "zones", ON_OFF)
+	var lane := VBoxContainer.new()
+	lane.add_theme_constant_override("separation", _px(6))
+	pair.add_child(lane)
+	_heading(lane, "Asysta pasa", "Lane assist")
+	_segments(lane, "lane_assist", ON_OFF)
 	# Świat · World.
 	var world := _page(body, 2)
 	_heading(world[0], "Pora dnia", "Time of day")

@@ -640,7 +640,9 @@ func light(c: int, group: int) -> int:
 ## `max_cost` the search stops there (a police chaser's 800 m: a few hundred nodes, not the
 ## whole graph); nodes further away are INF or an upper bound, and the driver heads for its
 ## `goal` at junctions the route doesn't reach (traffic.gd _choose_next).
-func distances_to(target: int, max_cost := INF) -> PackedFloat32Array:
+## Beta values (2026-11-04): `portals` false leaves the off-map links out: the player's car can't
+## drive them (the edge roadworks close every road out), so the player's own routes skip them.
+func distances_to(target: int, max_cost := INF, portals := true) -> PackedFloat32Array:
 	var dist := PackedFloat32Array()
 	dist.resize(node_pos.size())
 	dist.fill(INF)
@@ -661,6 +663,8 @@ func distances_to(target: int, max_cost := INF) -> PackedFloat32Array:
 			if nd < dist[m]:
 				dist[m] = nd
 				_heap_push(heap_d, heap_n, nd, m)
+		if not portals:
+			continue
 		var links := _portal_in[n]
 		for k in range(0, links.size(), 2):
 			var m := int(links[k])
@@ -673,7 +677,8 @@ func distances_to(target: int, max_cost := INF) -> PackedFloat32Array:
 
 ## Shortest driving distance from `source` to every node (INF where it can't be
 ## reached): the side jobs measure their trips with it.
-func distances_from(source: int) -> PackedFloat32Array:
+## (`portals` false: without the off-map links, see distances_to.)
+func distances_from(source: int, portals := true) -> PackedFloat32Array:
 	var dist := PackedFloat32Array()
 	dist.resize(node_pos.size())
 	dist.fill(INF)
@@ -692,6 +697,8 @@ func distances_from(source: int) -> PackedFloat32Array:
 			if nd < dist[m]:
 				dist[m] = nd
 				_heap_push(heap_d, heap_n, nd, m)
+		if not portals:
+			continue
 		var links := _portal_out[n]
 		for k in range(0, links.size(), 2):
 			var m := int(links[k])

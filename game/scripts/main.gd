@@ -50,6 +50,7 @@ const Car := preload("res://scripts/car.gd")
 const TunnelXray := preload("res://scripts/tunnel_xray.gd")
 const PedZones := preload("res://scripts/ped_zones.gd")
 const ScooterZones := preload("res://scripts/scooter_zones.gd")
+const LaneAssist := preload("res://scripts/lane_assist.gd")
 const Heli := preload("res://scripts/heli.gd")
 const Hud := preload("res://scripts/hud.gd")
 const Missions := preload("res://scripts/missions.gd")
@@ -665,6 +666,11 @@ var traffic_level := Settings.DEFAULT_TRAFFIC
 ## -2: no --quality= (Tiers.AUTO is -1).
 var _flag_quality := -2
 var _flag_controls := -1
+## Beta values: --lane-assist=on|off overrides Settings → Jazda → Asysta pasa for the run; the
+## lane's direction is looked up every LANE_EVERY s (lane_assist.gd).
+var _flag_lane := -1
+var _lane_t := 0.0
+const LANE_EVERY := 0.1
 var _flag_traffic := -1
 var _flag_fixed := false
 var _flag_perf := false
@@ -1187,6 +1193,7 @@ func _build_world() -> void:
 	car.ground_height = map.drive_height
 	car.set_sensitivity(settings.sensitivity)
 	car.set_handling(settings.handling)  # G4: Cruise by default, Sport from Settings → Jazda
+	car.lane_assist = settings.lane_assist if _flag_lane < 0 else _flag_lane == 1
 	world.add_child(car)
 	_xray = TunnelXray.new()
 	world.add_child(_xray)
@@ -3867,6 +3874,8 @@ func _parse_args() -> void:
 			_stress_to = maxf(0.0, float(arg.trim_prefix("--stress-to=")))
 		elif arg.begins_with("--controls="):
 			_flag_controls = Controls.parse(arg.trim_prefix("--controls="))
+		elif arg.begins_with("--lane-assist="):
+			_flag_lane = 1 if arg.trim_prefix("--lane-assist=") in ["on", "1", "true"] else 0
 		elif arg.begins_with("--traffic="):
 			_flag_traffic = Settings.parse_traffic(arg.trim_prefix("--traffic="))
 		elif arg == "--settings":
@@ -4547,6 +4556,7 @@ func _settings_state() -> Dictionary:
 			"weather": weather.state, "time": tod.mode, "wander": int(spacer != null and spacer.on), "zones": int(zone_cap_on), "handling": settings.handling, "chatter": settings.chatter, "sensitivity": settings.sensitivity,
 			"text_large": int(settings.text_large), "calm": int(settings.calm), "color_safe": int(settings.color_safe),
 			"vibration": int(settings.vibration), "stop_assist": int(settings.stop_assist),
+			"lane_assist": int(car.lane_assist if car != null else settings.lane_assist),
 			"left_handed": int(settings.left_handed), "lang": maxi(0, Lang.CODES.find(Lang.code))}
 
 
@@ -4645,6 +4655,10 @@ func _on_setting(key: String, value: Variant) -> void:
 		"handling":
 			settings.handling = clampi(int(value), 0, 1)
 			car.set_handling(settings.handling)
+		"lane_assist":
+			settings.lane_assist = int(value) == 1
+			car.lane_assist = settings.lane_assist
+			car.lane_dir = Vector3.ZERO
 		"chatter":
 			settings.chatter = clampi(int(value), 0, Chatter.GAPS.size() - 1)
 			bubbles.chatter.level = settings.chatter
@@ -4664,6 +4678,21 @@ func _on_setting(key: String, value: Variant) -> void:
 			Sfx.set_levels(settings.master, settings.music, settings.effects)
 	settings.save()
 	_blip_sound()
+
+
+## Beta values: the lane assist's lane direction for the car (lane_assist.gd), every LANE_EVERY s
+## while it is on and the car is in Classic.
+func _lane_tick(dt: float) -> void:
+	if not car.lane_assist or car.target_dir != Vector3.ZERO:
+		car.lane_dir = Vector3.ZERO
+		return
+	_lane_t -= dt
+	if _lane_t > 0.0:
+		return
+	_lane_t = LANE_EVERY
+	var fwd := Vector2(-sin(car.rotation.y), -cos(car.rotation.y))
+	var h := LaneAssist.lane_heading(graph, Vector2(car.global_position.x, car.global_position.z), fwd, car.vel.length())
+	car.lane_dir = Vector3(h.x, 0.0, h.y)
 
 
 ## Loop 2a: the car was pinned against something twice in a few seconds (car.gd): put it on
@@ -6122,6 +6151,7 @@ func _read_input(dt: float) -> void:
 		stick = pad_stick
 		stick_on = true
 	controls.drive(car, stick, stick_on, keys, hud.gas or Gamepad.gas(), hud.brake or Gamepad.brake(), cam_yaw, dt)
+	_lane_tick(dt)
 	# G13: the nitro (bought at the garage): the disc by the horn, Shift on a keyboard, LB or RB on a
 	# pad. Not N: N switches the time of day, so holding it for the nitro also turned day to dusk.
 	car.nitro_hold = car.nitro_owned and (hud.nitro_held or Input.is_physical_key_pressed(KEY_SHIFT) or Gamepad.nitro())
