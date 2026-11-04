@@ -22,9 +22,13 @@ evidence per street and junction, never coordinates.
 - [ ] RS7 asphalt history (wheel tracks, seams, patches, manholes) in the shader; bench
 - [ ] RS8 road height profile smoothed along the centreline
 - [ ] RS9 markings from evidence (Mapillary presence, ortho look) per junction
-- [ ] Traffic signs layer (one atlas multimesh) from OSM nodes and lane-graph rules, checked
-      against Mapillary; Mapillary no-entry / one-way detections against the game's `oneway`
-- [ ] Poles, junction boxes, bollards, temporary roadworks from evidence
+- [x] Street-objects log per street (`tools/street_objects.py` → docs/inventory/street_objects.md) and
+      the object budget (plan 3a, F 2026-11-04: log everything, add only what earns its place;
+      signs, poles, boxes, cones are log only)
+- [ ] Lamp density look test (Marszałkowska; Hoża has no game lamps), F picks
+- [ ] Traffic-light poles A/B: all as now, or only at main junctions and the places that matter
+- [ ] Open for F: a handful of gameplay signs (STREFA ZAMIESZKANIA, a trap's speed sign), or none
+- [ ] Mapillary no-entry / one-way detections against the game's `oneway` (lane-graph check, no signs added)
 - [ ] osm2streets (Apache 2.0, npm osm2streets-js) compared with RS1 on the pilot junctions (Mac)
 - [ ] Open for F: Warsaw's city geoportal (base map 1:500 kerbs) licence before any use beyond looking
 

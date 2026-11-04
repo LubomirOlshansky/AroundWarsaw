@@ -1,6 +1,6 @@
 # Smoother roads, better road objects, then buildings: research and the plan for the next days
 
-**Status (2026-11-04):** research, one new cloud tool (`tools/street_features.py`) and a day-by-day
+**Status (2026-11-04):** research, two new cloud tools (`tools/street_features.py`, `tools/street_objects.py`) and a day-by-day
 plan. No game code changed. Builds on docs/design/road-objects.md (PR #429: the object census, the
 verdicts, collision v2, the `road-objects-sweep` skill and the `road-auditor` agent), the Tiny Warsaw
 area list (PR #433, docs/design/tinywarsaw-area-plan.md) and docs/CITY_INVENTORY.md. The plan's
@@ -15,7 +15,8 @@ racing and steering half of the same message has its own thread.
 Contents:
 1. [How the roads are drawn today, measured](#1-how-the-roads-are-drawn-today-measured)
 2. [What makes a road look smooth and natural](#2-what-makes-a-road-look-smooth-and-natural)
-3. [What the street-level detections add (Mapillary, measured)](#3-what-the-street-level-detections-add-mapillary-measured)
+3. [What the street-level detections add (Mapillary, measured)](#3-what-the-street-level-detections-add-mapillary-measured);
+   [3a. Log everything, add only what earns its place](#3a-log-everything-add-only-what-earns-its-place-f-2026-11-04)
 4. [Every data source worth using](#4-every-data-source-worth-using)
 5. [The plan, day by day](#5-the-plan-day-by-day)
 6. [Gates, numbers and what F checks](#6-gates-numbers-and-what-f-checks)
@@ -143,12 +144,10 @@ What it says, and how to use it:
    Marszałkowska has a detection near it (few "game only"); Mapillary sees more because it also sees
    the lamps of side streets, both sides of wide streets and duplicates. Density per 100 m, not
    count, is the comparison to make per street.
-3. **What the game lacks entirely**: **traffic signs** (the largest class by far), utility and
+3. **What the game lacks entirely**: traffic signs (the largest class by far), utility and
    catenary poles beside the road, junction boxes, CCTV, hydrants, manholes, temporary roadworks.
-   Signs and poles are what makes a street read as real at our camera. They are the new object
-   layers in the plan (section 5, day 2), placed from OSM (`traffic_sign`, `highway=stop/give_way`,
-   `traffic_signals` nodes) and sign rules (one-way, no entry, priority at every graph junction),
-   with Mapillary only checking presence and type per junction.
+   **They are logged, not added** (section 3a): at our camera and without hand-made graphics,
+   tens of thousands of small signs and poles would clutter the city and read as noise.
 4. **The sign types check the lane graph**: a `regulatory--no-entry` or `one-way` detection at a
    street's end that disagrees with the game's `oneway` is a lane-graph bug to look at
    (GAMEPLAY_PLAN 1.2).
@@ -158,6 +157,43 @@ What it says, and how to use it:
 
 The JSON (`--json=build/street_features.json`) is a layer for the dev console's map: every
 detection by class, green where the game has it, red where only one side does.
+
+## 3a. Log everything, add only what earns its place (F, 2026-11-04)
+
+F: "plan it carefully, so the roads are not overloaded with objects and nothing is added that the
+map doesn't need. Map them and write it down, but decide wisely: if a street is for pedestrians,
+why would it have cones or barriers? Temporary or stale? Signs would overload the city and are too
+tiny without graphics. Traffic lights maybe only in the most valuable places. Lamps: check how
+they look, the real number may not look good. Each street should have its own mapping of all its
+objects, and we choose carefully what goes into the game for the gameplay balance."
+
+So the street-level data does two separate jobs:
+
+1. **The log** (`tools/street_objects.py` → `docs/inventory/street_objects.md`, generated, and
+   `build/street_objects.json` for the console): for every named street, every class the cameras
+   saw and every class the game draws, as objects per 100 m, real against game. Cones and barriers
+   count only detections seen since 2025-05 (375 of the 1,138 on our streets; the rest may be long
+   gone) and separately those inside pedestrian zones. It is the record F asked for, regenerated
+   whenever the detections or the map change; nothing in it is placed by itself.
+2. **The budget**: what each class may become in the game. Default "log only"; a class enters the
+   game only when it helps reading the street or the gameplay, passes a look test at the game's
+   camera by day and night, and passes the bench.
+
+| Class | In the game? | Why |
+| --- | --- | --- |
+| Lamps | already in the game; **density by a look test**, not the real count | the cameras see about 3 lamps for every one the game draws (10,599 against 3,612 on named streets); at night lamps are the city's look, but the real density may read as clutter by day. Two streets (Marszałkowska; Hoża, which has none in the game today), current against real density, night and day shots, bench, F picks. Krakowskie Przedmieście already matches (87 seen, 84 drawn) |
+| Traffic lights | already in the game (traffic stops at them); **no new ones** | A/B for F: all visible poles as now, or poles only at main-road junctions and the places that matter (first ten minutes, race routes), the rest kept as invisible stop lines |
+| Zebras, stop lines, arrows | in the game from OSM | the detections and the orthophoto only correct them |
+| Traffic signs | **log only** | too small to read at our zoom without real graphics; 26,000 on our streets would clutter. If any: a handful of gameplay signs (STREFA ZAMIESZKANIA at living-street mouths, a speed sign at a police trap, no entry where the main line turns), each one decided by F |
+| Utility and catenary poles, junction boxes, CCTV, hydrants | **log only** | noise at our camera; they cost draw calls and give nothing to play |
+| Manholes and drains | log only; maybe painted marks in the asphalt shader (RS7, no geometry) | |
+| Cones and temporary barriers | **log only** by default | only if seen recently, on a carriageway and never in a pedestrian zone, and then as a roadworks event (edge_roadworks style, coming and going), never as fixed props |
+| Bins, benches, bike racks | in the game as they are | the cameras face the road and barely see them; no change from this data |
+
+**The metric per street** (in the log, and the gate for any object PR): objects per 100 m by class,
+and for the driving balance the road-objects census's solid metres within 3 m of a lane per 100 m.
+A street's budget is "no more solid roadside objects than now unless its sweep asks for them", and
+every visual addition shows its shots and bench in the PR.
 
 ## 4. Every data source worth using
 
@@ -202,12 +238,12 @@ thread. The same list, with status, is `docs/plan/city-plan.json` (dev console, 
 | D1.4 | osm2streets comparison on the pilot junctions | Sonnet | Mac (OSM extract) |
 | D1.5 | F: phone check of collision v2 presets and the smoothed roads | F | device run yes |
 
-### Day 2, 2026-11-06: surfaces, crossings, signs
+### Day 2, 2026-11-06: surfaces, crossings, the lamp look test
 
 | Id | Item | Model | Needs |
 | --- | --- | --- | --- |
 | D2.1 | RS4 surfaces from tags (setts, paving, concrete) and RS6 crossings with kerb drops | Opus | Mac re-bake |
-| D2.2 | Traffic signs layer: one atlas multimesh, from OSM nodes and the lane graph's rules (one-way, no entry, priority, give way, pedestrian crossing), checked per junction against Mapillary; bench before/after | Opus | Mac (OSM nodes) |
+| D2.2 | Lamp density look test (Marszałkowska, Hoża: current against real, night and day, bench) and the traffic-light poles A/B; F picks (section 3a) | Opus | F's look |
 | D2.3 | Stairwell balustrades and metro canopies city-wide (road-objects B5, B6) | Sonnet (object-modeler) | — |
 | D2.4 | Second sweep: Nowy Świat + Krakowskie Przedmieście + Królewska | Opus | Mac ortho |
 
@@ -219,7 +255,7 @@ thread. The same list, with status, is `docs/plan/city-plan.json` (dev console, 
 | D3.2 | Narrow streets: drive hull, parked cars B7, kerbs (road-objects §5) | Opus | Mac re-bake |
 | D3.3 | RS7 asphalt history (wheel tracks, seams, patches, manholes) in the ground shader; bench | Opus | phone bench |
 | D3.4 | RS3 width profiles from the orthophoto (`tools/road_widths.py`), tapers between ways | Opus | Mac |
-| D3.5 | Poles and street furniture from evidence: catenary and utility poles, junction boxes, bollards, temporary roadworks where OSM has them | Sonnet | Mac (OSM nodes) |
+| D3.5 | Street-objects log refreshed and cross-checked with OSM nodes on the Mac; one-way and no-entry detections checked against the lane graph (no signs added) | Sonnet | Mac (OSM nodes) |
 
 ### Days 4-5, 2026-11-08/09: buildings (Tiny Warsaw list P1-P4, CITY_INVENTORY Part 3)
 

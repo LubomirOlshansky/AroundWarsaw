@@ -513,7 +513,8 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [ ] Junction shapes with kerb returns and smoothed bends (RS1, RS2), both city paths
 - [ ] Surfaces, crossings and kerb drops from OSM tags (RS4, RS6)
 - [ ] Width that varies along streets (RS3) and the asphalt's history in the shader (RS7, bench)
-- [ ] Traffic signs and poles as object layers (bench)
+- [x] Street-objects log and the object budget (log everything, add only what earns its place), 2026-11-04
+- [ ] Lamp density look test and the traffic-light poles A/B (F picks)
 - [ ] Road-objects sweeps street by street (the census order; road-objects.md)
 - [ ] Buildings: Tiny Warsaw list P1-P4 (docs/design/tinywarsaw-area-plan.md)
 

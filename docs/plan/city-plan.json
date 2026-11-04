@@ -1,7 +1,7 @@
 {
  "updated": "2026-11-04",
  "doc": "docs/design/roads-and-objects-plan.md",
- "note": "One item per thread and PR. status: open | running | done | parked. Threads update their item's status in the same PR.",
+ "note": "One item per thread and PR. status: open | running | done | parked. Threads update their item's status in the same PR. Object rule (F, 2026-11-04): log every object per street (docs/inventory/street_objects.md); add to the game only what earns its place.",
  "days": [
   {
    "id": "D0",
@@ -46,11 +46,11 @@
     },
     {
      "id": "D0.5",
-     "title": "Whole-map Mapillary census and console layer",
+     "title": "Whole-map Mapillary census, street-objects log and console layers",
      "area": "objects",
      "model": "Sonnet",
      "needs": "console #431",
-     "status": "open",
+     "status": "done",
      "ref": "docs/design/roads-and-objects-plan.md"
     }
    ]
@@ -110,7 +110,7 @@
   {
    "id": "D2",
    "date": "2026-11-06",
-   "title": "Surfaces, crossings, signs",
+   "title": "Surfaces, crossings, the lamp look test",
    "items": [
     {
      "id": "D2.1",
@@ -123,10 +123,10 @@
     },
     {
      "id": "D2.2",
-     "title": "Traffic signs layer (OSM nodes + lane-graph rules, checked against Mapillary)",
+     "title": "Lamp density look test and traffic-light poles A/B (F picks)",
      "area": "objects",
      "model": "Opus",
-     "needs": "Mac, bench",
+     "needs": "F's look",
      "status": "open",
      "ref": "docs/design/roads-and-objects-plan.md"
     },
@@ -193,7 +193,7 @@
     },
     {
      "id": "D3.5",
-     "title": "Poles, junction boxes, bollards, temporary roadworks from evidence",
+     "title": "Street-objects log refreshed with OSM nodes; one-way detections checked against the lane graph (no signs added)",
      "area": "objects",
      "model": "Sonnet",
      "needs": "Mac",
