@@ -39,6 +39,15 @@ const CHASE_SHARE := 0.8
 const CHASE_TOP := 24.0
 const CHASE_ACCEL := 1.2
 const CHASE_GAP := 10.0
+## Street races R1 for the police (2026-11-04, F: "make the racers and police smarter"): a chaser
+## drives in traffic.gd's racer mode: CHASE_RACE_ACCEL m/s² (the town car's 2.2 x 1.2 = 2.6
+## before), corners at CHASE_LAT m/s² sideways by the curve's radius (not the town car's 20 km/h
+## right angle), through reds a little careful (not SIREN_SLOW's 30 km/h), crossing cars only
+## when one is close, and round traffic that doesn't give way. Its top speed stays chase_top
+## (CHASE_SHARE of the player's), so a flat-out run still escapes; corners cost the player less
+## than before, not nothing (CHASE_LAT under the rivals' 7.5).
+const CHASE_RACE_ACCEL := 6.0
+const CHASE_LAT := 6.5
 ## Searching: to the last-seen point, then round it within SEARCH_REACH at 30 km/h.
 const SEARCH_SPEED := 8.3
 const SEARCH_REACH := 150.0
@@ -167,6 +176,7 @@ func tick() -> void:
 func drive_as_traffic() -> int:
 	if _mode != "traffic":
 		_mode = "traffic"
+		_racer(false)
 		var d = driver
 		traffic.set_lights(d, false)
 		d.chase = false
@@ -187,6 +197,7 @@ func drive_as_traffic() -> int:
 func pursue() -> int:
 	if _mode != "chase":
 		_mode = "chase"
+		_racer(true)
 		var d = driver
 		if d.parked:
 			police.pull_out(self)
@@ -208,6 +219,7 @@ func search_area() -> int:
 	var d = driver
 	if _mode != "search":
 		_mode = "search"
+		_racer(false)
 		if d.parked:
 			police.pull_out(self)
 		traffic.set_lights(d, true)
@@ -226,6 +238,7 @@ func search_area() -> int:
 func hold_still() -> int:
 	if _mode != "hold":
 		_mode = "hold"
+		_racer(false)
 		traffic.set_lights(driver, true)
 		driver.held = true
 	return BeehaveNode.RUNNING
@@ -235,6 +248,7 @@ func hold_still() -> int:
 func stay_parked() -> int:
 	if _mode != "parked":
 		_mode = "parked"
+		_racer(false)
 		traffic.set_lights(driver, false)
 	return BeehaveNode.RUNNING
 
@@ -243,6 +257,7 @@ func stay_parked() -> int:
 func attend() -> int:
 	if _mode != "crash":
 		_mode = "crash"
+		_racer(false)
 		traffic.set_lights(driver, true)
 		driver.held = true
 	return BeehaveNode.RUNNING
@@ -253,6 +268,7 @@ func attend() -> int:
 func hold_or_leave() -> int:
 	if _mode != "block":
 		_mode = "block"
+		_racer(false)
 		traffic.set_lights(driver, true)
 		away = 0.0
 		closest = INF
@@ -276,6 +292,7 @@ func escort_lead() -> int:
 	var d = driver
 	if _mode != "escort":
 		_mode = "escort"
+		_racer(false)
 		if d.parked:
 			police.pull_out(self)
 		traffic.set_lights(d, true)
@@ -295,6 +312,7 @@ func escort_lead() -> int:
 func drive_as_guard() -> int:
 	if _mode != "guard":
 		_mode = "guard"
+		_racer(false)
 		var d = driver
 		traffic.set_lights(d, false)
 		d.chase = false
@@ -314,6 +332,7 @@ func drive_as_guard() -> int:
 func guard_follow() -> int:
 	if _mode != "guard_follow":
 		_mode = "guard_follow"
+		_racer(false)
 		var d = driver
 		traffic.set_lights(d, true)
 		d.chase = false
@@ -321,3 +340,14 @@ func guard_follow() -> int:
 		d.v_cap = 25.0 / 3.6
 		d.keep_gap = 8.0
 	return BeehaveNode.RUNNING
+
+
+## Racer mode for the chase (CHASE_RACE_ACCEL above), off in every other mode.
+func _racer(on: bool) -> void:
+	if driver == null:
+		return
+	driver.race_accel = CHASE_RACE_ACCEL if on else 0.0
+	driver.race_lat = CHASE_LAT
+	driver.race_top = 0.0
+	driver.race_band = 1.0
+	driver.pass_t = 0.0
