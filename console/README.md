@@ -11,10 +11,13 @@ writes `build/console/index.html` (gitignored). Open it in a browser; it works o
   for marker and building filters, an area picker (whole map, a district, or a circle with a radius),
   and counts and km that follow the area.
 - **Pipeline**: the ranked places as a board by stage (Planned, Dress only, Researching, Done from outline, Done from photos), filter by tier, district and search; a click opens the place's detail drawer (data used, next step, files, renders).
+- **Plan**: the multi-day city plan from `docs/plan/city-plan.json` as day columns (filter by area and status). Optional: the tab says so when the file is missing.
 - **Content**: the authored content as tables (activities, notebook places, eggs, Fotka spots, Syrenki,
   cassettes, speed traps, districts) with the file to edit.
 - **Approvals**: what waits for F (docs/QUESTIONS.md Waiting, A/B mentions, ROADMAP checks still open).
 - **Renders**: screenshots from `shots/`, `docs/media/` or any `--renders DIR`, matched to places by file name.
+
+Optional layer: `build/street_features.json` (`tools/street_features.py`, Mapillary points matched to the game's props) shows as three layers (matches, missing, no game layer); skipped when the file is absent. Credit: Map features: Mapillary contributors, CC BY-SA 4.0.
 
 Keeping it current: `python3 -I tools/console.py --watch` rebuilds when the branch, the docs or the
 game data change; tick "Auto-refresh" in the page to reload it every 20 s. The page keeps its filters

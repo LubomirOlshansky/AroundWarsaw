@@ -17,6 +17,7 @@ Tabs (everything is worked out from the repo each time, nothing is written by ha
              places, eggs, Fotka spots, Syrenki, cassettes). Counts and km follow the area.
   Content    the game's content as tables (activities, notebook places, eggs, Kadr spots, Syrenki,
              cassettes, speed traps, districts) with the file to edit; points also show on the map.
+  Plan       the multi-day city plan (docs/plan/city-plan.json) as day columns, filter by area and status.
   Approvals  what waits for F: the parked questions (docs/QUESTIONS.md), A/B mentions and "check
              open" lines of the ROADMAP; a click jumps to the place on the map when it names one.
   Renders    screenshots found in the renders folders, matched to places by their file names.
@@ -394,6 +395,39 @@ def slug_words(item):
     return {w.lower() for w in out if len(w) >= 4}
 
 
+# ---- the multi-day city plan and Mapillary street features (both optional) ------------------------
+
+def city_plan():
+    """docs/plan/city-plan.json: {"updated", "doc", "note", "days": [{"id", "date", "title", "items": [...]}]}."""
+    try:
+        plan = load('docs/plan/city-plan.json')
+        return plan if isinstance(plan.get('days'), list) else None
+    except (OSError, ValueError):
+        return None
+
+
+STREET_COL = {'true': ('Matches a game prop', '#2e9e5b'), 'false': ('Missing in the game', '#d8504a'), 'null': ('No game layer for it', '#8e8e93')}
+
+
+def street_layers():
+    """build/street_features.json (tools/street_features.py): Mapillary points, split by match into three layers."""
+    try:
+        with open(os.path.join(ROOT, 'build', 'street_features.json'), encoding='utf-8') as f:
+            sf = json.load(f)
+        groups = {'true': [], 'false': [], 'null': []}
+        for p in sf.get('points', []):
+            groups[{True: 'true', False: 'false'}.get(p.get('match'), 'null')].append(p)
+    except (OSError, ValueError, AttributeError):
+        return [], ''
+    out = []
+    for k, (label, col) in STREET_COL.items():
+        ps = groups[k]
+        if ps:
+            out.append(pts_layer('mly_' + k, 'Mapillary street features', label, col, [(p['x'], p['z']) for p in ps],
+                                 ['%s: %s' % (p.get('c', ''), p.get('v', '')) for p in ps]))
+    return out, sf.get('attribution') or 'Map features: Mapillary contributors, CC BY-SA 4.0'
+
+
 # ---- history ----------------------------------------------------------------------------------
 
 def update_history(out, snap):
@@ -438,7 +472,8 @@ def build(renders_dirs, out):
         items.append({'n': int(r['num']), 'place': r['place'], 'street': r['street'], 'kind': r['kind'], 'tier': r['tier'],
                       'stage': r['stage'], 'next': r['next'], 'x': i1(p[0]) if p else None, 'z': i1(p[1]) if p else None,
                       'exact': bool(p and p[2]), 'links': links, 'ev': ev, 'd': ds.of(p[0], p[1]) if p else -2})
-    layers = object_layers(data, origin) + road_layers(data)
+    sl, attribution = street_layers()
+    layers = object_layers(data, origin) + road_layers(data) + sl
     cont, _ = content(data, origin, ds, None)
     outl = outlines(data, ds)
     appr = approvals(items)
@@ -465,7 +500,7 @@ def build(renders_dirs, out):
             'content': cont, 'approvals': appr, 'renders': [[p[0], p[2]] for p in imgs], 'render_match': match,
             'districts': [{'id': d['id'], 'name': d['name_en'], 'hero': bool(d.get('hero')), 'polys': [[i1(v) for v in a] for a in d.get('areas', [])]} for d in ds.list],
             'history': hist, 'git': {'branch': snap['branch'], 'commit': commit, 'subject': git('log', '-1', '--format=%s'), 'date': git('log', '-1', '--format=%ad', '--date=short'), 'merges': merges},
-            'generated': snap['t'], 'bounds': data['bounds']}
+            'generated': snap['t'], 'bounds': data['bounds'], 'plan': city_plan(), 'attribution': attribution}
 
 
 def default_renders():
@@ -473,7 +508,7 @@ def default_renders():
 
 
 def signature():
-    paths = ['docs/CITY_INVENTORY.md', 'docs/ROADMAP.md', 'docs/BACKLOG.md', 'docs/QUESTIONS.md', 'game/map/centrum.json']
+    paths = ['docs/plan/city-plan.json', 'build/street_features.json', 'docs/CITY_INVENTORY.md', 'docs/ROADMAP.md', 'docs/BACKLOG.md', 'docs/QUESTIONS.md', 'game/map/centrum.json']
     s = [git('rev-parse', 'HEAD')]
     for rel in paths:
         try:

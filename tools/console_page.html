@@ -109,6 +109,7 @@ details{margin:2px 0}summary{cursor:pointer;font-weight:600;font-size:13px;paddi
  <button class="nb" data-t="overview"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/></svg>Overview</button>
  <button class="nb" data-t="map"><svg viewBox="0 0 24 24"><path d="M9 4 3 6.5v13L9 17l6 3 6-2.5v-13L15 7zM9 4v13M15 7v13"/></svg>City map</button>
  <button class="nb" data-t="pipeline"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="9.5" y="4" width="5" height="10" rx="1.5"/><rect x="16" y="4" width="5" height="13" rx="1.5"/></svg>Pipeline<span class="badge" id="b-pipe"></span></button>
+ <button class="nb" data-t="plan"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Plan<span class="badge" id="b-plan"></span></button>
  <button class="nb" data-t="content"><svg viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h11M9 8h6"/></svg>Content<span class="badge" id="b-cont"></span></button>
  <button class="nb" data-t="approvals"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 3 3 5-6"/></svg>Approvals<span class="badge" id="b-appr"></span></button>
  <button class="nb" data-t="renders"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="m4 18 5-4.5 4 3 3-2.5 4 3.5"/></svg>Renders<span class="badge" id="b-rend"></span></button>
@@ -154,6 +155,10 @@ details{margin:2px 0}summary{cursor:pointer;font-weight:600;font-size:13px;paddi
   <div class="toolbar"><div class="seg" id="ptier"></div><select class="s" id="pdist"></select><input class="s" id="pq" placeholder="Search the pipeline…"><span class="sub" id="pcount"></span></div>
   <div style="flex:1;min-height:0"><div class="board" id="board"></div></div></div></section>
 
+ <section class="tab" id="t-plan" style="overflow:hidden"><div style="display:flex;flex-direction:column;height:100%">
+  <div class="toolbar"><div class="seg" id="plarea"></div><div class="seg" id="plstat"></div><span class="sub" id="plnote"></span></div>
+  <div style="flex:1;min-height:0"><div class="board" id="plboard" style="grid-template-columns:repeat(6,minmax(240px,1fr))"></div></div></div></section>
+
  <section class="tab" id="t-content" style="overflow:hidden"><div class="split"><div class="l" id="clist"></div><div class="r"><div class="row2" style="margin-bottom:12px"><div><div style="font:650 18px var(--disp)" id="ctitle"></div><div class="sub" id="cfile"></div></div><input class="s" id="cq" placeholder="Filter rows…" style="max-width:260px"></div><div class="card" style="padding:0;overflow:auto"><div id="ctable"></div></div></div></div></section>
 
  <section class="tab" id="t-approvals"><div class="page" style="max-width:900px">
@@ -179,9 +184,9 @@ const EVS=['photo report','spec',"F's photos",'Mac refs','OSM outline'];
 const EV_COL={'photo report':'#2e9e5b','spec':'#3a86d8',"F's photos":'#e0a82e','Mac refs':'#9a6fd1','OSM outline':'#8f97a3'};
 const OUT_COL={photo:'#2e9e5b',model:'#e0a82e',dress:'#9a6fd1',plain:'#6b7380'};
 const OUT_LAB={photo:'Photo build',model:'Own model',dress:'Dressed or named in game',plain:'Plain OSM block'};
-const TABS={overview:['Overview','How far the city has come'],map:['City map','Every place, object and road, with counts by area'],pipeline:['Pipeline','Ranked places by stage, like a sales board for the city'],content:['Content','Quests, story points and collectibles'],approvals:['Approvals','What waits for F'],renders:['Renders','Screenshots matched to places']};
+const TABS={overview:['Overview','How far the city has come'],map:['City map','Every place, object and road, with counts by area'],pipeline:['Pipeline','Ranked places by stage, like a sales board for the city'],plan:['Plan','The multi-day city plan: roads, road objects, buildings'],content:['Content','Quests, story points and collectibles'],approvals:['Approvals','What waits for F'],renders:['Renders','Screenshots matched to places']};
 let S={tab:'overview',area:'all',rad:600,cx:0,cz:0,colorby:'stage',stage:D.stages.map(s=>s[0]),tier:['S','A','B'],ev:'',q:'',ms:8,bh:0,ds:2,base:true,
- layers:{places:true,outlines:false,road_primary:true,road_secondary:true,trams:true,bridges:true},auto:false,ctab:'',aflag:'',view:null,sel:null,focus:null,groupsOpen:{},ptier:'all',pdist:'all',panel:true};
+ layers:{places:true,outlines:false,road_primary:true,road_secondary:true,trams:true,bridges:true},auto:false,ctab:'',aflag:'',view:null,sel:null,focus:null,groupsOpen:{},ptier:'all',pdist:'all',panel:true,plarea:'all',plstat:'all'};
 try{Object.assign(S,JSON.parse(localStorage.getItem('awc2')||'{}'))}catch(e){}
 const save=()=>{try{localStorage.setItem('awc2',JSON.stringify(S))}catch(e){}};
 D.content.forEach(c=>{if(c.rows.some(r=>r.x!=null))LY.push({key:'c_'+c.key,group:'Game content',label:c.label,color:c.color==='#fff'?'#8e8e93':c.color,type:'pt',content:c,
@@ -314,7 +319,7 @@ function showSide(){
   ['Trees · lamps · cars',pick('trees').toLocaleString()+' · '+pick('lamps').toLocaleString()+' · '+pick('parked').toLocaleString()],['Metro entrances',pick('poi_subway_entrance')]];
  $('stats').innerHTML=rows.map(r=>'<div class="statline"><span>'+r[0]+'</span><b>'+r[1]+'</b></div>').join('')+legend(inreg);
  $('legend').innerHTML=S.colorby==='stage'?D.stages.map(x=>'<span style="margin-right:10px"><span class="dot" style="background:'+x[2]+'"></span>'+x[1]+'</span>').join(''):S.colorby==='tier'?['S','A','B'].map(k=>'<span style="margin-right:10px"><span class="dot" style="background:'+TIER_COL[k]+'"></span>Tier '+k+'</span>').join(''):S.colorby==='ev'?EVS.map(k=>'<span style="margin-right:10px"><span class="dot" style="background:'+EV_COL[k]+'"></span>'+k+'</span>').join(''):D.districts.map((d,i)=>'<span style="margin-right:10px"><span class="dot" style="background:'+DIST_COL[i%9]+'"></span>'+esc(d.name)+'</span>').join('');
- $('legend').innerHTML+='<div class="sub" style="margin-top:4px">Hollow ring: placed at its street, no outline of its own yet.</div>'}
+ $('legend').innerHTML+='<div class="sub" style="margin-top:4px">Hollow ring: placed at its street, no outline of its own yet.</div>'+(D.attribution&&LY.some(l=>l.key.startsWith('mly_')&&S.layers[l.key])?'<div class="sub">'+esc(D.attribution)+'</div>':'')}
 function nearest(mx,my,maxd){let best=null,bd=maxd*maxd;const t=(x,z,obj)=>{const d=(sx(x)-mx)**2+(sz(z)-my)**2;if(d<bd){bd=d;best=obj}};
  if(S.layers.places)visItems().forEach(i=>t(i.x,i.z,{kind:'place',i,label:'#'+i.n+' '+i.place}));
  if(S.layers.outlines)D.outlines.forEach(o=>t(o.x,o.z,{kind:'outline',label:o.name+' · '+OUT_LAB[o.mark]+' · '+o.street}));
@@ -338,6 +343,19 @@ $('ms').oninput=e=>{S.ms=+e.target.value;save();draw();showSide()};$('bh').oninp
 $('showbase').onchange=e=>{S.base=e.target.checked;save();draw()};
 $('ptog').onclick=()=>{S.panel=!S.panel;$('panel').classList.toggle('hide',!S.panel);save()};
 function goMap(x,z,n){setTab('map');view.cx=x;view.cz=z;view.s=Math.max(view.s,0.7);S.focus=[x,z];if(n)S.sel=n;refresh()}
+// ---------- plan
+const PLSTAT={open:'#8e8e93',running:'#3a86d8',done:'#2e9e5b',parked:'#e0a82e'};
+function showPlan(){const P=D.plan;$('b-plan').textContent=P?P.days.reduce((a,d)=>a+d.items.length,0):'';
+ if(!P){$('plboard').innerHTML='<div class="card" style="grid-column:1/-1">No plan file yet. It is read from <code>docs/plan/city-plan.json</code>.</div>';$('plarea').innerHTML=$('plstat').innerHTML='';return}
+ const areas=['all'].concat([...new Set(P.days.flatMap(d=>d.items.map(i=>i.area)))]),stats=['all','open','running','done','parked'];
+ $('plarea').innerHTML=areas.map(a=>'<button data-pa="'+a+'" class="'+(S.plarea===a?'on':'')+'">'+(a==='all'?'All areas':a)+'</button>').join('');
+ $('plstat').innerHTML=stats.map(a=>'<button data-ps="'+a+'" class="'+(S.plstat===a?'on':'')+'">'+(a==='all'?'Any status':a)+'</button>').join('');
+ $('plnote').textContent=(P.updated?'Updated '+P.updated+'. ':'')+(P.note||'');
+ $('plboard').innerHTML=P.days.map(d=>{const its=d.items.filter(i=>(S.plarea==='all'||i.area===S.plarea)&&(S.plstat==='all'||i.status===S.plstat)),dn=d.items.filter(i=>i.status==='done').length;
+  return '<div class="col"><h3><span>'+esc(d.id)+' · '+esc(d.title)+'</span><span class="sub">'+dn+'/'+d.items.length+'</span></h3><div class="sub" style="padding:0 14px 6px">'+esc(d.date||'')+'</div><div class="cards">'+
+  its.map(i=>'<div class="pc" style="cursor:default"><b>'+esc(i.id)+' '+esc(i.title)+'</b><div class="m"><span class="pill" style="background:'+(PLSTAT[i.status]||'#888')+'22;color:'+(PLSTAT[i.status]||'#888')+'"><span class="dot" style="background:'+(PLSTAT[i.status]||'#888')+';margin:0"></span>'+esc(i.status)+'</span><span class="pill">'+esc(i.area)+'</span>'+(i.model?'<span class="pill ev">'+esc(i.model)+'</span>':'')+'</div>'+
+   (i.needs?'<div class="sub" style="margin-top:6px">Needs: '+esc(i.needs)+'</div>':'')+(i.ref?'<div style="margin-top:4px"><a target="_blank" rel="noopener" href="'+GH+esc(i.ref)+'">'+esc(i.ref)+'</a></div>':'')+'</div>').join('')+'</div></div>'}).join('');
+ document.querySelectorAll('[data-pa]').forEach(b=>b.onclick=()=>{S.plarea=b.dataset.pa;save();showPlan()});document.querySelectorAll('[data-ps]').forEach(b=>b.onclick=()=>{S.plstat=b.dataset.ps;save();showPlan()})}
 // ---------- content
 function showContent(){const cs=D.content;if(!S.ctab||!cs.find(c=>c.key===S.ctab))S.ctab=cs[0].key;
  $('clist').innerHTML=cs.map(c=>'<div class="item'+(c.key===S.ctab?' on':'')+'" data-c="'+c.key+'"><span>'+esc(c.label)+'</span><span class="sub">'+c.rows.length+'</span></div>').join('');
@@ -364,6 +382,6 @@ function showRenders(){const q=$('rq').value.toLowerCase(),l=D.renders.filter(r=
 $('rq').oninput=showRenders;
 // ---------- boot
 addEventListener('resize',()=>{fit();draw()});matchMedia('(prefers-color-scheme:dark)').addEventListener('change',()=>draw());
-buildSide();overview();pipeline();showContent();showAppr();showRenders();
+buildSide();overview();pipeline();showPlan();showContent();showAppr();showRenders();
 const h0=(location.hash||'').slice(1);setTab(TABS[h0]?h0:(TABS[S.tab]?S.tab:'overview'));fit();refresh();
 </script></body></html>
