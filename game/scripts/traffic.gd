@@ -139,7 +139,7 @@ const RACE_LOOK := 30.0
 const RACE_PASS_CLEAR := 70.0
 const RACE_PASS_ROOM := 40.0
 ## Racer mode: stood still this long behind a car with no way past, it slips through (s).
-const RACE_KNOT := 2.5
+const RACE_KNOT := 1.5
 ## Pole lamps: red, amber, green.
 const LAMP_ON := [Color("#ff3b2f"), Color("#ffb21e"), Color("#43ff6e")]
 const LAMP_OFF := Color("#2a2c2e")

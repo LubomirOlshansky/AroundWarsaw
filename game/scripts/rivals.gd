@@ -89,6 +89,13 @@ const BAND_BOOST := 0.3
 const BAND_FLOOR := 0.5
 ## Out of sight she may wait more (a far-ahead Halina for an average driver): nobody sees it.
 const BAND_FLOOR_UNSEEN := 0.3
+## The bottom rungs (band weight from BAND_EASE_WEIGHT: Halina, Słoik, Bartek) lift off on the last
+## FIRST_EASE m for a player less than BAND_EASE_GAP × weight m behind (headless runs: an average
+## driver lost to Halina by 38 m, she held half her top on screen to the line).
+const BAND_EASE_WEIGHT := 0.5
+const BAND_EASE_GAP := 80.0
+## ... to this share of the player's own pace.
+const BAND_EASE_PACE := 0.6
 const BAND_CAP := 0.98
 ## The Palm is the finish when it is at most this far by road from her; else an ordinary one.
 const FIRST_FAR := 1600.0
@@ -1053,6 +1060,10 @@ static func band_mult(her_left: float, player_left: float, weight: float, rate: 
 	var gap := her_left - player_left - aim  # > 0: she is further behind than she aims
 	var follow := maxf(rate, 4.0) * (1.0 + clampf(gap / BAND_K, -0.5, 0.8)) / maxf(top, 1.0)
 	var mult := lerpf(1.0, follow, weight)
+	var ahead := player_left - her_left
+	if weight >= BAND_EASE_WEIGHT and her_left < FIRST_EASE and ahead > 0.0 and ahead < BAND_EASE_GAP * weight:
+		# The bottom rungs on the last stretch: a close player gets the win (she lifts off).
+		return clampf(maxf(rate, 4.0) * BAND_EASE_PACE / maxf(top, 1.0), BAND_FLOOR_UNSEEN, 1.0)
 	return clampf(mult, BAND_FLOOR if seen else BAND_FLOOR_UNSEEN, 1.0 if seen else 1.0 + BAND_BOOST * weight)
 
 

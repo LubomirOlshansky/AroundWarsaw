@@ -1,5 +1,9 @@
 # Street races: rivals that race
 
+**Status (2026-11-04):** F picked the plan and asked for "the racers and the police smarter, then
+test it with Autopilot". R1, R2 and R4's driving numbers are built ([section 6](#6-built-2026-11-04));
+R3, R5-R7 are open.
+
 Written 2026-11-04 from F's note: "driving with racers in the city looks strange. When the race
 starts, a racer like Pani Halina drives very slowly, and even where there is a shorter road they
 drive by the rules all the time. It doesn't look competitive or fun." Research and a plan only:
@@ -206,3 +210,87 @@ feel on F's next device run).
 - Autopilot row P17 in PLAYTEST.md: "race Halina and Zbyszek; did it feel close; did a rival get
   stuck or look silly" (with F's yes for a run).
 - Bench before/after with a race running (one driver, so expected flat).
+
+---
+
+## 6. Built (2026-11-04)
+
+**R1 racer mode** (`traffic.gd`, a driver with a race route and `race_accel` > 0; town cars are
+untouched):
+- top speed `race_top` (the player's car top × the rung's `share`) × the rubber band, capped by
+  road class (`RACE_CLASS_TOP` 30 / 25 / 19 / 12 m/s for main, tertiary, residential, living);
+- `race_accel` 7-10 m/s² (was 3.3-3.9), braking `RACE_DECEL` 8 m/s², headway 0.6 s;
+- junction curves at `sqrt(race_lat × radius)` (`race_turn_speed`), at least 6 m/s;
+- every red run (a little slower in the box, 75 % within 30 m of the line), crossing cars only
+  within 7 m, and a wait for them cut from 8 s to 1.5 s;
+- past traffic and the player: a free lane, even near the junction when standing in a queue;
+  else out over the centre line when the oncoming lane is clear for 70 m (two-way roads only);
+  stood 2.5 s behind a car with no way past (a knot in a junction box), it slips through.
+
+**R2 rubber band** (`rivals.gd`):
+- the first race: Halina paces off the player's own progress along the route
+  (`first_speed`): 30 m in front for the first half, caught by 85 % of the way, lifts off for a
+  close player on the last 140 m; `check_first10` models it (an ordinary 34 km/h driver: she
+  leads at half way, he wins by 1.1 s);
+- every other race (`band_mult`): a mix, by the rung's `band` weight, of her flat-out pace and
+  the pace that holds her `aim` m behind the player; on screen never faster than her top or
+  slower than half of it, off screen up to +30 % × weight faster or down to 0.3; never over 98 %
+  of the player's top. The bottom rungs (band 0.5 and up: Halina, Słoik, Bartek) lift off on
+  the last 140 m for a player less than 80 × band m behind.
+
+**R4 numbers** (`ladder.gd` RUNGS, `racer()`):
+
+| Rung | share | accel | corner grip | band | aim |
+| --- | --- | --- | --- | --- | --- |
+| Pani Halina | 0.72 | 7 | 5.5 (timid in corners) | 0.8 | 25 m behind |
+| Słoik z Radomia | 0.75 | 7.5 | 6.5 | 0.65 | 15 m behind |
+| Bulwar Bartek | 0.86 | 8 | 8 | 0.5 | 8 m behind |
+| Seba z Pragi | 0.9 | 8.5 | 8 | 0.4 | level |
+| Taksiarz Zbyszek | 0.92 | 9 | 8.5 | 0.3 | 5 m ahead |
+| Mordor Mike | 0.94 | 10 | 8.5 | 0.25 | 10 m ahead |
+| Seba, Trzy mosty | 0.95 | 10 | 8.5 | 0.15 | 10 m ahead |
+
+Aggression, mistakes, wrong-way hops and authored shortcuts (the rest of R3/R4) are not built.
+
+**Police** (`police_unit.gd` `_racer`): a chaser drives in racer mode with `CHASE_RACE_ACCEL` 6
+m/s² (was 2.6) and `CHASE_LAT` 6.5, careful through reds instead of 30 km/h, round traffic that
+doesn't give way, but never round the player (it keeps its 10 m gap and never rams) and its top
+speed stays `chase_top` (0.8 of the player's), so a flat-out run still escapes.
+
+**Measuring** (`tools/race_ai.sh`, `--ghost-pace`, `--race-debug`): every rival races the
+autopilot as an average driver (`--ghost-pace=1.8`: the town car's corners, 1.8 × the limit)
+and as a skilled one (`--ghost-pace=racer`: racer mode at the car's own top). Results in
+section 7.
+
+---
+
+## 7. Results (2026-11-04)
+
+Headless, `tools/race_ai.sh`, the same start spots and finishes (one run each; a gap > 0: the
+player won by that many metres). Before: on main `ac51e1c` the average driver beat Halina,
+Bartek and Mike (the only ones run).
+
+| Rival | Average driver (`--ghost-pace=1.8`) | Skilled driver (`--ghost-pace=racer`) |
+| --- | --- | --- |
+| Pani Halina (884 m) | player by 22 m | player by 192 m |
+| Słoik z Radomia | player by 13 m | player by 103 m |
+| Bulwar Bartek | Bartek by 26 m | player by 185 m |
+| Seba z Pragi | Seba by 43 m | player by 238 m |
+| Taksiarz Zbyszek | Zbyszek by 687 m | player by 25 m |
+| Mordor Mike | Mike by 334 m | player by 73 m |
+
+(Bartek, Seba and the first two average rows are from the last tuning runs; Bartek and Seba got
+a little faster after their average rows.) Rivals now stand still for 0.1-2.8 s a race (was up
+to 31 s in the first version: queues at reds and knots in junction boxes, fixed by the lane change
+near the junction, the curve's knot rule and RACE_KNOT).
+
+**Autopilot on F's Mac** (P17, 2026-11-04, runs 20261104-115030, -120021, -120641): an AI
+player beat Halina by 155 m in 44.9 s (she averaged 57 km/h, top 78 km/h, looked like racing,
+nothing driven through) and Zbyszek by 151 m in 54.8 s (he averaged 62 km/h, top 99 km/h, led by
+6-60 m until 38 s). Halina stood 3.5 s once at -827, 487 (the junction knot by Marszałkowska;
+RACE_KNOT cut from 2.5 to 1.5 s after it). The police chase was not escaped, but the agent drove
+at 2-18 km/h three times, so it says little; the chaser followed the player's turns one junction
+inside, with no stops. The headless escape run (`verify.sh --only=police-runs`, P3) is the check.
+
+**Open for the phone:** whether Halina and Słoik still feel too easy for F (the Autopilot player
+won by 150 m), the mid-ladder for a skilled player (Bartek, Seba), and the chase's escape feel.

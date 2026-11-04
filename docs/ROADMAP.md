@@ -507,8 +507,8 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 
 ### Left: street races that feel like races (F, 2026-11-04; plan docs/design/street-races.md)
 - [x] Research and race AI audit: why Halina drives slowly and by the rules, R1-R7 (2026-11-04, docs only)
-- [ ] R1 racer driving mode and R2 fair rubber band (F picks the first fixes)
-- [ ] R3 routes by time and shortcuts; R4 rival personalities; R5 show the race
+- [x] R1 racer driving mode and R2 fair rubber band, R4's numbers per rung, police chasers in racer mode (2026-11-04; phone feel open)
+- [ ] R3 routes by time and shortcuts; R4 part 2 (aggression, mistakes); R5 show the race
 - [ ] R6 the city reacts; R7 race kinds (later)
 
 ### After the beta: driving extras and the city economy (F, 2026-11-03; plan docs/design/city-economy.md)

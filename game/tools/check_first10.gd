@@ -425,6 +425,12 @@ func _band() -> void:
 	_expect(Rivals.first_speed(100.0, 95.0, 800.0, 10.0, top) < 10.0, "the last stretch, the player close: she lifts off")
 	_expect(Rivals.first_speed(300.0, 600.0, 800.0, 10.0, top) == top * Rivals.FIRST_FAR_PACE, "the player far behind: her far pace")
 	_expect(Rivals.first_speed(470.0, 520.0, 800.0, 1.0, top) >= top * Rivals.FIRST_FLOOR, "never under her floor")
+	# Street races R2: every other race's band (rivals.gd `band_mult`).
+	_expect(Rivals.band_mult(600.0, 400.0, 0.8, 20.0, top, true) <= 1.0, "a band never boosts a rival past her top on screen")
+	_expect(Rivals.band_mult(600.0, 400.0, 0.8, 20.0, top, false) <= 1.0 + Rivals.BAND_BOOST * 0.8 + 0.001, "off screen at most +BAND_BOOST x weight")
+	_expect(Rivals.band_mult(400.0, 600.0, 0.8, 10.0, top, true) == Rivals.BAND_FLOOR, "far ahead on screen: she slows to her floor, still racing")
+	_expect(Rivals.band_mult(100.0, 130.0, 0.8, 10.0, top, true) < Rivals.BAND_FLOOR, "Halina on the last stretch, the player close: she lifts off")
+	_expect(Rivals.band_mult(100.0, 130.0, 0.25, 10.0, 28.0, true) >= Rivals.BAND_FLOOR, "Mike never lifts off")
 	var ordinary := _race(9.5, true)
 	var led := _led
 	var fast := _race(14.0, true)
