@@ -3051,8 +3051,12 @@ func _finger_origin() -> Vector2:
 
 ## The ghost finger: a fingertip that comes down, drags up and to the right (the way Point steers:
 ## point where to go) and lifts, every FINGER_LOOP s, with its trail and a two-line hint. With
-## --no-touch (a desktop) only the hint, naming the keys.
+## --no-touch (a desktop) only the hint, naming the keys. Classic (the default since 2026-11-04)
+## has its own: _draw_finger_classic.
 func _draw_finger() -> void:
+	if scheme == CLASSIC:
+		_draw_finger_classic()
+		return
 	var o := _finger_origin()
 	var font := ThemeDB.fallback_font
 	var k := fmod(_finger_t, FINGER_LOOP) / FINGER_LOOP
@@ -3078,6 +3082,44 @@ func _draw_finger() -> void:
 	# it the credit line (the first shots had the hint under the wallet).
 	var at := o + Vector2(STICK_R * pt * 1.25 + 18.0 * pt, -(fs2 + 6.0 * pt) * 0.5)
 	var w := maxf(font.get_string_size(lines[0], HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x, font.get_string_size(lines[1], HORIZONTAL_ALIGNMENT_LEFT, -1, fs2).x)
+	at.x = clampf(at.x, _safe.position.x + EDGE * pt, _safe.end.x - EDGE * pt - w)
+	var outline := _px(3.0)
+	_pad.draw_string_outline(font, at, lines[0], HORIZONTAL_ALIGNMENT_LEFT, -1, fs, outline, OUTLINE)
+	_pad.draw_string(font, at, lines[0], HORIZONTAL_ALIGNMENT_LEFT, -1, fs, INK)
+	var at2 := at + Vector2(0, fs2 + 6.0 * pt)
+	_pad.draw_string_outline(font, at2, lines[1], HORIZONTAL_ALIGNMENT_LEFT, -1, fs2, outline, OUTLINE)
+	_pad.draw_string(font, at2, lines[1], HORIZONTAL_ALIGNMENT_LEFT, -1, fs2, SUB)
+
+
+## Classic's ghost finger (2026-11-04, Classic the default): one fingertip holds GAZ down, the
+## other slides the steering strip left and right, every FINGER_LOOP s, with the two-line hint
+## above the strip. On a pad or a keyboard only the hint, naming the buttons or keys.
+func _draw_finger_classic() -> void:
+	var font := ThemeDB.fallback_font
+	var k := fmod(_finger_t, FINGER_LOOP) / FINGER_LOOP
+	var strip := _strip_hint_centre()
+	var lines := ["Przesuń w lewo / prawo i trzymaj GAZ", "Slide left / right to steer, hold GAS to go"]
+	if pad_mode:
+		lines = [Gamepad.fmt("Lewa gałka: skręt · {rt}: gaz · {lt}: hamulec"), Gamepad.fmt("Left stick steers, {rt} gas, {lt} brake")]
+	elif touch_off:
+		lines = ["A / D: skręt · W: gaz · S: hamulec", "A / D steer, W gas, S brake"]
+	else:
+		var press := clampf(k / 0.12, 0.0, 1.0) * clampf((1.0 - k) / 0.12, 0.0, 1.0)
+		# GAZ: held down for the whole loop (a soft ring pulses round it).
+		var gc := _gas_centre()
+		_pad.draw_arc(gc, (GAS_R + 6.0 + 4.0 * sin(k * TAU)) * pt, 0, TAU, 40, Color(ACCENT, 0.6 * press), 2.0 * pt)
+		_pad.draw_circle(gc, 19.0 * pt, Color(OUTLINE, 0.35 * press))
+		_pad.draw_circle(gc, 16.0 * pt, Color(INK, 0.8 * press))
+		# The strip: the thumb slides right, back through the middle, left and home.
+		var tip := strip + Vector2(sin(k * TAU) * 32.0 * pt, 0)
+		_pad.draw_line(strip, tip, Color(INK, 0.45 * press), 5.0 * pt)
+		_pad.draw_circle(tip, 19.0 * pt, Color(OUTLINE, 0.35 * press))
+		_pad.draw_circle(tip, 16.0 * pt, Color(INK, 0.8 * press))
+	var fs := _px(T_BODY)
+	var fs2 := _px(T_SUB)
+	var w := maxf(font.get_string_size(lines[0], HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x, font.get_string_size(lines[1], HORIZONTAL_ALIGNMENT_LEFT, -1, fs2).x)
+	# Above the strip's plate (and its thumb), starting at the plate's outer end.
+	var at := Vector2(strip.x - 52.0 * pt if not left_handed else strip.x + 52.0 * pt - w, strip.y - 30.0 * pt - fs2 - 6.0 * pt)
 	at.x = clampf(at.x, _safe.position.x + EDGE * pt, _safe.end.x - EDGE * pt - w)
 	var outline := _px(3.0)
 	_pad.draw_string_outline(font, at, lines[0], HORIZONTAL_ALIGNMENT_LEFT, -1, fs, outline, OUTLINE)

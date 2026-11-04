@@ -136,6 +136,12 @@ experience". The plan, the road audit and the causes are in docs/GAMEPLAY_PLAN.m
 - [ ] 0.4 Helicopter high up: heli framed at the top, far plane clips the ground (floating buildings,
   blue sky), height cap, horizon haze
 - [ ] 0.5 Plac Piłsudskiego's paving reads as a chessboard: lower the panel contrast, speckle
+- [x] Classic controls the default (F, 2026-11-04: "driving with left, right, gas and brake should be
+  the default"): settings.gd `DEFAULT_CONTROLS`; a save from before (no `[controls] classic_default`)
+  that says Point loads as Classic once, a Point picked since stays; the first-10 ghost finger and
+  its hint show the GAZ pedal and the steering strip (pad and keyboard lines too). Open: F's phone
+  feel; the Autopilot harness on the Mac now gets Classic's keys (A / D steer, W gas, S brake) in
+  editor runs unless it passes `--controls=point`
 - [ ] 1.1 `check_drivability.gd`: every lane, turn and dead end with the player's car; per-street score
 - [ ] 1.2 Lane graph data: 101 nodes off the main network, 15 kinks over 45°, ~300 lanes under 2.5 m
 - [ ] 1.3 Autopilot rows P11-P16 (PLAYTEST.md)
