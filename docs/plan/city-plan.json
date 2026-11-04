@@ -1,0 +1,292 @@
+{
+ "updated": "2026-11-04",
+ "doc": "docs/design/roads-and-objects-plan.md",
+ "note": "One item per thread and PR. status: open | running | done | parked. Threads update their item's status in the same PR.",
+ "days": [
+  {
+   "id": "D0",
+   "date": "2026-11-04",
+   "title": "Tonight on the cloud credits",
+   "items": [
+    {
+     "id": "D0.1",
+     "title": "Roads, objects and buildings research and this plan",
+     "area": "plan",
+     "model": "Opus",
+     "needs": "-",
+     "status": "running",
+     "ref": "docs/design/roads-and-objects-plan.md"
+    },
+    {
+     "id": "D0.2",
+     "title": "Collision v2 behind --collide=v2, Classic wall follow",
+     "area": "driving",
+     "model": "Opus",
+     "needs": "#429 merged",
+     "status": "open",
+     "ref": "docs/design/road-objects.md"
+    },
+    {
+     "id": "D0.3",
+     "title": "Census --classify: automatic verdicts B1-B15 into game/data/road_objects.json",
+     "area": "objects",
+     "model": "Opus",
+     "needs": "#429 merged",
+     "status": "open",
+     "ref": "docs/design/road-objects.md"
+    },
+    {
+     "id": "D0.4",
+     "title": "RS1+RS2 prototype (junction shapes, kink fillets) on three pilot junctions",
+     "area": "roads",
+     "model": "Opus",
+     "needs": "map pack",
+     "status": "open",
+     "ref": "docs/design/roads-and-objects-plan.md"
+    },
+    {
+     "id": "D0.5",
+     "title": "Whole-map Mapillary census and console layer",
+     "area": "objects",
+     "model": "Sonnet",
+     "needs": "console #431",
+     "status": "open",
+     "ref": "docs/design/roads-and-objects-plan.md"
+    }
+   ]
+  },
+  {
+   "id": "D1",
+   "date": "2026-11-05",
+   "title": "Smooth roads and the first street sweep",
+   "items": [
+    {
+     "id": "D1.1",
+     "title": "RS2 kink fillets + RS1 junction shapes with kerb returns city-wide",
+     "area": "roads",
+     "model": "Opus",
+     "needs": "Mac re-bake",
+     "status": "open",
+     "ref": "docs/design/roads-and-objects-plan.md"
+    },
+    {
+     "id": "D1.2",
+     "title": "Road-objects sweep 1: Marszałkowska, Świętokrzyska, Jerozolimskie",
+     "area": "objects",
+     "model": "Opus",
+     "needs": "Mac ortho crops",
+     "status": "open",
+     "ref": "docs/design/road-objects.md"
+    },
+    {
+     "id": "D1.3",
+     "title": "check_lane_drive contact log, --street=, sloppy driver",
+     "area": "driving",
+     "model": "Opus",
+     "needs": "-",
+     "status": "open",
+     "ref": "docs/design/road-objects.md"
+    },
+    {
+     "id": "D1.4",
+     "title": "osm2streets comparison on the pilot junctions",
+     "area": "roads",
+     "model": "Sonnet",
+     "needs": "Mac",
+     "status": "open",
+     "ref": "docs/design/roads-and-objects-plan.md"
+    },
+    {
+     "id": "D1.5",
+     "title": "Phone check: collision v2 presets and the smoothed roads",
+     "area": "driving",
+     "model": "F",
+     "needs": "device run yes",
+     "status": "open",
+     "ref": "docs/design/roads-and-objects-plan.md"
+    }
+   ]
+  },
+  {
+   "id": "D2",
+   "date": "2026-11-06",
+   "title": "Surfaces, crossings, signs",
+   "items": [
+    {
+     "id": "D2.1",
+     "title": "RS4 surfaces from OSM tags + RS6 crossings with kerb drops",
+     "area": "roads",
+     "model": "Opus",
+     "needs": "Mac re-bake",
+     "status": "open",
+     "ref": "docs/design/roads-and-objects-plan.md"
+    },
+    {
+     "id": "D2.2",
+     "title": "Traffic signs layer (OSM nodes + lane-graph rules, checked against Mapillary)",
+     "area": "objects",
+     "model": "Opus",
+     "needs": "Mac, bench",
+     "status": "open",
+     "ref": "docs/design/roads-and-objects-plan.md"
+    },
+    {
+     "id": "D2.3",
+     "title": "Stairwell balustrades and metro canopies city-wide (B5, B6)",
+     "area": "objects",
+     "model": "Sonnet",
+     "needs": "-",
+     "status": "open",
+     "ref": "docs/design/road-objects.md"
+    },
+    {
+     "id": "D2.4",
+     "title": "Road-objects sweep 2: Nowy Świat, Krakowskie Przedmieście, Królewska",
+     "area": "objects",
+     "model": "Opus",
+     "needs": "Mac ortho",
+     "status": "open",
+     "ref": "docs/design/road-objects.md"
+    }
+   ]
+  },
+  {
+   "id": "D3",
+   "date": "2026-11-07",
+   "title": "Soft objects, narrow streets, the asphalt's history",
+   "items": [
+    {
+     "id": "D3.1",
+     "title": "Soft colliders + Marszałkowska median-fence A/B",
+     "area": "driving",
+     "model": "Opus",
+     "needs": "phone bench",
+     "status": "open",
+     "ref": "docs/design/road-objects.md"
+    },
+    {
+     "id": "D3.2",
+     "title": "Narrow streets: drive hull, parked cars B7, kerbs",
+     "area": "roads",
+     "model": "Opus",
+     "needs": "Mac re-bake",
+     "status": "open",
+     "ref": "docs/design/road-objects.md"
+    },
+    {
+     "id": "D3.3",
+     "title": "RS7 asphalt history in the ground shader",
+     "area": "roads",
+     "model": "Opus",
+     "needs": "phone bench",
+     "status": "open",
+     "ref": "docs/design/roads-and-objects-plan.md"
+    },
+    {
+     "id": "D3.4",
+     "title": "RS3 width profiles from the orthophoto, tapers between ways",
+     "area": "roads",
+     "model": "Opus",
+     "needs": "Mac",
+     "status": "open",
+     "ref": "docs/design/roads-and-objects-plan.md"
+    },
+    {
+     "id": "D3.5",
+     "title": "Poles, junction boxes, bollards, temporary roadworks from evidence",
+     "area": "objects",
+     "model": "Sonnet",
+     "needs": "Mac",
+     "status": "open",
+     "ref": "docs/design/roads-and-objects-plan.md"
+    }
+   ]
+  },
+  {
+   "id": "D4",
+   "date": "2026-11-08",
+   "title": "Buildings: Tiny Warsaw list P1-P4",
+   "items": [
+    {
+     "id": "D4.1",
+     "title": "P1: 31 ranked rows, Senatorska and Aleje Ujazdowskie palaces first",
+     "area": "buildings",
+     "model": "Sonnet + Opus accepts",
+     "needs": "Mac photos",
+     "status": "open",
+     "ref": "docs/design/tinywarsaw-area-plan.md"
+    },
+    {
+     "id": "D4.2",
+     "title": "P3: Rondo ONZ and Rondo Daszyńskiego towers by photo",
+     "area": "buildings",
+     "model": "Sonnet + Opus accepts",
+     "needs": "Mac photos",
+     "status": "open",
+     "ref": "docs/design/tinywarsaw-area-plan.md"
+    },
+    {
+     "id": "D4.3",
+     "title": "P4 kits: hospital pavilions, industrial brick, government stone, MDM",
+     "area": "buildings",
+     "model": "Sonnet",
+     "needs": "street photos",
+     "status": "open",
+     "ref": "docs/design/tinywarsaw-area-plan.md"
+    },
+    {
+     "id": "D4.4",
+     "title": "P5 address blocks in the street passes (Żurawia-Chmielna, Foksal)",
+     "area": "buildings",
+     "model": "Sonnet",
+     "needs": "-",
+     "status": "open",
+     "ref": "docs/design/tinywarsaw-area-plan.md"
+    },
+    {
+     "id": "D4.5",
+     "title": "Road-objects sweeps 3-4: Jana Pawła II, Solidarności, Prosta, Okopowa",
+     "area": "objects",
+     "model": "Opus",
+     "needs": "Mac ortho",
+     "status": "open",
+     "ref": "docs/design/road-objects.md"
+    }
+   ]
+  },
+  {
+   "id": "D5",
+   "date": "2026-11-09",
+   "title": "Photo passes and street by street",
+   "items": [
+    {
+     "id": "D5.1",
+     "title": "Eastern Wall photo pass",
+     "area": "buildings",
+     "model": "Sonnet + Opus accepts",
+     "needs": "Mac photos",
+     "status": "open",
+     "ref": "docs/BACKLOG.md"
+    },
+    {
+     "id": "D5.2",
+     "title": "Modernism lane next items",
+     "area": "buildings",
+     "model": "Sonnet + Opus accepts",
+     "needs": "Mac photos",
+     "status": "open",
+     "ref": "docs/design/modernism-collection.md"
+    },
+    {
+     "id": "D5.3",
+     "title": "P6 infrastructure tier: tunnels, footbridges, viaducts named",
+     "area": "buildings",
+     "model": "Sonnet",
+     "needs": "-",
+     "status": "open",
+     "ref": "docs/design/tinywarsaw-area-plan.md"
+    }
+   ]
+  }
+ ]
+}
