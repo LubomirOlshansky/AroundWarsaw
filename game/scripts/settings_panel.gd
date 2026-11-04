@@ -530,8 +530,8 @@ func focus_target() -> Button:
 func sync(state: Dictionary) -> void:
 	if not _built:
 		return
-	var scheme := int(state.get("controls", 0))
-	var follow := bool(state.get("follow", scheme == 0))
+	var scheme := int(state.get("controls", 1))  # Classic, the default (settings.gd DEFAULT_CONTROLS)
+	var follow := bool(state.get("follow", scheme != 2))
 	var values := state.duplicate()
 	values["drive"] = 1 if scheme == 1 else 0
 	values["camera"] = 0 if follow else 1

@@ -31,8 +31,11 @@ const TRAFFIC_KEYS := ["empty", "low", "normal", "busy"]
 ## The default for a fresh save: Low (F, 2026-11-01: the default was too heavy). Saves keep their choice.
 const DEFAULT_TRAFFIC := 1
 
-## drive_controls.gd: POINT, CLASSIC, FIXED.
-var controls := 0
+## drive_controls.gd: POINT, CLASSIC, FIXED. Classic (steer left / right, GAS and BRAKE) is the
+## default since 2026-11-04 (F: "driving with left, right, gas and brake should be the default");
+## Point and Fixed stay in Settings → Jazda.
+const DEFAULT_CONTROLS := 1
+var controls := DEFAULT_CONTROLS
 ## Classic only: the camera follows the car (CAM toggles it); Point always follows, Fixed never.
 var classic_follow := true
 var traffic := DEFAULT_TRAFFIC
@@ -106,6 +109,11 @@ func load_file() -> void:
 	loaded_version = int(cfg.get_value("meta", "version", 1))
 	newer = loaded_version > VERSION
 	controls = clampi(int(cfg.get_value("controls", "scheme", controls)), 0, 2)
+	# 2026-11-04: Point was the default before, so a file saved then (no `classic_default` key)
+	# that says Point loads as Classic, once; the next save marks the file, and a Point chosen
+	# after that stays Point.
+	if controls == 0 and not cfg.has_section_key("controls", "classic_default"):
+		controls = DEFAULT_CONTROLS
 	classic_follow = bool(cfg.get_value("controls", "classic_follow", classic_follow))
 	traffic = clampi(int(cfg.get_value("world", "traffic", traffic)), 0, TRAFFIC.size() - 1)
 	quality = clampi(int(cfg.get_value("world", "quality", quality)), AUTO, ULTRA)
@@ -149,6 +157,7 @@ func save() -> void:
 	cfg.set_value("meta", "version", VERSION)
 	cfg.set_value("controls", "scheme", controls)
 	cfg.set_value("controls", "classic_follow", classic_follow)
+	cfg.set_value("controls", "classic_default", 1)
 	cfg.set_value("world", "traffic", traffic)
 	cfg.set_value("world", "quality", quality)
 	cfg.set_value("world", "tiers", 1)

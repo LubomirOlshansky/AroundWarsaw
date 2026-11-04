@@ -9,6 +9,10 @@ that day here, in plain words a player would understand (no file names, no spoil
 rows in the progress log but no section here is listed automatically from the log's labels until
 someone writes its lines.
 
+## 2026-11-04
+
+- Driving now starts with the steering strip on the left and the GAS and BRAKE pedals on the right; pointing where to go is still in Settings → Jazda, and the first-minute hint shows the new controls.
+
 ## 2026-11-03
 
 - Arkadka by Rondo Radosława looks like the real mall now: the round fountain plaza, a curved glass entrance between stone piers under a fan of glass roofs, the tall sign tower with its glowing crown, shop logos and a big pink screen, the dark glass office wing, the brick wing with its rotunda and yellow café awnings, and the big red letter sign on the lawns.

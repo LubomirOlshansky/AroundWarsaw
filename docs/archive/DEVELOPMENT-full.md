@@ -197,8 +197,8 @@ text) have ready answers in `docs/store/play-console.md`; the privacy policy is
 | --- | --- | --- |
 | Start (title screen) | Tap anywhere | any key / click |
 | Settings (driving, camera, time of day, weather, traffic, picture style, quality, VHS, frame rate, overlay, TEST, sound; the game pauses) | the gear, top left | Esc |
-| Drive, **Point** (the default) | Drag anywhere on the left side: the car heads where you point, gas by how far you push; the camera waits while your finger is down | W A S D / arrows point in screen directions |
-| Drive, **Classic** | Drag left / right on the left side to steer; GAS bottom right, BRAKE beside it (slide your thumb between them) | A / D steer, W gas, S brake |
+| Drive, **Point** (the default until 2026-11-04) | Drag anywhere on the left side: the car heads where you point, gas by how far you push; the camera waits while your finger is down | W A S D / arrows point in screen directions |
+| Drive, **Classic** (the default since 2026-11-04) | Drag left / right on the left side to steer; GAS bottom right, BRAKE beside it (slide your thumb between them) | A / D steer, W gas, S brake |
 | Drive, **Fixed camera** | As Point, the camera never turns | as Point |
 | Brake, reverse when stopped | BRAKE button | Space (Classic: S too) |
 | Camera follows the car / stays put (in Point and Fixed it switches between the two schemes; a toast says which, loop 2e) | Settings → Jazda → Kamera za autem · Camera follows the car: Wł. / Wył. (On / Off) | C |
@@ -1042,13 +1042,13 @@ to 11 km/h a second later, a head-on push stayed pinned for good).
 **Three control schemes** (Settings → Controls, `--controls=`; `drive_controls.gd` maps the
 stick, keys and pedals for the game and the replay test alike):
 
-- **Point** (the default, one thumb): point where you want to go. The follow camera holds still
+- **Point** (the default until 2026-11-04, one thumb): point where you want to go. The follow camera holds still
   while your finger is down, so a held direction stays put on screen and in the world; 0.6 s
   after you let go it eases round behind the car (it reaches it in ~3 s, at most ~64°/s; it was
   up to 116°/s). Gas by how far you push (a target speed; full from three quarters out);
   pointing well behind at speed brakes first, then turns; a big turn holds the speed until it is
   done. Keys: W A S D point in screen directions (like the helicopter), Space brakes.
-- **Classic** (two thumbs): drag left / right on the left side to steer (a strip, car-relative,
+- **Classic** (two thumbs; the default since 2026-11-04, F's call, settings.gd `DEFAULT_CONTROLS`; a save still on the old Point default moves to Classic once): drag left / right on the left side to steer (a strip, car-relative,
   a gentle curve near the middle), GAS bottom right and BRAKE / REVERSE beside it (a thumb can
   slide from one to the other); the camera turns with the car. Keys: A / D steer, W gas, S or
   Space brake.
