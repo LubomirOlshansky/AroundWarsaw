@@ -1,6 +1,6 @@
 extends SceneTree
 ## Loop 2a: settings.gd round trip. Saves every setting to a scratch file in user://, loads
-## it into a fresh copy and compares; a missing file gives the defaults (Point, Normal
+## it into a fresh copy and compares; a missing file gives the defaults (Classic since 2026-11-04, Low
 ## traffic, High, full volumes, overlay off, 60 fps; loop 2e: Classic's camera following, the
 ## Sharp style, no VHS; loop G1: quality Auto instead of High); with persistent = false (--nosave)
 ## nothing is written. Loop G1: a file saved before G1 (no `tiers` key) that says High loads as
@@ -23,7 +23,7 @@ func _initialize() -> void:
 	var fresh := Settings.new()
 	fresh.path = "user://settings_check_missing.cfg"
 	fresh.load_file()
-	var defaults := fresh.controls == 0 and fresh.traffic == Settings.DEFAULT_TRAFFIC and fresh.quality == Settings.AUTO \
+	var defaults := fresh.controls == 1 and fresh.traffic == Settings.DEFAULT_TRAFFIC and fresh.quality == Settings.AUTO \
 			and fresh.master == 1.0 and fresh.music == 1.0 and fresh.effects == 1.0 and not fresh.perf and fresh.classic_follow \
 			and fresh.fps == 60 and fresh.style == 0 and not fresh.vhs and not fresh.zone_cap and fresh.handling == 0 and is_equal_approx(fresh.sensitivity, 0.5) \
 			and not fresh.text_large and not fresh.calm and not fresh.color_safe and fresh.vibration and fresh.stop_assist \
@@ -65,9 +65,37 @@ func _initialize() -> void:
 			"OK" if migrated else "WRONG", again.quality])
 	ok = ok and migrated
 
+	# 2026-11-04: Classic became the default; a file saved before (no `classic_default` key) that
+	# says Point loads as Classic once, Fixed stays Fixed, and a Point chosen since stays Point.
+	var ctl_ok := true
+	for c in [[0, false, 1], [2, false, 2], [1, false, 1], [0, true, 0]]:
+		var cfg_c := ConfigFile.new()
+		cfg_c.set_value("controls", "scheme", c[0])
+		if c[1]:
+			cfg_c.set_value("controls", "classic_default", 1)
+		cfg_c.save(SCRATCH_OLD)
+		var sc := Settings.new()
+		sc.path = SCRATCH_OLD
+		sc.load_file()
+		if sc.controls != c[2]:
+			ctl_ok = false
+			print("  controls %d saved %s 2026-11-04 load as %d, wanted %d" % [c[0], "after" if c[1] else "before", sc.controls, c[2]])
+	var pick := Settings.new()
+	pick.path = SCRATCH_OLD
+	pick.load_file()
+	pick.controls = 0
+	pick.save()
+	var pick_back := Settings.new()
+	pick_back.path = SCRATCH_OLD
+	pick_back.load_file()
+	ctl_ok = ctl_ok and pick_back.controls == 0
+	print("controls saved before Classic became the default: %s (Point → Classic once, Point chosen since kept: %d)" % [
+			"OK" if ctl_ok else "WRONG", pick_back.controls])
+	ok = ok and ctl_ok
+
 	var a := Settings.new()
 	a.path = SCRATCH
-	a.controls = 1
+	a.controls = 2
 	a.classic_follow = false
 	a.traffic = 0
 	a.quality = 1
