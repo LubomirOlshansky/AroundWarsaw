@@ -15,6 +15,7 @@ item. Updated 2026-11-01 from the audit. v1.0 = the Demo and TestFlight gates in
 then the Launch gate.
 
 ### Done (built and checked headless)
+- [x] Status page, review sheet and resumable bake (2026-11-04, from the Isometric Istanbul docs): `tools/status_page.py` (map of ranked places by stage, clickable, % by tier and district), `tools/shot_sheet.py` (before/after sheet), `tools/bake_all.sh --resume`
 - [x] Closed source for now: MIT replaced by an all-rights-reserved `LICENSE`, CONTRIBUTING.md and the open-source/contribute lines removed from README, CREDITS, the in-game credits and the site (2026-11-03, PR pending; F makes the repo private and deploys the site; the design wiki is untouched)
 - [x] Opening fly-over sound: the announcer line (Opening_line_a) plays once with the flight, radio dipped to -20 dB, then swells to full (2026-11-03, PR pending; phone listen check open)
 - [x] WTS DESKA tennis club (hall + one padel court), players, DESKA neon and a friend's "Czwarty" phone call that sends you there (2026-11-01, PR pending; phone check open)

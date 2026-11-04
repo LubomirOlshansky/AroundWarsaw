@@ -6,6 +6,10 @@
 #                                lights, water, then tools/setup_map.sh: the split and the
 #                                prebuilt sectors, with a renderer: a window opens)
 #   tools/bake_all.sh --no-trees the same without re-reading the 30 tree sheets (~5 min of it)
+#   tools/bake_all.sh --resume   after a failed or interrupted run: skip the steps that already
+#                                finished (their stamps are in build/bake/done/), run the rest.
+#                                A run without --resume clears the stamps first. Changed raw data
+#                                or a changed bake script: run without --resume.
 #
 # bake_osm.py runs twice: its structures (bake_structures.py) cut LoD2 buildings under decks, so
 # they read lod2.*, and bake_gugik.py keeps LoD2 buildings by the OSM outlines in centrum.json.
@@ -17,27 +21,53 @@ ROOT=${0:A:h:h}
 cd $ROOT
 mkdir -p build/bake
 W=data/work/demo/osm_demo.json
-step() { print -r -- "== $1"; }
-step "prepare (data/raw -> data/work/demo)"
-python3 tools/prepare_demo.py | tee build/bake/prepare.log
-step "terrain"
-python3 -I tools/bake_terrain.py | tee build/bake/terrain.log
-if [[ $1 != --no-trees || ! -f data/work/demo/trees_area.json ]]; then
-	step "trees (GUGiK sheets, ~5 min)"
-	python3 -I tools/bake_trees_gugik.py data/work/demo/trees data/work/demo/trees_area.json | tee build/bake/trees.log
+RESUME=0
+[[ $* == *--resume* ]] && RESUME=1
+(( RESUME )) || rm -rf build/bake/done
+mkdir -p build/bake/done
+# step NAME: prints the header; returns 1 (skip) when --resume and NAME already finished.
+# Every step ends with `stamp NAME`, so an interruption costs at most the step it was in.
+step() {
+	if (( RESUME )) && [[ -e build/bake/done/${1//[^A-Za-z0-9]/_} ]]; then print -r -- "== $1 (done, skipped)"; return 1; fi
+	print -r -- "== $1"
+}
+stamp() { touch build/bake/done/${1//[^A-Za-z0-9]/_}; }
+if step "prepare (data/raw -> data/work/demo)"; then
+	python3 tools/prepare_demo.py | tee build/bake/prepare.log
+	stamp "prepare (data/raw -> data/work/demo)"
 fi
-step "OpenStreetMap, pass 1"
-python3 -I tools/bake_osm.py $W $W game/map/centrum.json $W $W > build/bake/osm1.log
-tail -1 build/bake/osm1.log
-step "GUGiK LoD2"
-python3 -I tools/bake_gugik.py data/work/demo game/map | tee build/bake/gugik.log
-step "OpenStreetMap, pass 2 (structures over this LoD2)"
-python3 -I tools/bake_osm.py $W $W game/map/centrum.json $W $W > build/bake/osm2.log
-tail -1 build/bake/osm2.log
-step "AO, lights, water"
-python3 -I tools/bake_ao.py game/map | tee build/bake/ao.log | tail -1
-python3 -I tools/bake_lights.py game/map | tee build/bake/lights.log | tail -1
-python3 -I tools/bake_water.py game/map | tee build/bake/water.log | tail -1
-step "split and prebuilt sectors"
-tools/setup_map.sh
+if step "terrain"; then
+	python3 -I tools/bake_terrain.py | tee build/bake/terrain.log
+	stamp "terrain"
+fi
+if [[ $* != *--no-trees* || ! -f data/work/demo/trees_area.json ]]; then
+	if step "trees (GUGiK sheets, ~5 min)"; then
+		python3 -I tools/bake_trees_gugik.py data/work/demo/trees data/work/demo/trees_area.json | tee build/bake/trees.log
+		stamp "trees (GUGiK sheets, ~5 min)"
+	fi
+fi
+if step "OpenStreetMap, pass 1"; then
+	python3 -I tools/bake_osm.py $W $W game/map/centrum.json $W $W > build/bake/osm1.log
+	tail -1 build/bake/osm1.log
+	stamp "OpenStreetMap, pass 1"
+fi
+if step "GUGiK LoD2"; then
+	python3 -I tools/bake_gugik.py data/work/demo game/map | tee build/bake/gugik.log
+	stamp "GUGiK LoD2"
+fi
+if step "OpenStreetMap, pass 2 (structures over this LoD2)"; then
+	python3 -I tools/bake_osm.py $W $W game/map/centrum.json $W $W > build/bake/osm2.log
+	tail -1 build/bake/osm2.log
+	stamp "OpenStreetMap, pass 2 (structures over this LoD2)"
+fi
+if step "AO, lights, water"; then
+	python3 -I tools/bake_ao.py game/map | tee build/bake/ao.log | tail -1
+	python3 -I tools/bake_lights.py game/map | tee build/bake/lights.log | tail -1
+	python3 -I tools/bake_water.py game/map | tee build/bake/water.log | tail -1
+	stamp "AO, lights, water"
+fi
+if step "split and prebuilt sectors"; then
+	tools/setup_map.sh
+	stamp "split and prebuilt sectors"
+fi
 python3 -I tools/check_map_data.py
