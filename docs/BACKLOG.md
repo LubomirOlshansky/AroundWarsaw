@@ -145,6 +145,10 @@ experience". The plan, the road audit and the causes are in docs/GAMEPLAY_PLAN.m
 - [ ] 1.1 `check_drivability.gd`: every lane, turn and dead end with the player's car; per-street score
 - [ ] 1.2 Lane graph data: 101 nodes off the main network, 15 kinks over 45°, ~300 lanes under 2.5 m
 - [ ] 1.3 Autopilot rows P11-P16 (PLAYTEST.md)
+  2026-11-04: P12 drive-off works (43-55 m in 3 s); P14 and the three Trzy mosty legs drive clean
+  steered (`check_lane_drive`, verify step `lanedrive`; PT-21 closed, not a road bug). Left on the
+  Mac: a harness that follows a route (P15 flights to Varso and x 2100, P16 frames at race speed)
+  and the map hold at -700,900 that left the car in place twice (PT-19, intermittent)
 - [ ] 2.x Road fixes by street, forgiveness bevels, trap dead ends gated, score baseline in CI
 - [ ] 3.x Lane assist, wall look-ahead, junction pick, deck cut in the ghost, F's phone run
 - [ ] 4.1 Running clubs read as a blue blob at crossings: mixed kit, pairs, spread out
