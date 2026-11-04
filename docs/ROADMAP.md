@@ -507,6 +507,11 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [ ] Phase 3: lane assist, wall look-ahead, junction pick, deck cut; F's phone run
 - [ ] Phase 4: running clubs that read, Varso Place masses, Chmielna 89 "Piramida" (later, photo way)
 
+### Left: road objects and collisions (F, 2026-11-04; plan docs/design/road-objects.md)
+- [x] Research: every solid object by the roads audited and measured (`tools/road_objects.py`), the street-by-street pipeline, the collision targets, skill `road-objects-sweep` and agent `road-auditor` (2026-11-04, docs + tool)
+- [ ] Collision rework v2: walls redirect by angle, never stop; Classic gets the wall follow; traffic shoved, not a stop (F's phone A/B)
+- [ ] Street sweeps with verdicts per object, first Marszałkowska, Świętokrzyska, Jerozolimskie; stairwells and canopies; soft fences; narrow streets
+
 ### Left: street races that feel like races (F, 2026-11-04; plan docs/design/street-races.md)
 - [x] Research and race AI audit: why Halina drives slowly and by the rules, R1-R7 (2026-11-04, docs only)
 - [x] R1 racer driving mode and R2 fair rubber band, R4's numbers per rung, police chasers in racer mode (2026-11-04; phone feel open)
