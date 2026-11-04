@@ -3201,6 +3201,8 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
   graphics").
 
 ## From the website (aroundwarsaw.app, 2026-10-29)
+
+- The design wiki (`tools/wiki_build.py`) still links to the repo on GitHub (✎ edit chips, spec links, `REPO`); they break once the repo is private. Drop them or decide the wiki goes down (F, 2026-11-04).
 - ~~The four beta links say "soon"~~ (website v2: the form collects emails for invites; add the
   public TestFlight and Play links to the beta section when they exist).
 - The site's form posts to the Stillplace Formspree form (`mykaeqjp`); give Around Warsaw its own

@@ -71,7 +71,8 @@ then the Launch gate.
 - [x] Pokorna 2 remodelled as a block of flats: loggia windows, balconies, warm plaster (F, 2026-11-02, site `pokorna2`; Mac look check in QUESTIONS)
 - [x] Retro vaporwave filter replaces the VHS tape look; the Styl obrazu picker removed, always Sharp (2026-11-01; phone look check parked in QUESTIONS)
 - [x] Day, dusk and night; rain; water; synthesised sound; puddles and night water (3i part)
-- [x] Website beta signup (F, 2026-11-03): TestFlight join button (`/go/ios`), Android request form + Play link (`/go/android`), GitHub in the footer only
+- [x] Website beta signup (F, 2026-11-03): TestFlight join button (`/go/ios`), Android request form + Play link (`/go/android`), no GitHub links (closed source, 2026-11-04)
+- [x] Landing timeline brought up to 4 Nov, GitHub links removed (2026-11-04; deploy waits for F)
 - [x] Landing page, design wiki and /progress/ live; store texts and privacy manifest drafted
 - [x] Site visits and store-button clicks countable (F, 2026-11-02): `/go/ios` + `/go/android` counted in the Worker, Cloudflare traffic for visits; F deploys and sets the store URLs when listed (site/README "Visitors and store clicks")
 
