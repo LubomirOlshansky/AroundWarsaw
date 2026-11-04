@@ -12,10 +12,10 @@ extends SceneTree
 ##   from 3:40 to 5:30 gets the call only after it (beats wait); the replay's scripted order fires
 ##   at ORDER_AT; a helicopter-only call unlocks the helicopter at once; `judge` flags a late, a
 ##   missing and an early-fired beat;
-## - the first race's rubber band (rivals.gd `first_band`) in a 1-D race of 800 m: an ordinary
-##   player (34 km/h on average) wins by 0.5 to 4 s, a fast one wins, a slow one (22 km/h) loses
-##   by little or wins by little, one who stops for a minute loses; Halina's plain ladder pace
-##   would have beaten the ordinary player (the band is needed); PT-11: she waits at the line for
+## - the first race's rubber band (rivals.gd `first_speed`, street races R2) in a 1-D race of 800
+##   m: she leads an ordinary player (34 km/h on average) at half way and he wins by 0.5 to 6 s, a
+##   fast one wins, a slow one (22 km/h) loses by little or wins by little, one who stops for a
+##   minute loses; Halina flat out would have beaten the ordinary player (the band is needed); PT-11: she waits at the line for
 ##   a player who sits still after START! (`first_start_step`: wait, the GO nudge, release at
 ##   FIRST_HOLD), a player still for 8 s wins like an ordinary one, and the stall nudge mid-race
 ##   (`first_stall_due`) skips red-light stops, the last stretch and comes at most FIRST_STALLS times;
@@ -364,11 +364,19 @@ func _judge() -> void:
 
 
 ## A 1-D race of `road` m: the player at `speed` m/s (stopping `stop` s at the half), Halina from
-## 12 m behind at factor × 13.9 m/s (a 50 km/h street), her factor from `band` every 0.2 s (her
-## acceleration ~2 m/s²). Returns the player's lead at the finish in seconds (< 0: she won).
+## 12 m behind at rivals.gd `first_speed` (street races R2: she paces off the player's progress,
+## leads, then is caught) or, unbanded, flat out at her racing top (Ladder.racer(0): share of the
+## hatch's 30 m/s), pulling her race_accel. Returns the player's lead at the finish in seconds
+## (< 0: she won); `_led` is set when she was in front at the player's half-way mark.
 ## `late`: the player starts that many s after START!; `hold`: she waits at the line for the
 ## player to move (rivals.gd `first_start_step`, PT-11).
-func _race(speed: float, band: bool, stop := 0.0, road := 800.0, pace := Rivals.FIRST_PACE, late := 0.0, hold := false) -> float:
+var _led := false
+
+
+func _race(speed: float, band: bool, stop := 0.0, road := 800.0, late := 0.0, hold := false) -> float:
+	var stats := Ladder.racer(0)
+	var top := 30.0 * float(stats["share"])
+	var pull := float(stats["race_accel"])
 	var held := hold
 	var me := road
 	var her := road + 12.0
@@ -376,18 +384,23 @@ func _race(speed: float, band: bool, stop := 0.0, road := 800.0, pace := Rivals.
 	var dt := 0.05
 	var t := 0.0
 	var k := 0.0
-	var factor := pace
+	var want := top
+	var rate := Rivals.FIRST_RATE0
+	var last := me
 	var stopped := 0.0
+	_led = false
+	var halfway_checked := false
 	while me > 0.0 and her > 0.0 and t < 900.0:
 		k += dt
 		if k >= 0.2:
 			k = 0.0
-			factor = Rivals.first_band(her, me) if band else pace
+			rate = lerpf(rate, (last - me) / 0.2, 0.07)
+			last = me
+			want = Rivals.first_speed(her, me, road, rate, top) if band else top
 		var mine := speed if t >= late else 0.0
 		if held and Rivals.first_start_step(t, mine) == "release":
 			held = false
-		var want := 0.0 if held else factor * 13.9
-		v = move_toward(v, want, 2.0 * dt)
+		v = move_toward(v, 0.0 if held else want, pull * dt)
 		her -= v * dt
 		if t < late:
 			pass
@@ -395,6 +408,9 @@ func _race(speed: float, band: bool, stop := 0.0, road := 800.0, pace := Rivals.
 			stopped += dt
 		else:
 			me -= speed * dt
+		if not halfway_checked and me <= road * 0.5:
+			halfway_checked = true
+			_led = her < me
 		t += dt
 	if me <= 0.0:
 		return maxf(her, 0.0) / maxf(v, 0.1)
@@ -402,27 +418,37 @@ func _race(speed: float, band: bool, stop := 0.0, road := 800.0, pace := Rivals.
 
 
 func _band() -> void:
-	_expect(absf(Rivals.first_band(500.0, 475.0) - Rivals.FIRST_PACE) < 0.001, "on the gap: her pace")
-	_expect(Rivals.first_band(600.0, 400.0) == Rivals.FIRST_MAX, "far behind: she hurries")
-	_expect(Rivals.first_band(400.0, 450.0) == Rivals.FIRST_MIN, "ahead: she waits")
-	_expect(Rivals.first_band(100.0, 95.0) < Rivals.FIRST_MIN, "the last stretch, the player close: she lifts off")
-	_expect(Rivals.first_band(300.0, 600.0) == Rivals.FIRST_PACE, "the player far behind: her plain pace")
+	var top := 30.0 * float(Ladder.racer(0)["share"])
+	_expect(Rivals.first_speed(500.0, 470.0, 800.0, 10.0, top) > 10.0, "level with the player in the first half: she pulls ahead")
+	_expect(Rivals.first_speed(470.0, 520.0, 800.0, 10.0, top) < 10.0, "ahead by 50 m: she slows towards the 30 m lead")
+	_expect(Rivals.first_speed(600.0, 400.0, 800.0, 10.0, top) >= 19.9, "far behind the player: twice the player's pace")
+	_expect(Rivals.first_speed(100.0, 95.0, 800.0, 10.0, top) < 10.0, "the last stretch, the player close: she lifts off")
+	_expect(Rivals.first_speed(300.0, 600.0, 800.0, 10.0, top) == top * Rivals.FIRST_FAR_PACE, "the player far behind: her far pace")
+	_expect(Rivals.first_speed(470.0, 520.0, 800.0, 1.0, top) >= top * Rivals.FIRST_FLOOR, "never under her floor")
+	# Street races R2: every other race's band (rivals.gd `band_mult`).
+	_expect(Rivals.band_mult(600.0, 400.0, 0.8, 20.0, top, true) <= 1.0, "a band never boosts a rival past her top on screen")
+	_expect(Rivals.band_mult(600.0, 400.0, 0.8, 20.0, top, false) <= 1.0 + Rivals.BAND_BOOST * 0.8 + 0.001, "off screen at most +BAND_BOOST x weight")
+	_expect(Rivals.band_mult(400.0, 600.0, 0.8, 10.0, top, true) == Rivals.BAND_FLOOR, "far ahead on screen: she slows to her floor, still racing")
+	_expect(Rivals.band_mult(100.0, 130.0, 0.8, 10.0, top, true) < Rivals.BAND_FLOOR, "Halina on the last stretch, the player close: she lifts off")
+	_expect(Rivals.band_mult(100.0, 130.0, 0.25, 10.0, 28.0, true) >= Rivals.BAND_FLOOR, "Mike never lifts off")
 	var ordinary := _race(9.5, true)
+	var led := _led
 	var fast := _race(14.0, true)
 	var slow := _race(6.0, true)
 	var stops := _race(9.5, true, 60.0)
-	var plain := _race(9.5, false, 0.0, 800.0, Ladder.pace(0).x)
-	_expect(ordinary >= 0.5 and ordinary <= 4.0, "an ordinary player (34 km/h) wins by 0.5-4 s: %.1f s" % ordinary)
+	var plain := _race(9.5, false)
+	_expect(ordinary >= 0.5 and ordinary <= 6.0, "an ordinary player (34 km/h) wins by 0.5-6 s: %.1f s" % ordinary)
+	_expect(led, "she leads an ordinary player at half way (something to chase)")
 	_expect(fast > 0.0, "a fast player wins: %.1f s" % fast)
-	_expect(absf(slow) <= 6.0, "a slow player (22 km/h) is within a few seconds: %.1f s" % slow)
+	_expect(absf(slow) <= 8.0, "a slow player (22 km/h) is within a few seconds: %.1f s" % slow)
 	_expect(stops < 0.0, "a player who stops for a minute loses: %.1f s" % stops)
-	_expect(plain < 0.0, "Halina's plain ladder pace beats the ordinary player: %.1f s" % plain)
+	_expect(plain < 0.0, "Halina flat out beats the ordinary player: %.1f s" % plain)
 	# PT-11: a new player who sits still after START! (the agent in run 20261102-175913 lost so).
-	var late_new := _race(9.5, true, 0.0, 800.0, Rivals.FIRST_PACE, 8.0, true)
+	var late_new := _race(9.5, true, 0.0, 800.0, 8.0, true)
 	var long_s := Rivals.FIRST_HOLD + 8.0
-	var long_new := _race(9.5, true, 0.0, 800.0, Rivals.FIRST_PACE, long_s, true)
-	_expect(late_new >= 0.5 and absf(late_new - ordinary) < 1.0, "8 s still at the start, she waits: wins like an ordinary player: %.1f s" % late_new)
-	_expect(long_new > -6.0, "%.0f s still (she goes after FIRST_HOLD s): still close: %.1f s" % [long_s, long_new])
+	var long_new := _race(9.5, true, 0.0, 800.0, long_s, true)
+	_expect(late_new >= 0.5 and absf(late_new - ordinary) < 1.5, "8 s still at the start, she waits: wins like an ordinary player: %.1f s" % late_new)
+	_expect(long_new > -8.0, "%.0f s still (she goes after FIRST_HOLD s): still close: %.1f s" % [long_s, long_new])
 	_expect(Rivals.first_start_step(0.5, 0.0) == "wait", "START! + 0.5 s, still: wait")
 	_expect(Rivals.first_start_step(Rivals.FIRST_IDLE + 0.1, 0.5) == "nudge", "still past FIRST_IDLE: the GO nudge")
 	_expect(Rivals.first_start_step(1.0, Rivals.FIRST_MOVE + 0.1) == "release", "the player moves: she goes")
@@ -433,7 +459,7 @@ func _band() -> void:
 	_expect(not Rivals.first_stall_due(60.0, 0, Rivals.FIRST_EASE - 1.0), "the last stretch: no nudge")
 	_expect(Rivals.FIRST_GO_BANNER.length() <= 24, "the GO banner fits: %s" % Rivals.FIRST_GO_BANNER)
 	_summary.append("start: 8 s still %+.1f s, %.0f s still %+.1f s" % [late_new, long_s, long_new])
-	_summary.append("first race: ordinary +%.1f s, fast +%.1f s, slow %+.1f s, a stop %.0f s, unbanded %.0f s" % [ordinary, fast, slow, stops, plain])
+	_summary.append("first race: ordinary +%.1f s (she led at half way), fast +%.1f s, slow %+.1f s, a stop %.0f s, unbanded %.0f s" % [ordinary, fast, slow, stops, plain])
 
 
 func _words() -> void:

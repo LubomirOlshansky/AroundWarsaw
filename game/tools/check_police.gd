@@ -102,6 +102,12 @@ class FakeDriver extends RefCounted:
 	var persistent := false
 	var patrol := false
 	var accel_factor := 1.0
+	# Street races R1: the chase's racer mode (police_unit.gd `_racer`).
+	var race_accel := 0.0
+	var race_lat := 7.0
+	var race_top := 0.0
+	var race_band := 1.0
+	var pass_t := 0.0
 	var squeeze := 0.0
 	var ghost := false
 	var core_only := false
@@ -549,6 +555,9 @@ func _machine() -> void:
 			u.driver.pos = car.global_position - Vector3(30.0, 0.0, 0.0)
 	await _steps(1.0, hold)
 	var hatch_cap: float = u.driver.v_cap if u.driver != null else -1.0
+	# Street races R1: a chaser drives in racer mode (pull, corners, careful through reds).
+	var racer_accel: float = u.driver.race_accel if u.driver != null else -1.0
+	_case("chase racer mode", absf(racer_accel - preload("res://scripts/police/police_unit.gd").CHASE_RACE_ACCEL) < 0.01, "race_accel %.1f m/s²" % racer_accel)
 	var tt: Dictionary = Upgrades.stats("tt", {"engine": Upgrades.MAX_LEVEL})
 	car.top_mult = float(tt["top_mult"])
 	await _steps(1.0, hold)
