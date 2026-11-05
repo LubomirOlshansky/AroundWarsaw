@@ -177,7 +177,7 @@ someone writes its lines.
 - Powiśle has more to look at: the Ostrogski Castle with the Chopin Museum on Tamka, the parish church, the Syrenka statue on the boulevard, the water station and the Kaskada boat.
 - A new ice-cream parlour on Tamka, DALEJ DALLA GELATO: the queue stands all year, and in winter everyone queues in puffer jackets.
 - St John's Cathedral in the Old Town has its brick front: a stepped gable with a tall pointed window, stone pinnacles and a small gabled porch.
-- MDM on Plac Konstytucji looks like the socialist-realist district now: arcades along the ground floor of the blocks facing the square and Marszałkowska, and four stone towers with pointed roofs at the corners, each with a terracotta relief.
+- MDM on Plac Konstytucji looks like the real blocks now: cream plaster over a sand-stone base with shopfronts, small stepped pavilions with finials on the corners, and glowing roof signs: the red MDM, the Hotel MDM, and parodies of Xiaomi and BYD.
 - Most Śląsko-Dąbrowski's "find it" spot now sits on the bridge itself, where a car can reach it.
 - The football ground on Łazienkowska is a real stadium now (as "Stadion Leguminy"): a panelled facade under a red and green band, a white roof round an open middle, white, green and red stands round a striped pitch, floodlight masts at the corners and LEGUMINA in green neon, with a card.
 

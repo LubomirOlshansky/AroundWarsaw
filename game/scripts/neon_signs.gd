@@ -24,6 +24,9 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		"KOKA-KOLKA", "ORANŻADA",
 		# The tower75 crown from F's photos (2026-11-05): the appliance maker as a parody.
 		"PRALKA PLUS",
+		# MDM's roofs (F's Street View shots, 2026-11-05): the red MDM, a parody of the phone maker
+		# and of the car maker, and the hotel's own sign on the corner block.
+		"MDM", "XIAOMY", "BYDŁO", "HOTEL MDM",
 		# The Pawilony (2026-10-31): the bars' little words and the gate's name.
 		"PIWO", "BAR", "SHOTY", "DISCO", "KARAOKE", "OTWARTE", "PAWILONY",
 		# The start area as real Warsaw (R1, docs/design/start-area-real.md, 2026-11-01): the
