@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-05
 
+- Plac Centralny in front of the Palace of Culture looks like the new square: young trees in groves on the lawns and along the axis, flower beds, a long stone seat-wall, wooden step seating round a pale paved heart, the red WARSZAWA letters, green deckchairs and tall lamps.
 - The railway at Plac Zawiszy no longer runs over the street: the tracks, sleepers and overhead wires stop where the cutting ends and the tunnel mouth stands, and trains disappear into it.
 
 ## 2026-11-04
