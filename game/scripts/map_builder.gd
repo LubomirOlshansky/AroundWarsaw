@@ -1613,7 +1613,7 @@ func _build_rail_portals(st) -> void:
 		var ends := PackedVector2Array()
 		var dir := Vector2.ZERO
 		var y := INF
-		for r in data.get("rails", []):
+		for r in Trains.trim_rails(data.get("rails", [])):
 			var poly := _pts(r["p"])
 			if poly.size() < 2:
 				continue
@@ -1683,7 +1683,7 @@ const WIRE_COL := Color("#2a2c2f")
 
 
 func _build_catenary(st) -> void:
-	var rails: Array = data.get("rails", [])
+	var rails: Array = Trains.trim_rails(data.get("rails", []))
 	if rails.is_empty():
 		return
 	_uv2 = Vector2(0.5, -1.0)
@@ -4418,7 +4418,7 @@ func _draped_wall(st, a: Vector2, b: Vector2, y0: float, y1: float, facing: Vect
 ## sleepers every 0.65 m. Same mesh and material as before: no new draw call.
 func _build_rail_beds(st) -> void:
 	var bias := _drape_bias
-	for r in data.get("rails", []):
+	for r in Trains.trim_rails(data.get("rails", [])):
 		_dk = int(r.get("dk", -1))
 		var poly := _pts(r["p"])
 		_layer = L_GRAVEL
@@ -4434,7 +4434,7 @@ func _build_rail_beds(st) -> void:
 
 func _build_rails(st) -> void:
 	_layer = L_RAIL
-	for r in data.get("rails", []):
+	for r in Trains.trim_rails(data.get("rails", [])):
 		_dk = int(r.get("dk", -1))
 		var poly := _pts(r["p"])
 		for side in [-0.72, 0.72]:
