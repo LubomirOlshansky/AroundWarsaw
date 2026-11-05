@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-04
 
+- The website's "How it grew so far" now runs up to today (the Autopilot playtester, photo-built landmarks, the beta on TestFlight and Play, driving by buttons, smarter racers) and shows how many places are done; the GitHub links are gone, since the code is closed.
 - Street races feel like races now: rivals drive flat out, take corners fast, run red lights and overtake traffic and you; Pani Halina leads the first race so you have someone to chase, every race stays close to the end, and police chases corner and pull away like real pursuers.
 - Driving now starts with the steering strip on the left and the GAS and BRAKE pedals on the right; pointing where to go is still in Settings → Jazda, and the first-minute hint shows the new controls.
 
@@ -34,7 +35,7 @@ someone writes its lines.
 - Bracka has its two department stores: the dark stone Vipkac with a glass top floor and trees on its roof terrace, and the 1914 Jabłkowski Brothers' store with arched shop windows and two white columns at the door; by Plac Trzech Krzyży the white banded Szeraton hotel stands with its glass drum and name crown on the corner. Next to Vipkac, the grey granite bank building of 1931 fills the Jerozolimskie corner by Nowy Świat, with its gilded monogram over the middle.
 - From above, the Ministry of Finance, the National Museum and Hotel Bristol now show their open courtyards (a tree-lined court at the ministry, the paved museum court, Bristol's light well) instead of one solid roof.
 - Hotel Europejski on Krakowskie Przedmieście looks like the restored hotel today: rounded corners with two tiers of columns and curved balconies, rows of pedimented windows, tall arched shop windows, the HOTEL EUROPEJSKI name in gold over the street, a balustrade along the roof and the dark curved glass storey set back behind it. The University's main gate is narrower, as in life.
-- The website now leads with the beta: join on iPhone through TestFlight, or request Android access with a short form. The open-source story moved to the footer and a quieter "How it's made" section.
+- The website now leads with the beta: join on iPhone through TestFlight, or request Android access with a short form. A quieter "How it's made" section follows.
 - With colour-safe markers on (Settings, accessibility), race rings are now chequered like a finish line and a rescue pickup's ring is dashed, so you can tell them apart without relying on colour.
 - Praga's old streets get evenings: six neon bar signs (ŚWIAT PO PRASKU, BARISTA Z PODWÓRKA, WINO ZE SKRZYNKI, KRAINA WINA, KIJOWSKA DWÓJKA, POD KUFLEM ZA ROGIEM) around Okrzei, Wrzesińska, Kijowska and Targowa, and people outside with a drink after dark.
 - After the first ten minutes the game tells you where the story goes on: a short goal line ("Find and flash: Słoik z Radomia") when a new step opens, and now and then a gold arrow with a star at the screen's edge pointing to the next rival, only while you are not doing anything else. The screen-edge arrow also no longer hides under the minimap, the wallet or the pedals.
@@ -292,7 +293,7 @@ someone writes its lines.
 - The new Museum of Modern Art on Plac Defilad is now its own building: the long white box floating on a glass lobby behind white fins, a thin dark slot round the middle, big windows that glow at night, skylights on the roof, and an info card.
 - The Pawilony behind Nowy Świat: a maze of tiny one-storey bars, each a different colour, with lit windows, warm bulbs and little neon signs (PIWO, SHOTY, KARAOKE...), and a PAWILONY sign over the gate on Nowy Świat.
 - The towers and the Palace of Culture no longer flicker: overlapping walls and roofs were drawn twice, and now they are drawn once. The look is the same.
-- A new, shorter website: the newest screenshots, three missions, open source, a word from the author.
+- A new, shorter website: the newest screenshots, three missions, a word from the author.
 - A new automatic check looks at every landmark model for flickering surfaces, zero-size faces, floating parts and too many triangles, so these get caught before anyone looks at a screenshot.
 - Rondo Dmowskiego, the rest of the photos: the city bus is an 18 m yellow-and-red articulated one with a bellows in the middle, the bus shelter has its big lit ad panel, the Nowotel's name has its orange rule and chain line under it, Hotel Metropol's roof carries a green neon name and Rondo 1 has a clinic sign at street level.
 - Rondo Dmowskiego at night looks like the photos: the Nowotel's white tower with its name in blue neon, the Rotunda's white zigzag crown with red and blue light, red bus shelters, and yellow trams with a red roof.
@@ -315,7 +316,7 @@ someone writes its lines.
 
 ## 2026-10-30
 
-- The game is now called Around Warsaw and is open source (MIT); the car radio's main station is KEBAB FM.
+- The game is now called Around Warsaw; the car radio's main station is KEBAB FM.
 - MOJA WARSZAWA, the city notebook: 72 places to find, in 9 chapters.
 - The night and the river: club queues, the dawn crowd, the river steps; then dog walkers, runners, cyclists and the café trends.
 - PÓŁNOC FM, the late-night station, plus Fotka (a photo mode), KASETA (the time tape) and 45 easter eggs.
