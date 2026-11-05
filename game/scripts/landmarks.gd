@@ -26,6 +26,7 @@ const M_GOLD := 4.0       # the Palace's spire
 const M_DIAL := 5.0       # clock dials: lit at night
 const M_WEAVE := 6.0      # Stadion Narodowy's red-and-white skin
 const M_GLASS_ROOF := 7.0 # Złote Tarasy's wave
+const TarasyScreen := preload("res://scripts/tarasy_screen.gd")  # the screen block over the entrance
 const Neon := preload("res://scripts/neon_signs.gd")  # the dusk loop: sign sizes
 const M_PAVILION := 8.0   # glass lit from inside: + 0 warm (the Rotunda), + 0.5 cool (Varso's crown)
 const M_ATTIC := 9.0      # a parapet cut into merlons; fraction = its height / 10 m
@@ -2432,20 +2433,28 @@ const TARASY_TERRACE := Color("#8a9a72")   # the planted terraces (mapped #6EBE9
 const TARASY_DECK := Color("#a49d90")      # the podium's plain roofs
 const TARASY_LUMEN := Color("#9fb0b8")     # Lumen's silver-blue glass between white ribbons
 const TARASY_LUMEN_ROOF := Color("#8e9497")
-const TARASY_SKY := Color("#6f9cb0")       # Skylight's blue-green curtain wall
+const TARASY_SKY := Color("#a3afb4")       # Skylight's light silver-grey cladding (Mac photos), a dark-teal window dash per floor
 const TARASY_SKY_ROOF := Color("#a7b3b8")
 const TARASY_CROWN := Color("#b9d2dc")     # Skylight's glass crown, lit cool white at night
 const TARASY_DRUM := Color("#c9b98f")      # the drum: golden glass lit warm
+const TARASY_BLOCK := Color("#3b3e4b")     # the screen block over the entrance: dark graphite
 const TARASY_RED := Color("#c0624c")       # the red entrance boxes on Jana Pawła II (mapped tomato)
 const TARASY_RIM := Color("#b9a983")       # the wave's glass walls: the terraces' shopfronts
 const TARASY_WAVE := Color("#d4b066")      # the landmarks loop: golden glass (was #8fb6c6, ice)
 ## How far Skylight's crown leans in (fraction of the way to the centre) and how high it is.
 const TARASY_CROWN_IN := 0.18
 const TARASY_CROWN_H := 8.0
+const TARASY_PARAPET_H := 3.5   # the crown's high curved parapet on the south face
 
 
 func _tarasy_dome(b: Dictionary) -> bool:
 	return str(b["c"]).to_lower() == "#336699" and float(b["h"]) >= 20.0
+
+
+## The mapped plate over the entrance (17 to 27 m, 19 points, Skylight's colour): the screen's block.
+func _tarasy_screen_block(b: Dictionary) -> bool:
+	return str(b.get("name", "")) == "" and str(b["c"]).to_lower() == "#bac1c7" and is_equal_approx(float(b["mh"]), 17.0) \
+			and is_equal_approx(float(b["h"]), 27.0) and (b["p"] as Array).size() == 38
 
 
 func _build_tarasy(site: Dictionary) -> void:
@@ -2465,18 +2474,27 @@ func _build_tarasy(site: Dictionary) -> void:
 		var y1 := g + h
 		var nm := str(b.get("name", ""))
 		var col := str(b["c"]).to_lower()
-		if nm == "Lumen":
+		if _tarasy_screen_block(b):
+			# F's photos (2026-11-05): the 3D screen hangs on a box that stands out in front of
+			# Skylight, over the glass entrance: its south face and the curved west return make an
+			# L in plan (tarasy_screen.gd). The mapped plate (17 to 27 m) grows to the screen's top.
+			_prism(poly, y0, g + TarasyScreen.BLOCK_TOP, TARASY_BLOCK, TARASY_BLOCK.darkened(0.1), M_STONE, M_STONE)
+		elif nm == "Lumen":
 			# The office crescent: white ribbons between silver-blue glass, on the podium.
 			_prism(poly, y0, y1, TARASY_LUMEN, TARASY_LUMEN_ROOF, M_SKIN + float(S_RIBBON) / 16.0, M_SKIN)
 		elif nm == "Skylight":
 			_prism(poly, y0, y1, TARASY_SKY, TARASY_SKY_ROOF, M_SKIN + float(S_BANDS) / 16.0, M_SKIN)
-			# The crown: the curtain wall carried up past the roof and leaning in, lit at night.
-			var c := _centre(poly)
-			var top := PackedVector2Array()
-			for q in poly:
-				top.append(q + (c - q) * TARASY_CROWN_IN)
-			_mode = M_PAVILION + 0.5
-			_frustum(poly, y1, top, y1 + TARASY_CROWN_H, TARASY_CROWN, TARASY_SKY_ROOF)
+			# The crown (Mac photo report, refs/skylight/REPORT.md, 2026-11-05): no lit glass frustum;
+			# a high curved parapet round the south face, the west half scooped down to an oval glass cap.
+			var south := Geometry2D.intersect_polygons(poly, PackedVector2Array([Vector2(-1430, 421), Vector2(-1340, 421), Vector2(-1340, 460), Vector2(-1430, 460)]))
+			for sp: PackedVector2Array in south:
+				for strip: PackedVector2Array in Geometry2D.clip_polygons(sp, Geometry2D.offset_polygon(sp, -0.9)[0]):
+					_prism(strip, y1, y1 + TARASY_PARAPET_H, TARASY_SKY_ROOF, TARASY_SKY_ROOF.darkened(0.15), M_STONE, M_STONE)
+			var cap := PackedVector2Array()
+			for k in 20:
+				var t := TAU * float(k) / 20.0
+				cap.append(Vector2(-1396.0 + cos(t) * 6.0, 418.0 + sin(t) * 3.5))
+			_prism(cap, y1, y1 + 1.6, TARASY_CROWN, TARASY_CROWN, M_PAVILION + 0.5, M_GLASS_ROOF)
 		elif col == "#336699":
 			# The glass floor under the wave's low south sweep: the wave carried down to the plaza.
 			_prism(poly, y0, y1, TARASY_RIM, TARASY_WAVE, M_PAVILION, M_GLASS_ROOF)

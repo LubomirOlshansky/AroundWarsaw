@@ -1,24 +1,25 @@
 extends Node3D
-## The 3D corner screen on Skylight at Złote Tarasy (F, 2026-11-05, from his photos): the big curved
-## LED screen wrapped round the tower's south-east corner above the glass entrance, on the crossing
-## of Emilii Plater and Złota, with anamorphic content that floats out of its frame (glowing
+## The 3D screen at Złote Tarasy (F, 2026-11-05, from his photos): the big LED screen that hangs on a
+## box standing out in front of the Skylight tower over the glass entrance, an L in plan (the south
+## face and a curved return), with anamorphic content that floats out of its frame (glowing
 ## flowers, a cat leaning out, a title). Ours is an original loop under a parody title (SCENA
 ## WARSZAWA); no real brand is on it.
-## A strip of mesh along Skylight's mapped wall (the same outline landmarks.gd builds), standing
-## 1.6 m off it and starting above the entrance canopy (the mapped plate tops out at 27 m):
-## one mesh, one material, one draw call. All the looks are in shaders/led_screen.gdshader, which
-## follows a ray into a little box so the walls and layers parallax with the viewer. Built at
+## A strip of mesh along the block's mapped plate (landmarks.gd raises it to BLOCK_TOP in
+## graphite): one mesh, one material, one draw call. All the looks are in shaders/led_screen.gdshader,
+## which follows a ray into a little box so the walls and layers parallax with the viewer. Built at
 ## runtime on both city paths (it isn't in the sector scenes), like skwer_zlota.gd.
 
 const Pixel := preload("res://scripts/pixel_font.gd")
 
-## Skylight's wall from its south face round the curved corner to the Emilii Plater face, walked
-## west to east so the screen's right is the viewer's right (world x east, z south).
-const WALL := [Vector2(-1389.0, 440.0), Vector2(-1381.0, 439.0), Vector2(-1373.0, 437.0),
-		Vector2(-1368.0, 433.0), Vector2(-1360.0, 429.0), Vector2(-1355.0, 424.0), Vector2(-1358.4, 413.1)]
-const OFFSET := 1.6         # off the wall (the cabinets are a metre deep, and clear the corner's fins)
-const BOTTOM := 27.4        # metres above the ground at the corner: over the 27 m plate
-const HEIGHT := 17.0        # the box's height
+## The block's south face and its curved west return (the plate over the glass entrance, 17 m up,
+## which landmarks.gd raises to BLOCK_TOP), walked west to east so the screen's right is the viewer's
+## right (world x east, z south): an L in plan, as in F's photos.
+const WALL := [Vector2(-1409.0, 437.0), Vector2(-1403.0, 442.0), Vector2(-1396.0, 445.0),
+		Vector2(-1389.0, 447.0), Vector2(-1382.0, 449.0), Vector2(-1375.0, 449.0), Vector2(-1368.0, 449.0)]
+const OFFSET := 0.3         # off the block's wall
+const BOTTOM := 17.3        # metres above the ground at the block: over the 17 m entrance roof
+const HEIGHT := 20.2        # the box's height
+const BLOCK_TOP := 38.0     # the block's roof, a little over the screen
 const MARGIN := 2.6         # the mesh below the box, for what hangs out of it
 const SHADER := "res://shaders/led_screen.gdshader"
 const TITLE := ["SCENA", "WARSZAWA"]
@@ -46,7 +47,7 @@ func build() -> void:
 	var o := outline()
 	var pts: Array = o[0]
 	var norms: Array = o[1]
-	var ground: float = map.ground_height(WALL[4].x, WALL[4].y) if map != null else 0.0
+	var ground: float = map.ground_height(WALL[3].x, WALL[3].y) if map != null else 0.0
 	var y0 := ground + BOTTOM - MARGIN
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -72,7 +73,7 @@ func build() -> void:
 	mesh_instance.name = "TarasyScreen"
 	mesh_instance.mesh = st.commit()
 	mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	mesh_instance.custom_aabb = AABB(Vector3(-1395, y0, 405), Vector3(45, MARGIN + HEIGHT, 40))
+	mesh_instance.custom_aabb = AABB(Vector3(-1415, y0, 432), Vector3(52, MARGIN + HEIGHT, 25))
 	var tex := _title_texture()
 	var mat := ShaderMaterial.new()
 	mat.shader = load(SHADER)
