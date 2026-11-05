@@ -142,6 +142,18 @@ experience". The plan, the road audit and the causes are in docs/GAMEPLAY_PLAN.m
   its hint show the GAZ pedal and the steering strip (pad and keyboard lines too). Open: F's phone
   feel; the Autopilot harness on the Mac now gets Classic's keys (A / D steer, W gas, S brake) in
   editor runs unless it passes `--controls=point`
+- [x] Walls redirect in Classic too (2026-11-04, collision rework v2 step 1, road-objects.md 7.1):
+  the wall follow lived only in Point's aim, so with Classic the default a head-on wall stopped the
+  car dead and the unstick turned it out after 1.5 s. `car.gd` `_classic_wall_steer`: gas on and
+  the nose into a wall (a car or tram after CAR_PUSH_TIME), the steering turns it along the wall,
+  the side the strip leans (past 0.2) or else the nose; a harder turn of the player's own wins.
+  `check_steering` head-on Classic: 0 → 19 km/h a second after the touch, pinned 1.4 → 0.4 s,
+  no unstick (now a gate: `wall_headon` pin 1 s, no unstick, all schemes; `wall_headon_right`:
+  the strip picks the side; `car_behind` now asks Classic too). Found on the way: the unstick
+  could turn a 4 m car across a 3 m gap, half into the walls, and driving on pushed it out
+  through one (Point escaped `check_stuck_offer`'s pen; Classic now did too): the unstick only
+  picks headings the car fits in (`_fits`, under 0.15 m into anything). Open: F's phone feel
+  (how firmly it turns off a wall), the same for buildings and traffic in rework v2
 - [ ] 1.1 `check_drivability.gd`: every lane, turn and dead end with the player's car; per-street score
 - [ ] 1.2 Lane graph data: 101 nodes off the main network, 15 kinks over 45°, ~300 lanes under 2.5 m
 - [ ] 1.3 Autopilot rows P11-P16 (PLAYTEST.md)
