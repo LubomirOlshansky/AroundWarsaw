@@ -38,6 +38,7 @@ const Access := preload("res://scripts/access.gd")
 const Haptics := preload("res://scripts/haptics.gd")
 const StopAssist := preload("res://scripts/stop_assist.gd")
 const Models := preload("res://scripts/models.gd")
+const LaneAssist := preload("res://scripts/lane_assist.gd")
 
 ## Hit something hard enough to notice, at `speed` m/s closing speed (traffic stops
 ## the car it was hit by; the słoiki run breaks jars).
@@ -151,6 +152,8 @@ const SLIP_HIT := 0.35
 ## Pushing into a car or a tram (not fixed) this long with the gas on and going nowhere: steer
 ## round it as round a wall.
 const CAR_PUSH_TIME := 0.35
+## Classic against a wall: the strip leaning more than this picks the side the car slides off to.
+const CLASSIC_WALL_LEAN := 0.2
 ## G17 ("stuck with another cars"): held against a traffic car or tram this long with the gas on
 ## and going nowhere, the car ghosts through it for GHOST_TIME s (a collision exception, never
 ## for walls); still among cars within JAM_RADIUS m of where it began after JAM_TIME s, `jammed`.
@@ -209,6 +212,13 @@ var _assist_held := 0.0
 var _assist_spent := false
 ## Point-to-steer: when not zero, the car turns towards this world direction.
 var target_dir := Vector3.ZERO
+## Beta values (2026-11-04): the lane assist ("Asysta pasa", lane_assist.gd), on from Settings →
+## Jazda (off by default), and the direction of the lane the car drives in (main.gd sets it 10 times
+## a second; ZERO: none). Classic only: with a target_dir (Point, Fixed) it does nothing.
+var lane_assist := false
+var lane_dir := Vector3.ZERO
+## The assist's yaw rate this step (rad/s), for the checks.
+var lane_pull := 0.0
 ## What the car does this step (loop 2a): the brakes are on (the button, or pointing well
 ## behind at speed: skids and the tyres' squeal read this), the smoothed steering, and
 ## the yaw rate (rad/s, + is left).
@@ -537,8 +547,19 @@ func _step(dt: float) -> void:
 				top = minf(top, maxf(speed, TURN_CRAWL))
 	else:
 		_turn_side = 0.0
+		var w := _classic_wall_steer(fwd, speed, gas)
+		if w != 0.0:
+			# Collision rework v2, step 1: the player's own steering wins when it turns harder
+			# the same way (or away from the wall); otherwise the wall's line does.
+			s = signf(w) * maxf(absf(w), absf(s)) if signf(s) == signf(w) else w
+			# Turning off the wall from a crawl: hold the speed until it has turned, as Point does.
+			top = minf(top, maxf(speed, TURN_CRAWL))
 	steer_now = lerpf(steer_now, clampf(s, -1.0, 1.0), 1.0 - exp(-dt / (steer_time / steer_gain)))
 	var yaw := steer_now * max_turn(absf(speed), maxf(gas, throttle)) * backwards
+	lane_pull = _lane_pull(fwd, speed)
+	if lane_pull != 0.0:
+		var most := max_turn(absf(speed), maxf(gas, throttle))
+		yaw = clampf(yaw + lane_pull, -most, most)
 	rotate_y(yaw * dt)
 	yaw_rate = yaw
 
@@ -905,10 +926,45 @@ func _nitro_tick(dt: float) -> void:
 
 ## The most the car turns (rad/s) at `v` m/s: turn_cap when slow, turn_pull / v + turn_floor
 ## at speed; under 2 m/s it fades out, except for a little pivot with the gas on.
+## The lane assist's yaw rate (lane_assist.gd yaw_pull): Classic, going forward, not braking, not
+## touching anything (the wall follow and the slips have the steering then), on a lane.
+func _lane_pull(fwd: Vector3, speed: float) -> float:
+	if not lane_assist or lane_dir == Vector3.ZERO or target_dir != Vector3.ZERO or braking or parked \
+			or speed < 0.0 or _contact > 0.0:
+		return 0.0
+	return LaneAssist.yaw_pull(fwd.signed_angle_to(lane_dir, Vector3.UP), steer, speed)
+
+
 func max_turn(v: float, gas := 0.0) -> float:
 	var w := minf(turn_cap, turn_pull / maxf(v, 0.1) + turn_floor)
 	var roll := clampf(v / 2.0, 0.0, 1.0)
 	return maxf(w * roll, pivot * gas * (1.0 - roll)) * steer_gain
+
+
+## Classic (steer strip + GAS/BRAKE, the default since 2026-11-04): touching a wall with the
+## gas on and the nose into it, the steering that turns the car along the wall, so a head-on
+## hit slides off instead of stopping dead ("walls redirect, never stop", docs/design/
+## road-objects.md section 7 item 1). Point does the same through its aim (`_step`). The side
+## follows the strip once it leans past CLASSIC_WALL_LEAN, else the way the nose leans (picked
+## once per touch: nose-on it would flip every frame). 0.0 when not against a wall. A car or
+## tram only after CAR_PUSH_TIME of pushing, as in Point; reversing is left to the player.
+func _classic_wall_steer(fwd: Vector3, speed: float, gas: float) -> float:
+	if parked or braking or gas <= 0.1 or speed < -0.3 or _contact <= 0.0 or _wall_normal == Vector3.ZERO:
+		return 0.0
+	if _fixed_contact <= 0.0 and _car_push <= CAR_PUSH_TIME:
+		return 0.0
+	if fwd.dot(_wall_normal) >= -0.05:
+		return 0.0
+	var t := _wall_normal.cross(Vector3.UP)
+	if absf(steer) > CLASSIC_WALL_LEAN:
+		# The side the strip turns to: a positive steer turns towards a positive signed angle.
+		_wall_side = 1.0 if signf(fwd.signed_angle_to(t, Vector3.UP)) == signf(steer) else -1.0
+	elif _wall_side == 0.0:
+		_wall_side = 1.0 if t.dot(fwd) >= 0.0 else -1.0
+	var err := fwd.signed_angle_to(t * _wall_side, Vector3.UP)
+	var rate := err * point_gain - yaw_rate * yaw_damping
+	var w := clampf(rate / maxf(max_turn(absf(speed), gas), 0.05), -1.0, 1.0)
+	return w if absf(w) > 0.001 else 0.0
 
 
 ## Pinned against a wall: turn the car out of it (towards where the player wants to go,
@@ -952,12 +1008,20 @@ func _unstick() -> void:
 				blocked = true
 		if blocked:
 			continue
+		# Only headings the car fits in there (a 4 m car turned across a 3 m gap sits half in the
+		# walls, and driving on from that pose pushed it out through one: check_stuck_offer's pen).
+		if not _fits(n * 0.5, -c if reverse else c):
+			continue
 		var score := c.dot(want) + 0.1 * c.dot(moving)
 		if score > best_score:
 			best_score = score
 			best = c
 	global_position += n * 0.5
 	var face := -best if reverse else best
+	if best_score == -INF:
+		# No way out it fits: keep the heading and ease off the wall.
+		face = _forward()
+		best = n * 0.5
 	rotation.y = atan2(-face.x, -face.z)
 	vel = best * 3.0
 	forward_speed = vel.dot(_forward())
@@ -970,6 +1034,14 @@ func _unstick() -> void:
 	if _clock - _last_unstick < 5.0:
 		stuck.emit()
 	_last_unstick = _clock
+
+
+## Would the car, moved by `step` and facing `face`, sit clear of what it collides with (under
+## 0.15 m into it)? For the unstick's choice of heading.
+func _fits(step: Vector3, face: Vector3) -> bool:
+	var xf := Transform3D(Basis(Vector3.UP, atan2(-face.x, -face.z)), global_position + step)
+	var hit := KinematicCollision3D.new()
+	return not test_move(xf, Vector3.ZERO, hit, 0.001, true) or hit.get_depth() <= 0.15
 
 
 ## The driving-feel loop: every touch this step is at one front corner (Godot reports the car's

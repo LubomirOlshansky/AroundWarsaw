@@ -29,8 +29,14 @@ const MAX_TURN := 0.55
 ## An end of the track this near the map's bounds is a way in and out; so is one near a tunnel
 ## mouth (the cross-city tunnel west of Ochota's cutting and under Powiśle's upper pavilion).
 const EDGE := 45.0
-const PORTALS := [Vector2(-1924.0, 800.0), Vector2(176.0, 80.0)]
+const PORTALS := [Vector2(-1964.0, 812.0), Vector2(176.0, 80.0)]
 const PORTAL_R := 40.0
+## The cross-city tunnel under Plac Zawiszy: the 10 m terrain grid has the cutting's floor (7.5 m)
+## up to its mouth, then the street (14.2 m) over the tunnel, but OSM keeps the tracks on to
+## (-1923, 798), so beds, rails, wires and trains ran over the road. Rails are cut by this polygon
+## (`trim_rails`); the mouth stands where the cutting ends (PORTALS[0]).
+const TUNNEL_ZAWISZY := [Vector2(-2018.0, 850.0), Vector2(-1992.0, 834.0), Vector2(-1966.0, 825.0),
+		Vector2(-1962.0, 806.0), Vector2(-1962.0, 760.0), Vector2(-1890.0, 760.0), Vector2(-1890.0, 860.0)]
 ## A platform within this distance of a track (its centre from the track's line) is a stop.
 const PLATFORM_NEAR := 9.0
 ## A train this close to the end of its piece holds the next one.
@@ -98,12 +104,44 @@ var _bounds := Rect2()
 var _rng := RandomNumberGenerator.new()
 
 
+## The rails with the stretch under Plac Zawiszy (TUNNEL_ZAWISZY) cut away: each polyline that
+## touches it comes back as its pieces outside. Others are returned as they are.
+static func trim_rails(rails: Array) -> Array:
+	var poly := PackedVector2Array(TUNNEL_ZAWISZY)
+	var box := Rect2(poly[0], Vector2.ZERO)
+	for q in poly:
+		box = box.expand(q)
+	var out: Array = []
+	for r in rails:
+		var flat: Array = r["p"]
+		var pts := PackedVector2Array()
+		var touches := false
+		for i in range(0, flat.size() - 1, 2):
+			var q := Vector2(flat[i], flat[i + 1])
+			pts.append(q)
+			touches = touches or box.has_point(q)
+		if not touches:
+			out.append(r)
+			continue
+		for piece: PackedVector2Array in Geometry2D.clip_polyline_with_polygon(pts, poly):
+			if piece.size() < 2 or piece[0].distance_to(piece[piece.size() - 1]) < 0.5:
+				continue
+			var np: Dictionary = r.duplicate()
+			var f: Array = []
+			for q in piece:
+				f.append(q.x)
+				f.append(q.y)
+			np["p"] = f
+			out.append(np)
+	return out
+
+
 func setup(map_node: Node3D, data: Dictionary) -> void:
 	map = map_node
 	_rng.seed = 1955
 	var b: Array = data.get("bounds", [-1e6, -1e6, 1e6, 1e6])
 	_bounds = Rect2(float(b[0]), float(b[1]), float(b[2]) - float(b[0]), float(b[3]) - float(b[1]))
-	for r in data.get("rails", []):
+	for r in trim_rails(data.get("rails", [])):
 		var flat: Array = r["p"]
 		var p := PackedVector2Array()
 		for i in range(0, flat.size() - 1, 2):

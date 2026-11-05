@@ -123,11 +123,15 @@ SITE_NAMES = ["Pałac Kultury i Nauki", "Złote Tarasy", "Lumen", "Skylight", "R
               "Atlas Tower",
               # Hortus (2026-11-02): its tenement-style flats on Drewniana, unnamed in OSM, found
               # by landmarks.gd HORTUS_FLATS_AT next to the outline
-              "Hortus"]
+              "Hortus",
+              # Plac Bankowy (2026-11-02): the Ratusz's colonnades stand on its mapped columns
+              # (landmarks.gd _build_ratusz reads the building=column parts by the outline)
+              "Urząd Miasta Stołecznego Warszawy"]
 SITE_PAD = 12.0
 # Building kinds landmarks.gd finds wherever they lie (the barges, 2026-11-01: _find_barges).
 SITE_KINDS = ("boat", "houseboat")
 SITE_AREAS = [
+    (-1345.0, -1790.0, -1200.0, -1690.0),   # Sąd Najwyższy's colonnade (landmarks.gd SN_BOX: unnamed OSM columns)
     (-270.0, -1510.0, -20.0, -1260.0),      # the boulevards' bar pavilions (landmarks.gd BULWAR_PAW_BOX)
     (25.0, -1110.0, 65.0, -1065.0),         # and their containers and kiosks (BULWAR_BAR_BOXES)
     (195.0, -1068.0, 245.0, -1025.0),

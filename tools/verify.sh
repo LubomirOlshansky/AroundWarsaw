@@ -70,6 +70,12 @@
 # 1.6 × detour rule, the rider's way and speed, a win's +30 zł +30 respect once), the Leżak round-up
 # (the pay, the boot of 5, the depots, ten Leżaks on the real map, late, ✕, back by morning), the
 # payphone by Plac Konstytucji and E40 once; centrum.json only (CI too).
+# Beta values (2026-11-04): `laneassist` runs game/tools/check_lane_assist.gd: the lane assist on
+# the real car (a 6° start, a 300 m curve, a deliberate turn, when it must not pull) and the lane's
+# direction on the committed map (~10 s).
+# Beta values (2026-11-04): `delivery` runs game/tools/check_delivery.gd: the deliveries' minimap
+# route from the stands to 60 doors (and from the reverse lane), the heat's words, NASTĘPNE's
+# nearest stand and the route's owner rule (the committed centrum.json, headless, ~20 s).
 # Loop couriers: `couriers` runs game/tools/check_couriers.gd: the Pędzik couriers waiting at the kebab
 # stands at night (1 or 2, none by day, the race's take), the kerb riders on the real lane graph (the
 # count in the band, on the kerb line, through the junctions), the swerve / hop on synthetic inputs and
@@ -186,8 +192,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh monuments monumentmesh spec lod2 courts drape ground drive drive-prebuilt deckxray stuckspots stuckspots-prebuilt lanedrive finite steering stuckoffer handling stopassist questlines settings credits language tiers governor heliview hud places edge roadworks eggs tape crowds life buses zaglebie crashes loud oldtram trains packs wellness fans garage save districts syrenki cassettes ladder first10 mainline chatter endcard opening parodies jobs2 rescues couriers rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram teleport firstlife heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh monuments monumentmesh spec drape drive deckxray stuckspots finite steering stuckoffer handling stopassist questlines settings credits language tiers governor heliview hud places edge roadworks eggs tape crowds life buses zaglebie crashes loud oldtram trains packs wellness fans garage save districts syrenki cassettes ladder first10 mainline chatter endcard opening parodies jobs2 rescues couriers rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds police plain ram teleport firstlife prebuilt)
+STEPS_ALL=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh monuments monumentmesh spec lod2 courts drape ground drive drive-prebuilt deckxray stuckspots stuckspots-prebuilt lanedrive finite steering laneassist stuckoffer handling stopassist questlines settings credits language tiers governor heliview hud places edge roadworks eggs tape crowds life buses zaglebie crashes loud oldtram trains packs wellness fans garage save districts syrenki cassettes ladder first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram teleport firstlife heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh monuments monumentmesh spec drape drive deckxray stuckspots finite steering laneassist stuckoffer handling stopassist questlines settings credits language tiers governor heliview hud places edge roadworks eggs tape crowds life buses zaglebie crashes loud oldtram trains packs wellness fans garage save districts syrenki cassettes ladder first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds police plain ram teleport firstlife prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -769,6 +775,7 @@ for s in $want; do
 		stuckspots-prebuilt) skip_prebuilt stuckspots-prebuilt || check stuckspots-prebuilt '^check_stuck_spots:' --fixed-fps 60 --script res://tools/check_stuck_spots.gd -- --prebuilt ;;
 		finite) check finite '^check_finite:' --fixed-fps 60 --script res://tools/check_finite.gd ;;
 		steering) check steering 'check_steering:' --fixed-fps 60 --script res://tools/check_steering.gd ;;
+		laneassist) check laneassist '^check_lane_assist:' --fixed-fps 60 --script res://tools/check_lane_assist.gd ;;
 		# G14's "later" (2026-11-03): trying to drive and going nowhere for 8 s offers the tow.
 		stuckoffer) check stuckoffer '^check_stuck_offer:' --fixed-fps 60 --script res://tools/check_stuck_offer.gd ;;
 		# The quest stop assist: the car brakes itself into a quest's ring and holds for the hold.
@@ -804,6 +811,8 @@ for s in $want; do
 		rescues) check rescues '^check_rescues:' --script res://tools/check_rescues.gd ;;
 		# Loop couriers: the waiting couriers, the kerb riders, the dodge, the near miss's line.
 		couriers) check couriers '^check_couriers:' --script res://tools/check_couriers.gd ;;
+		# Beta values: the deliveries' route, the heat's words, NASTĘPNE.
+		delivery) check delivery '^check_delivery:' --script res://tools/check_delivery.gd ;;
 		# Loop MW-4: everyday life and trends: dogs, riders, runners, Kolka, the Wiralek cycle, the
 		# "Na czasie" pay, the Zając, Fat Thursday, the life eggs (E16 E18-E20 E27-E30).
 		life) check life '^check_city_life:' --script res://tools/check_city_life.gd ;;

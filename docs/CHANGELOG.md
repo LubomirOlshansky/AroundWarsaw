@@ -12,10 +12,14 @@ someone writes its lines.
 ## 2026-11-05
 
 - Plac Centralny in front of the Palace of Culture looks like the new square: young trees in groves on the lawns and along the axis, flower beds, a long stone seat-wall, wooden step seating round a pale paved heart, the red WARSZAWA letters, green deckchairs and tall lamps.
+- The railway at Plac Zawiszy no longer runs over the street: the tracks, sleepers and overhead wires stop where the cutting ends and the tunnel mouth stands, and trains disappear into it.
 
 ## 2026-11-04
 
+- Kebab and jar deliveries show the way on the minimap, say how long the kebab stays hot, and a NEXT button on the delivered card points you to the nearest kebab stand; races show the way to the finish, the gap in seconds, who just took the lead and how close the finish was; and Settings → Driving has a new Lane assist switch that keeps the car in its lane while you hold the steering near the middle.
+- The website's "How it grew so far" now runs up to today (the Autopilot playtester, photo-built landmarks, the beta on TestFlight and Play, driving by buttons, smarter racers) and shows how many places are done; the GitHub links are gone, since the code is closed.
 - Street races feel like races now: rivals drive flat out, take corners fast, run red lights and overtake traffic and you; Pani Halina leads the first race so you have someone to chase, every race stays close to the end, and police chases corner and pull away like real pursuers.
+- With the steering strip and pedals, driving head-on into a wall no longer stops the car dead: it turns along the wall the way you steer and drives on.
 - Driving now starts with the steering strip on the left and the GAS and BRAKE pedals on the right; pointing where to go is still in Settings → Jazda, and the first-minute hint shows the new controls.
 
 ## 2026-11-03
@@ -38,7 +42,7 @@ someone writes its lines.
 - Bracka has its two department stores: the dark stone Vipkac with a glass top floor and trees on its roof terrace, and the 1914 Jabłkowski Brothers' store with arched shop windows and two white columns at the door; by Plac Trzech Krzyży the white banded Szeraton hotel stands with its glass drum and name crown on the corner. Next to Vipkac, the grey granite bank building of 1931 fills the Jerozolimskie corner by Nowy Świat, with its gilded monogram over the middle.
 - From above, the Ministry of Finance, the National Museum and Hotel Bristol now show their open courtyards (a tree-lined court at the ministry, the paved museum court, Bristol's light well) instead of one solid roof.
 - Hotel Europejski on Krakowskie Przedmieście looks like the restored hotel today: rounded corners with two tiers of columns and curved balconies, rows of pedimented windows, tall arched shop windows, the HOTEL EUROPEJSKI name in gold over the street, a balustrade along the roof and the dark curved glass storey set back behind it. The University's main gate is narrower, as in life.
-- The website now leads with the beta: join on iPhone through TestFlight, or request Android access with a short form. The open-source story moved to the footer and a quieter "How it's made" section.
+- The website now leads with the beta: join on iPhone through TestFlight, or request Android access with a short form. A quieter "How it's made" section follows.
 - With colour-safe markers on (Settings, accessibility), race rings are now chequered like a finish line and a rescue pickup's ring is dashed, so you can tell them apart without relying on colour.
 - Praga's old streets get evenings: six neon bar signs (ŚWIAT PO PRASKU, BARISTA Z PODWÓRKA, WINO ZE SKRZYNKI, KRAINA WINA, KIJOWSKA DWÓJKA, POD KUFLEM ZA ROGIEM) around Okrzei, Wrzesińska, Kijowska and Targowa, and people outside with a drink after dark.
 - After the first ten minutes the game tells you where the story goes on: a short goal line ("Find and flash: Słoik z Radomia") when a new step opens, and now and then a gold arrow with a star at the screen's edge pointing to the next rival, only while you are not doing anything else. The screen-edge arrow also no longer hides under the minimap, the wallet or the pedals.
@@ -53,8 +57,10 @@ someone writes its lines.
 - On Świętokrzyska the main post office stands in its pale salmon plaster, with a little grey-silver dome on the Jasna corner and six white columns under a red POCZTA band at the door; on Zielna the PAST-a tower rises 51 m, with tall arches and castle-like merlons at the top, a gilt anchor on the roof and white-and-red banners down the front.
 - Warszawa Wschodnia stands on Praga's side of the tracks: a long glass hall under a flat roof with a zig-zag folded edge on green V-shaped legs, WARSZAWA WSCHODNIA in white letters over the platforms, and rust-brown roofs on columns over its five island platforms.
 - Fewer grass islands sitting across junctions: where Warsaw paints a hatched area, the game now does too, and walls no longer stick out at the ends of the Port Praski bridge.
+- Plac Bankowy's palaces look like the real ones: pale cream under green copper roofs, the city hall's wings end in white colonnades with the giant six-column portico at the back of its courtyard, and the old Bank Polski's rounded corner has its tier of arches and a green dome. On Jasna the Philharmonic shows its colonnade with a composer on every window sill and its green FN neon, and Teatr Polski on Karasia has its round corner bays and oval windows.
 
 ## 2026-11-02
+- The Supreme Court's colonnade on Plac Krasińskich is green as in Warsaw, not white: ribbed columns with dark lettering low down and rosettes in the capitals, under green beams.
 - The Vistula boulevards are dressed for summer: the concrete bar pavilions on the embankment have lawn roofs, glass fronts, umbrella terraces and string lights, colourful container bars and kiosks sell beer, lemonade and zapiekanki through lit hatches, and timber deck strips with striped deck chairs line the water from the Old Town to Tamka.
 - Fabryka Norblina stands on its real block between Łucka, Żelazna and Prosta, with its court of big candelabra plane trees open off the glass street and green roofs with garden terraces; Browary's Central Garden is a dense little wood of 22 young trees round a winding gravel path with café tables under dark-blue parasols, and the office blocks have green roofs.
 - Across the river in Praga, St Florian's cathedral stands with its two red-brick towers and tall green spires, and Bazar Różyckiego on Targowa is a maze of patched old stalls beside the new green kiosks.
@@ -296,7 +302,7 @@ someone writes its lines.
 - The new Museum of Modern Art on Plac Defilad is now its own building: the long white box floating on a glass lobby behind white fins, a thin dark slot round the middle, big windows that glow at night, skylights on the roof, and an info card.
 - The Pawilony behind Nowy Świat: a maze of tiny one-storey bars, each a different colour, with lit windows, warm bulbs and little neon signs (PIWO, SHOTY, KARAOKE...), and a PAWILONY sign over the gate on Nowy Świat.
 - The towers and the Palace of Culture no longer flicker: overlapping walls and roofs were drawn twice, and now they are drawn once. The look is the same.
-- A new, shorter website: the newest screenshots, three missions, open source, a word from the author.
+- A new, shorter website: the newest screenshots, three missions, a word from the author.
 - A new automatic check looks at every landmark model for flickering surfaces, zero-size faces, floating parts and too many triangles, so these get caught before anyone looks at a screenshot.
 - Rondo Dmowskiego, the rest of the photos: the city bus is an 18 m yellow-and-red articulated one with a bellows in the middle, the bus shelter has its big lit ad panel, the Nowotel's name has its orange rule and chain line under it, Hotel Metropol's roof carries a green neon name and Rondo 1 has a clinic sign at street level.
 - Rondo Dmowskiego at night looks like the photos: the Nowotel's white tower with its name in blue neon, the Rotunda's white zigzag crown with red and blue light, red bus shelters, and yellow trams with a red roof.
@@ -319,7 +325,7 @@ someone writes its lines.
 
 ## 2026-10-30
 
-- The game is now called Around Warsaw and is open source (MIT); the car radio's main station is KEBAB FM.
+- The game is now called Around Warsaw; the car radio's main station is KEBAB FM.
 - MOJA WARSZAWA, the city notebook: 72 places to find, in 9 chapters.
 - The night and the river: club queues, the dawn crowd, the river steps; then dog walkers, runners, cyclists and the café trends.
 - PÓŁNOC FM, the late-night station, plus Fotka (a photo mode), KASETA (the time tape) and 45 easter eggs.

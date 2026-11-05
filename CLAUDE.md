@@ -27,7 +27,7 @@ map geometry, gameplay design and feel, performance, device-gated work, root cau
 art. **Sonnet** for content, text, landing/site, docs, object polish and applying a spec.
 **Haiku** for lookups, counts and log crunching. Agent files follow this (`gameplay-dev`,
 `object-modeler`, `qa-tester` Sonnet; `map-engineer`, `perf-engineer`, `game-designer`,
-`art-director` Opus; `scout`, `Explore` Haiku). A cheaper run that fails its gates or returns
+`art-director`, `road-auditor` Opus; `scout`, `Explore` Haiku). A cheaper run that fails its gates or returns
 open questions is re-run one tier up, not patched. Only the main session spawns agents. Delegate
 file dumps, logs and shot sets; keep the summary. Say which model each delegation used.
 

@@ -15,6 +15,7 @@ item. Updated 2026-11-01 from the audit. v1.0 = the Demo and TestFlight gates in
 then the Launch gate.
 
 ### Done (built and checked headless)
+- [x] Developer console (F, 2026-11-04): `tools/console.py` -> `build/console/index.html`: overview, city map with layers, sliders, area picker and counts (cafés, shops, roads km, bridges, trees…), content tables, approvals queue, renders; `--watch` keeps it current; deploy notes in `console/README.md`. Next: Mapillary/road-objects census layer once PR #429 lands, A/B pairs
 - [x] Status page, review sheet and resumable bake (2026-11-04, from the Isometric Istanbul docs): `tools/status_page.py` (map of ranked places by stage, clickable, % by tier and district), `tools/shot_sheet.py` (before/after sheet), `tools/bake_all.sh --resume`
 - [x] Closed source for now: MIT replaced by an all-rights-reserved `LICENSE`, CONTRIBUTING.md and the open-source/contribute lines removed from README, CREDITS, the in-game credits and the site (2026-11-03, PR pending; F makes the repo private and deploys the site; the design wiki is untouched)
 - [x] Opening fly-over sound: the announcer line (Opening_line_a) plays once with the flight, radio dipped to -20 dB, then swells to full (2026-11-03, PR pending; phone listen check open)
@@ -63,6 +64,7 @@ then the Launch gate.
 - [x] POLIN and the Ghetto Heroes Monument from photos gathered on the Mac (refs/polin: 25 Commons photos, the ortho, a measured report) and the LoD2 roof: the glass-fin box, the canyon, the roof slot and the west lens; the monument with its reliefs and menorahs (2026-11-02, spec `polin.md`; F's look check parked)
 - [x] Muzeum Powstania Warszawskiego from photos gathered on the Mac (refs/mpw: 25 Commons photos, the ortho, a measured parts list) and LoD2: the brick power station on Przyokopowa, the halls with their red park gables, the tower with the Kotwica, the Wall of Remembrance and the bell, the office block, gatehouse, KASA and fence (2026-11-02, spec `mpw.md`; F's look check parked)
 - [x] Plac Krasińskich from photos gathered on the Mac (refs/pomnik_powstania, refs/krasinski: 31 Commons photos, the ortho, measured reports) and LoD2: the Warsaw Uprising Monument (the storming insurgents under the two falling slabs, the descent into the sewers) and Pałac Krasińskich (white walls, green copper roof, pediments with statues, corner pavilions, loggias, porch) (2026-11-02, specs `pomnik_powstania.md`, `krasinski.md`; F's look check parked)
+- [x] Sąd Najwyższy's colonnade from the Plac Krasińskich photo reports: the 54 columns green and ribbed with the lettering band and rosette capitals, the beams green (OSM drew them white) (2026-11-02, spec `sad_najwyzszy.md`; the main block waits on a Mac gather)
 - [x] Bracka and Plac Trzech Krzyży from the Mac photo reports and the OSM outlines: Vitkac (dark banded stone, glass top with terrace trees, as VIPKAC), Dom Towarowy Braci Jabłkowskich (arched shop windows, balcony band, Doric door, atrium roof), the Sheraton (white bands, ribbon windows, the corner drum with its crown, as SZERATON) (2026-11-03, specs `vitkac.md`, `jablkowscy.md`, `sheraton.md`; F's look check parked); and the BGK building on Al. Jerozolimskie 7 (F asked, 2026-11-03; grey granite, paired windows, corner blocks, the gilded monogram; spec `bgk.md`)
 - [ ] Beta radio songs: 8 vaporwave for KEBAB FM, 8 minimal techno for MORDOR FM, idents (F generates on a paid plan; `tools/add_music.py`)
 - [x] Gdański Business Center (tower, two blocks, parody logos; 2026-11-02, spec `gbc.md`; Mac photo check parked)
@@ -71,7 +73,8 @@ then the Launch gate.
 - [x] Pokorna 2 remodelled as a block of flats: loggia windows, balconies, warm plaster (F, 2026-11-02, site `pokorna2`; Mac look check in QUESTIONS)
 - [x] Retro vaporwave filter replaces the VHS tape look; the Styl obrazu picker removed, always Sharp (2026-11-01; phone look check parked in QUESTIONS)
 - [x] Day, dusk and night; rain; water; synthesised sound; puddles and night water (3i part)
-- [x] Website beta signup (F, 2026-11-03): TestFlight join button (`/go/ios`), Android request form + Play link (`/go/android`), GitHub in the footer only
+- [x] Website beta signup (F, 2026-11-03): TestFlight join button (`/go/ios`), Android request form + Play link (`/go/android`), no GitHub links (closed source, 2026-11-04)
+- [x] Landing timeline brought up to 4 Nov, GitHub links removed (2026-11-04; deploy waits for F)
 - [x] Landing page, design wiki and /progress/ live; store texts and privacy manifest drafted
 - [x] Site visits and store-button clicks countable (F, 2026-11-02): `/go/ios` + `/go/android` counted in the Worker, Cloudflare traffic for visits; F deploys and sets the store URLs when listed (site/README "Visitors and store clicks")
 
@@ -176,6 +179,7 @@ then the Launch gate.
       landmark threads
 - [x] Model progress page on the wiki (F, 2026-11-02): wiki.aroundwarsaw.app/models/, generated from docs/CITY_INVENTORY.md
       Part 1 (stage per place: planned, researching, done from outline, done from photos), linked from Progress.
+- [ ] Tiny Warsaw list on our map (F, 2026-11-04; docs/design/tinywarsaw-area-plan.md, list in docs/inventory/tinywarsaw_area.md): 550 of their 1,393 names lie in our box, 430 still plain blocks; plan P1-P8 and the merged backlog groups
 - [ ] City inventory Part 3: the top not-done places, one thread each, photos first (Most Poniatowskiego,
       Muzeum Powstania, Pomnik Powstania, Hotel Warszawa and Cedet, Rondo ONZ towers, the monuments pass,
       Plac Bankowy, Świętokrzyska's NBP/Poczta/PAST-a, the outline builds' photo re-pass, Praga's faces)
@@ -184,6 +188,7 @@ then the Launch gate.
           3.7 m storeys over a taller ground floor, recessed pavilion, grey-bronze loop
   - [x] Praga's faces from the Mac's photo reports (2026-11-02): St Florian's cathedral (site `florian`) and Bazar
         Różyckiego (site `bazar`); Koneser and the Multimedia Fountain Park are off the map (QUESTIONS)
+  - [x] Plac Bankowy's colonnades and the Bank Polski corner, Filharmonia, Teatr Polski from the Mac photo reports (2026-11-02, specs `bankowy.md`, `filharmonia.md`, `teatr_polski.md`)
   - [x] Poczta Główna and PAST-a from the Mac photo reports (2026-11-03, specs `poczta.md`, `pasta.md`)
   - [ ] Narodowy Bank Polski (waits on its photo report)
 - [ ] **Warsaw modernism and brutalism, high priority** (F, 2026-11-03; docs/design/modernism-collection.md,
@@ -328,8 +333,10 @@ then the Launch gate.
 - [ ] Plac Bankowy as in real life (F, 2026-11-02): DONE the Blue Skyscraper in blue mirror glass
       (new skin S_MIRROR; the gold was its first copper cladding) and the palaces in their real
       colours (kept skins `ratusz`, `wojewodzki`, `gielda`, `arsenal`, `mniszchow`, `landau`, with
-      cards). Left: pediment and stepped gables on the Treasury palace, the Jabłonowski palace on
-      Plac Teatralny, Mac photo checks (QUESTIONS, BACKLOG "Plac Bankowy")
+      cards); the photo build 2026-11-02 (spec `bankowy.md`): the Ratusz's colonnades and giant
+      portico, the Bank Polski's corner and dome, copper roofs; Filharmonia and Teatr Polski fronts
+      (specs `filharmonia.md`, `teatr_polski.md`). Left: the Voivodeship front, the Arsenał, the
+      Jabłonowski palace on Plac Teatralny, Mac photo checks (QUESTIONS, BACKLOG "Plac Bankowy")
 - [x] The river's bar barges and houseboats as models (were 14 m boxes in the water): hulls,
       glazed decks, terraces, umbrellas, festoons, gangways, parody neon names, 2026-11-01
 - [x] The sailing marina in Port Czerniakowski (2026-11-02): club house on piles, 18 sailboats,
@@ -367,6 +374,7 @@ then the Launch gate.
   - [ ] S3d Warszawa Gdańska (the map's north edge, mostly off the map; the photo report shows it being rebuilt)
   - [x] Parks come alive (2026-11-01, `park_details.gd`, `tools/bake_park_details.py`): Ogród Saski, Ogród Krasińskich, Park Ujazdowski and the castle's park get sandstone statues, a fountain, a carousel, a playground, a gazebo, pergolas, a sundial, a footbridge, ducks and swans, squirrels, people on the benches, picnics and a yoga class; the Mac look check parked
   - [ ] Łazienki Królewskie (Palace on the Isle, Chopin monument, peacocks): south of the map's edge, waits for a map extension (QUESTIONS)
+  - [x] Plac Zawiszy: rails, sleepers, wires and trains cut at the cutting's end (`Trains.trim_rails`, polygon `TUNNEL_ZAWISZY`), the tunnel mouth moved to (-1964, 812), 2026-11-05 (F's screenshot); left: the cutting's slopes on the 10 m grid (Mac 1 m corridor), wire clutter over the 12 tracks, Mac look check
   - [x] The map's edges: the land runs on past the outline (ground fading into the sky, a tree line, blocks beyond, the rails and roads running out), Wschodnia and Gdańska first, 2026-11-01; the Mac look check parked
   - [x] Roadworks close every road at the map's edge (barriers, ROBOTY DROGOWE and OBJAZD boards, cones, an excavator, a tarp fence, blinking lamps; solid; traffic stops there), 2026-11-02; the Mac look check parked
   - [x] The roadworks' boards speak the player's language (ROAD WORKS / DETOUR → in English), 2026-11-02
@@ -380,6 +388,7 @@ then the Launch gate.
 
 ### Left: content and feel
 - [ ] **"Betonowy album", collect every modernist building** (F, 2026-11-03; docs/design/modernism-collection.md section 2): Pani Wanda's lost slides as Fotka Kadr shots, five story slides, the Emilia then card, the "Betonowa" paint for the whole album. Designed, not built; ships with the nine ★ buildings and grows as M1-M17 land
+- [ ] **Bar-crawl taxi quests** (F, 2026-11-04; backlog "Bar-crawl taxi quests"): drive a company of 3-5 through three to five famous bars (existing parody fascias on Nowogrodzka, Mazowiecka, Wilcza, the Powiśle viaduct, the boulevards, Dom Partii, Praga) against the clock; mood, waiting at the kerb, tips, four routes. Plan only, not started (PAUSE)
 - [ ] **Vitkac quests** (F, 2026-11-03; backlog "Vitkac quests and ride stories"): the black-stone luxury block on Bracka as a quest place, with the quests built around it. Not started; the landmark is the 2026-11-03 photo build (PR #385)
 - [ ] **Every Podwózka ride gets its own passenger story** (F, 2026-11-03): a named passenger with request, pickup, in-ride and drop-off lines, e.g. the fancy couple from Wilanów going shopping at Vitkac. Not started
 - [x] Photo mode no longer lets the car reverse into buildings (its hold parks the car and puts it
@@ -503,20 +512,42 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [x] 0.3 The car visible under decks (2026-11-03): its warm silhouette through Trasa Łazienkowska, Most Łazienkowski's land spans and the viaducts whenever a deck hides it from the camera (`check_deck_xray`); phone look open
 - [x] Phase 0.4 helicopter high up: framed in the screen's middle, no blue sky or floating towers, 220 m cap except by towers (GAMEPLAY_PLAN 0.4, 2026-11-03, PR pending; phone check open)
 - [x] Steer + GAS / BRAKE (Classic) is the default controls (F, 2026-11-04): fresh saves and saves still on the old Point default start in Classic once; Point and Fixed stay in Settings → Jazda; the first-10 ghost finger holds GAZ and slides the steering strip (`check_settings`; phone feel open)
+- [x] Walls redirect, never stop, in Classic too: a head-on wall turns the car along it (the side the strip leans), no dead stop and no unstick; the unstick only turns the car where it fits (2026-11-04, `check_steering`, `check_stuck_offer`; phone feel open)
 - [ ] Phase 1: drivability sweep of every lane and turn, lane graph data fixes, Autopilot rows P11-P16
       (2026-11-04: P14 and the Trzy mosty legs drive clean steered, `check_lane_drive`; left: P15 flights, P16 frames)
 - [ ] Phase 2: road fixes street by street with a score baseline in CI
-- [ ] Phase 3: lane assist, wall look-ahead, junction pick, deck cut; F's phone run
+- [ ] Phase 3: ~~lane assist~~ (built 2026-11-04, off by default, A/B), wall look-ahead, junction pick, deck cut; F's phone run
 - [ ] Phase 4: running clubs that read, Varso Place masses, Chmielna 89 "Piramida" (later, photo way)
+
+### Left: road objects and collisions (F, 2026-11-04; plan docs/design/road-objects.md)
+- [x] Research: every solid object by the roads audited and measured (`tools/road_objects.py`), the street-by-street pipeline, the collision targets, skill `road-objects-sweep` and agent `road-auditor` (2026-11-04, docs + tool)
+- [ ] Collision rework v2: walls redirect by angle, never stop; Classic gets the wall follow; traffic shoved, not a stop (F's phone A/B)
+- [ ] Street sweeps with verdicts per object, first Marszałkowska, Świętokrzyska, Jerozolimskie; stairwells and canopies; soft fences; narrow streets
+
+### Left: smoother roads, road objects, then buildings (F, 2026-11-04; plan docs/design/roads-and-objects-plan.md, items in docs/plan/city-plan.json)
+- [x] Research and the day-by-day plan; `tools/street_features.py` (Mapillary detections against the game's props), 2026-11-04 (docs/tools only)
+- [ ] Junction shapes with kerb returns and smoothed bends (RS1, RS2), both city paths
+- [ ] Surfaces, crossings and kerb drops from OSM tags (RS4, RS6)
+- [ ] Width that varies along streets (RS3) and the asphalt's history in the shader (RS7, bench)
+- [x] Street-objects log and the object budget (log everything, add only what earns its place), 2026-11-04
+- [ ] Lamp density look test and the traffic-light poles A/B (F picks)
+- [ ] Road-objects sweeps street by street (the census order; road-objects.md)
+- [ ] Buildings: Tiny Warsaw list P1-P4 (docs/design/tinywarsaw-area-plan.md)
 
 ### Left: street races that feel like races (F, 2026-11-04; plan docs/design/street-races.md)
 - [x] Research and race AI audit: why Halina drives slowly and by the rules, R1-R7 (2026-11-04, docs only)
 - [x] R1 racer driving mode and R2 fair rubber band, R4's numbers per rung, police chasers in racer mode (2026-11-04; phone feel open)
-- [ ] R3 routes by time and shortcuts; R4 part 2 (aggression, mistakes); R5 show the race
+- [ ] R3 routes by time and shortcuts; R4 part 2 (aggression, mistakes)
+- [x] R5 show the race, part 1: route on the minimap, gap in seconds, lead-change toast, finish margin (2026-11-04, beta values; A/B open in QUESTIONS); left: the rival's edge arrow, slipstream (A/B)
 - [ ] R6 the city reacts; R7 race kinds (later)
 - [x] Street racer leaderboard designed: ranking, points, tiers, screen, local first (2026-11-04, docs only)
 - [ ] Leaderboard L1-L4: the ranking rules and save, the WYŚCIGI screen, defence challenges and unlocks, best times per route
 - [ ] Leaderboard L5: online best times (Game Center / Play Games), F's call
+
+### Left: beta values, deliveries, races and steering (F, 2026-11-04; docs/design/beta-values.md)
+- [x] Review and quick wins (2026-11-04): the delivery route on the minimap, road lengths without the closed off-map roads, the heat's clock in words, NASTĘPNE to the nearest stand; the race route, gap in seconds, lead change, finish margin; the police escape checks P3 and R1 green again (`check_delivery`)
+- [ ] F's phone A/B 1-11 (beta-values.md section 4, QUESTIONS): heat clock, tip cliff, streak, card wait, NASTĘPNE, escape, gap, lead toast, slipstream, lane assist, graze speed
+- [x] Lane assist "Asysta pasa" behind a Settings → Jazda switch, off by default (2026-11-04, `check_lane_assist`; phone A/B open)
 
 ### After the beta: driving extras and the city economy (F, 2026-11-03; plan docs/design/city-economy.md)
 - [x] Research and plan: arcade driving references, economy and business games, the "Od słoika do Złotej" ladder, phases D1 and E1-E5; role briefs in docs/roles/ (2026-11-03, docs only)

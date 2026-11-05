@@ -27,7 +27,7 @@ func _initialize() -> void:
 			and fresh.master == 1.0 and fresh.music == 1.0 and fresh.effects == 1.0 and not fresh.perf and fresh.classic_follow \
 			and fresh.fps == 60 and fresh.style == 0 and not fresh.vhs and not fresh.zone_cap and fresh.handling == 0 and is_equal_approx(fresh.sensitivity, 0.5) \
 			and not fresh.text_large and not fresh.calm and not fresh.color_safe and fresh.vibration and fresh.stop_assist \
-			and not fresh.left_handed
+			and not fresh.left_handed and not fresh.lane_assist
 	print("defaults from a missing file: %s (%s)" % ["OK" if defaults else "WRONG", fresh.summary()])
 	ok = ok and defaults
 
@@ -115,6 +115,7 @@ func _initialize() -> void:
 	a.vibration = false
 	a.stop_assist = false
 	a.left_handed = true
+	a.lane_assist = true
 	a.save()
 	var b := Settings.new()
 	b.path = SCRATCH
