@@ -4092,8 +4092,8 @@ func _find_muzeum() -> void:
 const MDM_SQUARE := Vector2(-533.8, 1282.4)
 const MDM_SOUTH := Vector2(-413.9, 1565.2)
 const MDM_SQUARE_R := 95.0
-const MDM_REACH := 50.0
-const MDM_STONE := Color("#cdbfa3")
+const MDM_REACH := 60.0
+const MDM_STONE := Color("#e6dfcc")
 const MDM_ROOF := Color("#7f7b74")
 func _find_mdm() -> void:
 	var zone: Array = []
@@ -4114,28 +4114,38 @@ func _find_mdm() -> void:
 		sites[-1]["skin"] = {"mode": M_MONUMENT, "wall": MDM_STONE, "roof": MDM_ROOF}
 
 
-## MDM's arcades, corner towers and reliefs (spec docs/landmarks/specs/mdm.md, LANDMARKS 2.8).
-## The blocks stay LoD2's in their skin; on top of them:
-## - a ground-floor arcade (podcienia) on every long facade that looks at the square or the
-##   Marszałkowska axis: square piers every ~5.4 m under a flat entablature, dark shopfronts
-##   behind, a cornice on the front edge;
-## - four corner towers at the blocks' ends where Marszałkowska meets the square (two blocks'
-##   south ends in the north, the two gate blocks in the south): two stepped stages, a hipped
-##   attic and a spire, a terracotta relief panel on the face that looks at the square.
-## The frame is the street's grid: u along Marszałkowska (SSE), v across (WSW).
+## MDM as it stands (spec docs/landmarks/specs/mdm.md, LANDMARKS 2.8; F's Street View shots,
+## 2026-11-05): cream plaster above, a sand-coloured stone-clad base three storeys high with big
+## shopfronts between stone piers, a cornice on every street face; deep arcades only on the
+## square's own ring; at the four corners a stepped attic pavilion with finials; on the roofs
+## the red MDM neon, the parody Xiaomi (XIAOMY) and BYD (BYDŁO), and the hotel's own sign.
+## The blocks stay LoD2's in their skin. The frame is the street's grid: u along Marszałkowska
+## (SSE), v across (WSW).
 const MDM_A := Vector2(0.349, 0.937)
-const MDM_TRIM := Color("#e6dcc4")
-const MDM_PIER := Color("#d8ccb0")
+const MDM_TRIM := Color("#ece4d0")
+const MDM_PIER := Color("#d3c39a")
+const MDM_SAND := Color("#cdb98d")
 const MDM_DARK := Color("#34383b")
-const MDM_GOLD := Color("#c9a24a")
+const MDM_RED := Color(1.0, 0.16, 0.12)
+const MDM_ORANGE := Color(1.0, 0.45, 0.05)
+const MDM_SILVER := Color(0.88, 0.92, 0.97)
 const MDM_ARCADE_DEPTH := 2.9
 const MDM_BAY := 5.4
-## Towers: [centre, block height, half size along the street, half size across].
-const MDM_TOWERS := [
+const MDM_BAND := 11.0
+const MDM_RING := 80.0
+## Corner pavilions: [centre, block height, half size along the street, half size across].
+const MDM_CROWNS := [
 	[Vector2(-458.6, 1286.5), 30.7, 5.8, 7.5],   # east block's south end
 	[Vector2(-588.8, 1334.4), 30.7, 5.8, 8.5],   # west block's south end
 	[Vector2(-499.5, 1388.5), 27.4, 7.5, 5.8],   # the south gate, west
 	[Vector2(-462.0, 1374.3), 27.4, 7.5, 5.8],   # the south gate, east
+]
+## Roof and hotel signs: [word, spot, outward direction, roof height above ground, width m, colour].
+const MDM_SIGNS := [
+	["MDM", Vector2(-458.6, 1286.5), Vector2(0.349, 0.937), 36.4, 8.0, MDM_RED],
+	["BYDŁO", Vector2(-472.8, 1274.0), Vector2(-0.937, 0.349), 31.0, 12.0, MDM_SILVER],
+	["XIAOMY", Vector2(-447.0, 1366.0), Vector2(-0.349, -0.937), 27.8, 11.0, MDM_ORANGE],
+	["HOTEL MDM", Vector2(-466.0, 1281.0), Vector2(-0.937, 0.349), 5.9, 5.2, MDM_RED],
 ]
 
 
@@ -4145,13 +4155,19 @@ func _build_mdm(site: Dictionary) -> void:
 	_mode = M_STONE
 	var zone: Array = site["zone"]
 	for poly: PackedVector2Array in zone:
-		_mdm_arcades(_simplify(poly, 0.8), zone)
-	for t: Array in MDM_TOWERS:
-		_mdm_tower(t[0], float(t[1]), float(t[2]), float(t[3]))
+		_mdm_facades(_simplify(poly, 0.8), zone)
+	for t: Array in MDM_CROWNS:
+		_mdm_crown(t[0], float(t[1]), float(t[2]), float(t[3]))
+	for s: Array in MDM_SIGNS:
+		var at: Vector2 = s[1]
+		var d: Vector2 = s[2]
+		var k: float = float(s[4]) / Neon.length_of(s[0])
+		signs.append([s[0], Vector3(at.x, map.terrain_height(at.x, at.y) + float(s[3]), at.y), Vector3(d.x, 0.0, d.y), k, s[5]])
 
 
-## The arcades along one block's facades that look at the square or the axis.
-func _mdm_arcades(poly: PackedVector2Array, zone: Array) -> void:
+## The street faces of one block: those that look at the square or the axis get the stone base;
+## the ones on the square's ring get a deep arcade as well.
+func _mdm_facades(poly: PackedVector2Array, zone: Array) -> void:
 	var n := poly.size()
 	for i in n:
 		var p0 := poly[i]
@@ -4171,40 +4187,48 @@ func _mdm_arcades(poly: PackedVector2Array, zone: Array) -> void:
 				break
 		if blocked:
 			continue
-		_mdm_arcade(p0, p1, out)
+		_mdm_facade(p0, p1, out, mid.distance_to(MDM_SQUARE) < MDM_RING)
 
 
-## One arcade along p0 → p1 (the facade), reaching `out` from it. Frame: u along the facade, v out.
-func _mdm_arcade(p0: Vector2, p1: Vector2, out: Vector2) -> void:
+## One facade p0 → p1 reaching `out`. Frame: u along it, v out. The base stands 0.6 m proud of
+## the wall (LoD2's wall may stand a little off the OpenStreetMap outline).
+func _mdm_facade(p0: Vector2, p1: Vector2, out: Vector2, arcade: bool) -> void:
 	var length := p0.distance_to(p1)
-	var e := (p1 - p0) / length
 	_o = p0
-	_a = e
+	_a = (p1 - p0) / length
 	_b = out
 	_g = minf(map.terrain_height(p0.x, p0.y), map.terrain_height(p1.x, p1.y))
 	var g := _g
 	var bays := maxi(int(round(length / MDM_BAY)), 2)
 	var step := length / bays
+	var base := 0.6
+	_mode = M_MONUMENT
+	_wall(_w(0.2, base), _w(length - 0.2, base), g - 0.3, g + MDM_BAND, _b, MDM_SAND)
 	_mode = M_STONE
-	# the piers, the end ones kept a half bay in so two arcades meeting at a corner do not clash
-	for k in range(1, bays):
-		_lbox(k * step, MDM_ARCADE_DEPTH - 0.6, 0.55, 0.55, g - 0.5, g + 5.6, MDM_PIER, M_STONE, MDM_TRIM)
-	# the entablature over the walk, a cornice on its front edge
-	_lbox(length * 0.5, MDM_ARCADE_DEPTH * 0.5 - 0.1, length * 0.5 - 0.3, MDM_ARCADE_DEPTH * 0.5 + 0.2, g + 5.6, g + 6.3, MDM_TRIM, M_STONE, MDM_TRIM)
-	_lbox(length * 0.5, MDM_ARCADE_DEPTH + 0.05, length * 0.5 - 0.3, 0.15, g + 6.3, g + 6.7, MDM_TRIM, M_STONE, MDM_TRIM)
-	# shopfronts in each bay, dark between pilasters
+	# the ledge over the base
+	_lbox(length * 0.5, base + 0.5, length * 0.5 - 0.1, 0.5, g + MDM_BAND, g + MDM_BAND + 0.7, MDM_TRIM, M_STONE, MDM_TRIM)
+	# stone piers between the shopfronts, a cornice over the ground floor
+	for k in range(0, bays + 1):
+		var u := clampf(k * step, 0.7, length - 0.7)
+		_lbox(u, base + 0.2, 0.5, 0.2, g - 0.3, g + 5.8, MDM_PIER, M_STONE, MDM_TRIM)
+	_lbox(length * 0.5, base + 0.3, length * 0.5 - 0.1, 0.3, g + 5.6, g + 6.2, MDM_TRIM, M_STONE, MDM_TRIM)
+	# shopfronts: dark glass in each bay
 	_mode = M_GLASS
 	for k in bays:
-		_wall(_w(k * step + 1.0, 0.3), _w((k + 1) * step - 1.0, 0.3), g - 0.3, g + 4.6, _b, MDM_DARK)
+		_wall(_w(k * step + 0.9, base + 0.45), _w((k + 1) * step - 0.9, base + 0.45), g + 0.3, g + 5.2, _b, MDM_DARK)
 	_mode = M_STONE
-	# cars meet the arcade's front line
-	_collide(PackedVector2Array([_w(0.4, 0.0), _w(length - 0.4, 0.0), _w(length - 0.4, MDM_ARCADE_DEPTH), _w(0.4, MDM_ARCADE_DEPTH)]))
+	if arcade:
+		# a deep arcade over the pavement: square piers under a flat entablature
+		for k in range(1, bays):
+			_lbox(k * step, MDM_ARCADE_DEPTH - 0.4, 0.7, 0.7, g - 0.5, g + 5.8, MDM_PIER, M_STONE, MDM_TRIM)
+		_lbox(length * 0.5, MDM_ARCADE_DEPTH * 0.5 + 0.3, length * 0.5 - 0.3, MDM_ARCADE_DEPTH * 0.5 - 0.1, g + 5.8, g + 6.4, MDM_TRIM, M_STONE, MDM_TRIM)
+		_lbox(length * 0.5, MDM_ARCADE_DEPTH + 0.1, length * 0.5 - 0.3, 0.2, g + 6.4, g + 6.9, MDM_TRIM, M_STONE, MDM_TRIM)
+	_collide(PackedVector2Array([_w(0.4, 0.0), _w(length - 0.4, 0.0), _w(length - 0.4, MDM_ARCADE_DEPTH if arcade else base + 1.0), _w(0.4, MDM_ARCADE_DEPTH if arcade else base + 1.0)]))
 
 
-## One corner tower on a block's end (the base sunk 1.5 m into the roof): two windowed stages
-## with pilasters and cornices, a hipped attic, a spire; the face towards the square carries a
-## relief panel.
-func _mdm_tower(c: Vector2, block_h: float, ha: float, hb: float) -> void:
+## A corner pavilion on a block's end (base sunk 1.5 m into the roof): a cornice, a recessed
+## windowed attic one storey high, a cornice with a finial on every corner and along the parapet.
+func _mdm_crown(c: Vector2, block_h: float, ha: float, hb: float) -> void:
 	_o = c
 	_a = MDM_A
 	_b = Vector2(-MDM_A.y, MDM_A.x)
@@ -4213,48 +4237,20 @@ func _mdm_tower(c: Vector2, block_h: float, ha: float, hb: float) -> void:
 	var none := Color(0, 0, 0, 0)
 	var y0 := g + block_h - 1.5
 	_mode = M_STONE
-	# a hidden core inside the block ties the tower to the ground (the mesh check's floating-parts rule)
-	_lbox(0.0, 0.0, ha - 0.8, hb - 0.8, g - 0.5, y0 + 1.0, MDM_STONE, M_STONE, MDM_STONE)
-	# stage 1: the shaft, pilasters on its corners, a cornice
-	_prism(_rect(0.0, 0.0, ha, hb), y0, y0 + 10.5, MDM_STONE, none, M_MONUMENT)
+	# a hidden core inside the block ties the pavilion to the ground (the mesh check's floating-parts rule)
+	_lbox(0.0, 0.0, ha - 0.8, hb - 0.8, g - 0.5, y0 + 2.0, MDM_SAND, M_STONE, MDM_SAND)
+	_lbox(0.0, 0.0, ha + 0.4, hb + 0.4, y0 + 1.5, y0 + 2.5, MDM_TRIM, M_STONE, MDM_TRIM)
+	_prism(_rect(0.0, 0.0, ha - 0.9, hb - 0.9), y0 + 2.5, y0 + 7.0, MDM_STONE, none, M_MONUMENT)
+	_lbox(0.0, 0.0, ha - 0.3, hb - 0.3, y0 + 7.0, y0 + 8.0, MDM_TRIM, M_STONE, MDM_TRIM)
+	_lbox(0.0, 0.0, ha - 1.3, hb - 1.3, y0 + 8.0, y0 + 8.4, MDM_ROOF, M_STONE, MDM_ROOF)
 	for su: float in [-1.0, 1.0]:
 		for sv: float in [-1.0, 1.0]:
-			_lbox(su * (ha + 0.15), sv * (hb + 0.15), 0.55, 0.55, y0 + 1.5, y0 + 10.5, MDM_TRIM, M_STONE, MDM_TRIM)
-	_lbox(0.0, 0.0, ha + 0.6, hb + 0.6, y0 + 10.5, y0 + 11.5, MDM_TRIM, M_STONE, MDM_TRIM)
-	# stage 2: narrower, windowed, a cornice
-	_prism(_rect(0.0, 0.0, ha - 1.3, hb - 1.3), y0 + 11.5, y0 + 18.0, MDM_STONE, none, M_MONUMENT)
-	_lbox(0.0, 0.0, ha - 0.5, hb - 0.5, y0 + 18.0, y0 + 19.0, MDM_TRIM, M_STONE, MDM_TRIM)
-	# the hipped attic, a spire with a gilt ball
-	_frustum(_rect(0.0, 0.0, ha - 1.2, hb - 1.2), y0 + 19.0, _rect(0.0, 0.0, 0.5, 0.5), y0 + 25.0, MDM_ROOF, MDM_ROOF)
-	_lbox(0.0, 0.0, 0.18, 0.18, y0 + 25.0, y0 + 31.0, MDM_GOLD, M_STONE, MDM_GOLD)
-	_lbox(0.0, 0.0, 0.5, 0.5, y0 + 27.0, y0 + 27.8, MDM_GOLD, M_STONE, MDM_GOLD)
-	# the relief on the face towards the square: a framed terracotta field, a pale sun, two figures
-	var look := (MDM_SQUARE - c).normalized()
-	var faces := [[Vector2(1, 0), ha], [Vector2(-1, 0), ha], [Vector2(0, 1), hb], [Vector2(0, -1), hb]]
-	var best := 0
-	var best_d := -2.0
-	for k in faces.size():
-		var f: Vector2 = faces[k][0]
-		var wd := _a * f.x + _b * f.y
-		if wd.dot(look) > best_d:
-			best_d = wd.dot(look)
-			best = k
-	var f: Vector2 = faces[best][0]
-	var half: float = faces[best][1]
-	var yc := y0 + 6.2
-	# Thin boxes on the face: `across` along it, `out` away from the tower, half sizes in the
-	# same two directions (a face on the u axis is crossed along v and the other way round).
-	var tang := Vector2(-f.y, f.x)
-	var on_u := absf(f.x) > 0.5
-	var panel := func(across: float, out: float, h_across: float, h_out: float, y_lo: float, y_hi: float, col: Color) -> void:
-		var at := tang * across + f * out
-		_lbox(at.x, at.y, h_out if on_u else h_across, h_across if on_u else h_out, y_lo, y_hi, col, M_STONE, col)
-	panel.call(0.0, half + 0.1, 2.15, 0.15, yc - 3.0, yc + 3.0, MZ_FRAME)
-	panel.call(0.0, half + 0.25, 1.7, 0.15, yc - 2.6, yc + 2.6, MZ_FIELD)
-	panel.call(0.0, half + 0.4, 0.6, 0.1, yc + 0.9, yc + 2.1, MZ_FRAME)
-	for sd: float in [-1.0, 1.0]:
-		panel.call(sd * 0.8, half + 0.4, 0.3, 0.1, yc - 2.2, yc + 0.6, MZ_FRAME)
+			_pinnacle(su * (ha - 0.5), sv * (hb - 0.5), 0.7, y0 + 8.0, 2.4, MDM_TRIM)
+	for sv: float in [-1.0, 1.0]:
+		for su: float in [-0.5, 0.5]:
+			_pinnacle(su * (ha - 0.5), sv * (hb - 0.5), 0.5, y0 + 8.0, 1.6, MDM_TRIM)
 	_mode = M_STONE
+
 
 
 # --- Kolumna Zygmunta (the landmarks loop, Old Town) ---------------------------------------------

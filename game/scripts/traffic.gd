@@ -34,6 +34,7 @@ extends Node3D
 var spent_usec := 0
 
 const LaneGraph := preload("res://scripts/lane_graph.gd")
+const RaceCuts := preload("res://scripts/race_cuts.gd")
 const Models := preload("res://scripts/models.gd")
 const InstanceBuffers := preload("res://scripts/instance_buffers.gd")
 const MapBuilder := preload("res://scripts/map_builder.gd")
@@ -117,6 +118,27 @@ const PARKED_WAIT := 1.6
 const LOUD_CHANCE := 0.12
 const LOUD_SPEED := Vector2(1.12, 1.25)
 const LOUD_ACCEL := 1.7
+## Crazy drivers (F 2026-11-05, docs/design/crazy-drivers.md): a few of the taxis and vans the band
+## spawns drive in racer mode with no route (racing_mode): the Szkoda Oktawia taxis (crazy 1, the
+## taxi shapes), the Szprynter couriers (2, the panel van) and one Pasatini 1.9 TDJ at most (3,
+## the taxis' fourth shape, models.gd TAXI_PASAT, from a car's spawn), at most `crazy_target` at
+## once (main.gd --crazy=N; 0: none). Indexed by `crazy` (0 unused): top speed (m/s, also capped
+## by RACE_CLASS_TOP), at most this times the road's limit, pull (m/s²), corner grip (m/s²), the
+## chance of a block / tight cut-in per roll (race_block, BLOCK_*), of running a fresh red, and of
+## running wide out of a corner near the player (race_mistake). Their own seeded generator, so the
+## rest of the traffic's sequence is the same as before.
+const CRAZY_CHANCE := 0.35
+const CRAZY_PASAT_SHARE := 0.3
+const CRAZY_TOP := [0.0, 20.0, 18.0, 25.0]
+const CRAZY_OVER := [1.0, 1.35, 1.3, 1.6]
+const CRAZY_ACCEL := [0.0, 3.2, 3.0, 4.0]
+const CRAZY_LAT := [7.0, 6.0, 5.0, 7.0]
+const CRAZY_BLOCK := [0.0, 0.5, 0.5, 0.75]
+const CRAZY_RED := [0.0, 0.1, 0.2, 0.35]
+const CRAZY_MISTAKE := [0.0, 0.0, 0.0, 0.15]
+## The Pasatini's Janusz paints (black, graphite, bottle green, dark slate, silver-grey: never the
+## player's red and orange or the police's blue).
+const PASAT_PAINT := ["#1d1e21", "#3a3d42", "#2f3d33", "#2a3340", "#8c9096"]
 ## Racer mode (docs/design/street-races.md R1, 2026-11-04): a driver with a race route and a
 ## `race_top` (rivals.gd) or a `race_accel` (police chasers) drives like a racer, not like a town
 ## car: top speed `race_top` × its rubber band, capped by road class (RACE_CLASS_TOP: e_class 0
@@ -126,7 +148,9 @@ const LOUD_ACCEL := 1.7
 ## RACE_RED_SLOW of its speed within RACE_RED_LOOK m of the line), crossing cars only when one is
 ## within RACE_CROSS m, and round slower traffic and the player's car: a free lane, or out over
 ## the centre line for a pass when the oncoming lane is clear for RACE_PASS_CLEAR m.
-const RACE_CLASS_TOP := [30.0, 25.0, 19.0, 12.0]
+## (F 2026-11-05, "they go very slowly": 30/25/19/12 held them to 68 km/h on the centre's side
+## streets, where the player does 90.)
+const RACE_CLASS_TOP := [33.0, 29.0, 25.0, 16.0]
 ## Racer mode: once a second while a racer stands still, what holds it (main.gd --race-debug).
 var race_debug := false
 const RACE_DECEL := 8.0
@@ -140,6 +164,31 @@ const RACE_PASS_CLEAR := 70.0
 const RACE_PASS_ROOM := 40.0
 ## Racer mode: stood still this long behind a car with no way past, it slips through (s).
 const RACE_KNOT := 1.5
+## Human rivals (F 2026-11-05: "never the skróty, never cut me off", docs/design/street-races.md
+## section 9). Shortcuts (race_cuts.gd): a racer takes a cut it knows from the junction ahead when
+## the cut and the road on from its far end beat the road route by RaceCuts.GAIN m, at most
+## CUT_TOP m/s across the plaza (slower when it turns sharply in).
+const CUT_TOP := 16.0
+## Mistakes: a racer that rolls its `race_mistake` at a corner (only within MISTAKE_NEAR m of the
+## player, so it is seen) takes it MISTAKE_FAST too fast and runs wide out of it: a slide of
+## MISTAKE_SLIDE m/s outwards and MISTAKE_DAZE s of lifting off.
+const MISTAKE_NEAR := 110.0
+const MISTAKE_FAST := 1.3
+const MISTAKE_SLIDE := 4.5
+const MISTAKE_DAZE := 0.8
+## Wrong turns (Słoik's satnav): at a junction with a choice, more than WRONG_FAR m from the
+## finish, a WRONG_CHANCE roll takes the second-best way (the route's distances bring him back).
+const WRONG_FAR := 300.0
+const WRONG_CHANCE := 0.2
+## Blocking (Game AI Pro's "one lateral move"): a racer with the player BLOCK_BACK m or less behind
+## it, catching up, rolls its `race_block` once in BLOCK_EVERY s; on a hit it moves across onto the
+## player's line, once, and holds it for BLOCK_HOLD s (the player can still go round the other side).
+const BLOCK_BACK := 22.0
+const BLOCK_EVERY := 2.5
+const BLOCK_HOLD := 2.2
+## Cutting in: a racer passing the player with `race_block` from BLOCK_TIGHT pulls back in this many
+## metres sooner (in front of the player's bumper, not a polite car's length ahead).
+const BLOCK_TIGHT := 0.5
 ## Pole lamps: red, amber, green.
 const LAMP_ON := [Color("#ff3b2f"), Color("#ffb21e"), Color("#43ff6e")]
 const LAMP_OFF := Color("#2a2c2e")
@@ -218,6 +267,23 @@ class Driver:
 	## Racer stats for the race log: seconds stopped (under 1 m/s) and the passes made.
 	var race_still := 0.0
 	var race_passes := 0
+	## Human rivals (RACE_* / CUT_* above): the shortcuts it knows ({node: [to, metres, ...]},
+	## race_cuts.gd), its chance of a mistake per corner, wrong turns left, its chance of blocking;
+	## on a cut now, a mistake under way (+1/-1: the side it runs wide to), a block (s left, its
+	## offset, s to the next roll); and the counts for the race log and rivals.gd's lines.
+	var cuts := {}
+	var race_mistake := 0.0
+	var race_wrong := 0
+	var race_block := 0.0
+	var on_cut := false
+	var mistake_side := 0.0
+	var block_t := 0.0
+	var block_off := 0.0
+	var block_wait := 0.0
+	var cuts_taken := 0
+	var mistakes := 0
+	var wrong_turns := 0
+	var blocks := 0
 	## Stay inside the strongly connected core (rivals), so they never leave the map.
 	var core_only := false
 	## A car crossing our path in a junction box: gap to it and its speed.
@@ -258,6 +324,9 @@ class Driver:
 	## City-life satire #1 (loud_cars.gd): a loud supercar (kind TAXI, shape TAXI_SUPERCAR): it
 	## drives quicker and pulls away harder; loud_cars.gd revs it when it passes the view.
 	var loud := false
+	## Crazy drivers (CRAZY_* above): 0 a town car, 1 a Szkoda Oktawia taxi, 2 a Szprynter
+	## courier, 3 the Pasatini.
+	var crazy := 0
 
 
 signal bumped_driver(d: Driver)
@@ -337,6 +406,11 @@ var _rng := RandomNumberGenerator.new()
 var loud_count := 0
 var loud_target := 3
 var _loud_rng := RandomNumberGenerator.new()
+## Crazy drivers: out now, the most at once, the Pasatinis out (one at most), their generator.
+var crazy_count := 0
+var crazy_target := 3
+var pasat_count := 0
+var _crazy_rng := RandomNumberGenerator.new()
 ## Loop 2c: picks the shapes, apart from _rng so where and what kind of car spawns is as before.
 var _looks := RandomNumberGenerator.new()
 var _tick := 0
@@ -416,6 +490,7 @@ func setup(lane_graph: LaneGraph, map_node: Node3D, camera: Camera3D, data: Dict
 	_rng.seed = 2026
 	_looks.seed = 2027
 	_loud_rng.seed = 2028
+	_crazy_rng.seed = 2030
 	_lane_cars.resize(graph.lane_count)
 	for i in graph.lane_count:
 		_lane_cars[i] = []
@@ -755,6 +830,19 @@ func _try_spawn(anywhere: bool) -> bool:
 		shapes = Models.TRAFFIC[kind]
 		shape = Models.TAXI_SUPERCAR
 		loud = true
+	# Crazy drivers: now and then a taxi, a van, or (once at a time) a car's spawn drives wild.
+	var crazy := 0
+	if not loud and crazy_count < crazy_target and cls <= 2 and kind != Kind.BUS and _crazy_rng.randf() < CRAZY_CHANCE:
+		if pasat_count == 0 and cls <= 1 and _crazy_rng.randf() < CRAZY_PASAT_SHARE and not _free_slots[Kind.TAXI].is_empty():
+			kind = Kind.TAXI
+			shapes = Models.TRAFFIC[kind]
+			shape = Models.TAXI_PASAT
+			crazy = 3
+		elif kind == Kind.TAXI:
+			crazy = 1
+		elif kind == Kind.VAN:
+			shape = 0
+			crazy = 2
 	var look: Dictionary = shapes[shape]
 	var size: Vector3 = look["size"]
 	if not anywhere and on_screen(Vector3(q.x, y, q.y), size.y):
@@ -799,7 +887,22 @@ func _try_spawn(anywhere: bool) -> bool:
 	d.ghost = false
 	d.node = null
 	d.core_only = false
+	d.crazy = crazy
+	if crazy > 0:
+		crazy_count += 1
+		d.accel_factor = 1.3
+		if crazy == 3:
+			pasat_count += 1
+			d.paint = Color(PASAT_PAINT[_crazy_rng.randi() % PASAT_PAINT.size()])
 	_start(d, e, lane, s)
+	if crazy > 0:
+		# After _start (which clears a pooled car's racer stats): racer mode with no route.
+		d.race_top = CRAZY_TOP[crazy]
+		d.race_accel = CRAZY_ACCEL[crazy]
+		d.race_lat = CRAZY_LAT[crazy]
+		d.race_block = CRAZY_BLOCK[crazy]
+		d.race_mistake = CRAZY_MISTAKE[crazy]
+		d.race_band = 1.0
 	d.v = graph.e_speed[e] * 0.6
 	return true
 
@@ -828,6 +931,13 @@ func _start(d: Driver, e: int, lane: int, s: float) -> void:
 		d.race_top = 0.0
 		d.race_accel = 0.0
 		d.race_band = 1.0
+		d.cuts = {}
+		d.race_mistake = 0.0
+		d.race_wrong = 0
+		d.race_block = 0.0
+	d.on_cut = false
+	d.mistake_side = 0.0
+	d.block_t = 0.0
 	# The night-buses loop: a pooled driver forgets its last stop (and a ring bus's parking).
 	d.halt_e = -1
 	d.halting = false
@@ -850,6 +960,11 @@ func _release(d: Driver) -> void:
 	if d.loud:
 		d.loud = false
 		loud_count -= 1
+	if d.crazy > 0:
+		crazy_count -= 1
+		if d.crazy == 3:
+			pasat_count -= 1
+		d.crazy = 0
 	if d.kind < Kind.NODE and d.slot >= 0:
 		var base := d.slot * 16
 		for k in 12:
@@ -1412,6 +1527,14 @@ func _enter_edge(d: Driver, e: int, lane: int, s: float) -> void:
 	d.off_target = d.off
 	_register(d, graph.e_lane0[e] + lane)
 	d.ls = s
+	d.on_cut = false
+	d.block_t = 0.0
+	if d.mistake_side != 0.0:
+		# Human rivals: in too fast, out wide: it slides off its line and lifts off a moment.
+		d.daze = MISTAKE_DAZE
+		d.slide = MISTAKE_SLIDE * d.mistake_side
+		d.mistake_side = 0.0
+		d.mistakes += 1
 	_choose_next(d)
 
 
@@ -1440,11 +1563,27 @@ func _choose_next(d: Driver) -> void:
 	var best := -1
 	if not d.route.is_empty():
 		var best_d := INF
+		var second := -1
+		var second_d := INF
 		for f in outs:
 			var cost: float = graph.e_len[f] + d.route[graph.e_b[f]] + (60.0 if f == rev else 0.0)
 			if cost < best_d:
+				second = best
+				second_d = best_d
 				best_d = cost
 				best = f
+			elif cost < second_d:
+				second = f
+				second_d = cost
+		if racing_mode(d):
+			if not d.cuts.is_empty() and d.cuts.has(graph.e_b[e]) and best_d < INF and _take_cut(d, e, best_d):
+				return
+			if d.race_wrong > 0 and second >= 0 and second != rev and second_d < INF and d.route[graph.e_b[e]] > WRONG_FAR \
+					and _rng.randf() < WRONG_CHANCE:
+				# Słoik's satnav: the second-best way (the route's distances bring him back).
+				best = second
+				d.race_wrong -= 1
+				d.wrong_turns += 1
 		if best < 0 and d.goal != Vector2.INF:
 			# Loop 3g-1: beyond the route's reach (distances_to's max_cost): the way whose end
 			# lies nearest the goal; back the way it came only at a dead end.
@@ -1491,11 +1630,27 @@ func _choose_next(d: Driver) -> void:
 	var turn := absf(here.angle_to(graph.direction(best, graph.e_s0[best])))
 	d.v_turn = 3.5 if best == rev else lerpf(16.0, 5.5, clampf(turn / 1.6, 0.0, 1.0))
 	if d.race_accel > 0.0 and best != rev and not d.route.is_empty():
+		# The rubber band works on grip too: behind, it takes the corners harder (F: "catch up by
+		# driving better, not by a speed boost").
+		d.v_turn = race_turn_speed(d.conn_len, turn, d.race_lat * clampf(d.race_band, 0.85, 1.15))
+		if d.race_mistake > 0.0 and turn > 0.6 and Vector2(player_pos.x - d.pos.x, player_pos.z - d.pos.z).length() < MISTAKE_NEAR \
+				and _rng.randf() < d.race_mistake:
+			# Human rivals: too fast into this one; out wide on the far side (_enter_edge).
+			d.v_turn *= MISTAKE_FAST
+			d.mistake_side = _outside(e, best)
+	if d.crazy > 0 and best != rev:
+		# Crazy drivers: racer corners, and the Pasatini now and then too fast into one (seen).
 		d.v_turn = race_turn_speed(d.conn_len, turn, d.race_lat)
+		if d.race_mistake > 0.0 and turn > 0.6 and Vector2(player_pos.x - d.pos.x, player_pos.z - d.pos.z).length() < MISTAKE_NEAR \
+				and _crazy_rng.randf() < d.race_mistake:
+			d.v_turn *= MISTAKE_FAST
+			d.mistake_side = _outside(e, best)
 	d.next_reg = graph.e_lane0[best] + d.next_lane
 	# A racing rival chances some reds.
 	# The night-buses loop: a bus on a route (to a stop, the race to the Palm) never does.
 	d.run_red = not d.route.is_empty() and d.kind != Kind.BUS and (d.race_top > 0.0 or _rng.randf() < 0.6)
+	if d.crazy > 0:
+		d.run_red = _crazy_rng.randf() < CRAZY_RED[d.crazy]  # crazy drivers: a fresh red now and then
 
 
 ## Racer mode: the speed (m/s) a racer takes a junction curve of `length` m turning `turn` rad at
@@ -1505,9 +1660,95 @@ static func race_turn_speed(length: float, turn: float, lat: float) -> float:
 	return clampf(sqrt(lat * r), RACE_TURN_MIN, 40.0)
 
 
-## Racer mode: whether driver d drives as a racer now (a route, and racer stats).
+## Human rivals: takes a shortcut from the junction ahead (the end of edge e) if one it knows beats
+## `road` (the best road route's metres from there; best_cut). Sets up the curve like _choose_next.
+func _take_cut(d: Driver, e: int, road: float) -> bool:
+	var best_g := best_cut(graph, d.cuts[graph.e_b[e]], d.route, road)
+	if best_g < 0:
+		return false
+	var p0 := graph.point_at(e, graph.e_s1[e], graph.lane_offset(e, d.lane))
+	var d0 := graph.direction(e, graph.e_s1[e])
+	var g := best_g
+	d.next_edge = g
+	d.next_lane = mini(d.lane, graph.e_lanes[g] - 1)
+	var p3 := graph.point_at(g, graph.e_s0[g], graph.lane_offset(g, d.next_lane))
+	var d3 := graph.direction(g, graph.e_s0[g])
+	var reach := clampf(p0.distance_to(p3) * 0.25, 1.0, 8.0)
+	d.conn = PackedVector2Array([p0, p0 + d0 * reach, p3 - d3 * reach, p3])
+	d.conn_len = LaneGraph.bezier_length(d.conn)
+	d.conn_y0 = graph.height(e, graph.e_s1[e])
+	d.conn_y1 = graph.height(g, graph.e_s0[g])
+	var chord := (p3 - p0).normalized()
+	var turn := maxf(absf(d0.angle_to(chord)), absf(chord.angle_to(d3)))
+	d.v_turn = minf(CUT_TOP, race_turn_speed(d.conn_len, turn * 2.0, d.race_lat))
+	d.next_reg = graph.e_lane0[g] + d.next_lane
+	d.run_red = true
+	d.on_cut = true
+	d.cuts_taken += 1
+	return true
+
+
+## Human rivals: the edge a racer takes on after the best of `cuts` ([edge on, metres, ...] from
+## the junction ahead, race_cuts.gd), or -1 when none beats `road` (the best road route's metres
+## from that junction, by `route`). The routing counts a cut exactly so (RaceCuts.cost, with the
+## CUT_GAIN it must save), so a racer never circles a cut it won't take. Static for check_race_cuts.gd.
+static func best_cut(graph: LaneGraph, cuts: PackedFloat32Array, route: PackedFloat32Array, road: float) -> int:
+	var best_g := -1
+	var best_cost := road
+	for k in range(0, cuts.size(), 2):
+		var g := int(cuts[k])
+		var cost: float = RaceCuts.cost(cuts[k + 1], graph.e_len[g]) + route[graph.e_b[g]]
+		if cost < best_cost:
+			best_cost = cost
+			best_g = g
+	return best_g
+
+
+## Human rivals: the side (+1/-1 of the lane offset) a car runs wide to out of the turn from e to f.
+func _outside(e: int, f: int) -> float:
+	var d_in := graph.direction(e, graph.e_s1[e])
+	var d_out := graph.direction(f, graph.e_s0[f])
+	var seg := graph.seek(f, graph.e_s0[f], graph.e_first[f])
+	var across := graph.point(f, graph.e_s0[f], 1.0, seg) - graph.point(f, graph.e_s0[f], 0.0, seg)
+	# The turn's inside lies towards d_out - d_in; the car runs out the other way.
+	return -1.0 if across.dot(d_out - d_in) > 0.0 else 1.0
+
+
+## Human rivals: one lateral move onto the chasing player's line (see BLOCK_* above).
+func _race_block(d: Driver, dt: float) -> void:
+	d.block_t -= dt
+	d.block_wait -= dt
+	if d.block_t > 0.0 or d.block_wait > 0.0 or d.in_conn or d.pass_t > 0.0 or not player_on_road:
+		return
+	var rel := Vector2(player_pos.x - d.pos.x, player_pos.z - d.pos.z)
+	var fwd := Vector2(-sin(d.yaw), -cos(d.yaw))
+	var along := rel.dot(fwd)
+	if along > -3.0 or along < -BLOCK_BACK:
+		return
+	if Vector2(player_vel.x, player_vel.z).dot(fwd) < d.v - 1.0:
+		return  # dropping back: nothing to defend
+	d.block_wait = BLOCK_EVERY
+	if _rng.randf() >= d.race_block:
+		return
+	var e := d.edge
+	var s := minf(d.s, graph.e_len[e])
+	var seg := graph.seek(e, s, d.seg)
+	var across := graph.point(e, s, 1.0, seg) - graph.point(e, s, 0.0, seg)
+	var lw := graph.e_lw[e]
+	var lo := graph.lane_offset(e, 0) - lw * (0.75 if graph.e_reverse[e] >= 0 else 0.3)
+	var hi := graph.lane_offset(e, graph.e_lanes[e] - 1) + lw * 0.3
+	var want := clampf(d.off + rel.dot(across), lo, hi)
+	if absf(want - d.off) < 0.6:
+		return  # already on the player's line
+	d.block_off = want
+	d.block_t = BLOCK_HOLD
+	d.blocks += 1
+
+
+## Racer mode: whether driver d drives as a racer now (a route, and racer stats; or a crazy
+## driver, CRAZY_* above, who wanders).
 static func racing_mode(d) -> bool:
-	return d.race_accel > 0.0 and not d.route.is_empty()
+	return d.race_accel > 0.0 and (not d.route.is_empty() or d.crazy > 0)
 
 
 func _drive(d: Driver, dt: float) -> void:
@@ -1520,6 +1761,8 @@ func _drive(d: Driver, dt: float) -> void:
 	var v0 := graph.e_speed[e] * d.speed_factor
 	if racer and d.race_top > 0.0:
 		v0 = minf(d.race_top, RACE_CLASS_TOP[graph.e_class[e]]) * d.race_band
+		if d.crazy > 0:
+			v0 = minf(v0, graph.e_speed[e] * CRAZY_OVER[d.crazy])
 	if d.v_cap > 0.0:
 		v0 = d.v_cap  # loop 3g-1: a chaser's own top speed
 	if d.yield_t > 0.0:
@@ -1561,7 +1804,7 @@ func _drive(d: Driver, dt: float) -> void:
 	var leader_gap := gap
 	var player_gap := INF
 	if not d.ghost:
-		var cross := d.cross_gap < gap and d.squeeze <= 0.0 and d.cross_ignore <= 0.0 and (not racer or d.cross_gap < RACE_CROSS)
+		var cross := d.cross_gap < gap and d.squeeze <= 0.0 and d.cross_ignore <= 0.0 and (not racer or d.crazy > 0 or d.cross_gap < RACE_CROSS)
 		if cross:
 			gap = d.cross_gap
 			lead_v = d.cross_v
@@ -1605,6 +1848,8 @@ func _drive(d: Driver, dt: float) -> void:
 		d.cross_ignore -= dt
 	if racer and d.halt_e < 0:
 		_race_overtake(d, leader_gap, player_gap, dt)
+		if d.race_block > 0.0:
+			_race_block(d, dt)
 	elif not d.route.is_empty() and d.halt_e < 0:
 		_overtake(d, leader_gap, dt)
 	elif not d.ghost and player_gap < 10.0 and player_gap <= gap + 0.01 and d.v < 0.5:
@@ -1634,7 +1879,12 @@ func _drive(d: Driver, dt: float) -> void:
 		d.slide = move_toward(d.slide, 0.0, SLIDE_DECEL * dt)
 	else:
 		d.slide = 0.0
-		d.off = move_toward(d.off, d.pass_off if d.pass_t > 0.0 else d.off_target, (4.0 if racer else 2.5) * dt)
+		var to := d.off_target
+		if d.pass_t > 0.0:
+			to = d.pass_off
+		elif d.block_t > 0.0:
+			to = d.block_off
+		d.off = move_toward(d.off, to, (4.0 if racer else 2.5) * dt)
 	if d.held or d.stun > 0.0 or d.arrived:
 		gap = minf(gap, 0.0)
 		lead_v = 0.0
@@ -1776,20 +2026,21 @@ func _race_overtake(d: Driver, leader_gap: float, player_gap: float, dt: float) 
 	if not d.in_conn:
 		if _change_lane(d, ahead + 6.0, 4.0 if d.v < 3.0 else 12.0):
 			return
-		if _race_pass(d, ahead):
+		if _race_pass(d, ahead, d.race_block >= BLOCK_TIGHT and player_gap <= leader_gap):
 			return
 	if d.v < 1.0:
 		d.still += dt
 		# A knot of cars in a junction box (headless runs: Halina stood 20 s at the start behind
 		# a town car that stood too): a racer slips through after RACE_KNOT s, seen or not.
-		if d.still > RACE_KNOT:
+		# A crazy driver (town traffic, no race to win) never slips through a queue.
+		if d.still > RACE_KNOT and d.crazy == 0:
 			d.squeeze = 2.0
 			d.cross_ignore = 2.0
 			d.still = 0.0
 
 
 ## Racer mode: starts a pass over the centre line if the oncoming lane is clear (see above).
-func _race_pass(d: Driver, ahead: float) -> bool:
+func _race_pass(d: Driver, ahead: float, tight := false) -> bool:
 	var e := d.edge
 	var left := graph.e_s1[e] - d.s
 	if left < RACE_PASS_ROOM:
@@ -1808,7 +2059,8 @@ func _race_pass(d: Driver, ahead: float) -> bool:
 	else:
 		return false  # a one-way street: its other lanes or nothing (no oncoming side to use)
 	# Long enough to get by the car ahead and its leader's length, at our speed edge over theirs.
-	var need := clampf((ahead + 16.0) / maxf(d.v * 0.35, 3.0), 1.5, 4.0)
+	# Cutting in (BLOCK_TIGHT): past the player it pulls back in right in front of the bumper.
+	var need := clampf((ahead + (9.0 if tight else 16.0)) / maxf(d.v * 0.35, 3.0), 1.2, 4.0)
 	if need * maxf(d.v, 5.0) > left - 6.0:
 		return false
 	d.pass_t = need

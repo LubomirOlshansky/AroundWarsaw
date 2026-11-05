@@ -273,6 +273,15 @@ experience". The plan, the road audit and the causes are in docs/GAMEPLAY_PLAN.m
 - [ ] 4.1 Running clubs read as a blue blob at crossings: mixed kit, pairs, spread out
 - [ ] 4.2 Varso Place masses from photos (the gap between the tower and Varso 1/2)
 
+## Crazy drivers in traffic (F, 2026-11-05)
+
+Built (spec `docs/design/crazy-drivers.md`): Szkoda Oktawia taxis, Szprynter couriers and one Pasatini 1.9 TDJ drive in racer mode with no route (traffic.gd `CRAZY_*`, `crazy_drivers.gd`, check `crazy`). Open:
+- [ ] Phone feel of the speeds and cut-ins (QUESTIONS), and an Autopilot run on a busy street
+- [ ] Couriers stopping with hazard lights in the lane for a drop, then racing off (the meme; needs a parked-in-lane state like the crash scenes)
+- [ ] A Pasatini egg-book card ("everyone has seen it, nobody has caught it") and a chase side job
+- [ ] Black smoke puffs from the Pasatini when it pulls away (one particle draw call: bench first)
+- [ ] Headless overlap count with crazy drivers: about 120 frame-pairs in 90 s, all off screen (one stopped Pasatini beside a car of a neighbouring edge at Marszałkowska x Świętokrzyska); check on the Mac in view
+
 ## Street races: rivals that race (F, 2026-11-04)
 
 F: racers like Pani Halina drive very slowly and by the rules, never take a shorter way; races
@@ -285,9 +294,11 @@ police smarter, then test with Autopilot": R1, R2, R4's numbers and the police c
 (street-races.md section 6), measured with `tools/race_ai.sh`.
 - [x] R1 racer driving mode: race top speed from the player's car, 7-10 m/s², corners by radius, through reds, overtake traffic and the player, slip out of junction knots (2026-11-04)
 - [x] R2 fair rubber band: the first race with Halina in front to chase, every race's band by rung, boosts only off screen (2026-11-04)
-- [ ] R3 routes by time, wrong-way hops by personality, authored shortcuts (`race_links.json`)
+- [x] R3 part 1: shortcuts across plazas, verges, yards and car parks (`tools/race_cuts.py` -> `game/data/race_cuts.json`, 600 cuts; `race_cuts.gd`; knowledge per rival; routing counts only cuts the racer takes; verify step `racecuts`) (F, 2026-11-05; street-races.md section 9)
+- [ ] R3 part 2: wrong-way hops along one-way streets (needs oncoming-car checks on a cut), routes by time, the rival's shortcut shown after a loss
 - [x] R4 part 1: racing share, pull, corner grip, band and aim per rung (2026-11-04)
-- [ ] R4 part 2: aggression (nudges, blocking), mistakes near the player, Słoik's satnav wrong turn
+- [x] R4 part 2: rivals lead (aim ahead from Słoik up, Mike at the player's top speed, 12 s opening burst, higher side-street caps, grip in the band), mistakes near the player, Słoik's wrong turn, Mike's phone, blocking (one lateral move) and cutting in, their lines (F, 2026-11-05)
+- [ ] Contact nudges from aggressive rivals (Seba) beyond the block; phone feel of the new rivals (Autopilot P17 rerun)
 - [x] Police chasers in racer mode: quicker pull, corners by radius, careful through reds, round traffic; top speed still 0.8 of the player's (2026-11-04)
 - [ ] Phone feel of the races and chases (F's next device run); Autopilot row P17
 - [x] R5 part 1 (2026-11-04, beta values): the route to the finish on the minimap (Trzy mosty: to the next bridge), the gap in seconds, a lead-change toast and tick, the finish margin on the card (`check_ladder`)
@@ -875,6 +886,7 @@ Twelve ideas, plans in docs/design/city-life-satire.md. Built: #11 MIESZANE MIES
 - Measured against OSM (2026-11-02, the Mac's export, `tools/compare_cycleways.py --list`): separate paths 100 % of 65.8 km, crossings 100 %, painted lanes 97 % of 9.8 km; the gap was the on-street network: 33.3 km of contraflow one-ways (`oneway:bicycle=no`), 850 m of bus lanes open to bikes, 574 m of sharrows.
 - Fixed (2026-11-02): `tools/bike_network.py` (bake_osm, or the CLI with `--osm`) paints 524 contraflow bikes with an arrow against the one-way by the car's left kerb, 14 bikes in the bus lanes, 23 sharrows with chevrons: contraflow 91 %, bus lanes 100 %, sharrows 58 %.
 - Open: the rest of the contraflow (narrow streets under 2 m per side, junction-only ways: Grzymały-Siedleckiego, Oczki, part of Hoża); sharrows on the map-north bridge ways; the two shared foot-and-bike paths (684 m, grey pavers like Warsaw's, a `segregated=yes` one has a red half in reality).
+- Fixed (2026-11-05): couriers rode the car lane's kerb edge beside the red cycle paths; roads with a cycle path within 14 m of that line are no kerb roads now. Open: the map has no `cycle` path on the east side of central Marszałkowska (27 of 64 kerb edges there stay open): a data gap for the bike lane (map thread); the path riders' own routes unchanged.
 - Open: more riders on the main routes (Wisłostrada, Marszałkowska, Świętokrzyska; city-life-satire.md #9); riders' side offset jumps at a join; the 19 deck paths untouched by cycleways.py.
 
 ## Gdański Business Center (F, 2026-11-02)
@@ -1114,9 +1126,10 @@ modelled (site `zbawiciela`, spec `zbawiciela.md`, 1029 tris).
 - Mac photo check of the church: plaster and roof colours, belfry and spire shapes, the dome's
   height, whether the porch is a portico or a recess (all estimated; towers' 76 m is mapped).
 - Pass 2 (cloud, Sonnet, 2026-11-01): MDM modelled on the kept skin (site `mdm`, spec `mdm.md`,
-  2002 tris): ground-floor arcades on the facades facing the square and the axis, four corner
-  towers with hipped attics and spires, a terracotta relief on each tower's square face. Mac look
-  check parked (QUESTIONS): arcade rhythm and depth, tower heights, the real reliefs.
+  2002 tris) then reworked 2026-11-05 after F's Street View shots (the spired towers were wrong):
+  cream plaster over a sand-stone base with shopfronts, ring arcades only, four stepped attic
+  pavilions with finials, roof neons MDM, XIAOMY, BYDŁO and HOTEL MDM (3403 tris). Mac look
+  check parked (QUESTIONS): which facades have arcades, sign spots, balconies, the pavilions.
 - Pass 5 (cloud, Sonnet, 2026-11-02): Plac Zbawiciela's cafés and the church at night. Four neon cafés
   (`Storefronts.ZBAWICIELA`: KAWA ZBAWIENIE, SZARLOTKA NA ROGU, PLAN Z, PO MSZY SPRITZ) and six parasol
   terraces round the ring (`bake_street_details.py` TERRACES, 16 café sets, planters at the row ends);
@@ -4172,3 +4185,7 @@ first rescue, the boulevard tape and its song, the Powiśle arrow, the garage at
   a notebook place in `places.json`. Content lane (game-designer for names and spots).
 
 - **Railway look (F, 2026-11-05):** Plac Zawiszy tunnel stretch fixed (rails cut, mouth moved, #this PR). Still off: the Ochota cutting's banks are the 10 m grid's smooth slopes (no retaining walls, tan ballast sheet climbing them), overhead wires drawn per track pile up over the 12 tracks; the second spot F found (night, a highway with a rail/tram overpass) is not located; Kładka nad Książęcą (deck 58, (262,500)-(228,426)) waits for F's description of what is wrong.
+
+- **Sagging footbridges (F, 2026-11-05):** the bake's path-deck heights sag 4-6 m onto the floor of a trench they cross (10 m grid): fixed at load by `map_builder._lift_sagging_deck` for 6 pieces (decks 37, 43, 48, 55). The Kładka nad Książęcą was probably not this (deck 58 (262,500)-(228,426) has no sag); F's report was the Armii Ludowej one. Piers under the lifted decks are the bake's (placed for the sagged profile): Mac look check for floating or missing supports; the proper fix is in `bake_roads._solve` (deck over a trench takes the rim level).
+
+- **Footbridges, bridges and stairs survey (F, 2026-11-05):** `docs/design/footbridges-stairs-survey.md`: 11 of 23 footbridges end 2.6-10.5 m above ground, all 36 path pieces have no rails or lamps, 2,262 stairs are flat strips. Ranked fix list (footbridge kit, stair kit, footbridge ends, bake sag fix, named footbridges, vehicle-bridge dressing); none started.

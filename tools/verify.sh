@@ -94,9 +94,13 @@
 # lane graph (main roads, 2+ lanes, no overlaps), the real traffic queueing and going round a scene,
 # the timer (first, life, gap); centrum.json only (CI too).
 # City-life satire #1, loud cars (2026-11-02): `loud` runs game/tools/check_loud_cars.gd: the taxis'
-# family (three shapes, one surface: the supercar), the Browary meet clear of buildings and roads, the
+# family (four shapes, one surface: the supercar), the Browary meet clear of buildings and roads, the
 # car_meet / loud_driver / KEBAB FM lines and the rev sound, the real traffic's loud cars (never over
 # the cap), the revs and the radio line once; centrum.json only (CI too).
+# Crazy drivers (2026-11-05): `crazy` runs game/tools/check_crazy_drivers.gd: the taxis' family (four
+# shapes: the Pasatini), the crazy_taxi / crazy_courier / crazy_pasatini / KEBAB FM lines (no real
+# marque), 60 s of real traffic through the centre (crazy drivers in racer mode on the lanes, never over
+# the cap or two Pasatinis, faster than town cars), the cut-in horn and one line; centrum.json only (CI too).
 # The vintage-tram loop: `oldtram` runs game/tools/check_old_tram.gd: the old set's window (weekends
 # 09-19, Live Jun-Sep) and one run an hour, the follow count and its reset, the look's draw-call
 # budget (2 car meshes, no node added), a run on the real tracks finding E39 once; centrum.json only
@@ -128,7 +132,11 @@
 # ladder's order, thresholds and pace, the gating and the locked prompt's words, the refusal and
 # final lines, the save (round trip, a v2/v1 file without [ladder], --nosave writes nothing,
 # --ladder=N) and, from the committed centrum.json's lane graph, the final "Trzy mosty"'s three
-# bridges (east, west, east), its legs and its start and finish (CI too). Loop 3h slice 4: `first10`
+# bridges (east, west, east), its legs and its start and finish (CI too). Human rivals (2026-11-05):
+# `racecuts` runs game/tools/check_race_cuts.gd: the racers' shortcuts (game/data/race_cuts.json from
+# tools/race_cuts.py) snap to the lane graph, knowledge per rival, the routing with them never longer,
+# 60 races driven with traffic.gd's own cut choice all arrive and some take a cut, the rivals' human
+# lines (CI too, map part skipped without centrum.json). Loop 3h slice 4: `first10`
 # runs game/tools/check_first10.gd: the guide's ten beats and windows, who gets the guide, three
 # synthetic players through the director's rules (each beat in its window, the fallbacks, a beat
 # waiting for a job), the first race's rubber band in a 1-D race, the words; `endcard` runs
@@ -192,8 +200,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh monuments monumentmesh spec lod2 courts drape ground drive drive-prebuilt deckxray stuckspots stuckspots-prebuilt lanedrive finite steering laneassist stuckoffer handling stopassist questlines settings credits language tiers governor heliview hud places edge roadworks eggs tape crowds life buses zaglebie crashes loud oldtram trains packs wellness fans garage save districts syrenki cassettes ladder first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram teleport firstlife heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh monuments monumentmesh spec drape drive deckxray stuckspots finite steering laneassist stuckoffer handling stopassist questlines settings credits language tiers governor heliview hud places edge roadworks eggs tape crowds life buses zaglebie crashes loud oldtram trains packs wellness fans garage save districts syrenki cassettes ladder first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds police plain ram teleport firstlife prebuilt)
+STEPS_ALL=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh monuments monumentmesh spec lod2 courts drape ground drive drive-prebuilt deckxray stuckspots stuckspots-prebuilt lanedrive finite steering laneassist stuckoffer handling stopassist questlines settings credits language tiers governor heliview hud places edge roadworks eggs tape crowds life buses zaglebie crashes loud crazy oldtram trains packs wellness fans garage save districts syrenki cassettes ladder racecuts first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram teleport firstlife heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh monuments monumentmesh spec drape drive deckxray stuckspots finite steering laneassist stuckoffer handling stopassist questlines settings credits language tiers governor heliview hud places edge roadworks eggs tape crowds life buses zaglebie crashes loud crazy oldtram trains packs wellness fans garage save districts syrenki cassettes ladder racecuts first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds police plain ram teleport firstlife prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -825,6 +833,8 @@ for s in $want; do
 		crashes) check crashes '^check_crash_scenes:' --script res://tools/check_crash_scenes.gd ;;
 		# City-life satire #1: the loud cars and the Browary meet.
 		loud) check loud '^check_loud_cars:' --script res://tools/check_loud_cars.gd ;;
+		# Crazy drivers: Szkoda taxis, Szprynter couriers, the Pasatini.
+		crazy) check crazy '^check_crazy_drivers:' --script res://tools/check_crazy_drivers.gd ;;
 		oldtram) check oldtram '^check_old_tram:' --script res://tools/check_old_tram.gd ;;
 		# The railway (docs/design/railway.md T1): the trains on the rail tracks.
 		trains) check trains '^check_trains:' --script res://tools/check_trains.gd ;;
@@ -840,6 +850,7 @@ for s in $want; do
 		syrenki) check syrenki '^syrenki:' --script res://tools/check_syrenki.gd ;;
 		cassettes) check cassettes '^cassettes:' --script res://tools/check_cassettes.gd ;;
 		ladder) check ladder '^ladder:' --script res://tools/check_ladder.gd ;;
+		racecuts) check racecuts '^race_cuts:' --script res://tools/check_race_cuts.gd ;;
 		first10) check first10 '^first10:' --script res://tools/check_first10.gd ;;
 		mainline) check mainline '^main_line:' --script res://tools/check_main_line.gd ;;
 		chatter) check chatter '^check_chatter:' --script res://tools/check_chatter.gd ;;

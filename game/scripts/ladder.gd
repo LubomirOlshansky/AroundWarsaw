@@ -21,6 +21,15 @@ extends RefCounted
 ##   `band_mult`; strong at the bottom of the ladder, small at the top) that aims her `aim` m
 ##   behind the player (> 0: an even drive beats her; < 0: she aims to be in front). `pace` stays as the
 ##   cruise-time liveliness and the old tests' order.
+## - **Human rivals** (F, 2026-11-05: "not competitive, very slow, only by roads, never cut me off"):
+##   every rival from Słoik up now aims to LEAD (`aim` < 0: Słoik 5 m in front ... Mike 50 m; Halina
+##   15 m behind after her launch: the first rung stays a win for a new player), so the player
+##   chases and has to outdrive them, and each has a personality: `cuts` the share of the city's
+##   shortcuts it knows (race_cuts.gd: Słoik none, he follows his satnav; Zbyszek all of them),
+##   `mistake` the chance of running wide out of a corner near the player (Halina, Bartek),
+##   `wrong` wrong turns a race (Słoik), `block` the chance of moving across the player's line
+##   when chased (Seba most), `phone` a one-second brake for a call (Mike). Halina's and Słoik's
+##   strong band still lets a new player win in the last stretch.
 ## - **The record** is the wallet's `ladder` (rung id -> the day it was first beaten, yyyymmdd;
 ##   the save's [ladder] section, wallet.gd). The final's win is `ladder["trzy_mosty"]`
 ##   (`final_won`), for the end card of the next slice.
@@ -31,17 +40,23 @@ const Lang := preload("res://scripts/lang.gd")
 ## the locked prompt, the stake (zł, as RIVALS), the respect it needs, and the race pace.
 const RUNGS := [
 	{"id": "halina", "rival": "Pani Halina", "short": "HALINA", "stake": 60, "respect": 0, "pace": 1.25, "accel": 1.5,
-		"share": 0.72, "race_accel": 7.0, "lat": 5.5, "band": 0.8, "aim": 25.0},
+		"share": 0.8, "race_accel": 8.0, "lat": 6.0, "band": 0.8, "aim": 15.0,
+		"cuts": 0.3, "mistake": 0.3, "wrong": 0, "block": 0.0, "phone": false},
 	{"id": "sloik", "rival": "Słoik z Radomia", "short": "SŁOIK", "stake": 90, "respect": 100, "pace": 1.3, "accel": 1.55,
-		"share": 0.75, "race_accel": 7.5, "lat": 6.5, "band": 0.65, "aim": 15.0},
+		"share": 0.84, "race_accel": 8.5, "lat": 7.0, "band": 0.65, "aim": -5.0,
+		"cuts": 0.0, "mistake": 0.12, "wrong": 1, "block": 0.0, "phone": false},
 	{"id": "bartek", "rival": "Bulwar Bartek", "short": "BARTEK", "stake": 120, "respect": 220, "pace": 1.35, "accel": 1.6,
-		"share": 0.86, "race_accel": 8.0, "lat": 8.0, "band": 0.5, "aim": 8.0},
+		"share": 0.9, "race_accel": 9.5, "lat": 8.5, "band": 0.45, "aim": -25.0,
+		"cuts": 0.4, "mistake": 0.2, "wrong": 0, "block": 0.3, "phone": false},
 	{"id": "seba", "rival": "Seba z Pragi", "short": "SEBA", "stake": 150, "respect": 340, "pace": 1.4, "accel": 1.65,
-		"share": 0.9, "race_accel": 8.5, "lat": 8.0, "band": 0.4, "aim": 0.0},
+		"share": 0.94, "race_accel": 10.5, "lat": 9.0, "band": 0.35, "aim": -35.0,
+		"cuts": 0.6, "mistake": 0.08, "wrong": 0, "block": 0.9, "phone": false},
 	{"id": "zbyszek", "rival": "Taksiarz Zbyszek", "short": "ZBYSZEK", "stake": 200, "respect": 480, "pace": 1.45, "accel": 1.7,
-		"share": 0.92, "race_accel": 9.0, "lat": 8.5, "band": 0.3, "aim": -5.0},
+		"share": 0.97, "race_accel": 11.0, "lat": 9.5, "band": 0.3, "aim": -40.0,
+		"cuts": 1.0, "mistake": 0.03, "wrong": 0, "block": 0.4, "phone": false},
 	{"id": "mike", "rival": "Mordor Mike", "short": "MIKE", "stake": 300, "respect": 640, "pace": 1.5, "accel": 1.75,
-		"share": 0.94, "race_accel": 10.0, "lat": 8.5, "band": 0.25, "aim": -10.0},
+		"share": 1.0, "race_accel": 12.0, "lat": 10.0, "band": 0.25, "aim": -50.0,
+		"cuts": 0.5, "mistake": 0.05, "wrong": 0, "block": 0.3, "phone": true},
 ]
 ## The final race: index RUNGS.size() (6) everywhere a rung index is asked for.
 const FINAL := 6
@@ -60,9 +75,11 @@ const REMATCH_GAIN := 20
 const FINAL_PACE := 1.45
 const FINAL_ACCEL := 1.7
 ## Seba's racing in the final (`racer`): near Mike's top, every corner, a small band.
-const FINAL_RACER := {"share": 0.95, "race_accel": 10.0, "lat": 8.5, "band": 0.15, "aim": -10.0}
+const FINAL_RACER := {"share": 1.0, "race_accel": 12.0, "lat": 10.0, "band": 0.15, "aim": -50.0,
+		"cuts": 1.0, "mistake": 0.05, "wrong": 0, "block": 1.0, "phone": false}
 ## Racing outside the ladder.
-const DEFAULT_RACER := {"share": 0.85, "race_accel": 8.5, "lat": 7.5, "band": 0.4, "aim": 0.0}
+const DEFAULT_RACER := {"share": 0.88, "race_accel": 9.0, "lat": 8.0, "band": 0.4, "aim": -20.0,
+		"cuts": 0.5, "mistake": 0.1, "wrong": 0, "block": 0.3, "phone": false}
 ## The pace of a race outside the ladder (no wallet, an unknown rival): the old flat one.
 const DEFAULT_PACE := 1.45
 const DEFAULT_ACCEL := 1.7
@@ -97,14 +114,18 @@ static func id_of(i: int) -> String:
 	return FINAL_ID if i == FINAL else str(RUNGS[i]["id"])
 
 
-## The racer stats of rung `i` (FINAL: the final's; -1: the default): share, race_accel, lat, band.
+## The racer stats of rung `i` (FINAL: the final's; -1: the default): share, race_accel, lat, band,
+## aim, and the personality (2026-11-05): cuts, mistake, wrong, block, phone.
 static func racer(i: int) -> Dictionary:
 	if i == FINAL:
 		return FINAL_RACER
 	if i < 0 or i >= RUNGS.size():
 		return DEFAULT_RACER
 	var r: Dictionary = RUNGS[i]
-	return {"share": r["share"], "race_accel": r["race_accel"], "lat": r["lat"], "band": r["band"], "aim": r["aim"]}
+	var out := {}
+	for k in DEFAULT_RACER:
+		out[k] = r[k]
+	return out
 
 
 ## [speed_factor, accel_factor] for rung `i` (FINAL: the final's; -1: the default).
