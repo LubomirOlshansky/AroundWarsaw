@@ -192,6 +192,30 @@ the steering. Review, findings and the A/B list: `docs/design/beta-values.md`.
 - [ ] GAMEPLAY_PLAN 1.5 items 2, 3, 5: wall look-ahead, junction pick, camera lead at junctions
 - [ ] If F picks them: the delivery streak "Seria", a smooth tip, slipstream, a shorter card wait
 
+## Road objects and collisions (F, 2026-11-04)
+
+F: "a lot of objects on the roads make the arcade driving harder, and you can't tell what many of
+them are for; check every object street by street (real object to draw, leave out, a wall that
+matters on a bridge or estacade, better texture, the real object), and rework the collisions:
+walls redirect, never stop, for buildings and other cars too". Research and plan:
+`docs/design/road-objects.md`. Census tool `tools/road_objects.py` (3,553 solid objects within 3 m
+of a lane's edge: fences 410 and parked cars 412 within 1 m, deck rails and structure walls on the
+bridges and estacades, ~100 stairwell walls at 1.9 m, 64 canopies as solid 4 m blocks). Skill
+`road-objects-sweep`, agent `road-auditor`.
+Found: since Classic became the default controls (2026-11-04) the wall follow (point-to-steer only)
+is gone, so a head-on hit stops the car dead again (road-objects.md 1.1).
+- [x] Research, object audit, census, pipeline, collision targets, skill and agent (2026-11-04, docs + tool)
+- [ ] 1 Collision rework v2: response by impact angle, wall follow for Classic, head-on kick, corner pivot, traffic shove (4.2-4.3) behind `--collide=v2` and a setting; RO3/RO4 cases. F: 97 % kept on a graze feels too arcade: presets (97 / 90 / 80 %), A/B from the middle, F picks on the phone
+- [ ] 2 `check_lane_drive` contact log, `--street=`, sloppy driver, the 4.5 numbers (after #427)
+- [ ] 3 First sweep: Marszałkowska, Świętokrzyska, Jerozolimskie (S1-S3 cloud, S4-S5 Mac batch)
+- [ ] 4 Stairwell balustrades (1 m) and metro canopies city-wide; canopies on posts (rules B5, B6)
+- [ ] 5 Soft colliders for fences, hedges, parked-car corners; A/B on Marszałkowska's median fences (bench)
+- [ ] 6 Narrow streets: drive hull 0.3-0.5 m behind facades, parked cars every other one, no kerb jolt under 8 m
+- [ ] 7 The override file `game/data/road_objects.json`, `--classify`, the baseline in `check_map_data.py`
+- [ ] Census: apply `_by_road` to platforms (over-counted now); 48 lanes through buildings (gateways) to look at
+- [x] Street-level photos in the cloud (2026-11-04): F allowed the hosts and made a Mapillary app (`MAPILLARY_TOKEN`); `tools/street_photos.py` finds the photos facing a point; added to the model-from-photos skill, object-modeler and road-auditor
+- [x] `panoramax.openstreetmap.fr` allowed too (F, 2026-11-04)
+
 ## After the beta: driving extras and the city economy (F, 2026-11-03, plan only)
 
 F asked for research on arcade driving games and on business and economy games, for a layer after the
