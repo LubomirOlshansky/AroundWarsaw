@@ -56,7 +56,7 @@ VERSION = 2
 # --check (2026-11-05, the demo box after the first pass): 727 edge steps -> 15 (joins without room
 # for a taper), 969 line jogs -> 16. Lower these when a change leaves fewer; never raise them.
 CHECK_STEPS = 10
-CHECK_JOGS = 16
+CHECK_JOGS = 14
 MINOR = {"service", "living_street"}
 CHAIN_COS = 0.85        # ways carry on: their directions at the join within ~32 degrees
 STEP_MIN = 0.3          # m: a smaller edge step is invisible
@@ -658,10 +658,71 @@ def fit_rail_beds(out):
             changed = True
         if changed:
             ways += 1
+            WIDENED.append((pts, [(c0 - hw, c0 + hw)] * len(pts), list(zip(lft, rgt))))
             r["wv"] = [round(b - a, 3) for a, b in zip(lft, rgt)]
             r["cv"] = [round((a + b) * 0.5, 3) for a, b in zip(lft, rgt)]
     move_with_edges(out, moved)
     return ways, sides
+
+
+WIDENED = []   # (road points, old (left, right) per vertex, new (left, right) per vertex)
+LANE_PAINT = ("lane", "centre", "bus")
+
+
+def spread_lanes(out):
+    """Loop 6 (F's satellite shots: lanes fill the street's kerbs): on a way widened above, its
+    lane lines spread across the new width (each line keeps its share of the way, so the lanes
+    widen evenly instead of leaving a bare margin by the kerb). Returns the points moved."""
+    if not WIDENED:
+        return 0
+    grid = Grid(32.0)
+    for k, (pts, _, _) in enumerate(WIDENED):
+        for x, z in pts:
+            grid.add(k, x, z)
+    moved = 0
+    for m in out.get("markings", []):
+        if m["k"] not in LANE_PAINT:
+            continue
+        lp = pts_of(m["p"])
+        # densify, so a long dash or line follows the change of width along the way
+        dense = [lp[0]]
+        for a, b in zip(lp, lp[1:]):
+            n = max(1, int(math.dist(a, b) / 2.0))
+            for t in range(1, n + 1):
+                dense.append((a[0] + (b[0] - a[0]) * t / n, a[1] + (b[1] - a[1]) * t / n))
+        new, hit = [], False
+        for x, z in dense:
+            out_p = (x, z)
+            for k in set(grid.near(x, z, 40.0)):
+                pts, old, nw = WIDENED[k]
+                best = None
+                for q, (a, b) in enumerate(zip(pts, pts[1:])):
+                    u = unit(a, b)
+                    if u is None:
+                        continue
+                    ln = math.dist(a, b)
+                    al = (x - a[0]) * u[0] + (z - a[1]) * u[1]
+                    if not (-0.5 <= al <= ln + 0.5):
+                        continue
+                    f = min(max(al / ln, 0.0), 1.0)
+                    ol = old[q][0] + (old[q + 1][0] - old[q][0]) * f
+                    orr = old[q][1] + (old[q + 1][1] - old[q][1]) * f
+                    off = (x - a[0]) * -u[1] + (z - a[1]) * u[0]
+                    if ol + 0.4 < off < orr - 0.4 and (best is None or abs(off - (ol + orr) / 2) < best[0]):
+                        nl = nw[q][0] + (nw[q + 1][0] - nw[q][0]) * f
+                        nr = nw[q][1] + (nw[q + 1][1] - nw[q][1]) * f
+                        share = (off - ol) / max(orr - ol, 0.1)
+                        best = (abs(off - (ol + orr) / 2), u, nl + share * (nr - nl) - off)
+                if best is not None and abs(best[2]) > 0.02:
+                    _, u, g = best
+                    out_p = (x - u[1] * g, z + u[0] * g)
+                    hit = True
+                    moved += 1
+                    break
+            new.append(out_p)
+        if hit:
+            m["p"] = flat_of(simplify(new, 0.02))
+    return moved
 
 
 def move_with_edges(out, moved):
@@ -791,6 +852,7 @@ def fit_chain_widths(out):
             changed = True
         if changed:
             ways += 1
+            WIDENED.append((pts, [tuple(e) for e in edges], [tuple(e) for e in new]))
             r["wv"] = [round(e[1] - e[0], 3) for e in new]
             r["cv"] = [round((e[0] + e[1]) * 0.5, 3) for e in new]
     move_with_edges(out, moved)
@@ -1242,8 +1304,10 @@ def apply(out):
         raise SystemExit("road_smooth: the map was smoothed by an older version; take the unsmoothed "
                          "map (the other side's centrum.json, or a re-bake) and run this again")
     before = measure(out)
+    WIDENED.clear()
     beds, bed_sides = fit_rail_beds(out)
     chain_ways, chain_sides = fit_chain_widths(out)
+    spread = spread_lanes(out)
     joins = find_joins(out["roads"])
     index_nodes(out["roads"])
     ends = []
@@ -1271,7 +1335,7 @@ def apply(out):
     after = measure(out)
     out["road_smooth"] = VERSION
     return (f"{beds} ways ({bed_sides} sides) widened onto the tram bed, {chain_ways} ways ({chain_sides} sides) "
-            f"widened to their street's kerbs, {len(tapers)} joins tapered, {km} kerb and {em} edge-line points moved, {fit} edges fitted to "
+            f"widened to their street's kerbs ({spread} lane-line points spread), {len(tapers)} joins tapered, {km} kerb and {em} edge-line points moved, {fit} edges fitted to "
             f"their kerbs, {bridged} kerb breaks by a tram bed closed, {joined} lines "
             f"stitched, {rounded} line kinks rounded; edge steps {before['steps']} -> {after['steps']}, "
             f"line jogs {before['jogs']} -> {after['jogs']}")
