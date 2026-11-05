@@ -55,7 +55,7 @@ sign positions and sizes, balcony railings, the pavilions' real shape.
 
 ## 7. Detail level and budget
 
-L2, 3403 triangles measured, budget 4100 in `check_mesh_quality.gd`; no zfight, degenerate,
+L3, 3403 triangles measured, budget 4100 in `check_mesh_quality.gd`; no zfight, degenerate,
 bad-normal or floating parts (each pavilion has a hidden core tying it to the ground).
 
 ## 8. Parts table
