@@ -1,5 +1,5 @@
 {
-  "_about": "Original lines for Around Warsaw: affectionate Warsaw humour about the city and its stereotypes, never about real private people, no brand names. Each line is [Polish, English], optionally with a third element of notes for the game: {\"only\": tag or [tags]} limits it to one situation (kebab orders: \"powisle\", \"praga\" across the river, \"office\"; rescues: \"roof\", \"street\", \"river\", \"child\", \"square\"; słoiki: \"all\" jars intact, \"some\"; water_tow, loop 10a: \"river\", \"pond\"), {\"customer\": name} names who ordered. {\"poster\": [lines]} (column_posters, loop 1) is how the poster on an advertising column breaks the line: at most four lines of eight letters. Loop 3g-1 (police, docs/design/police.md section 6): police_warn \"speed\", \"red\", \"bump\"; police_chase \"start\", \"backup\", \"roadblock\" (untagged: every 10 to 12 s); police_lost \"escaped\", \"shift\", \"heli\"; police_stop \"routine\", \"roosters\", \"trap\", \"kebab\", \"sloik\" (untagged: the generic opener); police_reply \"trap\", \"kebab\" (untagged: always offered; at most 28 characters, they are buttons); police_caution \"police\", \"fifth\"; radio_host \"traps\" ({pl} / {en}: the day's three speed traps). Speech bubbles stay under 70 characters in Polish. Loop MW-0 (Moja Warszawa, docs/design/vision.md section 7): radio_polnoc (PÓŁNOC FM's host Kuba, \"south_gate\": entering the box from Plac Na Rozdrożu); radio_host (the Hyrax line); club_door (the bouncer: \"reject\", \"queue\", \"car\", \"car_black\", \"dawn\"); clubbers; dawn_crowd (\"palm\"); police_club (the units parked by the clubs, \"sober\"); schodki (\"sunset\", \"guitar\", \"fourth\"); viral (Wiralek: \"queue\", \"new\", \"gone\", \"glon\", \"late\"); runners (\"zajac\", \"hyrax\"); dog_walkers (\"horn\", \"influencer\"); cyclists (\"lane\"); metro_announce; bus_stop (\"night\"); podwozka_request and podwozka_passenger \"club\" (dawn rides from the club doors); notes (the notebook toasts: \"found\", \"chapter\", \"kadr\"); four signs and four column_posters. The notebook's place cards are in places.json and the tape's then cards in then_cards.json. Crash scenes (crash_scenes.gd, 2026-11-01): crash_scene \"driver\", \"officer\", \"medic\", \"gawker\" (bubbles at a fender bender); radio_host \"crash\" ({street}: the road's name, starting the line). Office crowds at Rondo Daszyńskiego (crowds.gd \"office\" sites and walkers, 2026-11-02): office (\"morning\" 07-10, \"lunch\" 11-14, \"evening\" 16-19, \"rain\"; untagged anywhere): overheard corporate jokes, no brand names. Beta radio (2026-11-02): the host's greeting when the game starts (dialogue.gd greeting) = radio_hello_morning / _day / _evening / _night + radio_weather_warm / _mild / _cold / _rain ({t}: the temperature, \"20 stopni\" / \"20 degrees\") + radio_bye (\"morning\", \"day\", \"evening\", \"night\"). City-life satire #1, loud cars (loud_cars.gd, 2026-11-02): car_meet (the crowd at the Browary meet; \"rev\" when a parked car revs), loud_driver (a passing loud supercar's driver), radio_host \"loud\" (KEBAB FM: \"Sąsiedzi znów liczą obroty\").",
+  "_about": "Original lines for Around Warsaw: affectionate Warsaw humour about the city and its stereotypes, never about real private people, no brand names. Each line is [Polish, English], optionally with a third element of notes for the game: {\"only\": tag or [tags]} limits it to one situation (kebab orders: \"powisle\", \"praga\" across the river, \"office\"; rescues: \"roof\", \"street\", \"river\", \"child\", \"square\"; słoiki: \"all\" jars intact, \"some\"; water_tow, loop 10a: \"river\", \"pond\"), {\"customer\": name} names who ordered. {\"poster\": [lines]} (column_posters, loop 1) is how the poster on an advertising column breaks the line: at most four lines of eight letters. Loop 3g-1 (police, docs/design/police.md section 6): police_warn \"speed\", \"red\", \"bump\"; police_chase \"start\", \"backup\", \"roadblock\" (untagged: every 10 to 12 s); police_lost \"escaped\", \"shift\", \"heli\"; police_stop \"routine\", \"roosters\", \"trap\", \"kebab\", \"sloik\" (untagged: the generic opener); police_reply \"trap\", \"kebab\" (untagged: always offered; at most 28 characters, they are buttons); police_caution \"police\", \"fifth\"; radio_host \"traps\" ({pl} / {en}: the day's three speed traps). Speech bubbles stay under 70 characters in Polish. Loop MW-0 (Moja Warszawa, docs/design/vision.md section 7): radio_polnoc (PÓŁNOC FM's host Kuba, \"south_gate\": entering the box from Plac Na Rozdrożu); radio_host (the Hyrax line); club_door (the bouncer: \"reject\", \"queue\", \"car\", \"car_black\", \"dawn\"); clubbers; dawn_crowd (\"palm\"); police_club (the units parked by the clubs, \"sober\"); schodki (\"sunset\", \"guitar\", \"fourth\"); viral (Wiralek: \"queue\", \"new\", \"gone\", \"glon\", \"late\"); runners (\"zajac\", \"hyrax\"); dog_walkers (\"horn\", \"influencer\"); cyclists (\"lane\"); metro_announce; bus_stop (\"night\"); podwozka_request and podwozka_passenger \"club\" (dawn rides from the club doors); notes (the notebook toasts: \"found\", \"chapter\", \"kadr\"); four signs and four column_posters. The notebook's place cards are in places.json and the tape's then cards in then_cards.json. Crash scenes (crash_scenes.gd, 2026-11-01): crash_scene \"driver\", \"officer\", \"medic\", \"gawker\" (bubbles at a fender bender); radio_host \"crash\" ({street}: the road's name, starting the line). Office crowds at Rondo Daszyńskiego (crowds.gd \"office\" sites and walkers, 2026-11-02): office (\"morning\" 07-10, \"lunch\" 11-14, \"evening\" 16-19, \"rain\"; untagged anywhere): overheard corporate jokes, no brand names. Beta radio (2026-11-02): the host's greeting when the game starts (dialogue.gd greeting) = radio_hello_morning / _day / _evening / _night + radio_weather_warm / _mild / _cold / _rain ({t}: the temperature, \"20 stopni\" / \"20 degrees\") + radio_bye (\"morning\", \"day\", \"evening\", \"night\"). City-life satire #1, loud cars (loud_cars.gd, 2026-11-02): car_meet (the crowd at the Browary meet; \"rev\" when a parked car revs), loud_driver (a passing loud supercar's driver), radio_host \"loud\" (KEBAB FM: \"Sąsiedzi znów liczą obroty\"). Crazy drivers (crazy_drivers.gd, docs/design/crazy-drivers.md, 2026-11-05): crazy_taxi (the Szkoda Oktawia taxis), crazy_courier (the Szprynter couriers), crazy_pasatini (Janusz in the Pasatini 1.9 TDJ), said when one cuts in or blocks near the player; radio_host \"pasatini\" (KEBAB FM: a Pasatini sighting).",
   "radio_host": [
     [
       "Na Marszałkowskiej znowu remont. Czyli wszystko po staremu.",
@@ -231,6 +231,27 @@
       "Announcement: the loud cars are out again. The police say they can hear them. Everyone can hear them.",
       {
         "only": "loud"
+      }
+    ],
+    [
+      "Pasatini widziane na lewym pasie. Prosimy zjechać i się pomodlić.",
+      "A Pasatini sighted in the left lane. Please pull over and pray.",
+      {
+        "only": "pasatini"
+      }
+    ],
+    [
+      "Komunikat drogowy: czarne kombi, czarny dym, zero kierunkowskazów. Uważajcie.",
+      "Traffic news: black estate, black smoke, zero indicators. Watch out.",
+      {
+        "only": "pasatini"
+      }
+    ],
+    [
+      "Słuchacz pyta, czy Pasatini da się wyprzedzić. Da się. Raz.",
+      "A listener asks if you can overtake a Pasatini. You can. Once.",
+      {
+        "only": "pasatini"
       }
     ]
   ],
@@ -4968,6 +4989,84 @@
     [
       "Szalik mam w radiowozie. Służbowo, oczywiście.",
       "I've got a scarf in the patrol car. Strictly for work, of course."
+    ]
+  ],
+  "crazy_taxi": [
+    [
+      "Szkoda czasu na hamowanie.",
+      "Braking is a waste of time."
+    ],
+    [
+      "Klient płaci za czas, to oszczędzam czas!",
+      "The fare pays for time, so I'm saving time!"
+    ],
+    [
+      "Nawigacja mówi w prawo, serce mówi buspas.",
+      "The satnav says right, my heart says bus lane."
+    ],
+    [
+      "Pięć gwiazdek albo jedziemy dookoła.",
+      "Five stars or we take the long way."
+    ],
+    [
+      "Na lotnisko w siedem minut. Proszę się zapiąć.",
+      "Airport in seven minutes. Buckle up, please."
+    ],
+    [
+      "Kierunkowskaz zużywa prąd, panie.",
+      "Indicators use up the battery, mate."
+    ]
+  ],
+  "crazy_courier": [
+    [
+      "Dziewięćdziesiąt paczek, osiem godzin, zero litości.",
+      "Ninety parcels, eight hours, zero mercy."
+    ],
+    [
+      "Awaryjne włączone, czyli mogę wszystko.",
+      "Hazards on means I can do anything."
+    ],
+    [
+      "Nikogo nie było w domu. Nawet nie dzwoniłem.",
+      "Nobody was home. I didn't even ring."
+    ],
+    [
+      "Zostawiłem u sąsiada. Którego? Niespodzianka.",
+      "Left it with a neighbour. Which one? Surprise."
+    ],
+    [
+      "Paczka sama się nie dowiezie!",
+      "The parcel won't deliver itself!"
+    ],
+    [
+      "Szprynter ma trzy tony i zero wątpliwości.",
+      "The Szprynter has three tonnes and zero doubts."
+    ]
+  ],
+  "crazy_pasatini": [
+    [
+      "Stan igła. Niemiec płakał, jak sprzedawał.",
+      "Mint condition. The German cried when he sold it."
+    ],
+    [
+      "Przebieg sto osiemdziesiąt tysięcy. Od trzech lat.",
+      "180 thousand km on the clock. For three years now."
+    ],
+    [
+      "Czarny dym to nie awaria, to moc.",
+      "Black smoke isn't a fault, it's power."
+    ],
+    [
+      "Lewy pas jest mój. Mam to w dowodzie.",
+      "The left lane is mine. It's in my logbook."
+    ],
+    [
+      "Jeden dziewięć TDJ. Pół miliona i dalej ciągnie.",
+      "One-nine TDJ. Half a million km and still pulling."
+    ],
+    [
+      "Kierunkowskaz? Nie było w wyposażeniu.",
+      "Indicators? Weren't in the spec."
     ]
   ]
 }

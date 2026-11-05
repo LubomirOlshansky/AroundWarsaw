@@ -48,7 +48,7 @@ lewy pas. Prosimy zjechać i się pomodlić."
 
 - **Pasatini**: a fourth shape in the taxis' family (models.gd `TAXI_PASAT`, share 0, drawn only by
   the crazy-driver spawn), on spec("estate") with roof rails, in Janusz paints (black, graphite,
-  bottle green, navy, silver-grey), with a dark sun strip over the windscreen, a boot-lip spoiler and
+  bottle green, dark slate, silver-grey), with a dark sun strip over the windscreen, a boot-lip spoiler and
   two chrome exhaust tips. The taxi family then holds four shapes, the most a family takes.
 - **Szkoda Oktawia taxi**: the existing city taxi and Podwózka shapes (no change).
 - **Szprynter courier**: the existing panel van in courier whites and greys (no change).
@@ -79,8 +79,15 @@ believable in town traffic:
 
 - They yield to crossing cars like town cars (not racer mode's 7 m rule), so a red-runner brakes in
   the box instead of driving through someone.
-- The racer's "slip through a knot after 1.5 s" only happens out of sight, so a crazy driver never
-  ghosts through a red-light queue on screen.
+- The racer's "slip through a knot after 1.5 s" is off for them, so a crazy driver never ghosts
+  through a red-light queue (a jam out of sight clears the town cars' way, after 45 s).
+
+## 3b. Measured (headless, check_crazy_drivers and a 90 s probe)
+
+- 60 s through the centre with up to 3: 22 crazy drivers met, all three kinds, 11.6 m/s on average
+  against 9.1 for town cars (27 % faster).
+- Overlaps: about 120 frame-pairs in 90 s involve a crazy driver, all out of sight (one stopped
+  Pasatini beside a car of a neighbouring edge); town traffic alone has 81, all in junction boxes.
 
 ## 4. Lines and sound (chatter budget)
 
