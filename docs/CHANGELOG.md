@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-05
 
+- Race rivals drive like people now: they launch past you and make you chase, take shortcuts across squares, lawns and car parks, cut in front of you and block your line, and sometimes run wide in a corner or take a wrong turn. Each one has a style: Zbyszek knows every shortcut, Seba blocks, Słoik follows his satnav, and Mike is as fast as your car.
 - The railway at Plac Zawiszy no longer runs over the street: the tracks, sleepers and overhead wires stop where the cutting ends and the tunnel mouth stands, and trains disappear into it.
 
 ## 2026-11-04

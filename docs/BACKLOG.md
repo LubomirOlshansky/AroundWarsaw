@@ -222,9 +222,11 @@ police smarter, then test with Autopilot": R1, R2, R4's numbers and the police c
 (street-races.md section 6), measured with `tools/race_ai.sh`.
 - [x] R1 racer driving mode: race top speed from the player's car, 7-10 m/s², corners by radius, through reds, overtake traffic and the player, slip out of junction knots (2026-11-04)
 - [x] R2 fair rubber band: the first race with Halina in front to chase, every race's band by rung, boosts only off screen (2026-11-04)
-- [ ] R3 routes by time, wrong-way hops by personality, authored shortcuts (`race_links.json`)
+- [x] R3 part 1: shortcuts across plazas, verges, yards and car parks (`tools/race_cuts.py` -> `game/data/race_cuts.json`, 610 cuts; `race_cuts.gd`; knowledge per rival; routing counts only cuts the racer takes; verify step `racecuts`) (F, 2026-11-05; street-races.md section 9)
+- [ ] R3 part 2: wrong-way hops along one-way streets (needs oncoming-car checks on a cut), routes by time, the rival's shortcut shown after a loss
 - [x] R4 part 1: racing share, pull, corner grip, band and aim per rung (2026-11-04)
-- [ ] R4 part 2: aggression (nudges, blocking), mistakes near the player, Słoik's satnav wrong turn
+- [x] R4 part 2: rivals lead (aim ahead from Słoik up, Mike at the player's top speed, 12 s opening burst, higher side-street caps, grip in the band), mistakes near the player, Słoik's wrong turn, Mike's phone, blocking (one lateral move) and cutting in, their lines (F, 2026-11-05)
+- [ ] Contact nudges from aggressive rivals (Seba) beyond the block; phone feel of the new rivals (Autopilot P17 rerun)
 - [x] Police chasers in racer mode: quicker pull, corners by radius, careful through reds, round traffic; top speed still 0.8 of the player's (2026-11-04)
 - [ ] Phone feel of the races and chases (F's next device run); Autopilot row P17
 - [x] R5 part 1 (2026-11-04, beta values): the route to the finish on the minimap (Trzy mosty: to the next bridge), the gap in seconds, a lead-change toast and tick, the finish margin on the card (`check_ladder`)
