@@ -2444,7 +2444,6 @@ const TARASY_WAVE := Color("#d4b066")      # the landmarks loop: golden glass (w
 ## How far Skylight's crown leans in (fraction of the way to the centre) and how high it is.
 const TARASY_CROWN_IN := 0.18
 const TARASY_CROWN_H := 8.0
-const TARASY_PARAPET_H := 3.5   # the crown's high curved parapet on the south face
 
 
 func _tarasy_dome(b: Dictionary) -> bool:
@@ -2483,18 +2482,7 @@ func _build_tarasy(site: Dictionary) -> void:
 			# The office crescent: white ribbons between silver-blue glass, on the podium.
 			_prism(poly, y0, y1, TARASY_LUMEN, TARASY_LUMEN_ROOF, M_SKIN + float(S_RIBBON) / 16.0, M_SKIN)
 		elif nm == "Skylight":
-			_prism(poly, y0, y1, TARASY_SKY, TARASY_SKY_ROOF, M_SKIN + float(S_BANDS) / 16.0, M_SKIN)
-			# The crown (Mac photo report, refs/skylight/REPORT.md, 2026-11-05): no lit glass frustum;
-			# a high curved parapet round the south face, the west half scooped down to an oval glass cap.
-			var south := Geometry2D.intersect_polygons(poly, PackedVector2Array([Vector2(-1430, 421), Vector2(-1340, 421), Vector2(-1340, 460), Vector2(-1430, 460)]))
-			for sp: PackedVector2Array in south:
-				for strip: PackedVector2Array in Geometry2D.clip_polygons(sp, Geometry2D.offset_polygon(sp, -0.9)[0]):
-					_prism(strip, y1, y1 + TARASY_PARAPET_H, TARASY_SKY_ROOF, TARASY_SKY_ROOF.darkened(0.15), M_STONE, M_STONE)
-			var cap := PackedVector2Array()
-			for k in 20:
-				var t := TAU * float(k) / 20.0
-				cap.append(Vector2(-1396.0 + cos(t) * 6.0, 418.0 + sin(t) * 3.5))
-			_prism(cap, y1, y1 + 1.6, TARASY_CROWN, TARASY_CROWN, M_PAVILION + 0.5, M_GLASS_ROOF)
+			_tarasy_skylight(poly, y0, g)
 		elif col == "#336699":
 			# The glass floor under the wave's low south sweep: the wave carried down to the plaza.
 			_prism(poly, y0, y1, TARASY_RIM, TARASY_WAVE, M_PAVILION, M_GLASS_ROOF)
@@ -2511,6 +2499,63 @@ func _build_tarasy(site: Dictionary) -> void:
 		if mh < 0.5:
 			_collide(poly)
 	_tarasy_wave(site)
+	_mode = M_STONE
+
+
+## Skylight rebuilt from photos (refs/skylight/REPORT.md, 2026-11-05): a light silver-grey shaft
+## with a dark-teal window dash per floor (S_PUNCHED), on piers with a glass canopy, a stepped
+## four-floor glazed belt at 20-33 m, a roof that is high on the convex south wall and scooped
+## down on the west half round an oval glass cap, plant on the east half, and no advert panels: the 3D
+## screen is on the block over the entrance (tarasy_screen.gd). No lit crown: the real top has none.
+const SKY_CLAD := Color("#b8bdc1")
+const SKY_ROOF := Color("#8e9497")
+const SKY_GLASS := Color("#4f7f92")
+
+
+func _tarasy_skylight(poly: PackedVector2Array, y0: float, g: float) -> void:
+	var none := Color(0, 0, 0, 0)
+	var c := _centre(poly)
+	var clad := M_SKIN + float(S_PUNCHED) / 16.0
+	var belt := M_SKIN + float(S_RIBBON) / 16.0
+	# Foot: dark lobby glass between the piers, a canopy slab at 5 m.
+	var foot := _largest(Geometry2D.offset_polygon(poly, -1.0, Geometry2D.JOIN_MITER))
+	if foot.size() < 3:
+		foot = poly
+	_prism(foot, y0, g + 5.0, SKY_GLASS.darkened(0.25), none, M_PAVILION, M_STONE)
+	_prism(poly, g + 5.0, g + 5.5, Color("#c9ccce"), SKY_ROOF, M_STONE, M_STONE)
+	# Lower body: cladding with the narrow gold stair slits' rhythm left to the skin.
+	_prism(poly, g + 5.5, g + 20.0, SKY_CLAD, none, clad, M_SKIN)
+	# The glazed belt, each edge stepped out a little.
+	var out := PackedVector2Array()
+	for q in poly:
+		out.append(c + (q - c) * 1.012)
+	_prism(out, g + 20.0, g + 33.0, SKY_GLASS, none, belt, M_SKIN)
+	# The shaft to the notch line, then two roof heights.
+	_prism(poly, g + 33.0, g + 100.0, SKY_CLAD, none, clad, M_SKIN)
+	var split_x := c.x - 4.0
+	var east := Geometry2D.intersect_polygons(poly, PackedVector2Array([
+		Vector2(split_x, c.y - 60.0), Vector2(c.x + 80.0, c.y - 60.0),
+		Vector2(c.x + 80.0, c.y + 60.0), Vector2(split_x, c.y + 60.0)]))
+	for e: PackedVector2Array in east:
+		_prism(e, g + 100.0, g + 105.0, SKY_CLAD, SKY_ROOF, clad, M_STONE)
+	# West half: roof at 100 m, a lower parapet, and the oval glass cap in the notch.
+	var west := Geometry2D.intersect_polygons(poly, PackedVector2Array([
+		Vector2(c.x - 80.0, c.y - 60.0), Vector2(split_x, c.y - 60.0),
+		Vector2(split_x, c.y + 60.0), Vector2(c.x - 80.0, c.y + 60.0)]))
+	for w: PackedVector2Array in west:
+		_prism(w, g + 100.0, g + 100.4, SKY_ROOF, SKY_ROOF, M_STONE, M_STONE)
+	var cap_c := Vector2(-1396.0, 418.0)
+	var cap := PackedVector2Array()
+	var cap_top := PackedVector2Array()
+	for k in 20:
+		var d := Vector2.from_angle(TAU * (k + 0.5) / 20.0)
+		cap.append(cap_c + Vector2(d.x * 6.0, d.y * 3.5))
+		cap_top.append(cap_c + Vector2(d.x * 4.2, d.y * 2.4))
+	_mode = M_PAVILION + 0.5
+	_frustum(cap, g + 100.4, cap_top, g + 103.4, Color("#9fc4d2"), Color("#b9d2dc"))
+	# Roof plant on the east half behind the high wall.
+	_prism(_square(c + Vector2(7.0, -3.0), 4.5), g + 105.0, g + 107.5, Color("#aeb3b6"), SKY_ROOF, M_STONE, M_STONE)
+	_prism(_square(c + Vector2(13.0, -1.0), 3.0), g + 105.0, g + 106.6, Color("#a2a7aa"), SKY_ROOF, M_STONE, M_STONE)
 	_mode = M_STONE
 
 
