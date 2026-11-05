@@ -6,11 +6,8 @@ Spec: [specs/mlotek.md](specs/mlotek.md). Site key `mlotek` (`landmarks.gd` `_fi
 ## 2026-11-05: plain block to model (Mac)
 
 - Round 1 scores 3-4; fixes: the notch over the west balconies, deeper balcony edges, pale rims, taller windows.
-- Round 2 (art-director, before the merge below): all 4, pass. It scored a roofline climbing east, which that
-  model's height data then showed to be perspective.
-- A model F sent, `mlotek-smolna-8.js` (origin and permission to confirm, QUESTIONS), was ported to the game as a test and compared with this build. Merged at F's word:
-  flat roof, head to u 41.2, the sloping jaw, wider west balconies with yellow fronts. Kept from ours: the colour,
-  19 window rows, the glass band on the east half only, the neck, the pergola.
-- The merged build has not had an art-director pass: F's look is the check.
-- `check_mesh_quality`: 1974 tris, budget 2400, 0 defects.
+- Round 2 (art-director): all 4, pass, with a roofline climbing east.
+- After round 2, from our own sources: the roof made flat (photo 3 shows a straight top, so the climb in photo 1 was perspective; LoD2's deck averages map height 67.8), the underside sloped up to the tip (photos 3 and 13), yellow edges 0.6 m. Not re-reviewed: F's look is the check.
+- A third-party model from tinywarsaw.app was tried as a test on 2026-11-05 and dropped at F's word (no licence). Nothing of it remains in this build.
+- `check_mesh_quality`: 1998 tris, budget 2400, 0 defects.
 - Differs from the photos: the north face is mirrored from the south; the fence and low wall at the foot are missing.

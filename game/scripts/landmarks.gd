@@ -22710,10 +22710,9 @@ const ML_NOTCH := 54.5       # the dark notch over the west balconies starts her
 const ML_LEDGE := 57.0       # the head's underside
 const ML_BAND := 58.0        # the glazed band's sill
 const ML_BAND_TOP := 60.2
-const ML_TOP := 63.3         # the head's roof, flat
-const ML_JAW := 41.2         # the head's east end, in u (the height data's extent)
-const ML_JAW_ROOT := 53.3    # the jaw's underside where it leaves the slab
-const ML_JAW_TIP := 57.7     # and at the head's east end
+const ML_TOP := 62.8         # the head's roof, flat: photo 3 shows a straight top, LoD2's deck averages map height 67.8
+const ML_JAW := 43.0         # the head's east end, in u (the ortho's roof length)
+const ML_JAW_ROOT := 54.5    # the underside where it leaves the slab, a storey under the ledge (photos 3, 13)
 const ML_WALL := Color("#8f877a")
 const ML_HEAD := Color("#8a857c")
 const ML_SOFFIT := Color("#4a4743")
@@ -22770,13 +22769,13 @@ func _build_mlotek(site: Dictionary) -> void:
 		var y := g + ML_GROUND + ML_FLOOR * k - 0.1
 		if k == ML_FLOORS:
 			continue
-		_hang(_rect(34.0, ML_WID * 0.5, 1.5, 8.05), y - 0.5, y, ML_YELLOW, ML_CONCRETE, ML_SOFFIT)
-		_hang(_rect(2.1, ML_WID * 0.5, 3.35, 7.5), y - 0.2, y, ML_CONCRETE, ML_CONCRETE, ML_SOFFIT)
+		_hang(_rect(34.0, ML_WID * 0.5, 1.5, 8.05), y - 0.6, y, ML_YELLOW, ML_CONCRETE, ML_SOFFIT)
+		_hang(_rect(2.75, ML_WID * 0.5, 2.75, 7.5), y - 0.6, y, ML_YELLOW, ML_CONCRETE, ML_SOFFIT)
 		_mode = M_STONE
 		_wall(_w(ML_LEN, 0.5), _w(ML_LEN, ML_WID - 0.5), y + 0.1, y + 1.0, Vector2(_a), ML_RAIL, 0.0)
-		_wall(_w(-1.25, 1.0), _w(-1.25, 16.0), y, y + 1.0, -_a, ML_YELLOW, 0.0)
-		_wall(_w(-1.25, 16.0), _w(5.45, 16.0), y, y + 1.0, _b, ML_YELLOW, 0.0)
-		_wall(_w(-1.25, 1.0), _w(5.45, 1.0), y, y + 1.0, -_b, ML_YELLOW, 0.0)
+		_wall(_w(0.0, 1.0), _w(0.0, 16.0), y + 0.1, y + 1.0, -_a, ML_RAIL, 0.0)
+		_wall(_w(0.0, 16.0), _w(5.5, 16.0), y + 0.1, y + 1.0, _b, ML_RAIL, 0.0)
+		_wall(_w(0.0, 1.0), _w(5.5, 1.0), y + 0.1, y + 1.0, -_b, ML_RAIL, 0.0)
 		_framed(_w(33.0, 1.0), _w(33.0, ML_WID - 1.0), y + 0.2, y + 2.3, _a, ML_FRAME, ML_GLASS, 0.0)
 		if y + 2.3 < g + ML_NOTCH:
 			_framed(_w(2.8, 2.6), _w(2.8, 14.5), y + 0.2, y + 2.3, -_a, ML_FRAME, ML_GLASS, 0.0)
@@ -22785,13 +22784,14 @@ func _build_mlotek(site: Dictionary) -> void:
 	_collide_raw(site)
 
 
-## crown_slab, crown_glaze, roof_plant: the hammer's head on its dark neck, the jaw sloping up
-## under the cantilever to the head's east end.
+## crown_slab, crown_glaze, roof_plant: the hammer's head on its dark neck, the underside sloping
+## up from a storey below the ledge to the head's east end, the end face leaning out.
 func _build_mlotek_head(g: float, none: Color) -> void:
 	var v0 := -0.6
 	var v1 := ML_WID + 0.6
 	var u0 := -0.3
-	var ue := ML_JAW - 0.3
+	var ue := ML_JAW - 0.9
+	var tip := ML_JAW - 0.6
 	# The neck: a dark recess between the slab and the head, a deep notch over the west balconies.
 	_lbox(19.25, ML_WID * 0.5, 13.75, ML_WID * 0.5 - 0.9, g + ML_NECK, g + ML_LEDGE, ML_SOFFIT, M_STONE, ML_SOFFIT)
 	_lbox(2.75, ML_WID * 0.5, 2.75, 6.0, g + ML_NOTCH, g + ML_LEDGE, ML_SOFFIT, M_STONE, ML_SOFFIT)
@@ -22799,23 +22799,23 @@ func _build_mlotek_head(g: float, none: Color) -> void:
 	_hang(PackedVector2Array([_w(u0, v0), _w(35.5, v0), _w(35.5, v1), _w(u0, v1)]), g + ML_LEDGE, g + ML_BAND, ML_HEAD, ML_SOFFIT, ML_SOFFIT)
 	_mode = M_STONE
 	var yr := g + ML_JAW_ROOT
-	var yt := g + ML_JAW_TIP
+	var yt := g + ML_LEDGE
 	var yb := g + ML_BAND
 	for c: Array in [[v1, _b], [v0, -_b]]:
 		var v: float = c[0]
 		var n := Vector3(c[1].x, 0.0, c[1].y)
 		var p0 := _w(35.5, v)
-		var p1 := _w(ML_JAW, v)
+		var p1 := _w(tip, v)
 		_quad(Vector3(p0.x, yr, p0.y), Vector3(p1.x, yt, p1.y), Vector3(p1.x, yb, p1.y), Vector3(p0.x, yb, p0.y), n, ML_HEAD)
 	var j0 := _w(35.5, v0)
 	var j1 := _w(35.5, v1)
-	var t0 := _w(ML_JAW, v0)
-	var t1 := _w(ML_JAW, v1)
+	var t0 := _w(tip, v0)
+	var t1 := _w(tip, v1)
 	_quad(Vector3(j0.x, yr, j0.y), Vector3(j1.x, yr, j1.y), Vector3(t1.x, yt, t1.y), Vector3(t0.x, yt, t0.y),
-			(Vector3(_a.x, 0.0, _a.y) * 0.611 + Vector3.DOWN * 0.791).normalized(), ML_SOFFIT)
+			(Vector3(_a.x, 0.0, _a.y) * (yt - yr) + Vector3.DOWN * (tip - 35.5)).normalized(), ML_SOFFIT)
 	_wall(t0, t1, yt, yb, _a, ML_HEAD, 0.0)
 	_wall(_w(35.5, v1), _w(35.5, v0), yr, g + ML_LEDGE, -_a, ML_SOFFIT, 0.0)
-	var over := PackedVector2Array([_w(35.5, v0), _w(ML_JAW, v0), _w(ML_JAW, v1), _w(35.5, v1)])
+	var over := PackedVector2Array([_w(35.5, v0), _w(tip, v0), _w(tip, v1), _w(35.5, v1)])
 	_cap(over, yb, ML_SOFFIT)
 	# The glazed band, 30 cm in: glass from the middle of the long faces round the east end, the
 	# slit vents on the west half.
@@ -22828,19 +22828,36 @@ func _build_mlotek_head(g: float, none: Color) -> void:
 	for y: float in [ML_BAND + 0.5, ML_BAND + 1.3]:
 		_mode = M_STONE
 		_wall(_w(1.0, i1 + 0.06), _w(18.5, i1 + 0.06), g + y, g + y + 0.35, _b, ML_HEAD.darkened(0.25), 0.0)
-	# The head, flat on top, and the roof slab over the west balconies.
-	var top := PackedVector2Array([_w(u0, v0), _w(ML_JAW, v0), _w(ML_JAW, v1), _w(u0, v1)])
-	_hang(top, g + ML_BAND_TOP, g + ML_TOP, ML_HEAD, ML_ROOF, ML_SOFFIT)
-	_hang(_rect(-0.9, ML_WID * 0.5, 0.6, ML_WID * 0.5 + 0.55), g + ML_TOP - 0.9, g + ML_TOP - 0.05, ML_HEAD, ML_HEAD, ML_SOFFIT)
+	# The head: flat on top, its east end leaning out 1.5 m.
+	var ub := ML_JAW - 1.0
+	var ut := ML_JAW + 0.5
+	var y0 := g + ML_BAND_TOP
+	var y1 := g + ML_TOP
+	_soffit(PackedVector2Array([_w(u0, v0), _w(ub, v0), _w(ub, v1), _w(u0, v1)]), y0, ML_SOFFIT)
+	_mode = M_STONE
+	_wall(_w(u0, v1), _w(u0, v0), y0, y1, -_a, ML_HEAD, 0.0)
+	for c: Array in [[v1, _b], [v0, -_b]]:
+		var v: float = c[0]
+		var p0 := _w(u0, v)
+		var p1 := _w(ub, v)
+		var p2 := _w(ut, v)
+		_quad(Vector3(p0.x, y0, p0.y), Vector3(p1.x, y0, p1.y), Vector3(p2.x, y1, p2.y), Vector3(p0.x, y1, p0.y), Vector3(c[1].x, 0.0, c[1].y), ML_HEAD)
+	var e0 := _w(ub, v0)
+	var e1 := _w(ub, v1)
+	var e2 := _w(ut, v1)
+	var e3 := _w(ut, v0)
+	_quad(Vector3(e0.x, y0, e0.y), Vector3(e1.x, y0, e1.y), Vector3(e2.x, y1, e2.y), Vector3(e3.x, y1, e3.y),
+			(Vector3(_a.x, 0.0, _a.y) * (y1 - y0) + Vector3.DOWN * (ut - ub)).normalized(), ML_HEAD.darkened(0.08))
+	var top := PackedVector2Array([_w(u0, v0), _w(ut, v0), _w(ut, v1), _w(u0, v1)])
 	# The roof: the pale rim, the raised middle, the plant.
-	_rimmed(top, g + ML_TOP + 0.05, ML_RIM, ML_ROOF)
-	var deck := g + ML_TOP + 0.1
+	_rimmed(top, y1, ML_RIM, ML_ROOF)
+	var deck := y1 + 0.05
 	var mid := _rect(21.0, ML_WID * 0.5, 14.0, 5.6)
 	_prism(mid, deck, deck + 0.35, ML_ROOF, none, M_STONE)
 	_rimmed(mid, deck + 0.35, ML_RIM, ML_ROOF.lightened(0.08))
-	for p: Vector3 in [Vector3(9.0, 6.0, 2.2), Vector3(17.0, 11.0, 1.6), Vector3(26.0, 6.5, 2.0), Vector3(33.0, 10.5, 1.6), Vector3(38.5, 8.5, 1.4)]:
+	for p: Vector3 in [Vector3(9.0, 6.0, 2.2), Vector3(17.0, 11.0, 1.6), Vector3(26.0, 6.5, 2.0), Vector3(33.0, 10.5, 1.6), Vector3(39.0, 8.5, 1.4)]:
 		_lbox(p.x, p.y, 1.3, 1.3, deck - 0.05, deck + p.z, ML_BASE, M_STONE, ML_BASE)
-	for p: Vector2 in [Vector2(39.5, 3.0), Vector2(0.8, 14.5)]:
+	for p: Vector2 in [Vector2(40.5, 3.0), Vector2(0.8, 14.5)]:
 		_lbox(p.x, p.y, 0.1, 0.1, deck - 0.05, deck + 3.0, ML_DARK, M_STONE, ML_DARK)
 
 
