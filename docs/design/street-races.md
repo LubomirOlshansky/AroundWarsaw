@@ -423,7 +423,7 @@ banding). No add-on: the smart part is our own lane-graph code. Built (R3 part 1
   30 m and 1.5× by road (22-160 m long) through a clear 2.8 m corridor: no building, landmark,
   wall, fence, hedge, platform, steps, rails, water or pitch, no tree, lamp, parked car, kiosk,
   shelter, column, bench, bin or bike stand, level ground (terrain), at most 30 % on a
-  carriageway and one road crossed. 610 on the map (game/data/race_cuts.json, keyed by
+  carriageway and one road crossed, and no park or street detail or monument from game/data. 600 on the map (game/data/race_cuts.json, keyed by
   position). `race_cuts.gd` snaps them to the graph and hands them out by knowledge (`cuts`:
   Słoik 0, Halina 0.3, Bartek 0.4, Mike 0.5, Seba 0.6, Zbyszek and the final 1.0). The race's
   distances count the cuts the rival knows (`distances_to`'s `extra_in`), exactly as the driver

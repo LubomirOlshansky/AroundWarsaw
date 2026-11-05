@@ -4,7 +4,7 @@ Finds straight cuts between two junctions of the lane graph that save a racer a 
 by road (across a plaza, a forecourt, a car park, a lawn, a wide pavement) and that a car can
 really drive: nothing in a 2.8 m wide corridor (buildings, landmarks, walls, fences, hedges,
 platforms, steps, water, pitches, trees, lamps, parked cars, kiosks, shelters, columns, benches,
-bins, bike stands), on the ground at both ends (no bridge or tunnel), no step in the terrain,
+bins, bike stands, the park and street details and monuments of game/data), on the ground at both ends (no bridge or tunnel), no step in the terrain,
 and not running along a road (that would be a wrong-way drive through oncoming cars).
 Writes game/data/race_cuts.json: each cut as its two junctions' positions (so a re-bake that
 moves node ids keeps them) and the metres it saves. rivals.gd loads it, snaps the ends to the
@@ -39,6 +39,8 @@ POINTS = {  # list: (stride, radius m)
 	"shelters": (3, 2.2), "benches": (3, 1.0), "bins": (3, 0.5), "bikes": (3, 1.1),
 	"signals": (3, 0.35),
 }
+DATA_RADIUS = {"fountain": 5.0, "carousel": 5.0, "playground": 6.0, "gazebo": 3.5, "kiosk": 2.5,
+	"stall": 2.0, "cafe": 3.0, "plaque": 0.4, "duck": 0.0, "swan": 0.0, "squirrel": 0.0, "peacock": 0.0}
 BLOCK_AREAS = {"water", "pitch"}
 BLOCK_LINES = {"wall", "fence", "hedge", "platform"}
 
@@ -167,6 +169,14 @@ def main():
 		for k in range(0, len(arr) - 1, stride):
 			x, z = arr[k], arr[k + 1]
 			points.add_box(x - rad, z - rad, x + rad, z + rad, (x, z, rad))
+	# The hand-placed props from game/data (park and street details, monuments): [kind, x, z, ...].
+	for name in ("park_details", "street_details", "monuments"):
+		path = os.path.join(ROOT, "game/data/%s.json" % name)
+		if not os.path.exists(path):
+			continue
+		for it in json.load(open(path)).get("items", []):
+			rad = DATA_RADIUS.get(it[0], 1.5)
+			points.add_box(it[1] - rad, it[2] - rad, it[1] + rad, it[2] + rad, (it[1], it[2], rad))
 	roads = Grid()
 	for r in data["roads"]:
 		pr = ring(r["p"])
