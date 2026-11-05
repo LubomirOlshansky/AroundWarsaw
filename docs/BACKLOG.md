@@ -1088,9 +1088,10 @@ modelled (site `zbawiciela`, spec `zbawiciela.md`, 1029 tris).
 - Mac photo check of the church: plaster and roof colours, belfry and spire shapes, the dome's
   height, whether the porch is a portico or a recess (all estimated; towers' 76 m is mapped).
 - Pass 2 (cloud, Sonnet, 2026-11-01): MDM modelled on the kept skin (site `mdm`, spec `mdm.md`,
-  2002 tris): ground-floor arcades on the facades facing the square and the axis, four corner
-  towers with hipped attics and spires, a terracotta relief on each tower's square face. Mac look
-  check parked (QUESTIONS): arcade rhythm and depth, tower heights, the real reliefs.
+  2002 tris) then reworked 2026-11-05 after F's Street View shots (the spired towers were wrong):
+  cream plaster over a sand-stone base with shopfronts, ring arcades only, four stepped attic
+  pavilions with finials, roof neons MDM, XIAOMY, BYDŁO and HOTEL MDM (3403 tris). Mac look
+  check parked (QUESTIONS): which facades have arcades, sign spots, balconies, the pavilions.
 - Pass 5 (cloud, Sonnet, 2026-11-02): Plac Zbawiciela's cafés and the church at night. Four neon cafés
   (`Storefronts.ZBAWICIELA`: KAWA ZBAWIENIE, SZARLOTKA NA ROGU, PLAN Z, PO MSZY SPRITZ) and six parasol
   terraces round the ring (`bake_street_details.py` TERRACES, 16 café sets, planters at the row ends);
