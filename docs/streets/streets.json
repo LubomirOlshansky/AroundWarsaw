@@ -217,6 +217,160 @@
      "should": "cyclists on the cycle path"
     }
    ]
+  },
+  {
+   "slug": "swietokrzyska-east",
+   "title": "Świętokrzyska: Metro Świętokrzyska to Emilii Plater",
+   "names": [
+    "Świętokrzyska"
+   ],
+   "frame": {
+    "o": [
+     -1064.4,
+     -131.8
+    ],
+    "s": [
+     -0.94572,
+     0.32497
+    ],
+    "t": [
+     -0.32497,
+     -0.94572
+    ]
+   },
+   "s": [
+    -10,
+    452
+   ],
+   "t": [
+    -40,
+    40
+   ],
+   "street_t": [
+    -6,
+    10
+   ],
+   "fresh_since": "2025-09",
+   "stage": "baseline",
+   "cameras": [
+    {
+     "name": "A1",
+     "x": -1083.3,
+     "z": -125.3,
+     "why": "start: Metro Świętokrzyska junction"
+    },
+    {
+     "name": "A2",
+     "x": -1206.3,
+     "z": -83.1
+    },
+    {
+     "name": "B1",
+     "x": -1376.5,
+     "z": -24.6
+    },
+    {
+     "name": "B2",
+     "x": -1471.1,
+     "z": 7.9,
+     "why": "Emilii Plater crossing"
+    }
+   ],
+   "blocks": [
+    {
+     "id": "A",
+     "title": "Marszałkowska to Wallenberga",
+     "s": [
+      0,
+      277
+     ]
+    },
+    {
+     "id": "B",
+     "title": "Wallenberga to Emilii Plater",
+     "s": [
+      277,
+      442
+     ]
+    }
+   ],
+   "owned": []
+  },
+  {
+   "slug": "swietokrzyska-west",
+   "title": "Świętokrzyska: Emilii Plater to Rondo ONZ",
+   "names": [
+    "Świętokrzyska"
+   ],
+   "frame": {
+    "o": [
+     -1482.3,
+     11.8
+    ],
+    "s": [
+     -0.9784,
+     0.20674
+    ],
+    "t": [
+     -0.20674,
+     -0.9784
+    ]
+   },
+   "s": [
+    -10,
+    150
+   ],
+   "t": [
+    -40,
+    40
+   ],
+   "street_t": [
+    -8,
+    10
+   ],
+   "fresh_since": "2025-09",
+   "stage": "baseline",
+   "cameras": [
+    {
+     "name": "C1",
+     "x": -1511.7,
+     "z": 18.0
+    },
+    {
+     "name": "C2",
+     "x": -1580.1,
+     "z": 32.5
+    },
+    {
+     "name": "C3",
+     "x": -1614.4,
+     "z": 39.7,
+     "why": "Rondo ONZ entry"
+    }
+   ],
+   "blocks": [
+    {
+     "id": "C",
+     "title": "Emilii Plater to Rondo ONZ",
+     "s": [
+      0,
+      139
+     ]
+    }
+   ],
+   "owned": [
+    {
+     "by": "Rondo ONZ (ring and towers: own landmark pass)",
+     "s": [
+      139,
+      262
+     ],
+     "t": [
+      -60,
+      40
+     ]
+    }
+   ]
   }
  ]
 }

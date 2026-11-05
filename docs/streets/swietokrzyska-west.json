@@ -1,0 +1,145 @@
+{
+ "slug": "swietokrzyska-west",
+ "title": "Świętokrzyska: Emilii Plater to Rondo ONZ",
+ "updated": "2026-11-05",
+ "stage": "baseline",
+ "score": 86,
+ "counts": {
+  "L1": 4,
+  "L2": 2
+ },
+ "blocks": [
+  {
+   "id": "C",
+   "title": "Emilii Plater to Rondo ONZ",
+   "counts": {
+    "L1": 4,
+    "L2": 2
+   },
+   "score": 86
+  }
+ ],
+ "history": [
+  {
+   "date": "2026-11-05",
+   "score": 86,
+   "counts": {
+    "L1": 4,
+    "L2": 2
+   },
+   "blocks": {
+    "C": 86
+   }
+  }
+ ],
+ "baseline": {
+  "date": "2026-11-05",
+  "score": 86,
+  "counts": {
+   "L1": 4,
+   "L2": 2
+  },
+  "blocks": {
+   "C": 86
+  }
+ },
+ "evidence": [],
+ "owned": [
+  {
+   "by": "Rondo ONZ (ring and towers: own landmark pass)",
+   "s": [
+    139,
+    262
+   ],
+   "t": [
+    -60,
+    40
+   ]
+  }
+ ],
+ "changed": [],
+ "verdicts": {},
+ "findings": [
+  {
+   "check": "L1",
+   "x": -1617.0,
+   "z": 46.8,
+   "s": 139.0,
+   "t": -6.4,
+   "note": "2 -> 4 lanes, 6.0 -> 12.0 m wide where two ways meet [owned by: Rondo ONZ (ring and towers: own landmark pass)]",
+   "block": "-",
+   "status": "owned"
+  },
+  {
+   "check": "L2",
+   "x": -1617.8,
+   "z": 43.9,
+   "s": 139.2,
+   "t": -3.4,
+   "note": "lane line ends mid-block [owned by: Rondo ONZ (ring and towers: own landmark pass)]",
+   "block": "-",
+   "status": "owned"
+  },
+  {
+   "check": "L1",
+   "x": -1482.3,
+   "z": 11.8,
+   "s": 0.0,
+   "t": -0.0,
+   "note": "3 -> 2 lanes, 9.0 -> 6.0 m wide where two ways meet",
+   "block": "C",
+   "status": "open"
+  },
+  {
+   "check": "L1",
+   "x": -1486.2,
+   "z": 3.4,
+   "s": 2.1,
+   "t": 9.0,
+   "note": "3 -> 2 lanes, 9.0 -> 6.0 m wide where two ways meet",
+   "block": "C",
+   "status": "open"
+  },
+  {
+   "check": "L1",
+   "x": -1565.7,
+   "z": 39.1,
+   "s": 87.2,
+   "t": -9.5,
+   "note": "2 -> 3 lanes, 6.0 -> 9.0 m wide where two ways meet",
+   "block": "C",
+   "status": "open"
+  },
+  {
+   "check": "L1",
+   "x": -1591.0,
+   "z": 47.6,
+   "s": 113.8,
+   "t": -12.6,
+   "note": "3 -> 2 lanes, 9.0 -> 6.0 m wide where two ways meet",
+   "block": "C",
+   "status": "open"
+  },
+  {
+   "check": "L2",
+   "x": -1594.4,
+   "z": -4.7,
+   "s": 106.3,
+   "t": 39.3,
+   "note": "lane line ends mid-block",
+   "block": "C",
+   "status": "open"
+  },
+  {
+   "check": "L2",
+   "x": -1616.2,
+   "z": 49.7,
+   "s": 138.8,
+   "t": -9.4,
+   "note": "lane line ends mid-block",
+   "block": "C",
+   "status": "open"
+  }
+ ],
+ "objects": []
+}
