@@ -474,7 +474,7 @@ def write_record(sd, findings, ev, objs):
     old = json.load(open(path, encoding="utf-8")) if os.path.exists(path) else {}
     history = old.get("history", [])
     today = datetime.date.today().isoformat()
-    snap = {"date": today, "score": total, "counts": counts}
+    snap = {"date": today, "score": total, "counts": counts, "blocks": {b["id"]: b["score"] for b in blocks}}
     if not history or history[-1]["counts"] != counts or history[-1]["score"] != total:
         history.append(snap)
     rec = {"slug": sd["slug"], "title": sd["title"], "updated": today, "stage": sd.get("stage", "baseline"),
