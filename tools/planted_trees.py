@@ -95,8 +95,8 @@ BROWARY_PATH = [(-2459.0, -84.0), (-2456.4, -87.3), (-2454.7, -90.6), (-2454.3, 
                 (-2458.1, -99.0), (-2461.5, -101.5), (-2464.9, -104.0), (-2467.5, -106.6), (-2468.7, -109.4),
                 (-2468.3, -112.4), (-2466.6, -115.7), (-2464.0, -119.0)]
 BROWARY_CLEARINGS = [(-2459.4, -93.2), (-2463.6, -109.8)]
-PATH_CLEAR = 2.6       # a trunk this far from the path's centre line
-CLEARING_R = 3.8       # and this far from a clearing's middle
+PATH_CLEAR = 2.9       # a trunk this far from the path's centre line (1.75 m to its edging)
+CLEARING_R = 4.8       # and this far from a clearing's middle (landmarks.gd BROWARY_CLEARING_R 4.2)
 PATHS = {"browary": (BROWARY_PATH, BROWARY_CLEARINGS)}
 
 # Courts OpenStreetMap maps inside a building's outline (multipolygon holes the bake drops), from
@@ -255,7 +255,11 @@ PLACES = [
         "step": 1.0,
         "gap": 4.4,
         "path": "browary",
-        "spread": True,
+        # F's look check (2026-11-03): group the trees, so the main path and the two cafe
+        # clearings read apart from them. The young trees stand in four clumps on the lawn (the
+        # scanned five along the south edge stay), 3.2 m apart inside each clump.
+        "groups": [(-2468.0, -89.5, 5.5), (-2447.0, -99.0, 6.0), (-2474.0, -105.0, 5.5), (-2454.0, -114.5, 5.5)],
+        "group_gap": 3.2,
         "mix": ["garden_linden", "birch", "garden_maple", "garden_linden", "birch"],
     },
     {
@@ -531,6 +535,30 @@ def plant_garden(data, place, solids=None):
     cands = [c for c in cands if clear(c[1], c[2])]
     out = []
     mine = []
+    if place.get("groups"):
+        # Clumps: the groups take turns, each its next free spot nearest its middle (clear of
+        # the scanned trees by TREE_GAP and of this place's by group_gap).
+        groups = place["groups"]
+        gap = place.get("group_gap", place["gap"])
+        lists = [sorted((math.hypot(x - gx, z - gz), x, z) for _, x, z in cands if math.hypot(x - gx, z - gz) <= gr)
+                 for gx, gz, gr in groups]
+        moved = True
+        while len(out) < count and moved:
+            moved = False
+            for spots in lists:
+                if len(out) >= count:
+                    break
+                for _, x, z in spots:
+                    if any(math.hypot(x - tx, z - tz) < TREE_GAP for tx, tz in taken):
+                        continue
+                    if any(math.hypot(x - tx, z - tz) < gap for tx, tz in mine):
+                        continue
+                    mix = place["mix"]
+                    out.append(_tree(x, z, mix[int(_hash01(x, z, 1) * len(mix)) % len(mix)]))
+                    mine.append((x, z))
+                    moved = True
+                    break
+        return out
     if place.get("spread"):
         # A garden, not a court: each tree goes where it is farthest from every tree so far
         # (the scanned ones and this place's), so the crowns spread over the whole lawn.
@@ -695,6 +723,36 @@ def plant(data, place, solids=None):
     return out
 
 
+def unplant(data, place):
+    """Takes a garden place's own young trees out of trees3d (and their crown scales): the trees
+    inside its zone whose sizes are one of its mix's nursery sizes (_nursery). Returns how many."""
+    trees = data.get("trees3d", [])
+    crowns = data.get("trees3d_crown", [])
+    zone = place["zone"]
+    keep, keep_crowns, gone = [], [], 0
+    for k in range(0, len(trees) - 5, 6):
+        t = trees[k:k + 6]
+        mine = _inside(t[0], t[1], zone) and any(_nursery(t, kind) for kind in place["mix"])
+        if mine:
+            gone += 1
+            continue
+        keep.extend(t)
+        if k // 6 < len(crowns):
+            keep_crowns.append(crowns[k // 6])
+    trees[:] = keep
+    crowns[:] = keep_crowns
+    return gone
+
+
+def _nursery(t, kind):
+    """Whether tree t ([x, z, top, radius, base, 0]) has the sizes _tree gives `kind`: one scale
+    k (0.92-1.08) for all three, to their rounding."""
+    top, radius, base = SPECIES[kind]
+    k = t[2] / top
+    return (0.915 <= k <= 1.085 and abs(radius * k - t[3]) <= 0.1 and abs(base * k - t[4]) <= 0.1
+            and t[5] == 0)
+
+
 def _tree(x, z, kind):
     top, radius, base = SPECIES[kind]
     k = 0.92 + _hash01(x, z, 2) * 0.16   # nursery stock varies a little
@@ -786,6 +844,14 @@ def apply(data, verbose=True):
     carve(data, verbose)
     done = data.setdefault("planted_places", [])
     for place in PLACES:
+        if place.get("groups") and place["id"] in done and place["id"] + "@groups" not in done:
+            # Planted before the clumps (a map from before 2026-11-03): its young trees come out
+            # (told from the scanned ones by their exact nursery sizes, _tree) and it plants again.
+            gone = unplant(data, place)
+            done.remove(place["id"])
+            have = [(trees[i], trees[i + 1]) for i in range(0, len(trees) - 5, 6)]
+            if verbose:
+                print(f"planted trees: {place['id']}: {gone} young trees taken out to plant in clumps")
         if place.get("kind") in ("grounds", "garden") and place["id"] in done:
             if verbose:
                 print(f"planted trees: {place['id']}: already planted")
@@ -807,6 +873,8 @@ def apply(data, verbose=True):
         added += len(new)
         if place.get("kind") in ("grounds", "garden"):
             done.append(place["id"])
+            if place.get("groups"):
+                done.append(place["id"] + "@groups")
         if verbose:
             print(f"planted trees: {place['id']}: {len(new)} young trees added")
     furnish(data, verbose)

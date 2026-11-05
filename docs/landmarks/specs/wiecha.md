@@ -86,3 +86,5 @@ masts and furniture are in first_scene.gd's one mesh (~90 triangles a mast).
 | mast | pole, two arms, two blades | 0.24 m pole, 9.5 m tall, blades 1.5 m | the pasaż's axis, OSM lamps + PASAZ_MASTS | actors' material | 2 masts |
 | cafes | café sets, white parasols | 2.6 m | in front of the pavilions | actors' material | 3 ground |
 | bollards | rows of 5 across the pasaż | 0.9 m | both ends | actors' material | 3 ground |
+
+F's look check (2026-11-03): slabs light warm grey with balcony bands (slabs.md); Y masts taller and stouter (props.gd add_y_mast); a Christmas tree for a winter event is in BACKLOG.

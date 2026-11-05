@@ -822,15 +822,17 @@ static func add_ad_column(st: SurfaceTool, xf: Transform3D, poster: Color) -> vo
 ## that splits at 6 m into two flat arms climbing out along ±z, each ending in a long flat lamp
 ## blade (lit underneath at night), about 10 m tall. ~90 triangles.
 static func add_y_mast(st: SurfaceTool, xf: Transform3D) -> void:
-	var white := Color("#eeeeea")
-	_xbox(st, xf, Vector3(0, 0.15, 0), Vector3(0.42, 0.3, 0.42), Color("#5d6166"))
-	_xbox(st, xf, Vector3(0, 3.1, 0), Vector3(0.24, 6.2, 0.24), white)
+	# F's look check (2026-11-03): the white Y masts come first on the pasaż, so they stand as
+	# in the photo: a stout pole to 7.4 m, two thick arms out to 11 m, long wide lamp blades.
+	var white := Color("#f2f2ee")
+	_xbox(st, xf, Vector3(0, 0.2, 0), Vector3(0.6, 0.4, 0.6), Color("#5d6166"))
+	_xbox(st, xf, Vector3(0, 3.7, 0), Vector3(0.36, 7.4, 0.36), white)
 	for side: float in [-1.0, 1.0]:
-		_xbeam(st, xf, Vector3(0, 5.9, 0), Vector3(0, 9.3, side * 1.4), 0.16, 0.12, white)
+		_xbeam(st, xf, Vector3(0, 7.1, 0), Vector3(0, 11.0, side * 1.8), 0.24, 0.18, white)
 		var tilt := Basis(Vector3.RIGHT, -side * 0.12)
-		var c := xf * Vector3(0, 9.4, side * 2.05)
-		obox(st, c, (xf.basis * tilt).orthonormalized(), Vector3(0.3, 0.1, 1.5), white)
-		obox(st, c + xf.basis * Vector3(0, -0.06, 0), (xf.basis * tilt).orthonormalized(), Vector3(0.2, 0.03, 1.35),
+		var c := xf * Vector3(0, 11.1, side * 2.7)
+		obox(st, c, (xf.basis * tilt).orthonormalized(), Vector3(0.5, 0.14, 2.2), white)
+		obox(st, c + xf.basis * Vector3(0, -0.08, 0), (xf.basis * tilt).orthonormalized(), Vector3(0.36, 0.03, 2.0),
 				Color("#fff4dc"), LIT_SIGN)
 
 
