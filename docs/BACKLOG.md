@@ -652,6 +652,14 @@ west end: 90 → 93 draw calls (main 34 → 36, shadow 17 → 18), 0.39 → 0.41
 - [ ] Traffic queues at a closure while it is on screen (a closed road is picked only when nothing else is open);
       real drivers would turn round. A U-turn at the barriers would need a turning lane in the graph.
 - [ ] `--no-edge-roadworks` removes the meshes and colliders but the traffic still stops at the lines.
+- ~~Invisible on the phone~~ (F, 2026-11-05): bake_city never yields to the worker thread, so `map/index.res` held the
+  238 colliders with no meshes: phones and TestFlight had invisible barriers. The streamer now rebuilds them on opening
+  the prebuilt city (`EdgeRoadworks.rebuild`). New check `check_edge_prebuilt` (verify `roadworks-prebuilt`): the meshes,
+  and the real car rammed at 42 m/s into all 238: none through, none off the map.
+- [ ] That ram: 7 narrow closures let a car thrown aside by a kerb past the barrier's end, and at Andersa
+  (-1961, -2763) it rides a level 7.5 m above the barriers; all stop at the edge wall, 7 m on. Widen the lines to the
+  kerbs or walls beside them?
+- [ ] Phone: the meshes now cost the worker thread and ~30 MB at the start on the iPhone 11; bench it there.
 - ~~English boards~~ (satire doc #10, 2026-11-02): in English the boards read ROAD WORKS / DETOUR → (the
   British words, as wide as the Polish, so the board keeps its size); a language change in Settings builds the
   roadworks again (`EdgeRoadworks.rebuild`, colliders at once, meshes over the next frames). Check W5.
