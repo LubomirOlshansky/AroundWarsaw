@@ -60,6 +60,10 @@ const BUDGET := {
 	"polonia": 1450,
 	"ujazdowski": 1650,
 	"sobieski": 1500,
+	"vitkac": 1400,
+	"jablkowscy": 1450,
+	"sheraton": 2400,
+	"bgk": 2700,
 	"hotel_kasztel": 330,
 	"hotel_canaletto": 330,
 	"hotel_starowka": 330,
@@ -86,9 +90,9 @@ const BUDGET := {
 	"dworzec_wodny": 310,
 	"kaskada": 260,
 	"dtc": 1730,
-	"europejski": 480,
+	"europejski": 8000,
 	"flaga": 170,
-	"forest": 1500,
+	"forest": 4900,
 	"gpy": 250,
 	"gaulle": 880,
 	"rondo": 7000,
@@ -109,7 +113,8 @@ const BUDGET := {
 	"mariensztat": 660,
 	"mennica": 650,
 	"mirowska": 2050,
-	"mf": 1870,
+	# Open courtyards (F, 2026-11-03): mf and muzeum gained their walled, windowed courts.
+	"mf": 2350,
 	"poczta": 710,
 	"pasta": 580,
 	"msn": 500,
@@ -124,13 +129,13 @@ const BUDGET := {
 	"elektrownia": 1950,
 	"mpw": 3200,
 	"metropolitan": 3100,
-	"muzeum": 840,
+	"muzeum": 1280,
 	"palace": 3900,
 	"pawilony": 2100,
 	"plater49": 140,
 	"platinum_a": 80,
 	"platinum_b": 80,
-	"poniatowski": 2700,
+	"poniatowski": 4800,  # 2026-11-03: the towers strengthened (F), 2556 -> 4574 tris over four groups; +0 draw calls
 	"prezydencki": 1050,
 	"q22": 960,
 	"rondo1": 630,
@@ -206,9 +211,15 @@ const BUDGET := {
 	"zacheta": 720,
 	"zlota44": 1800,
 	"zygmunt": 280,
+	# Towarowa 22 built as finished (2026-11-03): seven towers and blocks, the hall's steel frame,
+	# the pavilion, the park, the drone port and the gilded crane.
+	"towarowa22": 5000,
+	# The Warsaw HUB's round-ended hotel tower (the photo report, 2026-11-03).
+	"crowne": 380,
 }
 ## Known defects per site: {"zfight": n, "degenerate": n, "badnormal": n, "float": n}.
-const KNOWN := {}
+## Towarowa 22's drone taxi hovers 7 m over its pad by design (the "Warsaw of the future").
+const KNOWN := {"towarowa22": {"float": 8}}
 const ZFIGHT_AREA := 0.01
 const ZFIGHT_PLANE := 0.02
 const ZFIGHT_WINDOW := 0.3  ## coarse sort window; _coplanar decides

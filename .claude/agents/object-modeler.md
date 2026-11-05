@@ -31,7 +31,8 @@ it, and hand it back for acceptance. You don't decide looks and you don't spawn 
 2. CLAUDE.md "Hard rules" and "Code conventions"; `.claude/skills/screenshot-review/art-bible.md`;
    the model-from-photos skill (detail levels, triangle budgets, the matched shots).
    If `refs/<slug>/` exists, open its photos, the orthophoto `ortho.jpg` (the roof and the
-   footprint from above) and SOURCES.md: build what they show at the
+   footprint from above), the street-level photos in `street/` (Mapillary/Panoramax: the ground
+   floor and the faces the player drives past) and SOURCES.md: build what they show at the
    brief's detail level (L2 or L3), every identity feature the spec names.
 3. The code: grep for the object's function first and read only that range. `map_builder.gd`
    and `main.gd` are thousands of lines; never read them whole.

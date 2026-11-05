@@ -1,6 +1,6 @@
 # Around Warsaw: support
 
-Around Warsaw is a free, open-source fan game made by one developer in Warsaw. There is no
+Around Warsaw is a free fan game made by one developer in Warsaw. There is no
 account to recover and nothing to buy, so most questions are about the beta or something that
 broke.
 
@@ -9,7 +9,6 @@ broke.
 - **The form:** [Get the beta, on the front page](/#beta). Pick "Something broke" or
   "Feedback" and say which phone you have.
 - **Telegram:** [@olshansky93](https://t.me/olshansky93)
-- **Bugs in the open:** [GitHub issues](https://github.com/LubomirOlshansky/AroundWarsaw/issues)
 
 Replies usually come within a few days.
 
@@ -36,7 +35,7 @@ Replies usually come within a few days.
 
 # Around Warsaw: pomoc
 
-Around Warsaw to darmowa gra fanowska open source, robiona przez jedną osobę w Warszawie. Nie
+Around Warsaw to darmowa gra fanowska, robiona przez jedną osobę w Warszawie. Nie
 ma konta do odzyskania ani niczego do kupienia, więc większość pytań dotyczy bety albo
 czegoś, co się zepsuło.
 
@@ -45,7 +44,6 @@ czegoś, co się zepsuło.
 - **Formularz:** [Zapisz się do bety, na stronie głównej](/pl/#beta). Wybierz „Coś nie działa”
   albo „Opinia” i napisz, jaki masz telefon.
 - **Telegram:** [@olshansky93](https://t.me/olshansky93)
-- **Błędy publicznie:** [GitHub issues](https://github.com/LubomirOlshansky/AroundWarsaw/issues)
 
 Odpowiedź zwykle w ciągu kilku dni.
 

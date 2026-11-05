@@ -12,7 +12,9 @@ extends SceneTree
 ## fly over them, not to be stopped. bulwary_basen (K7, 2026-11-02): the splash pool, its 0.3 m
 ## rim and fish on 0.55 m plinths, under 2 m in all.
 ## bazar (2026-11-02): Bazar Różyckiego's stalls and kiosks stand 2.5-3.4 m, under the 6 m floor the heli flies at.
-const FLY_OVER := ["bulwary_basen", "bazar"]
+## Towarowa 22 is a quarter: its box's middle is the printing hall's open frame and the 28 m tanks
+## block, under the heli's 45 m; its towers stand at the box's west edge and stop it there.
+const FLY_OVER := ["bulwary_basen", "bazar", "towarowa22"]
 
 var map: Node3D
 var _frames := 0
@@ -189,6 +191,8 @@ func _fly_checks() -> int:
 			alt = 5.0  # the arcade wall stands 7.5 m over the Lower Garden; the castle's roofs in the box are higher
 		elif info["key"] == "zamek":
 			alt = 22.0  # the Clock Tower's thin helm (56 m) would lift the heli over the 25 m roofs into the yard
+		elif info["key"] == "arkadia":
+			alt = 12.0  # the sign tower's 49 m crown would lift the heli over the 21 m deck it aims at
 		elif info["key"] == "tr":
 			alt = 6.0  # a building site: the cranes are thin, the theatre's closed floors stand 9 m
 		elif info["key"] == "sw_anna":

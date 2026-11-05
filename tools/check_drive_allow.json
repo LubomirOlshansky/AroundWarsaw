@@ -15,17 +15,6 @@
   {
    "kind": "lane",
    "at": [
-    418,
-    -1519
-   ],
-   "r": 14,
-   "name": "Wybrzeże Szczecińskie under Most Śląsko-Dąbrowski",
-   "reason": "loop 3e: Wybrzeże Szczecińskie's short deck over the Port Praski inlet (deck 4) by Most Śląsko-Dąbrowski's Praga end: at its west end a bus on the outer lane still brushes the parapet of the deck's neighbouring piece (the gap between pieces keeps a collider where there is a drop; map_builder.gd's parapet, not a baked rail): 2 places left of the 6 (loop 3e leftovers)",
-   "source": "check_drive.gd on the loop 3d-1 bake"
-  },
-  {
-   "kind": "lane",
-   "at": [
     -1814,
     36
    ],
