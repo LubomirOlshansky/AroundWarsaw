@@ -56,6 +56,17 @@ Ground: the lowest terrain under each outline. Junior: 25 x 100 m; Sawa: 27 x 10
 - **Banners**: printed ads the curtain wall's height (to 10 m wide, 0.2 m proud of the glass):
   one on each south end, two on each east face (the faces the iso camera sees), each a colour
   with its word in white: PROMOCJA, SAMSONG (parody), LODY, WYPRZEDAZ (R1 of docs/design/start-area-real.md, 2026-11-01, swaps them for the 2025/26 mix: DO WYNAJĘCIA, FROGS XXL, KAPCIE, WYPRZEDAŻ).
+- **Shops and ads, 2026-11-05 (F's photos and the trade press):** the banners, the shop fronts and
+  the pavement furniture now come from `game/data/eastern_wall_shops.json` (see its `_about`), so the
+  shops, which change often, are swapped there. Banners can go on any face, the street (west) face
+  too, and on the top storey (`top`); a ray from outside finds the wall, so the jogs of the outlines
+  don't matter. Shop fronts: the recessed shop glass tinted the shop's colour
+  (M_PAVILION, lit at night) and a lit name board (M_LAMP) hung from the cantilever's edge, 0.3 m
+  proud, 4.1 to 6.25 m (on the glass itself the game's high camera never saw it); a
+  `two_storey` shop also glows through the curtain wall's first floor. Nov 2026: Junior UNIKAT
+  (Zara's old floor), Sawa LUKA bakery and TAK MAKS, Wars TAK MAKS on the south end and the
+  street, FROGS XXL two storeys on the south-west corner with green seats and cream parasols,
+  KURCZAKI WKRÓTCE beside it.
 - **Cornice (17-17.5 m)**: aluminium, the roof's edge.
 - **Top storey (17.5-20.5 m)**: pale panels in M_SKIN S_DARK (a fine dark grid), 3 m in from
   the edge on every side.
@@ -109,7 +120,8 @@ po Warsie i Sawie z legendy.", EN "The Eastern Wall's three glass department sto
 ## 7. Detail level and budget
 
 L2 (facade articulation from the mapped parts), triangle budget 1730 (1439 measured on
-2026-11-01 after the Mac photo check, `check_mesh_quality.gd` BUDGET).
+2026-11-01 after the Mac photo check, 1647 on 2026-11-05 with the shop fronts and furniture,
+`check_mesh_quality.gd` BUDGET).
 
 ## 8. Parts table
 

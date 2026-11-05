@@ -117,6 +117,11 @@ then the Launch gate.
         six lines on the empty stores, Frogs XXL, Plac Centralny, Scena Relax, 2026-11-01
   - [x] R7 street details in the box (street name plates, bike dock, tram stops, bollards), 2026-11-01
   - [ ] R8 landmark polish left in the box (the museum's ribbon and roofline)
+  - [x] The stores' shop fronts as they are in Nov 2026 (F's photos, 2026-11-05): UNIKAT on Zara's old
+        floor in Junior, LUKA's bakery and the four-floor TAK MAKS in Sawa and Wars, the two-storey
+        FROGS XXL with its green seats on H&M's corner, KURCZAKI WKRÓTCE next door, street-face banners
+        and lit shop fasciae, all swapped in one file (game/data/eastern_wall_shops.json); Metro
+        Świętokrzyska's M2 triangle canopies; phone look parked
 
 ### Left: map and roads
 - [ ] Free-play playtest plan P1-P10 run with Autopilot and every confirmed PT bug fixed
@@ -173,7 +178,7 @@ then the Launch gate.
 
 ### Left: landmarks and street details
 
-- [ ] Eastern Wall photo pass (F, 2026-11-03; plan in BACKLOG "Eastern Wall photo pass"): Marszałkowska fronts of Junior, Sawa and Wars from a Mac `refs/dt_centrum/` REPORT, the Widok corner, WACZEK at the former Sezam (Świętokrzyska), the rooftop cola parody sign at Sezam/Centrum and a fictional Amica brand, Pasaż slabs warm grey-white; high priority, waits on F's go for the Mac gather
+- [ ] Eastern Wall photo pass (F, 2026-11-03; plan in BACKLOG "Eastern Wall photo pass"; the shops and banners on the fronts done from F's own photos 2026-11-05, the Mac gather for the glazing and the Widok corner still open): Marszałkowska fronts of Junior, Sawa and Wars from a Mac `refs/dt_centrum/` REPORT, the Widok corner, WACZEK at the former Sezam (Świętokrzyska), the rooftop cola parody sign at Sezam/Centrum and a fictional Amica brand, Pasaż slabs warm grey-white; high priority, waits on F's go for the Mac gather
 - [x] City inventory, street by street (F, 2026-11-02): every characteristic place in the box ranked S/A/B
       with its status (photo build, outline build, dress only, not done) in docs/CITY_INVENTORY.md, Part 2
       street by street from the map data (`tools/city_inventory.py`). Its Part 3 is the order of the next

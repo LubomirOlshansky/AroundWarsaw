@@ -8036,15 +8036,35 @@ const DTC_ROOF := Color("#4f5559")      # the main roof
 const DTC_TOP_ROOF := Color("#5d6468")  # the top storey's roof
 const DTC_SKY := Color("#cfd8dc")       # the roof lights, lit at night
 const DTC_SIGN := Color(1.0, 0.86, 0.55)
-## The printed ad banners (A4), as the stores are in 2025/26 (R1, docs/design/start-area-real.md):
-## a word (generic or a parody) and the poster's colour, per store (DTC's order) the south end's
-## first, then the east face's two. H&M (Poland's oldest, on Wars's corner by Widok and Pasaż
-## Wiecha) closed in October 2025 and that corner becomes a two-storey Żabka: FROGS XXL. Zara's
-## floor went to the shoe chains (KAPCIE); the units C&A and others left wear DO WYNAJĘCIA boards.
-const DTC_BANNERS := [
-	[["KAPCIE", Color("#d2232a")], ["DO WYNAJĘCIA", Color("#f2efe6"), Color("#c8322e")], ["WYPRZEDAŻ", Color("#2c8a57")]],
-	[["DO WYNAJĘCIA", Color("#f2efe6"), Color("#c8322e")], ["SAMSONG", Color("#1f3f8f")], ["DO WYNAJĘCIA", Color("#f2efe6"), Color("#c8322e")]],
-	[["FROGS XXL", Color("#4fae3b")], ["LODY", Color("#e0a21c")], ["PROMOCJA", Color("#8a2b7a")]]]
+## The stores' shops and ads (printed banners on the curtain walls, lit shop fronts under the
+## cantilever, the furniture outside) come from data/eastern_wall_shops.json, as the stores are
+## now (2026-11: UNIKAT where Zara was, LUKA's bakery, the four-floor TAK MAKS, the two-storey
+## FROGS XXL on H&M's corner): these shops change often, so they are swapped there, not here.
+const DTC_SHOPS_FILE := "res://data/eastern_wall_shops.json"
+## The street face (Marszałkowska), the back, the far end: the faces the file names.
+const DTC_EAST := Vector2(0.937, -0.349)
+
+
+## The file's stores (osm name -> {banners, fronts, props}); empty when it is missing.
+static func dtc_shops() -> Dictionary:
+	var f := FileAccess.get_file_as_string(DTC_SHOPS_FILE)
+	var json: Variant = JSON.parse_string(f) if f != "" else null
+	if json is Dictionary and (json as Dictionary).get("stores") is Dictionary:
+		return json["stores"]
+	return {}
+
+
+static func _dtc_dir(face: String) -> Vector2:
+	match face:
+		"south":
+			return DTC_SOUTH
+		"north":
+			return -DTC_SOUTH
+		"east":
+			return DTC_EAST
+	return -DTC_EAST
+
+
 func _find_dtc() -> void:
 	var zone: Array[PackedVector2Array] = []
 	for d: Dictionary in DTC:
@@ -8059,7 +8079,7 @@ func _find_dtc() -> void:
 func _build_dtc(_site: Dictionary) -> void:
 	var none := Color(0, 0, 0, 0)
 	var skin := M_SKIN + float(S_EASTWALL) / 16.0
-	var banner_i := 0
+	var shops := dtc_shops()
 	for d: Dictionary in DTC:
 		var outline := _landmark(d["osm"])
 		if outline.size() < 3:
@@ -8087,14 +8107,16 @@ func _build_dtc(_site: Dictionary) -> void:
 		# soffit: the cantilever's light aluminium underside round the shop floor.
 		_mode = M_STONE
 		_soffit(outline, g + DTC_BASE, DTC_ALU.darkened(0.06))
-		_dtc_banners(outline, g, banner_i)
-		banner_i += 1
 		# top: the set-back top storey, 3 m in on the long sides and DTC_TOP_END at the ends.
 		var top := _dtc_top(outline)
 		if top.size() >= 3:
 			var y := g + DTC_BODY + DTC_TOP
 			_prism(top, g + DTC_BODY, y, DTC_TOP_WALL, DTC_TOP_ROOF, M_SKIN + float(S_DARK) / 16.0, M_STONE)
 			_dtc_roof(top, y, d["osm"] == "Junior")
+		var store: Dictionary = shops.get(str(d["osm"]), {})
+		_dtc_banners(outline, top, g, store.get("banners", []))
+		_dtc_fronts(outline, shop, g, store.get("fronts", []))
+		_dtc_props(outline, g, store.get("props", []))
 		_dtc_sign(outline, str(d["sign"]), g + DTC_BODY)
 		_collide(shop)
 	_mode = M_STONE
@@ -8235,62 +8257,174 @@ func _dtc_vent(p: Vector2, y: float) -> void:
 					Vector3(out.x, 0, out.y), col.darkened(0.1), nn, nn, nn, -1.0)
 
 
-## The photo check's printed ad banners: big parody posters the curtain wall's full height,
-## 0.2 m proud of the glass, on the faces the game's camera sees (the south end and the east
-## face), each with its word in white.
-func _dtc_banners(outline: PackedVector2Array, g: float, store: int) -> void:
-	var y0 := g + DTC_BASE + DTC_FASCIA + 0.4
-	var y1 := g + DTC_BODY - DTC_CORNICE - 0.4
-	var east := Vector2(DTC_SOUTH.y, -DTC_SOUTH.x)
-	var placed := 0
-	for want: Vector2 in [DTC_SOUTH, east]:
-		var best := -1
-		var best_len := 0.0
-		for i in outline.size():
-			var a := outline[i]
-			var b := outline[(i + 1) % outline.size()]
-			if _out(outline, a, b).dot(want) > 0.9 and a.distance_to(b) > best_len:
-				best_len = a.distance_to(b)
-				best = i
-		if best < 0 or best_len < 12.0:
+## Where a sign `w` m wide goes on the face of `poly` that looks along the file's `face` ("west" is
+## the street), `at` 0..1 from its left end to its right as read from outside: a ray in from
+## outside finds the wall there (the outlines jog, so the wall is found, not assumed).
+## [point on the wall, along the wall (to the reader's right), the wall's outward normal, the
+## face's length], or [] when the ray meets no wall facing that way.
+func _dtc_spot(poly: PackedVector2Array, face: String, at: float, w: float) -> Array:
+	var want := _dtc_dir(face)
+	var right := Vector2(want.y, -want.x)
+	var lo := INF
+	var hi := -INF
+	var top := -INF
+	for q in poly:
+		lo = minf(lo, q.dot(right))
+		hi = maxf(hi, q.dot(right))
+		top = maxf(top, q.dot(want))
+	var r := (lo + hi) * 0.5
+	if hi - lo > w + 0.6:
+		r = lerpf(lo + w * 0.5 + 0.3, hi - w * 0.5 - 0.3, clampf(at, 0.0, 1.0))
+	var hit := _dtc_ray(poly, right * r + want * (top + 1.0), -want, 80.0)
+	if hit.is_empty() or (hit[1] as Vector2).dot(want) < 0.8:
+		return []
+	var o: Vector2 = hit[1]
+	return [hit[0], Vector2(o.y, -o.x), o, hi - lo]
+
+
+## The first edge of `poly` a ray from `from` along `dir` meets within `far` m: [the point, that
+## edge's outward normal], or [].
+func _dtc_ray(poly: PackedVector2Array, from: Vector2, dir: Vector2, far: float) -> Array:
+	var best := INF
+	var out := []
+	for i in poly.size():
+		var a := poly[i]
+		var b := poly[(i + 1) % poly.size()]
+		var hit: Variant = Geometry2D.segment_intersects_segment(from, from + dir * far, a, b)
+		if hit != null and from.distance_to(hit as Vector2) < best:
+			best = from.distance_to(hit as Vector2)
+			out = [hit as Vector2, _out(poly, a, b)]
+	return out
+
+
+## Lines of lit letters (the neon atlas) centred at `at` on a face with outward normal `o`, between
+## y0 and y1, at most `w` m wide and `cap` m a row.
+func _dtc_words(lines: Array, at: Vector2, o: Vector2, y0: float, y1: float, w: float, cap: float, ink: Color) -> void:
+	if lines.is_empty():
+		return
+	var row := Neon.ROW_H * Neon.PIXEL
+	var k := minf(cap, 0.85 * (y1 - y0) / lines.size()) / row
+	for l: String in lines:
+		k = minf(k, 0.8 * w / Neon.length_of(l))
+	var step := row * k
+	var y := (y0 + y1) * 0.5 - 0.5 * step * lines.size()
+	for i in range(lines.size() - 1, -1, -1):
+		signs.append([str(lines[i]), Vector3(at.x, y, at.y), Vector3(o.x, 0.0, o.y), k, ink])
+		y += step
+
+
+## The printed ad banners (the Mac photo check; what they say: data/eastern_wall_shops.json): big
+## posters the curtain wall's height (or the top storey's), 0.2 m proud of the glass, each a colour
+## with its words lit on it.
+func _dtc_banners(outline: PackedVector2Array, top: PackedVector2Array, g: float, list: Array) -> void:
+	for spec: Dictionary in list:
+		var on_top := bool(spec.get("top", false))
+		var poly := top if on_top else outline
+		if poly.size() < 3:
 			continue
-		var a := outline[best]
-		var b := outline[(best + 1) % outline.size()]
-		var o := _out(outline, a, b)
-		var dir := (b - a).normalized()
-		var spots: Array = [0.5] if want == DTC_SOUTH else [0.3, 0.68]
-		for f: float in spots:
-			var spec: Array = DTC_BANNERS[store % DTC_BANNERS.size()][placed % 3]
-			placed += 1
-			var w := minf(10.0, best_len * (0.7 if spots.size() == 1 else 0.34))
-			var m := a.lerp(b, f)
-			var p0 := m - dir * w * 0.5
-			var p1 := m + dir * w * 0.5
-			var q0 := p0 + o * 0.2
-			var q1 := p1 + o * 0.2
-			var n := Vector3(o.x, 0, o.y)
-			var col: Color = spec[1]
-			_mode = M_STONE
-			_quad(Vector3(q0.x, y0, q0.y), Vector3(q1.x, y0, q1.y), Vector3(q1.x, y1, q1.y), Vector3(q0.x, y1, q0.y), n, col)
-			_quad(Vector3(q0.x, y1, q0.y), Vector3(q1.x, y1, q1.y), Vector3(p1.x, y1, p1.y), Vector3(p0.x, y1, p0.y), Vector3.UP, col.darkened(0.2))
-			var word: String = spec[0]
-			var at := m + o * 0.25
-			# A to-let board is white with red letters (the agents' boards), the rest white letters.
-			var ink: Color = spec[2] if spec.size() > 2 else Color(1, 1, 1)
-			# Letters up to 2.4 m (R1: the 1.6 m ones read small at the default zoom); a two-word
-			# board that would come out smaller than that on one line takes two (DO / WYNAJĘCIA).
-			var cap := 2.4 / (Neon.ROW_H * Neon.PIXEL)
-			var lines: Array = [word]
-			if " " in word and 0.8 * w / Neon.length_of(word) < cap:
-				lines = Array(word.split(" "))
-			var k := cap
-			for l: String in lines:
-				k = minf(k, 0.8 * w / Neon.length_of(l))
-			var step := Neon.ROW_H * Neon.PIXEL * k
-			var y := (y0 + y1) * 0.5 - 0.5 * step * lines.size()
-			for i in range(lines.size() - 1, -1, -1):
-				signs.append([lines[i], Vector3(at.x, y, at.y), Vector3(o.x, 0.0, o.y), k, ink])
-				y += step
+		var w := float(spec.get("w", 10.0))
+		var spot := _dtc_spot(poly, str(spec.get("face", "south")), float(spec.get("at", 0.5)), w)
+		if spot.is_empty() or float(spot[3]) < (5.0 if on_top else 12.0):
+			continue
+		var m: Vector2 = spot[0]
+		var dir: Vector2 = spot[1]
+		var o: Vector2 = spot[2]
+		w = minf(w, float(spot[3]) * 0.85)
+		var y0 := g + (DTC_BODY + 0.4 if on_top else DTC_BASE + DTC_FASCIA + 0.4)
+		var y1 := g + (DTC_BODY + DTC_TOP - 0.3 if on_top else DTC_BODY - DTC_CORNICE - 0.4)
+		if spec.has("y0"):
+			y0 = g + float(spec["y0"])
+		if spec.has("y1"):
+			y1 = g + float(spec["y1"])
+		var q0 := m - dir * w * 0.5 + o * 0.2
+		var q1 := m + dir * w * 0.5 + o * 0.2
+		var p0 := m - dir * w * 0.5
+		var p1 := m + dir * w * 0.5
+		var col := Color(str(spec.get("bg", "#c8322e")))
+		_mode = M_STONE
+		_quad(Vector3(q0.x, y0, q0.y), Vector3(q1.x, y0, q1.y), Vector3(q1.x, y1, q1.y), Vector3(q0.x, y1, q0.y), Vector3(o.x, 0, o.y), col)
+		_quad(Vector3(q0.x, y1, q0.y), Vector3(q1.x, y1, q1.y), Vector3(p1.x, y1, p1.y), Vector3(p0.x, y1, p0.y), Vector3.UP, col.darkened(0.2))
+		_dtc_words(spec.get("lines", []), m + o * 0.25, o, y0, y1, w, 2.4, Color(str(spec.get("ink", "#ffffff"))))
+
+
+## The shop fronts on the recessed glazed floor (data/eastern_wall_shops.json `fronts`): the
+## shop's glass tinted its own colour (lit from inside at night) and a lit fascia band over it with
+## the name; a two-storey shop (FROGS XXL) also glows through the curtain wall's first floor.
+func _dtc_fronts(outline: PackedVector2Array, shop: PackedVector2Array, g: float, list: Array) -> void:
+	for spec: Dictionary in list:
+		var w := float(spec.get("w", 8.0))
+		var spot := _dtc_spot(outline, str(spec.get("face", "west")), float(spec.get("at", 0.5)), w)
+		if spot.is_empty():
+			continue
+		var m: Vector2 = spot[0]
+		w = minf(w, float(spot[3]) * 0.9)
+		# The shop's glass: its wall straight in from the curtain wall (under the cantilever).
+		var hit := _dtc_ray(shop, m + (spot[2] as Vector2) * 0.5, -(spot[2] as Vector2), 12.0)
+		if hit.is_empty():
+			continue
+		var wall: Vector2 = hit[0]
+		var o: Vector2 = hit[1]
+		var dir := Vector2(o.y, -o.x)
+		var p0 := wall - dir * w * 0.5 + o * 0.06
+		var p1 := wall + dir * w * 0.5 + o * 0.06
+		var n := Vector3(o.x, 0, o.y)
+		if spec.has("glass"):
+			_mode = M_PAVILION
+			_quad(Vector3(p0.x, g + 0.25, p0.y), Vector3(p1.x, g + 0.25, p1.y), Vector3(p1.x, g + 3.7, p1.y), Vector3(p0.x, g + 3.7, p0.y), n, Color(str(spec["glass"])))
+		# The name: a lit board hung from the cantilever's edge (the slab's fascia), where the
+		# street and the game's high camera both see it; the shop's glass behind stays tinted.
+		var band := Color(str(spec.get("band", "#2b2f36")))
+		var co: Vector2 = spot[2]
+		var cd: Vector2 = spot[1]
+		var b0 := m - cd * w * 0.5 + co * 0.3
+		var b1 := m + cd * w * 0.5 + co * 0.3
+		var t0 := m - cd * w * 0.5
+		var t1 := m + cd * w * 0.5
+		var by0 := g + DTC_BASE - 1.4
+		var by1 := g + DTC_BASE + DTC_FASCIA - 0.05
+		_mode = M_LAMP
+		_quad(Vector3(b0.x, by0, b0.y), Vector3(b1.x, by0, b1.y), Vector3(b1.x, by1, b1.y), Vector3(b0.x, by1, b0.y), Vector3(co.x, 0, co.y), band)
+		_mode = M_STONE
+		_quad(Vector3(b0.x, by1, b0.y), Vector3(b1.x, by1, b1.y), Vector3(t1.x, by1, t1.y), Vector3(t0.x, by1, t0.y), Vector3.UP, band.darkened(0.3))
+		_quad(Vector3(b0.x, by0, b0.y), Vector3(b1.x, by0, b1.y), Vector3(t1.x, by0, t1.y), Vector3(t0.x, by0, t0.y), Vector3.DOWN, band.darkened(0.4))
+		_dtc_words(spec.get("lines", []), m + co * 0.35, co, by0 + 0.05, by1 - 0.05, w, 1.6, Color(str(spec.get("ink", "#ffffff"))))
+		if bool(spec.get("two_storey", false)) and spec.has("glass"):
+			# The first floor behind the curtain wall: the shop's colour glowing through the glass.
+			var c0 := m - cd * w * 0.5 + co * 0.08
+			var c1 := m + cd * w * 0.5 + co * 0.08
+			var y0 := g + DTC_BASE + DTC_FASCIA + 0.1
+			_mode = M_PAVILION
+			_quad(Vector3(c0.x, y0, c0.y), Vector3(c1.x, y0, c1.y), Vector3(c1.x, y0 + 4.0, c1.y), Vector3(c0.x, y0 + 4.0, c0.y), Vector3(co.x, 0, co.y), Color(str(spec["glass"])).darkened(0.15))
+	_mode = M_STONE
+
+
+## The furniture outside a shop (`props`): FROGS XXL's cream parasols and green seats on the corner.
+func _dtc_props(outline: PackedVector2Array, g: float, list: Array) -> void:
+	_mode = M_STONE
+	for spec: Dictionary in list:
+		var spot := _dtc_spot(outline, str(spec.get("face", "west")), float(spec.get("at", 0.5)), 0.0)
+		if spot.is_empty():
+			continue
+		var p: Vector2 = spot[0] + (spot[2] as Vector2) * float(spec.get("out", 2.0))
+		var col := Color(str(spec.get("colour", "#3fae3b")))
+		match str(spec.get("kind", "seat")):
+			"parasol":
+				_prism(_square(p, 0.05), g, g + 2.5, Color("#3a3d40"), Color("#3a3d40"), M_STONE, M_STONE)
+				var h := 1.6
+				var tip := Vector3(p.x, g + 3.0, p.y)
+				var c := [p + Vector2(-h, -h), p + Vector2(h, -h), p + Vector2(h, h), p + Vector2(-h, h)]
+				for i in 4:
+					var u: Vector2 = c[i]
+					var v: Vector2 = c[(i + 1) % 4]
+					var mid := (u + v) * 0.5 - p
+					var nn := Vector3(mid.x, h * 1.6, mid.y).normalized()
+					_tri(Vector3(u.x, g + 2.4, u.y), Vector3(v.x, g + 2.4, v.y), tip, nn, col, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+					_tri(Vector3(u.x, g + 2.4, u.y), Vector3(v.x, g + 2.4, v.y), tip, Vector3.DOWN, col.darkened(0.25), Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0, false)
+			_:
+				var ring := PackedVector2Array()
+				for i in 6:
+					ring.append(p + Vector2(cos(TAU * i / 6.0), sin(TAU * i / 6.0)) * 0.7)
+				_prism(ring, g, g + 0.45, col, col.lightened(0.1), M_STONE, M_STONE)
 
 
 ## The store's name on the roof over its south end (the face the game's camera sees from the
@@ -8463,7 +8597,9 @@ func _build_tower75(site: Dictionary) -> void:
 		_roof_frame(shaft, face, top, 1.2, 6.0, TOWER75_WORD, Color(1.0, 0.16, 0.12), 0.9)
 		var side := _edge_facing(shaft, Vector2(BEHIND_FACE.y, -BEHIND_FACE.x), 8.0)
 		if side >= 0 and side != face:
-			_roof_frame(shaft, side, top, 0.8, 3.2, "LODY", Color(1, 1, 1), 0.45, Color("#2a6fb0"))
+			# The four-floor discount store below (opened Sep 2026) put its red box up here
+			# (F's photos, 2026-11-05).
+			_roof_frame(shaft, side, top, 0.8, 3.2, "TAK MAKS", Color(1, 1, 1), 0.6, Color("#d0161e"))
 	_collide(outline)
 
 

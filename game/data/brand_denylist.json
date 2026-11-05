@@ -60,7 +60,16 @@
     "mcdonald's",
     "mcdonalds",
     "maczek",
-    "big mac"
+    "big mac",
+    "uniqlo",
+    "tk maxx",
+    "tkmaxx",
+    "t.k. maxx",
+    "zara",
+    "popeyes",
+    "luca",
+    "h&m",
+    "c&a"
   ],
   "rejected": [
     "ciemna 1",
@@ -69,7 +78,9 @@
     "nocny marek",
     "hulajka",
     "tinderek",
-    "manekinek"
+    "manekinek",
+    "uniklo",
+    "tk maks"
   ],
   "allowed_in": {
     "jasna 1": "the `address` field of places.json only (the venue there is JASNA 0)",
@@ -79,6 +90,8 @@
     "bolt": "game code and docs only, never in on-screen text",
     "zamieszanie": "never on screen: it is also the ordinary word for a stir; our bar is ZAMĘT",
     "maczek": "never on screen: the slang name of the real chain (also a poppy); ours is WACZEK",
+    "zara": "never on screen: also a first name; Junior's old floor is UNIKAT's now",
+    "luca": "never on screen: also a first name; the bakery in Sawa is LUKA",
     "manekin": "never on screen: it is also the ordinary word for a shop dummy; our crêpe place is KUKŁA"
   }
 }

@@ -131,6 +131,23 @@ Plan, ranking, facts with sources and the quest: docs/design/modernism-collectio
   the Emilia demolition year) are checked in each REPORT before a spec.
 - Out of the map box, not planned: Supersam, the Ruda and Bródno estates, Hotel Felix, Żoliborz and
   Saska Kępa villas. Sezam and the Eastern Wall towers are the Ściana Wschodnia thread's.
+## Starting street shop fronts (F, 2026-11-05)
+
+Done from F's ten photos and the trade press (state Nov 2026): the stores' shops and ads come from
+`game/data/eastern_wall_shops.json` (banners on the curtain walls incl. the street face, lit shop
+fasciae on the recessed glass, pavement furniture), so a shop that closes is one line to change plus
+a prebuilt re-bake; its words join the neon atlas by themselves. UNIKAT (Uniqlo, on Zara's old floor
+in Junior since Oct 2025), LUKA bakery (LUCA, Sawa, Oct 2026), TAK MAKS (TK Maxx, 7,000 m2 on four
+floors, Sep 2026; also the red box on `tower75`'s roof), FROGS XXL two storeys on H&M's corner with
+green seats and cream parasols, KURCZAKI WKRÓTCE (the chicken chain coming next door). Metro
+Świętokrzyska's mapped canopies are now M2's steel-and-glass triangle tents (`Props._metro_tent`).
+Left:
+- Phone look of the street-face signs (the camera sees the street faces edge-on when driving along
+  Marszałkowska; they show when turning or rotating the view).
+- When the chicken chain opens, give it a parody name in the file (KURCZAKI WKRÓTCE until then).
+- Which Świętokrzyska entrances are the M2 tents is a guess (the mapped canopies); check on the Mac.
+- Where exactly TAK MAKS's and LUKA's doors are along the fronts (press: "in Sawa"): Mac gather.
+
 ## Eastern Wall photo pass: Marszałkowska fronts, Sezam WACZEK, Coca-Cola sign (F, 2026-11-03)
 
 Plan only, nothing built (F paused new work; this wants his "go" for the Mac photo gather). Scope F set:
