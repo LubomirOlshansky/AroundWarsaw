@@ -22,6 +22,8 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		"PROMOCJA", "LODY",
 		# The tower and the slab behind the stores (specs C and D): a parody and a drink.
 		"KOKA-KOLKA", "ORANŻADA",
+		# The tower75 crown from F's photos (2026-11-05): the appliance maker as a parody.
+		"PRALKA PLUS",
 		# MDM's roofs (F's Street View shots, 2026-11-05): the red MDM, a parody of the phone maker
 		# and of the car maker, and the hotel's own sign on the corner block.
 		"MDM", "XIAOMY", "BYDŁO", "HOTEL MDM",
@@ -187,9 +189,27 @@ static func own_font(word: String) -> bool:
 	return true
 
 
-## The atlas rows: the shop words, then the landmarks' words.
+## The atlas rows: the shop words, the landmarks' words, then the Eastern Wall stores' shop and
+## ad words from data/eastern_wall_shops.json (swapped there as the shops change; landmarks.gd
+## _dtc_banners), each once.
+static var _all: Array = []
 static func all_words() -> Array:
-	return WORDS + LANDMARK_WORDS
+	if not _all.is_empty():
+		return _all
+	var out: Array = WORDS + LANDMARK_WORDS
+	var f := FileAccess.get_file_as_string("res://data/eastern_wall_shops.json")
+	var json: Variant = JSON.parse_string(f) if f != "" else null
+	if json is Dictionary and (json as Dictionary).get("stores") is Dictionary:
+		var stores: Dictionary = json["stores"]
+		for k: String in stores.keys():
+			for list: String in ["banners", "fronts"]:
+				for spec: Variant in (stores[k] as Dictionary).get(list, []):
+					if spec is Dictionary:
+						for l: Variant in (spec as Dictionary).get("lines", []):
+							if not str(l) in out:
+								out.append(str(l))
+	_all = out
+	return _all
 
 
 ## The tube colour for a word, varied by a 0..1 pick.

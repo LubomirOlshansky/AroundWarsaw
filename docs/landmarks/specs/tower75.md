@@ -40,7 +40,7 @@ The zone is the outline grown 3 m (the LoD2 model stands a little off it).
 ## 4. Roof
 
 Flat, #8b9296, a plant room in the middle. A steel frame (posts every ~8 m, two rails) stands
-1.2 m in from the edge facing south-south-east and carries KOKA-KOLKA (a parody) in big red
+1.2 m in from the edge facing south-south-east and carries PRALKA PLUS (2026-11-05, F's photos: the appliance maker's parody; KOKA-KOLKA moves to the Sezam corner) in big red
 letters, lit day and night, up to 6 m tall. A small billboard on the next edge round (east): a
 blue panel with LODY in white, 3.2 m tall.
 
@@ -77,5 +77,5 @@ L2, triangle budget 220 (180 measured on 2026-11-01, `check_mesh_quality.gd` BUD
 | parapet | prism of the shaft, roof | 0.9 m | y 74.1..75 | M_STONE #e2e5e5, roof #8b9296 | 1 shaft |
 | plant | box | 6.4 x 6.4 x 3 m | roof centre | M_STONE #b9bdbe | 1 shaft |
 | frame | posts and two rails | 90 % of the edge, 6 m tall | south-south-east edge, 1.2 m in | M_STONE #5b6166 | 3 letters |
-| letters | neon word KOKA-KOLKA | up to 6 m | on the frame | neon atlas, red | 3 letters |
+| letters | neon word PRALKA PLUS | up to 6 m | on the frame | neon atlas, red | 3 letters |
 | billboard | frame, panel, word LODY | 45 % of the edge, 3.2 m tall | east edge | M_STONE #2a6fb0, neon atlas | 3 letters |

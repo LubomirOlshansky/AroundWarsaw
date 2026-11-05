@@ -1,0 +1,343 @@
+{
+  "_about": "The Eastern Wall stores' shops and ads (landmarks.gd _dtc_shops, site dtc, the game's starting street). The shops here change often, so this file is the one place to swap them: edit a line, then re-bake the prebuilt city (bake_city.gd); every word is added to the neon atlas by neon_signs.gd. Brands only as parodies (data/brand_denylist.json). State: F's photos and the trade press, 2026-11-05: Uniqlo took Zara's floor in Junior (Oct 2025), LUCA's bakery opened in Sawa (Oct 2026), TK Maxx opened 7,000 m2 on four floors (Sep 2026), H&M's corner of Wars became a two-storey Żabka with a chicken chain coming next door. Faces: 'west' is the street (Marszałkowska), 'south' the end the camera sees down the street, 'east' the back, 'north'. 'at' is 0..1 along the face, left to right as you stand outside looking at it. banners: printed ads on the curtain wall (y0..y1 metres above ground, default its whole height; 'top': on the set-back top storey instead). fronts: a shop's lit fascia band on the recessed shop windows under the cantilever, its glass tinted ('glass'). props: furniture on the pavement 'out' metres from the face. roof_green: a sedum strip along a long side of the main roof (F's aerials). portal: a coloured frame of two posts round a shop's doors.",
+  "stores": {
+    "Junior": {
+      "banners": [
+        {
+          "face": "south",
+          "at": 0.5,
+          "w": 10.0,
+          "lines": [
+            "UNI",
+            "KAT"
+          ],
+          "bg": "#d0161e"
+        },
+        {
+          "face": "west",
+          "at": 0.62,
+          "w": 12.0,
+          "lines": [
+            "UNI",
+            "KAT"
+          ],
+          "bg": "#d0161e"
+        },
+        {
+          "face": "west",
+          "at": 0.25,
+          "w": 10.0,
+          "lines": [
+            "WYPRZEDAŻ"
+          ],
+          "bg": "#2c8a57"
+        },
+        {
+          "face": "east",
+          "at": 0.3,
+          "lines": [
+            "KAPCIE"
+          ],
+          "bg": "#d2232a"
+        },
+        {
+          "face": "east",
+          "at": 0.68,
+          "lines": [
+            "UNI",
+            "KAT"
+          ],
+          "bg": "#d0161e"
+        }
+      ],
+      "fronts": [
+        {
+          "face": "west",
+          "at": 0.62,
+          "w": 14.0,
+          "lines": [
+            "UNIKAT"
+          ],
+          "band": "#d0161e",
+          "glass": "#f3f1ea"
+        },
+        {
+          "face": "west",
+          "at": 0.22,
+          "w": 9.0,
+          "lines": [
+            "KAPCIE"
+          ],
+          "band": "#2b2f36",
+          "ink": "#ffd25a"
+        },
+        {
+          "face": "south",
+          "at": 0.5,
+          "w": 9.0,
+          "lines": [
+            "UNIKAT"
+          ],
+          "band": "#d0161e",
+          "glass": "#f3f1ea"
+        }
+      ],
+      "roof_green": [
+        {
+          "face": "west",
+          "w": 2.2
+        }
+      ]
+    },
+    "Sawa": {
+      "banners": [
+        {
+          "face": "south",
+          "at": 0.5,
+          "lines": [
+            "DO WYNAJĘCIA"
+          ],
+          "bg": "#f2efe6",
+          "ink": "#c8322e"
+        },
+        {
+          "face": "west",
+          "at": 0.3,
+          "w": 11.0,
+          "lines": [
+            "LUKA",
+            "PIEKARNIA"
+          ],
+          "bg": "#f4c400",
+          "ink": "#e2570f"
+        },
+        {
+          "face": "west",
+          "at": 0.72,
+          "w": 12.0,
+          "lines": [
+            "TAK MAKS"
+          ],
+          "bg": "#d0161e"
+        },
+        {
+          "face": "east",
+          "at": 0.3,
+          "lines": [
+            "SAMSONG"
+          ],
+          "bg": "#1f3f8f"
+        },
+        {
+          "face": "east",
+          "at": 0.68,
+          "lines": [
+            "TAK MAKS"
+          ],
+          "bg": "#d0161e"
+        }
+      ],
+      "fronts": [
+        {
+          "face": "west",
+          "at": 0.3,
+          "w": 8.0,
+          "lines": [
+            "LUKA"
+          ],
+          "band": "#f4c400",
+          "ink": "#e2570f",
+          "glass": "#ffc861"
+        },
+        {
+          "face": "west",
+          "at": 0.72,
+          "w": 10.0,
+          "lines": [
+            "TAK MAKS"
+          ],
+          "band": "#d0161e",
+          "glass": "#f6e3e0",
+          "portal": "#c8141c"
+        }
+      ],
+      "roof_green": [
+        {
+          "face": "west",
+          "w": 2.2
+        }
+      ]
+    },
+    "Wars": {
+      "banners": [
+        {
+          "face": "south",
+          "at": 0.45,
+          "w": 11.0,
+          "lines": [
+            "TAK MAKS"
+          ],
+          "bg": "#d0161e"
+        },
+        {
+          "face": "west",
+          "at": 0.4,
+          "w": 11.0,
+          "lines": [
+            "DUŻE MARKI",
+            "MAŁE CENY"
+          ],
+          "bg": "#f2efe6",
+          "ink": "#c8322e"
+        },
+        {
+          "face": "west",
+          "at": 0.9,
+          "w": 9.0,
+          "y0": 6.6,
+          "y1": 11.0,
+          "lines": [
+            "FROGS XXL"
+          ],
+          "bg": "#4fae3b"
+        },
+        {
+          "face": "east",
+          "at": 0.3,
+          "lines": [
+            "LODY"
+          ],
+          "bg": "#e0a21c"
+        },
+        {
+          "face": "east",
+          "at": 0.68,
+          "lines": [
+            "PROMOCJA"
+          ],
+          "bg": "#8a2b7a"
+        },
+        {
+          "face": "south",
+          "at": 0.5,
+          "top": true,
+          "w": 7.0,
+          "lines": [
+            "TAK MAKS"
+          ],
+          "bg": "#d0161e"
+        },
+        {
+          "face": "west",
+          "at": 0.92,
+          "top": true,
+          "w": 6.0,
+          "lines": [
+            "FROGS"
+          ],
+          "bg": "#4fae3b"
+        }
+      ],
+      "fronts": [
+        {
+          "face": "west",
+          "at": 0.9,
+          "w": 12.0,
+          "lines": [
+            "FROGS XXL"
+          ],
+          "band": "#4fae3b",
+          "glass": "#bff2a8",
+          "two_storey": true
+        },
+        {
+          "face": "south",
+          "at": 0.15,
+          "w": 6.0,
+          "lines": [
+            "FROGS"
+          ],
+          "band": "#4fae3b",
+          "glass": "#bff2a8"
+        },
+        {
+          "face": "west",
+          "at": 0.74,
+          "w": 8.0,
+          "lines": [
+            "KURCZAKI",
+            "WKRÓTCE"
+          ],
+          "band": "#f2efe6",
+          "ink": "#b0301c",
+          "glass": "#8a8f93"
+        },
+        {
+          "face": "west",
+          "at": 0.45,
+          "w": 10.0,
+          "lines": [
+            "TAK MAKS"
+          ],
+          "band": "#d0161e",
+          "glass": "#f6e3e0",
+          "portal": "#c8141c"
+        }
+      ],
+      "props": [
+        {
+          "kind": "parasol",
+          "face": "west",
+          "at": 0.86,
+          "out": 3.0,
+          "colour": "#f2efe0"
+        },
+        {
+          "kind": "parasol",
+          "face": "west",
+          "at": 0.95,
+          "out": 3.2,
+          "colour": "#f2efe0"
+        },
+        {
+          "kind": "seat",
+          "face": "west",
+          "at": 0.84,
+          "out": 4.6,
+          "colour": "#3fae3b"
+        },
+        {
+          "kind": "seat",
+          "face": "west",
+          "at": 0.89,
+          "out": 1.6,
+          "colour": "#3fae3b"
+        },
+        {
+          "kind": "seat",
+          "face": "west",
+          "at": 0.93,
+          "out": 4.8,
+          "colour": "#3fae3b"
+        },
+        {
+          "kind": "seat",
+          "face": "west",
+          "at": 0.98,
+          "out": 1.8,
+          "colour": "#3fae3b"
+        }
+      ],
+      "roof_green": [
+        {
+          "face": "west",
+          "w": 2.2
+        },
+        {
+          "face": "east",
+          "w": 1.6
+        }
+      ]
+    }
+  }
+}
