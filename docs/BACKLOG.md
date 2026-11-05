@@ -247,6 +247,15 @@ experience". The plan, the road audit and the causes are in docs/GAMEPLAY_PLAN.m
 - [ ] 4.1 Running clubs read as a blue blob at crossings: mixed kit, pairs, spread out
 - [ ] 4.2 Varso Place masses from photos (the gap between the tower and Varso 1/2)
 
+## Crazy drivers in traffic (F, 2026-11-05)
+
+Built (spec `docs/design/crazy-drivers.md`): Szkoda Oktawia taxis, Szprynter couriers and one Pasatini 1.9 TDJ drive in racer mode with no route (traffic.gd `CRAZY_*`, `crazy_drivers.gd`, check `crazy`). Open:
+- [ ] Phone feel of the speeds and cut-ins (QUESTIONS), and an Autopilot run on a busy street
+- [ ] Couriers stopping with hazard lights in the lane for a drop, then racing off (the meme; needs a parked-in-lane state like the crash scenes)
+- [ ] A Pasatini egg-book card ("everyone has seen it, nobody has caught it") and a chase side job
+- [ ] Black smoke puffs from the Pasatini when it pulls away (one particle draw call: bench first)
+- [ ] Headless overlap count with crazy drivers: about 120 frame-pairs in 90 s, all off screen (one stopped Pasatini beside a car of a neighbouring edge at Marszałkowska x Świętokrzyska); check on the Mac in view
+
 ## Street races: rivals that race (F, 2026-11-04)
 
 F: racers like Pani Halina drive very slowly and by the rules, never take a shorter way; races

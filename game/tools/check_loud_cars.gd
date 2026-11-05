@@ -1,8 +1,8 @@
 extends SceneTree
 ## City-life satire #1, loud cars (scripts/loud_cars.gd, 2026-11-02): headless, from the committed
 ## map (map/centrum.json) and data/dialogue.json; seeded:
-##   1. the taxis' family mesh: one surface, a morphing family of three shapes (the city taxi,
-##      Podwózka, the supercar), so the loud cars and the meet add no traffic draw call; the
+##   1. the taxis' family mesh: one surface, a morphing family of four shapes (the city taxi,
+##      Podwózka, the supercar, the Pasatini), so the loud cars and the meet add no traffic draw call; the
 ##      supercar is never a random taxi (share 0) and none of its paints is the player's red or
 ##      orange or the police's blue;
 ##   2. the meet at Browary: every car clear of every building outline (1 m), of every road's
@@ -104,7 +104,7 @@ func _check_mesh(digest: PackedStringArray) -> void:
 	if m.get_surface_count() != 1:
 		problems.append("taxi family: %d surfaces (want 1)" % m.get_surface_count())
 	if m.surface_get_format(0) & Mesh.ARRAY_FORMAT_CUSTOM1 == 0:
-		problems.append("taxi family: not a morphing family of 3 shapes (the shapes' vertex counts differ?)")
+		problems.append("taxi family: not a morphing family of 4 shapes (the shapes' vertex counts differ?)")
 	var shapes: Array = Models.TRAFFIC[1]
 	var sc: Dictionary = shapes[Models.TAXI_SUPERCAR]
 	if str(sc["name"]) != "supercar" or float(sc["share"]) != 0.0:
@@ -115,7 +115,7 @@ func _check_mesh(digest: PackedStringArray) -> void:
 		if reserved:
 			problems.append("supercar paint %s is a reserved colour (red, orange, police blue)" % hex)
 	var n := (m.surface_get_arrays(0)[Mesh.ARRAY_VERTEX] as PackedVector3Array).size()
-	digest.append("taxi family 3 shapes, 1 surface, %d vertices" % n)
+	digest.append("taxi family 4 shapes, 1 surface, %d vertices" % n)
 
 
 func _pts(flat: Array) -> PackedVector2Array:
@@ -278,6 +278,7 @@ func _check_traffic(g: LaneGraph, map: Node3D, digest: PackedStringArray) -> voi
 	traffic.set_process(false)
 	traffic.set_physics_process(false)
 	traffic.loud_target = 3
+	traffic.crazy_target = 0  # the crazy drivers have their own check (check_crazy_drivers.gd)
 	# The view drifts from Rondo Daszyńskiego east along Grzybowska past the Browary and back.
 	var path := [Vector2(-2750.0, 40.0), Vector2(-2300.0, -60.0), Vector2(-1900.0, -40.0), Vector2(-2600.0, -120.0)]
 	var most := 0
