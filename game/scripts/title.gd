@@ -59,6 +59,15 @@ var _no_btn: Label
 var _line: Label
 var _gone := false
 var _t := 0.0
+## The loading bar (F, 2026-11-05: the start screen looked frozen, then the city popped in): a
+## thin neon bar over the prompt while the city loads, its share in the prompt ("budujemy
+## miasto… 42 %"). main.gd sets `progress` (0..1) as the load goes (threaded loads, the build's
+## steps, the start's sectors); the bar eases towards it and never goes back; set_ready fills it
+## and fades it out.
+var progress := 0.0
+var _shown := 0.0
+var _bar_plate: Panel
+var _bar_fill: ColorRect
 var _start_sound: AudioStreamPlayer
 ## Safe area in pixels: left, top, right, bottom.
 var _safe := Rect2()
@@ -101,6 +110,19 @@ func _ready() -> void:
 	_prompt = _make_label(ThemeDB.fallback_font)
 	_prompt_pl = _make_label(ThemeDB.fallback_font)
 	_line = _make_label(ThemeDB.fallback_font)
+	_bar_plate = Panel.new()
+	_bar_plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var plate := StyleBoxFlat.new()
+	plate.bg_color = Color(0.08, 0.02, 0.18, 0.82)
+	plate.border_color = Color("#7ff6ff")
+	plate.set_border_width_all(2)
+	plate.set_corner_radius_all(3)
+	_bar_plate.add_theme_stylebox_override("panel", plate)
+	_root.add_child(_bar_plate)
+	_bar_fill = ColorRect.new()
+	_bar_fill.color = Color("#ff2fa0")
+	_bar_fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_bar_plate.add_child(_bar_fill)
 	_new_btn = _make_button()
 	_yes_btn = _make_button()
 	_no_btn = _make_button()
@@ -205,6 +227,11 @@ func _layout() -> void:
 	_prompt_pl.position = Vector2(_safe.position.x, bottom - ps * 1.0)
 	_prompt.size = Vector2(_safe.size.x, ps * 1.5)
 	_prompt.position = Vector2(_safe.position.x, bottom - ps * 2.4)
+	# The loading bar just over the prompt: a third of the safe width, ~2 % of the height.
+	var bar_h := maxf(h * 0.02, 8.0)
+	_bar_plate.size = Vector2(_safe.size.x * 0.34, bar_h)
+	_bar_plate.position = Vector2(size.x * 0.5 - _bar_plate.size.x * 0.5, bottom - ps * 2.4 - bar_h - ps * 0.35)
+	_set_bar()
 	# Save and resume: the save's line just under the prompt's English, the NOWA GRA button in
 	# the bottom-right corner, TAK and NIE side by side above the prompt (each at least ~11 mm high).
 	_line.add_theme_font_size_override("font_size", int(ps * 0.62))
@@ -272,20 +299,45 @@ func _set_prompt() -> void:
 	elif ready_to_drive:
 		_prompt.text = Lang.pick("DOTKNIJ, BY JECHAĆ", "TAP TO DRIVE")
 	else:
-		_prompt.text = Lang.pick("budujemy miasto…", "building the city…")
+		_prompt.text = Lang.pick("budujemy miasto… %d %%", "building the city… %d %%") % roundi(_shown * 100.0)
+
+
+## The loading bar's fill (2 px inside the plate's edge).
+func _set_bar() -> void:
+	var inner := _bar_plate.size - Vector2(4.0, 4.0)
+	_bar_fill.position = Vector2(2.0, 2.0)
+	_bar_fill.size = Vector2(maxf(inner.x * clampf(_shown, 0.0, 1.0), 0.0), maxf(inner.y, 0.0))
 
 
 ## The city is built: the prompt changes and a tap or a key starts the game.
 func set_ready() -> void:
 	ready_to_drive = true
 	_t = 0.0
+	progress = 1.0
+	_shown = 1.0
+	_set_bar()
 	_set_prompt()
+	var fade := create_tween()
+	fade.tween_property(_bar_plate, "modulate:a", 0.0, 0.35).set_delay(0.15)
 	if auto_go:
 		dismiss()
 
 
 func _process(dt: float) -> void:
 	_t += dt
+	if not ready_to_drive:
+		# The bar eases towards the load's share (quick to catch up, never back); between two
+		# reports it creeps a little so a long step doesn't look stuck, never past the next 5 %.
+		var target := clampf(progress, _shown, 1.0)
+		var next := minf(_shown + (target - _shown) * minf(dt * 8.0, 1.0), 1.0)
+		if next - _shown < 0.0005 and _shown < minf(progress + 0.05, 0.99):
+			next = _shown + dt * 0.01
+		if next != _shown:
+			var pct := roundi(_shown * 100.0)
+			_shown = next
+			_set_bar()
+			if roundi(_shown * 100.0) != pct:
+				_set_prompt()
 	if ready_to_drive and not _gone and screen == CHOICE:
 		# The prompt pulses like a VCR's menu (still while the question is asked).
 		var a := 0.45 + 0.55 * (0.5 + 0.5 * cos(_t * 4.2))
