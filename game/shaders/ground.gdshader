@@ -325,6 +325,15 @@ void fragment() {
 		shade = 0.9 + 0.12 * step(length(q), 0.28);
 	} else if (id == 14) {
 		shade = 0.95 + 0.06 * hash12(floor(wp * 4.0)); // traffic island concrete
+	} else if (id == 21) {
+		// Smooth roads loop 7: a tram track on its own bed: gravel, and a darker timber-brown
+		// sleeper (0.24 m wide) across it every 0.6 m, each a little different.
+		shade = 0.9 + 0.18 * hash12(floor(wp * 7.0));
+		float sl = fract(street.x / 0.6);
+		if (sl > 0.3 && sl < 0.7) {
+			base = srgb_to_linear(vec3(0.43, 0.4, 0.37));
+			shade = 0.92 + 0.12 * hash12(vec2(floor(street.x / 0.6), 5.0));
+		}
 	} else if (id == 19) {
 		// Loop 3b-2: the tram bed: concrete track slabs, a joint across it every 3 m.
 		vec2 slab = floor(street / vec2(3.0, 2.0));

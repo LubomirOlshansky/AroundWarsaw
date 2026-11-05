@@ -21,11 +21,15 @@ Records: docs/streets/<slug>.json (machine) and docs/streets/<slug>.md (people),
 The checks (docs/design/operation-unslop.md section 4):
   L1 lane step     two consecutive ways of the street, same direction, whose lane count or width
                    jumps (> 1 lane, or > 1.5 m) where they meet: the "odd lane split"
-  L2 loose line    a lane line ending in the middle of a block: no junction, stop line, zebra or
-                   continuing line within reach of its end
+  L2 loose line    a lane line ending in the middle of a block: no junction, stop line, zebra,
+                   continuing line or join where the lane count changes within reach of its end
   L3 line on kerb  a lane, edge or centre line crossing a kerb line
   L4 line thru zebra a lane or centre line painted across a zebra crossing (OSM footway=crossing
                    paths, `paths` kind "zebra"): bake_roads `_crossed` cuts lines at roads only
+  K1 edge step     two ways of one carriageway meet and the drawn asphalt edge jumps sideways
+                   (> 0.3 m): no taper (tools/road_smooth.py tapers them over 20-30 m)
+  K2 line jog      a lane, centre, edge or cycle line ends where another of its kind starts just
+                   ahead, 0.3-3.6 m aside (road_smooth stitches them with an S-curve)
   T1 tree on road  a scanned tree's trunk on the drawn carriageway (area or visible road strip)
   P1 prop on road  a lamp, bin, bench, rack, column or shelter on the drawn carriageway
   O1 solid at lane a solid (barrier, parked car, shelter, building...) within 1 m of a lane's edge
@@ -49,12 +53,13 @@ from collections import Counter, defaultdict
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 import road_objects as RO  # noqa: E402  (the lanes, the solids census)
+import road_smooth as RS  # noqa: E402  (the edge steps and line jogs)
 
 DEFS = os.path.join(ROOT, "docs", "streets", "streets.json")
 OUT_DIR = os.path.join(ROOT, "docs", "streets")
-WEIGHTS = {"L1": 3, "L2": 1, "L3": 2, "L4": 2, "T1": 3, "P1": 2, "O1": 1, "F1": 3}
+WEIGHTS = {"L1": 3, "L2": 1, "L3": 2, "L4": 2, "T1": 3, "P1": 2, "O1": 1, "K1": 3, "K2": 1, "F1": 3}
 TITLES = {"L1": "lane step", "L2": "loose lane line", "L3": "line on a kerb", "L4": "line through a zebra", "T1": "tree on the road",
-          "P1": "prop on the road", "O1": "solid within 1 m of a lane", "F1": "F's flag (a circled screenshot)"}
+          "P1": "prop on the road", "O1": "solid within 1 m of a lane", "K1": "edge step", "K2": "line jog", "F1": "F's flag (a circled screenshot)"}
 # Where each check's findings come from (the street-pass skill's cause map): fix the rule, not the place.
 CAUSES = {
     "L1": "tools/bake_roads.py bake_lane_lines: each OSM way painted on its own; lane count or width steps at way joins (RS3 tapers)",
@@ -64,11 +69,14 @@ CAUSES = {
     "T1": "the drawn strip covers a real median or pavement (map_builder _build_roads `w`/`c`, carriage areas), rarely a bad tree",
     "P1": "tools/bake_osm.py snap_props / street_details: a prop not snapped clear of the drawn road",
     "O1": "a solid barrier near a lane: verdict by classify() B-rules, style or REMOVE via --apply (road_objects.json)",
+    "K1": "tools/road_smooth.py taper_roads/fit_kerbs: a width step at a way join left untapered",
+    "K2": "tools/road_smooth.py stitch: a lane line jumping sideways at a way join",
     "F1": "F looked and saw slop the checks don't measure: find the class (a level, a wall, a stub, a behaviour), add a check or a rule for it, then close the flag with `done`",
 }
 LOOSE_REACH = 2.0      # L2: another line's end this close continues the line
 JUNCTION_REACH = 14.0  # L2: a line may end this close to a junction node
 STOP_REACH = 5.0       # L2: ...or to a stop line
+LANE_JOIN_REACH = 4.0  # L2: ...or to a join where the lane count changes (a lane opens or closes)
 ZEBRA_REACH = 3.5      # L2: ...or to a zebra (bake_roads cuts 2.4 m each side; more where a line meets it at an angle)
 CELL = 20.0
 
@@ -200,6 +208,7 @@ def measure(d, sd):
         pts = pairs(r["p"])
         ends[(round(pts[0][0], 1), round(pts[0][1], 1))].append(("start", r))
         ends[(round(pts[-1][0], 1), round(pts[-1][1], 1))].append(("end", r))
+    lane_joins = []   # where a lane opens or closes: a line may start or end there (L2)
     for key, lst in ends.items():
         ins = [r for kind, r in lst if kind == "end"]
         outs = [r for kind, r in lst if kind == "start"]
@@ -207,9 +216,22 @@ def measure(d, sd):
             continue
         a, b = ins[0], outs[0]
         la, lb = int(a.get("lanes") or 0), int(b.get("lanes") or 0)
+        if la and lb and la != lb:
+            lane_joins.append(key)
         dw = abs(float(a["w"]) - float(b["w"]))
         if (la and lb and abs(la - lb) >= 1) or dw > 1.5:
             add("L1", key, f"{la} -> {lb} lanes, {a['w']:.1f} -> {b['w']:.1f} m wide where two ways meet")
+
+    # K1 + K2 (smooth roads, 2026-11-05): edge steps at the street's joins, line jogs on it.
+    named = [r for r in d["roads"] if r.get("name") in names]
+    for node, step in RS.edge_steps(named, near=here, every=d["roads"]):
+        add("K1", node, f"asphalt edge jumps {step:.1f} m where two ways meet")
+    marks = [m for m in d["markings"] if m.get("k") in RS.LINE_KINDS and any(here(p) for p in pairs(m["p"]))]
+    for i, last, j, lj, along, side in RS.jogs(marks):
+        if abs(side) > RS.STEP_MIN:
+            e = pairs(marks[i]["p"])[-1]
+            if here(e):
+                add("K2", e, f"{marks[i]['k']} line jumps {abs(side):.1f} m sideways")
 
     # L2 + L3: lane, edge and centre lines.
     lines = [m for m in d["markings"] if m.get("k") in ("lane", "edge", "centre") and any(here(p) for p in pairs(m["p"]))]
@@ -236,6 +258,10 @@ def measure(d, sd):
             if any(seg_dist(e, a, b)[0] < ZEBRA_REACH for a, b in zsegs):
                 continue
             if any(j != m_i and math.hypot(e[0] - q[0], e[1] - q[1]) < LOOSE_REACH for q, j in endpoints):
+                continue
+            # Smooth roads (2026-11-05): where a lane opens or closes the line between it and its
+            # neighbour starts or ends at the join (road_smooth stitches the others across it).
+            if any(math.hypot(e[0] - n[0], e[1] - n[1]) < LANE_JOIN_REACH for n in lane_joins):
                 continue
             add("L2", e, "lane line ends mid-block")
     kerbs = []
