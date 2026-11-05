@@ -22978,7 +22978,8 @@ func _kozia9_jogs(poly: PackedVector2Array, top: float, g: float) -> void:
 		for k in rows:
 			var y := g + 1.1 + KZ_FLOOR * k
 			for c: Vector2 in spots:
-				_framed(c - e * w, c + e * w, y, y + 1.4, out, KZ_FRAME, KZ_GLASS, 0.0)
+				# Each jog its own stretch of the shader's room grid, or the block goes dark at night.
+				_framed(c - e * w, c + e * w, y, y + 1.4, out, KZ_FRAME, KZ_GLASS, (float(i) + 0.5 * spots.find(c)) * 4.5 + float(k) * 13.5)
 				_mode = M_STONE
 				_hang(PackedVector2Array([c - e * (w + 0.1), c + e * (w + 0.1), c + e * (w + 0.1) + out * 0.5, c - e * (w + 0.1) + out * 0.5]),
 						y - 0.14, y, KZ_FRAME, KZ_FRAME, KZ_SHADE)
