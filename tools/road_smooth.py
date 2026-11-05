@@ -55,7 +55,7 @@ from collections import defaultdict
 VERSION = 2
 # --check (2026-11-05, the demo box after the first pass): 727 edge steps -> 15 (joins without room
 # for a taper), 969 line jogs -> 16. Lower these when a change leaves fewer; never raise them.
-CHECK_STEPS = 12
+CHECK_STEPS = 10
 CHECK_JOGS = 16
 MINOR = {"service", "living_street"}
 CHAIN_COS = 0.85        # ways carry on: their directions at the join within ~32 degrees
@@ -84,6 +84,7 @@ RAIL_GAP_MIN = 0.3      # m: a strip of ground narrower than this between asphal
 RAIL_GAP_MAX = 3.0      # m: a wider one is a real verge, a stop or a separator, kept
 RAIL_COVER = 0.6        # share of the way's visible vertices that must find the bed
 RAIL_JUMP = 0.3         # m per metre along: how fast the gap may change (a straight bed)
+CHAIN_FILL_MAX = 150.0  # m: a longer way narrower than its neighbours may really be narrower
 KERB_GAP = 10.0         # m: a kerb break along a tram bed this short is joined across
 KERB_SIDE = 0.3
 
@@ -231,6 +232,39 @@ def find_joins(roads):
     return joins
 
 
+def major_sides(roads, node, ia, ib, aa):
+    """The sides (0 left, 1 right, in a's away frame) where a street (not a service road or a
+    living street) other than ia and ib leaves `node`."""
+    n = (-aa[1], aa[0])
+    key = (round(node[0], 1), round(node[1], 1))
+    out = set()
+    for i in _NODE_ROADS.get(key, ()):
+        if i in (ia, ib) or roads[i]["k"] in MINOR:
+            continue
+        p = roads[i]["p"]
+        m = len(p) // 2
+        for k in range(m):
+            if (round(p[2 * k], 1), round(p[2 * k + 1], 1)) != key:
+                continue
+            for nb in ((k - 1,) if k == m - 1 else (k + 1,) if k == 0 else (k - 1, k + 1)):
+                d = unit((p[2 * k], p[2 * k + 1]), (p[2 * nb], p[2 * nb + 1]))
+                if d is not None:
+                    out.add(1 if d[0] * n[0] + d[1] * n[1] > 0 else 0)
+    return out
+
+
+_NODE_ROADS = {}
+
+
+def index_nodes(roads):
+    """Which roads pass through each node (rounded to 0.1 m), for major_sides."""
+    _NODE_ROADS.clear()
+    for i, r in enumerate(roads):
+        p = r["p"]
+        for k in range(0, len(p) - 1, 2):
+            _NODE_ROADS.setdefault((round(p[k], 1), round(p[k + 1], 1)), set()).add(i)
+
+
 def branch_sides(roads, joins):
     """For each join, the sides (0 left, 1 right, in a's away frame) where another road leaves
     its node: the kerb there turns into that road (a corner return), so it is not moved."""
@@ -293,9 +327,12 @@ def taper_roads(roads, joins, ends):
         spans = side_spans(ea, eb, taper_len(step), lens[ia], lens[ib])
         if any(abs(ea[k] - eb[k]) > STEP_MIN and sum(spans[k]) < 4.0 for k in (0, 1)):
             continue   # no room for a taper: leave the join as it is
-        # Loop 2 (F's crop by the PKiN driveway): no flare on a side where another road leaves
-        # the node; the wider way's corner meets that road's mouth, which covers the step.
-        spans = [(0.0, 0.0) if k in sides else spans[k] for k in (0, 1)]
+        # Loop 2: no flare on a side where a street leaves the node (its corner kerb turns into
+        # that street). Loop 4 (F's crop of the PKiN driveway corner): a driveway or service road
+        # there is drawn under the street (map_builder MINOR_ROAD_BIAS), so the flare runs on over
+        # its mouth and the corner is smooth instead of a rounded notch.
+        majors = major_sides(roads, node, ia, ib, aa)
+        spans = [(0.0, 0.0) if k in majors else spans[k] for k in (0, 1)]
         specs[ia].append((la_, spans, ea, eb))
         # b in its own away frame: mirrored, so its left is a's right.
         mirrored = [(spans[1][1], spans[1][0]), (spans[0][1], spans[0][0])]
@@ -616,47 +653,147 @@ def fit_rail_beds(out):
                     lft[v] -= gv[v]
                 else:
                     rgt[v] += gv[v]
-            moved.append((pts, sgn, edge, gv))
+            moved.append((pts, sgn, [edge] * len(pts), gv))
             sides += 1
             changed = True
         if changed:
             ways += 1
             r["wv"] = [round(b - a, 3) for a, b in zip(lft, rgt)]
             r["cv"] = [round((a + b) * 0.5, 3) for a, b in zip(lft, rgt)]
-    if moved:
-        lgrid = Grid(32.0)
-        for k, (pts, _, _, _) in enumerate(moved):
-            for x, z in pts:
-                lgrid.add(k, x, z)
-        lines = list(out.get("kerbs", [])) + [m for m in out.get("markings", []) if m["k"] == "edge"]
-        for line in lines:
-            lp = pts_of(line["p"])
-            new = []
-            hit = False
-            for x, z in lp:
-                nx_, nz_ = x, z
-                for k in set(lgrid.near(x, z, 40.0)):
-                    pts, sgn, edge, gv = moved[k]
-                    best = None
-                    for q, (a, b) in enumerate(zip(pts, pts[1:])):
-                        u = unit(a, b)
-                        if u is None:
-                            continue
-                        ln = math.dist(a, b)
-                        al = (x - a[0]) * u[0] + (z - a[1]) * u[1]
-                        if -0.5 <= al <= ln + 0.5:
-                            off = (x - a[0]) * -u[1] + (z - a[1]) * u[0]
-                            if abs(off - edge) <= 0.6 and (best is None or abs(off - edge) < best[0]):
-                                f = min(max(al / ln, 0.0), 1.0)
-                                best = (abs(off - edge), u, gv[q] + (gv[q + 1] - gv[q]) * f)
-                    if best is not None and best[2] > 0.0:
-                        _, u, g = best
-                        nx_, nz_ = x - u[1] * sgn * g, z + u[0] * sgn * g
-                        hit = True
-                        break
-                new.append((nx_, nz_))
-            if hit:
-                line["p"] = flat_of(new)
+    move_with_edges(out, moved)
+    return ways, sides
+
+
+def move_with_edges(out, moved):
+    """Kerbs, edge lines and tram-bed median strips standing on a road edge that moved out move
+    with it. `moved`: [(road points, side sign, old edge offset per vertex, metres out per vertex)]."""
+    if not moved:
+        return
+    lgrid = Grid(32.0)
+    for k, (pts, _, _, _) in enumerate(moved):
+        for x, z in pts:
+            lgrid.add(k, x, z)
+    lines = [(line, "p") for line in out.get("kerbs", [])] + \
+        [(m, "p") for m in out.get("markings", []) if m["k"] == "edge"] + \
+        [(m, "s") for m in out.get("medians", []) if m.get("k") != "grass"]
+    for line, key in lines:
+        lp = pts_of(line[key])
+        new = []
+        hit = False
+        for x, z in lp:
+            nx_, nz_ = x, z
+            for k in set(lgrid.near(x, z, 40.0)):
+                pts, sgn, edges, gv = moved[k]
+                best = None
+                for q, (a, b) in enumerate(zip(pts, pts[1:])):
+                    u = unit(a, b)
+                    if u is None:
+                        continue
+                    ln = math.dist(a, b)
+                    al = (x - a[0]) * u[0] + (z - a[1]) * u[1]
+                    if -0.5 <= al <= ln + 0.5:
+                        f = min(max(al / ln, 0.0), 1.0)
+                        edge = edges[q] + (edges[q + 1] - edges[q]) * f
+                        off = (x - a[0]) * -u[1] + (z - a[1]) * u[0]
+                        if abs(off - edge) <= 0.6 and (best is None or abs(off - edge) < best[0]):
+                            best = (abs(off - edge), u, gv[q] + (gv[q + 1] - gv[q]) * f)
+                if best is not None and best[2] > 0.0:
+                    _, u, g = best
+                    nx_, nz_ = x - u[1] * sgn * g, z + u[0] * sgn * g
+                    hit = True
+                    break
+            new.append((nx_, nz_))
+        if hit:
+            line[key] = flat_of(new)
+
+
+def _edges_of(r):
+    """Per-vertex (left, right) edge offsets of a road."""
+    n = len(r["p"]) // 2
+    if "wv" in r:
+        return [(float(c) - float(w) * 0.5, float(c) + float(w) * 0.5) for w, c in zip(r["wv"], r["cv"])]
+    c, hw = float(r.get("c", 0.0)), float(r["w"]) * 0.5
+    return [(c - hw, c + hw)] * n
+
+
+def fit_chain_widths(out):
+    """Loop 5 (F's satellite shots, 2026-11-05: a street's kerbs run straight while its lanes
+    come and go by paint): a way of a street drawn narrower on a side than the ways of the same
+    street at BOTH its ends (its width came from its own lane count) takes that side's edge from
+    them, blended along it, so the kerb runs on instead of stepping in and out again. Not under a
+    carriageway area, at most CHAIN_FILL_MAX m long. Its lane lines stay; kerbs, edge lines and
+    tram-bed strips on the old edge move out. Returns (ways, sides)."""
+    roads = out["roads"]
+    ends = defaultdict(list)
+    for i, r in enumerate(roads):
+        if r["k"] in MINOR or len(r["p"]) < 4:
+            continue
+        for last in (False, True):
+            node, away, _, _ = _end(r, i, last)
+            if away is not None:
+                ends[(round(node[0], 1), round(node[1], 1))].append((i, last, away))
+
+    def partner(i, last):
+        """The other way's edges at i's end, in i's own frame (left, right), or None."""
+        r = roads[i]
+        node, away, _, _ = _end(r, i, last)
+        best = None
+        for j, lj, aw in ends[(round(node[0], 1), round(node[1], 1))]:
+            if j == i:
+                continue
+            q = roads[j]
+            if (q.get("name") or "") != (r.get("name") or "") or bool(q.get("oneway")) != bool(r.get("oneway")):
+                continue
+            if int(q.get("dk", -1)) != int(r.get("dk", -1)) or away[0] * aw[0] + away[1] * aw[1] > -CHAIN_COS:
+                continue
+            # q's drawn edges at its end, in its own frame, then in i's
+            ql, qr = _edges_of(q)[-1 if lj else 0]
+            # i and q run the same way when one leaves the node and the other arrives at it
+            same = last != lj
+            el, er = (ql, qr) if same else (-qr, -ql)
+            if best is None:
+                best = (el, er)
+        return best
+    moved = []
+    ways, sides = 0, 0
+    for i, r in enumerate(roads):
+        if r["k"] in MINOR or r.get("hide") or int(r.get("dk", -1)) >= 0 or len(r["p"]) < 4:
+            continue
+        pts = pts_of(r["p"])
+        cum = cumulative(pts)
+        total = cum[-1]
+        if total > CHAIN_FILL_MAX or total < 1.0:
+            continue
+        a, b = partner(i, False), partner(i, True)
+        if a is None or b is None:
+            continue
+        edges = _edges_of(r)
+        new = [list(e) for e in edges]
+        changed = False
+        for side, sgn in ((0, -1.0), (1, 1.0)):
+            ea, eb = a[side], b[side]
+            own0, own1 = edges[0][side], edges[-1][side]
+            # wider than this way at both ends, on this side, by a visible step but not a bay
+            out0 = ea - own0 if side == 1 else own0 - ea
+            out1 = eb - own1 if side == 1 else own1 - eb
+            if not (STEP_MIN < out0 <= STEP_MAX and STEP_MIN < out1 <= STEP_MAX):
+                continue
+            gv = []
+            for v, s_ in enumerate(cum):
+                t = ea + (eb - ea) * (s_ / total)
+                old = edges[v][side]
+                g = (t - old) if side == 1 else (old - t)
+                g = max(g, 0.0)
+                new[v][side] = old + (g if side == 1 else -g)
+                gv.append(g)
+            moved.append((pts, sgn, [e[side] for e in edges], gv))
+            sides += 1
+            changed = True
+        if changed:
+            ways += 1
+            r["wv"] = [round(e[1] - e[0], 3) for e in new]
+            r["cv"] = [round((e[0] + e[1]) * 0.5, 3) for e in new]
+    move_with_edges(out, moved)
     return ways, sides
 
 
@@ -1106,7 +1243,9 @@ def apply(out):
                          "map (the other side's centrum.json, or a re-bake) and run this again")
     before = measure(out)
     beds, bed_sides = fit_rail_beds(out)
+    chain_ways, chain_sides = fit_chain_widths(out)
     joins = find_joins(out["roads"])
+    index_nodes(out["roads"])
     ends = []
     tapers = taper_roads(out["roads"], joins, ends)
     km = snap_lines(out.get("kerbs", []), tapers, lambda k: pts_of(k["p"]), lambda k, p: k.__setitem__("p", flat_of(p)))
@@ -1131,7 +1270,8 @@ def apply(out):
                 rounded += n
     after = measure(out)
     out["road_smooth"] = VERSION
-    return (f"{beds} ways ({bed_sides} sides) widened onto the tram bed, {len(tapers)} joins tapered, {km} kerb and {em} edge-line points moved, {fit} edges fitted to "
+    return (f"{beds} ways ({bed_sides} sides) widened onto the tram bed, {chain_ways} ways ({chain_sides} sides) "
+            f"widened to their street's kerbs, {len(tapers)} joins tapered, {km} kerb and {em} edge-line points moved, {fit} edges fitted to "
             f"their kerbs, {bridged} kerb breaks by a tram bed closed, {joined} lines "
             f"stitched, {rounded} line kinks rounded; edge steps {before['steps']} -> {after['steps']}, "
             f"line jogs {before['jogs']} -> {after['jogs']}")
