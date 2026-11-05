@@ -72,9 +72,9 @@ re-passes). Photos first: each slug's `refs/<slug>/` and REPORT on the Mac befor
 
 | # | Object | Today | To do | Photos |
 | --- | --- | --- | --- | --- |
-| 1b.1 | Młotek, Smolna 8 (slug `mlotek`) | plain LoD2 block, 66 m, outline at x 83, z 34 | L3: the wider two-storey head over the deep recess, the raw facade bands, lit windows | gathered 2026-11-03: 17 + ortho |
-| 1b.2 | Kozia 9 (`kozia9`) | plain block | L3: five sections stepping up a storey each, cream-grey roughcast terraces, barrel windows on Moliera | gathered 2026-11-03: 9 (only 2 of the block) |
-| 1b.3 | Karowa 18a (`karowa18a`) | plain block | L3: the sculptural balconies, the car park in the base | gathered 2026-11-03: 12 + ortho |
+| 1b.1 | Młotek, Smolna 8 (slug `mlotek`) | DONE 2026-11-05 (L3, site `mlotek`, spec `mlotek.md`, log `docs/landmarks/mlotek.md`): with F's test model merged in: the head jutting 5.7 m past the east end on its sloping jaw, the flat roof, the neck, balconies with yellow edges up both ends, strip windows, the pergola at the foot | F's look; the north face is mirrored from the south (no good photo) | yes: 17 + ortho |
+| 1b.2 | Kozia 9 (`kozia9`) | BUILT 2026-11-05, below the L3 bar in review (site `kozia9`, spec `kozia9.md`, log `docs/landmarks/kozia9.md`): five sections a storey apart, the round stair tower, the mapped saw-tooth with every window turned into a jog, canopies and the garage ramp | F's look; street photos of the Moliera side once Mapillary works on the Mac (the north-east boxes rest on photo 2 alone) | yes: 9 (only 2 of the block) |
+| 1b.3 | Karowa 18a (`karowa18a`) | DONE 2026-11-05 (L3, site `karowa18a`, spec `karowa18a.md`, log `docs/landmarks/karowa18a.md`): nine columns of splayed two-storey boxes a storey apart, white windows between them, the dropping roofline, the dark tiled ground floor | F's look; the rear terraces, rails and the windows in the boxes' sides are not built | yes: 12 + ortho |
 | 1b.4 | Żyletkowiec and the Ekspozytura (`zyletkowiec`) | plain block | L2: the repeating facade module (shader), the monumental neighbour | not yet |
 | 1b.5 | Dom Chłopa, NBP, the Kopernika skyscraper, Torwar, Ministerstwo Komunikacji, Dom Słowa Polskiego | plain blocks | L2 each, one thread each | not yet |
 | 1b.6 | Osiedle Za Żelazną Bramą (`zelazna_brama`) | plain blocks | one shared slab kit, one material, draw calls per sector not per slab | not yet |

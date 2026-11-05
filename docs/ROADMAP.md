@@ -204,7 +204,8 @@ then the Launch gate.
 - [ ] **Warsaw modernism and brutalism, high priority** (F, 2026-11-03; docs/design/modernism-collection.md,
       CITY_INVENTORY 147-153, BACKLOG "Warsaw modernism and brutalism"): photo builds from the Mac's `refs/<slug>/`
   - [x] The plan: the buildings ranked M1-M17, the modelling recipe, the quest design (2026-11-03, docs only)
-  - [ ] M1 Młotek (Smolna 8), M2 Kozia 9, M3 Karowa 18a: photos gathered, then one photo build each
+  - [x] M1 Młotek (Smolna 8), M2 Kozia 9, M3 Karowa 18a: photo builds (2026-11-05, specs `mlotek.md`, `kozia9.md`, `karowa18a.md`)
+  - [ ] Kozia 9 re-spec from street photos of its north-east side (below the L3 bar in review, `docs/landmarks/kozia9.md`)
   - [ ] M4-M12: Żyletkowiec, Dom Chłopa, NBP, the Kopernika skyscraper, Za Żelazną Bramą, Torwar, Ministerstwo Komunikacji, Dom Słowa Polskiego (M10 BGK built 2026-11-03, site `bgk`)
   - [ ] M13-M17 photo re-passes: Sofitel Victoria, Plac Defilad's pavilions, Muzeum Narodowe, the Sejm's hall, Warszawa Wschodnia
 - [ ] Monuments pass (City inventory Part 3 item 6)
