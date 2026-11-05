@@ -1,7 +1,7 @@
 # App Store Connect: ready answers
 
 Answers for Around Warsaw's App Store Connect forms, for TestFlight now and the App Store
-release later. Version 0.1 (build 1), bundle ID `com.olshanskysoft.aroundwarsaw`, team in
+release later. Version 1.0.2 (build 1), bundle ID `com.olshanskysoft.aroundwarsaw`, team in
 `game/export_presets.cfg`. The build: `tools/export_ios.sh` (docs/DEVELOPMENT.md). Field names
 follow App Store Connect's English labels as of October 2026; Apple renames things, so match by
 meaning. Character limits are Apple's; the counts in brackets were measured (Polish letters
@@ -113,7 +113,7 @@ Apple's 2025 questionnaire (ratings 4+, 9+, 13+, 16+, 18+). Answers:
 Expected rating: **4+**. If you prefer to count the car bumping as cartoon violence,
 "Infrequent/Mild" gives 9+; both are honest.
 
-## 7. The version page (iOS App → 0.1 Prepare for Submission)
+## 7. The version page (iOS App → 1.0.2 Prepare for Submission)
 
 ### English (U.S.)
 
@@ -199,7 +199,7 @@ warszawa,wawa,polska,miasto,jazda,auto,taxi,helikopter,policja,kebab,tramwaj,mos
 | Screenshots | iPhone 6.9" display, landscape **2868 × 1320**, up to 10: `screenshots/appstore-iphone-6.9/` (Apple scales them for the smaller iPhones). iPad 13" display **2752 × 2064**: `screenshots/appstore-ipad-13/`, required while the preset targets iPad (section 10). Same images for both languages: the game shows Polish above English on screen anyway |
 | App previews (video) | none for the beta |
 | Copyright | `2026 Liubomyr Olshanskyi` |
-| Version | 0.1 |
+| Version | 1.0.2 |
 | Build | the uploaded build (⏸) |
 | Routing app coverage file | none |
 

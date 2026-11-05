@@ -579,6 +579,7 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
       on the phone still to see)
 - [ ] Store screenshots re-shot after the opening lands; app icon; a short trailer
 - [ ] Deploy the support page; first TestFlight upload from the Mac; Play closed test
+- [ ] Version 1.0.2 for App Store review (F, 2026-11-05): preset bumped (iOS 1.0.2 build 1, Android name 1.0.2 code 9); next: Mac export, Archive, upload, submit
 - [ ] Gamepad testing in the beta: an Xbox, PlayStation or MFi pad on the iPhone (beta-testing.md)
 - [ ] Outside players finish the first ten minutes without help (the Demo gate)
 
