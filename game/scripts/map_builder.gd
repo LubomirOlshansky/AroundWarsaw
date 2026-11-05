@@ -4488,7 +4488,45 @@ const BARRIER_STYLE := {
 	"fence": ["#7d838a", 0.12, 1.6],
 	"wall": ["#a49d92", 0.35, 1.9],
 	"platform": ["#d2cdc3", 2.4, 0.25],
+	# Operation Unslop (2026-11-05, docs/streets/marszalkowska-centrum-audit.md "Wanted models"):
+	# styles a street pass gives single barriers by id (OBJECT_OVERRIDES). The tram railing is the
+	# black steel railing along tram beds and platform edges (1.1 m); the balustrades go round stairs
+	# instead of the 1.9 m grey wall: granite at metro entrances, a concrete upstand with a rail
+	# at platform and underpass stairs.
+	"tram_railing": ["#22262a", 0.06, 1.1],
+	"balustrade": ["#8f8f8a", 0.3, 1.0],
+	"balustrade_rail": ["#a9a59d", 0.15, 1.0],
 }
+
+## Operation Unslop's per-object decisions (tools/street_pass.py --apply writes them from the street
+## records): {"items": {id: [verdict, style]}}. The id is road-objects.md's stable id: class, kind
+## and the outline's mean rounded to a 2 m cell ("barrier:fence:-870:392"), so a re-bake keeps it.
+## REMOVE leaves the barrier out; RETEXTURE / REPLACE draw it in the named BARRIER_STYLE.
+const OBJECT_OVERRIDES := "res://data/road_objects.json"
+var _object_overrides := {}
+
+
+func _load_object_overrides() -> void:
+	_object_overrides = {}
+	if not FileAccess.file_exists(OBJECT_OVERRIDES):
+		return
+	var j: Variant = JSON.parse_string(FileAccess.get_file_as_string(OBJECT_OVERRIDES))
+	if j is Dictionary and (j as Dictionary).get("items") is Dictionary:
+		_object_overrides = j["items"]
+
+
+## The stable id of a barrier line (tools/street_pass.py stable_id: the mean of its points, each
+## coordinate floor(c / 2 + 0.5) * 2).
+static func barrier_id(kind: String, flat: Array) -> String:
+	var n := flat.size() / 2
+	var cx := 0.0
+	var cz := 0.0
+	for i in n:
+		cx += float(flat[i * 2])
+		cz += float(flat[i * 2 + 1])
+	cx /= maxf(n, 1)
+	cz /= maxf(n, 1)
+	return "barrier:%s:%d:%d" % [kind, int(floor(cx / 2.0 + 0.5)) * 2, int(floor(cz / 2.0 + 0.5)) * 2]
 
 
 ## The Royal Castle's gardens map their fountain basins, the vases' round beds and the round
@@ -4517,10 +4555,18 @@ func _garden_ring(flat: Array) -> bool:
 
 func _build_barriers(st) -> void:
 	_uv2 = Vector2(0.5, -1.0)
+	_load_object_overrides()
 	for l in data.get("lines", []):
 		var style: Array = BARRIER_STYLE.get(l["k"], ["#999999", 0.3, 1.0])
 		if l["k"] == "wall" and _garden_ring(l["p"]):
 			style = GARDEN_RING
+		if not _object_overrides.is_empty() and l["k"] != "platform":
+			var o: Variant = _object_overrides.get(barrier_id(l["k"], l["p"]))
+			if o is Array:
+				if str(o[0]) == "REMOVE":
+					continue
+				if (o as Array).size() > 1 and BARRIER_STYLE.has(str(o[1])):
+					style = BARRIER_STYLE[str(o[1])]
 		# Loop 3b: a stop's platform is kerb height (0.25 m), not a wall: like the kerbs and
 		# islands, the car drives over it (check_drive.gd found buses brushing them).
 		_wall_along(st, _pts(l["p"]), float(style[1]), float(style[2]), Color(style[0]), l["k"] != "platform")

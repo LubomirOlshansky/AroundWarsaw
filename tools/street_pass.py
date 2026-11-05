@@ -24,6 +24,10 @@ The checks (docs/design/operation-unslop.md section 4):
   O1 solid at lane a solid (barrier, parked car, shelter, building...) within 1 m of a lane's edge
                    (tools/road_objects.py's census)
 Score per block: 100 minus the weighted open findings (WEIGHTS), never below 0.
+--apply writes game/data/road_objects.json (the barriers whose verdict changes how they are drawn:
+REMOVE, or RETEXTURE / REPLACE with a style) from every record; map_builder.gd reads it.
+A street's `decisions` ({id: [verdict, style, why]}) are hand calls from evidence; they win over
+the rules ("F: ..." for F's own calls).
 --check is a ratchet: a check's open count may never grow over the record's. --evidence adds the
 newest street-level photo date per block (Mapillary, needs MAPILLARY_TOKEN; network) to the record.
 Standard library only.
@@ -318,7 +322,7 @@ def stable_id(cls, kind, pts):
     """road-objects.md 3.2: class, kind and the centre rounded to a 2 m cell, so a re-bake keeps it."""
     cx = sum(p[0] for p in pts) / len(pts)
     cz = sum(p[1] for p in pts) / len(pts)
-    return f"{cls}:{kind}:{round(cx / 2) * 2}:{round(cz / 2) * 2}"
+    return f"{cls}:{kind}:{math.floor(cx / 2 + 0.5) * 2}:{math.floor(cz / 2 + 0.5) * 2}"
 
 
 def classify(d, sd):
@@ -400,6 +404,19 @@ def classify(d, sd):
         model = MODEL_FOR.get((rule, cls)) or MODEL_FOR.get((rule, "*")) or MODEL_FOR.get(("*", cls))
         if model is None and cls == "barrier":
             model = "barrier:" + kind
+        # The drawn style (map_builder.gd BARRIER_STYLE) a verdict applies, when it has one.
+        style = ""
+        if model == "tram_railing":
+            style = "tram_railing"
+        elif model == "balustrade":
+            metro = any(math.hypot(at[0] - q[0], at[1] - q[1]) < 12.0 for q in subways)
+            style = "balustrade" if metro else "balustrade_rail"
+        hand = sd.get("decisions", {}).get(stable_id(cls, kind, outline))
+        if hand:
+            verdict, style, why = hand[0], hand[1], "hand call: " + hand[2]
+            rule = "F" if hand[2].startswith("F:") else "hand"
+        if style:
+            model = "barrier:" + style   # the drawn style is the library model (tools/model_library.py)
         status = "open"
         st = (s, t)
         if any(in_rect(st, o) for o in sd.get("owned", [])):
@@ -409,7 +426,7 @@ def classify(d, sd):
         rows.append({"id": stable_id(cls, kind, outline), "cls": cls, "kind": kind, "gap": round(max(gap, 0.0), 2),
                      "len": round(length, 1), "angle": round(ang), "s": round(s), "t": round(t),
                      "x": round(at[0], 1), "z": round(at[1], 1), "street": street, "jn": int(at_jn),
-                     "rule": rule, "verdict": verdict, "why": why, "model": model or "", "status": status})
+                     "rule": rule, "verdict": verdict, "why": why, "model": model or "", "style": style, "status": status})
     rows.sort(key=lambda r: (r["verdict"] != "CHECK", r["verdict"], r["s"]))
     return rows
 
@@ -512,6 +529,27 @@ def main():
         print("street_pass: no map data (tools/map_pack.py fetch or tools/setup_map.sh)")
         return 2
     d = json.load(open(map_path, encoding="utf-8"))
+    if "--apply" in opt:
+        # game/data/road_objects.json: every recorded verdict that changes how a barrier is drawn.
+        items = {}
+        for sd in defs:
+            path = os.path.join(OUT_DIR, sd["slug"] + ".json")
+            if not os.path.exists(path):
+                continue
+            for o in json.load(open(path, encoding="utf-8")).get("objects", []):
+                if o["status"] == "owned" or o["cls"] != "barrier":
+                    continue
+                if o["verdict"] == "REMOVE" or (o["verdict"] in ("RETEXTURE", "REPLACE") and o.get("style")):
+                    items[o["id"]] = [o["verdict"], o.get("style", ""), sd["slug"]]
+        out = os.path.join(ROOT, "game", "data", "road_objects.json")
+        with open(out, "w", encoding="utf-8") as fh:
+            json.dump({"_about": "tools/street_pass.py --apply: per-barrier verdicts from the street records (docs/streets/), "
+                       "read by map_builder.gd _build_barriers (OBJECT_OVERRIDES). Do not edit by hand: change the street's "
+                       "record or its `decisions` in docs/streets/streets.json and re-run.", "items": dict(sorted(items.items()))},
+                      fh, ensure_ascii=False, indent=1)
+            fh.write("\n")
+        print(f"street_pass: {len(items)} barrier overrides -> game/data/road_objects.json")
+        return 0
     if "--check" in opt:
         bad = []
         n = 0

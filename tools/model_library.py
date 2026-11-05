@@ -34,7 +34,8 @@ ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),
 S = os.path.join(ROOT, "game", "scripts")
 
 # What a street pass may ask for that the game does not draw yet: id -> (name, why it is needed).
-# A model leaves this list when its code exists (then the scan finds it under its own id).
+# A model leaves this list when its code exists (the scan then finds it under its own id, or as a
+# BARRIER_STYLE "barrier:<id>", as tram_railing and balustrade did on 2026-11-05).
 WANTED = {
     "balustrade": ("Stair and metro balustrade (granite with a steel rail; glass for newer stations)",
                    "road-objects B5: stair walls drawn as 1.9 m grey slabs"),
@@ -165,7 +166,7 @@ def build():
                 asked[mid]["objects"] += 1
                 asked[mid]["streets"].add(rec["slug"])
     for k, (name, why) in WANTED.items():
-        if k in ids:
+        if k in ids or "barrier:" + k in ids:
             continue
         a = asked.get(k, {"objects": 0, "streets": set()})
         lib.append({"id": k, "cat": "wanted", "name": name, "about": why, "file": "", "count": a["objects"],

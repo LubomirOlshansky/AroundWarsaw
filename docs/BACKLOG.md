@@ -264,7 +264,8 @@ Found: only 559 of 45,192 scanned trees stand inside a lane, none on the test st
 road in F's shots are the drawn strip covering a real median (check T1 looks at the drawn surface).
 - [x] Pipeline, checks, records, model library, agent, skill, console tabs (2026-11-05)
 - [ ] Test street fixes and F's look (see the street record docs/streets/marszalkowska-centrum.md)
-- [ ] The wanted models, most-asked first
+- [x] Barrier overrides by stable id: `street_pass.py --apply` writes game/data/road_objects.json from the records and hand `decisions`, map_builder draws REMOVE / styles; `tram_railing`, `balustrade`, `balustrade_rail` styles (2026-11-05)
+- [ ] The other wanted models; tram railing bars and posts as a texture or mesh (now a dark 1.1 m strip)
 - [ ] More classify rules from the test street's hand calls; then the next streets
 
 ## Road objects and collisions (F, 2026-11-04)

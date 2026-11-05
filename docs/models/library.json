@@ -2,17 +2,6 @@
 "_about": "tools/model_library.py: every model the game draws, and the ones street passes want",
 "models": [
 {
-"id": "balustrade",
-"cat": "wanted",
-"name": "Stair and metro balustrade (granite with a steel rail; glass for newer stations)",
-"about": "road-objects B5: stair walls drawn as 1.9 m grey slabs",
-"file": "",
-"count": 7,
-"used_by": [
-"marszalkowska-centrum"
-]
-},
-{
 "id": "canopy_posts",
 "cat": "wanted",
 "name": "Canopy on posts (station, fuel, pavilion)",
@@ -38,17 +27,6 @@
 "file": "",
 "count": 0,
 "used_by": []
-},
-{
-"id": "tram_railing",
-"cat": "wanted",
-"name": "Tram-median railing (low steel with posts)",
-"about": "road-objects B2 and the library 3.4",
-"file": "",
-"count": 3,
-"used_by": [
-"marszalkowska-centrum"
-]
 },
 {
 "id": "yard_gate",
@@ -1439,7 +1417,7 @@
 "cat": "instanced",
 "name": "bench",
 "about": "",
-"file": "game/scripts/map_builder.gd:6467",
+"file": "game/scripts/map_builder.gd:6513",
 "count": 3843,
 "used_by": [
 "centrum.json"
@@ -1450,7 +1428,7 @@
 "cat": "instanced",
 "name": "bin",
 "about": "",
-"file": "game/scripts/map_builder.gd:6480",
+"file": "game/scripts/map_builder.gd:6526",
 "count": 1561,
 "used_by": [
 "centrum.json"
@@ -1461,7 +1439,7 @@
 "cat": "instanced",
 "name": "broadleaf",
 "about": "",
-"file": "game/scripts/map_builder.gd:6372",
+"file": "game/scripts/map_builder.gd:6418",
 "count": 44180,
 "used_by": [
 "centrum.json"
@@ -1472,7 +1450,7 @@
 "cat": "instanced",
 "name": "column",
 "about": "",
-"file": "game/scripts/map_builder.gd:6497",
+"file": "game/scripts/map_builder.gd:6543",
 "count": 309,
 "used_by": [
 "centrum.json"
@@ -1483,7 +1461,7 @@
 "cat": "instanced",
 "name": "conifer",
 "about": "",
-"file": "game/scripts/map_builder.gd:6373",
+"file": "game/scripts/map_builder.gd:6419",
 "count": 1012,
 "used_by": [
 "centrum.json"
@@ -1494,7 +1472,7 @@
 "cat": "instanced",
 "name": "lamp",
 "about": "",
-"file": "game/scripts/map_builder.gd:6386",
+"file": "game/scripts/map_builder.gd:6432",
 "count": 5385,
 "used_by": [
 "centrum.json"
@@ -1505,7 +1483,7 @@
 "cat": "instanced",
 "name": "parked",
 "about": "",
-"file": "game/scripts/map_builder.gd:6432",
+"file": "game/scripts/map_builder.gd:6478",
 "count": 4901,
 "used_by": [
 "centrum.json"
@@ -1516,7 +1494,7 @@
 "cat": "instanced",
 "name": "rack",
 "about": "",
-"file": "game/scripts/map_builder.gd:6487",
+"file": "game/scripts/map_builder.gd:6533",
 "count": 1649,
 "used_by": [
 "centrum.json"
@@ -1527,7 +1505,7 @@
 "cat": "instanced",
 "name": "shelter",
 "about": "",
-"file": "game/scripts/map_builder.gd:6541",
+"file": "game/scripts/map_builder.gd:6587",
 "count": 385,
 "used_by": [
 "centrum.json"
@@ -1538,10 +1516,32 @@
 "cat": "instanced",
 "name": "signal",
 "about": "",
-"file": "game/scripts/map_builder.gd:6431",
+"file": "game/scripts/map_builder.gd:6477",
 "count": 1133,
 "used_by": [
 "centrum.json"
+]
+},
+{
+"id": "barrier:balustrade",
+"cat": "barrier",
+"name": "balustrade",
+"about": "#8f8f8a, 0.3 m thick, 1.0 m high (one style for every balustrade)",
+"file": "game/scripts/map_builder.gd:4497",
+"count": null,
+"used_by": [
+"centrum.json lines"
+]
+},
+{
+"id": "barrier:balustrade_rail",
+"cat": "barrier",
+"name": "balustrade_rail",
+"about": "#a9a59d, 0.15 m thick, 1.0 m high (one style for every balustrade_rail)",
+"file": "game/scripts/map_builder.gd:4498",
+"count": null,
+"used_by": [
+"centrum.json lines"
 ]
 },
 {
@@ -1560,7 +1560,7 @@
 "cat": "barrier",
 "name": "guard rail",
 "about": "",
-"file": "game/scripts/map_builder.gd:4736",
+"file": "game/scripts/map_builder.gd:4782",
 "count": null,
 "used_by": [
 "centrum.json guards"
@@ -1584,6 +1584,17 @@
 "about": "#d2cdc3, 2.4 m thick, 0.25 m high (one style for every platform)",
 "file": "game/scripts/map_builder.gd:4490",
 "count": 351,
+"used_by": [
+"centrum.json lines"
+]
+},
+{
+"id": "barrier:tram_railing",
+"cat": "barrier",
+"name": "tram_railing",
+"about": "#22262a, 0.06 m thick, 1.1 m high (one style for every tram_railing)",
+"file": "game/scripts/map_builder.gd:4496",
+"count": null,
 "used_by": [
 "centrum.json lines"
 ]

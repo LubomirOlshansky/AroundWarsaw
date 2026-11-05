@@ -23,7 +23,7 @@ Areas:
 
 ## Objects within 3 m of a lane (road-objects S2 verdicts)
 
-Verdicts: KEEP 10, REPLACE 7, RETEXTURE 3. The override file applies them by id (stage S8).
+Verdicts: KEEP 9, REPLACE 7, RETEXTURE 4. The override file applies them by id (stage S8).
 
 | Id | Class | Gap m | Length m | Angle | s | Rule | Verdict | Model | Why | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -31,22 +31,22 @@ Verdicts: KEEP 10, REPLACE 7, RETEXTURE 3. The override file applies them by id 
 | `platform:rail:-866:400` | platform/rail | 0.0 | 172.2 | 90 | -232 | - | **KEEP** | `-` | platform: not a barrier; C5/C10 checks cover it | open |
 | `shelter:shelter:-856:420` | shelter/shelter | 2.77 | 10.0 | 90 | -228 | B13 | **KEEP** | `instanced:shelter` | real tram/bus shelter; soften its corner with collision v2 | open |
 | `guard_rail:ground:-882:396` | guard_rail/ground | 0.31 | 48.4 | 8 | -211 | B1 | **KEEP** | `barrier:guard_rail` | the road's edge rail; collisions are collision v2's job | open |
-| `barrier:wall:-886:402` | barrier/wall | 2.65 | 59.0 | 13 | -163 | B11 | **KEEP** | `barrier:wall` | parallel wall/fence past the kerb | open |
 | `shelter:shelter:-878:296` | shelter/shelter | 2.1 | 10.0 | 90 | -103 | B13 | **KEEP** | `instanced:shelter` | real tram/bus shelter; soften its corner with collision v2 | open |
 | `shelter:shelter:-932:244` | shelter/shelter | 1.22 | 10.0 | 90 | -35 | B13 | **KEEP** | `instanced:shelter` | real tram/bus shelter; soften its corner with collision v2 | open |
 | `shelter:shelter:-998:-24` | shelter/shelter | 2.81 | 10.0 | 90 | 239 | B13 | **KEEP** | `instanced:shelter` | real tram/bus shelter; soften its corner with collision v2 | open |
 | `shelter:shelter:-1036:-92` | shelter/shelter | 1.66 | 10.0 | 90 | 321 | B13 | **KEEP** | `instanced:shelter` | real tram/bus shelter; soften its corner with collision v2 | open |
 | `platform:rail:-1028:-70` | platform/rail | 0.0 | 172.8 | 90 | 325 | - | **KEEP** | `-` | platform: not a barrier; C5/C10 checks cover it | open |
-| `barrier:wall:-816:414` | barrier/wall | 2.39 | 24.2 | 72 | -234 | B5 | **REPLACE** | `balustrade` | wall/fence round a stair or metro entrance: balustrade | open |
-| `barrier:wall:-862:416` | barrier/wall | 2.18 | 23.1 | 70 | -222 | B5 | **REPLACE** | `balustrade` | wall/fence round a stair or metro entrance: balustrade | open |
-| `barrier:wall:-882:428` | barrier/wall | 0.81 | 14.8 | 54 | -222 | B5 | **REPLACE** | `balustrade` | wall/fence round a stair or metro entrance: balustrade | open |
-| `barrier:wall:-878:430` | barrier/wall | 0.41 | 9.0 | 26 | -222 | B5 | **REPLACE** | `balustrade` | wall/fence round a stair or metro entrance: balustrade | open |
-| `barrier:wall:-882:408` | barrier/wall | 1.44 | 13.7 | 40 | -197 | B5 | **REPLACE** | `balustrade` | wall/fence round a stair or metro entrance: balustrade | open |
-| `barrier:wall:-916:190` | barrier/wall | 1.05 | 23.2 | 90 | 15 | B5 | **REPLACE** | `balustrade` | wall/fence round a stair or metro entrance: balustrade | open |
-| `barrier:wall:-922:174` | barrier/wall | 1.0 | 22.8 | 85 | 25 | B5 | **REPLACE** | `balustrade` | wall/fence round a stair or metro entrance: balustrade | changed |
-| `barrier:fence:-856:424` | barrier/fence | 0.34 | 4.4 | 0 | -231 | B2b | **RETEXTURE** | `tram_railing` | railing along the tram bed or platform edge: the tram railing (solid or soft is the B2 A/B) | open |
-| `barrier:fence:-870:392` | barrier/fence | 0.27 | 53.5 | 8 | -168 | B2b | **RETEXTURE** | `tram_railing` | railing along the tram bed or platform edge: the tram railing (solid or soft is the B2 A/B) | open |
-| `barrier:fence:-1024:-64` | barrier/fence | 0.71 | 83.0 | 0 | 328 | B2b | **RETEXTURE** | `tram_railing` | railing along the tram bed or platform edge: the tram railing (solid or soft is the B2 A/B) | open |
+| `barrier:wall:-814:414` | barrier/wall | 2.39 | 24.2 | 72 | -234 | B5 | **REPLACE** | `barrier:balustrade_rail` | wall/fence round a stair or metro entrance: balustrade | open |
+| `barrier:wall:-862:416` | barrier/wall | 2.18 | 23.1 | 70 | -222 | hand | **REPLACE** | `barrier:balustrade_rail` | hand call: stair at the tram platform tip: concrete upstand with a black rail (Mapillary 1023049187379291, 2026-08-30) | open |
+| `barrier:wall:-882:428` | barrier/wall | 0.81 | 14.8 | 54 | -222 | B5 | **REPLACE** | `barrier:balustrade_rail` | wall/fence round a stair or metro entrance: balustrade | open |
+| `barrier:wall:-878:430` | barrier/wall | 0.41 | 9.0 | 26 | -222 | B5 | **REPLACE** | `barrier:balustrade_rail` | wall/fence round a stair or metro entrance: balustrade | open |
+| `barrier:wall:-882:408` | barrier/wall | 1.44 | 13.7 | 40 | -197 | B5 | **REPLACE** | `barrier:balustrade_rail` | wall/fence round a stair or metro entrance: balustrade | open |
+| `barrier:wall:-916:190` | barrier/wall | 1.05 | 23.2 | 90 | 15 | B5 | **REPLACE** | `barrier:balustrade` | wall/fence round a stair or metro entrance: balustrade | open |
+| `barrier:wall:-922:174` | barrier/wall | 1.0 | 22.8 | 85 | 25 | hand | **REPLACE** | `barrier:balustrade` | hand call: metro Centrum entrance 7: granite parapet about 1 m with a flat coping (Mapillary 1200822230992201, 2024-09-07; the stair predates the skwer) | changed |
+| `barrier:fence:-856:424` | barrier/fence | 0.34 | 4.4 | 0 | -231 | B2b | **RETEXTURE** | `barrier:tram_railing` | railing along the tram bed or platform edge: the tram railing (solid or soft is the B2 A/B) | open |
+| `barrier:fence:-870:392` | barrier/fence | 0.27 | 53.5 | 8 | -168 | B2b | **RETEXTURE** | `barrier:tram_railing` | railing along the tram bed or platform edge: the tram railing (solid or soft is the B2 A/B) | open |
+| `barrier:wall:-886:402` | barrier/wall | 2.65 | 59.0 | 13 | -163 | hand | **RETEXTURE** | `barrier:tram_railing` | hand call: a continuous black pedestrian railing about 1.1 m along the west kerb, not a wall (Mapillary 1786758819186175, 2505406509980804, 2026-08-30) | open |
+| `barrier:fence:-1024:-64` | barrier/fence | 0.71 | 83.0 | 0 | 328 | B2b | **RETEXTURE** | `barrier:tram_railing` | railing along the tram bed or platform edge: the tram railing (solid or soft is the B2 A/B) | open |
 
 ## Findings
 

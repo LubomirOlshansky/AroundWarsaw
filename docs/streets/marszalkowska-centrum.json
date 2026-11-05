@@ -130,9 +130,9 @@
   }
  ],
  "verdicts": {
-  "KEEP": 10,
+  "KEEP": 9,
   "REPLACE": 7,
-  "RETEXTURE": 3
+  "RETEXTURE": 4
  },
  "findings": [
   {
@@ -684,6 +684,7 @@
    "verdict": "KEEP",
    "why": "the road's edge rail; collisions are collision v2's job",
    "model": "barrier:guard_rail",
+   "style": "",
    "status": "open"
   },
   {
@@ -703,6 +704,7 @@
    "verdict": "KEEP",
    "why": "platform: not a barrier; C5/C10 checks cover it",
    "model": "",
+   "style": "",
    "status": "open"
   },
   {
@@ -722,6 +724,7 @@
    "verdict": "KEEP",
    "why": "real tram/bus shelter; soften its corner with collision v2",
    "model": "instanced:shelter",
+   "style": "",
    "status": "open"
   },
   {
@@ -741,25 +744,7 @@
    "verdict": "KEEP",
    "why": "the road's edge rail; collisions are collision v2's job",
    "model": "barrier:guard_rail",
-   "status": "open"
-  },
-  {
-   "id": "barrier:wall:-886:402",
-   "cls": "barrier",
-   "kind": "wall",
-   "gap": 2.65,
-   "len": 59.0,
-   "angle": 13,
-   "s": -163,
-   "t": -12,
-   "x": -891.3,
-   "z": 367.5,
-   "street": "Marszałkowska",
-   "jn": 0,
-   "rule": "B11",
-   "verdict": "KEEP",
-   "why": "parallel wall/fence past the kerb",
-   "model": "barrier:wall",
+   "style": "",
    "status": "open"
   },
   {
@@ -779,6 +764,7 @@
    "verdict": "KEEP",
    "why": "real tram/bus shelter; soften its corner with collision v2",
    "model": "instanced:shelter",
+   "style": "",
    "status": "open"
   },
   {
@@ -798,6 +784,7 @@
    "verdict": "KEEP",
    "why": "real tram/bus shelter; soften its corner with collision v2",
    "model": "instanced:shelter",
+   "style": "",
    "status": "open"
   },
   {
@@ -817,6 +804,7 @@
    "verdict": "KEEP",
    "why": "real tram/bus shelter; soften its corner with collision v2",
    "model": "instanced:shelter",
+   "style": "",
    "status": "open"
   },
   {
@@ -836,6 +824,7 @@
    "verdict": "KEEP",
    "why": "real tram/bus shelter; soften its corner with collision v2",
    "model": "instanced:shelter",
+   "style": "",
    "status": "open"
   },
   {
@@ -855,10 +844,11 @@
    "verdict": "KEEP",
    "why": "platform: not a barrier; C5/C10 checks cover it",
    "model": "",
+   "style": "",
    "status": "open"
   },
   {
-   "id": "barrier:wall:-816:414",
+   "id": "barrier:wall:-814:414",
    "cls": "barrier",
    "kind": "wall",
    "gap": 2.39,
@@ -873,7 +863,8 @@
    "rule": "B5",
    "verdict": "REPLACE",
    "why": "wall/fence round a stair or metro entrance: balustrade",
-   "model": "balustrade",
+   "model": "barrier:balustrade_rail",
+   "style": "balustrade_rail",
    "status": "open"
   },
   {
@@ -889,10 +880,11 @@
    "z": 420.1,
    "street": "Marszałkowska",
    "jn": 0,
-   "rule": "B5",
+   "rule": "hand",
    "verdict": "REPLACE",
-   "why": "wall/fence round a stair or metro entrance: balustrade",
-   "model": "balustrade",
+   "why": "hand call: stair at the tram platform tip: concrete upstand with a black rail (Mapillary 1023049187379291, 2026-08-30)",
+   "model": "barrier:balustrade_rail",
+   "style": "balustrade_rail",
    "status": "open"
   },
   {
@@ -911,7 +903,8 @@
    "rule": "B5",
    "verdict": "REPLACE",
    "why": "wall/fence round a stair or metro entrance: balustrade",
-   "model": "balustrade",
+   "model": "barrier:balustrade_rail",
+   "style": "balustrade_rail",
    "status": "open"
   },
   {
@@ -930,7 +923,8 @@
    "rule": "B5",
    "verdict": "REPLACE",
    "why": "wall/fence round a stair or metro entrance: balustrade",
-   "model": "balustrade",
+   "model": "barrier:balustrade_rail",
+   "style": "balustrade_rail",
    "status": "open"
   },
   {
@@ -949,7 +943,8 @@
    "rule": "B5",
    "verdict": "REPLACE",
    "why": "wall/fence round a stair or metro entrance: balustrade",
-   "model": "balustrade",
+   "model": "barrier:balustrade_rail",
+   "style": "balustrade_rail",
    "status": "open"
   },
   {
@@ -968,7 +963,8 @@
    "rule": "B5",
    "verdict": "REPLACE",
    "why": "wall/fence round a stair or metro entrance: balustrade",
-   "model": "balustrade",
+   "model": "barrier:balustrade",
+   "style": "balustrade",
    "status": "open"
   },
   {
@@ -984,10 +980,11 @@
    "z": 178.2,
    "street": "Marszałkowska",
    "jn": 0,
-   "rule": "B5",
+   "rule": "hand",
    "verdict": "REPLACE",
-   "why": "wall/fence round a stair or metro entrance: balustrade",
-   "model": "balustrade",
+   "why": "hand call: metro Centrum entrance 7: granite parapet about 1 m with a flat coping (Mapillary 1200822230992201, 2024-09-07; the stair predates the skwer)",
+   "model": "barrier:balustrade",
+   "style": "balustrade",
    "status": "changed"
   },
   {
@@ -1006,7 +1003,8 @@
    "rule": "B2b",
    "verdict": "RETEXTURE",
    "why": "railing along the tram bed or platform edge: the tram railing (solid or soft is the B2 A/B)",
-   "model": "tram_railing",
+   "model": "barrier:tram_railing",
+   "style": "tram_railing",
    "status": "open"
   },
   {
@@ -1025,7 +1023,28 @@
    "rule": "B2b",
    "verdict": "RETEXTURE",
    "why": "railing along the tram bed or platform edge: the tram railing (solid or soft is the B2 A/B)",
-   "model": "tram_railing",
+   "model": "barrier:tram_railing",
+   "style": "tram_railing",
+   "status": "open"
+  },
+  {
+   "id": "barrier:wall:-886:402",
+   "cls": "barrier",
+   "kind": "wall",
+   "gap": 2.65,
+   "len": 59.0,
+   "angle": 13,
+   "s": -163,
+   "t": -12,
+   "x": -891.3,
+   "z": 367.5,
+   "street": "Marszałkowska",
+   "jn": 0,
+   "rule": "hand",
+   "verdict": "RETEXTURE",
+   "why": "hand call: a continuous black pedestrian railing about 1.1 m along the west kerb, not a wall (Mapillary 1786758819186175, 2505406509980804, 2026-08-30)",
+   "model": "barrier:tram_railing",
+   "style": "tram_railing",
    "status": "open"
   },
   {
@@ -1044,7 +1063,8 @@
    "rule": "B2b",
    "verdict": "RETEXTURE",
    "why": "railing along the tram bed or platform edge: the tram railing (solid or soft is the B2 A/B)",
-   "model": "tram_railing",
+   "model": "barrier:tram_railing",
+   "style": "tram_railing",
    "status": "open"
   }
  ]
