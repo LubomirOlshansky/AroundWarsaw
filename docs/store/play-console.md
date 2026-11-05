@@ -93,7 +93,7 @@ Email: yours. Category: **Game** (not "All other app types").
 | Fear, horror | No | |
 | Sexuality, nudity, suggestive themes | No | |
 | Language (profanity, crude humour, slurs) | No | Gentle Warsaw jokes; the dialogue has no swearing |
-| Controlled substances (drugs, alcohol, tobacco) | **Yes → references to alcohol only** | A few joke lines name beer and sour wine (dialogue.json, 2026-11-02 check); nobody drinks on screen, no drugs or tobacco |
+| Controlled substances (drugs, alcohol, tobacco) | No | The 3 a.m. delivery is kebab; no drinks in the game |
 | Gambling, simulated gambling, real-money betting | No | The złoty you earn buys nothing real and can't be bought |
 | Users interact or exchange content | No | Single player, offline |
 | Shares the user's location | No | The map is fixed data; the device's location is never read |
@@ -216,8 +216,8 @@ screen; the listing says "Polish with English" nowhere because Play shows one la
 
 | Asset | Requirement | File |
 | --- | --- | --- |
-| App icon | 512 × 512 PNG, 32-bit, ≤ 1 MB | `graphics/play-icon-512.png` (since 2026-11-02 the app icon: a red car drifting past the Palace at sunset with the rescue helicopter, from `game/icons/`; the 1024 px master is `graphics/app-icon-source.png`) |
-| Feature graphic | 1024 × 500 JPEG or 24-bit PNG | `graphics/play-feature-1024x500.jpg`: the app icon's art (red car, Palace, helicopter) with "Around Warsaw" in Pixelify Sans and "Drive and fly the real Warsaw" (2026-11-02). Source `graphics/play-feature.html` over `graphics/play-feature-bg.png` (the icon master, its edges stretched), shot in Chromium at 1024 × 500 |
+| App icon | 512 × 512 PNG, 32-bit, ≤ 1 MB | `graphics/play-icon-512.png` (the website's icon: the Palace in pixels, with alpha) |
+| Feature graphic | 1024 × 500 JPEG or 24-bit PNG | `graphics/play-feature-1024x500.jpg`: the Palace at dusk, "Around Warsaw" in Pixelify Sans, "Drive and fly the real Warsaw". Source `graphics/play-feature.html` (the website's og.jpg and fonts), shot in Chromium at 1024 × 500 |
 | Phone screenshots | 2 to 8, 16:9 landscape, each side 320-3840 px, the long side at most twice the short | `screenshots/play-phone/01..07` (1920 × 1080, HUD on; `screenshots/README.md`) |
 | 7" and 10" tablet screenshots | optional for a phone game | skip for internal testing |
 

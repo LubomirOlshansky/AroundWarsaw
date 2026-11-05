@@ -44,9 +44,3 @@ shows the edge of the map. That copy of the game had only the KEBAB FM name appl
 The car stands still in 03 (the helicopter
 hovers), 05-police-talk (pulled over) and 07 (every moving take of Varso lost the crown or
 the framing). Traffic speech bubbles are random, so each size shows a different line.
-
-**08 (Play only, 2026-11-02):** `play-phone/08-palace-golden.jpg`, 1920 × 1080 without the HUD, the
-website's golden-hour Palace view after the Złota 44 rebuild (PR #321): `--at=-1180,215 --yaw=225
---pitch=-38 --size=400 --time=live --clock=18:15 --date=20260915 --nohud --no-ghost`, frame 420.
-The same run at 2868 × 1320 is the website's `palace-golden` and the feature graphic
-`graphics/play-feature-golden-1024x500.jpg` (`graphics/play-feature-golden.html`).
