@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-05
 
+- Race rivals drive like people now: they launch past you and make you chase, take shortcuts across squares, lawns and car parks, cut in front of you and block your line, and sometimes run wide in a corner or take a wrong turn. Each one has a style: Zbyszek knows every shortcut, Seba blocks, Słoik follows his satnav, and Mike is as fast as your car.
 - Quest bubbles, toasts and the radio announcements now stay on screen as long as it takes to read them: longer text stays longer.
 - Cyclists keep to the red cycle paths: the kerb-edge courier riders no longer ride the car lanes of a road that has a cycle path beside it.
 - Footbridges no longer sag onto the road or the tracks: the one over Aleja Armii Ludowej and the three over the Ochota cutting now span the gap level.
