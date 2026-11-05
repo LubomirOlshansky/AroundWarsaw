@@ -12,6 +12,35 @@ constants by system, with the Settings screens); C-4 per-place data fields in CI
 the "data used" colour is exact; C-5 a per-building design layer for the 115 hand-built sites (needs their positions
 baked into a small JSON); C-6 deploy decision (subdomain, access) for F.
 
+## Smoother roads, road objects, then buildings: the plan for the next days (F, 2026-11-04)
+
+Research and plan: docs/design/roads-and-objects-plan.md; the items with status in
+docs/plan/city-plan.json (dev console "Plan" tab). Builds on docs/design/road-objects.md (#429).
+Found (measured on main): roads are OSM-centreline ribbons with a disc at every bend; only 38 of
+461 km lie under a mapped carriageway area; 86 % of street junctions (2,262 of 2,639) are
+overlapping ribbons with no kerb returns; 3,700 polyline kinks over 20°; OSM `surface` is not read.
+Mapillary map features answer from the cloud (`tools/street_features.py`): the game has no traffic
+signs, poles, junction boxes, hydrants or manholes; detection positions are 10-20 m off, so they are
+evidence per street and junction, never coordinates.
+- [ ] RS1 junction shapes with kerb returns + RS2 kink fillets (pilot: Marszałkowska × Świętokrzyska,
+      Krucza × Hoża, Nowy Świat × Świętokrzyska), then city-wide; Mac re-bake
+- [ ] RS3 width that varies along a street (tapers between ways; ortho width profiles on the Mac)
+- [ ] RS4 surfaces from OSM tags (setts, paving, concrete) by id in the ground shader
+- [ ] RS5 tram beds and medians that read
+- [ ] RS6 crossings with kerb drops, zebras aligned to the crossing way
+- [ ] RS7 asphalt history (wheel tracks, seams, patches, manholes) in the shader; bench
+- [ ] RS8 road height profile smoothed along the centreline
+- [ ] RS9 markings from evidence (Mapillary presence, ortho look) per junction
+- [x] Street-objects log per street (`tools/street_objects.py` → docs/inventory/street_objects.md) and
+      the object budget (plan 3a, F 2026-11-04: log everything, add only what earns its place;
+      signs, poles, boxes, cones are log only)
+- [ ] Lamp density look test (Marszałkowska; Hoża has no game lamps), F picks
+- [ ] Traffic-light poles A/B: all as now, or only at main junctions and the places that matter
+- [ ] Open for F: a handful of gameplay signs (STREFA ZAMIESZKANIA, a trap's speed sign), or none
+- [ ] Mapillary no-entry / one-way detections against the game's `oneway` (lane-graph check, no signs added)
+- [ ] osm2streets (Apache 2.0, npm osm2streets-js) compared with RS1 on the pilot junctions (Mac)
+- [ ] Open for F: Warsaw's city geoportal (base map 1:500 kerbs) licence before any use beyond looking
+
 ## Towarowa 22 and the Rondo Daszyńskiego towers (F, 2026-11-03)
 
 - **Towarowa 22 built as finished** (site `towarowa22`, spec `docs/landmarks/specs/towarowa22.md`, from F's
@@ -636,7 +665,7 @@ spans (granite piers, steel arch ribs, red fascia, black railing, pier pedestals
 ## Plac Krasińskich: the Uprising Monument and the palace (CITY_INVENTORY 22 and 79, 2026-11-02)
 Built from photos gathered on the Mac (`refs/pomnik_powstania/`, `refs/krasinski/`) and LoD2, specs
 `pomnik_powstania.md` and `krasinski.md` (sites `pomnik_powstania` 1514 tris, `krasinski` 1508). Found and left:
-- The Supreme Court's colonnade behind the monument is green (ribbed green glass, ~#738483); OSM tags its columns "marble #deeded", so the game draws them white and the court as plain blocks. A Sąd Najwyższy model is its own item.
+- Sąd Najwyższy's colonnade fixed 2026-11-02 (site `sad_najwyzszy`, spec `sad_najwyzszy.md`): the 54 OSM columns and their beams are green and ribbed, with the lettering band and rosette capitals. Left: the court's main block (LoD2) keeps its map look; its fronts, the roof garden, the caryatids and the night glass need a Mac photo gather (QUESTIONS).
 - The monument's heights and the groups' facing are estimates from photos (no published height, no aerial); the bronze is simplified to blocky figures. The plaza's dark granite bands, the blue-green light strips, the floor plaque, the juniper beds and the brick wall with the Kotwica on the Długa side are not drawn; the 1 August candles are not there.
 - The palace's pediment relief is a flat recessed field, the cartouche over the central window and the roof statues of the garden front are not modelled; the dormer and chimney counts are rough (the report says so). The garden's round parterre and the pond's sculpture are the park's (the fountain is already there).
 - F's look check on the Mac or the phone: the slabs' lean, the fighters' size, the roof's green.
