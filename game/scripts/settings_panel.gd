@@ -61,7 +61,7 @@ const DRIVE := [["Wskaż", "Point"], ["Klasycznie", "Classic"]]
 const CAMERA := [["Wł.", "On"], ["Wył.", "Off"]]
 ## What each scheme (drive_controls.gd POINT, CLASSIC, FIXED) does, in a line.
 const CONTROLS_SAY := [
-	["Pokaż palcem, dokąd jechać. Kamera czeka, aż puścisz.", "Point where to go. The camera waits until you let go."],
+	["Pokaż palcem, dokąd jechać. Kamera jedzie za autem.", "Point where to go. The camera follows the car."],
 	["Kierownica lewo–prawo, gaz i hamulec po prawej.", "Steer left–right; GAS and BRAKE on the right."],
 	["Pokaż palcem, dokąd jechać. Kamera stoi: obróć ją dwoma palcami.", "Point where to go. The camera stays put: twist two fingers to turn it."],
 ]
@@ -78,6 +78,8 @@ const FPS := [["60 płynnie", "60 smooth"], ["30 bateria", "30 battery"]]
 const MODE := [["Miasto", "City"], ["Spacer", "Wander"]]
 ## G4: the car's handling (settings.gd `handling`, car.gd PROFILES).
 const HANDLING := [["Spokojnie", "Cruise"], ["Sportowo", "Sport"]]
+## Phase 0.2: the city's chattiness (settings.gd `chatter`, chatter.gd GAPS).
+const CHATTER := [["Mało", "Quiet"], ["Średnio", "Some"], ["Dużo", "Lots"]]
 const LEVELS := [["master", "Głośność", "Volume"], ["music", "Radio", "Radio"], ["effects", "Efekty", "Effects"]]
 
 ## Loop 2e: pixels per point and the safe area in pixels (from the HUD, screen_points.gd).
@@ -243,6 +245,12 @@ func _build() -> void:
 	_steps(world[0], "traffic", TRAFFIC)
 	_heading(world[1], "Tryb gry", "Game mode")
 	_segments(world[1], "wander", MODE)
+	_heading(world[1], "Gadatliwość miasta", "City chattiness")
+	_segments(world[1], "chatter", CHATTER)
+	# Three choices beside the five times of day: narrower buttons (still over 44 pt) so the
+	# page keeps the card's width on a 375 pt phone.
+	for b: Button in _groups["chatter"]:
+		b.custom_minimum_size.x = touch * 1.3
 	# Obraz · Picture. Loop G1: in three rows (Quality's five choices made the two columns too
 	# wide for the SE): Style and VHS; Quality; Frame rate and the overlay with TEST.
 	# 2026-11-01 (F): the Style picker is gone (always the sharp image); the old VHS tape is now
@@ -522,8 +530,8 @@ func focus_target() -> Button:
 func sync(state: Dictionary) -> void:
 	if not _built:
 		return
-	var scheme := int(state.get("controls", 0))
-	var follow := bool(state.get("follow", scheme == 0))
+	var scheme := int(state.get("controls", 1))  # Classic, the default (settings.gd DEFAULT_CONTROLS)
+	var follow := bool(state.get("follow", scheme != 2))
 	var values := state.duplicate()
 	values["drive"] = 1 if scheme == 1 else 0
 	values["camera"] = 0 if follow else 1

@@ -1,6 +1,6 @@
 extends SceneTree
 ## Loop 2a: settings.gd round trip. Saves every setting to a scratch file in user://, loads
-## it into a fresh copy and compares; a missing file gives the defaults (Point, Normal
+## it into a fresh copy and compares; a missing file gives the defaults (Classic since 2026-11-04, Low
 ## traffic, High, full volumes, overlay off, 60 fps; loop 2e: Classic's camera following, the
 ## Sharp style, no VHS; loop G1: quality Auto instead of High); with persistent = false (--nosave)
 ## nothing is written. Loop G1: a file saved before G1 (no `tiers` key) that says High loads as
@@ -23,7 +23,7 @@ func _initialize() -> void:
 	var fresh := Settings.new()
 	fresh.path = "user://settings_check_missing.cfg"
 	fresh.load_file()
-	var defaults := fresh.controls == 0 and fresh.traffic == Settings.DEFAULT_TRAFFIC and fresh.quality == Settings.AUTO \
+	var defaults := fresh.controls == 1 and fresh.traffic == Settings.DEFAULT_TRAFFIC and fresh.quality == Settings.AUTO \
 			and fresh.master == 1.0 and fresh.music == 1.0 and fresh.effects == 1.0 and not fresh.perf and fresh.classic_follow \
 			and fresh.fps == 60 and fresh.style == 0 and not fresh.vhs and not fresh.zone_cap and fresh.handling == 0 and is_equal_approx(fresh.sensitivity, 0.5) \
 			and not fresh.text_large and not fresh.calm and not fresh.color_safe and fresh.vibration and fresh.stop_assist \
@@ -65,9 +65,37 @@ func _initialize() -> void:
 			"OK" if migrated else "WRONG", again.quality])
 	ok = ok and migrated
 
+	# 2026-11-04: Classic became the default; a file saved before (no `classic_default` key) that
+	# says Point loads as Classic once, Fixed stays Fixed, and a Point chosen since stays Point.
+	var ctl_ok := true
+	for c in [[0, false, 1], [2, false, 2], [1, false, 1], [0, true, 0]]:
+		var cfg_c := ConfigFile.new()
+		cfg_c.set_value("controls", "scheme", c[0])
+		if c[1]:
+			cfg_c.set_value("controls", "classic_default", 1)
+		cfg_c.save(SCRATCH_OLD)
+		var sc := Settings.new()
+		sc.path = SCRATCH_OLD
+		sc.load_file()
+		if sc.controls != c[2]:
+			ctl_ok = false
+			print("  controls %d saved %s 2026-11-04 load as %d, wanted %d" % [c[0], "after" if c[1] else "before", sc.controls, c[2]])
+	var pick := Settings.new()
+	pick.path = SCRATCH_OLD
+	pick.load_file()
+	pick.controls = 0
+	pick.save()
+	var pick_back := Settings.new()
+	pick_back.path = SCRATCH_OLD
+	pick_back.load_file()
+	ctl_ok = ctl_ok and pick_back.controls == 0
+	print("controls saved before Classic became the default: %s (Point → Classic once, Point chosen since kept: %d)" % [
+			"OK" if ctl_ok else "WRONG", pick_back.controls])
+	ok = ok and ctl_ok
+
 	var a := Settings.new()
 	a.path = SCRATCH
-	a.controls = 1
+	a.controls = 2
 	a.classic_follow = false
 	a.traffic = 0
 	a.quality = 1
@@ -139,6 +167,7 @@ func _initialize() -> void:
 		if FileAccess.file_exists(f):
 			DirAccess.remove_absolute(ProjectSettings.globalize_path(f))
 	ok = _check_tint() and ok
+	ok = _check_beacons() and ok
 	print("settings: %s" % ("OK" if ok else "PROBLEM"))
 	quit(0 if ok else 1)
 
@@ -170,3 +199,68 @@ func _check_tint() -> bool:
 	print("colour-safe tint: %s (%d greens -> blue, %d reds -> vermilion, %d others kept)" % ["OK" if good else "WRONG",
 			greens.size(), reds.size(), others.size()])
 	return good
+
+
+## Colour-safe's 3D markers (beacon.gd): off, every ring is a full ring in its own colour; on, the
+## drop-off's green turns blue, the rescue pickup's ring is dashed and the race ring chequered
+## (white blocks between coloured ones), so the race and rescue rings differ by more than hue;
+## switching the setting mid-call re-draws a placed beacon without a restart.
+func _check_beacons() -> bool:
+	var A := preload("res://scripts/access.gd")
+	var B := preload("res://scripts/beacon.gd")
+	var M := load("res://scripts/missions.gd")
+	var R := load("res://scripts/rivals.gd")
+	var was: bool = A.color_safe
+	var kinds := [[M.PICKUP_COLOUR, B.Pattern.DASHED], [M.DROPOFF_COLOUR, B.Pattern.SOLID], [R.RACE_COLOUR, B.Pattern.CHEQUER]]
+	var beacons := []
+	for k in kinds:
+		var b: Node3D = B.new()
+		b.setup(k[0], Color.WHITE)
+		b.pattern = k[1]
+		# place()'s part without the tree (it sets a global position): a 9 m ring, shown.
+		b._ring_radius = 9.0
+		b._refresh()
+		b.visible = true
+		beacons.append(b)
+	var good := true
+	var notes := PackedStringArray()
+	for safe in [false, true]:
+		A.color_safe = safe
+		for i in beacons.size():
+			var b: Node3D = beacons[i]
+			b._process(0.016)  # notices the switch by itself, like a frame would
+			var st := _ring_stats(b.ring_mesh())
+			var want_col: Color = A.tint(kinds[i][0])
+			var shape: int = kinds[i][1] if safe else B.Pattern.SOLID
+			var fine: bool = b.shown_colour() == want_col and st["coloured"] > 0
+			match shape:
+				B.Pattern.SOLID:
+					fine = fine and st["quads"] == 32 and st["white"] == 0
+				B.Pattern.DASHED:
+					fine = fine and st["quads"] == B.DASHES and st["white"] == 0
+				B.Pattern.CHEQUER:
+					fine = fine and st["white"] > 0 and st["white"] == st["coloured"]
+			if not fine:
+				notes.append("%s %s: %s" % ["safe" if safe else "off", B.Pattern.keys()[kinds[i][1]], str(st)])
+			good = good and fine
+	good = good and beacons[1].shown_colour() == A.GREEN_SAFE  # the drop-off, still on
+	A.color_safe = was
+	for b in beacons:
+		b.free()
+	print("colour-safe beacons: %s (rescue pickup dashed, race chequered, drop-off blue, live switch)%s" % [
+			"OK" if good else "WRONG", "" if notes.is_empty() else "\n  " + "\n  ".join(notes)])
+	return good
+
+
+## Quads in a ring mesh, and how many are white (the chequer's) or coloured.
+func _ring_stats(mesh: ArrayMesh) -> Dictionary:
+	var arrays := mesh.surface_get_arrays(0)
+	var cols: PackedColorArray = arrays[Mesh.ARRAY_COLOR]
+	var out := {"quads": cols.size() / 6, "white": 0, "coloured": 0}
+	for q in cols.size() / 6:
+		var c: Color = cols[q * 6]
+		if c.r > 0.9 and c.g > 0.9 and c.b > 0.9:
+			out["white"] += 1
+		else:
+			out["coloured"] += 1
+	return out

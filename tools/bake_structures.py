@@ -11,7 +11,8 @@ What it adds to the map file:
   along a road or rail deck where the deck clears the ground by PIER_MIN_AIR; it slides up to
   PIER_SLIDE metres along the deck to the nearest spot where its footprint is PIER_PAD clear of
   every road (half its width), tram and rail bed, kerb, carriageway area and lower deck under
-  it (and of every lane's drive corridor); where none is, two legs outside what runs under
+  it (and of every lane's drive corridor; PT-18: first PIER_ROADSIDE more beside a main road,
+  and clear of the street props, then without); where none is, two legs outside what runs under
   carry the deck (a portal frame, its cross-head the slab, a cap beam out to a leg that stands
   past the deck's edge), and where that fails too the pier is left out. The game draws them
   and makes them solid.
@@ -39,6 +40,13 @@ PIER_STEP = 38.0       # ...then one every this many metres (map_builder.gd befo
 PIER_MIN_AIR = 2.5     # only where the deck stands this far over the ground
 PIER_SLIDE = 12.0      # how far a pier may slide along its deck to a clear spot
 PIER_PAD = 1.1         # clear of what runs under by this much (check_roads C4 wants 1.0)
+PIER_ROADSIDE = 2.0    # PT-18: first try this much more beside a main road's carriageway (a car
+                       # that drifts off its kerb lane rides on, not into a pier); else PIER_PAD
+PIER_WIDE_KINDS = ("motorway", "trunk", "primary", "secondary", "tertiary")
+# A pier that slides for PIER_ROADSIDE keeps this clear of the street props (key, stride, metres),
+# so the room it takes from the road does not put it on a tram shelter.
+PIER_PROPS = (("lamps", 2, 0.5), ("signals", 3, 0.5), ("benches", 3, 1.2), ("bins", 3, 0.7), ("bikes", 3, 1.2),
+              ("columns", 3, 1.3), ("shelters", 3, 2.6), ("parked", 4, 2.8), ("trees3d", 6, 0.7))
 PIER_ALONG = 1.6       # a pier's thickness along the deck
 PIER_SHARE = 0.6       # its width across: this share of the deck's corridor
 LEG_W = 1.2            # a portal leg: this wide across the deck...
@@ -72,8 +80,17 @@ class Under:
             for a, b in zip(ps, ps[1:]):
                 self.segs.add((a, b, half, label, it), min(a[0], b[0]) - half, min(a[1], b[1]) - half,
                               max(a[0], b[0]) + half, max(a[1], b[1]) + half)
+        self.wide = set()
+        self.props = cr.Grid(16.0)
+        for key, stride, clear in PIER_PROPS:
+            v = d.get(key, [])
+            for i in range(0, len(v) - 1, stride):
+                x, z = v[i], v[i + 1]
+                self.props.add((x, z, clear), x - clear, z - clear, x + clear, z + clear)
         for r in d["roads"]:
             put(r, r["w"] * 0.5 + abs(r.get("c", 0.0)), r.get("name") or r["k"])
+            if r["k"] in PIER_WIDE_KINDS or r.get("lanes", 0) >= 2:
+                self.wide.add(id(r))
         for t in d.get("trams", []):
             put(t, TRAM_HALF, "tram")
         for t in d.get("rails", []):
@@ -103,9 +120,9 @@ class Under:
                               min(a[0], b[0]) - half, min(a[1], b[1]) - half,
                               max(a[0], b[0]) + half, max(a[1], b[1]) + half)
 
-    def blocked(self, rect, g, top, x, z):
+    def blocked(self, rect, g, top, x, z, roadside=0.0):
         """The first thing under deck group g (its top at `top`) a footprint comes within
-        PIER_PAD of, or None."""
+        PIER_PAD of (`roadside` more for a main road), or None."""
         import check_roads as cr
         m = self.m
         seen = set()
@@ -123,8 +140,15 @@ class Under:
                     qx, qz = a[0] + abx * t, a[1] + abz * t
                     if m.decks.height(it["dk"], qx, qz, m.terrain(qx, qz)) > top - 1.0:
                         continue
-                if _seg_rect_dist(rect, a, b) < half + PIER_PAD:
+                pad = PIER_PAD + (roadside if id(it) in self.wide else 0.0)
+                if _seg_rect_dist(rect, a, b) < half + pad:
                     return label
+        if roadside > 0.0:
+            for cell in {(math.floor(px / 16.0), math.floor(pz / 16.0)) for px, pz in rect}:
+                for px, pz, clear in self.props.cells.get(cell, ()):
+                    if cr.point_in_poly(px, pz, rect) or min(
+                            cr.seg_seg_dist(rect[q], rect[(q + 1) % 4], (px, pz), (px, pz)) for q in range(4)) < clear:
+                        return "prop"
         for cell in {(math.floor(px / 32.0), math.floor(pz / 32.0)) for px, pz in rect}:
             for q, c in self.polys.cells.get(cell, ()):
                 if c.get("dk") is not None:
@@ -147,7 +171,7 @@ def place_piers(m, under=None):
     "s": [across, along], "y": [bottom, top], "k": "pier" | "leg" | "cap"}."""
     under = under or Under(m)
     out = []
-    stats = {"candidates": 0, "in place": 0, "slid": 0, "portals": 0, "skipped": 0, "skipped at": []}
+    stats = {"candidates": 0, "in place": 0, "slid": 0, "tight": 0, "portals": 0, "skipped": 0, "skipped at": []}
     for pc in m.decks.p:
         if pc["k"] not in ("road", "rail"):
             continue
@@ -182,18 +206,23 @@ def place_piers(m, under=None):
             for k in range(1, int(PIER_SLIDE) + 1):
                 offs += [float(k), -float(k)]
             placed = None
-            for off in offs:
-                s2 = s + off
-                if s2 < 2.0 or s2 > length - 2.0:
-                    continue
-                x, z, dy, ux, uz = at(s2)
-                if dy - m.terrain(x, z) <= PIER_MIN_AIR:
-                    continue
-                rect = _rect(x, z, ux, uz, across, PIER_ALONG * 0.5)
-                if under.blocked(rect, pc["g"], dy, x, z) is None:
-                    placed = [{"c": [x, z], "d": [ux, uz], "s": [across * 2.0, PIER_ALONG],
-                               "y": [foot(rect), dy - SLAB], "k": "pier"}]
-                    stats["in place" if off == 0.0 else "slid"] += 1
+            for roadside in (PIER_ROADSIDE, 0.0):
+                for off in offs:
+                    s2 = s + off
+                    if s2 < 2.0 or s2 > length - 2.0:
+                        continue
+                    x, z, dy, ux, uz = at(s2)
+                    if dy - m.terrain(x, z) <= PIER_MIN_AIR:
+                        continue
+                    rect = _rect(x, z, ux, uz, across, PIER_ALONG * 0.5)
+                    if under.blocked(rect, pc["g"], dy, x, z, roadside) is None:
+                        placed = [{"c": [x, z], "d": [ux, uz], "s": [across * 2.0, PIER_ALONG],
+                                   "y": [foot(rect), dy - SLAB], "k": "pier"}]
+                        stats["in place" if off == 0.0 else "slid"] += 1
+                        if roadside == 0.0:
+                            stats["tight"] += 1
+                        break
+                if placed is not None:
                     break
             if placed is None:
                 for off in offs:
@@ -857,6 +886,7 @@ BARRIER_HALF = {"fence": 0.06, "wall": 0.18, "hedge": 0.45}   # map_builder.gd B
 PROP_SOLID = {"benches": 3.2, "bikes": 3.4, "columns": 1.4, "shelters": 4.0}   # map_builder.gd _build_props
 DRIVE_HALF = 1.7       # a lane's drive corridor: a bus's half width (1.3), and 0.4 m for a 12 m
                        # bus box's chord on a bend and the game's mitred lane offsets
+BARRIER_TOP = 2.5      # loop 3e leftovers: a barrier's top over the ground (map_builder.gd BARRIER_STYLE: a wall 1.9 m) and a little
 ROAD_INSET = 0.15      # a carriageway's own corridor: its half width less this
 SMALL_BUILDING = 30.0  # a mapped building this small (a kiosk, a vent) in a lane is left out
 GUARD_END = 8.0        # loop 3e: a deck's guard rail this near its piece's end clears a bus on the lanes there...
@@ -951,7 +981,13 @@ def clear_carriageways(m):
                     m.terrain(x, z) < m.tunnel_height(t, x, z) + MOUTH + 1.0:
                 return True
         return False
-    notes = {"barrier m cut": 0.0, "props": 0}
+    # Loop 3e leftovers (2026-11-02): a deck road's carriageway where the deck runs lower than a
+    # barrier's top over the ground (its ends at grade): a wall mapped up to the kerb line there
+    # stood 0.7 m into the slab at Wybrzeże Szczecińskie's deck 4 by Most Śląsko-Dąbrowski
+    # ((409, -1519) and (423, -1523): check_drive's buses on its outer lanes).
+    def in_deck_road(x, z):
+        return any(m.decks.p[i]["k"] == "road" and h < m.terrain(x, z) + BARRIER_TOP for h, _, i in m.decks.at(x, z))
+    notes = {"barrier m cut": 0.0, "barrier m cut on decks": 0.0, "props": 0}
     lines = []
     for ln in d.get("lines", []):
         pad = BARRIER_HALF.get(ln["k"])
@@ -966,8 +1002,11 @@ def clear_carriageways(m):
                 if k == 0 and run:
                     continue
                 x, z = a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n
-                if inside(x, z, pad):
+                on_deck = False
+                if inside(x, z, pad) or (on_deck := in_deck_road(x, z)):
                     notes["barrier m cut"] += math.dist(a, b) / n
+                    if on_deck:
+                        notes["barrier m cut on decks"] += math.dist(a, b) / n
                     if len(run) >= 2:
                         lines.append({"k": ln["k"], "p": [round(v, 2) for q in _simplify(run) for v in q]})
                     run = []
@@ -1659,7 +1698,7 @@ def add_structures(out, map_dir, terrain):
           f"corridor, not cut (x, z, share): {cst['grazed']}")
     cc = clear_carriageways(m)
     print(f"carriageways (check_drive): {cc['barrier m cut']:.0f} m of fences, walls, hedges and mapped guard rails "
-          f"inside a carriageway or a lane cut out; left out there: {cc['props']} solid props, "
+          f"inside a carriageway or a lane cut out ({cc['barrier m cut on decks']:.0f} m of them on a deck road at grade); left out there: {cc['props']} solid props, "
           f"{cc.get('parked', 0)} parked cars, {cc.get('pillars', 0)} viaduct pillars, {cc.get('small buildings', 0)} kiosks; "
           f"{cc.get('moved off tram tracks', 0)} props on a tram track moved beside it, "
           f"{cc.get('on tram tracks', 0)} left out (map review A, round 2)")
@@ -1675,7 +1714,8 @@ def add_structures(out, map_dir, terrain):
     print(f"walls (R6): {wst['runs']} retaining wall runs, {wst['m']:.0f} m ({wst['solid m']:.0f} m solid; "
           f"loop 3e: {wst['trench m']:.0f} m along trenches)")
     print(f"piers (R5): {st['candidates']} places under the decks: {st['in place']} in place, {st['slid']} slid "
-          f"along the deck to a clear spot, {st['portals']} portal frames, {st['skipped']} left out"
+          f"along the deck to a clear spot ({st['tight']} with no room for PIER_ROADSIDE beside a main road), "
+          f"{st['portals']} portal frames, {st['skipped']} left out"
           + (f" (at {', '.join(f'({x}, {z})' for x, z in st['skipped at'][:12])})" if st["skipped"] else ""))
     bank, bst = place_bank(m)
     out["drivable_bank"] = bank

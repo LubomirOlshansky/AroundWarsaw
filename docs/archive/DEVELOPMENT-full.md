@@ -197,8 +197,8 @@ text) have ready answers in `docs/store/play-console.md`; the privacy policy is
 | --- | --- | --- |
 | Start (title screen) | Tap anywhere | any key / click |
 | Settings (driving, camera, time of day, weather, traffic, picture style, quality, VHS, frame rate, overlay, TEST, sound; the game pauses) | the gear, top left | Esc |
-| Drive, **Point** (the default) | Drag anywhere on the left side: the car heads where you point, gas by how far you push; the camera waits while your finger is down | W A S D / arrows point in screen directions |
-| Drive, **Classic** | Drag left / right on the left side to steer; GAS bottom right, BRAKE beside it (slide your thumb between them) | A / D steer, W gas, S brake |
+| Drive, **Point** (the default until 2026-11-04) | Drag anywhere on the left side: the car heads where you point, gas by how far you push; the camera waits while your finger is down | W A S D / arrows point in screen directions |
+| Drive, **Classic** (the default since 2026-11-04) | Drag left / right on the left side to steer; GAS bottom right, BRAKE beside it (slide your thumb between them) | A / D steer, W gas, S brake |
 | Drive, **Fixed camera** | As Point, the camera never turns | as Point |
 | Brake, reverse when stopped | BRAKE button | Space (Classic: S too) |
 | Camera follows the car / stays put (in Point and Fixed it switches between the two schemes; a toast says which, loop 2e) | Settings → Jazda → Kamera za autem · Camera follows the car: Wł. / Wył. (On / Off) | C |
@@ -1042,13 +1042,13 @@ to 11 km/h a second later, a head-on push stayed pinned for good).
 **Three control schemes** (Settings → Controls, `--controls=`; `drive_controls.gd` maps the
 stick, keys and pedals for the game and the replay test alike):
 
-- **Point** (the default, one thumb): point where you want to go. The follow camera holds still
+- **Point** (the default until 2026-11-04, one thumb): point where you want to go. The follow camera holds still
   while your finger is down, so a held direction stays put on screen and in the world; 0.6 s
   after you let go it eases round behind the car (it reaches it in ~3 s, at most ~64°/s; it was
   up to 116°/s). Gas by how far you push (a target speed; full from three quarters out);
   pointing well behind at speed brakes first, then turns; a big turn holds the speed until it is
   done. Keys: W A S D point in screen directions (like the helicopter), Space brakes.
-- **Classic** (two thumbs): drag left / right on the left side to steer (a strip, car-relative,
+- **Classic** (two thumbs; the default since 2026-11-04, F's call, settings.gd `DEFAULT_CONTROLS`; a save still on the old Point default moves to Classic once): drag left / right on the left side to steer (a strip, car-relative,
   a gentle curve near the middle), GAS bottom right and BRAKE / REVERSE beside it (a thumb can
   slide from one to the other); the camera turns with the car. Keys: A / D steer, W gas, S or
   Space brake.
@@ -5606,6 +5606,7 @@ Command-line options (after `--`):
 | `--heading=deg` | the car's heading at the start (0 north, 90 east), for testing: with `--demo` it drives off that way |
 | `--nohud` | hide the controls |
 | `--left-handed` | accessibility (2026-11-01): the left-handed layout for this run (the pedals, the horn and the helicopter's pads bottom left, the stick's side and Classic's strip on the right, the credit line bottom right), as Settings → DOSTĘP → "Dla leworęcznych" sets it; for shots (`tools/check_hud.gd` checks it) |
+| `--color-safe` | accessibility (2026-11-03): colour-safe markers for this run, as Settings → DOSTĘP sets them: the HUD's green and red tinted, the drop-off ring blue, the rescue pickup's ring dashed and the race ring chequered (`beacon.gd`); for shots |
 | `--lang=pl\|en` | the language for this run (2026-11-02): over the saved choice and the phone's, not saved; `tools/check_language.gd` runs every screen in both |
 | `--no-touch` | desktop (trailer loop, 2026-10-29): no touch-only controls on screen (the pedals and HAMULEC, the stick's knob and Classic's strip hint, the helicopter's ▲/▼ pads, the title's "tap to drive"); the top row, minimap, wallet, cards, bubbles and the radio caption stay, and the panels get the pedals' room; the keys still drive. For recording on the computer (`tools/check_hud.gd` checks it) |
 | `--no-input` | loop 3d-1: the window never takes the keyboard focus (`WINDOW_FLAG_NO_FOCUS`): test renders whose windows hold the focus for minutes (`check_streaming.gd` passes it; keys typed in another app had toggled the time of day, the overlay and the radio) |
@@ -5628,6 +5629,8 @@ Command-line options (after `--`):
 | `--heli-alt=M` | loop 3d-2b: start in the helicopter M metres over the ground, placed there at once (360 = its highest; the memory and far-level probes) |
 | `--mission=N` | start rescue call N at once (N = 1, 5, 9… streets, 2, 6… roofs, 3, 7… river, 4, 8… parks) |
 | `--autopilot` | testing aid: fly (or, ghosting through walls, drive) to each mission target; in a race or a side job, drive the route; with `--rival`, tail the rival |
+| `--ghost-pace=X` | testing aid (street races, 2026-11-04): the autopilot's speed factor in a race (default 1.8, an average player; 2.4 a quick one; `racer`: a skilled player in traffic.gd's racer mode at the car's top), for the race-AI runs (`tools/race_ai.sh`) |
+| `--race-debug` | testing aid (street races, 2026-11-04): once a second while a racing rival or a chaser stands still, traffic.gd prints what holds it (the car ahead, the player, a crossing car, a red, the lane) |
 | `--no-traffic` | no traffic, trams, pedestrians or rivals |
 | `--lineup` | loop 2c: every vehicle model standing round the car, all facing its way (beside it the taxi, Podwózka, the police and guard cars and the two vans; a row ahead the cars' four shapes; behind, the six rivals, then the bus and a tram cab car), no traffic, and each model's triangles printed (`lineup:` lines). Close-ups: `--at=-1113.2,-263.4 --heading=160 --size=14 --nohud` (Marszałkowska) |
 | `--race=N` | race rival N (1–6) at once: they are put just ahead of you |
@@ -5772,6 +5775,7 @@ Command-line options (after `--`):
 | `--cinematic` / `--cinematic=flyin\|look\|opening` | camera loop: the cinematic moments in a test run too (they play only in a normal launch: never with `--notitle`, `--shots`, `--bench`, `--probe`, `--demo` or the other testing flags). With `--notitle` the fly-in starts at once; `--mission=1 --cinematic=look` shows the look at a rescue target. `=opening` forces the first launch's opening flyover (docs/design/opening-flyover.md; normally on a fresh save's normal launch only): `--first10 --cinematic=opening --shots=5,150,300,470` shows it |
 | `--debug-roads` | loop 3a: draw the bridge decks, approaches, tunnels, lane heights and piers round the car (Debug Draw add-on); loop 3b: the piers, portal legs and cap beams the bake placed |
 | `--tunnel` | loop 3b: with `--at`, start on the floor of the tunnel under that point (the car shows through the ground as a silhouette) |
+| `--under` | GAMEPLAY_PLAN 0.3: with `--at`, start on the road under a bridge or viaduct deck there, not on top of it (the car shows through the deck as the tunnel silhouette) |
 | `--drive-into-water=X,Z` | loop 10a: start at X,Z and drive flat out at the nearest water (within 120 m), the collision off until 3 m past the edge as if the car had jumped it; prints `water test:`, `water: splash at …` and `water: towed after … s …` (where to, how far from a lane, dry or not, the job / rescue / race / wallet), each with its frame. With `--kebab=0` a delivery is running (`tools/verify.sh` step `splash`) |
 | `--ram-test` | the driving-feel loop: after 2 s, the car is put 14 m behind the moving traffic car with the longest straight lane ahead, 6 m/s faster, and drives on along that lane (Point, 65 km/h); prints `ram test:` lines: the hit (speed, the rammed car shoved to), then `past it N s after the hit` or `NEVER PAST it after 10 s` (`tools/verify.sh` step `ram`, with `--no-police`) |
 | `--first-life` | first scene items 6-7 (2026-11-02): with `--at=` and `--heading=` on the start, after 15 s of play prints `first life: OK (...)` or its problems: walkers on Marszałkowska's busy pavements (6+, the boost on), people at the start's furniture (8+), a tram bell as one passes the car, the square's bed (`tools/verify.sh` step `firstlife`) |

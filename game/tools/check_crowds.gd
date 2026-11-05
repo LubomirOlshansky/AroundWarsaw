@@ -38,11 +38,14 @@ const TimeOfDay := preload("res://scripts/time_of_day.gd")
 class FakeDialogue extends Node:
 	var said: Array = []
 
-	func say(_anchor: Variant, speaker: String, group: String, tag := "", _s := 4.0, _a := Color.WHITE, _h := 2.6, _p := false) -> Array:
+	func say(_anchor: Variant, speaker: String, group: String, tag := "", _s := 4.0, _a := Color.WHITE, _h := 2.6, _p := false, _k := 0, _key := "") -> Array:
 		said.append([speaker, group, tag])
 		return ["…", "…"]
 
 	func say_ambient(_anchor: Variant, speaker: String, group: String, tag := "", _s := 4.0, _a := Color.WHITE, _h := 2.6, _p := false) -> Array:
+		return say(_anchor, speaker, group, tag, _s, _a, _h, _p)
+
+	func say_reaction(_anchor: Variant, speaker: String, group: String, tag := "", _s := 4.0, _a := Color.WHITE, _h := 2.6, _p := false, _key := "") -> Array:
 		return say(_anchor, speaker, group, tag, _s, _a, _h, _p)
 
 	func count(group: String, tag: String) -> int:
@@ -321,6 +324,10 @@ func _check_sites(c: Crowds) -> void:
 			"Nowogrodzka: the pub crowd by hour, night, month and rain")
 	_expect(Crowds.WILCZA.size() >= 5 and Crowds.WILCZA.keys().all(func(id: String) -> bool: return c.by_id.has(id)),
 			"Wilcza: %d pub spots are sites" % Crowds.WILCZA.size())
+	_expect(Crowds.PRAGA.size() >= 5 and Crowds.PRAGA.keys().all(func(id: String) -> bool: return c.by_id.has(id)),
+			"Praga: %d pub spots are sites" % Crowds.PRAGA.size())
+	_expect(Crowds.VIADUKT.size() == 5 and Crowds.VIADUKT.keys().all(func(id: String) -> bool: return c.by_id.has(id)),
+			"viaduct: %d pub spots are sites" % Crowds.VIADUKT.size())
 	# Mazowiecka street-by-street (2026-11-03): the club street's pavement crowds, a Friday night's, empty
 	# before 21 and by morning, 01:00 Saturday still Friday's, a Tuesday a fifth, rain under a third.
 	_expect(Crowds.MAZOWIECKA.size() >= 5 and Crowds.MAZOWIECKA.keys().all(func(id: String) -> bool: return c.by_id.has(id)),

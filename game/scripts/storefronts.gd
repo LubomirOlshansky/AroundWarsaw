@@ -224,6 +224,21 @@ const VENUES := {
 	"wil_macki": [["MACKI", "I KUFLE"], NOWO_TEAL, 2.8],
 	"wil_kaseta": [["KASETA", "PRZEWIJANA"], NOWO_AMBER, 2.8],
 	"wil_banany": [["REPUBLIKA", "BANANOWA"], NOWO_MAGENTA, 3.0],
+	# Praga's old streets (street-by-street, 2026-11-03): parodies of the real bars' trades near Okrzei,
+	# Wrzesińska, Kijowska and Targowa; pre-war tenements, so warm amber and teal over the plaster.
+	"praga_swiat": [["ŚWIAT", "PO PRASKU"], NOWO_AMBER, 2.8],
+	"praga_barista": [["BARISTA", "Z PODWÓRKA"], NOWO_TEAL, 2.8],
+	"praga_skrzynka": [["WINO ZE", "SKRZYNKI"], NOWO_MAGENTA, 2.8],
+	"praga_kraina": [["KRAINA", "WINA"], NOWO_AMBER, 2.8],
+	"praga_kijowska": [["KIJOWSKA", "DWÓJKA"], NOWO_MAGENTA, 2.8],
+	"praga_kufel": [["POD KUFLEM", "ZA ROGIEM"], NOWO_TEAL, 2.8],
+	# The Powiśle viaduct's closed bays (F, 2026-11-03: "a lot of gastronomy, the K-bar and others"):
+	# parody names over the bays' arched doors (map_builder PV_BARS); a nod to the real bars, not them.
+	"via_qbar": [["Q-BAR POD", "WIADUKTEM"], NOWO_TEAL, 3.7],
+	"via_luk": [["WINO", "POD ŁUKIEM"], NOWY_WINE, 3.7],
+	"via_nity": [["NITY", "I KUFLE"], NOWO_AMBER, 3.7],
+	"via_beton": [["BETONIARNIA", "BISTRO"], NOWY_CREAM, 3.7],
+	"via_filar": [["KAWA", "PRZY FILARZE"], NOWO_MAGENTA, 3.7],
 	"nowy_paczki": [["PĄCZKARNIA", "TŁUSTE DNI"], NOWY_ROSE, 2.8],
 	"nowy_lody": [["LODY", "BEZ KOLEJKI"], NOWY_SKY, 2.8],
 	"nowy_ksiegarnia": [["KSIĘGARNIA", "PRZY KAWIE"], NOWY_CREAM, 2.8],
@@ -464,6 +479,29 @@ const WILCZA := {
 	"wil_kaseta": [52.22391, 21.01234],
 	"wil_banany": [52.22403, 21.01218],
 }
+## Praga's bars (street-by-street, 2026-11-03): six parody fascias at the OpenStreetMap points of the real bars
+## on Stefana Okrzei (nos. 8 and 26, where two bars share one door), Sierakowskiego 4A, Wrzesińska 4,
+## Kijowska 2 and Targowa 1. Ząbkowska's own bars lie outside the map (z < -2045).
+const PRAGA := {
+	"praga_swiat": [52.2510661, 21.0352787],
+	"praga_barista": [52.2489048, 21.0314672],
+	"praga_skrzynka": [52.249572, 21.0333065],
+	"praga_kraina": [52.249752, 21.0352705],
+	"praga_kijowska": [52.2498793, 21.0443072],
+	"praga_kufel": [52.2480169, 21.0455613],
+}
+## The Powiśle viaduct's bars (F, 2026-11-03): the closed bays map_builder.gd builds (PV_INFILL, PV_BARS)
+## under Most Poniatowskiego's deck between Kruczkowskiego and Solec, facing Al. 3 Maja. Game coordinates,
+## not lat/lon: id -> [a point 5 m out of the arcade's face, one 4 m in behind the bay's wall], taken from
+## the viaduct's frame (`_powisle_frame` at the bay's middle s); the sign's ray runs from the first to the
+## second and meets the bay's wall (solid). The deck over it is not in the roof grid: no roof test.
+const VIADUKT := {
+	"via_qbar": [Vector2(536.5, -23.9), Vector2(539.3, -15.4)],
+	"via_luk": [Vector2(587.8, -40.9), Vector2(590.6, -32.3)],
+	"via_nity": [Vector2(530.1, 14.5), Vector2(527.3, 5.9)],
+	"via_beton": [Vector2(564.2, 3.1), Vector2(561.4, -5.5)],
+	"via_filar": [Vector2(615.5, -14.0), Vector2(612.7, -22.6)],
+}
 ## A venue sign's letter pixel (m) and the smallest it shrinks to on a short wall.
 const VENUE_PX := 0.12
 const VENUE_PX_MIN := 0.08
@@ -571,10 +609,12 @@ func setup(data: Dictionary, places: Array) -> void:
 		if str(p.get("k", "")) == "kebab":
 			avoid.append(Vector2(float(p["x"]), float(p["z"])))
 	var with_cafes: Array = places.duplicate()
-	for table: Dictionary in [CAFES, LOUNGES, TRENDY, HYPE, CINEMAS, NOWY_SWIAT, POWISLE, MARSZALKOWSKA, KRAKOWSKIE, ZBAWICIELA, NOWOGRODZKA, MAZOWIECKA, WILCZA, zaglebie_table()]:
+	for table: Dictionary in [CAFES, LOUNGES, TRENDY, HYPE, CINEMAS, NOWY_SWIAT, POWISLE, MARSZALKOWSKA, KRAKOWSKIE, ZBAWICIELA, NOWOGRODZKA, MAZOWIECKA, WILCZA, PRAGA, zaglebie_table()]:
 		for id: String in table:
 			var ll: Array = table[id]
 			with_cafes.append({"id": id, "at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})
+	for id: String in VIADUKT:
+		with_cafes.append({"id": id, "at": VIADUKT[id][1], "road": VIADUKT[id][0], "bld": VIADUKT[id][1]})
 	venues = venue_list(with_cafes, addrs, graph)
 	for v in venues:
 		avoid.append(v["road"])
@@ -907,7 +947,11 @@ static func venue_list(places: Array, addrs: Array[Dictionary], g) -> Array[Dict
 					best = a
 		var road := Vector2.INF
 		var bld := Vector2.INF
-		if not best.is_empty():
+		if p.has("road"):
+			# Given outright (VIADUKT: no address, the nearest road is the deck's).
+			road = p["road"]
+			bld = p["bld"]
+		elif not best.is_empty():
 			road = best["road"]
 			bld = best["bld"]
 		elif g != null:
@@ -1082,8 +1126,9 @@ func _ray(space: PhysicsDirectSpaceState3D, from: Vector3, to: Vector3) -> Dicti
 ## The wall a site faces: the ray from its road point towards its building, `side` m of straight
 ## wall each way (rays from the road shifted along it), a roof `roof` m over the street just
 ## inside. Tries the middle shifted along the wall by up to 5 m. {} if none.
-func _wall(space: PhysicsDirectSpaceState3D, road: Vector2, bld: Vector2, side: float, roof: float, far := RAY_FAR) -> Dictionary:
-	var y: float = map.ground_height(road.x, road.y) + RAY_UP
+## `under` (VIADUKT): the wall stands under a deck, so heights are the terrain's, not the deck's.
+func _wall(space: PhysicsDirectSpaceState3D, road: Vector2, bld: Vector2, side: float, roof: float, far := RAY_FAR, under := false) -> Dictionary:
+	var y: float = (map.terrain_height(road.x, road.y) if under else map.ground_height(road.x, road.y)) + RAY_UP
 	var dir := bld - road
 	if dir.length() < 0.5:
 		return {}
@@ -1115,7 +1160,7 @@ func _wall(space: PhysicsDirectSpaceState3D, road: Vector2, bld: Vector2, side: 
 				break
 		if not ok:
 			continue
-		var g: float = map.ground_height(p.x, p.z)
+		var g: float = map.terrain_height(p.x, p.z) if under else map.ground_height(p.x, p.z)
 		var inside := p - n * 2.0
 		if map.top_height(inside.x, inside.z) < g + roof:
 			continue
@@ -1170,11 +1215,11 @@ func _place_venue(i: int, space: PhysicsDirectSpaceState3D) -> void:
 	var px := VENUE_PX
 	var w := {}
 	while px >= VENUE_PX_MIN - 0.001:
-		w = _wall(space, v["road"], v["bld"], widest * px * 0.5, 2.5)
+		w = _wall(space, v["road"], v["bld"], widest * px * 0.5, 0.0 if VIADUKT.has(v["id"]) else 2.5, RAY_FAR, VIADUKT.has(v["id"]))
 		if not w.is_empty():
 			break
 		px -= 0.02
-	if w.is_empty():
+	if w.is_empty() and not VIADUKT.has(v["id"]):
 		px = VENUE_PX_MIN
 		# Looked for a little to each side (a tree's trunk or a kiosk's wall in the first ray's way).
 		var road: Vector2 = v["road"]
