@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-05
 
+- On every launch after the first, the KEBAB FM host now says hello, the weather and goodbye out loud.
 - Both radio stations now have their own jingles between songs: KEBAB FM in a warm woman's voice, MORDOR FM in a dry man's.
 - KEBAB FM and MORDOR FM now play real music: six vaporwave tracks and six minimal-techno tracks replace the first test loops.
 - Crazy drivers join the traffic: Szkoda Oktawia taxis and Szprynter courier vans speed, tailgate, overtake and cut in right in front of you, and once in a while the legendary Pasatini 1.9 TDJ storms past (black smoke, left lane, no indicator). They honk and shout when they cut you off, and KEBAB FM reports Pasatini sightings.

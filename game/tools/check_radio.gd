@@ -477,6 +477,14 @@ func _host_run(radio: Node, si: int, look: Array, seconds: float) -> Array:
 ## the weather with the temperature in good Polish ("1 stopień", "22 stopnie", "20 stopni"), a
 ## sign-off, nothing left as {t}; the Polish fits the ticker (at most 160 characters).
 func _check_greeting(problems: Array[String]) -> void:
+	# The spoken greeting (greeting_clips.gd): every part of the day and every sky has its clip.
+	for part: String in ["morning", "day", "evening", "night"]:
+		for name: String in ["hello_" + part, "bye_" + part]:
+			if not (load("res://audio/voice/radio/%s.ogg" % name) is AudioStreamOggVorbis):
+				problems.append("greeting clip %s.ogg is missing or did not import" % name)
+	for sky: String in ["warm", "mild", "cold", "rain"]:
+		if not (load("res://audio/voice/radio/weather_%s.ogg" % sky) is AudioStreamOggVorbis):
+			problems.append("greeting clip weather_%s.ogg is missing or did not import" % sky)
 	for pair: Array in [[1, "1 stopień"], [2, "2 stopnie"], [5, "5 stopni"], [12, "12 stopni"], [22, "22 stopnie"], [25, "25 stopni"], [-3, "minus 3 stopnie"]]:
 		if Dialogue.stopnie(pair[0]) != pair[1]:
 			problems.append("stopnie(%d) = '%s' (want '%s')" % [pair[0], Dialogue.stopnie(pair[0]), pair[1]])

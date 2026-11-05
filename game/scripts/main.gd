@@ -67,6 +67,7 @@ const Models := preload("res://scripts/models.gd")
 const TimeOfDay := preload("res://scripts/time_of_day.gd")
 const Radio := preload("res://scripts/radio.gd")
 const OpeningAudio := preload("res://scripts/opening_audio.gd")
+const GreetingClips := preload("res://scripts/greeting_clips.gd")
 const Title := preload("res://scripts/title.gd")
 const Wallet := preload("res://scripts/wallet.gd")
 const Dialogue := preload("res://scripts/dialogue.gd")
@@ -3120,20 +3121,33 @@ func _on_station_changed(_index: int, info: Dictionary) -> void:
 	hud.set_radio_colour(info.get("colour", Color.WHITE) if not info.is_empty() else Color("#c9c4d8"))
 
 
-## Beta radio (2026-11-02): when the title goes on a first start or a new game, the host says good morning (or evening) to
+## Beta radio (2026-11-02): when the title goes, the host says good morning (or evening) to
 ## Warsaw with the weather and the temperature for the game's hour and month, 4 s after the
-## station's caption.
+## station's caption: as ticker text on a first start or a new game (with the opening line), and
+## on every later launch as her three voice clips plus the same text (greeting_clips.gd).
 func _radio_greeting() -> void:
 	# F (2026-11-02): only on the first start and after a new game (the same launches as the
 	# opening flyover: the first-10 guide is due), never on every launch.
-	if first10 == null or not first10.guide:
-		return
+	# F (2026-11-05): every later launch gets her spoken greeting (greeting_clips.gd) instead; the
+	# first start and a new game keep the opening line only.
+	var later := first10 == null or not first10.guide
 	await get_tree().create_timer(4.0).timeout
 	if not is_inside_tree() or radio == null or dialogue == null:
 		return
 	var st := _egg_state()
 	var day: int = int(st["date"]) % 100 if int(st["date"]) > 0 else int(Time.get_date_dict_from_system()["day"])
-	dialogue.greet(float(st["hour"]), bool(st["rain"]), int(st["month"]), day)
+	if not later:
+		dialogue.greet(float(st["hour"]), bool(st["rain"]), int(st["month"]), day)
+		return
+	# Her voice is KEBAB FM's: another station (or none) stays quiet.
+	if radio.station < 0 or str(radio.stations[radio.station]["id"]) != "nocna_fm":
+		return
+	var clips := GreetingClips.new()
+	add_child(clips)
+	if clips.start(radio, dialogue.greeting_parts(float(st["hour"]), bool(st["rain"]), int(st["month"]), day)):
+		dialogue.greet(float(st["hour"]), bool(st["rain"]), int(st["month"]), day)
+	else:
+		clips.queue_free()
 
 
 ## The eggs' probe (egg_book.gd `tick`, tape.gd's E36/E37): the vehicle and the game clock.
