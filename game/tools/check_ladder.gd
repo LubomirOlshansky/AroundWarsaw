@@ -59,6 +59,7 @@ func _initialize() -> void:
 	_data()
 	_gating()
 	_words()
+	_race_hud()
 	_save()
 	await _route()
 	_cleanup()
@@ -179,6 +180,19 @@ func _words() -> void:
 		_expect(pair.size() == 2, "final line %s missing" % key)
 		for t in pair:
 			_expect(str(t) != "" and str(t).length() <= MAX_WORDS, "final %s: %d characters" % [key, str(t).length()])
+
+
+## Beta values (street races R5): the gap in seconds and its words.
+func _race_hud() -> void:
+	_expect(absf(Rivals.time_gap(40.0, 22.2) - 1.8) < 0.05, "40 m at 80 km/h: %.2f s (want 1.8)" % Rivals.time_gap(40.0, 22.2))
+	_expect(absf(Rivals.time_gap(-40.0, 0.0) - 5.0) < 0.01, "40 m standing: %.2f s (want 5.0, the 8 m/s floor)" % Rivals.time_gap(-40.0, 0.0))
+	var behind: Array = Rivals.gap_words("Pani Halina", 40.0, 2.43, true)
+	_expect(behind[0] == "Pani Halina 2,4 s za tobą" and behind[1] == "Pani Halina 2.4 s behind", "gap words behind: %s" % [behind])
+	var ahead: Array = Rivals.gap_words("Mordor Mike", 40.0, 1.0, false)
+	_expect(String(ahead[0]).ends_with("1,0 s przed tobą"), "gap words ahead: %s" % [ahead])
+	var level: Array = Rivals.gap_words("Seba z Pragi", 3.0, 0.1, true)
+	_expect(String(level[0]).ends_with("łeb w łeb!"), "gap words level: %s" % [level])
+	_summary["race_hud"] = "gap in seconds"
 
 
 func _save() -> void:

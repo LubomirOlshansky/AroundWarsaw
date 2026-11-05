@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-04
 
+- Kebab and jar deliveries show the way on the minimap, say how long the kebab stays hot, and a NEXT button on the delivered card points you to the nearest kebab stand; races show the way to the finish, the gap in seconds, who just took the lead and how close the finish was; and Settings → Driving has a new Lane assist switch that keeps the car in its lane while you hold the steering near the middle.
 - The website's "How it grew so far" now runs up to today (the Autopilot playtester, photo-built landmarks, the beta on TestFlight and Play, driving by buttons, smarter racers) and shows how many places are done; the GitHub links are gone, since the code is closed.
 - Street races feel like races now: rivals drive flat out, take corners fast, run red lights and overtake traffic and you; Pani Halina leads the first race so you have someone to chase, every race stays close to the end, and police chases corner and pull away like real pursuers.
 - With the steering strip and pedals, driving head-on into a wall no longer stops the car dead: it turns along the wall the way you steer and drives on.
