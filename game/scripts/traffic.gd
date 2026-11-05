@@ -117,6 +117,29 @@ const PARKED_WAIT := 1.6
 const LOUD_CHANCE := 0.12
 const LOUD_SPEED := Vector2(1.12, 1.25)
 const LOUD_ACCEL := 1.7
+## Racer mode (docs/design/street-races.md R1, 2026-11-04): a driver with a race route and a
+## `race_top` (rivals.gd) or a `race_accel` (police chasers) drives like a racer, not like a town
+## car: top speed `race_top` × its rubber band, capped by road class (RACE_CLASS_TOP: e_class 0
+## main, 1 tertiary, 2 residential, 3 living street), pulling `race_accel` m/s², braking
+## RACE_DECEL, corners at `race_lat` m/s² sideways (v = sqrt(lat × radius) of the junction curve,
+## at least RACE_TURN_MIN), a shorter headway, through every red (a little slower in the box,
+## RACE_RED_SLOW of its speed within RACE_RED_LOOK m of the line), crossing cars only when one is
+## within RACE_CROSS m, and round slower traffic and the player's car: a free lane, or out over
+## the centre line for a pass when the oncoming lane is clear for RACE_PASS_CLEAR m.
+const RACE_CLASS_TOP := [30.0, 25.0, 19.0, 12.0]
+## Racer mode: once a second while a racer stands still, what holds it (main.gd --race-debug).
+var race_debug := false
+const RACE_DECEL := 8.0
+const RACE_HEADWAY := 0.6
+const RACE_TURN_MIN := 6.0
+const RACE_RED_SLOW := 0.75
+const RACE_RED_LOOK := 30.0
+const RACE_CROSS := 7.0
+const RACE_LOOK := 30.0
+const RACE_PASS_CLEAR := 70.0
+const RACE_PASS_ROOM := 40.0
+## Racer mode: stood still this long behind a car with no way past, it slips through (s).
+const RACE_KNOT := 1.5
 ## Pole lamps: red, amber, green.
 const LAMP_ON := [Color("#ff3b2f"), Color("#ffb21e"), Color("#43ff6e")]
 const LAMP_OFF := Color("#2a2c2e")
@@ -183,6 +206,18 @@ class Driver:
 	var finish := -1
 	var arrived := false
 	var run_red := false
+	## Racer mode (RACE_CLASS_TOP above): top speed (m/s; 0: none, the road's limit × speed_factor),
+	## acceleration (m/s²; 0: the town car's IDM), corner grip (m/s²), the rubber band's factor on
+	## the top speed (rivals.gd), and a pass over the centre line under way (s left, its offset).
+	var race_top := 0.0
+	var race_accel := 0.0
+	var race_lat := 7.0
+	var race_band := 1.0
+	var pass_t := 0.0
+	var pass_off := 0.0
+	## Racer stats for the race log: seconds stopped (under 1 m/s) and the passes made.
+	var race_still := 0.0
+	var race_passes := 0
 	## Stay inside the strongly connected core (rivals), so they never leave the map.
 	var core_only := false
 	## A car crossing our path in a junction box: gap to it and its speed.
@@ -788,6 +823,11 @@ func _start(d: Driver, e: int, lane: int, s: float) -> void:
 	d.finish = -1
 	d.run_red = false
 	d.yield_t = 0.0
+	d.pass_t = 0.0
+	if not d.persistent:
+		d.race_top = 0.0
+		d.race_accel = 0.0
+		d.race_band = 1.0
 	# The night-buses loop: a pooled driver forgets its last stop (and a ring bus's parking).
 	d.halt_e = -1
 	d.halting = false
@@ -1450,10 +1490,24 @@ func _choose_next(d: Driver) -> void:
 	d.conn_y1 = graph.height(best, graph.e_s0[best])
 	var turn := absf(here.angle_to(graph.direction(best, graph.e_s0[best])))
 	d.v_turn = 3.5 if best == rev else lerpf(16.0, 5.5, clampf(turn / 1.6, 0.0, 1.0))
+	if d.race_accel > 0.0 and best != rev and not d.route.is_empty():
+		d.v_turn = race_turn_speed(d.conn_len, turn, d.race_lat)
 	d.next_reg = graph.e_lane0[best] + d.next_lane
 	# A racing rival chances some reds.
 	# The night-buses loop: a bus on a route (to a stop, the race to the Palm) never does.
-	d.run_red = not d.route.is_empty() and d.kind != Kind.BUS and _rng.randf() < 0.6
+	d.run_red = not d.route.is_empty() and d.kind != Kind.BUS and (d.race_top > 0.0 or _rng.randf() < 0.6)
+
+
+## Racer mode: the speed (m/s) a racer takes a junction curve of `length` m turning `turn` rad at
+## `lat` m/s² sideways (the curve's radius ~ length / turn).
+static func race_turn_speed(length: float, turn: float, lat: float) -> float:
+	var r := length / maxf(turn, 0.05)
+	return clampf(sqrt(lat * r), RACE_TURN_MIN, 40.0)
+
+
+## Racer mode: whether driver d drives as a racer now (a route, and racer stats).
+static func racing_mode(d) -> bool:
+	return d.race_accel > 0.0 and not d.route.is_empty()
 
 
 func _drive(d: Driver, dt: float) -> void:
@@ -1462,7 +1516,10 @@ func _drive(d: Driver, dt: float) -> void:
 		d.visible = on_screen(d.pos, d.size.y)
 		return
 	var e := d.edge
+	var racer := racing_mode(d)
 	var v0 := graph.e_speed[e] * d.speed_factor
+	if racer and d.race_top > 0.0:
+		v0 = minf(d.race_top, RACE_CLASS_TOP[graph.e_class[e]]) * d.race_band
 	if d.v_cap > 0.0:
 		v0 = d.v_cap  # loop 3g-1: a chaser's own top speed
 	if d.yield_t > 0.0:
@@ -1472,8 +1529,11 @@ func _drive(d: Driver, dt: float) -> void:
 	if d.in_conn:
 		v0 = minf(v0, d.v_turn)
 	elif d.next_edge >= 0:
-		v0 = minf(v0, sqrt(d.v_turn * d.v_turn + 2.0 * DECEL * 0.6 * maxf(graph.e_s1[e] - d.s, 0.0)))
-	if d.chase and not d.in_conn and _red_gap(d) < 30.0:
+		var brake := RACE_DECEL * 0.7 if racer else DECEL * 0.6
+		v0 = minf(v0, sqrt(d.v_turn * d.v_turn + 2.0 * brake * maxf(graph.e_s1[e] - d.s, 0.0)))
+	if racer and not d.in_conn and (d.run_red or d.chase) and _red_gap(d) < RACE_RED_LOOK:
+		v0 = minf(v0, maxf(SIREN_SLOW * 1.4, v0 * RACE_RED_SLOW))  # racer mode: through a red, a little careful
+	elif d.chase and not d.in_conn and _red_gap(d) < 30.0:
 		v0 = minf(v0, SIREN_SLOW)  # loop 3g-1: through a red, slowly, with the siren
 	var gap := INF
 	var lead_v := 0.0
@@ -1501,7 +1561,7 @@ func _drive(d: Driver, dt: float) -> void:
 	var leader_gap := gap
 	var player_gap := INF
 	if not d.ghost:
-		var cross := d.cross_gap < gap and d.squeeze <= 0.0 and d.cross_ignore <= 0.0
+		var cross := d.cross_gap < gap and d.squeeze <= 0.0 and d.cross_ignore <= 0.0 and (not racer or d.cross_gap < RACE_CROSS)
 		if cross:
 			gap = d.cross_gap
 			lead_v = d.cross_v
@@ -1536,14 +1596,16 @@ func _drive(d: Driver, dt: float) -> void:
 						lead_v = maxf(0.0, Vector2(player_vel.x, player_vel.z).dot(fwd))
 		if cross and gap == d.cross_gap and d.v < 0.3 and not d.sees_tram:
 			d.cross_wait += dt
-			if d.cross_wait > 8.0:
+			if d.cross_wait > (1.5 if racer else 8.0):
 				d.cross_ignore = 3.0
 				d.cross_wait = 0.0
 				_ov_knots += 1
 		else:
 			d.cross_wait = 0.0
 		d.cross_ignore -= dt
-	if not d.route.is_empty() and d.halt_e < 0:
+	if racer and d.halt_e < 0:
+		_race_overtake(d, leader_gap, player_gap, dt)
+	elif not d.route.is_empty() and d.halt_e < 0:
 		_overtake(d, leader_gap, dt)
 	elif not d.ghost and player_gap < 10.0 and player_gap <= gap + 0.01 and d.v < 0.5:
 		# The player's car stands in the lane: go round it when the next lane is free.
@@ -1572,18 +1634,21 @@ func _drive(d: Driver, dt: float) -> void:
 		d.slide = move_toward(d.slide, 0.0, SLIDE_DECEL * dt)
 	else:
 		d.slide = 0.0
-		d.off = move_toward(d.off, d.off_target, 2.5 * dt)
+		d.off = move_toward(d.off, d.pass_off if d.pass_t > 0.0 else d.off_target, (4.0 if racer else 2.5) * dt)
 	if d.held or d.stun > 0.0 or d.arrived:
 		gap = minf(gap, 0.0)
 		lead_v = 0.0
 		d.stun -= dt
 
 	var ratio := minf(d.v / maxf(v0, 0.1), 2.0)
-	var a := ACCEL * d.accel_factor * (1.0 - ratio * ratio * ratio * ratio)
+	var amax := d.race_accel if racer else ACCEL * d.accel_factor
+	var a := amax * (1.0 - ratio * ratio * ratio * ratio)
 	if gap < INF:
-		var star := MIN_GAP + maxf(0.0, d.v * HEADWAY + d.v * (d.v - lead_v) / (2.0 * sqrt(ACCEL * DECEL)))
+		var head := RACE_HEADWAY if racer else HEADWAY
+		var comfy := sqrt(amax * RACE_DECEL) if racer else sqrt(ACCEL * DECEL)
+		var star := MIN_GAP + maxf(0.0, d.v * head + d.v * (d.v - lead_v) / (2.0 * comfy))
 		var q := star / maxf(gap, 0.05)
-		a -= ACCEL * q * q
+		a -= (amax if racer else ACCEL) * q * q
 	if dazed:
 		a = minf(a, -DAZE_DECEL)
 	d.v = maxf(0.0, d.v + maxf(a, -10.0) * dt)
@@ -1591,6 +1656,10 @@ func _drive(d: Driver, dt: float) -> void:
 		d.v = minf(d.v, lead_v * 0.5)
 	if d.route.is_empty() and not d.held:
 		d.still = d.still + dt if d.v < 0.3 else 0.0
+	if racer and not d.held and d.v < 1.0:
+		d.race_still += dt
+		if race_debug and fmod(d.race_still, 1.0) < dt:
+			print("race debug: still %.0f s at (%.0f, %.0f) e%d s%.0f/%.0f lanes %d rev %d: leader %.1f player %.1f cross %.1f ign %.1f red %.1f gap %.1f pass %.1f sq %.1f conn %s chase %s" % [d.race_still, d.pos.x, d.pos.z, e, d.s, graph.e_s1[e], graph.e_lanes[e], graph.e_reverse[e], leader_gap, player_gap, d.cross_gap, d.cross_ignore, _red_ahead(d) if not d.in_conn else -1.0, gap, d.pass_t, d.squeeze, d.in_conn, d.chase])
 
 	var step := d.v * dt
 	if d.in_conn:
@@ -1679,11 +1748,91 @@ func _overtake(d: Driver, leader_gap: float, dt: float) -> void:
 			d.still = 0.0
 
 
+## Racer mode: past slower traffic and the player's car. Start looking RACE_LOOK m back; a free
+## lane of the same road first (as _overtake); else, on a road with an oncoming lane clear for
+## RACE_PASS_CLEAR m (and RACE_PASS_ROOM m of this road left before the junction), out over the
+## centre line for long enough to get by, ignoring the cars in its own lane meanwhile. Stuck still
+## behind someone with no way past for RACE_KNOT s (a knot of cars in a junction box): it slips through.
+func _race_overtake(d: Driver, leader_gap: float, player_gap: float, dt: float) -> void:
+	d.squeeze -= dt
+	if d.pass_t > 0.0:
+		d.pass_t -= dt
+		d.squeeze = maxf(d.squeeze, 0.1)
+		if d.pass_t <= 0.0 or d.in_conn or graph.e_s1[d.edge] - d.s < 6.0:
+			# Back in lane; stay out while a car is alongside (if the junction allows).
+			if not d.in_conn and graph.e_s1[d.edge] - d.s >= 6.0 and _alongside(d):
+				d.pass_t = 0.3
+			else:
+				d.pass_t = 0.0
+				d.squeeze = 0.0
+		return
+	# A chaser keeps its gap behind the player (it never passes or rams); a rival goes round.
+	var ahead := leader_gap if d.chase else minf(leader_gap, player_gap)
+	if ahead > RACE_LOOK:
+		d.still = 0.0
+		return
+	# Any free lane, even close to the junction (a racer slips out of a queue at the lights); in
+	# the junction curve itself only the knot rule below (Zbyszek stood 22 s in one).
+	if not d.in_conn:
+		if _change_lane(d, ahead + 6.0, 4.0 if d.v < 3.0 else 12.0):
+			return
+		if _race_pass(d, ahead):
+			return
+	if d.v < 1.0:
+		d.still += dt
+		# A knot of cars in a junction box (headless runs: Halina stood 20 s at the start behind
+		# a town car that stood too): a racer slips through after RACE_KNOT s, seen or not.
+		if d.still > RACE_KNOT:
+			d.squeeze = 2.0
+			d.cross_ignore = 2.0
+			d.still = 0.0
+
+
+## Racer mode: starts a pass over the centre line if the oncoming lane is clear (see above).
+func _race_pass(d: Driver, ahead: float) -> bool:
+	var e := d.edge
+	var left := graph.e_s1[e] - d.s
+	if left < RACE_PASS_ROOM:
+		return false
+	var rev := graph.e_reverse[e]
+	var lw := graph.e_lw[e]
+	var out := graph.lane_offset(e, 0) - lw * 0.9
+	if rev >= 0:
+		# The oncoming cars: on the reverse edge, s_rev ~ e_len - s; clear ahead of us.
+		var at := graph.e_len[e] - d.s
+		for k in graph.e_lanes[rev]:
+			for o in _lane_cars[graph.e_lane0[rev] + k]:
+				var dd: float = at - o.ls
+				if dd > -8.0 and dd < RACE_PASS_CLEAR:
+					return false
+	else:
+		return false  # a one-way street: its other lanes or nothing (no oncoming side to use)
+	# Long enough to get by the car ahead and its leader's length, at our speed edge over theirs.
+	var need := clampf((ahead + 16.0) / maxf(d.v * 0.35, 3.0), 1.5, 4.0)
+	if need * maxf(d.v, 5.0) > left - 6.0:
+		return false
+	d.pass_t = need
+	d.pass_off = out
+	d.squeeze = need
+	d.race_passes += 1
+	return true
+
+
+## Racer mode: a car of its own road's lanes within a car's length beside d.
+func _alongside(d: Driver) -> bool:
+	var e := d.edge
+	for k in graph.e_lanes[e]:
+		for o in _lane_cars[graph.e_lane0[e] + k]:
+			if o != d and absf(o.ls - d.ls) < (o.length + d.length) * 0.5 + 1.5:
+				return true
+	return false
+
+
 ## Moves to the neighbouring lane with the most room ahead (more than `room`
 ## metres, nobody alongside), if the road has one. The car slides across.
-func _change_lane(d: Driver, room_needed: float) -> bool:
+func _change_lane(d: Driver, room_needed: float, near := 18.0) -> bool:
 	var e := d.edge
-	if d.in_conn or graph.e_s1[e] - d.s < 18.0:
+	if d.in_conn or graph.e_s1[e] - d.s < near:
 		return false
 	var best := -1
 	var best_room := room_needed

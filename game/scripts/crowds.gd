@@ -281,6 +281,16 @@ const PRAGA := {
 	"pub_praga_kijowska": [Vector2(1380.7, -1770.0), 8, 12.0],
 	"pub_praga_kufel": [Vector2(1475.1, -1567.3), 10, 12.0],
 }
+## The Powiśle viaduct's bars (F, 2026-11-03): people with a glass at the café tables and the doors of
+## the five bars in the closed bays under Most Poniatowskiego (map_builder PV_BARS, storefronts.gd VIADUKT),
+## on the `pub` curve. id -> [spot 2 m out of the arcade's face, most people, radius].
+const VIADUKT := {
+	"pub_via_qbar": [Vector2(537.5, -21.1), 8, 7.0],
+	"pub_via_luk": [Vector2(588.7, -38.1), 6, 7.0],
+	"pub_via_nity": [Vector2(529.1, 11.6), 8, 7.0],
+	"pub_via_beton": [Vector2(563.3, 0.2), 6, 7.0],
+	"pub_via_filar": [Vector2(614.5, -16.9), 5, 7.0],
+}
 ## Mazowiecka's club street (street-by-street, 2026-11-03): people in the queues and smokers on the
 ## pavement outside the clubs of Mazowiecka between Świętokrzyska and Królewska, on the `club` curve
 ## (`club_level`: the existing clubs' curve, fullest 01-02, thinning by 05, the clubs' own WEEKDAY factor, so
@@ -914,6 +924,9 @@ func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
 	for gid: String in PRAGA:
 		var gs: Array = PRAGA[gid]
 		_add_site({"id": gid, "kind": "chill", "pub": true, "sit": false, "at": gs[0], "max": int(gs[1]), "radius": float(gs[2])})
+	for vid: String in VIADUKT:
+		var vs: Array = VIADUKT[vid]
+		_add_site({"id": vid, "kind": "chill", "pub": true, "sit": false, "at": vs[0], "max": int(vs[1]), "radius": float(vs[2])})
 	for kid: String in MAZOWIECKA:
 		var ks: Array = MAZOWIECKA[kid]
 		_add_site({"id": kid, "kind": "chill", "club": true, "sit": false, "at": ks[0], "max": int(ks[1]), "radius": float(ks[2])})

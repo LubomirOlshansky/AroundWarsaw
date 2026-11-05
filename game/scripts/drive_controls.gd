@@ -3,7 +3,7 @@ extends RefCounted
 ## (tools/check_steering.gd), so the test drives exactly what the player drives.
 ##
 ## Three schemes (Settings → Controls, `--controls=`):
-## - POINT (the default): point where you want to go. The stick points in screen space. Since
+## - POINT (the default until 2026-11-04): point where you want to go. The stick points in screen space. Since
 ##   the follow-camera loop (FOLLOW_HELD) the camera turns with the car while the finger is down
 ##   too; a held direction keeps the world direction it meant when it was set (the screen as it
 ##   was then), and pointing somewhere new (REAIM° or more from it) means the screen as it is now.
@@ -11,7 +11,7 @@ extends RefCounted
 ##   after it lifted (follow_camera.gd): the view only swung round once you let go. Gas comes
 ##   from how far the stick is pushed (full from three quarters out). Pointing well behind
 ##   brakes, then turns (car.gd).
-## - CLASSIC: steer + pedals. The stick's left / right steers (car-relative), GAS and
+## - CLASSIC (the default since 2026-11-04, F's call; settings.gd DEFAULT_CONTROLS): steer + pedals. The stick's left / right steers (car-relative), GAS and
 ##   BRAKE / REVERSE are buttons on the right; the camera turns with the car.
 ## - FIXED: point where you want to go with the camera never turning (the v0.4 scheme).
 ## Keys follow the scheme: in POINT and FIXED, W A S D / arrows point in screen directions
@@ -40,7 +40,7 @@ const FOLLOW_HELD := true
 ## moving the finger this many degrees or more sets it again, against the screen as it is now.
 const REAIM := 20.0
 
-var scheme := POINT
+var scheme := CLASSIC
 ## True while the stick's finger is down or a direction key is held (POINT: the camera waits).
 var held := false
 ## Seconds since `held` last was true (the camera loop's follow_camera.gd reads it).

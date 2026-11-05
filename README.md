@@ -83,14 +83,9 @@ Add-ons, music and the full list: [CREDITS.md](CREDITS.md).
 
 ## Licence
 
-The code and the game's own art, music and sound are under the [MIT licence](LICENSE). The map
-data in `game/map/` is not: it keeps its sources' licences (ODbL, GUGiK open data, CC BY 4.0),
-as [CREDITS.md](CREDITS.md) says.
-
-## Contributing
-
-Issues and small pull requests are welcome: read [CONTRIBUTING.md](CONTRIBUTING.md) first (the
-verification script, parodies only, Polish with English, the phone budget).
+All rights reserved ([LICENSE](LICENSE)): the code and the game's own art, music and sound are
+not open source for now. The map data in `game/map/` keeps its sources' licences (ODbL, GUGiK open
+data, CC BY 4.0), as [CREDITS.md](CREDITS.md) says.
 
 ## Related Warsaw projects
 

@@ -78,6 +78,10 @@ per event, to its trace file:
   never drove the other eight). A steering deadband of about 14° keeps it on the street.
 - A **stuck** is under 1.2 m/s for over 2 s with the gas held; when one lasts 10 s, reverse or
   `--at=` back to the route and go on, so a trap costs time but doesn't end the run.
+- **Controls**: Classic is the default since 2026-11-04 (editor runs pass `--nosave`, so they get
+  it): A / D steer car-relative, W is the gas, S brakes and reverses from a standstill. A harness
+  written for Point's screen-direction keys must add `--controls=point` to the run's arguments,
+  or drive with A / D against the car's heading. Name the scheme in the trace.
 - **Keys**: the game reads `physical_keycode` (main.gd `_unhandled_key_input`: H, Q, E, C...), so an injected key event must set it, or H "does nothing" (run 12). The HELI button always works. During a job that rides in the car the helicopter is refused with a toast, by design.
 - **Short runs**: on F's Mac the run's sandbox ended (-9) about 5-6 minutes into the second episode in runs 11-14, even in a single episode (runs 13-14), at about 6 minutes of play: plan rows that need under 6 minutes, start what you test in the first 2-3 minutes, and restart the editor before a run; flush the trace every tick and describe frames as they come in.
 - After the run, frame-describer on the frames of every stop and height event: a hard stop can

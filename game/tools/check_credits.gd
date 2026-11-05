@@ -3,7 +3,7 @@ extends SceneTree
 ## and licences page says what the build is made of.
 ##   - release.gd: a release build reads no flags (with "--" or without), a debug build reads the
 ##     user args, or the engine's list when a launcher swallowed the "--";
-##   - credits.gd names OpenStreetMap with ODbL 1.0, GUGiK, the trees' CC BY 4.0, the MIT licence
+##   - credits.gd names OpenStreetMap with ODbL 1.0, GUGiK, the trees' CC BY 4.0, the add-ons' MIT licences
 ##     and Godot; every add-on folder that ships (addons/*, minus the export's exclude filter) is
 ##     in credits.gd ADDONS and named on the page, and nothing in ADDONS is missing from addons/;
 ##   - every radio track in data/radio.json is on the page, with a licence that is not "unknown";

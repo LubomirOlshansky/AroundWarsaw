@@ -14,6 +14,13 @@ extends RefCounted
 ## - **Pace**: each rung's rival races at its own speed (`pace`: the traffic driver's
 ##   speed_factor, `accel`: its accel_factor), rising up the ladder from Halina's 1.25 to Mike's
 ##   1.5 (the races were a flat 1.45 before loop 3h).
+## - **Racing** (docs/design/street-races.md R1/R2/R4, 2026-11-04): in a race the rival drives in
+##   traffic.gd's racer mode, not at `pace` × the speed limit: `share` of the player's car top
+##   speed (capped by road class), `race_accel` m/s², corners at `lat` m/s² sideways (Halina is
+##   fast on straights and timid in corners), and a rubber band of strength `band` (rivals.gd
+##   `band_mult`; strong at the bottom of the ladder, small at the top) that aims her `aim` m
+##   behind the player (> 0: an even drive beats her; < 0: she aims to be in front). `pace` stays as the
+##   cruise-time liveliness and the old tests' order.
 ## - **The record** is the wallet's `ladder` (rung id -> the day it was first beaten, yyyymmdd;
 ##   the save's [ladder] section, wallet.gd). The final's win is `ladder["trzy_mosty"]`
 ##   (`final_won`), for the end card of the next slice.
@@ -23,12 +30,18 @@ const Lang := preload("res://scripts/lang.gd")
 ## The rungs: id (the save's key), the rival's name as rivals.gd RIVALS has it, the short name for
 ## the locked prompt, the stake (zł, as RIVALS), the respect it needs, and the race pace.
 const RUNGS := [
-	{"id": "halina", "rival": "Pani Halina", "short": "HALINA", "stake": 60, "respect": 0, "pace": 1.25, "accel": 1.5},
-	{"id": "sloik", "rival": "Słoik z Radomia", "short": "SŁOIK", "stake": 90, "respect": 100, "pace": 1.3, "accel": 1.55},
-	{"id": "bartek", "rival": "Bulwar Bartek", "short": "BARTEK", "stake": 120, "respect": 220, "pace": 1.35, "accel": 1.6},
-	{"id": "seba", "rival": "Seba z Pragi", "short": "SEBA", "stake": 150, "respect": 340, "pace": 1.4, "accel": 1.65},
-	{"id": "zbyszek", "rival": "Taksiarz Zbyszek", "short": "ZBYSZEK", "stake": 200, "respect": 480, "pace": 1.45, "accel": 1.7},
-	{"id": "mike", "rival": "Mordor Mike", "short": "MIKE", "stake": 300, "respect": 640, "pace": 1.5, "accel": 1.75},
+	{"id": "halina", "rival": "Pani Halina", "short": "HALINA", "stake": 60, "respect": 0, "pace": 1.25, "accel": 1.5,
+		"share": 0.72, "race_accel": 7.0, "lat": 5.5, "band": 0.8, "aim": 25.0},
+	{"id": "sloik", "rival": "Słoik z Radomia", "short": "SŁOIK", "stake": 90, "respect": 100, "pace": 1.3, "accel": 1.55,
+		"share": 0.75, "race_accel": 7.5, "lat": 6.5, "band": 0.65, "aim": 15.0},
+	{"id": "bartek", "rival": "Bulwar Bartek", "short": "BARTEK", "stake": 120, "respect": 220, "pace": 1.35, "accel": 1.6,
+		"share": 0.86, "race_accel": 8.0, "lat": 8.0, "band": 0.5, "aim": 8.0},
+	{"id": "seba", "rival": "Seba z Pragi", "short": "SEBA", "stake": 150, "respect": 340, "pace": 1.4, "accel": 1.65,
+		"share": 0.9, "race_accel": 8.5, "lat": 8.0, "band": 0.4, "aim": 0.0},
+	{"id": "zbyszek", "rival": "Taksiarz Zbyszek", "short": "ZBYSZEK", "stake": 200, "respect": 480, "pace": 1.45, "accel": 1.7,
+		"share": 0.92, "race_accel": 9.0, "lat": 8.5, "band": 0.3, "aim": -5.0},
+	{"id": "mike", "rival": "Mordor Mike", "short": "MIKE", "stake": 300, "respect": 640, "pace": 1.5, "accel": 1.75,
+		"share": 0.94, "race_accel": 10.0, "lat": 8.5, "band": 0.25, "aim": -10.0},
 ]
 ## The final race: index RUNGS.size() (6) everywhere a rung index is asked for.
 const FINAL := 6
@@ -46,6 +59,10 @@ const REMATCH_GAIN := 20
 ## Seba's pace in the final (a long race: the same as Zbyszek's, a bit under Mike's).
 const FINAL_PACE := 1.45
 const FINAL_ACCEL := 1.7
+## Seba's racing in the final (`racer`): near Mike's top, every corner, a small band.
+const FINAL_RACER := {"share": 0.95, "race_accel": 10.0, "lat": 8.5, "band": 0.15, "aim": -10.0}
+## Racing outside the ladder.
+const DEFAULT_RACER := {"share": 0.85, "race_accel": 8.5, "lat": 7.5, "band": 0.4, "aim": 0.0}
 ## The pace of a race outside the ladder (no wallet, an unknown rival): the old flat one.
 const DEFAULT_PACE := 1.45
 const DEFAULT_ACCEL := 1.7
@@ -78,6 +95,16 @@ static func race_gain(i: int, first: bool) -> int:
 ## The save's key of rung `i`.
 static func id_of(i: int) -> String:
 	return FINAL_ID if i == FINAL else str(RUNGS[i]["id"])
+
+
+## The racer stats of rung `i` (FINAL: the final's; -1: the default): share, race_accel, lat, band.
+static func racer(i: int) -> Dictionary:
+	if i == FINAL:
+		return FINAL_RACER
+	if i < 0 or i >= RUNGS.size():
+		return DEFAULT_RACER
+	var r: Dictionary = RUNGS[i]
+	return {"share": r["share"], "race_accel": r["race_accel"], "lat": r["lat"], "band": r["band"], "aim": r["aim"]}
 
 
 ## [speed_factor, accel_factor] for rung `i` (FINAL: the final's; -1: the default).
