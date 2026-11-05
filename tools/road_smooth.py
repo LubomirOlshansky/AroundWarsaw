@@ -46,6 +46,11 @@ post-passes; this file also runs on a baked map, as the cloud has no OpenStreetM
    median) are marked (`trams[].bed`) for sleepers; a road, footway or a zebra's line that crosses
    a bed becomes a band over it (`tram_xings`) and the kerbs and lines inside it go; steps that
    end at a metro entrance name their deep end (`steps[].down`).
+7. Openings (F's round 4): a road through a tram median (a U-turn link at least UTURN_W m) gets
+   one paved footprint (`tram_xings[].foot`) with the median ended in rounded, kerbed noses
+   (`tram_noses`); kerb stubs and line scraps left there go. At main-street crossings
+   (crossing_kit) the lane arrows follow each lane's moves at the junction ahead, and stand
+   clear of a U-turn link's mouth with a straight-and-U-turn arrow in the inner lane.
 
 The lane graph, the carriageway areas, the junction boxes and the decks are not touched.
 Deterministic, standard library only. Re-run tools/bake_sectors.py and bake_city.gd after it.
@@ -60,7 +65,7 @@ VERSION = 2
 # --check (2026-11-05, the demo box after the first pass): 727 edge steps -> 15 (joins without room
 # for a taper), 969 line jogs -> 16. Lower these when a change leaves fewer; never raise them.
 CHECK_STEPS = 10
-CHECK_JOGS = 17
+CHECK_JOGS = 23
 MINOR = {"service", "living_street"}
 CHAIN_COS = 0.85        # ways carry on: their directions at the join within ~32 degrees
 STEP_MIN = 0.3          # m: a smaller edge step is invisible
@@ -1398,6 +1403,7 @@ def tram_beds(out, on_bed):
     return marked
 
 
+UTURN_W = 6.0     # m: a U-turn link through a tram median, wide enough for the car's turning path
 XING_MAX = 30.0   # m: a longer run on a bed runs along it, not across
 XING_PAD = 0.4    # m the crossing's paving reaches past the bed's edge
 XING_MIN = 3.0    # m: a shorter run only grazes the bed's edge
@@ -1477,6 +1483,10 @@ def tram_crossings(out, on_bed):
         for a, b in _runs_on(pts, on_bed, 0.5):
             run = _cut(pts, max(a - XING_PAD, 0.0), b + XING_PAD)
             if b - a <= XING_MAX and across(run):
+                if r["k"].endswith("_link") and r.get("oneway"):
+                    # F (round 4): a U-turn's opening through the median, wide enough for the
+                    # car's turning path (the link's own asphalt stays as mapped)
+                    w = max(w, UTURN_W)
                 xings.append({"p": flat_of(run), "w": round(w + 0.4, 2), "k": "road"})
     for pa in out.get("paths", []):
         if pa["k"] != "foot":
@@ -1836,6 +1846,9 @@ KIT_SIGNAL_NEAR = 30.0  # m: a mapped signal this near means the crossing has it
 KIT_STOP_GAP = 1.0    # m between a stop line and the first band painted across (zebra, cycle crossing)
 KIT_ARROW = 9.0       # m before the stop line to the lane arrows' middle
 KIT_SOLID = 18.0      # m of solid lane line before a stop line (P-2b)
+KIT_AHEAD = 35.0      # m past a crossing searched for the junction its lanes turn at
+KIT_TURN_COS = 0.8    # a way leaving within this cosine of straight on is straight on
+KIT_UTURN_GAP = 6.0   # m before a U-turn link's mouth to its arrows (not in the mouth)
 
 
 def _seg_x(a, b, c, d):
@@ -1894,6 +1907,76 @@ def crossing_kit(out, asphalt):
         cx_, cz_ = int(x // 30), int(z // 30)
         return [c for i in (-1, 0, 1) for j in (-1, 0, 1) for c in cgrid.get((cx_ + i, cz_ + j), ())
                 if math.dist(((c[0][0] + c[1][0]) / 2, (c[0][1] + c[1][1]) / 2), (x, z)) < 20.0]
+    # Round 4 (F): arrows from where each lane actually leads. The ways leaving each node, as
+    # (road, direction away); a one-way street only away from its start.
+    leave = defaultdict(list)
+    for k, r in enumerate(out["roads"]):
+        if r["k"] in MINOR or int(r.get("dk", -1)) >= 0:
+            continue
+        p = pts_of(r["p"])
+        for i, q in enumerate(p):
+            key = (round(q[0], 1), round(q[1], 1))
+            if i + 1 < len(p):
+                leave[key].append((k, p[i + 1]))
+            if i > 0 and not r.get("oneway"):
+                leave[key].append((k, p[i - 1]))
+
+    def u_link(k2, tx, tz):
+        """Whether road k2 is a one-way link that ends heading back against (tx, tz): a U-turn
+        through a median."""
+        r2 = out["roads"][k2]
+        if not (r2["k"].endswith("_link") and r2.get("oneway")):
+            return False
+        q = pts_of(r2["p"])
+        dx, dz = q[-1][0] - q[-2][0], q[-1][1] - q[-2][1]
+        return (dx * tx + dz * tz) / (math.hypot(dx, dz) or 1e-9) < -0.5
+
+    def moves(k, p, v, f, sgn):
+        """The moves ('L', 'T', 'R') open at the junction within KIT_AHEAD m past (v, f) on road k
+        travelled sgn, and the distance back from (v, f) to a U-turn link's mouth before it, if any."""
+        ux, uz = p[v + 1][0] - p[v][0], p[v + 1][1] - p[v][1]
+        l = math.hypot(ux, uz) or 1e-9
+        tx, tz = ux / l * sgn, uz / l * sgn
+        here = (p[v][0] + ux * f, p[v][1] + uz * f)
+        order = range(v + 1, len(p)) if sgn > 0 else range(v, -1, -1)
+        found, run, prev = set(), 0.0, here
+        for i in order:
+            run += math.dist(prev, p[i])
+            prev = p[i]
+            if run > KIT_AHEAD:
+                break
+            for k2, nb in leave.get((round(p[i][0], 1), round(p[i][1], 1)), ()):
+                if k2 == k:
+                    continue
+                dx, dz = nb[0] - p[i][0], nb[1] - p[i][1]
+                dl = math.hypot(dx, dz) or 1e-9
+                cos = (dx * tx + dz * tz) / dl
+                if cos > KIT_TURN_COS:
+                    found.add("T")
+                elif cos > -0.9:
+                    found.add("R" if (dx * -tz + dz * tx) / dl > 0 else "L")
+            nxt = i + 1 if sgn > 0 else i - 1
+            if 0 <= nxt < len(p):
+                found.add("T")   # the way itself goes on
+            if "L" in found or "R" in found:
+                break
+        # a U-turn link leaving up to KIT_ARROW + 14 m before here
+        back = None
+        order = range(v, -1, -1) if sgn > 0 else range(v + 1, len(p))
+        run, prev = 0.0, here
+        for i in order:
+            run += math.dist(prev, p[i])
+            prev = p[i]
+            if run > KIT_ARROW + 14.0:
+                break
+            if any(u_link(k2, tx, tz) for k2, _ in leave.get((round(p[i][0], 1), round(p[i][1], 1)), ()) if k2 != k):
+                back = run
+                break
+        return found or {"T"}, back
+
+    SHAPES = {frozenset("T"): "T", frozenset("L"): "L", frozenset("R"): "R", frozenset("LT"): "LT",
+              frozenset("TR"): "TR", frozenset("LR"): "LR", frozenset("LTR"): "LTR"}
+
     solid_cuts = []   # (x, z, ux, uz, half width): stretches of lane line to make solid
     for pa in out.get("paths", []):
         if pa["k"] != "zebra" or int(pa.get("dk", -1)) >= 0:
@@ -1948,12 +2031,31 @@ def crossing_kit(out, asphalt):
                 a = (bxp + nx * o0, bzp + nz * o0)
                 b = (bxp + nx * o1, bzp + nz * o1)
                 new_stops.append({"k": "stop", "p": flat_of([a, b])})
-                # a straight-on arrow in each lane, KIT_ARROW m before the stop line
+                # an arrow in each lane, KIT_ARROW m before the stop line, for where it leads at
+                # the junction past the crossing: the leftmost lane takes the left turn, the
+                # rightmost the right one, the rest go straight on; before a U-turn link's mouth
+                # (round 4) the arrows stand clear of it and the leftmost lane shows the U-turn too
                 n_l = max(1, lanes if oneway else lanes // 2)
-                ax_, az_ = bxp - ux * sgn * KIT_ARROW, bzp - uz * sgn * KIT_ARROW
+                open_, u_back = moves(k, p, v, x[0], sgn)
+                ahead = KIT_ARROW
+                # (a mouth up to KIT_UTURN_GAP m upstream of where the arrows would stand counts)
+                at_u = u_back is not None and u_back < KIT_ARROW + back + KIT_UTURN_GAP
+                if at_u:
+                    ahead = u_back - back + KIT_UTURN_GAP
+                ax_, az_ = bxp - ux * sgn * ahead, bzp - uz * sgn * ahead
                 for li in range(n_l):
                     lo = o0 + (li + 0.5) * (o1 - o0) / n_l
-                    arrows.append({"k": "arrow", "t": "T", "x": round(ax_ + nx * lo, 2), "z": round(az_ + nz * lo, 2),
+                    mv = {"T"} & open_ or set()
+                    if li == 0 and "L" in open_:
+                        mv.add("L")
+                    if li == n_l - 1 and "R" in open_:
+                        mv.add("R")
+                    if not mv:
+                        mv = set(open_) if n_l == 1 else {"L"} if li == 0 and "L" in open_ else {"R"} if "R" in open_ else {"L"}
+                    t = SHAPES.get(frozenset(mv), "T")
+                    if at_u and li == 0:
+                        t = "TU" if "T" in mv and len(mv) == 1 else "U" if mv == {"L"} else t
+                    arrows.append({"k": "arrow", "t": t, "x": round(ax_ + nx * lo, 2), "z": round(az_ + nz * lo, 2),
                                    "d": [round(ux * sgn, 3), round(uz * sgn, 3)]})
                 # the pole on the kerb past the stop line's right end (as the driver sees it)
                 for out_by in (1.0, 1.6, 2.2):
@@ -2012,6 +2114,7 @@ PAINT_MINOR_NEAR = 6.0    # m from its middle to a driveway or service road
 HATCH_GAP = 1.1           # m between the hatching's stripes
 
 
+PAINT_STRAY_KERB = 10.0  # m: a kerb up to this long all within 2 m of a painted island goes with it
 PAINT_TAPER = 8.0   # m a painted island runs on along the street's edge at each end
 
 
@@ -2086,6 +2189,11 @@ def paint_islands(out, asphalt):
         # F (round 3): a hatched triangle floating in the asphalt reads as a stray; it tapers
         # out along the street's edge, PAINT_TAPER m each way on its side most along a street
         # (a painted taper into the edge line, as Warsaw paints a driveway's mouth).
+        # (an island traced round its rounded corners has many points: its corners decide)
+        if len(q) > 8:
+            qs = simplify(q + [q[0]], 0.35)[:-1]
+            if 3 <= len(qs) <= 8:
+                q = qs
         if len(q) <= 8:
             best = None
             for i in range(len(q)):
@@ -2109,6 +2217,14 @@ def paint_islands(out, asphalt):
         box = (min(p[0] for p in q) - 1, max(p[0] for p in q) + 1, min(p[1] for p in q) - 1, max(p[1] for p in q) + 1)
         out["kerbs"] = _drop_inside(out.get("kerbs", []), lambda x, z: box[0] <= x <= box[1] and box[2] <= z <= box[3]
                                     and _near_ring(q, x, z, 0.4))
+        # and a short kerb left standing in the asphalt beside it (the street's kerb across the
+        # driveway's mouth, now the taper's side)
+        def stray(k):
+            kq = pts_of(k["p"])
+            if sum(math.dist(a, b) for a, b in zip(kq, kq[1:])) > PAINT_STRAY_KERB:
+                return False
+            return all(_near_ring(q, x, z, 2.0) or _poly_hit(q, x, z) for x, z in densify(kq, 0.5))
+        out["kerbs"] = [k for k in out["kerbs"] if not stray(k)]
         out["markings"].append({"k": "edge", "p": flat_of(q + [q[0]])})
         # the hatching: lines at 45 degrees to the island's longest side, clipped to it
         i = max(range(len(q)), key=lambda k: math.dist(q[k], q[k - 1]))
@@ -2162,6 +2278,50 @@ def _street_tests(out):
 
 
 POLE_STEP_MAX = 8.0   # m a lamp or pole may step back off the asphalt
+
+
+SCOOTER_RAMP = 3.0   # m: tools/check_pois.py Q3 keeps a lying scooter (0.8 m more: its own half length) this far from a crossing's end
+
+
+def clear_scooters(out, asphalt):
+    """A zebra run on to the kerb (extend_zebras) can end beside a lying scooter (a kerb ramp,
+    check_pois Q3): the scooter steps away from the crossing's end along the pavement, as the
+    poles do. Returns the count moved."""
+    ends = []
+    for pa in out.get("paths", []):
+        if pa["k"] in ("zebra", "cyclecross"):
+            q = pts_of(pa["p"])
+            if len(q) >= 2:
+                ends += [q[0], q[-1]]
+    grid = defaultdict(list)
+    for e in ends:
+        grid[(int(e[0] // 20), int(e[1] // 20))].append(e)
+
+    def near(x, z):
+        cx, cz = int(x // 20), int(z // 20)
+        return [e for i in (-1, 0, 1) for j in (-1, 0, 1) for e in grid.get((cx + i, cz + j), ())
+                if math.dist(e, (x, z)) < SCOOTER_RAMP + 0.8]
+    moved = 0
+    for po in out.get("pois", []):
+        if po.get("k") != "scooter" or po.get("p") != "lie":
+            continue
+        hit = near(po["x"], po["z"])
+        if not hit:
+            continue
+        e = hit[0]
+        dx, dz = po["x"] - e[0], po["z"] - e[1]
+        a0 = math.atan2(dz, dx) if dx or dz else 0.0
+        for da in (0.0, 0.5, -0.5, 1.0, -1.0, 1.6, -1.6):
+            for r in (4.6, 5.0, 5.4):
+                x, z = e[0] + math.cos(a0 + da) * r, e[1] + math.sin(a0 + da) * r
+                if not asphalt(x, z) and not near(x, z):
+                    po["x"], po["z"] = round(x, 2), round(z, 2)
+                    moved += 1
+                    break
+            else:
+                continue
+            break
+    return moved
 
 
 def clear_poles(out, asphalt):
@@ -2229,7 +2389,7 @@ def clear_poles(out, asphalt):
 BESIDE_GAP = 0.3     # m of road between a cycle crossing's edge and the zebra's stripes
 CYCLE_HALF = 1.35    # m: map_builder's cycle crossing, 2.2 m of red and its rows of white squares
 ZEBRA_HALF = 1.8     # m: map_builder's zebra stripes are 3.6 m long
-BESIDE_MAX = 10.0    # m: a zebra farther from its cycle crossing is a crossing of its own
+BESIDE_MAX = 12.0    # m: a zebra farther from its cycle crossing is a crossing of its own
 
 
 def zebras_beside_cycles(out):
@@ -2306,6 +2466,129 @@ def zebras_beside_cycles(out):
     return moved
 
 
+NOSE_STEP = 0.25      # m between the samples across a bed
+NOSE_SIDE = 2.5      # m the opening's paving runs past the bed's measured edges (its gravel verge, a bent track's sleepers)
+SCRAP_LEN = 4.0       # m: a line this short by an opening is a scrap
+NOSE_ARC = 10         # points on a median nose's half circle
+
+
+def shape_openings(out, on_bed):
+    """F (round 4): where a road crosses a tram median (a U-turn, a side street), the opening has
+    one footprint: the paved crossing (`tram_xings`) runs on past the road's edges by half the bed's
+    width, and each side of it ends the median in a rounded nose: a half circle of the bed's width
+    (`tram_noses`, gravel, drawn over the paving) kerbed round (`kerbs`, the bed on its right).
+    The rails run on through (they lie over everything). Returns the count of noses."""
+    tsegs = []
+    for t in out.get("trams", []):
+        tp = pts_of(t["p"])
+        tsegs += list(zip(tp, tp[1:]))
+
+    def tram_dir(x, z):
+        best = None
+        for (ax, az), (bx, bz) in tsegs:
+            if abs(ax - x) > 60 or abs(az - z) > 60:
+                continue
+            dx, dz = bx - ax, bz - az
+            l2 = dx * dx + dz * dz or 1e-9
+            t = min(max(((x - ax) * dx + (z - az) * dz) / l2, 0.0), 1.0)
+            dd = math.hypot(x - ax - dx * t, z - az - dz * t)
+            if best is None or dd < best[0]:
+                l = math.sqrt(l2)
+                best = (dd, dx / l, dz / l)
+        return None if best is None or best[0] > 10 else best[1:]
+
+    noses, arcs, feet = [], [], []
+    for x in out.get("tram_xings", []):
+        if x["k"] != "road":
+            continue
+        p = pts_of(x["p"])
+        mid = p[len(p) // 2] if len(p) > 2 else ((p[0][0] + p[1][0]) / 2, (p[0][1] + p[1][1]) / 2)
+        td = tram_dir(*mid)
+        if td is None:
+            continue
+        tx, tz = td
+        nx, nz = -tz, tx
+        # the bed's two edges through the crossing's middle, across the tracks
+        if not on_bed(*mid):
+            continue
+        # (sampled across the crossing and a few metres each way along the tracks, the widest
+        # taken: a median that flares at the opening left gravel wedges past a middle-only width)
+        lo = hi = 0.0
+        for s_ in (0.0, -2.0, 2.0, -(x["w"] / 2), x["w"] / 2):
+            bx_, bz_ = mid[0] + tx * s_, mid[1] + tz * s_
+            if not on_bed(bx_, bz_):
+                continue
+            l_ = h_ = 0.0
+            while l_ > -15 and on_bed(bx_ + nx * (l_ - NOSE_STEP), bz_ + nz * (l_ - NOSE_STEP)):
+                l_ -= NOSE_STEP
+            while h_ < 15 and on_bed(bx_ + nx * (h_ + NOSE_STEP), bz_ + nz * (h_ + NOSE_STEP)):
+                h_ += NOSE_STEP
+            if h_ - l_ <= 14.0:
+                lo, hi = min(lo, l_), max(hi, h_)
+        width = hi - lo
+        if width < 2.0 or width > 14.0:
+            continue
+        cx, cz = mid[0] + nx * (lo + hi) / 2, mid[1] + nz * (lo + hi) / 2
+        r = width / 2
+        half = x["w"] / 2
+        # the paved footprint: the crossing's band as long as the road is wide plus a nose radius
+        # each way along the tracks, across the bed's whole width
+        foot = [(cx + tx * s1 + nx * s2, cz + tz * s1 + nz * s2) for s1, s2 in
+                ((-(half + r), -r - NOSE_SIDE), (half + r, -r - NOSE_SIDE), (half + r, r + NOSE_SIDE), (-(half + r), r + NOSE_SIDE))]
+        x["foot"] = flat_of(foot)
+        feet.append(foot)
+        for sg in (-1, 1):
+            # the nose's centre, r beyond the road's edge along the tracks
+            ox, oz = cx + tx * sg * (half + r), cz + tz * sg * (half + r)
+            ring = []
+            for k in range(NOSE_ARC + 1):
+                a = math.pi * k / NOSE_ARC
+                # from the bed's lo edge round through the tip (towards the road) to its hi edge
+                ring.append((ox - tx * sg * r * math.sin(a) + nx * (-r * math.cos(a)),
+                             oz - tz * sg * r * math.sin(a) + nz * (-r * math.cos(a))))
+            back = [(ox + tx * sg * 0.6 + nx * r, oz + tz * sg * 0.6 + nz * r),
+                    (ox + tx * sg * 0.6 - nx * r, oz + tz * sg * 0.6 - nz * r)]
+            noses.append({"p": flat_of(ring + back)})
+            # the kerb round the nose, the bed (the nose's inside) on its right
+            arc = list(ring)
+            mx_, mz_ = arc[len(arc) // 2]
+            ax_, az_ = arc[len(arc) // 2 - 1]
+            # right of travel is (-dz, dx); the nose's centre must lie there
+            dx, dz = mx_ - ax_, mz_ - az_
+            if (-dz) * (ox - ax_) + dx * (oz - az_) < 0:
+                arc.reverse()
+            arcs.append({"p": flat_of(arc)})
+    out["tram_noses"] = noses
+    # the bed's straight kerbs and edge lines stop where the footprint begins; the noses' own
+    # kerbs take over
+    def in_foot(x_, z_):
+        return any(_poly_hit(f, x_, z_) for f in feet)
+    out["kerbs"] = _drop_inside(out.get("kerbs", []), in_foot) + arcs
+    edges = [m for m in out["markings"] if m["k"] == "edge"]
+    out["markings"] = [m for m in out["markings"] if m["k"] != "edge"] + _drop_inside(edges, in_foot)
+    # and the scraps of line left by an opening (a U-turn's edge lines cut to a few metres)
+    boxes = [(min(q[0] for q in f) - 4, max(q[0] for q in f) + 4, min(q[1] for q in f) - 4, max(q[1] for q in f) + 4) for f in feet]
+
+    def scrap(m):
+        if m["k"] not in ("edge", "lane", "centre", "solid"):
+            return False
+        q = pts_of(m["p"])
+        if sum(math.dist(a, b) for a, b in zip(q, q[1:])) > SCRAP_LEN:
+            return False
+        return any(b[0] <= x_ <= b[1] and b[2] <= z_ <= b[3] for x_, z_ in q for b in boxes)
+    out["markings"] = [m for m in out["markings"] if not scrap(m)]
+    # and the stubs of kerb the cut leaves beside the footprint (pale slivers in the opening)
+    def stub(k):
+        if k in arcs:
+            return False
+        q = pts_of(k["p"])
+        if sum(math.dist(a, b) for a, b in zip(q, q[1:])) > SCRAP_LEN:
+            return False
+        return any(b[0] <= x_ <= b[1] and b[2] <= z_ <= b[3] for x_, z_ in q for b in boxes)
+    out["kerbs"] = [k for k in out["kerbs"] if not stub(k)]
+    return len(noses)
+
+
 def apply(out):
     """Smooths the finished map data in place; returns a one-line summary."""
     if int(out.get("road_smooth", 0)) >= VERSION:
@@ -2347,18 +2630,20 @@ def apply(out):
     beside = zebras_beside_cycles(out)
     zebra_m = extend_zebras(out, *_street_tests(out))
     xings, xing_cut = tram_crossings(out, on_bed)
+    noses = shape_openings(out, on_bed)
     stairs = metro_steps(out)
     pockets = fill_pockets(out)
     painted = paint_islands(out, _asphalt_sampler(out)[0])
     kit = crossing_kit(out, _street_tests(out)[0])
     poles = clear_poles(out, _street_tests(out)[0])
+    scooters = clear_scooters(out, _street_tests(out)[0])
     after = measure(out)
     out["road_smooth"] = VERSION
     return (f"{beds} ways ({bed_sides} sides) widened onto the tram bed, {chain_ways} ways ({chain_sides} sides) "
             f"widened to their street's kerbs ({spread} lane-line points spread), {len(tapers)} joins tapered, {km} kerb and {em} edge-line points moved, {fit} edges fitted to "
             f"their kerbs, {bridged} kerb breaks by a tram bed closed, {joined} lines "
             f"stitched, {rounded} line kinks rounded; edge steps {before['steps']} -> {after['steps']}, "
-            f"line jogs {before['jogs']} -> {after['jogs']}; {sleepers} tram tracks on a bed, {xings} crossings of a bed paved ({xing_cut} line points under them dropped), {stairs} metro stairs, {pockets} bare pockets between roads filled, {painted} driveway islands painted, {beside} zebras moved beside their cycle crossing, zebras run on {zebra_m} m to the kerbs, {kit[0]} main-street crossings given {kit[1]} stop lines and {kit[2]} signal poles, {poles} lamps and poles stepped off the asphalt")
+            f"line jogs {before['jogs']} -> {after['jogs']}; {sleepers} tram tracks on a bed, {xings} crossings of a bed paved ({xing_cut} line points under them dropped), {noses} median noses rounded, {stairs} metro stairs, {pockets} bare pockets between roads filled, {painted} driveway islands painted, {beside} zebras moved beside their cycle crossing, zebras run on {zebra_m} m to the kerbs, {kit[0]} main-street crossings given {kit[1]} stop lines and {kit[2]} signal poles, {poles} lamps and poles stepped off the asphalt")
 
 
 def main():

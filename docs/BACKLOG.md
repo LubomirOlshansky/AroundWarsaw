@@ -270,7 +270,8 @@ road in F's shots are the drawn strip covering a real median (check T1 looks at 
 - [ ] Chained-carriageway lane painting with tapers (L1, 354 joins city-wide); today's lanes override; `lane_split` width sanity
 - [ ] Lane changes as paint (F's satellite shots 2026-11-05): within one street's kerbs a new lane starts as a line out of the edge line with hatching in the spare width, instead of the edge moving; lane widths from the street's width, not each way's count
 - [ ] Crossing kit poles (road_smooth crossing_kit, 82 at 79 zebras across main streets with no mapped signal) have no lit lamps and no controller: give them a ped/vehicle cycle, and check the places on Mapillary (some may be unsignalled)
-- [ ] Lane changes inside straight kerbs: a widened way spreads its lanes over the chain's width (spread_lanes); F's round 3 asks for 3.25 m lanes from one edge with chevron hatching in the spare width
+- [ ] Lane changes inside straight kerbs: a widened way spreads its lanes over the chain's width (spread_lanes); F's round 3 asks for 3.25 m lanes from one edge with chevron hatching in the spare width (round 4 asked again: edge-connected white chevrons where the lane count changes; not built yet, the reference view at Złota has no such change left in sight)
+- [ ] Tram medians have no collision: a car can cross the gravel bed anywhere, so the U-turn opening is a look, not a route the car needs (decide whether medians get kerb collision outside openings)
 - [ ] The 10 joins left with a step have no room for a taper (ways shorter than 8 m between joins): merge such stubs in the bake
 - [ ] Test street fixes and F's look (see the street record docs/streets/marszalkowska-centrum.md)
 - [x] Barrier overrides by stable id: `street_pass.py --apply` writes game/data/road_objects.json from the records and hand `decisions`, map_builder draws REMOVE / styles; `tram_railing`, `balustrade`, `balustrade_rail` styles (2026-11-05)

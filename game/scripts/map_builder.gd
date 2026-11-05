@@ -554,6 +554,8 @@ func _build_parts(marks, roofs_only: bool) -> void:
 		_build_tram_sleepers(flat)
 		_drape_bias = 0.355
 		_build_tram_crossings(flat)
+		_drape_bias = 0.357
+		_build_tram_noses(flat)
 		_drape_bias = 0.36
 		_build_kerbs(flat)
 		_build_shore_stone(flat)
@@ -5629,6 +5631,15 @@ const ARROW_LTR := [
 	"....#....", "...###...", "..#####..", "....#....", ".#..#..#.", "##..#..##", "#########",
 	"##..#..##", ".#..#..#.", "....#....", "....#....",
 ]
+## Round 4 (F): the U-turn (left and back, through a median's opening) and straight on with it.
+const ARROW_U := [
+	"...####..", "..#...#..", "..#...#..", "..#...#..", "#####.#..", ".###..#..", "..#...#..", "......#..",
+	"......#..", "......#..",
+]
+const ARROW_TU := [
+	"......#..", ".....###.", "....#####", "......#..", "...####..", "..#...#..", "#####.#..", ".###..#..",
+	"..#...#..", "......#..",
+]
 const BIKE := [
 	"....##..", "...#..#.", ".###....", "#..#.##.", "#..##..#", "#.#.#..#", ".#...##.",
 ]
@@ -5667,6 +5678,10 @@ func _build_symbols(st) -> void:
 						rows = ARROW_LR
 					"LTR":
 						rows = ARROW_LTR
+					"U":
+						rows = ARROW_U
+					"TU":
+						rows = ARROW_TU
 				# Loop 3b-2: cells up to 0.3 m across, the arrow up to 2.7 m wide (a lane is 3+ m),
 				# so a 9-cell arrow keeps whole 0.3 m strokes and gaps (2.4 m made them 0.27).
 				_pixel_shape(st, rows, at, fwd, minf(0.3, 2.7 / String(rows[0]).length()), 0.5, mirror)
@@ -5766,6 +5781,13 @@ func _build_tram_sleepers(st) -> void:
 ## only its lines and kerbs, curving across the tracks).
 func _build_tram_crossings(st) -> void:
 	for x in data.get("tram_xings", []):
+		# Round 4 (F): a road's opening through a median is one paved footprint (`foot`), flush,
+		# its noses rounded over it (_build_tram_noses).
+		# Asphalt like the carriageways it joins, so the opening reads as one flush road.
+		if x.has("foot"):
+			_layer = L_ROAD
+			_fill_quad_fine(st, _pts(x["foot"]), Y_ROAD + 0.01, COL["road"])
+			continue
 		# A road keeps its asphalt across the tracks; a footway gets the pale panels.
 		var road: bool = x.get("k", "") == "road"
 		_layer = L_ROAD if road else L_TRAMBED
@@ -5777,6 +5799,54 @@ func _build_tram_crossings(st) -> void:
 			cs.append(0.0)
 		_band_var(st, poly, ws, cs, Y_ROAD + 0.01, COL["road"] if road else TRAM_XING)
 	_axis = Vector2.ZERO
+	_layer = L_GROUND
+
+
+## Round 4: a four-cornered polygon in cells of about a metre, so it follows the ground like
+## the bed's sleeper strips under it (one flat 12 m triangle sank under them mid-span).
+func _fill_quad_fine(st, q: PackedVector2Array, y: float, col: Color) -> void:
+	if q.size() != 4:
+		_fill(st, q, y, col)
+		return
+	var nu := maxi(1, ceili(q[0].distance_to(q[1])))
+	var nv := maxi(1, ceili(q[1].distance_to(q[2])))
+	for i in nu:
+		for j in nv:
+			var u0 := float(i) / nu
+			var u1 := float(i + 1) / nu
+			var v0 := float(j) / nv
+			var v1 := float(j + 1) / nv
+			var a := _bilerp(q, u0, v0)
+			var b := _bilerp(q, u1, v0)
+			var c := _bilerp(q, u1, v1)
+			var d := _bilerp(q, u0, v1)
+			_fill(st, PackedVector2Array([a, b, c, d]), y, col)
+
+
+func _bilerp(q: PackedVector2Array, u: float, v: float) -> Vector2:
+	return q[0].lerp(q[1], u).lerp(q[3].lerp(q[2], u), v)
+
+
+## Round 4 (F): the rounded ends of a tram median at a road's opening (`tram_noses`,
+## tools/road_smooth.py shape_openings): gravel like the bed, over the opening's paving; their
+## kerbs come with the kerbs.
+func _build_tram_noses(st) -> void:
+	_layer = L_GRAVEL
+	for n in data.get("tram_noses", []):
+		# in rings round the middle, so it follows the ground over the opening's paving
+		var ring := _pts(n["p"])
+		var mid := Vector2.ZERO
+		for q in ring:
+			mid += q
+		mid /= maxf(1.0, ring.size())
+		for i in ring.size():
+			var a := ring[i]
+			var b := ring[(i + 1) % ring.size()]
+			for k in 4:
+				var t0 := k / 4.0
+				var t1 := (k + 1) / 4.0
+				_fill(st, PackedVector2Array([mid.lerp(a, t0), mid.lerp(a, t1), mid.lerp(b, t1), mid.lerp(b, t0)]),
+					Y_ROAD + 0.03, TRAM_BED)
 	_layer = L_GROUND
 
 
