@@ -133,6 +133,7 @@ const Packs := preload("res://scripts/packs.gd")
 ## Kibice (docs/design/city-life-satire.md 7): friendly fans by Stadion Leguminy on match evenings.
 const Fans := preload("res://scripts/fans.gd")
 const LoudCars := preload("res://scripts/loud_cars.gd")
+const CrazyDrivers := preload("res://scripts/crazy_drivers.gd")
 ## Wellness circles (docs/design/city-life-satire.md): sound healing, techno yoga, the 40+ club, park kung-fu.
 const Wellness := preload("res://scripts/wellness.gd")
 ## The garage loop: Warsztat u Mirka and its paint jobs (garage.gd, its card garage_card.gd).
@@ -496,6 +497,12 @@ var packs: Packs
 var loud_cars: LoudCars
 var loud_flag := 3
 var loud_log := false
+## Crazy drivers (crazy_drivers.gd, traffic.gd CRAZY_*): Szkoda Oktawia taxis, Szprynter couriers
+## and the Pasatini in traffic. --crazy=N: at most N at once (default 3; 0: none); --crazy-log
+## prints their cut-ins and KEBAB FM's sightings.
+var crazy_drivers: CrazyDrivers
+var crazy_flag := 3
+var crazy_log := false
 var packs_flag := 1
 var packs_now := false
 var packs_log := false
@@ -1426,6 +1433,7 @@ func _build_world() -> void:
 	_build_packs(data, world)
 	_build_fans(data, world)
 	_build_loud_cars(world)
+	_build_crazy_drivers(world)
 	_build_wellness(world)
 	_build_first10()
 	_set_quality(quality_choice)
@@ -2345,6 +2353,25 @@ func _build_loud_cars(world: Node3D) -> void:
 	loud_cars.focus = func() -> Vector3: return cam_focus
 	world.add_child(loud_cars)
 	loud_cars.setup()
+
+
+## Crazy drivers (crazy_drivers.gd): wild taxis, couriers and the Pasatini in traffic, their
+## horns and lines (none with --no-traffic or --crazy=0).
+func _build_crazy_drivers(world: Node3D) -> void:
+	if traffic == null:
+		return
+	traffic.crazy_target = crazy_flag
+	if crazy_flag == 0:
+		return
+	crazy_drivers = CrazyDrivers.new()
+	crazy_drivers.name = "CrazyDrivers"
+	crazy_drivers.traffic = traffic
+	crazy_drivers.sfx = sfx
+	crazy_drivers.dialogue = dialogue
+	crazy_drivers.radio = radio
+	crazy_drivers.log_on = crazy_log
+	crazy_drivers.focus = func() -> Vector3: return cam_focus
+	world.add_child(crazy_drivers)
 
 
 ## The wellness circles (wellness.gd): none with --wellness=0 or --crowd=0.
@@ -3921,6 +3948,10 @@ func _parse_args() -> void:
 			loud_flag = clampi(int(arg.trim_prefix("--loud=")), 0, 16)
 		elif arg == "--loud-log":
 			loud_log = true
+		elif arg.begins_with("--crazy="):
+			crazy_flag = clampi(int(arg.trim_prefix("--crazy=")), 0, 12)
+		elif arg == "--crazy-log":
+			crazy_log = true
 		elif arg == "--old-tram" or arg.begins_with("--old-tram="):
 			old_tram_flag = "follow" if arg == "--old-tram=follow" else "now"
 		elif arg.begins_with("--train="):
