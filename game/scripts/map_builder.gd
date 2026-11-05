@@ -4109,7 +4109,25 @@ func _build_roads(st) -> void:
 		var y := Y_ROAD - (0.005 if minor else 0.0)
 		_dk = int(r.get("dk", -1))
 		var full := _pts(r["p"])
+		var tapered: bool = r.has("wv")
 		for run in _visible_runs(full, r.get("hide", [])):
+			if tapered:
+				# Smooth roads (tools/road_smooth.py): a join's width step tapered over 20-30 m,
+				# one mitred band whose ends are as wide as the next way's, so the round patches
+				# at its ends and bends no longer bulge past the narrower way.
+				var prof := _profile(r, full, run[3])
+				var rp: PackedVector2Array = run[0]
+				_band_var(st, rp, prof[0], prof[1], y, col)
+				var mid := _offset_var(rp, prof[1])
+				for i in rp.size():
+					if i > 0 and i < rp.size() - 1:
+						if absf((rp[i] - rp[i - 1]).angle_to(rp[i + 1] - rp[i])) <= 0.12:
+							continue
+					elif (i == 0 and run[1]) or (i == rp.size() - 1 and run[2]):
+						continue
+					# At a tapered join both ways are this wide: the patch only rounds the joint.
+					_disc(st, mid[i], prof[0][i] * 0.5, y, col)
+				continue
 			var poly := _offset(run[0], float(r.get("c", 0.0)))
 			_strip(st, poly, w, y, col, false)
 			# Round patches fill the gaps at the ends and wherever the road bends; not
@@ -4147,9 +4165,13 @@ func _build_tunnel_roads(st) -> void:
 ## the start, cut at the end] each.
 func _visible_runs(poly: PackedVector2Array, hide: Array) -> Array:
 	if hide.is_empty():
-		return [[poly, false, false]]
+		var all_s := PackedFloat32Array([0.0])
+		for i in range(1, poly.size()):
+			all_s.append(all_s[i - 1] + poly[i].distance_to(poly[i - 1]))
+		return [[poly, false, false, all_s]]
 	var runs := []
 	var cur := PackedVector2Array()
+	var cur_s := PackedFloat32Array()
 	var cut_start := false
 	var s := 0.0
 	for i in poly.size() - 1:
@@ -4176,17 +4198,89 @@ func _visible_runs(poly: PackedVector2Array, hide: Array) -> Array:
 			var p1 := a.lerp(b, c1 / length) if length > 0.0 else b
 			if hidden:
 				if cur.size() >= 2:
-					runs.append([cur, cut_start, true])
+					runs.append([cur, cut_start, true, cur_s])
 				cur = PackedVector2Array()
+				cur_s = PackedFloat32Array()
 				cut_start = true
 			else:
 				if cur.is_empty():
 					cur.append(p0)
+					cur_s.append(s + c0)
 				cur.append(p1)
+				cur_s.append(s + c1)
 		s += length
 	if cur.size() >= 2:
-		runs.append([cur, cut_start, false])
+		runs.append([cur, cut_start, false, cur_s])
 	return runs
+
+
+## Smooth roads: a tapered road's (`wv`, `cv`: width and centre offset per point of `p`) width
+## and offset at each distance in `along` (metres from its first point), by its cumulative length.
+func _profile(r: Dictionary, full: PackedVector2Array, along: PackedFloat32Array) -> Array:
+	var wv: Array = r["wv"]
+	var cv: Array = r["cv"]
+	var ws := PackedFloat32Array()
+	var cs := PackedFloat32Array()
+	var k := 0
+	var s0 := 0.0
+	for s in along:
+		while k < full.size() - 2 and s0 + full[k].distance_to(full[k + 1]) < s:
+			s0 += full[k].distance_to(full[k + 1])
+			k += 1
+		var ln := full[k].distance_to(full[k + 1]) if k < full.size() - 1 else 0.0
+		var t := clampf((s - s0) / ln, 0.0, 1.0) if ln > 0.0 else 0.0
+		var k1 := mini(k + 1, wv.size() - 1)
+		ws.append(lerpf(float(wv[k]), float(wv[k1]), t))
+		cs.append(lerpf(float(cv[k]), float(cv[k1]), t))
+	return [ws, cs]
+
+
+## A polyline moved off[i] metres to its right at point i, mitred at the corners.
+static func _offset_var(poly: PackedVector2Array, off: PackedFloat32Array) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	var n := poly.size()
+	for i in n:
+		var back := (poly[i] - poly[i - 1]).normalized() if i > 0 else Vector2.ZERO
+		var ahead := (poly[i + 1] - poly[i]).normalized() if i < n - 1 else Vector2.ZERO
+		if back == Vector2.ZERO:
+			back = ahead
+		if ahead == Vector2.ZERO:
+			ahead = back
+		var r0 := Vector2(-back.y, back.x)
+		var r1 := Vector2(-ahead.y, ahead.x)
+		var m := (r0 + r1).normalized()
+		if m == Vector2.ZERO:
+			m = r1
+		out.append(poly[i] + m * off[i] / maxf(m.dot(r1), 0.5))
+	return out
+
+
+## A band between two offset lines of `poly` (widths and centre offsets per point): one quad per
+## piece, shared edges, so its width can change smoothly along it (cut into the 10 m pieces the
+## draped strips use).
+func _band_var(st, poly: PackedVector2Array, ws: PackedFloat32Array, cs: PackedFloat32Array, y: float, col: Color) -> void:
+	var lo := PackedFloat32Array()
+	var hi := PackedFloat32Array()
+	for i in poly.size():
+		lo.append(cs[i] - ws[i] * 0.5)
+		hi.append(cs[i] + ws[i] * 0.5)
+	var left := _offset_var(poly, lo)
+	var right := _offset_var(poly, hi)  # + is to the right, as _strip's `side`
+	for i in poly.size() - 1:
+		var d := poly[i + 1] - poly[i]
+		if d.length() < 0.01:
+			continue
+		_axis = d.normalized()
+		var pieces := maxi(1, ceili(d.length() / 10.0)) if _drape_bias >= 0.0 else 1
+		for k in pieces:
+			var t0 := float(k) / pieces
+			var t1 := float(k + 1) / pieces
+			var a := right[i].lerp(right[i + 1], t0)
+			var b := right[i].lerp(right[i + 1], t1)
+			var c := left[i].lerp(left[i + 1], t1)
+			var e := left[i].lerp(left[i + 1], t0)
+			_quad(st, Vector3(a.x, y, a.y), Vector3(b.x, y, b.y), Vector3(c.x, y, c.y), Vector3(e.x, y, e.y), Vector3.UP, col)
+	_axis = Vector2.ZERO
 
 
 ## A polyline moved `off` metres to its right, mitred at the corners.

@@ -472,6 +472,10 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
     # Krajobraz places K5 (2026-11-02): the plazas of Rondo Daszyńskiego's towers (tools/plaza_gardens.py).
     import plaza_gardens
     plaza_gardens.apply(out)
+    # Smooth roads (F, 2026-11-05): the width steps where two ways of a carriageway meet tapered,
+    # the lane lines stitched across them, small line kinks rounded (tools/road_smooth.py).
+    import road_smooth
+    print("road_smooth: " + road_smooth.apply(out))
     # Loop "content POIs" (2026-10-31): the corner shops, metro entrances, city bike docks, the
     # places' missing addresses and the Leżaks with their zones, appended after every older poi
     # on the finished data (they keep clear of its solids; tools/bake_street_pois.py).

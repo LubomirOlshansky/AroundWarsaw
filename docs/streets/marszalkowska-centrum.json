@@ -3,10 +3,10 @@
  "title": "Marszałkowska: Rondo Dmowskiego to Świętokrzyska",
  "updated": "2026-11-05",
  "stage": "evidence",
- "score": 83,
+ "score": 84,
  "counts": {
   "L1": 9,
-  "L2": 14,
+  "L2": 12,
   "O1": 8,
   "P1": 1
  },
@@ -26,20 +26,20 @@
    "title": "Złota to Sienkiewicza",
    "counts": {
     "L1": 3,
-    "L2": 4,
+    "L2": 3,
     "P1": 1
    },
-   "score": 85
+   "score": 86
   },
   {
    "id": "C",
    "title": "Sienkiewicza to Świętokrzyska",
    "counts": {
     "L1": 3,
-    "L2": 5,
+    "L2": 4,
     "O1": 1
    },
-   "score": 85
+   "score": 86
   }
  ],
  "history": [
@@ -72,6 +72,21 @@
     "A": 79,
     "B": 85,
     "C": 85
+   }
+  },
+  {
+   "date": "2026-11-05",
+   "score": 84,
+   "counts": {
+    "L1": 9,
+    "L2": 12,
+    "O1": 8,
+    "P1": 1
+   },
+   "blocks": {
+    "A": 79,
+    "B": 86,
+    "C": 86
    }
   }
  ],
@@ -348,16 +363,6 @@
   },
   {
    "check": "L2",
-   "x": -931.2,
-   "z": 167.8,
-   "s": 37.6,
-   "t": 20.2,
-   "note": "lane line ends mid-block [changed since the data: Skwer Linearny na Złotej (car-free since 2026-08) and its crossing to Plac Centralny]",
-   "block": "B",
-   "status": "changed"
-  },
-  {
-   "check": "L2",
    "x": -993.1,
    "z": 62.1,
    "s": 158.3,
@@ -422,16 +427,6 @@
    "z": 22.2,
    "s": 200.8,
    "t": -0.7,
-   "note": "lane line ends mid-block",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -991.7,
-   "z": 14.3,
-   "s": 202.6,
-   "t": 17.1,
    "note": "lane line ends mid-block",
    "block": "C",
    "status": "open"

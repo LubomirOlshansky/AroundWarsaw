@@ -524,7 +524,8 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [x] Research and the day-by-day plan; `tools/street_features.py` (Mapillary detections against the game's props), 2026-11-04 (docs/tools only)
 - [ ] Junction shapes with kerb returns and smoothed bends (RS1, RS2), both city paths
 - [ ] Surfaces, crossings and kerb drops from OSM tags (RS4, RS6)
-- [ ] Width that varies along streets (RS3) and the asphalt's history in the shader (RS7, bench)
+- [x] Smooth joins: width steps tapered over 20-30 m where two ways meet, lane lines stitched across, line kinks rounded (`tools/road_smooth.py`, whole map; verify `smooth`), 2026-11-05
+- [ ] Width that varies along streets from the ortho (RS3 part 2) and the asphalt's history in the shader (RS7, bench)
 - [x] Street-objects log and the object budget (log everything, add only what earns its place), 2026-11-04
 - [ ] Lamp density look test and the traffic-light poles A/B (F picks)
 - [ ] Road-objects sweeps street by street (the census order; road-objects.md)

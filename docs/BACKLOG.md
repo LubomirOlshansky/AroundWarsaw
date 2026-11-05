@@ -30,7 +30,7 @@ signs, poles, junction boxes, hydrants or manholes; detection positions are 10-2
 evidence per street and junction, never coordinates.
 - [ ] RS1 junction shapes with kerb returns + RS2 kink fillets (pilot: Marszałkowska × Świętokrzyska,
       Krucza × Hoża, Nowy Świat × Świętokrzyska), then city-wide; Mac re-bake
-- [ ] RS3 width that varies along a street (tapers between ways; ortho width profiles on the Mac)
+- [ ] RS3 width that varies along a street: tapers between ways done (road_smooth.py, 2026-11-05); ortho width profiles on the Mac left
 - [ ] RS4 surfaces from OSM tags (setts, paving, concrete) by id in the ground shader
 - [ ] RS5 tram beds and medians that read
 - [ ] RS6 crossings with kerb drops, zebras aligned to the crossing way
@@ -264,7 +264,10 @@ Found: only 559 of 45,192 scanned trees stand inside a lane, none on the test st
 road in F's shots are the drawn strip covering a real median (check T1 looks at the drawn surface).
 - [x] Pipeline, checks, records, model library, agent, skill, console tabs (2026-11-05)
 - [x] Lane lines cut at zebras (bake_roads `_crossed`, whole map; 643 of 2,177 zebras had a line across), L2 reads a zebra cut as intentional (2026-11-05, Mac re-bake)
-- [ ] Chained-carriageway lane painting with tapers (L1, 354 joins city-wide); today's lanes override; `lane_split` width sanity
+- [x] Smooth joins (F, 2026-11-05 "smooth, like hand designed"): `tools/road_smooth.py` (run by bake_osm, also on a baked map) tapers the asphalt where two ways of a carriageway change width (799 joins: the narrower way flares to the wider one over 20-30 m, no round cap bulging past the kerb), moves kerbs and edge lines that jogged with the step, stitches lane lines across joins (2,483) and rounds small line kinks (3,116); edge steps 727 → 15, line jogs 969 → 16 (verify step `smooth`; street_pass K1, K2)
+- [ ] Today's lanes override for the test street; `lane_split` width sanity (lanes 2.75-4.2 m)
+- [ ] Where a smooth kerb runs beside a flare the asphalt can stand up to ~1 m past it (c8 in the smooth-roads shots): drive the ribbon edge from the kerb there (needs the bake's boundary walk; Mac re-bake)
+- [ ] The 15 joins left with a step have no room for a taper (ways shorter than 8 m between joins): merge such stubs in the bake
 - [ ] Test street fixes and F's look (see the street record docs/streets/marszalkowska-centrum.md)
 - [x] Barrier overrides by stable id: `street_pass.py --apply` writes game/data/road_objects.json from the records and hand `decisions`, map_builder draws REMOVE / styles; `tram_railing`, `balustrade`, `balustrade_rail` styles (2026-11-05)
 - [ ] The other wanted models; tram railing bars and posts as a texture or mesh (now a dark 1.1 m strip)
