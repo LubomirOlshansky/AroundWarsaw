@@ -6,9 +6,9 @@ Spec: [specs/mlotek.md](specs/mlotek.md). Site key `mlotek` (`landmarks.gd` `_fi
 ## 2026-11-05: plain block to model (Mac)
 
 - Round 1 scores 3-4; fixes: the notch over the west balconies, deeper balcony edges, pale rims, taller windows.
-- Round 2 (art-director, before the merge below): all 4, pass. It scored a roofline climbing east, which F's
-  height data then showed to be perspective.
-- F's own model `mlotek-smolna-8.js` was ported to the game as a test and compared with this build. Merged at F's word:
+- Round 2 (art-director, before the merge below): all 4, pass. It scored a roofline climbing east, which that
+  model's height data then showed to be perspective.
+- A model F sent, `mlotek-smolna-8.js` (origin and permission to confirm, QUESTIONS), was ported to the game as a test and compared with this build. Merged at F's word:
   flat roof, head to u 41.2, the sloping jaw, wider west balconies with yellow fronts. Kept from ours: the colour,
   19 window rows, the glass band on the east half only, the neck, the pergola.
 - The merged build has not had an art-director pass: F's look is the check.

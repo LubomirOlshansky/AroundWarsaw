@@ -1,6 +1,6 @@
 # Młotek (Smolna 8): spec
 
-Site key `mlotek` in `game/scripts/landmarks.gd` (`_build_mlotek`). Written 2026-11-05 from the Mac photo report `docs/landmarks/photo-reports/mlotek.md` (refs/mlotek/: 17 Commons photos, the GUGiK ortho) and the OSM outline "Młotek", found by `ML_AT`. Part of F's modernism set (`docs/design/modernism-collection.md`, M1). F's own test model (`mlotek-smolna-8.js`, 2026-11-05) was ported into the game and merged at F's word: its flat roof and head extent (2025 height data), the sloping jaw, the wider west balconies with yellow fronts.
+Site key `mlotek` in `game/scripts/landmarks.gd` (`_build_mlotek`). Written 2026-11-05 from the Mac photo report `docs/landmarks/photo-reports/mlotek.md` (refs/mlotek/: 17 Commons photos, the GUGiK ortho) and the OSM outline "Młotek", found by `ML_AT`. Part of F's modernism set (`docs/design/modernism-collection.md`, M1). A test model F sent (`mlotek-smolna-8.js`, 2026-11-05; origin and permission to confirm, QUESTIONS) was ported into the game and merged at F's word: its flat roof and head extent (2025 height data), the sloping jaw, the wider west balconies with yellow fronts.
 
 ## 1. Identity
 
@@ -14,7 +14,7 @@ Jan Bogusławski and Bohdan Gniewiewski's 1976 block on the escarpment. What mak
 
 ## 2. Massing
 
-The slab is 35.5 x 17.1 m, its long axis 22 degrees north of east (`ML_O`, `ML_A`), from the OSM outline; the outline's 5.5 m west bay is 1 m narrower on each side. The ground storey is 3 m, then 19 storeys of 2.8 m to 56.2 m, the neck to 57 m (from 54.5 m over the west bay), the head's flat roof at 63.3 m over the low foot (F's height data: map height about 68.3), plant and masts to about 67 m. The jaw leaves the slab at 53.3 m and reaches 57.7 m at the tip. The head reaches u 41.2 (the height data; the leaning ortho read 43 m); it is flush at the west end and 0.6 m proud on the long sides.
+The slab is 35.5 x 17.1 m, its long axis 22 degrees north of east (`ML_O`, `ML_A`), from the OSM outline; the outline's 5.5 m west bay is 1 m narrower on each side. The ground storey is 3 m, then 19 storeys of 2.8 m to 56.2 m, the neck to 57 m (from 54.5 m over the west bay), the head's flat roof at 63.3 m over the low foot (the test model's height data: map height about 68.3), plant and masts to about 67 m. The jaw leaves the slab at 53.3 m and reaches 57.7 m at the tip. The head reaches u 41.2 (the height data; the leaning ortho read 43 m); it is flush at the west end and 0.6 m proud on the long sides.
 
 ## 3. Facade, base to top
 
