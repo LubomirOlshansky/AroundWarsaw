@@ -1478,6 +1478,12 @@ func build(surface, near := Rect2(), only := "") -> void:
 			"plac_maszty":
 				_id = 0  # the masts: no card, not on the picking grid
 				_build_plac_masts(s)
+			"plac_centralny":
+				_id = 0  # the square's furniture: no card, not on the picking grid
+				_build_plac_centralny(s)
+			"plac_centralny_lamps":
+				_id = 0
+				_build_plac_centralny_lamps(s)
 			"kazimierzowski":
 				_mark_zone(s)  # the mass stays LoD2's, in its skin; the risalit's portico is ours
 				_build_kazimierzowski(s)
@@ -21181,6 +21187,7 @@ func _find_plac_photos() -> void:
 	for p: Vector2 in PLAC_MASTS:
 		zones.append(_circle(p, 0.4, 6))
 	_add_site("plac_maszty", zones)
+	_find_plac_centralny()
 
 
 ## The frame of a statue on `at` facing the square: +v towards it.
@@ -21245,6 +21252,101 @@ func _build_plac_masts(_site: Dictionary) -> void:
 		_prism(_circle(p, 0.28, 6), g - 0.3, g + 0.6, PLAC_GRANITE, PLAC_GRANITE, M_STONE, M_STONE)
 		_frustum(_circle(p, 0.13, 6), g + 0.6, _circle(p, 0.08, 6), g + PLAC_MAST_H, Color("#9a9c9e"), Color("#9a9c9e"))
 		_prism(_circle(p, 0.2, 6), g + PLAC_MAST_H, g + PLAC_MAST_H + 0.4, Color("#f4eedc"), Color("#f4eedc"), M_LAMP, M_LAMP)
+		_o = p
+		_a = Vector2(1.0, 0.0)
+		_b = Vector2(0.0, 1.0)
+		_collide(_rect(0.0, 0.0, 0.3, 0.3))
+
+
+# --- Plac Centralny (F's photos, 2026-11-05) -------------------------------------------------------
+## The new square in front of the Palace of Culture (2024-25): the wooden step seating with its pale
+## paved heart, the stone seat-wall, the red WARSZAWA letters, the green deckchairs and the lamps. The
+## trees, beds and benches are tools/plac_centralny.py's (map data); the lawns, plazas and the pool
+## are OpenStreetMap's. Spec docs/landmarks/specs/plac_centralny.md. The frame: local u north, v east,
+## from the square's axis (Marszałkowska's frame s 64, t -130; first_scene.gd FRAME_*).
+const PCZ_O := Vector2(-937.0 + 64.0 * -0.34917 + -130.0 * 0.93706, 210.1 + 64.0 * -0.93706 + -130.0 * -0.34917)
+const PCZ_N := Vector2(-0.34917, -0.93706)
+const PCZ_E := Vector2(0.93706, -0.34917)
+const PCZ_WOOD := Color("#a98258")
+const PCZ_GRASS := Color("#6f9e42")
+const PCZ_STONE := Color("#7d8077")
+const PCZ_PALE := Color("#d3cbbf")
+const PCZ_RED := Color("#c9242b")
+const PCZ_GREEN := Color("#58a85a")
+## The lamps, [s, t] in Marszałkowska's frame (tools/plac_centralny.py keeps its trees off them).
+const PCZ_LAMPS := [[64.0, -205.0], [64.0, -190.0], [64.0, -100.0], [64.0, -88.0], [42.0, -200.0], [86.0, -200.0],
+		[42.0, -120.0], [86.0, -120.0], [42.0, -160.0], [86.0, -160.0]]
+
+
+func _pcz_frame() -> void:
+	_o = PCZ_O
+	_a = PCZ_N
+	_b = PCZ_E
+	_g = map.terrain_height(PCZ_O.x, PCZ_O.y)
+
+
+func _pcz_world(s: float, t: float) -> Vector2:
+	return PCZ_O + PCZ_N * (s - 64.0) + PCZ_E * (t + 130.0)
+
+
+func _find_plac_centralny() -> void:
+	_pcz_frame()
+	_add_site("plac_centralny", [_rect(0.0, -11.0, 15.0, 31.0)])
+	var zones: Array = []
+	for l: Array in PCZ_LAMPS:
+		zones.append(_circle(_pcz_world(l[0], l[1]), 0.4, 6))
+	_add_site("plac_centralny_lamps", zones)
+
+
+func _build_plac_centralny(_site: Dictionary) -> void:
+	_pcz_frame()
+	var g := _g
+	_mode = M_STONE
+	# The stone seat-wall on the axis (t -168): a rough grey-green block with a gravel bed on top and
+	# a larch bench along each long side.
+	_lbox(0.0, -38.0, 14.0, 1.7, g - 0.3, g + 1.1, PCZ_STONE, M_STONE, PCZ_STONE.lightened(0.1))
+	_lbox(0.0, -38.0, 13.4, 0.8, g + 1.1, g + 1.16, Color("#4b4a45"), M_STONE)
+	for side: float in [-1.0, 1.0]:
+		_lbox(0.0, -38.0 + side * 1.2, 13.2, 0.3, g + 1.16, g + 1.55, PCZ_WOOD, M_STONE, PCZ_WOOD.lightened(0.1))
+	_collide(_rect(0.0, -38.0, 14.0, 1.7))
+	# The wooden steps: two wings of larch decking and grass strips rising towards the Palace, round a
+	# pale paved heart (v -30 west to 8 east).
+	var rows := 12
+	var dv := 38.0 / rows
+	for wing: float in [-1.0, 1.0]:
+		for k in rows:
+			var v1 := 8.0 - k * dv
+			var top := g + 0.1 * (k + 1)
+			var cu := wing * 9.25
+			_lbox(cu, v1 - dv * 0.5, 3.75, dv * 0.5, g - 0.2, top, PCZ_GRASS.darkened(0.15), M_STONE, PCZ_GRASS)
+			_lbox(cu, v1 - dv * 0.3, 3.8, dv * 0.3, top - 0.05, top + 0.04, PCZ_WOOD.darkened(0.1), M_STONE, PCZ_WOOD)
+	_lbox(0.0, -4.0, 5.2, 9.0, g - 0.2, g + 0.07, PCZ_PALE.darkened(0.1), M_STONE, PCZ_PALE)
+	_collide(_rect(0.0, -11.0, 13.2, 19.0))
+	# WARSZAWA: red letters on two slim steel posts, facing east, standing on the pale heart.
+	for su: float in [-3.8, 3.8]:
+		var pp := _w(su, -14.4)
+		_prism(_circle(pp, 0.08, 5), g, g + 1.3, Color("#8b8f93"), Color("#8b8f93"), M_STONE, M_STONE)
+	var mid := _w(0.0, -14.0)
+	signs.append(["WARSZAWA", Vector3(mid.x, g + 1.0, mid.y), Vector3(_b.x, 0.0, _b.y), 1.3, PCZ_RED])
+	# Green deckchairs scattered on the heart's east end.
+	for i in 12:
+		var u := (fposmod(sin(i * 12.9898) * 43758.5453, 1.0) - 0.5) * 9.0
+		var v := -8.0 + fposmod(sin(i * 78.233) * 43758.5453, 1.0) * 14.0
+		_lbox(u, v, 0.28, 0.25, g + 0.07, g + 0.34, PCZ_GREEN, M_STONE, PCZ_GREEN.lightened(0.12))
+		_lbox(u, v - 0.22, 0.28, 0.05, g + 0.34, g + 0.78, PCZ_GREEN.darkened(0.1), M_STONE, PCZ_GREEN)
+
+
+func _build_plac_centralny_lamps(_site: Dictionary) -> void:
+	_mode = M_STONE
+	for l: Array in PCZ_LAMPS:
+		var p := _pcz_world(l[0], l[1])
+		_g = map.terrain_height(p.x, p.y)
+		var g := _g
+		var iron := Color("#3d4146")
+		_prism(_circle(p, 0.3, 6), g - 0.3, g + 0.9, Color("#8f8d88"), Color("#8f8d88"), M_STONE, M_STONE)
+		_prism(_circle(p, 0.1, 6), g + 0.9, g + 4.4, iron, iron, M_STONE, M_STONE)
+		_prism(_circle(p, 0.22, 6), g + 4.4, g + 4.8, iron, iron, M_STONE, M_STONE)
+		_prism(_circle(p, 0.2, 6), g + 4.8, g + 5.3, Color("#f4eedc"), Color("#f4eedc"), M_LAMP, M_LAMP)
 		_o = p
 		_a = Vector2(1.0, 0.0)
 		_b = Vector2(0.0, 1.0)

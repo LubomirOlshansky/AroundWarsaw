@@ -161,6 +161,8 @@ const BUDGET := {
 	"pilsudski": 160,
 	"kaczynski": 100,
 	"plac_maszty": 520,
+	"plac_centralny": 1400,
+	"plac_centralny_lamps": 700,
 	"getto": 650,
 	"ochota": 1420,
 	"powisle": 1770,
