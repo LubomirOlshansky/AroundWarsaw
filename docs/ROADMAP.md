@@ -140,6 +140,7 @@ then the Launch gate.
       shows), 2026-11-01, PR #183
 - [x] Bike paths smoothed (F, 2026-11-02, `tools/cycleways.py`, run by bake_osm): 195 gaps closed, 218 split ways joined, 52 ends on a line, 68 corners rounded; Mac look and ride check parked, comparison with OSM and the 3-8 m gaps left
 - [x] Bike path markings (F's idea #9, 2026-11-02): white square edges on the cycle crossings (P-11), 660 bike pictograms on the paths (`tools/bike_marks.py`)
+- [x] Cyclists on the cycle paths (F, 2026-11-05): kerb-edge courier riders skip roads with a cycle path within 14 m of their line (`city_life.gd` `_cycle_path_beside`, check_couriers); Mac look check parked
 - [x] Bike network matched to OSM (F's idea #9, 2026-11-02, `tools/compare_cycleways.py`): paths, crossings and lanes all drawn; contraflow streets, bus lanes open to bikes and sharrows painted (`tools/bike_network.py`)
 - [x] Map review C: the streets of the 3d-1 box and map north against the orthophoto (2026-11-02):
       one-lane one-way streets 3 m → 5.5-6.5 m (283 ways), split legs kept one lane; alignment fine.

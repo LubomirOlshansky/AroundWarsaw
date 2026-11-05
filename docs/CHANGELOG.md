@@ -12,6 +12,7 @@ someone writes its lines.
 ## 2026-11-05
 
 - Quest bubbles, toasts and the radio announcements now stay on screen as long as it takes to read them: longer text stays longer.
+- Cyclists keep to the red cycle paths: the kerb-edge courier riders no longer ride the car lanes of a road that has a cycle path beside it.
 - Footbridges no longer sag onto the road or the tracks: the one over Aleja Armii Ludowej and the three over the Ochota cutting now span the gap level.
 - Plac Centralny in front of the Palace of Culture looks like the new square: young trees in groves on the lawns and along the axis, flower beds, a long stone seat-wall, wooden step seating round a pale paved heart, the red WARSZAWA letters, green deckchairs and tall lamps.
 - The railway at Plac Zawiszy no longer runs over the street: the tracks, sleepers and overhead wires stop where the cutting ends and the tunnel mouth stands, and trains disappear into it.
