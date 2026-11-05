@@ -509,7 +509,7 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [ ] Phase 1: drivability sweep of every lane and turn, lane graph data fixes, Autopilot rows P11-P16
       (2026-11-04: P14 and the Trzy mosty legs drive clean steered, `check_lane_drive`; left: P15 flights, P16 frames)
 - [ ] Phase 2: road fixes street by street with a score baseline in CI
-- [ ] Phase 3: lane assist, wall look-ahead, junction pick, deck cut; F's phone run
+- [ ] Phase 3: ~~lane assist~~ (built 2026-11-04, off by default, A/B), wall look-ahead, junction pick, deck cut; F's phone run
 - [ ] Phase 4: running clubs that read, Varso Place masses, Chmielna 89 "Piramida" (later, photo way)
 
 ### Left: road objects and collisions (F, 2026-11-04; plan docs/design/road-objects.md)
@@ -520,11 +520,17 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 ### Left: street races that feel like races (F, 2026-11-04; plan docs/design/street-races.md)
 - [x] Research and race AI audit: why Halina drives slowly and by the rules, R1-R7 (2026-11-04, docs only)
 - [x] R1 racer driving mode and R2 fair rubber band, R4's numbers per rung, police chasers in racer mode (2026-11-04; phone feel open)
-- [ ] R3 routes by time and shortcuts; R4 part 2 (aggression, mistakes); R5 show the race
+- [ ] R3 routes by time and shortcuts; R4 part 2 (aggression, mistakes)
+- [x] R5 show the race, part 1: route on the minimap, gap in seconds, lead-change toast, finish margin (2026-11-04, beta values; A/B open in QUESTIONS); left: the rival's edge arrow, slipstream (A/B)
 - [ ] R6 the city reacts; R7 race kinds (later)
 - [x] Street racer leaderboard designed: ranking, points, tiers, screen, local first (2026-11-04, docs only)
 - [ ] Leaderboard L1-L4: the ranking rules and save, the WYŚCIGI screen, defence challenges and unlocks, best times per route
 - [ ] Leaderboard L5: online best times (Game Center / Play Games), F's call
+
+### Left: beta values, deliveries, races and steering (F, 2026-11-04; docs/design/beta-values.md)
+- [x] Review and quick wins (2026-11-04): the delivery route on the minimap, road lengths without the closed off-map roads, the heat's clock in words, NASTĘPNE to the nearest stand; the race route, gap in seconds, lead change, finish margin; the police escape checks P3 and R1 green again (`check_delivery`)
+- [ ] F's phone A/B 1-11 (beta-values.md section 4, QUESTIONS): heat clock, tip cliff, streak, card wait, NASTĘPNE, escape, gap, lead toast, slipstream, lane assist, graze speed
+- [x] Lane assist "Asysta pasa" behind a Settings → Jazda switch, off by default (2026-11-04, `check_lane_assist`; phone A/B open)
 
 ### After the beta: driving extras and the city economy (F, 2026-11-03; plan docs/design/city-economy.md)
 - [x] Research and plan: arcade driving references, economy and business games, the "Od słoika do Złotej" ladder, phases D1 and E1-E5; role briefs in docs/roles/ (2026-11-03, docs only)

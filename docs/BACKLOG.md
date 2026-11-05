@@ -171,7 +171,7 @@ experience". The plan, the road audit and the causes are in docs/GAMEPLAY_PLAN.m
   Mac: a harness that follows a route (P15 flights to Varso and x 2100, P16 frames at race speed)
   and the map hold at -700,900 that left the car in place twice (PT-19, intermittent)
 - [ ] 2.x Road fixes by street, forgiveness bevels, trap dead ends gated, score baseline in CI
-- [ ] 3.x Lane assist, wall look-ahead, junction pick, deck cut in the ghost, F's phone run
+- [ ] 3.x ~~Lane assist~~ (built 2026-11-04 behind a switch, see "Beta values"), wall look-ahead, junction pick, deck cut in the ghost, F's phone run
 - [ ] 4.1 Running clubs read as a blue blob at crossings: mixed kit, pairs, spread out
 - [ ] 4.2 Varso Place masses from photos (the gap between the tower and Varso 1/2)
 
@@ -192,11 +192,26 @@ police smarter, then test with Autopilot": R1, R2, R4's numbers and the police c
 - [ ] R4 part 2: aggression (nudges, blocking), mistakes near the player, Słoik's satnav wrong turn
 - [x] Police chasers in racer mode: quicker pull, corners by radius, careful through reds, round traffic; top speed still 0.8 of the player's (2026-11-04)
 - [ ] Phone feel of the races and chases (F's next device run); Autopilot row P17
-- [ ] R5 show the race: rival edge arrow, gap in seconds, lead-change line, slipstream, close-finish card
+- [x] R5 part 1 (2026-11-04, beta values): the route to the finish on the minimap (Trzy mosty: to the next bridge), the gap in seconds, a lead-change toast and tick, the finish margin on the card (`check_ladder`)
+- [ ] R5 part 2: the rival's own edge arrow; slipstream (A/B 9 in QUESTIONS)
+- [ ] R3 note (beta values R-4): rivals still route with the off-map links (`rivals.gd _distances`); the player can't drive them. Fix with routes by time
 - [ ] R6 the city reacts (honks, police on the rival); R7 race kinds (later)
 - [x] Race-AI runs: `tools/race_ai.sh` (every rival vs an average and a skilled autopilot), `--race-debug` (2026-11-04)
 - [ ] A headless `check_race_ai.gd` in verify (the runs take ~25 min: too long for verify; a short fixed-route version)
 - [ ] Street racer leaderboard "Ranking ulicy" (F, 2026-11-04; design in street-races.md section 8): 20 made-up drivers ranked by street points, win to climb, defence challenges, tier unlocks, an APKA: WYŚCIGI screen and best times per route; local first, online best times only with F's yes (L1-L5)
+
+## Beta values: deliveries, races and steering (F, 2026-11-04)
+
+F: test the gameplay and improve its two main beta values, the delivery mechanic and the racing with
+the steering. Review, findings and the A/B list: `docs/design/beta-values.md`.
+- [x] Deliveries: the route to the door on the minimap (`route_line.gd`, re-walked from the car every second); road lengths for orders, rides and "Na czasie" without the off-map links (~1 order in 30 counted a closed road out); the heat's clock in words; NASTĘPNE on the delivered card points at the stand nearest by road (`check_delivery`, verify step `delivery`, in CI) (2026-11-04)
+- [x] The police runs P3 and R1 failed on main since #426: the escape test car rode a town-car ghost; it now drives in racer mode (2026-11-04)
+- [x] Races: R5 part 1 (see "Street races") (2026-11-04)
+- [ ] F's phone A/B 1-11 (QUESTIONS "Beta values A/B", four entries)
+- [x] Lane assist "Asysta pasa" (GAMEPLAY_PLAN 1.5 item 1, test D2): Settings → Jazda, Classic only, off by default; pure pursuit 0.9 s ahead on the lane, a pull of 1.5 × the heading error while the strip is near the middle (`lane_assist.gd`, `check_lane_assist`, verify step `laneassist`, `--lane-assist=on|off`) (2026-11-04)
+- [ ] A real-map hands-off drive with the lane assist (Wisłostrada, Trasa Łazienkowska, the bridges): `check_lane_drive` with a Classic driver
+- [ ] GAMEPLAY_PLAN 1.5 items 2, 3, 5: wall look-ahead, junction pick, camera lead at junctions
+- [ ] If F picks them: the delivery streak "Seria", a smooth tip, slipstream, a shorter card wait
 
 ## Road objects and collisions (F, 2026-11-04)
 

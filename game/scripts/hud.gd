@@ -331,6 +331,7 @@ var _side_call := false
 ## Loop 2d-1: the Podwózka app's route on the minimap (map coordinates), drawn dotted.
 var _mini_route := PackedVector2Array()
 var _mini_route_colour := Color.WHITE
+var _mini_route_owner := ""
 var _mini_car := Vector2.ZERO
 var _mini_yaw := 0.0
 var _stick_index := -1
@@ -2302,9 +2303,24 @@ func ticker_out() -> void:
 
 
 ## The app's route as a polyline in map coordinates (empty: none), drawn as dots on the minimap.
-func set_minimap_route(points: PackedVector2Array, colour: Color) -> void:
+## Beta values (2026-11-04): `owner` names who drew it (route_line.gd's users: "jobs", "race"), so
+## clear_minimap_route(owner) never wipes a route another activity has drawn since.
+func set_minimap_route(points: PackedVector2Array, colour: Color, owner := "") -> void:
 	_mini_route = points
 	_mini_route_colour = colour
+	_mini_route_owner = owner
+
+
+## Takes the route off the minimap if `owner` drew the one on it now.
+func clear_minimap_route(owner: String) -> void:
+	if _mini_route_owner == owner:
+		_mini_route = PackedVector2Array()
+		_mini_route_owner = ""
+
+
+## The minimap's route now (empty: none): the checks read it.
+func minimap_route() -> PackedVector2Array:
+	return _mini_route
 
 
 ## A small square every 5 pt along the route, fixed to the map (they don't crawl as the car

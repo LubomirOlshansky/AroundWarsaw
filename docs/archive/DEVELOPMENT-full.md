@@ -5630,6 +5630,7 @@ Command-line options (after `--`):
 | `--mission=N` | start rescue call N at once (N = 1, 5, 9… streets, 2, 6… roofs, 3, 7… river, 4, 8… parks) |
 | `--autopilot` | testing aid: fly (or, ghosting through walls, drive) to each mission target; in a race or a side job, drive the route; with `--rival`, tail the rival |
 | `--ghost-pace=X` | testing aid (street races, 2026-11-04): the autopilot's speed factor in a race (default 1.8, an average player; 2.4 a quick one; `racer`: a skilled player in traffic.gd's racer mode at the car's top), for the race-AI runs (`tools/race_ai.sh`) |
+| `--lane-assist=on\|off` | beta values (2026-11-04): the lane assist "Asysta pasa" (`lane_assist.gd`, Classic only) for this run, whatever Settings → Jazda says (off by default) |
 | `--race-debug` | testing aid (street races, 2026-11-04): once a second while a racing rival or a chaser stands still, traffic.gd prints what holds it (the car ahead, the player, a crossing car, a red, the lane) |
 | `--no-traffic` | no traffic, trams, pedestrians or rivals |
 | `--lineup` | loop 2c: every vehicle model standing round the car, all facing its way (beside it the taxi, Podwózka, the police and guard cars and the two vans; a row ahead the cars' four shapes; behind, the six rivals, then the bus and a tram cab car), no traffic, and each model's triangles printed (`lineup:` lines). Close-ups: `--at=-1113.2,-263.4 --heading=160 --size=14 --nohud` (Marszałkowska) |
@@ -5785,7 +5786,7 @@ Command-line options (after `--`):
 | `--police=1\|2\|3` | loop 3g-1: a chase at that level at frame 60, the chaser 40 m behind on your lane (and the blocker / the roadblock for 2 / 3) |
 | `--trap=N` | loop 3g-1: start 150 m before speed trap N (1-4 in today's map), heading into it, and make it one of the day's; with `--pedal=gas` the car drives flat out along the road into the radar (through the traffic) |
 | `--pullover=routine\|trap\|kebab\|sloik\|generic` | loop 3g-1: open that conversation at frame 60 with a patrol car stopped behind (screenshots; `--clicks` for the replies) |
-| `--police-auto=escape\|stop\|hold\|still` | loop 3g-1: in a chase the car drives away flat out on the lane graph / stops at once (with a lizak waving: stops by the officer) / creeps along without escaping (cap tests) / stands without being pulled over (probes) |
+| `--police-auto=escape\|stop\|hold\|still` | loop 3g-1: in a chase the car drives away flat out on the lane graph (since 2026-11-04 in traffic.gd's racer mode, as a skilled player) / stops at once (with a lizak waving: stops by the officer) / creeps along without escaping (cap tests) / stands without being pulled over (probes) |
 | `--police-now` | loop 3g-1: no start grace, no cooldown (tests; with `--autopilot` the car roams at twice the limit: the soak) |
 | `--police-log` | loop 3g-1: print every police state change with its frame (`police: …` lines; in a chase the car's place on screen each second, `police: b4 x … y …`) |
 | `--police-offence=F:kind,…` | loop 3g-1: an offence at frame F (`speed`, `red`, `oneway`, `bump`, `ram`), seen by the nearest unit (the cooldown test P7) |
