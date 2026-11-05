@@ -3,6 +3,12 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Lessons from Tiny Warsaw (F, 2026-11-04; docs/design/tiny-warsaw-comparison.md)
+
+- **PWSM 1967 point blocks as one kit** (Jerozolimskie 135-141, Niemcewicza 24-25, Spiska 4A/16A, Grójecka 14A): candidate for the modernism lane, needs Mac photos first.
+- **Infrastructure tier in CITY_INVENTORY**: Wisłostrada footbridges, Marszałkowska and Niepodległości tunnels, Czterdziestolatka flyovers.
+- **Look lessons wait for screenshots** of their gallery (the cloud cannot render WebGL): F attaches 4-8 or a Mac browser pass.
+
 ## Developer console follow-ups (F, 2026-11-04)
 
 Built: `tools/console.py` (README in `console/`). Open: C-1 road-objects census layer (tools/road_objects.py, PR #429) and
