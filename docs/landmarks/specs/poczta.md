@@ -66,3 +66,5 @@ files `poczta-pasta/`.
 
 The colonnade's place and whether it is recessed; the dome's size against LoD2's corner lump; the
 plaster's colour on the phone.
+
+F's look check (2026-11-03): the colonnade is a shallow recess with a projecting entrance canopy; pale warm stone with a pink cast. Applied: columns in a recess between two piers, the red band as the canopy, plaster #ecd2c2.
