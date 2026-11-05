@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-05
 
+- The opening flyover now has its own theme music under the announcer's line, fading out as the radio comes in.
 - Quest bubbles, toasts and the radio announcements now stay on screen as long as it takes to read them: longer text stays longer.
 - Cyclists keep to the red cycle paths: the kerb-edge courier riders no longer ride the car lanes of a road that has a cycle path beside it.
 - Footbridges no longer sag onto the road or the tracks: the one over Aleja Armii Ludowej and the three over the Ochota cutting now span the gap level.

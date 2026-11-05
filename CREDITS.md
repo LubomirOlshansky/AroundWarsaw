@@ -44,6 +44,7 @@ not cleared for a release.
 
 | Station | Track | Artist | Licence |
 | --- | --- | --- | --- |
+| (opening) | Opening theme and announcer line | Around Warsaw | own: generated with ElevenLabs (Creator plan, commercial licence), `game/audio/opening/` |
 | 87,3 KEBAB FM | Palma de Gaulle'a | Around Warsaw | own: synthesised by `tools/make_music.py` (all rights reserved) |
 | 86,6 RONDO FM | Rondo Dmowskiego 3 A.M. | Around Warsaw | own: synthesised by `tools/make_music.py` (all rights reserved) |
 | 108,8 MORDOR FM | Mordor Mall Muzak | Around Warsaw | own: synthesised by `tools/make_music.py` (all rights reserved) |

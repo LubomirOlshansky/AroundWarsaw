@@ -10,6 +10,10 @@ extends Node
 
 const CameraShots := preload("res://scripts/camera_shots.gd")
 const LINE_FILE := "res://audio/opening/opening_line.ogg"
+## The opening theme (ElevenLabs, F picked take B, 2026-11-05): plays under the line on the Music
+## bus, and fades out as the radio swells in. A missing file is skipped.
+const THEME_FILE := "res://audio/opening/opening_theme.ogg"
+const THEME_DB := -8.0
 const LINE_DB := 0.0
 const BED_DB := -20.0
 const DIP_S := 0.6
@@ -18,6 +22,7 @@ const SWELL_S := 3.0
 var _t0 := 0.0
 var _radio: Node
 var _voice: AudioStreamPlayer
+var _theme: AudioStreamPlayer
 var _tween: Tween
 var _flight_over := false
 var _line_over := true
@@ -31,6 +36,13 @@ func start(radio: Node) -> void:
 	_line_over = true
 	_dip()
 	var silent := DisplayServer.get_name() == "headless"
+	if not silent and ResourceLoader.exists(THEME_FILE):
+		_theme = AudioStreamPlayer.new()
+		_theme.stream = load(THEME_FILE)
+		_theme.volume_db = THEME_DB
+		_theme.bus = &"Music"
+		add_child(_theme)
+		_theme.play()
 	if silent or not ResourceLoader.exists(LINE_FILE):
 		_line_over = true
 		return
@@ -78,6 +90,9 @@ func _maybe_swell() -> void:
 	_tween = create_tween()
 	_tween.set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
 	_tween.tween_property(_radio, "bed_db", 0.0, SWELL_S)
+	if _theme != null and _theme.playing:
+		_tween.parallel().tween_property(_theme, "volume_db", -60.0, SWELL_S)
+		_tween.tween_callback(_theme.stop)
 
 
 func _kill_tween() -> void:
