@@ -15,6 +15,7 @@ item. Updated 2026-11-01 from the audit. v1.0 = the Demo and TestFlight gates in
 then the Launch gate.
 
 ### Done (built and checked headless)
+- [x] Landmark look-check fixes from F's answers: Hotel Warszawa's one stone base, portal and cornices; Poczta's recessed colonnade and canopy, PAST-a darker; MPW's pale bannered wing and deeper arches; Norblin's white workshops, copper base, finned storeys and glass passage; Browary's tree clumps, path and clearings; Wschodnia's eave, struts and suburban roofs; Bazar's patched stalls; Pasaż Wiecha's grey slabs and Y masts (2026-11-03, #403)
 - [x] Developer console (F, 2026-11-04): `tools/console.py` -> `build/console/index.html`: overview, city map with layers, sliders, area picker and counts (cafés, shops, roads km, bridges, trees…), content tables, approvals queue, renders; `--watch` keeps it current; deploy notes in `console/README.md`. Next: Mapillary/road-objects census layer once PR #429 lands, A/B pairs
 - [x] Status page, review sheet and resumable bake (2026-11-04, from the Isometric Istanbul docs): `tools/status_page.py` (map of ranked places by stage, clickable, % by tier and district), `tools/shot_sheet.py` (before/after sheet), `tools/bake_all.sh --resume`
 - [x] Closed source for now: MIT replaced by an all-rights-reserved `LICENSE`, CONTRIBUTING.md and the open-source/contribute lines removed from README, CREDITS, the in-game credits and the site (2026-11-03, PR pending; F makes the repo private and deploys the site; the design wiki is untouched)

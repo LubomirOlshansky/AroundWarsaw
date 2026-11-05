@@ -65,3 +65,5 @@ files `poczta-pasta/`.
 
 The footprint (the ortho puts the roof ~8 m west of OSM's outline); the colour on the phone; the
 flags on poles are not drawn.
+
+F's look check (2026-11-03): darker weathered grey-brown (render #877667, base #5b534c, trim #9c9083); OSM footprint kept.

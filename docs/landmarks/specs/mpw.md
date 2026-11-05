@@ -131,3 +131,5 @@ Towarowa over the park `--at=-2843,190 --yaw=270`; `--prebuilt` for the sector p
 | tobruk | frustum | r 1.8 m, 0.7 m | (-2926, 117) | M_STONE | 6 ground |
 | wall of remembrance | mitred band | 0.6 x 4 m, about 125 m | (-2903, 141) to (-2848, 255) | M_STONE | 1 identity |
 | bell | recess + frustum | 1.8 x 2.2 m, bell 0.9 m | (-2873, 204), west face | M_STONE | 1 identity |
+
+F's look check (2026-11-03): the pale bannered wing added (MPW_LOW, three storeys, 12.5 m, banners and flags); W2's arches deeper (wide archivolt, dark reveal, piers 0.6 m out). The platform overhang direction stays provisional.
