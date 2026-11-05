@@ -18,7 +18,6 @@ Built from F's photos (`tarasy_screen.gd`, `led_screen.gdshader`). Open:
   crane, the Palace-side look. The Mac's photos show printed advert panels (older); F's photos show the
   LED screen, which we follow.
 - More scenes for the loop (F's ideas: sea, a car driving out of the screen) and a day/night level pass.
-
 ## Loading bar on the title screen (F, 2026-11-05)
 
 Built: `main.gd` loads `index.res` and `proxies.scn` with threaded requests under the title, the
