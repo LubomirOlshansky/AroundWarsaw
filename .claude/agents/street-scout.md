@@ -20,7 +20,10 @@ data. Facts, ids, dates and counts only.
    `python3 -I tools/street_photos.py X Z --r=25 --max=2 --slug=road-SLUG-<spot>`, with X, Z
    from the pack's s/t through the street's frame (`o + s*S + t*T`, docs/streets/streets.json).
    The files land under refs/ (gitignored).
-4. Write the brief to `$SCRATCH/SLUG-evidence.md` (the brief names $SCRATCH) and return its path
+4. Print the street's fixed cameras: `python3 -I tools/street_pass.py --street=SLUG --spots`
+   (the brief carries that line, so before and after shots use the same views). If
+   `refs/SLUG/target-*.png` exist, list them (path, date): the auditor reads them.
+5. Write the brief to `$SCRATCH/SLUG-evidence.md` (the brief names $SCRATCH) and return its path
    and the summary below.
 
 ## The brief (under 80 lines)

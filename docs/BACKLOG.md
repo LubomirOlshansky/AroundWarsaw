@@ -353,8 +353,10 @@ road in F's shots are the drawn strip covering a real median (check T1 looks at 
 - [ ] Chained-carriageway lane painting with tapers (L1, 354 joins city-wide); today's lanes override; `lane_split` width sanity
 - [ ] Test street fixes and F's look (see the street record docs/streets/marszalkowska-centrum.md)
 - [x] Barrier overrides by stable id: `street_pass.py --apply` writes game/data/road_objects.json from the records and hand `decisions`, map_builder draws REMOVE / styles; `tram_railing`, `balustrade`, `balustrade_rail` styles (2026-11-05)
-- [ ] The other wanted models; tram railing bars and posts as a texture or mesh (now a dark 1.1 m strip)
+- [ ] The other wanted models
 - [ ] More classify rules from the test street's hand calls; then the next streets
+- [x] Lessons from the smooth-roads thread (2026-11-05): `verify.sh --roads` (the road-loop set instead of ~100 steps), fixed cameras per street (`cameras`, `street_pass.py --spots`), target image step (Codex on the Mac, a target never evidence), rounds and one thread per round with a handoff note, guesses tagged template-default
+- [ ] One road layout per street chain (kerbs, asphalt, lanes as paint, bays from one cross-section) and junction templates (tram-median crossing, U-turn, driveway mouth, T), replacing the road_smooth repair passes; after #447 merges, own map thread (Opus)
 
 ## Road objects and collisions (F, 2026-11-04)
 

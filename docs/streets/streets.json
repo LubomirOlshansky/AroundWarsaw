@@ -35,6 +35,35 @@
    ],
    "fresh_since": "2025-09",
    "stage": "evidence",
+   "cameras": [
+    {
+     "name": "A",
+     "x": -893.8,
+     "z": 300.2
+    },
+    {
+     "name": "B",
+     "x": -964.9,
+     "z": 109.5
+    },
+    {
+     "name": "C",
+     "x": -1023.5,
+     "z": -47.9
+    },
+    {
+     "name": "zlota-uturn",
+     "x": -922.0,
+     "z": 170.0,
+     "why": "Złota U-turn and crossing (smooth-roads rounds 2-4, F-06)"
+    },
+    {
+     "name": "pkin-driveway",
+     "x": -845.0,
+     "z": 385.0,
+     "why": "PKiN driveway and tram bed (F's crops, F-05)"
+    }
+   ],
    "blocks": [
     {
      "id": "A",
