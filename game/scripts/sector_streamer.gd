@@ -584,6 +584,17 @@ func idle() -> bool:
 	return true
 
 
+## The loading bar (main.gd `_title_frame`): sectors still wanted, loading or being added (the
+## worker's own counts once while it runs).
+func pending() -> int:
+	var n := 0
+	for key in keys:
+		var s: int = _state[key]["s"]
+		if s == WANTED or s == LOADING or s == ADDING:
+			n += 1
+	return n
+
+
 ## Sectors in full detail now.
 func loaded() -> Array[Vector2i]:
 	var out: Array[Vector2i] = []

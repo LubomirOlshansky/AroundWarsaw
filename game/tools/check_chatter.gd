@@ -78,6 +78,7 @@ func _initialize() -> void:
 	_cards()
 	_levels()
 	_ride_toasts()
+	_reading_time()
 	print(bubbles.chatter.summary())
 	print("check_chatter: %s" % ("OK" if _problems == 0 else "%d problems" % _problems))
 	quit(0 if _problems == 0 else 1)
@@ -244,6 +245,15 @@ func _levels() -> void:
 		_expect(absf(bubbles.chatter.gap() - want[level]) < 0.01, "level %d: gap %.1f (want %.1f)" % [level, bubbles.chatter.gap(), want[level]])
 		_expect(shortest >= want[level] - DT * 0.5, "level %d: two bubbles %.1f s apart (want ≥ %.1f)" % [level, shortest, want[level]])
 		print("level %s: %d bubbles in 60 s, shortest gap %.1f s" % [Chatter.LEVEL_NAMES[level], news.size(), shortest])
+
+
+## F 2026-11-05: a line stays up as long as it takes to read, so longer text lives longer.
+func _reading_time() -> void:
+	var short := Chatter.read_time("Hej!")
+	var long := Chatter.read_time("Przepraszam, czy mógłby Pan podrzucić mnie pod Pałac Kultury, bo spieszę się na pociąg do Gdańska?")
+	_expect(short >= Chatter.READ_MIN, "reading time: a short line %.1f s (want ≥ %.1f)" % [short, Chatter.READ_MIN])
+	_expect(long > short + 3.0, "reading time: a long line %.1f s is not clearly longer than a short one %.1f s" % [long, short])
+	_expect(Chatter.read_time("x".repeat(2000)) <= Chatter.READ_MAX * 1.26, "reading time: no cap")
 
 
 func _ride_toasts() -> void:

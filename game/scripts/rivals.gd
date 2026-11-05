@@ -33,9 +33,12 @@ const Ladder := preload("res://scripts/ladder.gd")
 const TrzyMosty := preload("res://scripts/trzy_mosty.gd")
 const Districts := preload("res://scripts/districts.gd")
 const RouteLine := preload("res://scripts/route_line.gd")
+const RaceCuts := preload("res://scripts/race_cuts.gd")
 
 const CHALLENGE_RANGE := 15.0
 const FINISH_RADIUS := 16.0
+## The finish margin's metres are at most the straight line to the finish times this.
+const MARGIN_DETOUR := 1.4
 const RACE_COLOUR := Color("#ff4fd8")
 const WIN_COLOUR := Color("#56d68a")
 const LOSE_COLOUR := Color("#e2574c")
@@ -74,7 +77,7 @@ const FIRST_CATCH := 0.85
 const FIRST_K := 60.0
 ## Her slowest (a share of her racing top) and the pace she starts from (m/s) before the player's
 ## progress is known.
-const FIRST_FLOOR := 0.3
+const FIRST_FLOOR := 0.25
 const FIRST_RATE0 := 8.0
 const FIRST_FAR_PACE := 0.8
 const FIRST_EASE := 140.0
@@ -87,17 +90,41 @@ const FIRST_LOSE := 150.0
 ## top while on screen (still racing; BAND_FLOOR_UNSEEN out of sight), and never takes her over BAND_CAP of the player's top speed.
 const BAND_K := 80.0
 const BAND_BOOST := 0.3
-const BAND_FLOOR := 0.5
+const BAND_FLOOR := 0.65
+## ... and for the bottom rungs (band weight from BAND_EASE_WEIGHT: Halina, Słoik), so a slow player
+## can still catch them (headless, 2026-11-05: Halina at 0.65 of her new top beat an average driver).
+const BAND_FLOOR_LOW := 0.35
 ## Out of sight she may wait more (a far-ahead Halina for an average driver): nobody sees it.
 const BAND_FLOOR_UNSEEN := 0.3
 ## The bottom rungs (band weight from BAND_EASE_WEIGHT: Halina, Słoik, Bartek) lift off on the last
 ## FIRST_EASE m for a player less than BAND_EASE_GAP × weight m behind (headless runs: an average
 ## driver lost to Halina by 38 m, she held half her top on screen to the line).
 const BAND_EASE_WEIGHT := 0.5
-const BAND_EASE_GAP := 80.0
-## ... to this share of the player's own pace.
-const BAND_EASE_PACE := 0.6
-const BAND_CAP := 0.98
+const BAND_EASE_GAP := 160.0
+## ... to this share of the player's own pace (at least BAND_EASE_FLOOR of her top), on the last
+## BAND_EASE_LEFT m (2026-11-05: 140 m and 0.6 let the faster Halina hold off an average driver).
+const BAND_EASE_PACE := 0.5
+const BAND_EASE_FLOOR := 0.15
+const BAND_EASE_LEFT := 250.0
+const BAND_CAP := 1.0
+## Human rivals (F 2026-11-05, Pure's opening): for the first OPEN_BURST s of a race (not the guided
+## first one) the band never holds a rival under its own top, so it launches past the player and
+## the race starts as a chase.
+const OPEN_BURST := 12.0
+## What a rival says when it does something human (traffic.gd counts it), [Polish, English] (each
+## at most 70 characters), only within HUMAN_NEAR m of the player and HUMAN_QUIET s after its last line.
+const HUMAN_NEAR := 120.0
+const HUMAN_QUIET := 6.0
+const HUMAN_LINES := {
+	"cut": [["Skrótem, kierowniku!", "Shortcut, boss!"], ["Kto zna miasto, ten nie jeździ ulicami!", "Know the city, skip the streets!"]],
+	"cut_zbyszek": [["Ten skrót znam od osiemdziesiątego siódmego!", "Known this shortcut since '87!"], ["Przez plac, szefie, jak za dawnych lat!", "Across the square, chief, like the old days!"]],
+	"cut_halina": [["Babcia zna drogę na bazar na skróty!", "Granny knows the shortcut to the bazaar!"], ["Przepraszam, gołąbki! Babcia się spieszy!", "Sorry, pigeons! Granny's in a hurry!"]],
+	"wrong": [["Nawigacja mówi: zawróć. Mama mówi: jedź prosto!", "Satnav says turn back. Mum says go straight!"], ["To nie ta ulica? Wszystkie tu takie same!", "Wrong street? They all look the same here!"]],
+	"mistake": [["Ups, za szybko!", "Whoops, too fast!"], ["Ten zakręt wczoraj był łagodniejszy!", "That corner was gentler yesterday!"]],
+	"mistake_halina": [["Jezus Maria, ten zakręt!", "Good Lord, that corner!"], ["Za moich czasów zakręty były prostsze!", "In my day the corners were straighter!"]],
+	"block": [["Nie tędy, mordo!", "Not this way, buddy!"], ["Zajęte, mordo, szukaj innej drogi!", "Taken, buddy, find another way!"]],
+	"phone": [["Halo? Nie teraz, jestem na wyścigu… znaczy na callu!", "Hello? Not now, I'm in a race... I mean a call!"]],
+}
 ## The Palm is the finish when it is at most this far by road from her; else an ordinary one.
 const FIRST_FAR := 1600.0
 ## She rolls up from about FIRST_BACK m behind; the prompt waits FIRST_WAIT s for the flash, or
@@ -293,6 +320,18 @@ var _finish: Dictionary = {}
 var _dist := PackedFloat32Array()
 ## Finish node -> driving distances to it from every node (computed once each).
 var _dist_to := {}
+## Human rivals: the city's shortcuts (race_cuts.gd), the race's links for the rival's known ones
+## (empty: none) and the distances with them, per finish node.
+var _cuts: RaceCuts
+var _cut_in := {}
+var _cut_table := {}
+var _cut_dist := {}
+var _stats := {}
+var _seen_cuts := 0
+var _seen_mistakes := 0
+var _seen_wrong := 0
+var _seen_blocks := 0
+var _phone_at := INF
 var _t := 0.0
 var _race_time := 0.0
 var _races := 0
@@ -359,6 +398,9 @@ func setup(lane_graph: LaneGraph, traffic_node: Traffic, hud_layer: CanvasLayer,
 	car = player_car
 	_rng.seed = 7
 	_find_finishes(data)
+	_cuts = RaceCuts.new()
+	_cuts.load_cuts(graph)
+	print("rivals: %d shortcuts (%d of %d unmatched)" % [_cuts.a.size(), _cuts.missed, _cuts.total])
 	# Loop 3h slice 3: the ladder and the final's route.
 	ladder = Ladder.new()
 	ladder.wallet = wallet
@@ -616,7 +658,8 @@ func start_race(i: int) -> void:
 		_finish = {}  # the player is far from the Palm (another stand's order): a nearer finish, the same tuning
 	if _finish.is_empty():
 		_finish = _pick_finish(d)
-	_dist = _distances(_finish["node"])
+	_use_cuts(Ladder.rung_of(RIVALS[i]["name"]), i)
+	_dist = _race_distances(_finish["node"])
 	print("race: %s to %s, %d m by road (picked in %.1f ms)" % [RIVALS[i]["name"], _finish["name"],
 			roundi(graph.remaining(_dist, d.edge, d.s)), (Time.get_ticks_usec() - t0) / 1000.0])
 	_races += 1
@@ -653,6 +696,24 @@ func _pick_finish(d) -> Dictionary:
 	if fits.is_empty():
 		return nearest
 	return fits[(_races * 7 + rival * 3) % fits.size()]
+
+
+## Human rivals: the shortcuts rival i knows on rung `rung` (its `cuts` share) for this race.
+func _use_cuts(rung: int, i: int) -> void:
+	_stats = Ladder.racer(rung)
+	var both := _cuts.links(float(_stats["cuts"]), hash(String(RIVALS[i]["name"])))
+	_cut_table = both[0]
+	_cut_in = both[1]
+	_cut_dist = {}
+
+
+## The race's distances to `node`: with the rival's shortcuts (cached per race), else the roads'.
+func _race_distances(node: int) -> PackedFloat32Array:
+	if _cut_in.is_empty():
+		return _distances(node)
+	if not _cut_dist.has(node):
+		_cut_dist[node] = graph.distances_to(node, INF, true, _cut_in)
+	return _cut_dist[node]
 
 
 func _distances(node: int) -> PackedFloat32Array:
@@ -749,10 +810,17 @@ func _speeds(d) -> void:
 
 
 ## The finish's margin in seconds: the one still driving needs this long at their speed now.
+## The metres are capped by the straight line to the finish x MARGIN_DETOUR (PT-22: a route left
+## that loops round a dual carriageway made an 11 m gap read "by 47.1 s").
 func _finish_margin(won: bool) -> float:
+	if final_on:
+		return time_gap(_rival_left if won else _player_left, _v_rival if won else _v_player)
+	var goal := Vector2(_finish["pos"].x, _finish["pos"].z)
 	if won:
-		return time_gap(_rival_left, _v_rival)
-	return time_gap(_player_remaining() if not final_on else _player_left, _v_player)
+		var d = _drivers[rival]
+		return time_gap(minf(_rival_left, Vector2(d.pos.x, d.pos.z).distance_to(goal) * MARGIN_DETOUR), _v_rival)
+	var at := Vector2(car.global_position.x, car.global_position.z)
+	return time_gap(minf(_player_remaining(), at.distance_to(goal) * MARGIN_DETOUR), _v_player)
 
 
 ## The trailing car's speed for the gap: the player's when behind, the rival's when in front.
@@ -880,6 +948,20 @@ func _go() -> void:
 	d.race_band = 1.0
 	d.race_still = 0.0
 	d.race_passes = 0
+	# Human rivals: shortcuts, mistakes, wrong turns, blocking (ladder.gd's personality).
+	d.cuts = _cut_table
+	d.race_mistake = float(stats.get("mistake", 0.0))
+	d.race_wrong = int(stats.get("wrong", 0))
+	d.race_block = float(stats.get("block", 0.0))
+	d.cuts_taken = 0
+	d.mistakes = 0
+	d.wrong_turns = 0
+	d.blocks = 0
+	_seen_cuts = 0
+	_seen_mistakes = 0
+	_seen_wrong = 0
+	_seen_blocks = 0
+	_phone_at = _rng.randf_range(0.3, 0.6) if bool(stats.get("phone", false)) else INF
 	_rate = FIRST_RATE0
 	_last_player_left = INF
 	_route_total = 0.0
@@ -964,7 +1046,9 @@ func _track(dt: float) -> void:
 	if to_finish < FINISH_RADIUS and not flying:
 		_finish_race(true, "")
 		return
-	if d.arrived:
+	# The rival finishes at the same circle as the player (PT-22: a finish node across a dual
+	# carriageway routed the rival round a 500 m loop from 30 m away).
+	if d.arrived or Vector2(d.pos.x, d.pos.z).distance_to(Vector2(_finish["pos"].x, _finish["pos"].z)) < FINISH_RADIUS:
 		_finish_race(false, "")
 		return
 	_rank_timer -= dt
@@ -975,6 +1059,7 @@ func _track(dt: float) -> void:
 		_band(d)
 		_speeds(d)
 		_lead_tick(0.2)
+		_human_tick(d)
 	_show_status()
 
 
@@ -1190,10 +1275,11 @@ static func band_mult(her_left: float, player_left: float, weight: float, rate: 
 	var follow := maxf(rate, 4.0) * (1.0 + clampf(gap / BAND_K, -0.5, 0.8)) / maxf(top, 1.0)
 	var mult := lerpf(1.0, follow, weight)
 	var ahead := player_left - her_left
-	if weight >= BAND_EASE_WEIGHT and her_left < FIRST_EASE and ahead > 0.0 and ahead < BAND_EASE_GAP * weight:
+	if weight >= BAND_EASE_WEIGHT and her_left < BAND_EASE_LEFT and ahead > 0.0 and ahead < BAND_EASE_GAP * weight:
 		# The bottom rungs on the last stretch: a close player gets the win (she lifts off).
-		return clampf(maxf(rate, 4.0) * BAND_EASE_PACE / maxf(top, 1.0), BAND_FLOOR_UNSEEN, 1.0)
-	return clampf(mult, BAND_FLOOR if seen else BAND_FLOOR_UNSEEN, 1.0 if seen else 1.0 + BAND_BOOST * weight)
+		return clampf(maxf(rate, 4.0) * BAND_EASE_PACE / maxf(top, 1.0), BAND_EASE_FLOOR, 1.0)
+	var floor := (BAND_FLOOR_LOW if weight >= BAND_EASE_WEIGHT else BAND_FLOOR) if seen else BAND_FLOOR_UNSEEN
+	return clampf(mult, floor, 1.0 if seen else 1.0 + BAND_BOOST * weight)
 
 
 ## The player's car's top speed (m/s, its model and engine; nitro left out), as police.gd's chase_top.
@@ -1220,17 +1306,56 @@ func _band(d) -> void:
 		var rung := Ladder.FINAL if final_on else Ladder.rung_of(RIVALS[rival]["name"])
 		var stats := Ladder.racer(rung)
 		mult = band_mult(_rival_left, _player_left, float(stats["band"]), _rate, top, d.visible, float(stats["aim"]))
+		if _race_time < OPEN_BURST:
+			mult = maxf(mult, 1.0)  # Pure's opening: launch past the player first
 		mult = minf(mult, BAND_CAP * player_top() / top)
 	d.race_band = mult
 	_band_lo = minf(_band_lo, mult)
 	_band_hi = maxf(_band_hi, mult)
 
 
+## Human rivals, 5 times a second: the phone call (Mike) and a line for what the rival just did
+## (traffic.gd's counts: a shortcut, a wrong turn, a mistake, a block), if the player is near.
+func _human_tick(d) -> void:
+	if _phone_at < INF and _route_total > 0.0 and _rival_left < INF and 1.0 - _rival_left / _route_total >= _phone_at:
+		_phone_at = INF
+		d.daze = 1.2  # lifts off for the call (coasting, not a stop)
+		_human_say("phone")
+	var kind := ""
+	if d.cuts_taken > _seen_cuts:
+		_seen_cuts = d.cuts_taken
+		kind = "cut"
+	if d.wrong_turns > _seen_wrong:
+		_seen_wrong = d.wrong_turns
+		kind = "wrong"
+	if d.mistakes > _seen_mistakes:
+		_seen_mistakes = d.mistakes
+		kind = "mistake"
+	if d.blocks > _seen_blocks:
+		_seen_blocks = d.blocks
+		kind = "block"
+	if kind != "":
+		_human_say(kind)
+
+
+func _human_say(kind: String) -> void:
+	var d = _drivers[rival]
+	if quiet or Vector2(d.pos.x - car.global_position.x, d.pos.z - car.global_position.z).length() > HUMAN_NEAR \
+			or _t - _said[rival] < HUMAN_QUIET:
+		return
+	var lines: Array = HUMAN_LINES[kind]
+	for w in String(RIVALS[rival]["name"]).to_lower().split(" "):
+		if HUMAN_LINES.has(kind + "_" + w):
+			lines = HUMAN_LINES[kind + "_" + w]
+	var line: Array = lines[_rng.randi() % lines.size()]
+	_say(rival, line[0], line[1], 2.5)
+
+
 ## Street races: one line on how the rival raced (for tuning and check_race_ai's runs).
 func _race_log(d, won: bool) -> void:
-	print("race ai: %s %s in %.1f s · top %.1f m/s · band %.2f-%.2f · stopped %.1f s · %d passes · gap %.0f m" % [
+	print("race ai: %s %s in %.1f s · top %.1f m/s · band %.2f-%.2f · stopped %.1f s · %d passes · %d cuts · %d mistakes · %d wrong · %d blocks · gap %.0f m" % [
 			RIVALS[rival]["name"], "lost to the player" if won else "won", _race_time, d.race_top, _band_lo, _band_hi,
-			d.race_still, d.race_passes, _rival_left - _player_left])
+			d.race_still, d.race_passes, d.cuts_taken, d.mistakes, d.wrong_turns, d.blocks, _rival_left - _player_left])
 
 
 ## Back to cruising after a race: the town car's pace, no racer mode.
@@ -1241,6 +1366,10 @@ func _cruise(d) -> void:
 	d.race_top = 0.0
 	d.race_accel = 0.0
 	d.race_band = 1.0
+	d.cuts = {}
+	d.race_mistake = 0.0
+	d.race_wrong = 0
+	d.race_block = 0.0
 
 
 ## Loop 3h slice 4: Halina (rival `name`) rolls up behind the player for the guided first race:
@@ -1523,6 +1652,7 @@ func start_final() -> void:
 	_seba_waiting = false
 	final_on = true
 	rival = _seba
+	_use_cuts(Ladder.FINAL, _seba)
 	_cp = _start_leg >> 1
 	_leg = _start_leg
 	_ghost_leg = _start_leg
@@ -1546,7 +1676,7 @@ func start_final() -> void:
 ## One leg's distances a frame (about 8 ms each on the Linux container) during the challenge.
 func _prepare_final_step() -> void:
 	if _final_dists.size() < final_route.legs.size():
-		_final_dists.append(_distances(final_route.legs[_final_dists.size()]))
+		_final_dists.append(_race_distances(final_route.legs[_final_dists.size()]))
 		if _final_dists.size() == final_route.legs.size():
 			_sum_legs()
 
@@ -1554,7 +1684,7 @@ func _prepare_final_step() -> void:
 ## Every leg's distances now (the start of the race, or the ghost).
 func _prepare_final() -> void:
 	while _final_dists.size() < final_route.legs.size():
-		_final_dists.append(_distances(final_route.legs[_final_dists.size()]))
+		_final_dists.append(_race_distances(final_route.legs[_final_dists.size()]))
 	if _after.size() != final_route.legs.size():
 		_sum_legs()
 
@@ -1587,7 +1717,7 @@ func _track_final(dt: float) -> void:
 			return
 	if _ghost != null and _ghost.arrived and _ghost_leg < final_route.legs.size() - 1:
 		_ghost_leg += 1
-		traffic.race_to(_ghost, final_route.legs[_ghost_leg], _final_dists[_ghost_leg])
+		traffic.race_to(_ghost, final_route.legs[_ghost_leg], _distances(final_route.legs[_ghost_leg]))
 	_rank_timer -= dt
 	if _rank_timer <= 0.0:
 		# 5 Hz: the checkpoint, the finish and who is in front.
@@ -1796,9 +1926,10 @@ func _start_ghost() -> void:
 		_ghost.race_lat = 8.5
 	if final_on:
 		_prepare_final()
-		traffic.race_to(_ghost, final_route.legs[_ghost_leg], _final_dists[_ghost_leg])
+		traffic.race_to(_ghost, final_route.legs[_ghost_leg], _distances(final_route.legs[_ghost_leg]))
 		return
-	traffic.race_to(_ghost, _finish["node"], _dist)
+	# Roads only (the ghost knows no shortcuts: a route counting cuts would send it round them).
+	traffic.race_to(_ghost, _finish["node"], _distances(_finish["node"]))
 
 
 func _follow(at: Vector3, yaw: float, speed: float) -> void:

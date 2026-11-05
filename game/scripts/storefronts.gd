@@ -1454,8 +1454,19 @@ func _load_metros(pois: Array) -> void:
 		var x := float(p["x"])
 		var z := float(p["z"])
 		metros.append({"at": Vector3(x, map.ground_height(x, z), z), "yaw": float(p["yaw"]), "station": str(p.get("st", "")),
-				"ref": str(p.get("ref", "")), "key": key_of(Vector2(x, z)), "form": "tube" if str(p.get("st", "")) == "Centrum" else str(p.get("f", "canopy")),
+				"ref": str(p.get("ref", "")), "key": key_of(Vector2(x, z)), "form": metro_form(str(p.get("st", "")), str(p.get("f", "canopy"))),
 				"lift": (int(absf(x * 7.0 + z * 13.0)) % 5) < 3})
+
+
+## The entrance's look by station: Centrum's 1990s tubes (F, 2026-11-02); Świętokrzyska's mapped
+## canopies are M2's steel-and-glass triangle tents (F's photo, Feb 2026), its plain stairs stay
+## stairs; elsewhere the bake's `f`.
+static func metro_form(station: String, f: String) -> String:
+	if station == "Centrum":
+		return "tube"
+	if station == "Świętokrzyska" and f == "canopy":
+		return "tent"
+	return f
 
 
 ## The Rowerilo docks from the bake's `bicycle_rental` pois (`yaw` along the rack row, `l` its length

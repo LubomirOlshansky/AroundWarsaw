@@ -62,3 +62,5 @@ L2, triangle budget 4500 (an exception to the L2 limit: two office blocks in one
 | sedum roof | inset prism | 0.12 m | 3.2 m inside each block | M_STONE | 4 roof |
 | plant rooms | boxes x 2 | 6 x 4 x 2.7 m | long axis | M_STONE | 4 roof |
 | terraces | deck + 4 planters + trees | 6.8 m | NORBLIN_TERRACES | M_STONE | 1 identity |
+
+F's photos and look check (2026-11-03): open lane between white workshops and the copper-clad blocks, no chimney. Applied: copper base lit on the south faces, finned dark storeys with the top two set back, the glass-roofed passage between Galwan and Plater, the white workshops and the glazed hall under dark zinc hips. Left: the gate and its sign, café tables, the lane-end pavilion, the stage pavilion.

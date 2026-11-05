@@ -129,6 +129,8 @@ const KERB_NIGHT := 5
 ## wide, no living street (class 3), no tunnel.
 const KERB_IN := 0.45
 const KERB_LW := 2.9
+## A road with a cycle path this close to its kerb line (m) is no kerb rider's road: the bikes use the path.
+const CYCLE_BESIDE := 14.0
 ## The dodge (parodies.md 4.2): a Pędzik rider whose closest approach to the car over the next
 ## DODGE_T s is within PEDZIK_MISS swerves SWERVE_OUT m past the kerb onto the footway (SWERVE_RATE
 ## m/s sideways), or hops (a HOP_T s cartoon jump, HOP_H m up) where there is no room; back to his
@@ -420,6 +422,8 @@ var _on_blvd := false
 var _pedziks: Array[Mover] = []
 ## Loop couriers: the kerb riders (Pędzik too: their slots in the Pedzik MultiMesh follow _pedziks').
 var _kerbers: Array[Mover] = []
+## Road edge -> a cycle path runs beside it (_cycle_path_beside).
+var _beside_cache := {}
 ## Loop couriers: the couriers waiting at the stands near the view ([stand, at, yaw] each, after the
 ## riders in the Pedzik MultiMesh), its signature (a change writes everything), each stand's free
 ## spots (worked out once), and the couriers the race took from a stand (back when it leaves the band).
@@ -1962,7 +1966,49 @@ func _spawn_kerb(eye: Vector2) -> Mover:
 
 
 func _kerb_edge(e: int) -> bool:
-	return kerb_road(graph.e_lw[e], graph.e_class[e], graph.e_tn[e], graph.e_s1[e] - graph.e_s0[e])
+	return kerb_road(graph.e_lw[e], graph.e_class[e], graph.e_tn[e], graph.e_s1[e] - graph.e_s0[e]) \
+			and not _cycle_path_beside(e)
+
+
+## F, 2026-11-05: a road with a cycle path running beside it (the red one on Marszałkowska) is not a
+## kerb rider's: the bikes belong on the path. True when a cycle path within CYCLE_BESIDE m of the
+## the kerb rider's line runs about parallel to it at its start, middle or end (cached per edge).
+func _cycle_path_beside(e: int) -> bool:
+	if _beside_cache.has(e):
+		return _beside_cache[e]
+	var g := graph
+	var found := false
+	var off := g.lane_offset(e, g.e_lanes[e] - 1) + g.e_lw[e] * 0.5 - KERB_IN
+	var s0 := g.e_s0[e]
+	var s1 := g.e_s1[e]
+	for t in [0.1, 0.5, 0.9]:
+		var s := lerpf(s0, s1, t)
+		var at := g.point_at(e, s, off)
+		var dir := g.direction(e, s)
+		if cycle_path_near(_cyc, _cyc_grid, at, dir, CYCLE_BESIDE):
+			found = true
+			break
+	_beside_cache[e] = found
+	return found
+
+
+## True when a cycle path passes within `reach` m of `at` heading about the same way as `dir`
+## (within ~35 degrees, either sense): a path alongside, not one that only crosses.
+static func cycle_path_near(cyc: Array, grid: Dictionary, at: Vector2, dir: Vector2, reach: float) -> bool:
+	var c0 := Vector2i(floori((at.x - reach) / CELL), floori((at.y - reach) / CELL))
+	var c1 := Vector2i(floori((at.x + reach) / CELL), floori((at.y + reach) / CELL))
+	for cx in range(c0.x, c1.x + 1):
+		for cy in range(c0.y, c1.y + 1):
+			for i: int in grid.get(Vector2i(cx, cy), PackedInt32Array()):
+				var pts: PackedVector2Array = cyc[i]
+				for j in pts.size() - 1:
+					var seg := pts[j + 1] - pts[j]
+					if seg.length() < 0.5:
+						continue
+					var q := Geometry2D.get_closest_point_to_segment(at, pts[j], pts[j + 1])
+					if q.distance_to(at) <= reach and absf(seg.normalized().dot(dir)) > 0.82:
+						return true
+	return false
 
 
 ## Loop couriers: mover `m` onto edge `e`'s kerb line (its outer lane's kerb, KERB_IN in), from s0 to

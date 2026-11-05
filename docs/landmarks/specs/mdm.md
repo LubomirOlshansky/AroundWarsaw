@@ -2,69 +2,72 @@
 
 Site key `mdm` in `game/scripts/landmarks.gd` (`_find_mdm` for the skin, `_build_mdm` for the
 model). Written 2026-11-01 in a cloud thread ("Marszałkowska pass 2") from the OpenStreetMap
-outlines in `centrum.json` (no photo, no LoD2 there). Every height and bay is an estimate; the
+outlines and, from 2026-11-05, F's Street View shots and Mapillary frames (refs/mdm_*). Every height and bay is an estimate; the
 Mac photo check is parked in QUESTIONS.
 
 ## 1. Identity
 
-Marszałkowska Dzielnica Mieszkaniowa (1950-1952, socialist realism): long stone-faced blocks
-round Plac Konstytucji and along Marszałkowska, a ground-floor arcade (podcienia) under the
-upper storeys, a tower at each end of the square's blocks, terracotta reliefs. Before this the
-blocks were LoD2 boxes in sandstone with tall windows and grey roofs (the kept skin).
+Marszałkowska Dzielnica Mieszkaniowa (1950-1952, socialist realism). From F's photos
+(2026-11-05): cream-white plaster upper storeys with pale vertical strips and iron balconettes;
+a sand-coloured stone base three storeys high with big shopfronts between stone piers; a
+cornice and small finials along the roof; no spired towers (the first pass 2026-11-01 had
+them: wrong). Roof neons: the red MDM, a Xiaomi sign and a BYD sign, the Hotel MDM's own sign.
 
 ## 2. Massing
 
-The blocks stay LoD2's (kept skin, `_mark_zone`). The model adds, in the street's grid (u along
-Marszałkowska, 0.349 / 0.937 in the game's x / z; v across): arcades along every long facade
-(14 m or more) whose outward normal looks at the square or the Marszałkowska axis (dot > 0.55,
-within 100 m, not into another block); four corner towers at the blocks' ends where the street
-meets the square (east block's south end, west block's south end, the two south-gate blocks).
+The blocks stay LoD2's (kept skin `#e6dfcc`). Added in the street's grid (u 0.349 / 0.937):
+a stone base on every long facade (14 m or more) looking at the square or the Marszałkowska
+axis (dot > 0.55, within 100 m, not into another block), deep arcades on the facades within
+80 m of the square's centre only, a stepped attic pavilion at each of four block ends.
 
 ## 3. Facade, base to top
 
-Arcade: square piers 1.1 m, every ~5.4 m, 0.6 m in front of a 2.9 m deep walk; an entablature
-slab 5.6-6.3 m with a cornice on its front edge to 6.7 m; dark shopfronts in each bay between
-the piers (0.3 m in front of the wall). Tower: a windowed shaft 10.5 m above the block's roof
-with four corner pilasters, a cornice, a narrower windowed second stage (7 m), a cornice.
+Base: a wall 0.6 m proud, ground to 11 m (M_MONUMENT windows), a ledge 11-11.7 m. Ground
+floor: stone piers 1 m wide every ~5.4 m to 5.8 m, a cornice 5.6-6.2 m, dark shopfronts between.
+Arcade (ring only): square piers 1.4 m, 2.9 m out, an entablature 5.8-6.4 m, a cornice to 6.9 m.
 
 ## 4. Roof
 
-Tower: a hipped attic in grey sheet (6 m rise), a thin gilt spire 6 m higher with a gilt collar.
-Block roofs stay LoD2's.
+Pavilion: a cornice, a recessed windowed attic 4.5 m, a cornice, a grey cap, finials on the
+corners and along the long sides. Signs stand on the roofs, 8-12 m wide.
 
 ## 5. Colour and material
 
 | Part | Colour | Material code |
 | --- | --- | --- |
-| Tower shafts | #cdbfa3 | M_MONUMENT |
-| Piers, pilasters, cornices | #d8ccb0 / #e6dcc4 | M_STONE |
+| Plaster (skin) | #e6dfcc | M_MONUMENT |
+| Stone base | #cdb98d | M_MONUMENT |
+| Piers | #d3c39a | M_STONE |
+| Trim, cornices | #ece4d0 | M_STONE |
 | Shopfronts | #34383b | M_GLASS |
-| Attic | #7f7b74 | M_STONE |
-| Spire, collar | #c9a24a | M_STONE |
-| Relief field, frame | #b0634a / #efe6d2 | M_STONE |
+| Neon MDM, HOTEL MDM | red | neon quad |
+| Neon XIAOMY | orange | neon quad |
+| Neon BYDŁO | silver-white | neon quad |
 
-No new material or draw call.
+No new material or draw call; the four words join `neon_signs.gd` LANDMARK_WORDS.
 
 ## 6. Ground and night
 
-Car collision on each arcade's rectangle. The card stays "MDM". Open *(photo check)*: the real
-arcade rhythm and depth, whether the piers are square or round, the towers' real height and
-crown, the reliefs' subjects and places.
+Car collision on each facade's front. XIAOMY and BYDŁO are parodies of real brands (the real
+names are in `brand_denylist.json`). Open *(photo check)*: which facades really have arcades
+(F's Street View shows a copper-roofed colonnade on the far block at the square), the real
+sign positions and sizes, balcony railings, the pavilions' real shape.
 
 ## 7. Detail level and budget
 
-L2, 2002 triangles measured, budget 2400 in `check_mesh_quality.gd`; no zfight, degenerate,
-bad-normal or floating parts (each tower has a hidden core tying it to the ground).
+L3, 3403 triangles measured, budget 4100 in `check_mesh_quality.gd`; no zfight, degenerate,
+bad-normal or floating parts (each pavilion has a hidden core tying it to the ground).
 
 ## 8. Parts table
 
 | id | shape | size | position | material | feature |
 | --- | --- | --- | --- | --- | --- |
-| piers | boxes | 1.1 x 1.1 m, 6.1 m high | every ~5.4 m, 2.3 m out | M_STONE | 3 arcade |
-| entablature | slab plus cornice | 2.9 m deep, 5.6-6.7 m | along each arcaded facade | M_STONE | 3 arcade |
-| shopfronts | dark wall pieces | 4.3 m high, bay less 2 m | 0.3 m out of the wall | M_GLASS | 3 arcade |
-| tower core | box | tower less 0.8 m, ground to roof | hidden in the block | M_STONE | 2 massing |
-| tower stage 1 | windowed box, 4 pilasters | 11.6-15 m x 11.6-17 m, 10.5 m | on the block's end | M_MONUMENT, M_STONE | 3 tower |
-| tower stage 2 | windowed box, cornices | 1.3 m narrower each side, 7 m | on stage 1 | M_MONUMENT, M_STONE | 3 tower |
-| attic and spire | hipped frustum, thin box, collar | 6 m rise, spire 6 m | on stage 2 | M_STONE | 4 roof |
-| relief | 5 thin boxes | frame 4.3 x 6 m, field 3.4 x 5.2 m | on the face to the square | M_STONE | 3 tower |
+| stone base | wall plus ledge | 11 m high, 0.6 m proud | each street facade | M_MONUMENT, M_STONE | 3 base |
+| piers | boxes | 1 m wide, 6 m high | every ~5.4 m | M_STONE | 3 ground floor |
+| shopfronts | dark wall pieces | 4.9 m high | between the piers | M_GLASS | 3 ground floor |
+| arcade | piers plus entablature | 1.4 m piers, 2.9 m deep | ring facades | M_STONE | 3 arcade |
+| pavilion core | box | pavilion less 0.8 m, ground to roof | hidden in the block | M_STONE | 2 massing |
+| pavilion attic | windowed box, two cornices, cap | 4.5 m attic | four block ends | M_MONUMENT, M_STONE | 4 roof |
+| finials | pinnacles | 0.5-0.7 m, 1.6-2.4 m | pavilion corners and sides | M_STONE | 4 roof |
+| roof signs | neon words | 8, 12 and 11 m wide | NE crown, east roof, SE block | neon quad | 4 roof |
+| hotel sign | neon word | 5.2 m wide | NE block, 5.9 m up | neon quad | 3 ground floor |

@@ -74,6 +74,11 @@ const TRAFFIC := [
 		# pink, mint.
 		{"name": "supercar", "share": 0.0, "size": Vector3(1.98, 1.2, 4.55),
 			"paint": ["#a6e22e", "#e8f03a", "#7b3fd1", "#1a1a1d", "#16a39a", "#f4f1ea", "#ff5fb4", "#7ef0c4"]},
+		# Crazy drivers (traffic.gd CRAZY_*, docs/design/crazy-drivers.md): the Pasatini 1.9 TDJ,
+		# never a random taxi (share 0); one at most in traffic, in Janusz paints (traffic.gd
+		# PASAT_PAINT; these are the same).
+		{"name": "pasatini", "share": 0.0, "size": Vector3(1.8, 1.55, 4.65),
+			"paint": ["#1d1e21", "#3a3d42", "#2f3d33", "#2a3340", "#8c9096"]},
 	],
 	[
 		{"name": "panel van", "share": 0.6, "size": Vector3(2.0, 2.45, 5.2),
@@ -619,7 +624,7 @@ static func traffic_mesh(kind: int) -> ArrayMesh:
 				shapes.append(s)
 			return family(shapes)
 		1:
-			return family([_taxi(TAXI_CITY), _taxi(TAXI_APP), _taxi(TAXI_SUPERCAR)])
+			return family([_taxi(TAXI_CITY), _taxi(TAXI_APP), _taxi(TAXI_SUPERCAR), _taxi(TAXI_PASAT)])
 		2:
 			return family([_van(false), _van(true)])
 	return bus_mesh()
@@ -632,14 +637,18 @@ static func traffic_mesh(kind: int) -> ArrayMesh:
 ## (no draw call of its own): a low, wide wedge with no badge and no marque, a carbon wing on
 ## two struts, four exhaust tips, black side intakes and a splitter. Every shape adds the same
 ## parts in the same order (family() morphs between them): the roof sign, the phone, the
-## supercar's kit; a part another shape owns is hidden.
+## supercar's kit; a part another shape owns is hidden. Crazy drivers (2026-11-05): `which` 3 is
+## the Pasatini 1.9 TDJ (a parody of a certain cult German estate, no badge): spec("estate") with
+## its roof rails, a dark sun strip over the windscreen, a boot-lip spoiler on the roof's end and
+## two chrome exhaust tips. The family then holds four shapes, the most it takes.
 const TAXI_CITY := 0
 const TAXI_APP := 1
 const TAXI_SUPERCAR := 2
+const TAXI_PASAT := 3
 static func _taxi(which: int) -> Shape:
 	var s := Shape.new()
 	var city := which == TAXI_CITY
-	var p := spec(["saloon", "hatch", "supercar"][which])
+	var p := spec(["saloon", "hatch", "supercar", "estate"][which])
 	_vehicle(s, p, fin(Color.WHITE, PAINT))
 	var roof_y: float = p["roof_y"]
 	var mid := Vector3(0.0, roof_y - 0.2, (p["roof_z0"] + p["roof_z1"]) * 0.5)
@@ -690,6 +699,15 @@ static func _taxi(which: int) -> Shape:
 	for sgn: float in [-1.0, 1.0]:
 		s.side_rect(sgn * (W + 0.012), sgn, sill + 0.24, sill + 0.5, 0.45, 0.95, fin(GRILLE))
 	s.box(Vector3(0.0, sill - 0.04, -L * 0.5 + 0.12), Vector3(W * 2.0 + 0.02, 0.04, 0.3), carbon)
+	# The Pasatini's kit: sun strip, boot-lip spoiler, twin chrome tips.
+	s.keep_if(which == TAXI_PASAT, tail)
+	var dark := fin(Color("#141518"))
+	var roof_z0: float = p["roof_z0"]
+	var roof_z1: float = p["roof_z1"]
+	s.box(Vector3(0.0, roof_y - 0.06, roof_z0 - 0.06), Vector3(float(p["gw1"]) * 2.0 - 0.04, 0.1, 0.16), dark)
+	s.box(Vector3(0.0, roof_y + 0.03, roof_z1 + 0.04), Vector3(float(p["gw1"]) * 2.0, 0.05, 0.22), dark)
+	for x: float in [-0.5, -0.36]:
+		s.box(Vector3(x, sill + 0.06, L * 0.5 + 0.03), Vector3(0.1, 0.09, 0.14), fin(Color("#c9ccd1")))
 	s.show()
 	return s
 

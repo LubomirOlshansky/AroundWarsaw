@@ -95,7 +95,7 @@ func say(anchor: Variant, speaker: String, line: String, subtitle := "", seconds
 	_make_room()
 	var typing := line.length() / TYPE_RATE
 	var b := {"anchor": anchor, "speaker": speaker, "line": line, "sub": subtitle, "age": 0.0,
-			"life": typing + seconds, "typing": typing, "accent": accent, "height": height, "kind": kind}
+			"life": typing + maxf(seconds, Chatter.read_time(line + subtitle)), "typing": typing, "accent": accent, "height": height, "kind": kind}
 	b["wide"] = _measure(b, WIDTH)
 	_bubbles.append(b)
 	queue_redraw()

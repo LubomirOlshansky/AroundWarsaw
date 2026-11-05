@@ -642,7 +642,9 @@ func light(c: int, group: int) -> int:
 ## `goal` at junctions the route doesn't reach (traffic.gd _choose_next).
 ## Beta values (2026-11-04): `portals` false leaves the off-map links out: the player's car can't
 ## drive them (the edge roadworks close every road out), so the player's own routes skip them.
-func distances_to(target: int, max_cost := INF, portals := true) -> PackedFloat32Array:
+## Street races R3 (2026-11-05): `extra_in` adds links into a node, {node: [from, cost, from, cost...]}
+## (a racer's shortcuts, race_cuts.gd), searched like the portals.
+func distances_to(target: int, max_cost := INF, portals := true, extra_in := {}) -> PackedFloat32Array:
 	var dist := PackedFloat32Array()
 	dist.resize(node_pos.size())
 	dist.fill(INF)
@@ -663,6 +665,14 @@ func distances_to(target: int, max_cost := INF, portals := true) -> PackedFloat3
 			if nd < dist[m]:
 				dist[m] = nd
 				_heap_push(heap_d, heap_n, nd, m)
+		if extra_in.has(n):
+			var cuts: PackedFloat32Array = extra_in[n]
+			for k in range(0, cuts.size(), 2):
+				var m := int(cuts[k])
+				var nd := d + cuts[k + 1]
+				if nd < dist[m]:
+					dist[m] = nd
+					_heap_push(heap_d, heap_n, nd, m)
 		if not portals:
 			continue
 		var links := _portal_in[n]
