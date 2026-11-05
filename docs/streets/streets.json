@@ -10,7 +10,7 @@
    "t": [-30, 48],
    "street_t": [-8, 26],
    "fresh_since": "2025-09",
-   "stage": "baseline",
+   "stage": "evidence",
    "blocks": [
     {"id": "A", "title": "Rondo Dmowskiego to Złota", "s": [-235, 36]},
     {"id": "B", "title": "Złota to Sienkiewicza", "s": [36, 172]},

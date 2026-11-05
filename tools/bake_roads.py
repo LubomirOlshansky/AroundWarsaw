@@ -79,6 +79,8 @@ DIP_MAX = 2.0        # R3: the most a road under a deck may dip to get its clear
 DIP_GRADE = 0.08     # ...with ramps this steep
 DECK_KEPT = 3.0      # loop 3d-1: the ground at a crossing this much over the way's own ground...
 KEPT_SIDE = (10.0, 40.0)  # ...this far past the deck's edge on both sides: the grid keeps the deck
+ZEBRA_HALF = 1.8     # half the width of a zebra's stripes (map_builder.gd _build_crossings: 3.6 m)
+ZEBRA_GAP = 0.6      # lane lines stop this far short of a zebra's stripes
 PIT_SPAN = 20.0      # a dip in a road's terrain narrower than this is a pit to bridge...
 PIT_MIN = 0.4        # ...when it is at least this deep...
 PIT_PORTAL = 80.0    # ...and not this close to a tunnel's portal (loop 3b: its open ramp's trench)
@@ -2377,6 +2379,7 @@ class Roadbed:
         paving where trams run in it. Mapped grass, islands and hatching stay as they are."""
         out = []
         self._zebras = None
+        self._zebra_caps = None
         self._deck_ends = None
         # Map round 2b (L5): a median piece on the mapped tram bed (`landuse=railway`, the
         # ballast surface) is the tram bed, paved like it, even where the tracks themselves bend
@@ -2584,6 +2587,19 @@ class Roadbed:
                     continue  # the same street carrying on, or a parallel carriageway
                 if seg_dist(x, z, a, b) < half + 0.3:
                     return True
+        # Operation Unslop (2026-11-05, check L4): lane lines stop at zebras. map_builder paints a
+        # zebra's stripes 3.6 m wide along the crossing path; the line stops ZEBRA_GAP m short of
+        # each side. 643 of 2,177 zebras had a lane or centre line painted through them.
+        if self._zebra_caps is None:
+            self._zebra_caps = Capsules()
+            for w in self.paths:
+                if w["k"] == "zebra":
+                    q = pairs(w["p"])
+                    for a, b in zip(q, q[1:]):
+                        self._zebra_caps.add(a, b, ZEBRA_HALF + ZEBRA_GAP, w.get("dk", -1))
+        for a, b, half, zlv in self._zebra_caps.grid.at(x, z):
+            if zlv == lv and seg_dist(x, z, a, b) <= half:
+                return True
         # Junction boxes stay unpainted, except a roundabout's own ring (its box is the ring).
         polys = self.cpolys.get(lv)
         if polys is not None and r["_t"].get("junction") not in ("roundabout", "circular"):

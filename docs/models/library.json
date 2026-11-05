@@ -7,7 +7,7 @@
 "name": "Stair and metro balustrade (granite with a steel rail; glass for newer stations)",
 "about": "road-objects B5: stair walls drawn as 1.9 m grey slabs",
 "file": "",
-"count": 8,
+"count": 7,
 "used_by": [
 "marszalkowska-centrum"
 ]
@@ -45,8 +45,10 @@
 "name": "Tram-median railing (low steel with posts)",
 "about": "road-objects B2 and the library 3.4",
 "file": "",
-"count": 0,
-"used_by": []
+"count": 3,
+"used_by": [
+"marszalkowska-centrum"
+]
 },
 {
 "id": "yard_gate",

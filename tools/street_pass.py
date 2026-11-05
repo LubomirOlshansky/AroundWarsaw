@@ -17,6 +17,8 @@ The checks (docs/design/operation-unslop.md section 4):
   L2 loose line    a lane line ending in the middle of a block: no junction, stop line or
                    continuing line within reach of its end
   L3 line on kerb  a lane, edge or centre line crossing a kerb line
+  L4 line thru zebra a lane or centre line painted across a zebra crossing (OSM footway=crossing
+                   paths, `paths` kind "zebra"): bake_roads `_crossed` cuts lines at roads only
   T1 tree on road  a scanned tree's trunk on the drawn carriageway (area or visible road strip)
   P1 prop on road  a lamp, bin, bench, rack, column or shelter on the drawn carriageway
   O1 solid at lane a solid (barrier, parked car, shelter, building...) within 1 m of a lane's edge
@@ -39,8 +41,8 @@ import road_objects as RO  # noqa: E402  (the lanes, the solids census)
 
 DEFS = os.path.join(ROOT, "docs", "streets", "streets.json")
 OUT_DIR = os.path.join(ROOT, "docs", "streets")
-WEIGHTS = {"L1": 3, "L2": 1, "L3": 2, "T1": 3, "P1": 2, "O1": 1}
-TITLES = {"L1": "lane step", "L2": "loose lane line", "L3": "line on a kerb", "T1": "tree on the road",
+WEIGHTS = {"L1": 3, "L2": 1, "L3": 2, "L4": 2, "T1": 3, "P1": 2, "O1": 1}
+TITLES = {"L1": "lane step", "L2": "loose lane line", "L3": "line on a kerb", "L4": "line through a zebra", "T1": "tree on the road",
           "P1": "prop on the road", "O1": "solid within 1 m of a lane"}
 LOOSE_REACH = 2.0      # L2: another line's end this close continues the line
 JUNCTION_REACH = 14.0  # L2: a line may end this close to a junction node
@@ -236,6 +238,26 @@ def measure(d, sd):
         if hit:
             add("L3", hit, f"{m['k']} line crosses a kerb")
 
+    # L4: lane and centre lines through zebras.
+    zebras = [pairs(w["p"]) for w in d.get("paths", []) if w.get("k") == "zebra" and any(near(p) for p in pairs(w["p"]))]
+    zsegs = [(a, b) for z in zebras for a, b in zip(z, z[1:])]
+    for m in lines:
+        if m["k"] not in ("lane", "centre"):
+            continue
+        pts = pairs(m["p"])
+        hit = None
+        for a, b in zip(pts, pts[1:]):
+            for c, e in zsegs:
+                if crosses(a, b, c, e):
+                    mid = ((c[0] + e[0]) / 2, (c[1] + e[1]) / 2)
+                    if here(mid):
+                        hit = mid
+                    break
+            if hit:
+                break
+        if hit:
+            add("L4", hit, f"{m['k']} line painted through a zebra")
+
     # T1 + P1: trees and props on the drawn carriageway.
     surf = Surface(d, near)
     t3 = d.get("trees3d", [])
@@ -288,7 +310,7 @@ def measure(d, sd):
 # The match step (F, 2026-11-05): every classified object gets the library model that draws it
 # (tools/model_library.py, docs/models/library.json), or a wanted id when the game has none yet.
 MODEL_FOR = {("B1", "guard_rail"): "barrier:guard_rail", ("B13", "shelter"): "instanced:shelter",
-             ("B5", "*"): "balustrade", ("B2", "*"): "tram_railing", ("B6", "*"): "canopy_posts",
+             ("B5", "*"): "balustrade", ("B2", "*"): "tram_railing", ("B2b", "*"): "tram_railing", ("B6", "*"): "canopy_posts",
              ("B3", "*"): "yard_gate", ("*", "parked_car"): "instanced:parked", ("B9", "*"): "barrier:hedge"}
 
 
@@ -308,6 +330,14 @@ def classify(d, sd):
     steps = [pairs(s["p"]) for s in d.get("steps", [])]
     subways = [(p["x"], p["z"]) for p in d.get("pois", []) if p.get("k") == "subway_entrance"]
     juncs = junction_nodes(d)
+    tram_segs = []
+    for t_ in d.get("trams", []) + d.get("platforms", []):
+        q = pairs(t_["p"])
+        if t_ in d.get("platforms", []):
+            q = q + q[:1]
+        for a, b in zip(q, q[1:]):
+            if in_rect(fr.st(*a), {"s": [sd["s"][0] - 20, sd["s"][1] + 20], "t": [sd["t"][0] - 20, sd["t"][1] + 20]}):
+                tram_segs.append((a, b))
     rows = []
     for cls, kind, outline, level in RO.objects(d, os.path.join(ROOT, "game", "data")):
         pts = [p for p in RO.sample(outline, 1.0) if in_rect(fr.st(*p), sd)]
@@ -326,8 +356,15 @@ def classify(d, sd):
         ax, az = outline[-1][0] - outline[0][0], outline[-1][1] - outline[0][1]
         n = math.hypot(ax, az) or 1.0
         ang = math.degrees(math.acos(min(1.0, abs((ax * fr.s[0] + az * fr.s[1]) / n))))
-        near_steps = any(math.hypot(at[0] - q[0], at[1] - q[1]) < 8.0 for s in steps for q in s) or \
-            any(math.hypot(at[0] - q[0], at[1] - q[1]) < 10.0 for q in subways)
+        def near_stair(p, r=8.0):
+            return any(math.hypot(p[0] - q[0], p[1] - q[1]) < r for s in steps for q in s) or \
+                any(math.hypot(p[0] - q[0], p[1] - q[1]) < r + 2.0 for q in subways)
+        # B5 as road-objects.md says it: the barrier wraps the stair (at most 25 m, both ends by it),
+        # not any kerb piece that passes a stair (street-unslopper, 2026-11-05: a 59 m kerb rail).
+        near_steps = length <= 25.0 and near_stair(outline[0]) and near_stair(outline[-1])
+        # B2b: a fence along a tram line or a platform edge is the tram railing.
+        by_tram = cls == "barrier" and kind == "fence" and ang < 15.0 and any(
+            seg_dist(at, a, b)[0] < 4.0 for a, b in tram_segs) if tram_segs else False
         at_jn = any(math.hypot(at[0] - q[0], at[1] - q[1]) < RO.JUNCTION + 1.0 for q in juncs)
         s, t = fr.st(*at)
         lane_both = lanes.gap(at[0] + fr.t[0] * 6, at[1] + fr.t[1] * 6)[0] < 1.0 and lanes.gap(at[0] - fr.t[0] * 6, at[1] - fr.t[1] * 6)[0] < 1.0
@@ -348,6 +385,8 @@ def classify(d, sd):
             rule, verdict, why = "B5", "REPLACE", "wall/fence round a stair or metro entrance: balustrade"
         elif cls == "barrier" and length < 4.0:
             rule, verdict, why = "B12", "CHECK", f"{length:.1f} m fragment: REMOVE unless the photos show it"
+        elif by_tram:
+            rule, verdict, why = "B2b", "RETEXTURE", "railing along the tram bed or platform edge: the tram railing (solid or soft is the B2 A/B)"
         elif cls == "barrier" and kind == "fence" and ang < 15.0 and lane_both:
             rule, verdict, why = "B2", "A/B", "median/tram fence parallel to the lanes: solid or SOFTEN, F decides on the phone"
         elif cls == "barrier" and ang > 45.0 and gap < 3.0:

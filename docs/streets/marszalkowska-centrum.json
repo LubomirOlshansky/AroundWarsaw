@@ -2,11 +2,12 @@
  "slug": "marszalkowska-centrum",
  "title": "Marszałkowska: Rondo Dmowskiego to Świętokrzyska",
  "updated": "2026-11-05",
- "stage": "baseline",
- "score": 82,
+ "stage": "evidence",
+ "score": 70,
  "counts": {
   "L1": 9,
   "L2": 16,
+  "L4": 19,
   "O1": 8,
   "P1": 1
  },
@@ -17,9 +18,10 @@
    "counts": {
     "L1": 3,
     "L2": 5,
+    "L4": 4,
     "O1": 7
    },
-   "score": 79
+   "score": 71
   },
   {
    "id": "B",
@@ -27,9 +29,10 @@
    "counts": {
     "L1": 3,
     "L2": 4,
+    "L4": 2,
     "P1": 1
    },
-   "score": 85
+   "score": 81
   },
   {
    "id": "C",
@@ -37,18 +40,20 @@
    "counts": {
     "L1": 3,
     "L2": 7,
+    "L4": 13,
     "O1": 1
    },
-   "score": 83
+   "score": 57
   }
  ],
  "history": [
   {
    "date": "2026-11-05",
-   "score": 82,
+   "score": 70,
    "counts": {
     "L1": 9,
     "L2": 16,
+    "L4": 19,
     "O1": 8,
     "P1": 1
    }
@@ -56,10 +61,11 @@
  ],
  "baseline": {
   "date": "2026-11-05",
-  "score": 82,
+  "score": 70,
   "counts": {
    "L1": 9,
    "L2": 16,
+   "L4": 19,
    "O1": 8,
    "P1": 1
   }
@@ -67,21 +73,21 @@
  "evidence": [
   {
    "block": "A",
-   "photos": 295,
+   "photos": 244,
    "newest": "2026-08-30",
-   "fresh": 37
+   "fresh": 36
   },
   {
    "block": "B",
-   "photos": 103,
+   "photos": 76,
    "newest": "2026-08-30",
-   "fresh": 20
+   "fresh": 13
   },
   {
    "block": "C",
-   "photos": 208,
+   "photos": 88,
    "newest": "2026-08-30",
-   "fresh": 27
+   "fresh": 10
   }
  ],
  "owned": [
@@ -124,9 +130,9 @@
   }
  ],
  "verdicts": {
-  "CHECK": 3,
-  "KEEP": 9,
-  "REPLACE": 8
+  "KEEP": 10,
+  "REPLACE": 7,
+  "RETEXTURE": 3
  },
  "findings": [
   {
@@ -208,6 +214,46 @@
    "note": "lane line ends mid-block [changed since the data: Skwer Linearny na Złotej (car-free since 2026-08) and its crossing to Plac Centralny]",
    "block": "A",
    "status": "changed"
+  },
+  {
+   "check": "L4",
+   "x": -871.4,
+   "z": 336.1,
+   "s": -141.0,
+   "t": 17.5,
+   "note": "lane line painted through a zebra",
+   "block": "A",
+   "status": "open"
+  },
+  {
+   "check": "L4",
+   "x": -875.7,
+   "z": 337.7,
+   "s": -140.9,
+   "t": 12.9,
+   "note": "lane line painted through a zebra",
+   "block": "A",
+   "status": "open"
+  },
+  {
+   "check": "L4",
+   "x": -888.4,
+   "z": 342.2,
+   "s": -140.8,
+   "t": -0.6,
+   "note": "lane line painted through a zebra",
+   "block": "A",
+   "status": "open"
+  },
+  {
+   "check": "L4",
+   "x": -893.0,
+   "z": 343.5,
+   "s": -140.4,
+   "t": -5.3,
+   "note": "lane line painted through a zebra",
+   "block": "A",
+   "status": "open"
   },
   {
    "check": "O1",
@@ -350,6 +396,26 @@
    "status": "open"
   },
   {
+   "check": "L4",
+   "x": -938.3,
+   "z": 152.6,
+   "s": 54.4,
+   "t": 18.8,
+   "note": "lane line painted through a zebra [changed since the data: Skwer Linearny na Złotej (car-free since 2026-08) and its crossing to Plac Centralny]",
+   "block": "B",
+   "status": "changed"
+  },
+  {
+   "check": "L4",
+   "x": -957.1,
+   "z": 159.5,
+   "s": 54.5,
+   "t": -1.1,
+   "note": "lane line painted through a zebra [changed since the data: Skwer Linearny na Złotej (car-free since 2026-08) and its crossing to Plac Centralny]",
+   "block": "B",
+   "status": "changed"
+  },
+  {
    "check": "P1",
    "x": -968.5,
    "z": 38.4,
@@ -460,6 +526,136 @@
    "status": "open"
   },
   {
+   "check": "L4",
+   "x": -986.8,
+   "z": 26.5,
+   "s": 189.4,
+   "t": 17.4,
+   "note": "lane line painted through a zebra",
+   "block": "C",
+   "status": "open"
+  },
+  {
+   "check": "L4",
+   "x": -1003.9,
+   "z": 32.8,
+   "s": 189.6,
+   "t": -0.8,
+   "note": "lane line painted through a zebra",
+   "block": "C",
+   "status": "open"
+  },
+  {
+   "check": "L4",
+   "x": -1037.8,
+   "z": -114.8,
+   "s": 339.6,
+   "t": 19.0,
+   "note": "lane line painted through a zebra",
+   "block": "C",
+   "status": "open"
+  },
+  {
+   "check": "L4",
+   "x": -1037.8,
+   "z": -114.8,
+   "s": 339.6,
+   "t": 19.0,
+   "note": "lane line painted through a zebra",
+   "block": "C",
+   "status": "open"
+  },
+  {
+   "check": "L4",
+   "x": -1055.6,
+   "z": -108.3,
+   "s": 339.8,
+   "t": 0.1,
+   "note": "lane line painted through a zebra",
+   "block": "C",
+   "status": "open"
+  },
+  {
+   "check": "L4",
+   "x": -1055.6,
+   "z": -108.3,
+   "s": 339.8,
+   "t": 0.1,
+   "note": "lane line painted through a zebra",
+   "block": "C",
+   "status": "open"
+  },
+  {
+   "check": "L4",
+   "x": -1029.2,
+   "z": -142.8,
+   "s": 362.8,
+   "t": 36.8,
+   "note": "lane line painted through a zebra",
+   "block": "C",
+   "status": "open"
+  },
+  {
+   "check": "L4",
+   "x": -1029.2,
+   "z": -142.8,
+   "s": 362.8,
+   "t": 36.8,
+   "note": "lane line painted through a zebra",
+   "block": "C",
+   "status": "open"
+  },
+  {
+   "check": "L4",
+   "x": -1029.2,
+   "z": -142.8,
+   "s": 362.8,
+   "t": 36.8,
+   "note": "centre line painted through a zebra",
+   "block": "C",
+   "status": "open"
+  },
+  {
+   "check": "L4",
+   "x": -1083.3,
+   "z": -125.7,
+   "s": 365.8,
+   "t": -19.8,
+   "note": "lane line painted through a zebra",
+   "block": "C",
+   "status": "open"
+  },
+  {
+   "check": "L4",
+   "x": -1083.3,
+   "z": -125.7,
+   "s": 365.8,
+   "t": -19.8,
+   "note": "centre line painted through a zebra",
+   "block": "C",
+   "status": "open"
+  },
+  {
+   "check": "L4",
+   "x": -1083.3,
+   "z": -125.7,
+   "s": 365.8,
+   "t": -19.8,
+   "note": "lane line painted through a zebra",
+   "block": "C",
+   "status": "open"
+  },
+  {
+   "check": "L4",
+   "x": -1083.3,
+   "z": -125.7,
+   "s": 365.8,
+   "t": -19.8,
+   "note": "lane line painted through a zebra",
+   "block": "C",
+   "status": "open"
+  },
+  {
    "check": "O1",
    "x": -1038.2,
    "z": -102.7,
@@ -471,63 +667,6 @@
   }
  ],
  "objects": [
-  {
-   "id": "barrier:fence:-856:424",
-   "cls": "barrier",
-   "kind": "fence",
-   "gap": 0.34,
-   "len": 4.4,
-   "angle": 0,
-   "s": -231,
-   "t": 1,
-   "x": -855.8,
-   "z": 426.0,
-   "street": "Rondo Romana Dmowskiego",
-   "jn": 0,
-   "rule": "-",
-   "verdict": "CHECK",
-   "why": "no rule decides; needs the orthophoto or a street photo",
-   "model": "barrier:fence",
-   "status": "open"
-  },
-  {
-   "id": "barrier:fence:-870:392",
-   "cls": "barrier",
-   "kind": "fence",
-   "gap": 0.27,
-   "len": 53.5,
-   "angle": 8,
-   "s": -168,
-   "t": 2,
-   "x": -876.1,
-   "z": 366.7,
-   "street": "Marszałkowska",
-   "jn": 0,
-   "rule": "-",
-   "verdict": "CHECK",
-   "why": "no rule decides; needs the orthophoto or a street photo",
-   "model": "barrier:fence",
-   "status": "open"
-  },
-  {
-   "id": "barrier:fence:-1024:-64",
-   "cls": "barrier",
-   "kind": "fence",
-   "gap": 0.71,
-   "len": 83.0,
-   "angle": 0,
-   "s": 328,
-   "t": 14,
-   "x": -1038.2,
-   "z": -102.7,
-   "street": "Marszałkowska",
-   "jn": 0,
-   "rule": "-",
-   "verdict": "CHECK",
-   "why": "no rule decides; needs the orthophoto or a street photo",
-   "model": "barrier:fence",
-   "status": "open"
-  },
   {
    "id": "guard_rail:ground:-878:440",
    "cls": "guard_rail",
@@ -602,6 +741,25 @@
    "verdict": "KEEP",
    "why": "the road's edge rail; collisions are collision v2's job",
    "model": "barrier:guard_rail",
+   "status": "open"
+  },
+  {
+   "id": "barrier:wall:-886:402",
+   "cls": "barrier",
+   "kind": "wall",
+   "gap": 2.65,
+   "len": 59.0,
+   "angle": 13,
+   "s": -163,
+   "t": -12,
+   "x": -891.3,
+   "z": 367.5,
+   "street": "Marszałkowska",
+   "jn": 0,
+   "rule": "B11",
+   "verdict": "KEEP",
+   "why": "parallel wall/fence past the kerb",
+   "model": "barrier:wall",
    "status": "open"
   },
   {
@@ -795,25 +953,6 @@
    "status": "open"
   },
   {
-   "id": "barrier:wall:-886:402",
-   "cls": "barrier",
-   "kind": "wall",
-   "gap": 2.65,
-   "len": 59.0,
-   "angle": 13,
-   "s": -163,
-   "t": -12,
-   "x": -891.3,
-   "z": 367.5,
-   "street": "Marszałkowska",
-   "jn": 0,
-   "rule": "B5",
-   "verdict": "REPLACE",
-   "why": "wall/fence round a stair or metro entrance: balustrade",
-   "model": "balustrade",
-   "status": "open"
-  },
-  {
    "id": "barrier:wall:-916:190",
    "cls": "barrier",
    "kind": "wall",
@@ -850,6 +989,63 @@
    "why": "wall/fence round a stair or metro entrance: balustrade",
    "model": "balustrade",
    "status": "changed"
+  },
+  {
+   "id": "barrier:fence:-856:424",
+   "cls": "barrier",
+   "kind": "fence",
+   "gap": 0.34,
+   "len": 4.4,
+   "angle": 0,
+   "s": -231,
+   "t": 1,
+   "x": -855.8,
+   "z": 426.0,
+   "street": "Rondo Romana Dmowskiego",
+   "jn": 0,
+   "rule": "B2b",
+   "verdict": "RETEXTURE",
+   "why": "railing along the tram bed or platform edge: the tram railing (solid or soft is the B2 A/B)",
+   "model": "tram_railing",
+   "status": "open"
+  },
+  {
+   "id": "barrier:fence:-870:392",
+   "cls": "barrier",
+   "kind": "fence",
+   "gap": 0.27,
+   "len": 53.5,
+   "angle": 8,
+   "s": -168,
+   "t": 2,
+   "x": -876.1,
+   "z": 366.7,
+   "street": "Marszałkowska",
+   "jn": 0,
+   "rule": "B2b",
+   "verdict": "RETEXTURE",
+   "why": "railing along the tram bed or platform edge: the tram railing (solid or soft is the B2 A/B)",
+   "model": "tram_railing",
+   "status": "open"
+  },
+  {
+   "id": "barrier:fence:-1024:-64",
+   "cls": "barrier",
+   "kind": "fence",
+   "gap": 0.71,
+   "len": 83.0,
+   "angle": 0,
+   "s": 328,
+   "t": 14,
+   "x": -1038.2,
+   "z": -102.7,
+   "street": "Marszałkowska",
+   "jn": 0,
+   "rule": "B2b",
+   "verdict": "RETEXTURE",
+   "why": "railing along the tram bed or platform edge: the tram railing (solid or soft is the B2 A/B)",
+   "model": "tram_railing",
+   "status": "open"
   }
  ]
 }

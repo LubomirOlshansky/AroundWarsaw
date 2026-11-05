@@ -8,11 +8,11 @@ Counts: barrier 5, detail 12, instanced 10, landmark 125, monument 10, park 14, 
 
 | Id | Name | In the map | Code | About |
 | --- | --- | --- | --- | --- |
-| `balustrade` | Stair and metro balustrade (granite with a steel rail; glass for newer stations) | 8 asked (marszalkowska-centrum) |  | road-objects B5: stair walls drawn as 1.9 m grey slabs |
+| `balustrade` | Stair and metro balustrade (granite with a steel rail; glass for newer stations) | 7 asked (marszalkowska-centrum) |  | road-objects B5: stair walls drawn as 1.9 m grey slabs |
 | `canopy_posts` | Canopy on posts (station, fuel, pavilion) | 0 asked (no street yet) |  | road-objects B6: canopies drawn as solid blocks |
 | `jersey_barrier` | Concrete Jersey barrier | 0 asked (no street yet) |  | road-objects 3.4 |
 | `park_fence` | Black steel park fence | 0 asked (no street yet) |  | road-objects 3.4: park and square fences read as grey |
-| `tram_railing` | Tram-median railing (low steel with posts) | 0 asked (no street yet) |  | road-objects B2 and the library 3.4 |
+| `tram_railing` | Tram-median railing (low steel with posts) | 3 asked (marszalkowska-centrum) |  | road-objects B2 and the library 3.4 |
 | `yard_gate` | Yard gate, closed and open | 0 asked (no street yet) |  | road-objects B3 and B14 |
 
 ## landmark (125)
