@@ -12,6 +12,7 @@ someone writes its lines.
 ## 2026-11-05
 
 - Roads no longer jump sideways where they change width: the asphalt now narrows or widens smoothly over 20-30 m, the dark blobs at the kerb are gone, and lane lines curve across instead of breaking off; the widening asphalt follows the kerb instead of poking into the tram tracks or a driveway; streets now run straight up to the tram tracks, and driveways no longer show through the street as pale flags.
+- Tram tracks on their own bed now show sleepers on gravel; cars, walkers and U-turns cross the tracks on clean asphalt or paving instead of stray kerb lines; driveways are the same asphalt as the street; and metro stairs darken as they go down into the station.
 - The railway at Plac Zawiszy no longer runs over the street: the tracks, sleepers and overhead wires stop where the cutting ends and the tunnel mouth stands, and trains disappear into it.
 
 ## 2026-11-04

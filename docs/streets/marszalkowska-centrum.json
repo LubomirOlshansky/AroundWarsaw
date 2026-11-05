@@ -3,12 +3,12 @@
  "title": "Marszałkowska: Rondo Dmowskiego to Świętokrzyska",
  "updated": "2026-11-05",
  "stage": "evidence",
- "score": 73,
+ "score": 74,
  "counts": {
   "F1": 7,
   "L1": 9,
   "L2": 12,
-  "L3": 6,
+  "L3": 4,
   "O1": 8,
   "P1": 1
  },
@@ -31,10 +31,10 @@
     "F1": 1,
     "L1": 3,
     "L2": 3,
-    "L3": 5,
+    "L3": 3,
     "P1": 1
    },
-   "score": 73
+   "score": 77
   },
   {
    "id": "C",
@@ -160,6 +160,23 @@
    "blocks": {
     "A": 64,
     "B": 73,
+    "C": 81
+   }
+  },
+  {
+   "date": "2026-11-05",
+   "score": 74,
+   "counts": {
+    "F1": 7,
+    "L1": 9,
+    "L2": 12,
+    "L3": 4,
+    "O1": 8,
+    "P1": 1
+   },
+   "blocks": {
+    "A": 64,
+    "B": 77,
     "C": 81
    }
   }
@@ -527,16 +544,6 @@
   },
   {
    "check": "L3",
-   "x": -958.4,
-   "z": 140.4,
-   "s": 72.7,
-   "t": 4.3,
-   "note": "edge line crosses a kerb [changed since the data: Skwer Linearny na Złotej (car-free since 2026-08) and its crossing to Plac Centralny]",
-   "block": "B",
-   "status": "changed"
-  },
-  {
-   "check": "L3",
    "x": -964.3,
    "z": 125.8,
    "s": 88.6,
@@ -547,19 +554,9 @@
   },
   {
    "check": "L3",
-   "x": -989.2,
-   "z": 54.3,
-   "s": 164.2,
-   "t": 5.5,
-   "note": "edge line crosses a kerb",
-   "block": "B",
-   "status": "open"
-  },
-  {
-   "check": "L3",
-   "x": -991.3,
-   "z": 49.5,
-   "s": 169.4,
+   "x": -989.1,
+   "z": 55.2,
+   "s": 163.3,
    "t": 5.2,
    "note": "edge line crosses a kerb",
    "block": "B",

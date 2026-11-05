@@ -42,6 +42,10 @@ post-passes; this file also runs on a baked map, as the cloud has no OpenStreetM
    kind of S-curve (one polyline, no gap, no jump).
 5. Kinks: a lane, centre or cycle line's corner turning ROUND_MIN..ROUND_MAX degrees is rounded
    into a short arc (cut at most ROUND_CUT m each side); ribbons keep their round joins.
+6. Tram beds (F's ChatGPT target): a tram track's runs on its own bed (ballast surface or tram
+   median) are marked (`trams[].bed`) for sleepers; a road, footway or a zebra's line that crosses
+   a bed becomes a band over it (`tram_xings`) and the kerbs and lines inside it go; steps that
+   end at a metro entrance name their deep end (`steps[].down`).
 
 The lane graph, the carriageway areas, the junction boxes and the decks are not touched.
 Deterministic, standard library only. Re-run tools/bake_sectors.py and bake_city.gd after it.
@@ -1296,6 +1300,276 @@ def measure(d):
             "jogs": len([j for j in jogs(d["markings"]) if abs(j[5]) > STEP_MIN])}
 
 
+TRAM_BED_STEP = 1.0   # m between the samples along a track
+TRAM_BED_MIN = 3.0    # m: shorter runs on a bed are left plain
+
+
+def densify(pts, step):
+    """The polyline with a point at least every `step` metres."""
+    out = [pts[0]]
+    for a, b in zip(pts, pts[1:]):
+        n = max(1, int(math.ceil(math.hypot(b[0] - a[0], b[1] - a[1]) / step)))
+        for q in range(1, n + 1):
+            out.append((a[0] + (b[0] - a[0]) * q / n, a[1] + (b[1] - a[1]) * q / n))
+    return out
+
+
+def _bed_index(out):
+    """The tram beds (ballast surfaces, tram medians' quads) and a 50 m grid over them."""
+    polys = [pts_of(su["p"]) for su in out.get("surfaces", []) if su.get("k") == "ballast"]
+    for m in out.get("medians", []):
+        if m.get("k") == "grass":
+            continue
+        s4 = m["s"]
+        for i in range(0, len(s4) - 7, 4):
+            polys.append([(s4[i], s4[i + 1]), (s4[i + 2], s4[i + 3]), (s4[i + 6], s4[i + 7]), (s4[i + 4], s4[i + 5])])
+    cells = {}
+    for k, poly in enumerate(polys):
+        xs = [p[0] for p in poly]
+        zs = [p[1] for p in poly]
+        for cx in range(int(math.floor(min(xs) / 50)), int(math.floor(max(xs) / 50)) + 1):
+            for cz in range(int(math.floor(min(zs) / 50)), int(math.floor(max(zs) / 50)) + 1):
+                cells.setdefault((cx, cz), []).append(k)
+
+    def on_bed(x, z):
+        return any(_poly_hit(polys[k], x, z) for k in cells.get((int(math.floor(x / 50)), int(math.floor(z / 50))), ()))
+    return on_bed
+
+
+def _runs_on(pts, on_bed, step):
+    """[from, to] metres along a polyline where it lies on a tram bed."""
+    runs = []
+    start = None
+    s = 0.0
+    for i in range(len(pts) - 1):
+        (ax, az), (bx, bz) = pts[i], pts[i + 1]
+        seg = math.hypot(bx - ax, bz - az)
+        n = max(1, int(math.ceil(seg / step)))
+        for j in range(n):
+            f = (j + 0.5) / n
+            here = on_bed(ax + (bx - ax) * f, az + (bz - az) * f)
+            at = s + seg * j / n
+            if here and start is None:
+                start = at
+            elif not here and start is not None:
+                runs.append([start, at])
+                start = None
+        s += seg
+    if start is not None:
+        runs.append([start, s])
+    return runs
+
+
+def _cut(pts, s0, s1):
+    """The part of a polyline from s0 to s1 metres along it."""
+    out = []
+    s = 0.0
+    for i in range(len(pts) - 1):
+        (ax, az), (bx, bz) = pts[i], pts[i + 1]
+        seg = math.hypot(bx - ax, bz - az)
+        if seg > 0 and s + seg >= s0 and s <= s1:
+            f0 = min(max((s0 - s) / seg, 0.0), 1.0)
+            f1 = min(max((s1 - s) / seg, 0.0), 1.0)
+            if not out:
+                out.append((ax + (bx - ax) * f0, az + (bz - az) * f0))
+            out.append((ax + (bx - ax) * f1, az + (bz - az) * f1))
+        s += seg
+    return out
+
+
+def tram_beds(out, on_bed):
+    """Loop 7 (F's ChatGPT target, 2026-11-05): where a tram track runs on its own bed (a tram
+    median or a ballast surface), mark the run (`trams[].bed`, [from, to] metres along it) so
+    map_builder lays sleepers under the rails there; in the street's asphalt the rails stay bare."""
+    marked = 0
+    for t in out.get("trams", []):
+        runs = [[round(a, 2), round(b, 2)] for a, b in _runs_on(pts_of(t["p"]), on_bed, TRAM_BED_STEP)
+                if b - a >= TRAM_BED_MIN]
+        t.pop("bed", None)
+        if runs:
+            t["bed"] = runs
+            marked += 1
+    return marked
+
+
+XING_MAX = 30.0   # m: a longer run on a bed runs along it, not across
+XING_PAD = 0.4    # m the crossing's paving reaches past the bed's edge
+XING_MIN = 3.0    # m: a shorter run only grazes the bed's edge
+XING_COS = 0.82   # a run within ~35 degrees of the tracks runs along them
+ZEBRA_MEET = 2.5  # m from the far side of a bed to the next zebra's end
+WALK_W = 4.0      # m: a footway's crossing of a tram bed (as wide as a zebra)
+
+
+METRO_STEP_REACH = 2.5   # m from a flight's end to a metro entrance's point
+
+
+def metro_steps(out):
+    """Loop 7 (F's ChatGPT target): a flight of steps that ends at a metro entrance goes down
+    into it; `steps[].down` names its deep end (0 first point, 1 last), so map_builder darkens
+    the treads towards it. Returns the count."""
+    mouths = [(p["x"], p["z"]) for p in out.get("pois", []) if p.get("k") == "subway_entrance"]
+    n = 0
+    for st in out.get("steps", []):
+        st.pop("down", None)
+        p = pts_of(st["p"])
+        if len(p) != 2:
+            continue
+        for mx, mz in mouths:
+            if math.hypot(p[1][0] - mx, p[1][1] - mz) < METRO_STEP_REACH:
+                st["down"] = 1
+            elif math.hypot(p[0][0] - mx, p[0][1] - mz) < METRO_STEP_REACH:
+                st["down"] = 0
+        n += "down" in st
+    return n
+
+
+def _near_mid(x, mid, reach=2.5):
+    p = pts_of(x["p"])
+    return any(math.hypot(q[0] - mid[0], q[1] - mid[1]) < reach for q in densify(p, 1.0))
+
+
+def tram_crossings(out, on_bed):
+    """Loop 7 (F's ChatGPT target): a road or a footway that crosses a tram bed was drawn under
+    it (the bed lies over the roads), so only its edge lines and kerbs showed, curving across the
+    tracks. Each such crossing becomes a band of concrete track panels over the bed
+    (`tram_xings`, drawn under the rails and over the sleepers), and the lines and kerbs inside
+    it go. Returns (crossings, line points dropped)."""
+    tsegs = {}
+    for t in out.get("trams", []):
+        tp = pts_of(t["p"])
+        for a, b in zip(tp, tp[1:]):
+            key = (int(math.floor((a[0] + b[0]) / 100)), int(math.floor((a[1] + b[1]) / 100)))
+            tsegs.setdefault(key, []).append((a, b))
+
+    def across(pts):
+        """Whether a run crosses the tracks (XING_COS off their line), not grazes along them."""
+        (ax, az), (bx, bz) = pts[0], pts[-1]
+        l = math.hypot(bx - ax, bz - az)
+        if l < XING_MIN:
+            return False
+        mx, mz = (ax + bx) / 2, (az + bz) / 2
+        best, cos = 1e9, 1.0
+        cx, cz = int(math.floor(mx / 50)), int(math.floor(mz / 50))
+        for i in (-1, 0, 1):
+            for j in (-1, 0, 1):
+                for (px, pz), (qx, qz) in tsegs.get((cx + i, cz + j), ()):
+                    dx, dz = qx - px, qz - pz
+                    l2 = dx * dx + dz * dz or 1e-9
+                    t = min(max(((mx - px) * dx + (mz - pz) * dz) / l2, 0.0), 1.0)
+                    dd = math.hypot(mx - px - dx * t, mz - pz - dz * t)
+                    if dd < best:
+                        best = dd
+                        cos = abs(((bx - ax) * dx + (bz - az) * dz) / (l * math.sqrt(l2)))
+        return best < 8.0 and cos < XING_COS
+
+    xings = []
+    for r in out["roads"]:
+        if r.get("dk", -1) not in (-1, None) and int(r.get("dk", -1)) >= 0:
+            continue
+        pts = pts_of(r["p"])
+        w = max(r.get("wv", [r["w"]]))
+        for a, b in _runs_on(pts, on_bed, 0.5):
+            run = _cut(pts, max(a - XING_PAD, 0.0), b + XING_PAD)
+            if b - a <= XING_MAX and across(run):
+                xings.append({"p": flat_of(run), "w": round(w + 0.4, 2), "k": "road"})
+    for pa in out.get("paths", []):
+        if pa["k"] != "foot":
+            continue
+        pts = pts_of(pa["p"])
+        for a, b in _runs_on(pts, on_bed, 0.5):
+            run = _cut(pts, max(a - XING_PAD, 0.0), b + XING_PAD)
+            if b - a <= XING_MAX and across(run):
+                xings.append({"p": flat_of(run), "w": WALK_W, "k": "walk"})
+    # A zebra stops at the carriageway's edge; where the walk goes on across a tram bed (Mapped
+    # or not as a footway), the paving runs on in the zebra's line to the far side.
+    zebras = [pts_of(pa["p"]) for pa in out.get("paths", []) if pa["k"] == "zebra"]
+    zebra_ends = zebras
+    for pts in zebras:
+        if len(pts) < 2:
+            continue
+        for (ax, az), (bx, bz) in (((pts[-2]), pts[-1]), (pts[1], pts[0])):
+            l = math.hypot(bx - ax, bz - az)
+            if l < 0.5:
+                continue
+            ux, uz = (bx - ax) / l, (bz - az) / l
+            t, start, end = 0.0, None, None
+            while t < 1.5 + XING_MAX:
+                here = on_bed(bx + ux * t, bz + uz * t)
+                if here and start is None:
+                    start = t
+                elif not here and start is not None:
+                    end = t
+                    break
+                if start is None and t > 1.5:
+                    break
+                t += 0.25
+            if start is None or end is None:
+                continue
+            # Only where the walk meets a zebra on the far side (staggered zebras have their own
+            # refuge on the bed; a band from each read as two pale patches).
+            fx, fz = bx + ux * (end + 1.0), bz + uz * (end + 1.0)
+            if not any(math.hypot(q[0] - fx, q[1] - fz) < ZEBRA_MEET
+                       for z2 in zebra_ends for q in z2 if z2 is not pts):
+                continue
+            a = max(start - XING_PAD, 0.0)
+            run = [(bx + ux * a, bz + uz * a), (bx + ux * (end + XING_PAD), bz + uz * (end + XING_PAD))]
+            mid = ((run[0][0] + run[1][0]) / 2, (run[0][1] + run[1][1]) / 2)
+            if any(x["k"] == "walk" and _near_mid(x, mid) for x in xings):
+                continue
+            if across(run):
+                xings.append({"p": flat_of(run), "w": WALK_W, "k": "walk"})
+    xings = [x for x in xings if len(x["p"]) >= 4]
+    out["tram_xings"] = xings
+    segs = []
+    for x in xings:
+        p = pts_of(x["p"])
+        for i in range(len(p) - 1):
+            segs.append((p[i], p[i + 1], x["w"] * 0.5 + 0.3))
+
+    def in_xing(x, z):
+        if not on_bed(x, z):
+            return False
+        for (ax, az), (bx, bz), hw in segs:
+            if abs(x - ax) > hw + 40 and abs(x - bx) > hw + 40:
+                continue
+            dx, dz = bx - ax, bz - az
+            l2 = dx * dx + dz * dz or 1e-9
+            t = min(max(((x - ax) * dx + (z - az) * dz) / l2, 0.0), 1.0)
+            if math.hypot(x - ax - dx * t, z - az - dz * t) <= hw:
+                return True
+        return False
+
+    dropped = 0
+
+    def split(lines):
+        nonlocal dropped
+        keep = []
+        for line in lines:
+            pts = pts_of(line["p"])
+            dense = densify(pts, 0.5)
+            flags = [in_xing(x, z) for x, z in dense]
+            if not any(flags):
+                keep.append(line)
+                continue
+            dropped += sum(flags)
+            cur = []
+            for q, f in zip(dense, flags):
+                if f:
+                    if len(cur) >= 2:
+                        keep.append(dict(line, p=flat_of(simplify(cur, 0.02))))
+                    cur = []
+                else:
+                    cur.append(q)
+            if len(cur) >= 2:
+                keep.append(dict(line, p=flat_of(simplify(cur, 0.02))))
+        return keep
+
+    out["kerbs"] = split(out.get("kerbs", []))
+    lines = [m for m in out["markings"] if m["k"] in ("edge", "lane", "centre", "stripe")]
+    other = [m for m in out["markings"] if m["k"] not in ("edge", "lane", "centre", "stripe")]
+    out["markings"] = other + split(lines)
+    return len(xings), dropped
+
 def apply(out):
     """Smooths the finished map data in place; returns a one-line summary."""
     if int(out.get("road_smooth", 0)) >= VERSION:
@@ -1332,13 +1606,17 @@ def apply(out):
             if n:
                 m["p"] = flat_of(p)
                 rounded += n
+    on_bed = _bed_index(out)
+    sleepers = tram_beds(out, on_bed)
+    xings, xing_cut = tram_crossings(out, on_bed)
+    stairs = metro_steps(out)
     after = measure(out)
     out["road_smooth"] = VERSION
     return (f"{beds} ways ({bed_sides} sides) widened onto the tram bed, {chain_ways} ways ({chain_sides} sides) "
             f"widened to their street's kerbs ({spread} lane-line points spread), {len(tapers)} joins tapered, {km} kerb and {em} edge-line points moved, {fit} edges fitted to "
             f"their kerbs, {bridged} kerb breaks by a tram bed closed, {joined} lines "
             f"stitched, {rounded} line kinks rounded; edge steps {before['steps']} -> {after['steps']}, "
-            f"line jogs {before['jogs']} -> {after['jogs']}")
+            f"line jogs {before['jogs']} -> {after['jogs']}; {sleepers} tram tracks on a bed, {xings} crossings of a bed paved ({xing_cut} line points under them dropped), {stairs} metro stairs")
 
 
 def main():

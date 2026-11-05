@@ -269,6 +269,8 @@ road in F's shots are the drawn strip covering a real median (check T1 looks at 
 - [ ] `overlay_ortho.py --plain` (no overlay lines, to read paint) and the flight date in its notes; raw OSM extract in the map pack so bake-rule changes can be baked in the cloud
 - [ ] Chained-carriageway lane painting with tapers (L1, 354 joins city-wide); today's lanes override; `lane_split` width sanity
 - [ ] Lane changes as paint (F's satellite shots 2026-11-05): within one street's kerbs a new lane starts as a line out of the edge line with hatching in the spare width, instead of the edge moving; lane widths from the street's width, not each way's count
+- [ ] Driveway mouths: the pavement triangle between two driveway branches (PKiN driveway off Marszałkowska) should be asphalt with hatching or a kerbed island, and give-way teeth at the exit (F's ChatGPT target 2026-11-05)
+- [ ] Signals and stop lines at the Marszałkowska mid-block crossing by Centrum: OSM has no traffic_signals there; F's ChatGPT target drew them (check on Mapillary before adding)
 - [ ] The 10 joins left with a step have no room for a taper (ways shorter than 8 m between joins): merge such stubs in the bake
 - [ ] Test street fixes and F's look (see the street record docs/streets/marszalkowska-centrum.md)
 - [x] Barrier overrides by stable id: `street_pass.py --apply` writes game/data/road_objects.json from the records and hand `decisions`, map_builder draws REMOVE / styles; `tram_railing`, `balustrade`, `balustrade_rail` styles (2026-11-05)

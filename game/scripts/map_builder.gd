@@ -61,6 +61,8 @@ const L_FOAM := 18.0
 const L_TRAMBED := 19.0
 ## First-scene item 5 (2026-11-02): the tactile warning pads where a crossing meets a kerb.
 const L_TACTILE := 20.0
+## Smooth roads loop 7 (F's ChatGPT target, 2026-11-05): a tram track's sleepers on its own bed.
+const L_SLEEPERS := 21.0
 
 const Y_GROUND := 0.0
 const Y_AREA := 0.02
@@ -82,7 +84,7 @@ const COL := {
 	"pitch": Color("#6fa94f"),
 	"water": Color("#5ea8d8"),
 	"road": Color("#4f535a"),
-	"road_minor": Color("#62666c"),
+	"road_minor": Color("#4f535a"),
 	# R3 of docs/design/start-area-real.md: Warsaw's footways are light grey concrete, not sand.
 	"foot": Color("#dddcd6"),
 	"cycle": Color("#c86e5c"),
@@ -546,6 +548,12 @@ func _build_parts(marks, roofs_only: bool) -> void:
 		_drape_bias = 0.34
 		_build_islands(flat)
 		_build_medians(flat)
+		# Smooth roads loop 7: the sleepers over the tram bed, the crossings over them, and the
+		# cycle crossings (0.36) and kerbs over both.
+		_drape_bias = 0.35
+		_build_tram_sleepers(flat)
+		_drape_bias = 0.355
+		_build_tram_crossings(flat)
 		_drape_bias = 0.36
 		_build_kerbs(flat)
 		_build_shore_stone(flat)
@@ -4154,6 +4162,14 @@ func _build_roads(st) -> void:
 					_disc(st, mid[i], prof[0][i] * 0.5, y, col)
 				continue
 			var poly := _offset(run[0], float(r.get("c", 0.0)))
+			# Smooth roads loop 6 (F's crop at Marszałkowska by Złota): the same half-width run
+			# under a mapped carriageway area for a plain strip too, or an area outline that starts
+			# at a slant leaves a bare triangle of pavement between the street and the tram bed.
+			if run[1] and poly.size() >= 2:
+				poly.insert(0, poly[0] - (poly[1] - poly[0]).normalized() * w * 0.5)
+			if run[2] and poly.size() >= 2:
+				var pe := poly.size() - 1
+				poly.append(poly[pe] + (poly[pe] - poly[pe - 1]).normalized() * w * 0.5)
 			_strip(st, poly, w, y, col, false)
 			# Round patches fill the gaps at the ends and wherever the road bends; not
 			# where an area takes over (the area has the exact shape there).
@@ -4400,8 +4416,26 @@ func _build_surfaces(st) -> void:
 
 func _build_steps(st) -> void:
 	_layer = L_STEPS
+	# Smooth roads loop 7 (F's ChatGPT target, 2026-11-05): a flight that ends at a metro
+	# entrance (`down`, tools/road_smooth.py metro_steps) goes down into it: its treads darken
+	# towards the entrance's deep end.
 	for p in data.get("steps", []):
-		_strip(st, _pts(p["p"]), 2.4, Y_PATH + 0.01, Color("#d2cabb"))
+		var poly := _pts(p["p"])
+		var deep := int(p.get("down", -1))
+		if deep < 0 or poly.size() != 2:
+			_strip(st, poly, 2.4, Y_PATH + 0.01, Color("#d2cabb"))
+			continue
+		var top := poly[1 - deep]
+		var bottom := poly[deep]
+		var length := top.distance_to(bottom)
+		var n := maxi(2, int(length / 0.34))
+		var dir := (bottom - top) / length
+		for i in n:
+			var k := float(i) / float(n - 1)
+			var tone := Color("#d2cabb").lerp(Color("#34363b"), k * k * 0.85 + k * 0.15)
+			var a := top + dir * (length * float(i) / float(n))
+			var b := top + dir * (length * float(i + 1) / float(n))
+			_strip(st, PackedVector2Array([a, b]), 2.4, Y_PATH + 0.01, tone, false)
 	_layer = L_GROUND
 
 
@@ -4425,9 +4459,12 @@ func _build_islands(st) -> void:
 ## Loop 3b-2: the tram bed (a median with trams) a concrete track slab, darker than the
 ## pavements (its pale grey read as pavement, and with dark rails on it as a barcode), and the
 ## tram rails thinner and closer to it in tone.
-const TRAM_BED := Color("#8c887f")
+const TRAM_BED := Color("#8f887d")
 const TRAM_RAIL := Color("#6a6761")
 const TRAM_RAIL_W := 0.16
+const TRAM_SLEEPER_W := 2.4
+const TRAM_GRAVEL := Color("#958e83")
+const TRAM_XING := Color("#a9a69f")
 
 
 ## Dual-carriageway medians: raised grass, or the tram bed at road level where trams run.
@@ -4435,7 +4472,8 @@ func _build_medians(st) -> void:
 	for m in data.get("medians", []):
 		_dk = int(m.get("dk", -1))
 		var grass: bool = m["k"] == "grass"
-		_layer = L_GREEN if grass else L_TRAMBED
+		# Smooth roads loop 7 (F's ChatGPT target): the bed is gravel, as the ballast round it.
+		_layer = L_GREEN if grass else L_GRAVEL
 		var col: Color = COL["grass"] if grass else TRAM_BED
 		var y := KERB_UP if grass else Y_ROAD + 0.005
 		var s4: Array = m["s"]
@@ -5696,6 +5734,63 @@ func _dashes(st, poly: PackedVector2Array, offset: float, on: float, off: float,
 				_strip(st, dash, width, Y_MARK, COL["mark"], false)
 			t += on + off
 		phase = fposmod(phase + length, on + off)
+
+
+## Smooth roads loop 7 (F's ChatGPT target): where a tram track runs on its own bed
+## (`trams[].bed`, metres along it, tools/road_smooth.py tram_beds) a 2.4 m band of gravel under
+## it that the shader (ground.gdshader, layer 21) cuts into sleepers every 0.6 m. Same mesh and
+## material: no new draw call.
+func _build_tram_sleepers(st) -> void:
+	_layer = L_SLEEPERS
+	for t in data["trams"]:
+		if not t.has("bed"):
+			continue
+		var poly := _pts(t["p"])
+		_dk = int(t.get("dk", -1))
+		for b in t["bed"]:
+			var run := _sub_poly(poly, float(b[0]), float(b[1]))
+			if run.size() >= 2:
+				_strip(st, run, TRAM_SLEEPER_W, Y_ROAD + 0.008, TRAM_GRAVEL, false)
+	_dk = -1
+	_layer = L_GROUND
+
+
+## Smooth roads loop 7: a road or a footway across a tram bed (`tram_xings`,
+## tools/road_smooth.py tram_crossings): one mitred band over the bed and its sleepers, under the
+## rails: the road's asphalt, or a footway's pale concrete panels (the road under the bed showed
+## only its lines and kerbs, curving across the tracks).
+func _build_tram_crossings(st) -> void:
+	for x in data.get("tram_xings", []):
+		# A road keeps its asphalt across the tracks; a footway gets the pale panels.
+		var road: bool = x.get("k", "") == "road"
+		_layer = L_ROAD if road else L_TRAMBED
+		var poly := _pts(x["p"])
+		var ws := PackedFloat32Array()
+		var cs := PackedFloat32Array()
+		for i in poly.size():
+			ws.append(float(x["w"]))
+			cs.append(0.0)
+		_band_var(st, poly, ws, cs, Y_ROAD + 0.01, COL["road"] if road else TRAM_XING)
+	_axis = Vector2.ZERO
+	_layer = L_GROUND
+
+
+## The part of a polyline from s0 to s1 metres along it.
+func _sub_poly(poly: PackedVector2Array, s0: float, s1: float) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	var s := 0.0
+	for i in poly.size() - 1:
+		var a := poly[i]
+		var b := poly[i + 1]
+		var length := a.distance_to(b)
+		if length > 0.0 and s + length >= s0 and s <= s1:
+			var f0 := clampf((s0 - s) / length, 0.0, 1.0)
+			var f1 := clampf((s1 - s) / length, 0.0, 1.0)
+			if out.is_empty():
+				out.append(a.lerp(b, f0))
+			out.append(a.lerp(b, f1))
+		s += length
+	return out
 
 
 func _build_trams(st) -> void:
