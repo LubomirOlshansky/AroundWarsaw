@@ -37,6 +37,8 @@ const RaceCuts := preload("res://scripts/race_cuts.gd")
 
 const CHALLENGE_RANGE := 15.0
 const FINISH_RADIUS := 16.0
+## The finish margin's metres are at most the straight line to the finish times this.
+const MARGIN_DETOUR := 1.4
 const RACE_COLOUR := Color("#ff4fd8")
 const WIN_COLOUR := Color("#56d68a")
 const LOSE_COLOUR := Color("#e2574c")
@@ -808,10 +810,17 @@ func _speeds(d) -> void:
 
 
 ## The finish's margin in seconds: the one still driving needs this long at their speed now.
+## The metres are capped by the straight line to the finish x MARGIN_DETOUR (PT-22: a route left
+## that loops round a dual carriageway made an 11 m gap read "by 47.1 s").
 func _finish_margin(won: bool) -> float:
+	if final_on:
+		return time_gap(_rival_left if won else _player_left, _v_rival if won else _v_player)
+	var goal := Vector2(_finish["pos"].x, _finish["pos"].z)
 	if won:
-		return time_gap(_rival_left, _v_rival)
-	return time_gap(_player_remaining() if not final_on else _player_left, _v_player)
+		var d = _drivers[rival]
+		return time_gap(minf(_rival_left, Vector2(d.pos.x, d.pos.z).distance_to(goal) * MARGIN_DETOUR), _v_rival)
+	var at := Vector2(car.global_position.x, car.global_position.z)
+	return time_gap(minf(_player_remaining(), at.distance_to(goal) * MARGIN_DETOUR), _v_player)
 
 
 ## The trailing car's speed for the gap: the player's when behind, the rival's when in front.
@@ -1037,7 +1046,9 @@ func _track(dt: float) -> void:
 	if to_finish < FINISH_RADIUS and not flying:
 		_finish_race(true, "")
 		return
-	if d.arrived:
+	# The rival finishes at the same circle as the player (PT-22: a finish node across a dual
+	# carriageway routed the rival round a 500 m loop from 30 m away).
+	if d.arrived or Vector2(d.pos.x, d.pos.z).distance_to(Vector2(_finish["pos"].x, _finish["pos"].z)) < FINISH_RADIUS:
 		_finish_race(false, "")
 		return
 	_rank_timer -= dt
