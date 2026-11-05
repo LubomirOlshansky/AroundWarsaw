@@ -31,6 +31,7 @@ var spent_usec := 0
 const Access := preload("res://scripts/access.gd")
 const Lang := preload("res://scripts/lang.gd")  # one language at a time: every pl/en pair below shows one
 const SettingsPanel := preload("res://scripts/settings_panel.gd")
+const Gamepad := preload("res://scripts/gamepad.gd")  # the pad's A on the context button (2026-11-03)
 const FullMap := preload("res://scripts/full_map.gd")
 const MapArt := preload("res://scripts/map_art.gd")
 const MainLine := preload("res://scripts/main_line.gd")
@@ -239,6 +240,8 @@ var _toast_gloss: Label
 var _toast_left := 0.0
 var _kmh := 0
 var _ambient_toast_at := -999.0
+## Phase 0.2: the chatter budget (chatter.gd, bubbles.gd's); main.gd sets it. Null: no budget.
+var chatter: RefCounted
 ## G16: ambient toasts (flavour, hints) come at most this often while the car is moving.
 const AMBIENT_TOAST_GAP := 20.0
 ## The performance overlay.
@@ -497,10 +500,7 @@ func _ready() -> void:
 	add_child(_speed)
 	_pill = _chip(self, "WEZWANIE", "rescue call", ACCENT)
 	# Loop 2d-1: the context button is shared; only a rescue call's press is pill_pressed.
-	_pill.pressed.connect(func():
-		if pill_owner == "call":
-			pill_pressed.emit()
-		context_pressed.emit(pill_owner))
+	_pill.pressed.connect(_on_pill)
 	_pill.visible = false
 	_radio_button = _chip(self, Lang.pick("RADIO wył.", "RADIO off"), "")
 	_radio_button.button_down.connect(func():
@@ -933,6 +933,11 @@ func _speed_rect() -> Rect2:
 ## touches it covers.)
 func _pedal_rects() -> Array[Rect2]:
 	var out: Array[Rect2] = []
+	if _pad_nitro_shown():
+		var nc := _nitro_centre()
+		var nr := (NITRO_R + 4.0) * pt
+		out.append(Rect2(nc - Vector2(nr, nr), Vector2(nr * 2.0, nr * 2.0 + _px(T_LABEL) + 4.0 * pt)))
+		return out  # the pad: only the nitro's tank stays on screen
 	if touch_off or (_pedals_hidden and not flying):
 		return out  # desktop: --no-touch keeps none
 	var disc := func(c: Vector2, r: float) -> Rect2: return Rect2(c - Vector2.ONE * r, Vector2.ONE * r * 2.0)
@@ -1146,11 +1151,45 @@ func language_changed(state: Dictionary) -> void:
 ## also emits context_pressed(owner).
 func show_pill(pl: String, en := "", owner := "call") -> void:
 	pill_owner = owner
-	_set_chip(_pill, pl, en, 96.0)
+	_pill_words = [pl, en]
+	_label_pill()
 	if not _pill.visible:
 		_pill.visible = true
 		_pill_t = 0.0
 		_mark()
+
+
+## The context button's words as shown, kept so the pad's button can be put in front of them
+## when the pad takes over (and taken off when a finger does).
+var _pill_words := ["", ""]
+
+
+## The context button's label: with the pad in use its button comes first ("A · KASETA"), so a
+## pad player sees which button presses it (2026-11-03: the pad had no way to press it).
+func _label_pill() -> void:
+	var pl: String = _pill_words[0]
+	var en: String = _pill_words[1]
+	if pad_mode:
+		pl = "%s · %s" % [Gamepad.key("a"), pl]
+		en = "%s · %s" % [Gamepad.key("a"), en] if en != "" else ""
+	_set_chip(_pill, pl, en, 96.0)
+
+
+## A press of the context button, by a finger or the pad's A (`press_pill`). Only a rescue
+## call's press is pill_pressed; every press is context_pressed(owner) (loop 2d-1).
+func _on_pill() -> void:
+	if pill_owner == "call":
+		pill_pressed.emit()
+	context_pressed.emit(pill_owner)
+
+
+## The pad's A (main.gd `_primary`): presses the context button when it is up, as a tap would.
+## False when it is not up, so A falls through to what it did before.
+func press_pill() -> bool:
+	if not _pill.visible:
+		return false
+	_on_pill()
+	return true
 
 
 ## Loop 2d-1: the context button is up and `owner`'s.
@@ -1393,9 +1432,12 @@ func _build_toast() -> void:
 ## street by day or night.
 ## A toast for flavour or a hint, not a quest or danger line: while driving it is dropped if
 ## another ambient toast came in the last AMBIENT_TOAST_GAP seconds (G16).
+## Phase 0.2: also dropped while the car struggles (and a few seconds after: chatter.gd quiet()).
 func ambient_toast(text: String, gloss := "") -> void:
 	var now := Time.get_ticks_msec() / 1000.0
 	if _kmh > 10 and now - _ambient_toast_at < AMBIENT_TOAST_GAP:
+		return
+	if chatter != null and not chatter.toast_ok():
 		return
 	_ambient_toast_at = now
 	toast(text, gloss)
@@ -1404,6 +1446,11 @@ func ambient_toast(text: String, gloss := "") -> void:
 func toast(text: String, gloss := "") -> void:
 	text = Lang.pick(text, gloss)
 	gloss = ""
+	# PT-20 (Autopilot run 20261103-152518): the same toast again while it is still up only
+	# keeps it up; it is not shown (and logged, and laid out) a second time.
+	if _toast_left > 0.0 and _toast.text == text and bool(_wants.get(_toast_box, false)):
+		_toast_left = 3.0
+		return
 	# A long line wraps at TOAST_W points rather than running off a phone's screen.
 	var font := ThemeDB.fallback_font
 	for pair: Array in [[_toast, text, T_TITLE], [_toast_gloss, gloss, T_SUB]]:
@@ -2597,6 +2644,12 @@ func _nitro_centre() -> Vector2:
 	return _horn_centre() + Vector2(step if left_handed else -step, 0.0)
 
 
+## G13c leftover (2026-11-03): the pad is in use and the nitro bought: its disc stays as the
+## tank's gauge (the touch pedals are gone; LB / RB burn it).
+func _pad_nitro_shown() -> bool:
+	return pad_mode and touch_off and nitro_owned and not flying and not _pedals_hidden
+
+
 ## G13: a touch at `p` is on the nitro's disc.
 func _on_nitro(p: Vector2) -> bool:
 	return nitro_owned and not touch_off and not flying and not _pedals_hidden and p.distance_to(_nitro_centre()) < NITRO_REACH * pt
@@ -2746,6 +2799,12 @@ func full_map_open() -> bool:
 	return full_map != null and full_map.is_open()
 
 
+## Phase 0.2: a card (a job's or a call's, a ride's, the full map) is up: ambient chatter waits
+## (bubbles.gd cards_up, chatter.gd).
+func cards_up() -> bool:
+	return bool(_wants.get(_card, false)) or full_map_open()
+
+
 const _UP_DOWN := [1, -1]
 
 
@@ -2765,6 +2824,8 @@ func _input(event: InputEvent) -> void:
 		# The gamepad loop: a finger takes over from the pad, pedals and all, on this very touch.
 		pad_mode = false
 		set_touch_off(_touch_base)
+		if _pill.visible:
+			_label_pill()
 	if (event is InputEventScreenTouch or event is InputEventMouseButton or event is InputEventKey \
 			or event is InputEventJoypadButton) and event.is_pressed():
 		input_ms = maxi(1, Time.get_ticks_msec())  # loop 3h slice 4: the ghost finger goes
@@ -2990,8 +3051,12 @@ func _finger_origin() -> Vector2:
 
 ## The ghost finger: a fingertip that comes down, drags up and to the right (the way Point steers:
 ## point where to go) and lifts, every FINGER_LOOP s, with its trail and a two-line hint. With
-## --no-touch (a desktop) only the hint, naming the keys.
+## --no-touch (a desktop) only the hint, naming the keys. Classic (the default since 2026-11-04)
+## has its own: _draw_finger_classic.
 func _draw_finger() -> void:
+	if scheme == CLASSIC:
+		_draw_finger_classic()
+		return
 	var o := _finger_origin()
 	var font := ThemeDB.fallback_font
 	var k := fmod(_finger_t, FINGER_LOOP) / FINGER_LOOP
@@ -3026,6 +3091,44 @@ func _draw_finger() -> void:
 	_pad.draw_string(font, at2, lines[1], HORIZONTAL_ALIGNMENT_LEFT, -1, fs2, SUB)
 
 
+## Classic's ghost finger (2026-11-04, Classic the default): one fingertip holds GAZ down, the
+## other slides the steering strip left and right, every FINGER_LOOP s, with the two-line hint
+## above the strip. On a pad or a keyboard only the hint, naming the buttons or keys.
+func _draw_finger_classic() -> void:
+	var font := ThemeDB.fallback_font
+	var k := fmod(_finger_t, FINGER_LOOP) / FINGER_LOOP
+	var strip := _strip_hint_centre()
+	var lines := ["Przesuń w lewo / prawo i trzymaj GAZ", "Slide left / right to steer, hold GAS to go"]
+	if pad_mode:
+		lines = [Gamepad.fmt("Lewa gałka: skręt · {rt}: gaz · {lt}: hamulec"), Gamepad.fmt("Left stick steers, {rt} gas, {lt} brake")]
+	elif touch_off:
+		lines = ["A / D: skręt · W: gaz · S: hamulec", "A / D steer, W gas, S brake"]
+	else:
+		var press := clampf(k / 0.12, 0.0, 1.0) * clampf((1.0 - k) / 0.12, 0.0, 1.0)
+		# GAZ: held down for the whole loop (a soft ring pulses round it).
+		var gc := _gas_centre()
+		_pad.draw_arc(gc, (GAS_R + 6.0 + 4.0 * sin(k * TAU)) * pt, 0, TAU, 40, Color(ACCENT, 0.6 * press), 2.0 * pt)
+		_pad.draw_circle(gc, 19.0 * pt, Color(OUTLINE, 0.35 * press))
+		_pad.draw_circle(gc, 16.0 * pt, Color(INK, 0.8 * press))
+		# The strip: the thumb slides right, back through the middle, left and home.
+		var tip := strip + Vector2(sin(k * TAU) * 32.0 * pt, 0)
+		_pad.draw_line(strip, tip, Color(INK, 0.45 * press), 5.0 * pt)
+		_pad.draw_circle(tip, 19.0 * pt, Color(OUTLINE, 0.35 * press))
+		_pad.draw_circle(tip, 16.0 * pt, Color(INK, 0.8 * press))
+	var fs := _px(T_BODY)
+	var fs2 := _px(T_SUB)
+	var w := maxf(font.get_string_size(lines[0], HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x, font.get_string_size(lines[1], HORIZONTAL_ALIGNMENT_LEFT, -1, fs2).x)
+	# Above the strip's plate (and its thumb), starting at the plate's outer end.
+	var at := Vector2(strip.x - 52.0 * pt if not left_handed else strip.x + 52.0 * pt - w, strip.y - 30.0 * pt - fs2 - 6.0 * pt)
+	at.x = clampf(at.x, _safe.position.x + EDGE * pt, _safe.end.x - EDGE * pt - w)
+	var outline := _px(3.0)
+	_pad.draw_string_outline(font, at, lines[0], HORIZONTAL_ALIGNMENT_LEFT, -1, fs, outline, OUTLINE)
+	_pad.draw_string(font, at, lines[0], HORIZONTAL_ALIGNMENT_LEFT, -1, fs, INK)
+	var at2 := at + Vector2(0, fs2 + 6.0 * pt)
+	_pad.draw_string_outline(font, at2, lines[1], HORIZONTAL_ALIGNMENT_LEFT, -1, fs2, outline, OUTLINE)
+	_pad.draw_string(font, at2, lines[1], HORIZONTAL_ALIGNMENT_LEFT, -1, fs2, SUB)
+
+
 ## Loop 3h slice 4: the HELI chip shown or hidden (first10.gd: the helicopter waits for the first
 ## rescue on a fresh save).
 func set_vehicle_shown(on: bool) -> void:
@@ -3045,6 +3148,16 @@ func _draw_pad() -> void:
 		var outline := PackedVector2Array([m + Vector2(-7.6, -10.0) * pt, m + Vector2(7.6, -10.0) * pt, m + Vector2(0, 2.2) * pt])
 		_pad.draw_colored_polygon(outline, Color("#2a2622"))
 		_pad.draw_colored_polygon(tri, ACCENT)
+	if _pad_nitro_shown():
+		# G13c leftover (2026-11-03): with the pad in use the touch pedals go, but the nitro's
+		# tank stays in its place, read-only, with the shoulders that burn it under the disc.
+		var nc := _nitro_centre()
+		_draw_nitro(nc, false)
+		var font := ThemeDB.fallback_font
+		var words := Gamepad.fmt("{lb} / {rb}")
+		var fs := _px(T_LABEL)
+		var w := font.get_string_size(words, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		_pad.draw_string(font, nc + Vector2(-w * 0.5, NITRO_R * pt + fs + 2.0 * pt), words, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, SUB)
 	if touch_off:
 		return  # desktop: --no-touch, nothing below is drawn
 	if _stick_index != -1 and scheme == CLASSIC and not flying:
@@ -3281,6 +3394,13 @@ func _blocks(banner_only: bool) -> Array[Rect2]:
 		# A bubble's tail reaches past its card (bubbles.gd TAIL).
 		for r: Rect2 in speech.rects:
 			out.append(r.grow(10.0 * pt))
+	if not banner_only:
+		# The edge arrow keeps off the fixed controls too: pointing up-left it hid under the
+		# minimap and the wallet (the main line's arrow to a rival in the west, 2026-11-03).
+		for c: Control in [_zoom_out_button, _zoom_in_button, _minimap, _wallet, _koguty, _credit]:
+			if c != null and c.visible:
+				out.append(Rect2(c.position, c.size))
+		out.append_array(_pedal_rects())
 	return out
 
 
@@ -3645,6 +3765,8 @@ func set_pad_mode(on: bool, touch_base: bool) -> void:
 		return
 	pad_mode = on
 	set_touch_off(on or touch_base)
+	if _pill.visible:
+		_label_pill()
 # --- end desktop: --no-touch -----------------------------------------------------------------
 
 

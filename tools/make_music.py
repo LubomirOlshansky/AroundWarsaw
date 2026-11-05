@@ -1276,7 +1276,7 @@ def render_polnoc(spec, out_dir, plot_dir):
     wav = os.path.join(out_dir, name + ".wav")
     write_wav(wav, left, right)
     with open(os.path.join(out_dir, name + ".txt"), "w", encoding="utf-8") as f:
-        f.write("licence: own: synthesised by tools/make_music.py (MIT)\ntitle: %s\nartist: Around Warsaw\n" % tr.title)
+        f.write("licence: own: synthesised by tools/make_music.py (all rights reserved)\ntitle: %s\nartist: Around Warsaw\n" % tr.title)
     band_plot(os.path.join(plot_dir, "music_polnoc_" + name + ".png"), left, right)
     seam = max(abs(left[0] - left[-1]), abs(right[0] - right[-1]))
     steps = sorted(abs(left[i] - left[i - 1]) for i in range(1, len(left), 7))

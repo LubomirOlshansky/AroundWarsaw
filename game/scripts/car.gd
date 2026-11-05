@@ -151,6 +151,8 @@ const SLIP_HIT := 0.35
 ## Pushing into a car or a tram (not fixed) this long with the gas on and going nowhere: steer
 ## round it as round a wall.
 const CAR_PUSH_TIME := 0.35
+## Classic against a wall: the strip leaning more than this picks the side the car slides off to.
+const CLASSIC_WALL_LEAN := 0.2
 ## G17 ("stuck with another cars"): held against a traffic car or tram this long with the gas on
 ## and going nowhere, the car ghosts through it for GHOST_TIME s (a collision exception, never
 ## for walls); still among cars within JAM_RADIUS m of where it began after JAM_TIME s, `jammed`.
@@ -158,6 +160,13 @@ const GHOST_PUSH_TIME := 1.5
 const GHOST_TIME := 3.0
 const JAM_TIME := 8.0
 const JAM_RADIUS := 4.0
+## The stuck offer (G14's "later", 2026-11-03): trying to drive (gas, brake or the stick) for
+## STALL_TIME s in all and still within STALL_RADIUS m of where it began, whatever holds it (a
+## wall nothing pins it against, a gap inside a building, a ledge): `stalled` reaches STALL_TIME
+## and the game offers the tow on the context button. Time off the controls neither counts nor
+## resets it; leaving the spot does. Parked, held by the stop assist or in the water: never.
+const STALL_TIME := 8.0
+const STALL_RADIUS := 4.0
 ## The driving-feel loop (the ram test): the share of the speed going into a car or a tram that
 ## is kept for the next frame (it was none: a rear-ended car stopped the player dead).
 const CAR_KEEP := 0.5
@@ -244,6 +253,8 @@ var _bump_cooldown := 0.0
 var _sound_cooldown := 0.0
 var _turn_side := 0.0
 var _contact := 0.0
+## Phase 0.2: trying to drive this frame (gas, brake or the stick), for struggling().
+var _trying := false
 ## Seconds left of the last touch of something fixed (a wall, a kiosk, a parked car), not a
 ## moving car or tram: only those can pin the car (a queue at a red light is not "stuck").
 var _fixed_contact := 0.0
@@ -261,6 +272,9 @@ var _jam := 0.0
 var _car_hold := 0.0
 var _hold_at := Vector2.ZERO
 var _jam_at := Vector2.ZERO
+## The stuck offer: seconds spent trying near `_stall_at` (main.gd reads it).
+var stalled := 0.0
+var _stall_at := Vector2.INF
 ## The driving-feel loop: seconds since the last kerb jolt.
 var _kerb_wait := KERB_GAP
 var _pinned := 0.0
@@ -525,6 +539,13 @@ func _step(dt: float) -> void:
 				top = minf(top, maxf(speed, TURN_CRAWL))
 	else:
 		_turn_side = 0.0
+		var w := _classic_wall_steer(fwd, speed, gas)
+		if w != 0.0:
+			# Collision rework v2, step 1: the player's own steering wins when it turns harder
+			# the same way (or away from the wall); otherwise the wall's line does.
+			s = signf(w) * maxf(absf(w), absf(s)) if signf(s) == signf(w) else w
+			# Turning off the wall from a crawl: hold the speed until it has turned, as Point does.
+			top = minf(top, maxf(speed, TURN_CRAWL))
 	steer_now = lerpf(steer_now, clampf(s, -1.0, 1.0), 1.0 - exp(-dt / (steer_time / steer_gain)))
 	var yaw := steer_now * max_turn(absf(speed), maxf(gas, throttle)) * backwards
 	rotate_y(yaw * dt)
@@ -698,6 +719,7 @@ func _step(dt: float) -> void:
 	# Nosing into the car ahead in a queue doesn't count: traffic moves on by itself. A car
 	# the game has parked (loop 2b) is never "trying".
 	var trying := not parked and (gas > 0.1 or brake_now or target_dir != Vector3.ZERO)
+	_trying = trying
 	var here := Vector2(global_position.x, global_position.z)
 	if _contact > 0.0 and (_fixed_contact > 0.0 or _car_push > CAR_PUSH_TIME) and trying:
 		if _pinned <= 0.0 or here.distance_to(_pin_at) > 1.0:
@@ -733,6 +755,13 @@ func _step(dt: float) -> void:
 				jammed.emit()
 	else:
 		_jam = 0.0
+
+	# The stuck offer: the time spent trying near one spot (a car that drives off starts again).
+	if _stall_at == Vector2.INF or here.distance_to(_stall_at) > STALL_RADIUS:
+		_stall_at = here
+		stalled = 0.0
+	if trying and not assisting and collision_mask != 0:
+		stalled += dt
 
 	# Lean into turns and squat under braking, just for the look.
 	var lean := clampf(lateral.dot(global_transform.basis.x) * 0.012, -0.08, 0.08)
@@ -790,6 +819,12 @@ func leave_water() -> void:
 	reset_motion()
 
 
+## The stuck offer starts again from here (a tow has just moved the car, maybe only a few metres).
+func reset_stall() -> void:
+	stalled = 0.0
+	_stall_at = Vector2.INF
+
+
 ## Stopped, with nothing of the last contact kept (no pin, no wall, no bounce): a car the game
 ## has just moved (the water's tow, the pause card's unstuck button, 2026-11-01).
 func reset_motion() -> void:
@@ -808,6 +843,7 @@ func reset_motion() -> void:
 	_car_push = 0.0
 	_car_hold = 0.0
 	_jam = 0.0
+	reset_stall()
 	for body: PhysicsBody3D in _ghosted.keys():
 		if is_instance_valid(body):
 			remove_collision_exception_with(body)
@@ -884,9 +920,49 @@ func max_turn(v: float, gas := 0.0) -> float:
 	return maxf(w * roll, pivot * gas * (1.0 - roll)) * steer_gain
 
 
+## Classic (steer strip + GAS/BRAKE, the default since 2026-11-04): touching a wall with the
+## gas on and the nose into it, the steering that turns the car along the wall, so a head-on
+## hit slides off instead of stopping dead ("walls redirect, never stop", docs/design/
+## road-objects.md section 7 item 1). Point does the same through its aim (`_step`). The side
+## follows the strip once it leans past CLASSIC_WALL_LEAN, else the way the nose leans (picked
+## once per touch: nose-on it would flip every frame). 0.0 when not against a wall. A car or
+## tram only after CAR_PUSH_TIME of pushing, as in Point; reversing is left to the player.
+func _classic_wall_steer(fwd: Vector3, speed: float, gas: float) -> float:
+	if parked or braking or gas <= 0.1 or speed < -0.3 or _contact <= 0.0 or _wall_normal == Vector3.ZERO:
+		return 0.0
+	if _fixed_contact <= 0.0 and _car_push <= CAR_PUSH_TIME:
+		return 0.0
+	if fwd.dot(_wall_normal) >= -0.05:
+		return 0.0
+	var t := _wall_normal.cross(Vector3.UP)
+	if absf(steer) > CLASSIC_WALL_LEAN:
+		# The side the strip turns to: a positive steer turns towards a positive signed angle.
+		_wall_side = 1.0 if signf(fwd.signed_angle_to(t, Vector3.UP)) == signf(steer) else -1.0
+	elif _wall_side == 0.0:
+		_wall_side = 1.0 if t.dot(fwd) >= 0.0 else -1.0
+	var err := fwd.signed_angle_to(t * _wall_side, Vector3.UP)
+	var rate := err * point_gain - yaw_rate * yaw_damping
+	var w := clampf(rate / maxf(max_turn(absf(speed), gas), 0.05), -1.0, 1.0)
+	return w if absf(w) > 0.001 else 0.0
+
+
 ## Pinned against a wall: turn the car out of it (towards where the player wants to go,
 ## or along the wall), step it 0.5 m off and send it off at walking pace. Pinned again
 ## within 5 s, ask the game for a free spot (`stuck`).
+## Phase 0.2 (the chatter budget, chatter.gd): the car is struggling: pinned, pressing into
+## something at walking pace, held against traffic, or trying near one spot for half of
+## STALL_TIME. The city keeps quiet then (no shouts, no dog walkers, no crowds).
+func struggling() -> bool:
+	if parked:
+		return false
+	return _pinned > 0.0 or _car_hold > 0.0 or stalled >= STALL_TIME * 0.5 \
+			or (_contact > 0.0 and _trying and absf(forward_speed) < STRUGGLE_SPEED)
+
+
+## Phase 0.2: slower than this (m/s, ~11 km/h) while touching something and trying counts as struggling.
+const STRUGGLE_SPEED := 3.0
+
+
 func _unstick() -> void:
 	_pinned = 0.0
 	unsticks += 1
@@ -911,12 +987,20 @@ func _unstick() -> void:
 				blocked = true
 		if blocked:
 			continue
+		# Only headings the car fits in there (a 4 m car turned across a 3 m gap sits half in the
+		# walls, and driving on from that pose pushed it out through one: check_stuck_offer's pen).
+		if not _fits(n * 0.5, -c if reverse else c):
+			continue
 		var score := c.dot(want) + 0.1 * c.dot(moving)
 		if score > best_score:
 			best_score = score
 			best = c
 	global_position += n * 0.5
 	var face := -best if reverse else best
+	if best_score == -INF:
+		# No way out it fits: keep the heading and ease off the wall.
+		face = _forward()
+		best = n * 0.5
 	rotation.y = atan2(-face.x, -face.z)
 	vel = best * 3.0
 	forward_speed = vel.dot(_forward())
@@ -929,6 +1013,14 @@ func _unstick() -> void:
 	if _clock - _last_unstick < 5.0:
 		stuck.emit()
 	_last_unstick = _clock
+
+
+## Would the car, moved by `step` and facing `face`, sit clear of what it collides with (under
+## 0.15 m into it)? For the unstick's choice of heading.
+func _fits(step: Vector3, face: Vector3) -> bool:
+	var xf := Transform3D(Basis(Vector3.UP, atan2(-face.x, -face.z)), global_position + step)
+	var hit := KinematicCollision3D.new()
+	return not test_move(xf, Vector3.ZERO, hit, 0.001, true) or hit.get_depth() <= 0.15
 
 
 ## The driving-feel loop: every touch this step is at one front corner (Godot reports the car's

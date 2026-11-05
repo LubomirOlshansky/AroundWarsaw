@@ -1,75 +1,140 @@
-# Zamek Królewski: spec
+# Zamek Królewski, Kubicki's Arcades and the castle gardens: spec
 
-Site key `zamek` in `game/scripts/landmarks.gd` (`SKINS` row, `_build_zamek`). Written 2026-11-01
-in a cloud thread from the OpenStreetMap outline and GUGiK's LoD2, checked against the earlier
-pass-3 render (`landmark-models/pass3_zamek.png`). No photo here: colours are from memory of the
-castle and stay a step paler than life. Values marked *(photo check)* wait for the Mac's `refs/`.
+Sites `zamek` (`SKINS` row + `_build_zamek`) and `arkady` (`_find_arkady`, `_build_arkady`) in
+`game/scripts/landmarks.gd`. Pass 1 (2026-11-01) was written from the OpenStreetMap outline and
+LoD2 alone. **Pass 2 (2026-11-02, F: "Krajobraz's Zamek Królewski project" plus "search other
+sources")** comes from:
+
+- Ogród Park Krajobraz's project page (krajobraz.com.pl/projekt/zamek-krolewski): the Upper Garden
+  on the arcades' vault, ramps and stairs up to the terraces, a row of tubs with ball trees on the
+  terrace edges, multi-season parterres; the Lower Garden's sunken centre framed by hedges, then
+  boskets, on one axis from the castle to the Vistula; a south quarter garden.
+- News: the Upper Garden restored 2013-2015 (over 20,000 box shrubs, 90 trees in tubs, two
+  fountains; eurobuildcee.com), the Lower Garden 2017-2019 (Park-M; dzieje.pl, pik.warszawa.pl),
+  the OPK/SARP walk presentation (2021) for the history and the boskets.
+- 13 Wikimedia Commons photos (CC BY / BY-SA) and a GUGiK orthophoto (3072 px, 0.12 m/px), kept
+  on the Mac in `refs/zamek/` (gitignored) with `SOURCES.md` and `REPORT.md` (measurements in
+  game coordinates). No free 3D model of the castle exists (only paid ones; none used).
+- OSM tags: the arcades are 7 m, `#c8733f`, brick, 1818-1821; the Vistula risalit's part is
+  `#eeeeee` plaster under a green metal roof.
 
 ## 1. Identity
 
-The rebuilt Royal Castle (destroyed 1944, rebuilt 1971-1984) on Plac Zamkowy.
-
-1. **A pentagon of ranges round one courtyard**, steep roofs, the Clock Tower (Wieża Zegarowa) on the
-   square front, the Senate Tower and the big hipped roofs on the Vistula side.
-2. **Salmon-pink plastered walls** with pale stone dressings.
-3. **A pale stone plinth** under the walls, where the castle stands on its escarpment.
+1. **The Clock Tower** in the middle of the west front on Plac Zamkowy: salmon shaft with cream
+   quoins, dark-blue clock faces with gilt numerals, a green copper onion helm with an open
+   lantern, a second onion and a spire with gilt balls (about 56 m here).
+2. **Square corner turrets** at both ends of the west front under small green bulbous caps.
+3. **One continuous terracotta roof** round the pentagon courtyard.
+4. **The cream-white Vistula front**, clearly lighter than the salmon west front, with the oval
+   central risalit under a green copper dome and gilt figures.
+5. **Kubicki's Arcades** below it: a terracotta wall of round arches, cream-ringed, the white
+   portal block in the middle, the Upper Garden on top, the formal Lower Garden in front.
 
 ## 2. Massing
 
-Unchanged: the kept LoD2 mass (tallest cell 45 m at (-672, -1520), the Clock Tower).
+The castle's mass stays LoD2's (tallest cell 45 m at (-672, -1520)) in its skin. The model adds:
+the Clock Tower's shaft 9.2 m square (0.3 m proud of the mapped 8.6 m one) to 29.5 m and its
+helm to 56 m; two turret shafts 4.5 m square from 11 m to 20.5 m, caps to 31 m (the photos say
+28-32 m; OSM says 23 m); the Vistula front's skin 0.35 m proud of the outline to the eave at
+17 m over the courtyard; the oval risalit as a 12-sided drum, radius 7 m, standing 1.5 m out of
+the front at (-597.2, -1566.0). The arcades' wall stands on the mapped outline (190 m long,
+15-20 m deep) from the Lower Garden's ground to the terrace: `max(terrace + 0.15, foot + 7.5)`.
 
 ## 3. Facade
 
-The walls are the kept LoD2 skin (`SKINS` row, mode M_MONUMENT) in one salmon plaster, #cf9580,
-with the monument shader's window pattern; no dressings are built. The one model part is the
-pale stone plinth (#e2d8c4, M_STONE) run round the whole mapped outline: a wall 0.7 m proud of
-the outline, from 1 m under the terrain to 2.2 m over it, cut every 6 m so it follows the
-escarpment *(photo check: height of the real base)*.
+- West front and tower: the skin's salmon (#cf9580, M_MONUMENT windows). Tower: cream quoins
+  0.9 m, two string courses (12.6 m, 19 m), the gate 4 m wide, 5 m high in a cream surround
+  5.6 x 6.4 m with a gilt cartouche, an iron balcony at 19.6 m, a dial on each face at 24 m
+  (radius 1.7 m), the cornice at 29.5 m and a gilt frieze.
+- Vistula front: the outline's east-facing edges (outward x > 0.55, east of x -615): a
+  rusticated ground floor (#cbb6a6) to 4.6 m, a cream band, cream-white (#e9e1cf) to the eave,
+  both M_MONUMENT; a cream cornice 0.75 m proud at the eave.
+- Arcades, east face: terracotta (#c8693f), round-headed arches 6 m wide, 5.5 m high, one per
+  12 m of wall (16 on the map's outline), each a cream ring and a dark opening; the portal block's
+  edges in white stone (#e4dfd2) with one 7 m arch; a cream cornice 0.7 m and a black iron
+  railing (two rails, 0.12 m and 1 m up).
 
 ## 4. Roof
 
-The roofs are the LoD2 skin's, in one reddish-brown tile, #8d6350 (M_STONE): the steep ranges
-round the courtyard, the hipped roofs on the Vistula side, the Clock Tower and the Senate Tower.
-No roof geometry is added. *(photo check: the Clock Tower's roof colour, see the last section)*
+Roofs stay the skin's, now terracotta #ad5c3f (photos #c0502e calmed; was #8d6350, which read
+brown). Copper (#6f9e86) for the tower helm (onion profile r 4.4-5.0 m from 30.7 to 38.4 m, the
+lantern r 1.8 m to 42 m, the second onion to 46.4 m, spire to 55.6 m, gilt balls at 49.6 and
+55.6 m, a copper flag), the turret caps (bulb r 2.6 m, lantern, cap, spire, gilt ball) and the
+dome (12-sided, eave + 2 m to eave + 7.1 m, a lantern and a gilt ball). The arcades' top: a gravel
+walk 3.5 m wide along the edge; where the terrain has no terrace (the cloud's flat ground) the
+whole vault gets a lawn (#74a24c).
 
-## 5. What this pass changed
-
-- **Wall** #c87560 → #cf9580. The old colour read brick-red under the day sun, louder than the
-  plaster in any photo of the castle.
-- **Roof** #6e5a4e → #8d6350. The old one went near-black on shaded slopes (the west and north
-  ranges); the new reddish-brown tile keeps its shape in shade.
-- **Plinth** (`_build_zamek`): the mapped outline's 127 vertices, each edge cut into pieces of at most
-  6 m, a stone wall 0.7 m proud of the outline (LoD2's walls stand up to ~0.6 m inside it), from 1 m
-  under the terrain to 2.2 m over it, so it steps with the slope. 312 triangles.
-
-## 6. Colour and material
+## 5. Colour and material
 
 | Part | Colour | Material code |
 | --- | --- | --- |
-| Walls (skin) | #cf9580 | M_MONUMENT |
-| Roofs (skin) | #8d6350 | M_STONE |
+| West walls (skin) | #cf9580 | M_MONUMENT |
+| Roofs (skin) | #ad5c3f | M_STONE |
+| Quoins, cornices, lantern | #e6dbc0 | M_STONE |
+| Vistula front | #e9e1cf over #cbb6a6 | M_MONUMENT |
+| Helms, caps, dome | #6f9e86 | M_STONE |
+| Gilt | #d6b04c | M_STONE |
+| Dials | #1f2a3a with gilt ticks | M_DIAL + M_GOLD |
+| Arcades | #c8693f, white stone #e4dfd2 | M_STONE |
 | Plinth | #e2d8c4 | M_STONE |
 
-## 7. Ground and night
+## 6. Ground and night
 
-Collision unchanged (LoD2's). Card (kept): "Zamek Królewski", PL "Zniszczony w 1944 roku, odbudowany
-w latach 1971–1984."
+- **Gardens** (sites `arkady`, map_builder, park data): the Upper Garden's big tulip fountain on
+  the vault at (-556.8, -1585.8) (basin r 3.1 m, water r 2.8 m, a jet); the water in the map's
+  basin rings at (-585.5, -1574.5) and (-537.5, -1656.4); 14 tubbed ball trees every 4 m in front of
+  the Vistula front and one every 10 m along the arcades' edge (red or green barrels, white rims,
+  clipped maples on bare stems); 12 white vases on pedestals round the Lower Garden's sunken lawn
+  carpet on the map's round beds. `map_builder.LAWN_CARPETS`: the carpet (OSM tags it paving) is
+  grass, #78a84a. `map_builder.GARDEN_RINGS`: inside the gardens a closed `wall` ring under 6 m
+  across (fountain basins, the vases' beds, round path nodes) is a 0.45 m stone kerb, not a 1.9 m
+  grey drum. The hedges, paths and flowerbeds are the map's own.
+- Collision: the Clock Tower's shaft and the arcades' outline (LoD2's for the rest).
+- Night: the dials are M_DIAL (lit). Cards: "Zamek Królewski" (kept); "Arkady Kubickiego i ogrody
+  zamkowe", PL "Arkady z 1821 roku, na nich Ogród Górny, niżej Ogród Dolny."
 
-## 8. Detail level and budget
+## 7. Detail level and budget
 
-L2, triangle budget 340 (312 measured, `check_mesh_quality.gd`). Shots: city, from Plac Zamkowy
-(`--at=-640,-1480 --heading=0 --size=160 --no-ghost`).
+L3 (hero landmark, docs/LANDMARKS.md). Budgets in `check_sites.gd`: `zamek` 3200 triangles
+(2810 measured), `arkady` 2400 (2300 measured); `check_mesh_quality.gd` 3400 and 2600, no
+z-fighting and no floating parts (the turret shafts start at the ground inside the mass, the
+railing has posts). No new material, node, light or MultiMesh: all of
+it is merged into the city's one building mesh. Shots (cloud, both paths): from Plac Zamkowy
+`--at=-720,-1500 --yaw=250 --pitch=-25 --size=80`, the Vistula front `--at=-690,-1519 --yaw=110
+--pitch=-15 --size=70`, the arcades `--at=-540,-1600 --yaw=70 --pitch=-22 --size=90`, top
+`--at=-560,-1560 --yaw=0 --pitch=-80 --size=320`, all `--no-ghost --time=day`.
 
-## 9. Parts table
+## 8. Parts table
 
 | id | shape | size | position | material | feature |
 | --- | --- | --- | --- | --- | --- |
-| walls | LoD2 skin | the mapped mass, tallest 45 m | the outline | M_MONUMENT | 2 massing |
-| roofs | LoD2 skin | the mapped roof cells | on the walls | M_STONE | 4 roof |
-| plinth | wall pieces, 127 vertices | 6 m or less long, 3.2 m high, 0.7 m proud | round the outline | M_STONE | 3 plinth |
+| walls | LoD2 skin | the mapped mass, tallest 45 m | the outline | M_MONUMENT | 3 roof ring |
+| roofs | LoD2 skin | the mapped roof cells | on the walls | M_STONE | 3 roof ring |
+| plinth | wall pieces | 6 m or less long, 3.2 m high, 0.7 m proud | round the outline | M_STONE | 4 Vistula front |
+| clock_shaft | box + quoins + courses | 9.2 m square, 29.5 m | (-671.0, -1519.3) | M_MONUMENT | 1 Clock Tower |
+| clock_gate | surround + opening + cartouche | 5.6 x 6.4 m, opening 4 x 5 m | tower's west face | M_STONE | 1 Clock Tower |
+| clock_dials | `_dial` x 4 | r 1.7 m at 24 m | each face | M_DIAL | 1 Clock Tower |
+| clock_helm | 8-sided onion, lantern, onion, spire, balls, flag | 30.7-56 m | tower axis | M_STONE | 1 Clock Tower |
+| turrets | shaft + quoins + bulb + lantern + spire | 4.5 m square, 11-31 m | (-675.0, -1476.7), (-669.6, -1565.7) | M_MONUMENT | 2 turrets |
+| vistula_front | walls + band + cornice | to the eave, 17 m over the yard | east-facing outline edges | M_MONUMENT | 4 Vistula front |
+| dome | 12-sided drum + copper dome + lantern + 3 figures | r 7 m, to eave + 10.3 m | (-597.2, -1566.0) | M_STONE | 4 Vistula front |
+| tubs | barrel + rim + stem + ball | 0.9 m barrel, 3 m tall | 14 in front of the front, 1 per 10 m on the arcades | M_STONE | 5 gardens |
+| arcade_wall | outline walls + cornice + railing | 190 m, terrace height | the mapped outline | M_STONE | 5 arcades |
+| arcade_arches | ring + dark opening | 6 x 5.5 m, the portal 7 m | 1 per 12 m on the east face | M_STONE | 5 arcades |
+| upper_fountain | basin + water + tulip bowl + jet | r 3.6 m | (-556.8, -1585.8) on the vault | M_STONE | 5 gardens |
+| vases | pedestal + vase | 0.64 m square, 1.85 m | 12 round beds by the lawn carpet | M_STONE | 5 gardens |
 
-## 10. Open *(photo check)*
+## 9. Open *(Mac look check, QUESTIONS)*
 
-- Whether the Clock Tower's roof is copper-green or tile.
-- White stone quoins and window surrounds, a cornice band: not built (needs the eave height per
-  range, which LoD2 does not give cleanly).
+- ~~LoD2's tower and the Vistula eave; the gate's side and the dials.~~ F's look check
+  (2026-11-03): the gate faces west and there are four dials (kept). LoD2 carried the Clock
+  Tower's shaft 3.5 m past the model's cornice and its helm as a salmon mass to 46.7 m: it is cut
+  30.0 m over the square inside a 12 m ring (`Landmarks.lod2_tops`, map_builder `_top_lod2`),
+  hidden in the cornice. The salmon band over the river front was LoD2's steep roof slopes (the
+  skins' 0.7 roof threshold painted them wall) and its walls up to 0.9 m proud of the model's
+  front: the skin's `steep` 0.3 tiles them, and its `pale` edges (the outline's river edges,
+  3 m) paint those walls cream (map_builder `_skin_run`). The turret caps were clean.
+- The arcades against the real terrain: the wall's top meeting the terrace, the gravel walk.
+- Not built: the courtyard's fan-pattern setts and the yard walls' colours; the Vistula front's
+  two gabled side risalits and loggias; the dormers; the Lower Garden's stairs and boskets beyond
+  the map's hedges; the south quarter garden's embroidered parterre; Pałac pod Blachą's model.

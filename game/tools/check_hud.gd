@@ -83,6 +83,7 @@ func _check_quiet_driving() -> void:
 		problems.append("G16: a quest bubble was dropped at 60 km/h")
 	b.clear()
 	kmh[0] = 30.0
+	b.chatter.clock += b.chatter.gap()  # Phase 0.2: past the budget's gap after the quest line
 	b.say_ambient(Vector3.ZERO, "", "x", "y")
 	if b.count() != 1:
 		problems.append("G16: an ambient bubble was dropped at 30 km/h")
@@ -935,7 +936,8 @@ func _check_ticker_slide(hud: CanvasLayer, tag: String) -> void:
 
 ## PT-10 (2026-11-02, run 10): the target pointer drew over speech bubbles and the banner, and at
 ## the screen edge its distance ran into its arrow. Checks the draw order, that the edge label
-## stays clear of its arrow all round, and that the edge arrow gives way to a bubble in its spot.
+## stays clear of its arrow all round, and that the edge arrow gives way to a bubble in its spot
+## and keeps off the fixed controls (the minimap, the wallet, the zoom buttons, the pedals).
 func _check_target_pointer(hud: CanvasLayer, bubbles: Control, screen: Vector2i, tag: String) -> void:
 	var overlay: Control = hud.get("_overlay")
 	var banner: Control = hud.get("_banner")
@@ -948,6 +950,7 @@ func _check_target_pointer(hud: CanvasLayer, bubbles: Control, screen: Vector2i,
 	var pt: float = hud.pt
 	var centre := Vector2(screen) * 0.5
 	var into := 0
+	var under := 0
 	for k in 72:
 		var dir := Vector2.from_angle(TAU * k / 72.0)
 		hud.set_target(centre + dir * float(screen.x) * 2.0, "1888 m", Color("#ff9a3c"), true)
@@ -966,6 +969,15 @@ func _check_target_pointer(hud: CanvasLayer, bubbles: Control, screen: Vector2i,
 				problems.append("%s PT-10: the edge distance runs into its arrow pointing %d°" % [tag, k * 5])
 		if not Rect2(Vector2.ZERO, Vector2(screen)).encloses(label):
 			problems.append("%s PT-10: the edge distance %s leaves the screen pointing %d°" % [tag, _pts(label, pt), k * 5])
+		# 2026-11-03: the arrow and its distance keep off the minimap, the wallet, the zoom buttons
+		# and the pedals (pointing up-left the arrow hid under the minimap and the wallet).
+		var edge_box := label.merge(Rect2(tip, Vector2.ZERO).grow((hud.EDGE_ARROW + 2.0) * pt))
+		var fixed: Dictionary = hud.named_rects()
+		for n: String in fixed:
+			if (n in ["minimap", "wallet", "zoom_in", "zoom_out"] or n.begins_with("pedal")) and (fixed[n] as Rect2).intersects(edge_box):
+				under += 1
+				if under <= 2:
+					problems.append("%s: the edge arrow %s pointing %d° sits under %s %s" % [tag, _pts(edge_box, pt), k * 5, n, _pts(fixed[n], pt)])
 	# A bubble right where the left edge arrow points: the arrow moves along the edge, clear of it.
 	hud.set_target(Vector2(-float(screen.x), centre.y), "297 m", Color("#ff9a3c"), true)
 	var before: Dictionary = hud.edge_pointer()

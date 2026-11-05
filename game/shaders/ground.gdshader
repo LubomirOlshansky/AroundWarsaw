@@ -187,6 +187,27 @@ float kp_setts_at(vec2 wp) {
 	return 1.0 - smoothstep(KP_HALF - 0.4, KP_HALF, best);
 }
 
+// Plac Piłsudskiego (photos, 2026-11-02; docs/landmarks/photo-reports/pilsudskiego.md): the paved
+// field is grey granite slabs in ~6 m squares, a chequer of lighter and darker panels outlined by
+// darker grey bands (the drone photo). The map has it as bare ground crossed by footpaths; inside
+// PLAC_BOX those (and any plaza) take the pattern. Box test first, so no other place pays for it.
+const vec4 PLAC_BOX = vec4(-840.0, -718.0, -868.0, -735.0);   // x0, x1, z0, z1
+// The chequer is real but subtle on the ground; from the 30° camera a strong step read as a chess
+// board (playtest, docs/GAMEPLAY_PLAN.md 3.4). So the panels differ by half as much, the thin dark
+// bands carry the pattern, and the panel step fades out in wide views (bands only).
+const vec3 PLAC_LIGHT = vec3(0.69, 0.69, 0.675);    // #b0b0ac
+const vec3 PLAC_DARK = vec3(0.639, 0.639, 0.624);   // #a3a39f
+const vec3 PLAC_BAND = vec3(0.533, 0.537, 0.525);   // #888986
+const float PLAC_BAND_EDGE = 0.475;                 // 0.15 m each side of a joint: 0.3 m bands
+
+// 1 inside the square's paved field, fading over its last metre.
+float plac_at(vec2 wp) {
+	vec2 lo = vec2(PLAC_BOX.x, PLAC_BOX.z);
+	vec2 hi = vec2(PLAC_BOX.y, PLAC_BOX.w);
+	vec2 d = min(wp - lo, hi - wp);
+	return clamp(min(d.x, d.y), 0.0, 1.0);
+}
+
 void fragment() {
 	vec3 base = srgb_to_linear(COLOR.rgb);
 	vec2 wp = world_pos.xz;
@@ -383,6 +404,25 @@ void fragment() {
 		float broad = smoothstep(0.3, 0.8, value_noise(vec2(dot(wp, AX) * 0.012, dot(wp, AY) * 0.03) + vec2(TIME * 0.004, 0.0)));
 		emit += srgb_to_linear(sky_colour) * night * (0.05 + 0.16 * broad + 0.1 * crest) * mix(1.0, 0.75, deep);
 		emit += srgb_to_linear(vec3(0.55, 0.32, 0.42)) * night * 0.1 * (1.0 - smoothstep(2.0, 40.0, d));
+	}
+	if (id <= 0 || id == 2 || id == 4) {
+		float plac = plac_at(wp);
+		if (plac > 0.0) {
+			vec2 q = (wp - vec2(PLAC_BOX.x, PLAC_BOX.z)) / 6.0;
+			vec2 e = abs(fract(q) - 0.5);
+			float em = max(e.x, e.y);
+			float aa = max(fwidth(em), 0.002);              // soft edge one pixel wide: no crawl
+			float band = smoothstep(PLAC_BAND_EDGE - aa, PLAC_BAND_EDGE + aa, em);
+			// Orthographic view height in metres (2 / P[1][1]): the panel step is gone by 110 m.
+			float view_m = 2.0 / max(PROJECTION_MATRIX[1][1], 1e-4);
+			float panel = mod(floor(q.x) + floor(q.y), 2.0) * (1.0 - smoothstep(65.0, 110.0, view_m));
+			vec3 col = mix(mix(PLAC_LIGHT, PLAC_DARK, panel), PLAC_BAND, band);
+			vec2 slab = wp / 1.5;                           // the slabs inside a panel
+			vec2 j = abs(fract(slab) - 0.5);
+			float speckle = value_noise(wp * 5.0) - 0.5;    // fine granite grain (~20 cm)
+			base = mix(base, srgb_to_linear(col), plac);
+			shade = mix(shade, 0.97 + 0.04 * hash12(floor(slab)) + 0.05 * speckle - 0.035 * step(0.46, max(j.x, j.y)), plac);
+		}
 	}
 	// Rain: wet asphalt and paving darken, puddles lie darker still and mirror the sky.
 	if (wetness > 0.001 && (id == 6 || id == 2 || id == 4 || id == 5 || id == 7 || id == 14 || id == 19)) {

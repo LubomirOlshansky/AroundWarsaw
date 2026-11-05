@@ -528,8 +528,10 @@ func surface(e: int, p: Vector2) -> float:
 
 ## The lane point nearest to p within `reach` metres among edges whose direction
 ## agrees with `heading` (any direction if heading is zero): [edge, lane, s] or [].
-## `ground_only` leaves out bridges.
-func snap(p: Vector2, reach: float, heading := Vector2.ZERO, scc_only := false, ground_only := false) -> Array:
+## `ground_only` leaves out bridges; `no_tunnel` leaves out tunnel edges (GAMEPLAY_PLAN 0.1: a
+## teleport or tow asked for on the street must not land on the tunnel's floor under it).
+func snap(p: Vector2, reach: float, heading := Vector2.ZERO, scc_only := false, ground_only := false,
+		no_tunnel := false) -> Array:
 	var best: Array = []
 	var best_d := reach
 	var seen := {}
@@ -543,6 +545,8 @@ func snap(p: Vector2, reach: float, heading := Vector2.ZERO, scc_only := false, 
 				if scc_only and (node_scc[e_a[e]] == 0 or node_scc[e_b[e]] == 0):
 					continue
 				if ground_only and e_bridge[e] == 1:
+					continue
+				if no_tunnel and e_tn[e] >= 0:
 					continue
 				var i0 := e_first[e]
 				for k in e_count[e] - 1:

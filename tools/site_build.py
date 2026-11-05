@@ -40,7 +40,7 @@ PAGE = """<!doctype html>
 <header class="bar"><div class="bar-in"><a class="brand" href="/"><img src="/favicon.svg" alt="" width="28" height="28">Around Warsaw</a></div></header>
 <main class="prose">
 {body}
-{extra}<p><a href="https://github.com/LubomirOlshansky/AroundWarsaw/issues">GitHub issues</a> · <a href="/">← aroundwarsaw.app</a></p>
+{extra}<p><a href="/">← aroundwarsaw.app</a></p>
 </main>
 </body>
 </html>
@@ -153,7 +153,7 @@ def landing(strings: dict, lang: str) -> str:
         f"      <figcaption><h3>{html.escape(m[lang][0])}</h3><p>{html.escape(m[lang][1])}</p></figcaption>\n    </figure>"
         for m in strings["small"])
     values["timeline"] = "\n".join(
-        f"      <li><time>{html.escape(d.replace("Oct", "paź") if lang == "pl" else d)}</time><p>{html.escape(txt[lang])}</p></li>" for d, txt in strings["timeline"])
+        f"      <li><time>{html.escape(d.replace('Oct', 'paź').replace('Nov', 'lis') if lang == 'pl' else d)}</time><p>{html.escape(txt[lang])}</p></li>" for d, txt in strings["timeline"])
     values["author_body"] = "\n".join(f"      <p>{p}</p>" for p in strings["author"][lang])
     values["topics"] = "\n".join(
         f'        <label><input type="radio" name="topic" value="{html.escape(v)}"{" checked" if i == 0 else ""}>'
@@ -177,8 +177,7 @@ def progress_page() -> str:
         "<h1>Progress · Postępy</h1>\n"
         "<p>What was added or improved in Around Warsaw, day by day, newest first. "
         "Co dodano albo poprawiono, dzień po dniu.</p>\n"
-        f'<p class="links"><a href="{cl.BACKLOG_URL}">The backlog: known issues and what\'s next</a> '
-        f'<a href="{cl.ROADMAP_URL}">The full progress log</a></p>\n')
+        )
     return PAGE.format(title="Progress · Postępy", extra="",
                        description="What's new in Around Warsaw, day by day: what was added or improved, and the backlog.",
                        body=intro + cl.html_days())

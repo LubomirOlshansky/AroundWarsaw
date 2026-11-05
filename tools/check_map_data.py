@@ -67,7 +67,12 @@ MAP = os.path.join(ROOT, "game", "map")
 # Krajobraz K6 (2026-11-02, planted_trees.py PLACEs norblin and browary): 45,176 trees (+5 candelabra
 # planes in Fabryka Norblina's court, +12 lindens, birches and maples in Browary's Central Garden).
 # Before: 270954 / 45159.
-EXPECTED = {"trees3d": 271056, "pois": 4572, "trees3d_crown": 45176}
+# Norblin and Browary courts from the Mac's photo reports (2026-11-02, planted_trees.py): 45,192.
+# The first K6 pass's 17 trees (5 planes in the wrong block's court, 12 on the yard west of the
+# garden) taken out; the court of "Plater" and the west court of "Galwan" carved open (COURTS);
+# +4 candelabra planes, +3 on Żelazna, +3 along the glass street, +2 in the west court, +17 in
+# Browary's Central Garden (22 with the scan's 5), +4 by Willa Schielego. Before: 271056 / 45176.
+EXPECTED = {"trees3d": 271152, "pois": 4572, "trees3d_crown": 45192}
 # docs/DEMO.md 7 row 7: the lane graph's strongly connected share at least this.
 SCC_SHARE = 0.95
 
@@ -80,7 +85,7 @@ CITY_INPUTS = ["map/lod2.bin", "map/terrain.json", "map/ao.bin", "map/lights.bin
                "scripts/map_builder.gd", "scripts/chunked_surface.gd", "scripts/neon_signs.gd",
                "scripts/landmarks.gd", "scripts/sector_proxies.gd", "scripts/models.gd",
                "scripts/pixel_font.gd", "scripts/index_pack.gd", "scripts/city_maps.gd",
-               "tools/bake_city.gd"]
+               "tools/bake_city.gd", "data/courts.json"]
 SETUP = "run tools/setup_map.sh"
 # Loop 3d-1 (the user's decision): from GUGiK's data alone, derived like the split: tools/setup_map.sh
 # --full rebuilds them from data/raw (tools/fetch_demo.py's downloads and the LoD2 package).

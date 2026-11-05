@@ -66,6 +66,8 @@ const DETOUR_MAX := 1500.0
 const FIRST_OFFER := 120.0
 const OFFER_GAP := Vector2(75.0, 120.0)
 const OFFER_LIFE := 10.0
+## A held request (`guide_hold`) comes at least this long after the hold lets go.
+const HOLD_GAP := 30.0
 const PILL_DELAY := 1.2
 const CHAT_GAP := Vector2(25.0, 40.0)
 ## The river spots: a waypoint RIVER_INLAND m in from the water's edge, dry for RIVER_DRY m all
@@ -118,6 +120,9 @@ var flying := false
 var away := false
 ## Loop MW-6: Spacer (spacer.gd): a request comes only when the PODWÓZKA button is tapped.
 var quiet := false
+## The first-10 guide (first10.gd `_hold_offers`): a beat is due, so no request comes by itself
+## until it has fired; the PODWÓZKA button still asks for one.
+var guide_hold := false
 ## Testing: --autopilot drives the app's route (--ignore-app: the shortest one); --parody-log
 ## prints `ride:` lines; --ride-quirk, --passenger and --stars force the quirk, the passenger
 ## type and the live rating's start.
@@ -193,6 +198,14 @@ var _last_v := 0.0
 var _last_yaw := 0.0
 var _have_last := false
 var _rng := RandomNumberGenerator.new()
+## Phase 0.2: the drive penalties waiting for their one merged toast (_drive_note).
+const DRIVE_MERGE := 3.0
+var _drive_sum := 0.0
+var _drive_quiet := 0.0
+var _drive_words: Array = []
+var _drive_counts: Array[int] = []
+## How many merged drive toasts were shown (tools/check_chatter.gd).
+var drive_toasts := 0
 
 
 func setup(nodes: Dictionary, data: Dictionary, world: Node3D) -> void:
@@ -295,6 +308,11 @@ func busy() -> bool:
 
 func has_target() -> bool:
 	return state == State.PICKUP or state == State.RIDE
+
+
+## PT-15: a request card is up, waiting for ACCEPT / SKIP.
+func offering() -> bool:
+	return state == State.OFFER
 
 
 ## The pin (then the passenger, once the car is near the pin or them), or the ride's real door.
@@ -403,6 +421,7 @@ func _process(dt: float) -> void:
 	if not away:
 		_session += dt
 	_t += dt
+	_drive_tick(dt)
 	if not _river_ready:
 		_river_step(RIVER_BUDGET)
 	match state:
@@ -466,14 +485,14 @@ func _step(dt: float) -> void:
 		_brake_s = lerpf(_brake_s, maxf(0.0, -a_long * signf(v)), k)
 		_lat_s = lerpf(_lat_s, minf(lat, 60.0), k)
 	if _rules.drive_event("brake", _brake_s):
-		_star_note(-Rules.DRIVE_STEP, "braking %.0f m/s²" % _brake_s, ["hamowanie", "harsh braking"])
+		_drive_note("braking %.0f m/s²" % _brake_s, ["hamowanie", "hamowania", "harsh braking", "harsh braking"])
 	elif _rules.drive_event("corner", _lat_s):
-		_star_note(-Rules.DRIVE_STEP, "corner %.0f m/s²" % _lat_s, ["zakręt", "fast corner"])
+		_drive_note("corner %.0f m/s²" % _lat_s, ["zakręt", "zakręty", "fast corner", "fast corners"])
 
 
 func _on_bump(_collider: Object, speed: float) -> void:
 	if state == State.RIDE and _rules.drive_event("bump", speed):
-		_star_note(-Rules.DRIVE_STEP, "bump %.1f m/s" % speed, ["stłuczka", "bump"])
+		_drive_note("bump %.1f m/s" % speed, ["stłuczka", "stłuczki", "bump", "bumps"])
 
 
 # --- offers --------------------------------------------------------------------------------------
@@ -486,7 +505,9 @@ func _free() -> bool:
 		return false
 	if jobs != null and jobs.side_busy():
 		return false  # loop MW-4: the "Na czasie" job too
-	return rivals == null or not rivals.busy()
+	# PT-15 (2026-11-03): nor while a rival's prompt is up or Pani Halina rolls up to flash for the
+	# first race (rivals.gd `calling`): a "New ride" card came up over her flash-back offer.
+	return rivals == null or not (rivals.busy() or rivals.calling())
 
 
 func _calls_quiet() -> bool:
@@ -502,7 +523,9 @@ func _idle_tick(dt: float) -> void:
 	# The context button is the call's while one rings.
 	_set_pill(missions.state == Missions.State.CLOSED)
 	_offer_in -= dt
-	if (_offer_in <= 0.0 and not quiet) or (_pill_at >= 0.0 and _t - _pill_at >= PILL_DELAY):
+	if guide_hold:
+		_offer_in = maxf(_offer_in, HOLD_GAP)  # a beat comes first; a request a while after it
+	if (_offer_in <= 0.0 and not quiet and not guide_hold) or (_pill_at >= 0.0 and _t - _pill_at >= PILL_DELAY):
 		_pill_at = -1.0
 		_offer_in = _rng.randf_range(OFFER_GAP.x, OFFER_GAP.y)
 		_offer_here()
@@ -588,6 +611,9 @@ func _show_offer(r: Dictionary) -> void:
 func _offer_tick() -> void:
 	if not _calls_quiet() or (jobs != null and jobs.side_busy()) or (rivals != null and rivals.busy()):
 		state = State.IDLE  # their card is up now, not ours
+		return
+	if rivals != null and rivals.calling():
+		_withdraw()  # PT-15: her prompt is a strip, not a card: ours must go, not hide behind it
 		return
 	if flying or away:
 		_withdraw()
@@ -1053,6 +1079,52 @@ func _star_note(delta: float, why: String, words: Array) -> void:
 	var amount := _halves(absf(delta))
 	hud.toast("%s%s ★ · %s" % [sign_pl, amount, words[0]], "%s%s star · %s" % [sign_pl, amount, words[1]])
 	_log("stars %.1f (%s %s%.1f)" % [_rules.stars(), why, "+" if delta > 0.0 else "−", absf(delta)])
+
+
+## Phase 0.2 (the chatter budget): the passenger's drive penalties (a bump, harsh braking, a fast
+## corner) are logged at once but toast together, one "−1 ★ · stłuczki" once they have stopped for
+## DRIVE_MERGE s (one toast per bump while stuck against a wall was most of the spam). `words` is
+## [Polish one, Polish many, English one, English many].
+func _drive_note(why: String, words: Array) -> void:
+	_drive_sum += Rules.DRIVE_STEP
+	_drive_quiet = 0.0
+	var k := _drive_words.find(words)
+	if k < 0:
+		_drive_words.append(words)
+		_drive_counts.append(1)
+	else:
+		_drive_counts[k] += 1
+	_log("stars %.1f (%s −%.1f)" % [_rules.stars(), why, Rules.DRIVE_STEP])
+
+
+## The merged drive toast, DRIVE_MERGE s after the last penalty; dropped when the ride ends first
+## (the result card says the stars).
+func _drive_tick(dt: float) -> void:
+	if _drive_sum <= 0.0:
+		return
+	if state != State.RIDE:
+		_drive_reset()
+		return
+	_drive_quiet += dt
+	if _drive_quiet < DRIVE_MERGE:
+		return
+	var pl: PackedStringArray = []
+	var en: PackedStringArray = []
+	for i in _drive_words.size():
+		var many := int(_drive_counts[i]) > 1
+		pl.append(_drive_words[i][1 if many else 0])
+		en.append(_drive_words[i][3 if many else 2])
+	var amount := _halves(_drive_sum)
+	hud.toast("−%s ★ · %s" % [amount, ", ".join(pl)], "−%s star · %s" % [amount, ", ".join(en)])
+	drive_toasts += 1
+	_drive_reset()
+
+
+func _drive_reset() -> void:
+	_drive_sum = 0.0
+	_drive_quiet = 0.0
+	_drive_words.clear()
+	_drive_counts.clear()
 
 
 # --- the end of a ride ------------------------------------------------------------------------

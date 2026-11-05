@@ -38,11 +38,14 @@ const TimeOfDay := preload("res://scripts/time_of_day.gd")
 class FakeDialogue extends Node:
 	var said: Array = []
 
-	func say(_anchor: Variant, speaker: String, group: String, tag := "", _s := 4.0, _a := Color.WHITE, _h := 2.6, _p := false) -> Array:
+	func say(_anchor: Variant, speaker: String, group: String, tag := "", _s := 4.0, _a := Color.WHITE, _h := 2.6, _p := false, _k := 0, _key := "") -> Array:
 		said.append([speaker, group, tag])
 		return ["…", "…"]
 
 	func say_ambient(_anchor: Variant, speaker: String, group: String, tag := "", _s := 4.0, _a := Color.WHITE, _h := 2.6, _p := false) -> Array:
+		return say(_anchor, speaker, group, tag, _s, _a, _h, _p)
+
+	func say_reaction(_anchor: Variant, speaker: String, group: String, tag := "", _s := 4.0, _a := Color.WHITE, _h := 2.6, _p := false, _key := "") -> Array:
 		return say(_anchor, speaker, group, tag, _s, _a, _h, _p)
 
 	func count(group: String, tag: String) -> int:
@@ -311,6 +314,28 @@ func _check_sites(c: Crowds) -> void:
 	# Nowy Świat pass 2: the café street's chill spots are sites with people.
 	_expect(Crowds.NOWY_SWIAT.size() >= 4 and Crowds.NOWY_SWIAT.keys().all(func(id: String) -> bool: return c.by_id.has(id)),
 			"Nowy Świat: %d chill spots are sites" % Crowds.NOWY_SWIAT.size())
+	# Nowogrodzka street-by-street (2026-11-03): the bar strip's pavement crowds, a Friday night's,
+	# 01:00 Saturday still Friday's, empty in the morning, a Tuesday half, rain a third.
+	_expect(Crowds.NOWOGRODZKA.size() >= 6 and Crowds.NOWOGRODZKA.keys().all(func(id: String) -> bool: return c.by_id.has(id)),
+			"Nowogrodzka: %d pub spots are sites" % Crowds.NOWOGRODZKA.size())
+	_expect(Crowds.pub_level(23.5, 5, 7, false) == 1.0 and is_equal_approx(Crowds.pub_level(1.0, 6, 7, false), 0.85)
+			and Crowds.pub_level(10.0, 5, 7, false) == 0.0 and Crowds.pub_level(23.5, 2, 7, false) < 0.5
+			and Crowds.pub_level(23.5, 5, 1, false) >= 0.6 and Crowds.pub_level(23.5, 5, 7, true) <= 0.3,
+			"Nowogrodzka: the pub crowd by hour, night, month and rain")
+	_expect(Crowds.WILCZA.size() >= 5 and Crowds.WILCZA.keys().all(func(id: String) -> bool: return c.by_id.has(id)),
+			"Wilcza: %d pub spots are sites" % Crowds.WILCZA.size())
+	_expect(Crowds.PRAGA.size() >= 5 and Crowds.PRAGA.keys().all(func(id: String) -> bool: return c.by_id.has(id)),
+			"Praga: %d pub spots are sites" % Crowds.PRAGA.size())
+	_expect(Crowds.VIADUKT.size() == 5 and Crowds.VIADUKT.keys().all(func(id: String) -> bool: return c.by_id.has(id)),
+			"viaduct: %d pub spots are sites" % Crowds.VIADUKT.size())
+	# Mazowiecka street-by-street (2026-11-03): the club street's pavement crowds, a Friday night's, empty
+	# before 21 and by morning, 01:00 Saturday still Friday's, a Tuesday a fifth, rain under a third.
+	_expect(Crowds.MAZOWIECKA.size() >= 5 and Crowds.MAZOWIECKA.keys().all(func(id: String) -> bool: return c.by_id.has(id)),
+			"Mazowiecka: %d club spots are sites" % Crowds.MAZOWIECKA.size())
+	_expect(Crowds.club_level(0.5, 6, 7, false) == 0.6 and Crowds.club_level(1.5, 6, 7, false) == 1.0
+			and Crowds.club_level(10.0, 5, 7, false) == 0.0 and Crowds.club_level(0.5, 3, 7, false) <= 0.25
+			and Crowds.club_level(1.5, 6, 1, false) >= 0.6 and Crowds.club_level(1.5, 6, 7, true) <= 0.3,
+			"Mazowiecka: the club crowd by hour, night, month and rain")
 	# F, 2026-11-01: DALEJ DALLA GELATO, the Powiśle gelateria: a line in snow too.
 	_expect(Crowds.gelato_queue(10.0, 2, 7)[0] == 0 and Crowds.gelato_queue(21.5, 2, 7)[0] == 0
 			and Crowds.gelato_queue(16.0, 2, 7) == [Crowds.GELATO_MAX, "lody"]

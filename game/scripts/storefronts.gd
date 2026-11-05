@@ -105,6 +105,11 @@ const MARSZ_BLUE := Color(0.5, 0.75, 1.0)
 const KP_GOLD := Color(1.0, 0.8, 0.4)
 const KP_WINE := Color(0.9, 0.35, 0.5)
 const KP_BLUE := Color(0.6, 0.8, 1.0)
+## Nowogrodzka's bar strip (street-by-street, 2026-11-03): between Marszałkowska and Bracka, the
+## street of small bars and shot bars; late-night amber, magenta and teal so a row of them reads at night.
+const NOWO_AMBER := Color(1.0, 0.7, 0.2)
+const NOWO_MAGENTA := Color(1.0, 0.25, 0.7)
+const NOWO_TEAL := Color(0.2, 0.95, 0.85)
 ## The venues' fascias (vision 3.0-3.2): place id -> [the lines of the sign, tube colour, metres
 ## up (the sign's bottom)]. The words are the parody names of places.json (Glon na Powiślu: GLON).
 const VENUES := {
@@ -192,6 +197,48 @@ const VENUES := {
 	"pow_przy_solcu": [["PRZY SOLCU"], POWISLE_TUBE_C, 2.8],
 	# Zagłębie Kebabowe on Al. Solidarności (zaglebie.gd): Kino Femina's fascia and the five shops'.
 	# Nowy Świat's shopfronts (street-by-street pass, 2026-11-02): original names, no chains.
+	# Nowogrodzka's bars (street-by-street, 2026-11-03): parodies of the real bars' names or trades,
+	# never the names themselves.
+	"nowo_kwarta": [["KWARTA"], NOWO_AMBER, 2.8],
+	"nowo_halinka": [["U HALINKI", "BAR"], NOWO_MAGENTA, 2.8],
+	"nowo_za_bardzo": [["ZA BARDZO"], NOWO_TEAL, 3.0],
+	"nowo_kraftownia": [["KRAFTOWNIA", "IPA DO DNA"], NOWO_AMBER, 2.8],
+	"nowo_schron": [["SCHRON", "PIWNY"], NOWO_TEAL, 2.8],
+	"nowo_podworko": [["PODWÓRKO 22", "SZOTY"], NOWO_MAGENTA, 3.0],
+	"nowo_nalewalnia": [["NALEWALNIA", "KIEDYŚ PO 4"], NOWO_AMBER, 2.8],
+	"nowo_dziniarnia": [["DŻINIARNIA"], NOWO_TEAL, 2.8],
+	# Mazowiecka's club street (street-by-street, 2026-11-03): parodies of the real clubs' names or
+	# trades, one sign per address (Tygmont and La Pose share no. 6/8, Enklawa and Ritual no. 12).
+	"maz_tygrys": [["TYGRYS", "JAZZ"], NOWO_AMBER, 2.8],
+	"maz_szotownia": [["SZOTOWNIA"], NOWO_MAGENTA, 2.8],
+	"maz_szkic": [["SZKIC", "NOCĄ"], NOWO_TEAL, 2.8],
+	"maz_enklawka": [["ENKLAWKA"], NOWO_MAGENTA, 3.0],
+	"maz_pokoj": [["POKÓJ 12,5"], NOWO_AMBER, 2.8],
+	# Wilcza and Poznańska's bar strip (street-by-street, 2026-11-03): parodies of the real bars' names or
+	# trades, never the names themselves (a muse, a cigar room, a gold-rush pub, an aura, a
+	# kraken, a video tape, a banana republic).
+	"wil_muza": [["MUZA", "NA BIS"], NOWO_AMBER, 2.8],
+	"wil_cygarnia": [["CYGARNIA", "DYMEK"], NOWO_MAGENTA, 2.8],
+	"wil_goraczka": [["GORĄCZKA", "PIĄTKOWA"], NOWO_TEAL, 2.8],
+	"wil_aura": [["AURA", "PO PRACY"], NOWO_MAGENTA, 2.8],
+	"wil_macki": [["MACKI", "I KUFLE"], NOWO_TEAL, 2.8],
+	"wil_kaseta": [["KASETA", "PRZEWIJANA"], NOWO_AMBER, 2.8],
+	"wil_banany": [["REPUBLIKA", "BANANOWA"], NOWO_MAGENTA, 3.0],
+	# Praga's old streets (street-by-street, 2026-11-03): parodies of the real bars' trades near Okrzei,
+	# Wrzesińska, Kijowska and Targowa; pre-war tenements, so warm amber and teal over the plaster.
+	"praga_swiat": [["ŚWIAT", "PO PRASKU"], NOWO_AMBER, 2.8],
+	"praga_barista": [["BARISTA", "Z PODWÓRKA"], NOWO_TEAL, 2.8],
+	"praga_skrzynka": [["WINO ZE", "SKRZYNKI"], NOWO_MAGENTA, 2.8],
+	"praga_kraina": [["KRAINA", "WINA"], NOWO_AMBER, 2.8],
+	"praga_kijowska": [["KIJOWSKA", "DWÓJKA"], NOWO_MAGENTA, 2.8],
+	"praga_kufel": [["POD KUFLEM", "ZA ROGIEM"], NOWO_TEAL, 2.8],
+	# The Powiśle viaduct's closed bays (F, 2026-11-03: "a lot of gastronomy, the K-bar and others"):
+	# parody names over the bays' arched doors (map_builder PV_BARS); a nod to the real bars, not them.
+	"via_qbar": [["Q-BAR POD", "WIADUKTEM"], NOWO_TEAL, 3.7],
+	"via_luk": [["WINO", "POD ŁUKIEM"], NOWY_WINE, 3.7],
+	"via_nity": [["NITY", "I KUFLE"], NOWO_AMBER, 3.7],
+	"via_beton": [["BETONIARNIA", "BISTRO"], NOWY_CREAM, 3.7],
+	"via_filar": [["KAWA", "PRZY FILARZE"], NOWO_MAGENTA, 3.7],
 	"nowy_paczki": [["PĄCZKARNIA", "TŁUSTE DNI"], NOWY_ROSE, 2.8],
 	"nowy_lody": [["LODY", "BEZ KOLEJKI"], NOWY_SKY, 2.8],
 	"nowy_ksiegarnia": [["KSIĘGARNIA", "PRZY KAWIE"], NOWY_CREAM, 2.8],
@@ -293,8 +340,9 @@ const HYPE := {
 	"waczek_swietokrzyska": [52.2364, 21.0160],
 	"waczek_plater": [52.2281, 21.0047],
 	"waczek_femina": [52.2424, 20.9980],
-	# KROWA 2.0, the milk bar on the Żelazna front of Norblin (the Mac look check parks the door).
-	"krowa_norblin": [52.23367, 20.99107],
+	# KROWA 2.0, the milk bar on the Żelazna front of Norblin (the block of "Plater", moved off
+	# "Modsen" with the factory's model, 2026-11-02; the Mac look check parks the door).
+	"krowa_norblin": [52.23246, 20.99205],
 	# MIESZANE MIESZANE, 40 m west of KEBAB KRÓL on the south pavement of Al. Solidarności (the Mac look check parks the door).
 	"kebab_mieszane": [52.24176, 20.99345],
 	# DALEJ DALLA GELATO on Tamka at Powiśle (the Mac look check parks the door).
@@ -391,6 +439,68 @@ const ZBAWICIELA := {
 	"zb_szarlotka": [52.21971, 21.01863],
 	"zb_plan_z": [52.22013, 21.01848],
 	"zb_po_mszy": [52.21967, 21.01722],
+}
+## Nowogrodzka's bars (street-by-street, 2026-11-03): eight parody fascias at the OpenStreetMap
+## points of the real bars on the strip between Marszałkowska and Bracka (house numbers 4, 10, 11,
+## 12, 20, 22, 27 and 31): a pint-and-quart pub, a bar run by Halinka, ZA BARDZO (one notch past
+## "very very"), a craft-beer tap room, a cellar bar, the courtyard of shot bars at no. 22, the
+## everything-at-one-price vodka bar (KIEDYŚ PO 4: it was 4 zł once) and a gin bar. Like the cafés, not notebook
+## places; the nearest address snaps each sign to a wall. ZA BARDZO and PODWÓRKO 22 hang at their
+## yards' gates on the street (OSM has the bars 60-70 m in, in the courtyards of nos. 11 and 22).
+const NOWOGRODZKA := {
+	"nowo_kwarta": [52.23017, 21.01838],
+	"nowo_halinka": [52.22980, 21.01661],
+	"nowo_za_bardzo": [52.22988, 21.01780],
+	"nowo_kraftownia": [52.22966, 21.01590],
+	"nowo_schron": [52.22941, 21.01470],
+	"nowo_podworko": [52.22921, 21.01404],
+	"nowo_nalewalnia": [52.22906, 21.01406],
+	"nowo_dziniarnia": [52.22894, 21.01362],
+}
+## Mazowiecka's clubs (street-by-street, 2026-11-03): five parody fascias at the OpenStreetMap points
+## of the real clubs (Tygmont, Czupito/Mazo, Sketch Nite, Enklawa/Ritual, Room 13); the nearest address
+## snaps each sign to a wall. Bank Club and Blu Club (no. 14) are Lombard's, places.json.
+const MAZOWIECKA := {
+	"maz_tygrys": [52.236993, 21.013325],
+	"maz_szotownia": [52.237075, 21.013000],
+	"maz_szkic": [52.237760, 21.012753],
+	"maz_enklawka": [52.237787, 21.013159],
+	"maz_pokoj": [52.237889, 21.012811],
+}
+## Wilcza and Poznańska's bars (street-by-street, 2026-11-03): seven parody fascias at the OpenStreetMap
+## points of the real bars on Wilcza (nos. 17, 26, 27/29 as one door, 51A), Hoża 27 and Poznańska (7, 12); the nearest
+## address snaps each sign to a wall.
+const WILCZA := {
+	"wil_muza": [52.22540, 21.01868],
+	"wil_cygarnia": [52.22537, 21.01739],
+	"wil_goraczka": [52.22494, 21.01645],
+	"wil_aura": [52.22652, 21.01596],
+	"wil_macki": [52.22472, 21.01228],
+	"wil_kaseta": [52.22391, 21.01234],
+	"wil_banany": [52.22403, 21.01218],
+}
+## Praga's bars (street-by-street, 2026-11-03): six parody fascias at the OpenStreetMap points of the real bars
+## on Stefana Okrzei (nos. 8 and 26, where two bars share one door), Sierakowskiego 4A, Wrzesińska 4,
+## Kijowska 2 and Targowa 1. Ząbkowska's own bars lie outside the map (z < -2045).
+const PRAGA := {
+	"praga_swiat": [52.2510661, 21.0352787],
+	"praga_barista": [52.2489048, 21.0314672],
+	"praga_skrzynka": [52.249572, 21.0333065],
+	"praga_kraina": [52.249752, 21.0352705],
+	"praga_kijowska": [52.2498793, 21.0443072],
+	"praga_kufel": [52.2480169, 21.0455613],
+}
+## The Powiśle viaduct's bars (F, 2026-11-03): the closed bays map_builder.gd builds (PV_INFILL, PV_BARS)
+## under Most Poniatowskiego's deck between Kruczkowskiego and Solec, facing Al. 3 Maja. Game coordinates,
+## not lat/lon: id -> [a point 5 m out of the arcade's face, one 4 m in behind the bay's wall], taken from
+## the viaduct's frame (`_powisle_frame` at the bay's middle s); the sign's ray runs from the first to the
+## second and meets the bay's wall (solid). The deck over it is not in the roof grid: no roof test.
+const VIADUKT := {
+	"via_qbar": [Vector2(536.5, -23.9), Vector2(539.3, -15.4)],
+	"via_luk": [Vector2(587.8, -40.9), Vector2(590.6, -32.3)],
+	"via_nity": [Vector2(530.1, 14.5), Vector2(527.3, 5.9)],
+	"via_beton": [Vector2(564.2, 3.1), Vector2(561.4, -5.5)],
+	"via_filar": [Vector2(615.5, -14.0), Vector2(612.7, -22.6)],
 }
 ## A venue sign's letter pixel (m) and the smallest it shrinks to on a short wall.
 const VENUE_PX := 0.12
@@ -499,10 +609,12 @@ func setup(data: Dictionary, places: Array) -> void:
 		if str(p.get("k", "")) == "kebab":
 			avoid.append(Vector2(float(p["x"]), float(p["z"])))
 	var with_cafes: Array = places.duplicate()
-	for table: Dictionary in [CAFES, LOUNGES, TRENDY, HYPE, CINEMAS, NOWY_SWIAT, POWISLE, MARSZALKOWSKA, KRAKOWSKIE, ZBAWICIELA, zaglebie_table()]:
+	for table: Dictionary in [CAFES, LOUNGES, TRENDY, HYPE, CINEMAS, NOWY_SWIAT, POWISLE, MARSZALKOWSKA, KRAKOWSKIE, ZBAWICIELA, NOWOGRODZKA, MAZOWIECKA, WILCZA, PRAGA, zaglebie_table()]:
 		for id: String in table:
 			var ll: Array = table[id]
 			with_cafes.append({"id": id, "at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})
+	for id: String in VIADUKT:
+		with_cafes.append({"id": id, "at": VIADUKT[id][1], "road": VIADUKT[id][0], "bld": VIADUKT[id][1]})
 	venues = venue_list(with_cafes, addrs, graph)
 	for v in venues:
 		avoid.append(v["road"])
@@ -835,7 +947,11 @@ static func venue_list(places: Array, addrs: Array[Dictionary], g) -> Array[Dict
 					best = a
 		var road := Vector2.INF
 		var bld := Vector2.INF
-		if not best.is_empty():
+		if p.has("road"):
+			# Given outright (VIADUKT: no address, the nearest road is the deck's).
+			road = p["road"]
+			bld = p["bld"]
+		elif not best.is_empty():
 			road = best["road"]
 			bld = best["bld"]
 		elif g != null:
@@ -1010,8 +1126,9 @@ func _ray(space: PhysicsDirectSpaceState3D, from: Vector3, to: Vector3) -> Dicti
 ## The wall a site faces: the ray from its road point towards its building, `side` m of straight
 ## wall each way (rays from the road shifted along it), a roof `roof` m over the street just
 ## inside. Tries the middle shifted along the wall by up to 5 m. {} if none.
-func _wall(space: PhysicsDirectSpaceState3D, road: Vector2, bld: Vector2, side: float, roof: float, far := RAY_FAR) -> Dictionary:
-	var y: float = map.ground_height(road.x, road.y) + RAY_UP
+## `under` (VIADUKT): the wall stands under a deck, so heights are the terrain's, not the deck's.
+func _wall(space: PhysicsDirectSpaceState3D, road: Vector2, bld: Vector2, side: float, roof: float, far := RAY_FAR, under := false) -> Dictionary:
+	var y: float = (map.terrain_height(road.x, road.y) if under else map.ground_height(road.x, road.y)) + RAY_UP
 	var dir := bld - road
 	if dir.length() < 0.5:
 		return {}
@@ -1043,7 +1160,7 @@ func _wall(space: PhysicsDirectSpaceState3D, road: Vector2, bld: Vector2, side: 
 				break
 		if not ok:
 			continue
-		var g: float = map.ground_height(p.x, p.z)
+		var g: float = map.terrain_height(p.x, p.z) if under else map.ground_height(p.x, p.z)
 		var inside := p - n * 2.0
 		if map.top_height(inside.x, inside.z) < g + roof:
 			continue
@@ -1098,11 +1215,11 @@ func _place_venue(i: int, space: PhysicsDirectSpaceState3D) -> void:
 	var px := VENUE_PX
 	var w := {}
 	while px >= VENUE_PX_MIN - 0.001:
-		w = _wall(space, v["road"], v["bld"], widest * px * 0.5, 2.5)
+		w = _wall(space, v["road"], v["bld"], widest * px * 0.5, 0.0 if VIADUKT.has(v["id"]) else 2.5, RAY_FAR, VIADUKT.has(v["id"]))
 		if not w.is_empty():
 			break
 		px -= 0.02
-	if w.is_empty():
+	if w.is_empty() and not VIADUKT.has(v["id"]):
 		px = VENUE_PX_MIN
 		# Looked for a little to each side (a tree's trunk or a kiosk's wall in the first ray's way).
 		var road: Vector2 = v["road"]

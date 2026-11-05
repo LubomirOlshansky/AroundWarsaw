@@ -8,6 +8,8 @@ A day in the log that CHANGELOG.md does not cover yet gets lines made from the l
 so a new day shows up before anyone writes it up. Each entry also counts the log's updates that day.
 """
 
+from __future__ import annotations
+
 import datetime
 import html
 import re
@@ -15,8 +17,6 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-BACKLOG_URL = "https://github.com/LubomirOlshansky/AroundWarsaw/blob/main/docs/BACKLOG.md"
-ROADMAP_URL = "https://github.com/LubomirOlshansky/AroundWarsaw/blob/main/docs/ROADMAP.md#progress-log"
 
 
 def log_rows() -> list[tuple[str, str]]:

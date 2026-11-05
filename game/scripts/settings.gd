@@ -31,8 +31,11 @@ const TRAFFIC_KEYS := ["empty", "low", "normal", "busy"]
 ## The default for a fresh save: Low (F, 2026-11-01: the default was too heavy). Saves keep their choice.
 const DEFAULT_TRAFFIC := 1
 
-## drive_controls.gd: POINT, CLASSIC, FIXED.
-var controls := 0
+## drive_controls.gd: POINT, CLASSIC, FIXED. Classic (steer left / right, GAS and BRAKE) is the
+## default since 2026-11-04 (F: "driving with left, right, gas and brake should be the default");
+## Point and Fixed stay in Settings → Jazda.
+const DEFAULT_CONTROLS := 1
+var controls := DEFAULT_CONTROLS
 ## Classic only: the camera follows the car (CAM toggles it); Point always follows, Fixed never.
 var classic_follow := true
 var traffic := DEFAULT_TRAFFIC
@@ -71,6 +74,9 @@ var zone_cap := false
 var handling := 0
 ## Steering sensitivity 0..1 (0.5 = the profile as is; car.gd set_sensitivity). Settings → Jazda, key "sensitivity".
 var sensitivity := 0.5
+## Phase 0.2 (docs/GAMEPLAY_PLAN.md): the city's chattiness, chatter.gd GAPS: 0 Mało, 1 Średnio (the
+## default), 2 Dużo. Settings → ŚWIAT, key "chatter".
+var chatter := 1
 ## Accessibility (access.gd, Settings → ŁATWOŚĆ): larger HUD text, calm (no flashing or shaking),
 ## colour-safe markers, the phone's vibration, and the quest stop assist.
 var text_large := false
@@ -103,6 +109,11 @@ func load_file() -> void:
 	loaded_version = int(cfg.get_value("meta", "version", 1))
 	newer = loaded_version > VERSION
 	controls = clampi(int(cfg.get_value("controls", "scheme", controls)), 0, 2)
+	# 2026-11-04: Point was the default before, so a file saved then (no `classic_default` key)
+	# that says Point loads as Classic, once; the next save marks the file, and a Point chosen
+	# after that stays Point.
+	if controls == 0 and not cfg.has_section_key("controls", "classic_default"):
+		controls = DEFAULT_CONTROLS
 	classic_follow = bool(cfg.get_value("controls", "classic_follow", classic_follow))
 	traffic = clampi(int(cfg.get_value("world", "traffic", traffic)), 0, TRAFFIC.size() - 1)
 	quality = clampi(int(cfg.get_value("world", "quality", quality)), AUTO, ULTRA)
@@ -123,6 +134,7 @@ func load_file() -> void:
 	zone_cap = bool(cfg.get_value("game", "zone_cap", zone_cap))
 	handling = clampi(int(cfg.get_value("game", "handling", handling)), 0, 1)
 	sensitivity = clampf(float(cfg.get_value("game", "sensitivity", sensitivity)), 0.0, 1.0)
+	chatter = clampi(int(cfg.get_value("world", "chatter", chatter)), 0, 2)
 	text_large = bool(cfg.get_value("access", "text_large", text_large))
 	calm = bool(cfg.get_value("access", "calm", calm))
 	color_safe = bool(cfg.get_value("access", "color_safe", color_safe))
@@ -145,6 +157,7 @@ func save() -> void:
 	cfg.set_value("meta", "version", VERSION)
 	cfg.set_value("controls", "scheme", controls)
 	cfg.set_value("controls", "classic_follow", classic_follow)
+	cfg.set_value("controls", "classic_default", 1)
 	cfg.set_value("world", "traffic", traffic)
 	cfg.set_value("world", "quality", quality)
 	cfg.set_value("world", "tiers", 1)
@@ -161,6 +174,7 @@ func save() -> void:
 	cfg.set_value("game", "zone_cap", zone_cap)
 	cfg.set_value("game", "handling", handling)
 	cfg.set_value("game", "sensitivity", snappedf(sensitivity, 0.05))
+	cfg.set_value("world", "chatter", chatter)
 	cfg.set_value("access", "text_large", text_large)
 	cfg.set_value("access", "calm", calm)
 	cfg.set_value("access", "color_safe", color_safe)
@@ -175,9 +189,9 @@ func save() -> void:
 
 
 func summary() -> String:
-	return "controls %d, classic camera %s, traffic %s, quality %s, volume %.0f/%.0f/%.0f %%, perf %s, %d fps, style %d, vhs %s, zone cap %s, handling %d sens %.2f, access large %s calm %s colour-safe %s vibration %s assist %s left-handed %s, auto image %s" % [
+	return "controls %d, classic camera %s, traffic %s, quality %s, volume %.0f/%.0f/%.0f %%, perf %s, %d fps, style %d, vhs %s, zone cap %s, handling %d sens %.2f chatter %d, access large %s calm %s colour-safe %s vibration %s assist %s left-handed %s, auto image %s" % [
 			controls, "follow" if classic_follow else "fixed", TRAFFIC_NAMES[traffic], "auto" if quality == AUTO else str(quality),
-			master * 100.0, music * 100.0, effects * 100.0, perf, fps, style, vhs, zone_cap, handling, sensitivity, text_large, calm, color_safe, vibration, stop_assist, left_handed, image_summary()]
+			master * 100.0, music * 100.0, effects * 100.0, perf, fps, style, vhs, zone_cap, handling, sensitivity, chatter, text_large, calm, color_safe, vibration, stop_assist, left_handed, image_summary()]
 
 
 ## Loop G1b: "sharp", "sharp, on trial 1/4" or "fallback, calm 1/2 (GPU extras down 74 s)".

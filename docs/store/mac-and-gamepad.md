@@ -36,7 +36,7 @@ macOS, Windows and Android.
 | Left stick | Point / Fixed: point the way (further = more gas). Classic: steer | fly that way |
 | RT (R2) | gas (Classic) | climb |
 | LT (L2) or B (circle) | brake / reverse | sink (LT) |
-| A (cross) | the mission card's first button (M) | same |
+| A (cross) | the mission card's first button (M); with no card up, the top row's context button (KASETA, START KURS, POMOC DROGOWA) | same |
 | X (square) | the mission card's second button (K) | same |
 | Y (triangle) | car / helicopter (H) | land |
 | LB / RB held | the nitro, once bought at the garage (Shift) | |

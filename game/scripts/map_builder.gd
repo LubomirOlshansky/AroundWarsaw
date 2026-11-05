@@ -16,6 +16,8 @@ const Models := preload("res://scripts/models.gd")
 const Trains := preload("res://scripts/trains.gd")
 const MapEdge := preload("res://scripts/map_edge.gd")
 const EdgeRoadworks := preload("res://scripts/edge_roadworks.gd")
+## Pasaż Wiecha's white Y masts stand where the map has its lamps (first_scene.gd PASAZ).
+const FirstScene := preload("res://scripts/first_scene.gd")
 ## Tile size for instanced things (trees, lamps, parked cars). Loop 2b: 512 m (was 256): one
 ## MultiMesh is one draw call, and the iPhone pays per draw call, not per instance.
 const INSTANCE_TILE := 512.0
@@ -584,6 +586,8 @@ func _build_parts(marks, roofs_only: bool) -> void:
 	_build_rail_portals(walls)
 	_build_catenary(walls)
 	_build_srednicowy(walls)
+	_build_poniatowski(walls)
+	_build_powisle(walls)
 	_build_garage_doors(walls)
 	_build_guard_rails(walls)
 	_build_shore()
@@ -1131,6 +1135,40 @@ func in_tunnel(x: float, z: float, y: float) -> bool:
 	return not is_nan(t) and terrain_height(x, z) - t > 2.0
 
 
+## GAMEPLAY_PLAN 3.5 (0.3): a bridge or viaduct deck stands between the point `at` (the car's
+## middle) and the camera, `to_cam` the unit direction up to it (the ortho camera's back axis):
+## the ray meets a deck's slab (from UNDER_DECK_SLAB under its road to its parapet's top) between
+## UNDER_DECK and UNDER_DECK_TOP m over the point. Trasa Łazienkowska over Łazienkowska and
+## Myśliwiecka, Most Łazienkowski's land spans, the Poniatowski viaduct: main.gd shows the car
+## through the deck then, as in a tunnel. A car beside a deck, or under one the camera sees past,
+## stays drawn as it is. Up to ~18 deck lookups (drive_height does one): main.gd asks every
+## DECK_XRAY_EVERY frames.
+func deck_hides(at: Vector3, to_cam: Vector3) -> bool:
+	if to_cam.y < 0.05 or _decks.is_empty():
+		return false
+	if _deck_cells.is_empty():
+		_index_decks()
+	# Most of the map has no deck near: the deck cells along the ray first (4 points, under a
+	# cell apart), the costly corridor tests only if one holds a deck.
+	var any := false
+	for k in 4:
+		var q := at + to_cam * (lerpf(UNDER_DECK, UNDER_DECK_TOP, k / 3.0) / to_cam.y)
+		if _deck_any.has(Vector2i(floori(q.x / DECK_CELL), floori(q.z / DECK_CELL))):
+			any = true
+			break
+	if not any:
+		return false
+	var h := UNDER_DECK
+	while h <= UNDER_DECK_TOP:
+		var p := at + to_cam * (h / to_cam.y)
+		var y := at.y + h
+		for d in _decks_at(p.x, p.z):
+			if y >= d - UNDER_DECK_SLAB and y <= d + 1.0:
+				return true
+		h += UNDER_DECK_SLAB * 0.75
+	return false
+
+
 ## Loop 10a: how far into the water (river, pond or fountain) a point lies, in metres from
 ## the nearest dry texel, interpolated between the 2 m texels' centres; 0 on dry land and
 ## off the map. Four byte reads: cheap enough for the car every frame.
@@ -1246,6 +1284,27 @@ func _decks_at(x: float, z: float, feet = null) -> PackedFloat32Array:
 
 ## The height of deck group g at a point (its nearest piece, projected onto it), or the
 ## terrain for g < 0. Things baked onto a bridge (markings, kerbs, tram tracks) use it.
+## PT-18: the nearest point of deck group g's centrelines to p (p itself when there is none).
+func _deck_centre(g: int, p: Vector2) -> Vector2:
+	if _deck_cells.is_empty():
+		_index_decks()
+	var best := INF
+	var out := p
+	var cell := Vector2i(floori(p.x / DECK_CELL), floori(p.y / DECK_CELL))
+	for dz in range(-1, 2):
+		for dx in range(-1, 2):
+			for code: int in _deck_cells.get(Vector3i(cell.x + dx, cell.y + dz, g), PackedInt32Array()):
+				var pts: PackedVector2Array = _decks[code >> 12]["pts"]
+				var k := code & 4095
+				var a := pts[k]
+				var ab := pts[k + 1] - a
+				var q := a + ab * clampf((p - a).dot(ab) / maxf(ab.length_squared(), 0.000001), 0.0, 1.0)
+				if p.distance_squared_to(q) < best:
+					best = p.distance_squared_to(q)
+					out = q
+	return out
+
+
 func deck_height(g: int, x: float, z: float) -> float:
 	if g < 0:
 		return terrain_height(x, z)
@@ -1282,6 +1341,13 @@ func deck_height(g: int, x: float, z: float) -> float:
 		return h
 	return h
 
+
+## GAMEPLAY_PLAN 3.5 (deck_hides): the camera ray's heights over the car tested for a deck (from
+## over the car's roof to the highest flyover over a street) and a deck's slab and girders under
+## its road.
+const UNDER_DECK := 2.5
+const UNDER_DECK_TOP := 24.0
+const UNDER_DECK_SLAB := 1.6
 
 const DECK_CELL := 16.0
 ## (cell x, cell z, group) -> segment codes (piece << 12 | segment), built on first use;
@@ -1866,6 +1932,717 @@ func _ms_pier(st, o: Vector2, u: Vector2, n: Vector2, s: float, top: float) -> v
 				Vector3(a.x, y0, a.y), Vector3(b.x, top, b.y), Vector3(a.x, top, a.y)])
 
 
+## Most Poniatowskiego's river spans (CITY_INVENTORY #14), from the Mac photo set (report
+## docs/landmarks/photo-reports/poniatowski.md, spec docs/landmarks/specs/poniatowski.md): a
+## steel deck-arch bridge, 506 m (Szyller, Marszewski and Paszkowski, 1914; the spans rebuilt
+## after 1915 and 1944). The bake gives it pairs of thin concrete posts every 38 m like any road
+## bridge; over the river those are skipped (`_poniatowski_skips`) and this draws the grey granite
+## piers with rounded cutwaters and, between them, grey steel open-web arch ribs under the deck
+## (the rib, posts and diagonal bracing up to a straight deck girder), the red fascia girder and
+## the black cast-iron balustrade along both edges, and over each pier a granite pedestal with
+## a cartouche standing out of the railing; in the walls surface (no new draw call).
+## Found from the north carriageway's deck piece that starts at PN_A; a bake without it keeps the
+## thin posts. The towers on the abutments are landmarks.gd's (`_build_towers`).
+const PN_A := Vector2(939.4, -132.6)
+## From PN_A to the bridge's frame: along it back to the west towers' line, across to its axis.
+const PN_BACK := 8.9
+const PN_AXIS := -6.67
+## Along the bridge from the west towers' line (the east towers stand at 515.6 m): the abutments'
+## river faces (the stone walls the bake seats there) and the river piers. The report reads three
+## pier centres off the orthophoto, (1036, -171), (1106, -195), (1178, -219), and estimates two
+## more on the east floodplain every ~72 m in x, (1250, -243), (1322, -267); the gravel rubble
+## OpenStreetMap maps round piers (s 163-195, 252-276) and the terrain grid's ridges (s 178, 265)
+## agree. F's look check (2026-11-03): the bridge has 8 spans, so 7 piers. The Mac's check of photos
+## 22 and 1 and the ortho (/mnt/project-files/poniatowski_piers.md) found the west-bank pier at the
+## waterline under a coat-of-arms pedestal, about (985, -159) ±8 m (s ~58): it stands at s 64, the
+## nearest place within that clear of the bank promenade's footway and cycle path (measured with the
+## piers' outline +0.4 m); the 7th on the east floodplain, about (1375, -284) ±15 m (s 467, clear).
+const PN_ENDS := Vector2(6.0, 509.5)
+const PN_PIERS: Array[float] = [64.0, 109.9, 183.9, 259.8, 335.7, 411.6, 467.0]
+## Across the bridge from its axis (+ towards the south): the four girder planes (under the
+## footways' outer edges and between the carriageways and the tram tracks) and the piers' sides.
+const PN_GIRDERS: Array[float] = [-12.4, -4.6, 4.6, 12.4]
+const PN_SIDE := 12.0       ## the pier's straight sides end here; the cutwaters round past them
+## The deck's outer edges (the walks' outer parapets, map_builder's deck pieces: the walk's
+## half width + 1.6 m), north and south: the fascia girder and the railing on them.
+const PN_EDGE := Vector2(-14.7, 14.45)
+const PN_RAIL_STEP := 2.4
+const PN_HALF := 4.5        ## half a pier's thickness along the bridge (photo 29: ~9 m)
+const PN_SLAB := 1.3        ## the deck's road surface over the girders' top chord
+const PN_DEPTH_END := 7.5   ## girder depth at a pier (the arch's springing)
+const PN_DEPTH_MID := 1.6   ## and at mid-span (the arch's crown)
+const PN_PANELS := 12
+const PN_STEEL := Color("#7c8288")
+const PN_STONE := Color("#9c9a94")
+const PN_FASCIA := Color("#b8484e")
+const PN_IRON := Color("#1f1f22")
+
+
+## The bridge's frame [origin on its axis at the west towers, along, across, deck group], or []
+## when the bake has no such deck.
+func _poniatowski_frame() -> Array:
+	for d: Dictionary in _decks:
+		if d["k"] != "road":
+			continue
+		var pts: PackedVector2Array = d["pts"]
+		if pts[0].distance_to(PN_A) < 2.0 and pts[0].distance_to(pts[pts.size() - 1]) > 400.0:
+			var u := (pts[pts.size() - 1] - pts[0]).normalized()
+			var n := Vector2(-u.y, u.x)
+			return [pts[0] - u * PN_BACK + n * PN_AXIS, u, n, int(d["g"])]
+	return []
+
+
+## True for a bake pier the stone piers and arch girders replace (the river part).
+func _poniatowski_skips(f: Array, c: Vector2) -> bool:
+	if f.is_empty():
+		return false
+	var q: Vector2 = c - f[0]
+	var s: float = q.dot(f[1])
+	var t: float = q.dot(f[2])
+	return s > PN_ENDS.x and s < PN_ENDS.y and absf(t) < PN_SIDE + PN_HALF + 2.0
+
+
+func _build_poniatowski(st) -> void:
+	var f := _poniatowski_frame()
+	if f.is_empty():
+		return
+	_uv2 = Vector2(0.5, -1.0)
+	var o: Vector2 = f[0]
+	var u: Vector2 = f[1]
+	var n: Vector2 = f[2]
+	var g: int = f[3]
+	var u3 := Vector3(u.x, 0.0, u.y)
+	var n3 := Vector3(n.x, 0.0, n.y)
+	for s: float in PN_PIERS:
+		var c := o + u * s
+		if _in_sector and not _sector_rect.has_point(c):
+			continue
+		var top := INF
+		for t: float in PN_GIRDERS:
+			var p := o + u * s + n * t
+			top = minf(top, deck_height(g, p.x, p.y) - PN_SLAB - PN_DEPTH_END - 0.45)
+		_pn_pier(st, o, u, n, s, top)
+	var stops: Array[float] = [PN_ENDS.x]
+	for s: float in PN_PIERS:
+		stops.append(s - PN_HALF)
+		stops.append(s + PN_HALF)
+	stops.append(PN_ENDS.y)
+	for k in range(0, stops.size(), 2):
+		var s0: float = stops[k]
+		var s1: float = stops[k + 1]
+		for t: float in PN_GIRDERS:
+			var tops: Array[Vector3] = []
+			var bots: Array[Vector3] = []
+			for i in PN_PANELS + 1:
+				var a := float(i) / PN_PANELS
+				var p := o + u * lerpf(s0, s1, a) + n * t
+				var yt := deck_height(g, p.x, p.y) - PN_SLAB
+				var depth := PN_DEPTH_MID + (PN_DEPTH_END - PN_DEPTH_MID) * pow(2.0 * a - 1.0, 2.0)
+				tops.append(Vector3(p.x, yt, p.y))
+				bots.append(Vector3(p.x, yt - depth, p.y))
+			for i in PN_PANELS:
+				var m := (tops[i] + bots[i + 1]) * 0.5
+				if _in_sector and not _sector_rect.has_point(Vector2(m.x, m.z)):
+					continue  # the sector holding the panel's middle draws it
+				# The arch rib (the bottom chord, deeper), the top chord under the deck, the posts.
+				_pn_strut(st, bots[i], bots[i + 1], 0.8, 1.1, n3)
+				_pn_strut(st, tops[i] + Vector3.DOWN * 0.35, tops[i + 1] + Vector3.DOWN * 0.35, 0.6, 0.7, n3)
+				if i > 0:
+					_pn_strut(st, bots[i], tops[i], 0.4, 0.4, n3)
+				# The spandrel lattice: one diagonal per panel, falling towards mid-span.
+				if i * 2 < PN_PANELS:
+					_pn_strut(st, tops[i], bots[i + 1], 0.3, 0.3, n3)
+				else:
+					_pn_strut(st, bots[i], tops[i + 1], 0.3, 0.3, n3)
+			for i in [0, PN_PANELS]:
+				var e: Vector3 = bots[i]
+				if not _in_sector or _sector_rect.has_point(Vector2(e.x, e.z)):
+					_pn_strut(st, bots[i] + Vector3.DOWN * 0.45, tops[i], 0.8, 0.8, n3)
+		# Cross bracing between neighbouring girders at the arch rib, every other panel point.
+		for j in PN_GIRDERS.size() - 1:
+			for i in range(1, PN_PANELS, 2):
+				var a := float(i) / PN_PANELS
+				var s := lerpf(s0, s1, a)
+				var p0 := o + u * s + n * PN_GIRDERS[j]
+				var p1 := o + u * s + n * PN_GIRDERS[j + 1]
+				var pm := (p0 + p1) * 0.5
+				if _in_sector and not _sector_rect.has_point(pm):
+					continue
+				var depth := PN_DEPTH_MID + (PN_DEPTH_END - PN_DEPTH_MID) * pow(2.0 * a - 1.0, 2.0)
+				var y := deck_height(g, pm.x, pm.y) - PN_SLAB - depth
+				_pn_strut(st, Vector3(p0.x, y, p0.y), Vector3(p1.x, y, p1.y), 0.35, 0.45, u3)
+	_pn_edges(st, o, u, n, g)
+	_uv2 = Vector2.ZERO
+
+
+## Along both outer edges over the river: the red fascia girder on the parapet's face, the black
+## cast-iron railing on its top (posts, two rails), and over each pier a granite pedestal that
+## stands out of the railing with a cartouche (the governorates' arms) and a small turret top.
+func _pn_edges(st, o: Vector2, u: Vector2, n: Vector2, g: int) -> void:
+	var n3 := Vector3(n.x, 0.0, n.y)
+	for side in 2:
+		var e: float = PN_EDGE[side]
+		var sgn := signf(e)
+		var out := n * sgn
+		var out3 := n3 * sgn
+		var s := PN_ENDS.x
+		while s < PN_ENDS.y - 0.1:
+			var s2 := minf(s + PN_RAIL_STEP, PN_ENDS.y)
+			var p0 := o + u * s + n * e
+			var p1 := o + u * s2 + n * e
+			var pm := (p0 + p1) * 0.5
+			var on_pier := false
+			for ps: float in PN_PIERS:
+				if absf((s + s2) * 0.5 - ps) < 1.6:
+					on_pier = true
+			if _in_sector and not _sector_rect.has_point(pm):
+				s = s2
+				continue
+			var y0 := deck_height(g, p0.x, p0.y)
+			var y1 := deck_height(g, p1.x, p1.y)
+			var f0 := p0 + out * 0.08
+			var f1 := p1 + out * 0.08
+			_quad(st, Vector3(f0.x, y0 - 1.35, f0.y), Vector3(f1.x, y1 - 1.35, f1.y), Vector3(f1.x, y1 + 0.5, f1.y),
+					Vector3(f0.x, y0 + 0.5, f0.y), out3, PN_FASCIA)
+			if not on_pier:
+				var r0 := p0 - out * 0.15
+				var r1 := p1 - out * 0.15
+				_pn_strut(st, Vector3(r0.x, y0 + 1.2, r0.y), Vector3(r1.x, y1 + 1.2, r1.y), 0.09, 0.12, out3, PN_IRON)
+				_pn_strut(st, Vector3(r0.x, y0 + 0.75, r0.y), Vector3(r1.x, y1 + 0.75, r1.y), 0.05, 0.05, out3, PN_IRON)
+				_pn_strut(st, Vector3(r0.x, y0 + 0.55, r0.y), Vector3(r0.x, y0 + 1.2, r0.y), 0.1, 0.1, out3, PN_IRON)
+				# The ornamental panel's scroll, a diagonal pair between the posts.
+				var rm := (r0 + r1) * 0.5
+				var ym := (y0 + y1) * 0.5
+				_pn_strut(st, Vector3(r0.x, y0 + 0.6, r0.y), Vector3(rm.x, ym + 1.15, rm.y), 0.04, 0.04, out3, PN_IRON)
+				_pn_strut(st, Vector3(rm.x, ym + 1.15, rm.y), Vector3(r1.x, y1 + 0.6, r1.y), 0.04, 0.04, out3, PN_IRON)
+			s = s2
+		for ps: float in PN_PIERS:
+			var c := o + u * ps + n * (e + sgn * 0.3)
+			if _in_sector and not _sector_rect.has_point(c):
+				continue
+			var y := deck_height(g, c.x, c.y)
+			var basis := Basis(Vector3.UP, atan2(-u.x, -u.y))
+			_box_oriented(st, Vector3(c.x, y - 0.1, c.y), basis, Vector3(1.4, 3.6, 2.6), PN_STONE.lightened(0.08))
+			_box_oriented(st, Vector3(c.x, y + 1.85, c.y), basis, Vector3(1.7, 0.3, 2.9), PN_STONE.lightened(0.16))
+			_box_oriented(st, Vector3(c.x, y + 2.3, c.y), basis, Vector3(0.9, 0.6, 1.2), PN_STONE.lightened(0.08))
+			var k := c + out * 0.72
+			_box_oriented(st, Vector3(k.x, y + 0.6, k.y), basis, Vector3(0.06, 1.2, 1.0), Color("#a8323a"))
+
+
+## A steel member from a to b, w wide (along `side`, horizontal) and h deep.
+func _pn_strut(st, a: Vector3, b: Vector3, w: float, h: float, side: Vector3, col := PN_STEEL) -> void:
+	var z := b - a
+	var length := z.length()
+	if length < 0.05:
+		return
+	z /= length
+	var x := (side - z * side.dot(z)).normalized()
+	_box_oriented(st, (a + b) * 0.5, Basis(x, z.cross(x), z), Vector3(w, h, length), col)
+
+
+## One granite pier at s along the bridge, from below the river bed to `top`: a block across the
+## whole deck with a rounded cutwater at each end, a paler cap, dressed courses, solid.
+func _pn_pier(st, o: Vector2, u: Vector2, n: Vector2, s: float, top: float) -> void:
+	var local: Array[Vector2] = []
+	for end in [-1.0, 1.0]:
+		for k in 5:
+			var ang := PI * k / 4.0
+			local.append(Vector2(-cos(ang) * PN_HALF * end, end * (PN_SIDE + sin(ang) * PN_HALF)))
+	var c := o + u * s
+	var ground := INF
+	var poly := PackedVector2Array()
+	var cap := PackedVector2Array()
+	for q: Vector2 in local:
+		var p := o + u * (s + q.x) + n * q.y
+		poly.append(p)
+		cap.append(p + (p - c).normalized() * 0.45)
+		ground = minf(ground, terrain_height(p.x, p.y))
+	var y0 := ground - 1.5
+	var y1 := top - 0.7
+	for ring in [[poly, y0, y1, PN_STONE], [cap, y1, top, PN_STONE.lightened(0.12)]]:
+		var pts: PackedVector2Array = ring[0]
+		var lo: float = ring[1]
+		var hi: float = ring[2]
+		var col: Color = ring[3]
+		for i in pts.size():
+			var a := pts[i]
+			var b := pts[(i + 1) % pts.size()]
+			var e := (b - a).normalized()
+			var nn := Vector2(e.y, -e.x)
+			if nn.dot((a + b) * 0.5 - c) < 0.0:
+				nn = -nn
+			var y := lo
+			var band := 0
+			while y < hi - 0.01:
+				var y2 := minf(y + 1.2, hi) if pts == poly else hi
+				var shade := col.darkened(0.06) if band % 2 == 1 else col
+				_quad(st, Vector3(a.x, y, a.y), Vector3(b.x, y, b.y), Vector3(b.x, y2, b.y), Vector3(a.x, y2, a.y),
+						Vector3(nn.x, 0.0, nn.y), shade)
+				y = y2
+				band += 1
+		_fill(st, pts, hi, col.lightened(0.05))
+	for i in poly.size():
+		var a := poly[i]
+		var b := poly[(i + 1) % poly.size()]
+		_wall_faces.append_array([Vector3(a.x, y0, a.y), Vector3(b.x, y0, b.y), Vector3(b.x, top, b.y),
+				Vector3(a.x, y0, a.y), Vector3(b.x, top, b.y), Vector3(a.x, top, a.y)])
+
+
+## Most Poniatowskiego's viaduct over Powiśle (the photo report's "viaduct" section, photos 17, 19,
+## 20, 32 and ortho_west): west of the towers the deck runs on for ~700 m from the escarpment by
+## the National Museum to Wybrzeże Kościuszkowskie as a reinforced-concrete arch viaduct, wide
+## shallow arches with thick ribbed spandrels in light grey concrete #b8b6b0, its pier buildings
+## (OpenStreetMap's buildings at the deck's edges, kept: the arches spring from their sides)
+## flanking the big arches over Kruczkowskiego and Solec, a big arch over Wybrzeże at the east
+## end, and Al. 3 Maja beside and under it. The bake gives it a flat slab on pairs of thin posts;
+## this draws, along both outer edges (the parapets' plane), the arcade: square pilaster piers
+## from the ground to the slab with a plinth and an impost band, a segmental arch between each
+## pair (the spandrel wall from the slab down to the arch, its inner face and soffit, a paler
+## archivolt ring, vertical ribs on the spandrels) and a cornice under the slab. In the walls
+## surface (no new draw call); the pilasters are solid from the ground to the slab.
+## Found from the deck piece that starts at PV_A (the carriageway heading east), whose deck group
+## is the viaduct's; a bake without it keeps the slab on posts.
+const PV_A := Vector2(449.1, 30.6)
+## The frame's range along (s, from PV_A towards the towers): the deck ends at -272 (the west
+## abutment's fill) and 426 (the fill on to the west towers, at s ~510).
+const PV_S := Vector2(-275.0, 435.0)
+## The piers along each side, [s, half length, kind]: 0 a pilaster (solid), 1 a pier building
+## (OpenStreetMap's, drawn as a building: the arches spring from its sides), 2 the west
+## abutment pier (solid), 3 the east one standing in the fill (drawn only). Spans ~19 m, set
+## with tools' measurement (2026-11-03) so that every solid pier stands at least 0.05 m clear of
+## the half width (+1 m for roads, +0.4 m for footways) of every way on the ground under the
+## edge: Kruczkowskiego (s 26), Solec (s 239-276), Wybrzeże Kościuszkowskie (s 400-426) and
+## their footways pass under the big arches; Al. 3 Maja runs under the south edge from s 295,
+## where that side's arcade stands back on PV_INSET instead.
+const PV_NORTH: Array[Vector3] = [Vector3(-264.0, 1.5, 2), Vector3(-244.9, 1.2, 0), Vector3(-225.7, 1.2, 0),
+		Vector3(-206.6, 1.2, 0), Vector3(-187.4, 1.2, 0), Vector3(-168.3, 1.2, 0), Vector3(-149.1, 1.2, 0),
+		Vector3(-130.0, 1.2, 0), Vector3(-114.9, 1.2, 0), Vector3(-91.7, 1.2, 0), Vector3(-72.6, 1.2, 0),
+		Vector3(-53.4, 1.2, 0), Vector3(-35.3, 1.2, 0), Vector3(-19.1, 1.2, 0), Vector3(11.0, 7.0, 1),
+		Vector3(48.5, 6.5, 1), Vector3(73.0, 1.2, 0), Vector3(91.0, 1.2, 0), Vector3(109.0, 1.2, 0), Vector3(127.0, 1.2, 0),
+		Vector3(145.0, 1.2, 0), Vector3(163.0, 1.2, 0), Vector3(181.0, 1.2, 0), Vector3(199.0, 1.2, 0),
+		Vector3(224.0, 7.0, 1), Vector3(288.0, 7.0, 1), Vector3(313.3, 1.2, 0), Vector3(331.7, 1.2, 0),
+		Vector3(350.0, 1.2, 0), Vector3(368.3, 1.2, 0), Vector3(404.5, 1.2, 0), Vector3(427.4, 1.4, 3)]
+const PV_SOUTH: Array[Vector3] = [Vector3(-264.0, 1.5, 2), Vector3(-244.9, 1.2, 0), Vector3(-225.7, 1.2, 0),
+		Vector3(-206.6, 1.2, 0), Vector3(-187.4, 1.2, 0), Vector3(-168.3, 1.2, 0), Vector3(-149.1, 1.2, 0),
+		Vector3(-130.0, 1.2, 0), Vector3(-110.9, 1.2, 0), Vector3(-91.7, 1.2, 0), Vector3(-72.6, 1.2, 0),
+		Vector3(-53.4, 1.2, 0), Vector3(-35.3, 1.2, 0), Vector3(-19.1, 1.2, 0), Vector3(11.0, 7.0, 1),
+		Vector3(48.5, 6.5, 1), Vector3(73.0, 1.2, 0), Vector3(91.0, 1.2, 0), Vector3(109.0, 1.2, 0),
+		Vector3(127.0, 1.2, 0), Vector3(145.0, 1.2, 0), Vector3(163.0, 1.2, 0), Vector3(181.0, 1.2, 0),
+		Vector3(199.0, 1.2, 0), Vector3(224.0, 7.0, 1), Vector3(289.0, 7.0, 1), Vector3(313.3, 1.2, 0),
+		Vector3(331.7, 1.2, 0), Vector3(350.0, 1.2, 0), Vector3(368.3, 1.2, 0), Vector3(382.7, 1.2, 0),
+		Vector3(427.4, 1.4, 3)]
+## The south arcade's plane from s INSET.x on: t = INSET.y (the deck overhangs Al. 3 Maja).
+const PV_INSET := Vector2(296.0, 0.0)
+const PV_RING := 1.6        ## the arch ring's (and the spandrel wall's) thickness
+const PV_PROUD := 0.4       ## how far a pilaster stands out of the arcade's plane
+const PV_CLEAR := 4.5       ## the arches' springing at least this over the ground
+const PV_CROWN := 1.0       ## spandrel depth at the crown, under the slab
+const PV_RIB := 3.2         ## spacing of the spandrels' ribs
+const PV_CONCRETE := Color("#b8b6b0")
+## F's look check (2026-11-03): the deck is steel and rests on two rows of reinforced-concrete arch
+## ribs with struts (photo 19); the engineering study counts 27 arched spans and 4 spans carried
+## otherwise. Each row here: 31 spans, the PV_BEAMS by the west abutment (where the deck is lowest
+## over the escarpment's foot) on deep steel girders, the 27 others open ribs. The north row's
+## piers at s -19.1 and 404.5 (measured clear like the rest) give it the south row's count.
+const PV_BEAMS := 4
+const PV_RIB_CROWN := 0.9    ## the rib's depth at the crown
+const PV_RIB_SPRING := 1.8   ## and at the springings
+const PV_STRUT := 0.55       ## a strut's thickness along the span
+const PV_GIRDER := 1.1       ## the steel edge girder's depth under the slab
+const PV_BEAM_GIRDER := 1.9  ## a beam span's girder
+const PV_STEEL := Color("#8e979c")
+## Photo 17: the bays between Kruczkowskiego's and Solec's pier buildings (s range) are closed by
+## rendered walls with doors and windows, PV_INFILL_IN in from the arcade's face (behind the rib).
+const PV_INFILL := Vector2(52.0, 220.0)
+const PV_INFILL_IN := 0.9
+const PV_INFILL_RENDER := Color("#cfc9bc")
+## F (2026-11-03): bars and restaurants in the closed bays. [side, the bay's middle s]; their
+## neon fascias are storefronts.gd VIADUKT, the people outside crowds.gd VIADUKT (parody names).
+const PV_BARS: Array[Vector2] = [Vector2(-1, 100.0), Vector2(-1, 154.0), Vector2(1, 82.0), Vector2(1, 118.0), Vector2(1, 172.0)]
+const PV_BAR_GLASS := Color("#d99a52")
+const PV_DARK_GLASS := Color("#3a434c")
+const PV_TABLE := Color("#ece6d8")
+const PV_CHAIR := Color("#5b4636")
+const PV_PARASOL := Color("#efe6cf")
+const M_LAMP_CODE := 10.0   ## building.gdshader M_LAMP: the colour glows at night
+
+
+## The viaduct's frame [origin, along, across, deck group, the north edge's t per metre of s
+## from PV_S.x, the south one's], or [] when the bake has no such deck.
+func _powisle_frame() -> Array:
+	for d: Dictionary in _decks:
+		if d["k"] != "road":
+			continue
+		var pts: PackedVector2Array = d["pts"]
+		if pts[0].distance_to(PV_A) < 2.0 and pts[0].distance_to(pts[pts.size() - 1]) > 400.0:
+			var u := (pts[pts.size() - 1] - pts[0]).normalized()
+			var n := Vector2(-u.y, u.x)
+			var g := int(d["g"])
+			# The outer edges: the outermost piece's parapet line at each metre along.
+			var bins := int(PV_S.y - PV_S.x) + 1
+			var lo := PackedFloat32Array()
+			var hi := PackedFloat32Array()
+			lo.resize(bins)
+			hi.resize(bins)
+			lo.fill(INF)
+			hi.fill(-INF)
+			for e: Dictionary in _decks:
+				if int(e["g"]) != g:
+					continue
+				var ep: PackedVector2Array = e["pts"]
+				for k in ep.size() - 1:
+					var a := ep[k] - pts[0]
+					var b := ep[k + 1] - pts[0]
+					var sa := a.dot(u)
+					var sb := b.dot(u)
+					if absf(sb - sa) < 0.01:
+						continue
+					# Left of the piece's direction is -t when it heads +u, +t when it heads back.
+					var left := float(e["l"]) + 0.2
+					var right := float(e["r"]) + 0.2
+					var fwd := sb > sa
+					for i in range(maxi(0, ceili(minf(sa, sb) - PV_S.x)), mini(bins - 1, floori(maxf(sa, sb) - PV_S.x)) + 1):
+						var f := (i + PV_S.x - sa) / (sb - sa)
+						var t := lerpf(a.dot(n), b.dot(n), f)
+						lo[i] = minf(lo[i], t - (left if fwd else right))
+						hi[i] = maxf(hi[i], t + (right if fwd else left))
+			return [pts[0], u, n, g, lo, hi]
+	return []
+
+
+## The arcade's plane (t) on one side (-1 north, +1 south) at s.
+func _pv_plane(f: Array, side: int, s: float) -> float:
+	if side > 0 and s >= PV_INSET.x:
+		return PV_INSET.y
+	var edge: PackedFloat32Array = f[4] if side < 0 else f[5]
+	var i := clampi(roundi(s - PV_S.x), 0, edge.size() - 1)
+	var t := edge[i]
+	if is_inf(t):
+		# Past a piece's end: the nearest metre that has one.
+		for k in range(1, 12):
+			for j in [i - k, i + k]:
+				if j >= 0 and j < edge.size() and not is_inf(edge[j]):
+					return edge[j]
+		return 0.0
+	return t
+
+
+## True for a bake post the arcade replaces (within 3 m of an arcade's plane).
+func _powisle_skips(f: Array, c: Vector2) -> bool:
+	if f.is_empty():
+		return false
+	var q: Vector2 = c - f[0]
+	var s: float = q.dot(f[1])
+	if s < PV_S.x or s > PV_S.y:
+		return false
+	var t: float = q.dot(f[2])
+	return absf(t - _pv_plane(f, -1, s)) < 3.0 or absf(t - _pv_plane(f, 1, s)) < 3.0
+
+
+func _build_powisle(st) -> void:
+	var f := _powisle_frame()
+	if f.is_empty():
+		return
+	_uv2 = Vector2(0.5, -1.0)
+	for side in [-1, 1]:
+		var piers: Array[Vector3] = PV_NORTH if side < 0 else PV_SOUTH
+		for k in piers.size():
+			_pv_pier(st, f, side, piers[k], k)
+			if k + 1 < piers.size():
+				_pv_span(st, f, side, piers[k].x + piers[k].y, piers[k + 1].x - piers[k + 1].y, k)
+	_uv2 = Vector2.ZERO
+
+
+## A point on side's arcade plane at s, `out` metres outwards of it (towards the street).
+func _pv_at(f: Array, side: int, s: float, out := 0.0) -> Vector2:
+	var o: Vector2 = f[0]
+	var u: Vector2 = f[1]
+	var n: Vector2 = f[2]
+	return o + u * s + n * (_pv_plane(f, side, s) + side * out)
+
+
+## The slab's underside over side's plane at s.
+func _pv_soffit(f: Array, side: int, s: float) -> float:
+	var p := _pv_at(f, side, s)
+	return deck_height(int(f[3]), p.x, p.y) - 1.38
+
+
+## One pier: a pilaster or an abutment pier (with its plinth, impost band and collider); a pier
+## building is OpenStreetMap's (not drawn here).
+func _pv_pier(st, f: Array, side: int, p: Vector3, k: int) -> void:
+	var kind := int(p.z)
+	if kind == 1:
+		return
+	var c := _pv_at(f, side, p.x, (PV_PROUD - PV_RING) * 0.5)
+	if _in_sector and not _sector_rect.has_point(c):
+		return
+	var u: Vector2 = f[1]
+	var n: Vector2 = f[2]
+	var u3 := Vector3(u.x, 0.0, u.y)
+	var n3 := Vector3(n.x, 0.0, n.y)
+	var basis := Basis(n3, Vector3.UP, -u3)
+	var ground := INF
+	for q in [_pv_at(f, side, p.x - p.y, PV_PROUD), _pv_at(f, side, p.x + p.y, PV_PROUD),
+			_pv_at(f, side, p.x - p.y, -PV_RING), _pv_at(f, side, p.x + p.y, -PV_RING)]:
+		ground = minf(ground, terrain_height(q.x, q.y))
+	var top := _pv_soffit(f, side, p.x)
+	var across := PV_RING + PV_PROUD
+	var y0 := ground - 0.5
+	_box_oriented(st, Vector3(c.x, (y0 + top) * 0.5, c.y), basis, Vector3(across, top - y0, p.y * 2.0), PV_CONCRETE)
+	# Plinth, and the impost band the arches spring from.
+	var spring := _pv_spring(f, side, p.x)
+	_box_oriented(st, Vector3(c.x, ground + 0.4, c.y), basis, Vector3(across + 0.3, 1.8, p.y * 2.0 + 0.3), PV_CONCRETE.darkened(0.12))
+	_box_oriented(st, Vector3(c.x, spring - 0.2, c.y), basis, Vector3(across + 0.24, 0.4, p.y * 2.0 + 0.24), PV_CONCRETE.lightened(0.1))
+	if kind == 3:
+		return
+	var corners: Array[Vector2] = []
+	for q in [Vector2(-1, -1), Vector2(1, -1), Vector2(1, 1), Vector2(-1, 1)]:
+		corners.append(c + u * q.x * p.y + n * q.y * across * 0.5)
+	for i in 4:
+		var a := corners[i]
+		var b := corners[(i + 1) % 4]
+		_wall_faces.append_array([Vector3(a.x, y0, a.y), Vector3(b.x, y0, b.y), Vector3(b.x, top, b.y),
+				Vector3(a.x, y0, a.y), Vector3(b.x, top, b.y), Vector3(a.x, top, a.y)])
+
+
+## The springing height at a pier: the impost of the arches either side (the lower of the two
+## spans' own, so the band is one height round the pier).
+func _pv_spring(f: Array, side: int, s: float) -> float:
+	var piers: Array[Vector3] = PV_NORTH if side < 0 else PV_SOUTH
+	var best := INF
+	for k in piers.size():
+		if absf(piers[k].x - s) > 0.01:
+			continue
+		if k > 0:
+			best = minf(best, _pv_arch(f, side, piers[k - 1].x + piers[k - 1].y, s - piers[k].y).y)
+		if k + 1 < piers.size():
+			best = minf(best, _pv_arch(f, side, s + piers[k].y, piers[k + 1].x - piers[k + 1].y).y)
+	return best if best < INF else _pv_soffit(f, side, s) - PV_CROWN - 3.0
+
+
+## A span's arch between pier faces s0 and s1: [crown height, springing height] (a segmental
+## arch, its rise at most 0.3 of the span, springing at least PV_CLEAR over the highest ground
+## under it, or a flat lintel PV_CROWN + 1 m deep where the deck is too low for an arch).
+func _pv_arch(f: Array, side: int, s0: float, s1: float) -> Vector2:
+	var crown := INF
+	var ground := -INF
+	for i in 9:
+		var s := lerpf(s0, s1, i / 8.0)
+		crown = minf(crown, _pv_soffit(f, side, s) - PV_CROWN)
+		for o in [PV_PROUD, -PV_RING]:
+			var q := _pv_at(f, side, s, o)
+			ground = maxf(ground, terrain_height(q.x, q.y))
+	var spring := maxf(crown - 0.3 * (s1 - s0), ground + PV_CLEAR)
+	return Vector2(crown, minf(spring, crown - 1.0))
+
+
+## One span between pier faces s0 and s1 (F's look check, 2026-11-03, photos 17 and 19): an open
+## reinforced-concrete arch rib with square struts standing on it up to the steel edge girder that
+## carries the deck (photo 19: the spandrels are open, the sky shows between the struts); one of
+## the PV_BEAMS spans by the west abutment instead rests on a deep steel girder alone; a bay inside
+## PV_INFILL is closed by a rendered wall under its arch with an arched door and windows (photo 17),
+## a bar's (PV_BARS) lit from inside, with café tables in front.
+func _pv_span(st, f: Array, side: int, s0: float, s1: float, k: int) -> void:
+	var span := s1 - s0
+	if span < 2.0:
+		return
+	var mid := _pv_at(f, side, (s0 + s1) * 0.5)
+	if _in_sector and not _sector_rect.has_point(mid):
+		return  # the sector holding the span's middle draws it
+	var n: Vector2 = f[2]
+	var u: Vector2 = f[1]
+	var out3 := Vector3(n.x, 0.0, n.y) * side
+	var down := Vector3(0.0, -1.0, 0.0)
+	var basis := Basis(Vector3(n.x, 0.0, n.y), Vector3.UP, -Vector3(u.x, 0.0, u.y))
+	var segs := clampi(roundi(span / 1.6), 8, 28)
+	var face := PackedVector2Array()   # on the plane
+	var back := PackedVector2Array()   # the rib's inner side
+	var tops := PackedFloat32Array()
+	for i in segs + 1:
+		var s := lerpf(s0, s1, float(i) / segs)
+		face.append(_pv_at(f, side, s))
+		back.append(_pv_at(f, side, s, -PV_RING))
+		tops.append(_pv_soffit(f, side, s))
+	var beam := k < PV_BEAMS
+	var arch := _pv_arch(f, side, s0, s1)
+	var crown := arch.x
+	var rise := crown - arch.y
+	var girder := PV_BEAM_GIRDER if beam else PV_GIRDER
+	# The steel edge girder under the slab, the length of the span: its face 0.15 m proud, its foot.
+	for i in segs:
+		var a := face[i] + n * side * 0.15
+		var b := face[i + 1] + n * side * 0.15
+		_quad(st, Vector3(a.x, tops[i] - girder, a.y), Vector3(b.x, tops[i + 1] - girder, b.y), Vector3(b.x, tops[i + 1], b.y),
+				Vector3(a.x, tops[i], a.y), out3, PV_STEEL)
+		var ia := back[i]
+		var ib := back[i + 1]
+		_quad(st, Vector3(a.x, tops[i] - girder, a.y), Vector3(b.x, tops[i + 1] - girder, b.y), Vector3(ib.x, tops[i + 1] - girder, ib.y),
+				Vector3(ia.x, tops[i] - girder, ia.y), down, PV_STEEL.darkened(0.3))
+		_quad(st, Vector3(ia.x, tops[i] - girder, ia.y), Vector3(ib.x, tops[i + 1] - girder, ib.y), Vector3(ib.x, tops[i + 1], ib.y),
+				Vector3(ia.x, tops[i], ia.y), -out3, PV_STEEL.darkened(0.2))
+	# The stiffeners on the girder's face, one every PV_RIB.
+	var stiff := maxi(1, floori(span / PV_RIB))
+	for r in stiff + 1:
+		var s := s0 + span * r / stiff
+		var p := _pv_at(f, side, s, 0.2)
+		var y1 := _pv_soffit(f, side, s)
+		_box_oriented(st, Vector3(p.x, y1 - girder * 0.5, p.y), basis, Vector3(0.1, girder, 0.18), PV_STEEL.lightened(0.08))
+	if beam or rise < 0.6:
+		return
+	# The rib: an arch ring PV_RING wide across, deep PV_RIB_CROWN at the crown thickening to
+	# PV_RIB_SPRING at the springings, its back clamped under the girder.
+	var radius := (span * span * 0.25 + rise * rise) / (2.0 * rise)
+	var under := PackedFloat32Array()   # the intrados
+	var over := PackedFloat32Array()    # the extrados
+	for i in segs + 1:
+		var x := lerpf(s0, s1, float(i) / segs) - (s0 + s1) * 0.5
+		var y := crown - radius + sqrt(maxf(radius * radius - x * x, 0.0))
+		var e := pow(absf(x) / (span * 0.5), 2.0)
+		under.append(y)
+		over.append(minf(y + lerpf(PV_RIB_CROWN, PV_RIB_SPRING, e), tops[i] - girder))
+	var rib := PV_CONCRETE
+	for i in segs:
+		var a := face[i]
+		var b := face[i + 1]
+		var ia := back[i]
+		var ib := back[i + 1]
+		_quad(st, Vector3(a.x, under[i], a.y), Vector3(b.x, under[i + 1], b.y), Vector3(b.x, over[i + 1], b.y),
+				Vector3(a.x, over[i], a.y), out3, rib)
+		_quad(st, Vector3(ia.x, under[i], ia.y), Vector3(ib.x, under[i + 1], ib.y), Vector3(ib.x, over[i + 1], ib.y),
+				Vector3(ia.x, over[i], ia.y), -out3, rib.darkened(0.25))
+		_quad(st, Vector3(a.x, under[i], a.y), Vector3(b.x, under[i + 1], b.y), Vector3(ib.x, under[i + 1], ib.y),
+				Vector3(ia.x, under[i], ia.y), down, rib.darkened(0.18))
+		_quad(st, Vector3(a.x, over[i], a.y), Vector3(b.x, over[i + 1], b.y), Vector3(ib.x, over[i + 1], ib.y),
+				Vector3(ia.x, over[i], ia.y), Vector3.UP, rib.lightened(0.05))
+	# The struts: square posts on the rib's back up to the girder, PV_RIB apart, open between.
+	var struts := floori(span / PV_RIB)
+	for r in struts:
+		var s := s0 + span * (r + 0.5) / struts
+		var x := s - (s0 + s1) * 0.5
+		var e := pow(absf(x) / (span * 0.5), 2.0)
+		var y0 := crown - radius + sqrt(maxf(radius * radius - x * x, 0.0)) + lerpf(PV_RIB_CROWN, PV_RIB_SPRING, e) - 0.1
+		var y1 := _pv_soffit(f, side, s) - girder
+		if y1 - y0 < 0.3:
+			continue
+		var p := _pv_at(f, side, s, -PV_RING * 0.5)
+		_box_oriented(st, Vector3(p.x, (y0 + y1) * 0.5, p.y), basis, Vector3(PV_RING - 0.2, y1 - y0, PV_STRUT), PV_CONCRETE.lightened(0.03))
+	if (s0 + s1) * 0.5 < PV_INFILL.x or (s0 + s1) * 0.5 > PV_INFILL.y:
+		return
+	_pv_infill(st, f, side, s0, s1, under, segs)
+
+
+## A closed bay (photo 17): a rendered wall PV_INFILL_IN in from the plane, from the ground up to
+## the rib's intrados, with an arched door in the middle and a window either side; a bar's bay
+## (PV_BARS) has warm glass lit from inside (M_LAMP glows at night), the rest dark glass; every
+## wall is solid (`_wall_faces`), so the bars' neon signs (storefronts.gd VIADUKT) find it.
+func _pv_infill(st, f: Array, side: int, s0: float, s1: float, under: PackedFloat32Array, segs: int) -> void:
+	var n: Vector2 = f[2]
+	var u: Vector2 = f[1]
+	var out3 := Vector3(n.x, 0.0, n.y) * side
+	var basis := Basis(Vector3(n.x, 0.0, n.y), Vector3.UP, -Vector3(u.x, 0.0, u.y))
+	var ground := INF
+	for i in segs + 1:
+		var q := _pv_at(f, side, lerpf(s0, s1, float(i) / segs), -PV_INFILL_IN)
+		ground = minf(ground, terrain_height(q.x, q.y))
+	var y0 := ground - 0.3
+	for i in segs:
+		var a := _pv_at(f, side, lerpf(s0, s1, float(i) / segs), -PV_INFILL_IN)
+		var b := _pv_at(f, side, lerpf(s0, s1, float(i + 1) / segs), -PV_INFILL_IN)
+		_quad(st, Vector3(a.x, y0, a.y), Vector3(b.x, y0, b.y), Vector3(b.x, under[i + 1], b.y),
+				Vector3(a.x, under[i], a.y), out3, PV_INFILL_RENDER)
+	# The wall is solid: one rectangle up to the springing (the rib's foot) is enough for the car.
+	var wa := _pv_at(f, side, s0, -PV_INFILL_IN)
+	var wb := _pv_at(f, side, s1, -PV_INFILL_IN)
+	var wt := minf(under[0], under[segs]) + 1.0
+	_wall_faces.append_array([Vector3(wa.x, y0, wa.y), Vector3(wb.x, y0, wb.y), Vector3(wb.x, wt, wb.y),
+			Vector3(wa.x, y0, wa.y), Vector3(wb.x, wt, wb.y), Vector3(wa.x, wt, wa.y)])
+	var bar := _pv_bar(side, (s0 + s1) * 0.5)
+	var glass := PV_BAR_GLASS if bar else PV_DARK_GLASS
+	var midd := (s0 + s1) * 0.5
+	# A plinth band along the wall's foot.
+	var pc := _pv_at(f, side, midd, -PV_INFILL_IN + 0.06)
+	_box_oriented(st, Vector3(pc.x, ground + 0.25, pc.y), basis, Vector3(0.12, 0.5, s1 - s0), PV_CONCRETE.darkened(0.12))
+	# The door (2.4 m by 3.4 m, a round head) and two windows (1.6 m by 2.8 m on a 0.9 m sill) each
+	# side of it, the openings' frames 0.08 m proud and their glass 0.04 m.
+	var openings: Array[Vector3] = [Vector3(midd, 2.4, 0.0)]   # [s centre, width, sill]
+	var room := (s1 - s0) * 0.5 - 2.0
+	if room > 2.4:
+		for d in [-1.0, 1.0]:
+			openings.append(Vector3(midd + d * minf(room * 0.55 + 1.2, 4.6), 1.6, 0.9))
+	if room > 6.2:
+		for d in [-1.0, 1.0]:
+			openings.append(Vector3(midd + d * minf(room * 0.55 + 1.2, 4.6) + d * 2.4, 1.2, 0.9))
+	if bar:
+		_uv2 = Vector2(M_LAMP_CODE, 0.0)
+	for o in openings:
+		var hgt := 3.4 if o.z == 0.0 else 2.8
+		var x := o.x - (s0 + s1) * 0.5
+		var cap := INF
+		for i in segs + 1:
+			var si := lerpf(s0, s1, float(i) / segs)
+			if absf(si - o.x) <= o.y * 0.5 + 0.3:
+				cap = minf(cap, under[i])
+		var top := minf(ground + o.z + hgt, cap - 0.5)
+		if top - (ground + o.z) < 1.2:
+			continue
+		var g := _pv_at(f, side, o.x, -PV_INFILL_IN + 0.04)
+		_box_oriented(st, Vector3(g.x, (ground + o.z + top) * 0.5, g.y), basis, Vector3(0.04, top - ground - o.z, o.y), glass)
+		# A round head: a half disc of glass over the opening.
+		var hc := Vector3(g.x, top, g.y)
+		var r := o.y * 0.5
+		for j in 6:
+			var a0 := PI * j / 6.0
+			var a1 := PI * (j + 1) / 6.0
+			var d0 := Vector3(u.x, 0.0, u.y) * cos(a0) * r + Vector3.UP * sin(a0) * r
+			var d1 := Vector3(u.x, 0.0, u.y) * cos(a1) * r + Vector3.UP * sin(a1) * r
+			_tri(st, hc, hc + d0, hc + d1, out3, glass)
+			_tri(st, hc, hc + d1, hc + d0, out3, glass)
+	_uv2 = Vector2(0.5, -1.0)
+	for o in openings:
+		var g := _pv_at(f, side, o.x, -PV_INFILL_IN + 0.08)
+		# The frame's sill (doors: a step) and jambs.
+		_box_oriented(st, Vector3(g.x, ground + maxf(o.z, 0.1) - 0.05, g.y), basis, Vector3(0.14, 0.1 if o.z > 0.0 else 0.2, o.y + 0.3), PV_CONCRETE.lightened(0.12))
+	if not bar:
+		return
+	# Café tables in front of the bar under its arch: a row of round-ish tables, two chairs each,
+	# a cream parasol over each; low, so the car can pass the arcade's face (not solid).
+	var tables := maxi(2, floori((s1 - s0 - 2.0) / 3.2))
+	for t in tables:
+		var s := s0 + 1.6 + (s1 - s0 - 3.2) * (t + 0.5) / tables
+		if absf(s - midd) < 1.8:
+			continue
+		var c := _pv_at(f, side, s, -PV_INFILL_IN + 1.6)
+		var y := terrain_height(c.x, c.y)
+		_box_oriented(st, Vector3(c.x, y + 0.37, c.y), basis, Vector3(0.1, 0.74, 0.1), PV_STEEL.darkened(0.4))
+		_box_oriented(st, Vector3(c.x, y + 0.76, c.y), basis, Vector3(0.7, 0.04, 0.7), PV_TABLE)
+		for d in [-1.0, 1.0]:
+			var ch: Vector2 = c + u * float(d) * 0.65
+			_box_oriented(st, Vector3(ch.x, y + 0.23, ch.y), basis, Vector3(0.42, 0.46, 0.42), PV_CHAIR)
+			var bk: Vector2 = c + u * float(d) * 0.86
+			_box_oriented(st, Vector3(bk.x, y + 0.7, bk.y), basis, Vector3(0.42, 0.5, 0.06), PV_CHAIR)
+		_box_oriented(st, Vector3(c.x, y + 1.4, c.y), basis, Vector3(0.05, 1.3, 0.05), PV_STEEL.darkened(0.4))
+		var umb := _pv_at(f, side, s, -PV_INFILL_IN + 1.6)
+		var uy := y + 2.15
+		var rim: Array[Vector3] = []
+		for j in 8:
+			var ang := TAU * j / 8.0
+			rim.append(Vector3(umb.x + cos(ang) * 1.2, uy - 0.35, umb.y + sin(ang) * 1.2))
+		for j in 8:
+			var p0 := rim[j]
+			var p1 := rim[(j + 1) % 8]
+			var apex := Vector3(umb.x, uy, umb.y)
+			_tri(st, apex, p1, p0, ((p1 - apex).cross(p0 - apex)).normalized(), PV_PARASOL)
+			_tri(st, apex, p0, p1, ((p0 - apex).cross(p1 - apex)).normalized(), PV_PARASOL.darkened(0.2))
+
+
+## True when the bay centred at s on side is a bar's (PV_BARS).
+func _pv_bar(side: int, s: float) -> bool:
+	for b: Vector2 in PV_BARS:
+		if int(b.x) == side and absf(b.y - s) < 6.0:
+			return true
+	return false
+
+
 ## Loop 3b: a garage door at each ramp top where R9 ended a service way (`garage_doors`): a
 ## concrete frame and a grey roller shutter across the way, solid.
 func _build_garage_doors(st) -> void:
@@ -2005,6 +2782,23 @@ func top_height(x: float, z: float, radius := 0.0) -> float:
 
 
 const _SPREAD := [-1.0, 0.0, 1.0]
+
+
+## The tallest roof in the square `reach` m round (x, z), read every 8 m of the roof grid (or the
+## ground's height there when nothing stands): the helicopter's height cap (heli.gd `ceiling_at`).
+func tallest_near(x: float, z: float, reach: float) -> float:
+	var top := ground_height(x, z)
+	if _roof_nx <= 0 or _roof_nz <= 0:
+		return top
+	var i0 := clampi(floori((x - reach - _roof_x0) / ROOF_CELL), 0, _roof_nx - 1)
+	var i1 := clampi(floori((x + reach - _roof_x0) / ROOF_CELL), 0, _roof_nx - 1)
+	var j0 := clampi(floori((z - reach - _roof_z0) / ROOF_CELL), 0, _roof_nz - 1)
+	var j1 := clampi(floori((z + reach - _roof_z0) / ROOF_CELL), 0, _roof_nz - 1)
+	for j in range(j0, j1 + 1, 2):
+		var row := j * _roof_nx
+		for i in range(i0, i1 + 1, 2):
+			top = maxf(top, _roof[row + i])
+	return top
 
 
 ## The landmark (an index into landmark_info, or -1) a ray from the camera meets first:
@@ -3442,11 +4236,35 @@ const SURFACE_STYLE := {
 }
 
 
+## Paved surfaces that are really lawn (OpenStreetMap tags them `paving`): the Royal Castle's
+## Lower Garden's sunken lawn carpet (Ogród Dolny, restored 2019; GUGiK orthophoto and the
+## castle's photos, docs/landmarks/specs/zamek.md "Gardens"). Each is the outline's vertex mean.
+const LAWN_CARPETS := [Vector2(-484.6, -1614.6)]
+const LAWN_CARPET := "#78a84a"
+
+
+func _is_lawn_carpet(flat: Array) -> bool:
+	var c := Vector2.ZERO
+	var n := 0
+	for i in range(0, flat.size() - 1, 2):
+		c += Vector2(flat[i], flat[i + 1])
+		n += 1
+	if n == 0:
+		return false
+	c /= n
+	for at: Vector2 in LAWN_CARPETS:
+		if c.distance_to(at) < 3.0:
+			return true
+	return false
+
+
 ## Loop 3b-2: a surface the bake put on a bridge deck (`dk`: a bridge's pavement or tram bed,
 ## bake_roads.py level_surfaces) is laid on the deck; the rest on the ground's own triangles.
 func _build_surfaces(st) -> void:
 	for a in data.get("surfaces", []):
 		var style: Array = SURFACE_STYLE.get(a["k"], ["#cfc7b5", 0.0])
+		if a["k"] == "paving" and _is_lawn_carpet(a["p"]):
+			style = [LAWN_CARPET, style[1]]
 		_layer = float(style[1])
 		_dk = int(a.get("dk", -1))
 		if _dk >= 0:
@@ -3673,10 +4491,36 @@ const BARRIER_STYLE := {
 }
 
 
+## The Royal Castle's gardens map their fountain basins, the vases' round beds and the round
+## path nodes as small closed `wall` rings; drawn 1.9 m high they stood as grey drums. Inside
+## GARDEN_RINGS a closed wall ring under 6 m across is a low stone kerb instead.
+const GARDEN_RINGS := Rect2(-620.0, -1700.0, 190.0, 220.0)
+const GARDEN_RING := ["#d8d2c4", 0.3, 0.45]
+
+
+func _garden_ring(flat: Array) -> bool:
+	var n := flat.size() / 2
+	if n < 4 or not GARDEN_RINGS.has_point(Vector2(flat[0], flat[1])):
+		return false
+	var first := Vector2(flat[0], flat[1])
+	if first.distance_to(Vector2(flat[n * 2 - 2], flat[n * 2 - 1])) > 0.3:
+		return false
+	var c := Vector2.ZERO
+	for i in n - 1:
+		c += Vector2(flat[i * 2], flat[i * 2 + 1])
+	c /= n - 1
+	for i in n:
+		if c.distance_to(Vector2(flat[i * 2], flat[i * 2 + 1])) > 6.0:
+			return false
+	return true
+
+
 func _build_barriers(st) -> void:
 	_uv2 = Vector2(0.5, -1.0)
 	for l in data.get("lines", []):
 		var style: Array = BARRIER_STYLE.get(l["k"], ["#999999", 0.3, 1.0])
+		if l["k"] == "wall" and _garden_ring(l["p"]):
+			style = GARDEN_RING
 		# Loop 3b: a stop's platform is kerb height (0.25 m), not a wall: like the kerbs and
 		# islands, the car drives over it (check_drive.gd found buses brushing them).
 		_wall_along(st, _pts(l["p"]), float(style[1]), float(style[2]), Color(style[0]), l["k"] != "platform")
@@ -3842,9 +4686,15 @@ func _build_bridge_structures(st) -> void:
 					_wall_faces.append_array([Vector3(k0.x, ya - 0.2, k0.y), Vector3(k1.x, yb - 0.2, k1.y), Vector3(k1.x, yb + 1.6, k1.y),
 							Vector3(k0.x, ya - 0.2, k0.y), Vector3(k1.x, yb + 1.6, k1.y), Vector3(k0.x, ya + 1.6, k0.y)])
 	var ms := _srednicowy_frame()
+	var pn := _poniatowski_frame()
+	var pv := _powisle_frame()
 	for p: Dictionary in data.get("decks", {}).get("piers", []):
 		if _srednicowy_skips(ms, Vector2(float(p["c"][0]), float(p["c"][1]))):
 			continue  # Most Średnicowy's stone piers stand here (`_build_srednicowy`)
+		if _poniatowski_skips(pn, Vector2(float(p["c"][0]), float(p["c"][1]))):
+			continue  # Most Poniatowskiego's stone piers and arches stand here (`_build_poniatowski`)
+		if _powisle_skips(pv, Vector2(float(p["c"][0]), float(p["c"][1]))):
+			continue  # the Powiśle viaduct's arcade stands here (`_build_powisle`)
 		_pier(st, p, concrete.darkened(0.1))
 	_uv2 = Vector2.ZERO
 	if not _in_sector:
@@ -3878,8 +4728,14 @@ func _pier(st, p: Dictionary, col: Color) -> void:
 
 ## Guard rails (bridge edges and mapped barrier=guard_rail): a steel beam on posts,
 ## solid for the car.
+## Two rails' ends closer than this get a collider across the gap (narrower than a car).
+const GUARD_JOIN := 1.5
+## ...the V's depth behind the rail's line, at most (and under half the gap).
+const GUARD_POCKET := 0.4
+var guard_joins := 0
 func _build_guard_rails(st) -> void:
 	_uv2 = Vector2(0.5, -1.0)
+	var ends: Array = []  # [the end, its deck, which rail]
 	var steel := Color("#a7abb0")
 	var post := Color("#6c7075")
 	for g in data.get("guards", []):
@@ -3913,6 +4769,41 @@ func _build_guard_rails(st) -> void:
 			run += length
 			_wall_faces.append_array([Vector3(a.x, ga - 0.3, a.y), Vector3(b.x, gb - 0.3, b.y), Vector3(b.x, gb + 1.6, b.y),
 					Vector3(a.x, ga - 0.3, a.y), Vector3(b.x, gb + 1.6, b.y), Vector3(a.x, ga + 1.6, a.y)])
+		if poly.size() > 1:
+			ends.append([poly[0], dk, ends.size() / 2])
+			ends.append([poly[poly.size() - 1], dk, ends.size() / 2])
+	# PT-18: the gaps under GUARD_JOIN between two rails' ends on a deck (on Solec's ramp up to the
+	# Trasa the rail comes in pieces 0.9 m apart, cut where a bus's box brushes it, the parapet 0.5 m
+	# behind) get a shallow V behind the rail's line: a car's front corner that slid into the gap
+	# caught the next piece's end and was pinned; now it glides out. Behind the line, so the lanes
+	# the cut cleared stay clear.
+	for i in ends.size():
+		for j in range(i + 1, ends.size()):
+			var e0: Array = ends[i]
+			var e1: Array = ends[j]
+			if e0[2] == e1[2] or e0[1] != e1[1] or int(e0[1]) < 0:
+				continue
+			var a: Vector2 = e0[0]
+			var b: Vector2 = e1[0]
+			var gap := a.distance_to(b)
+			if gap < 0.05 or gap > GUARD_JOIN:
+				continue
+			var mid := (a + b) * 0.5
+			var nrm := Vector2(-(b - a).y, (b - a).x) / gap
+			if nrm.dot(mid - _deck_centre(e0[1], mid)) < 0.0:
+				nrm = -nrm
+			var m := mid + nrm * minf(GUARD_POCKET, gap * 0.45)
+			var ga := deck_height(e0[1], a.x, a.y)
+			var gm := deck_height(e0[1], m.x, m.y)
+			var gb := deck_height(e0[1], b.x, b.y)
+			for seg in [[a, ga, m, gm], [m, gm, b, gb]]:
+				var p0: Vector2 = seg[0]
+				var p1: Vector2 = seg[2]
+				var y0: float = seg[1]
+				var y1: float = seg[3]
+				_wall_faces.append_array([Vector3(p0.x, y0 - 0.3, p0.y), Vector3(p1.x, y1 - 0.3, p1.y), Vector3(p1.x, y1 + 1.6, p1.y),
+						Vector3(p0.x, y0 - 0.3, p0.y), Vector3(p1.x, y1 + 1.6, p1.y), Vector3(p0.x, y0 + 1.6, p0.y)])
+			guard_joins += 1
 	_uv2 = Vector2.ZERO
 
 
@@ -4988,6 +5879,17 @@ func _build_lod2(walls, marks) -> Array:
 		uv2 = clipped[4]
 		runs = clipped[5]
 		count = pos.size()
+	# F's look check (2026-11-03): kept LoD2 parts a landmark's model replaces above a height
+	# (the Royal Castle's Clock Tower under its copper helm).
+	if not marks.lod2_tops.is_empty():
+		var topped := _top_lod2(pos, nrm, col, uv, uv2, marks.lod2_tops, runs)
+		pos = topped[0]
+		nrm = topped[1]
+		col = topped[2]
+		uv = topped[3]
+		uv2 = topped[4]
+		runs = topped[5]
+		count = pos.size()
 	# v0.8: whole LoD2 buildings that stand where a landmark is built are left out. The
 	# bake writes each building's triangles in one run sharing its style seed (UV2.x).
 	var dropped := PackedByteArray()
@@ -5027,9 +5929,7 @@ func _build_lod2(walls, marks) -> Array:
 			# The landmarks loop: a kept building in a landmark's own stone (Muzeum Narodowe).
 			var skin: Dictionary = marks.skin_at(Rect2(lo, hi - lo))
 			if not skin.is_empty():
-				for t in range(t0, t1):
-					col[t] = skin["roof"] if nrm[t].y >= 0.7 else skin["wall"]
-					uv2[t].x = skin["mode"]
+				_skin_run(skin, pos, nrm, col, uv2, t0, t1)
 			else:
 				building_runs.append(Vector3i(t0, t1, 0))
 		t0 = t1
@@ -5230,6 +6130,114 @@ func _clip_lod2(pos: PackedVector3Array, nrm: PackedVector3Array, col: PackedCol
 	return [o_pos, o_nrm, o_col, o_uv, o_uv2, o_runs if not runs.is_empty() else PackedInt32Array()]
 
 
+## A kept LoD2 building in a landmark's skin (`skin_at`): its roof colour on faces flatter than
+## the skin's `steep` (0.7 unless it says: a steeper LoD2 slope reads as wall), its wall colour on
+## the rest, and its `pale` colour on the walls along one front (`pale`: {wall, edges: pairs of
+## outline ends, near}: walls whose centre is within `near` m of one of those edges). F's look
+## check (2026-11-03): the Royal Castle's steep roof slopes and LoD2's walls standing up to 0.9 m
+## proud of the model's Vistula front showed as a salmon band over the pale river front.
+func _skin_run(skin: Dictionary, pos: PackedVector3Array, nrm: PackedVector3Array, col: PackedColorArray,
+		uv2: PackedVector2Array, t0: int, t1: int) -> void:
+	var steep: float = skin.get("steep", 0.7)
+	var pale: Dictionary = skin.get("pale", {})
+	for t in range(t0, t1, 3):
+		var c: Color = skin["wall"]
+		var n := nrm[t]
+		if n.y >= steep:
+			c = skin["roof"]
+		elif not pale.is_empty() and absf(n.y) < 0.3:
+			var mid3 := (pos[t] + pos[t + 1] + pos[t + 2]) / 3.0
+			var mid := Vector2(mid3.x, mid3.z)
+			var edges: PackedVector2Array = pale["edges"]
+			for e in range(0, edges.size() - 1, 2):
+				if Geometry2D.get_closest_point_to_segment(mid, edges[e], edges[e + 1]).distance_to(mid) < float(pale["near"]):
+					c = pale["wall"]
+					break
+		for k in 3:
+			col[t + k] = c
+			uv2[t + k].x = skin["mode"]
+
+
+## F's look check (2026-11-03): the triangles of kept LoD2 buildings whose centre stands inside one
+## of the landmarks' `lod2_tops` rings ([ring, metres over the ground at `at`, at]) cut at that
+## height: the part above it left out, a roof face's part flattened onto it (like the deck cuts
+## of `_clip_lod2`, which this mirrors). `runs` comes back with each building's new count.
+func _top_lod2(pos: PackedVector3Array, nrm: PackedVector3Array, col: PackedColorArray, uv: PackedVector2Array,
+		uv2: PackedVector2Array, tops: Array, runs := PackedInt32Array()) -> Array:
+	var rings: Array[PackedVector2Array] = []
+	var boxes: Array[Rect2] = []
+	var cuts: Array[float] = []
+	for e: Array in tops:
+		var ring: PackedVector2Array = e[0]
+		var box := Rect2(ring[0], Vector2.ZERO)
+		for q in ring:
+			box = box.expand(q)
+		var at: Vector2 = e[2]
+		rings.append(ring)
+		boxes.append(box)
+		cuts.append(terrain_height(at.x, at.y) + float(e[1]))
+	var o_pos := PackedVector3Array()
+	var o_nrm := PackedVector3Array()
+	var o_col := PackedColorArray()
+	var o_uv := PackedVector2Array()
+	var o_uv2 := PackedVector2Array()
+	var o_runs := PackedInt32Array()
+	var ends := PackedInt32Array()
+	if runs.is_empty():
+		ends.append(pos.size())
+	else:
+		var e := 0
+		for r in runs:
+			e += r
+			ends.append(e)
+	var t := 0
+	for end in ends:
+		var before := o_pos.size()
+		while t < end:
+			var mid := (pos[t] + pos[t + 1] + pos[t + 2]) / 3.0
+			var cut := INF
+			for i in rings.size():
+				if boxes[i].has_point(Vector2(mid.x, mid.z)) and Geometry2D.is_point_in_polygon(Vector2(mid.x, mid.z), rings[i]):
+					cut = cuts[i]
+					break
+			if cut == INF or maxf(pos[t].y, maxf(pos[t + 1].y, pos[t + 2].y)) <= cut:
+				for k in 3:
+					o_pos.append(pos[t + k])
+					o_nrm.append(nrm[t + k])
+					o_col.append(col[t + k])
+					o_uv.append(uv[t + k])
+					o_uv2.append(uv2[t + k])
+			else:
+				var roof := nrm[t].y >= 0.3
+				var below: Array = []
+				var above: Array = []
+				for k in 3:
+					var a := t + k
+					var b := t + (k + 1) % 3
+					var a_up := pos[a].y > cut
+					var b_up := pos[b].y > cut
+					(above if a_up else below).append([pos[a], col[a], uv[a]])
+					if a_up != b_up:
+						var f := (cut - pos[a].y) / (pos[b].y - pos[a].y)
+						var corner := [pos[a].lerp(pos[b], f), col[a].lerp(col[b], f), uv[a].lerp(uv[b], f)]
+						below.append(corner)
+						above.append(corner)
+				for pi in (2 if roof else 1):
+					var part: Array = below if pi == 0 else above
+					var flat := pi == 1
+					for k in range(1, part.size() - 1):
+						for v: Array in [part[0], part[k], part[k + 1]]:
+							var p: Vector3 = v[0]
+							o_pos.append(Vector3(p.x, cut, p.z) if flat else p)
+							o_nrm.append(Vector3.UP if flat else nrm[t])
+							o_col.append(v[1])
+							o_uv.append(v[2])
+							o_uv2.append(uv2[t])
+			t += 3
+		o_runs.append(o_pos.size() - before)
+	return [o_pos, o_nrm, o_col, o_uv, o_uv2, o_runs if not runs.is_empty() else PackedInt32Array()]
+
+
 ## Like _tri, but with a colour per corner (walls darken towards the ground).
 func _tri_shaded(st, a: Vector3, b: Vector3, c: Vector3, n: Vector3,
 		ca: Color, cb: Color, cc: Color, ua: Vector2, ub: Vector2, uc: Vector2) -> void:
@@ -5261,7 +6269,11 @@ func _tree_blocked(x: float, z: float) -> bool:
 	if _marks == null:
 		return false
 	for c: Array in _marks.tree_free:
-		if Vector2(x, z).distance_to(c[0]) < float(c[1]):
+		# [centre, radius], or [plan, 0, its box] (Towarowa 22's blocks).
+		if c.size() > 2:
+			if (c[2] as Rect2).has_point(Vector2(x, z)) and Geometry2D.is_point_in_polygon(Vector2(x, z), c[0]):
+				return true
+		elif Vector2(x, z).distance_to(c[0]) < float(c[1]):
 			return true
 	return false
 
@@ -5644,6 +6656,8 @@ func _build_street_furniture() -> void:
 	for i in range(0, list.size() - 1, 2):
 		var x := float(list[i])
 		var z := float(list[i + 1])
+		if FirstScene.on_pasaz(Vector2(x, z)):
+			continue  # first_scene.gd's Y mast stands here
 		var t := Transform3D(Basis(Vector3.UP, fposmod(x * 0.37 + z * 0.11, TAU)), Vector3(x, terrain_height(x, z), z))
 		if Vector2(x, z).distance_to(Vector2(CANDELABRAS.x, CANDELABRAS.y)) < CANDELABRAS.z:
 			candelabras.append(t)
@@ -6603,13 +7617,22 @@ const POCKET_DEPTH := 3.0
 const POCKET_WALL := 2.4
 ## How far a pocket's walls run beyond its mouth, at least: shorter is a corner, not a notch.
 const POCKET_DETOUR := 0.6
+## PT-17 (2026-11-03): a long shallow bay in a block's front (Jasna by Plac Dąbrowskiego: 24 m
+## long, 2.3 m deep between two rounded piers 2 m proud) took a car whose stick pointed into the
+## block: it slid along the bay at 15 m/s into one pier, was turned out along the wall, slid into
+## the other pier, back and forth (70 s in the playtest) until the tow. A bay up to BAY_MOUTH
+## wide and only BAY_DEPTH deep (less than a car's length: nobody parks in it) gets a wall across
+## its mouth too. Deeper recesses stay open (the 9 m x 3 m one on Bracka: a car fits).
+const BAY_MOUTH := 30.0
+const BAY_DEPTH := 2.5
 ## A step out of a block's front, STEP_MIN to STEP_MAX proud of the wall before it (the corner of
 ## the next building, 0.3 m out at Chmielna and Bracka), caught the front corner of a car sliding
 ## along that wall nose on: a collider wall fairs it in, STEP_TAPER times its height long (~9°).
 const STEP_MIN := 0.08
 const STEP_MAX := 0.6
 const STEP_TAPER := 6.0
-## The walls added so far, all builds (check_stuck_spots prints it): ~15,100 for the whole city,
+## The walls added so far, all builds (check_stuck_spots prints it): ~22,600 for the whole city
+## (~15,100 before the PT-17 bays),
 ## ~300 ms of a sector's build in the cloud (none on the prebuilt path: baked in).
 var pocket_walls := 0
 
@@ -6623,6 +7646,10 @@ func _bridge_pockets(keep: Array, marks) -> void:
 			continue
 		var box := _poly_box(poly)
 		if box.intersects(area) and not marks.replaces(box.get_center()):
+			polys.append(poly)
+	# Landmark models that ask for it (their mapped outline as the car's walls): bridged like a house.
+	for poly: PackedVector2Array in marks.pocket_rings:
+		if _poly_box(poly).intersects(area):
 			polys.append(poly)
 	var list: Array = data["buildings"]
 	for index in (keep if _has_lod2 else range(list.size())):
@@ -6743,42 +7770,29 @@ func _ring_bridges(ring: PackedVector2Array, originals: Array[PackedVector2Array
 	while i < n:
 		var best := -1
 		for step in range(12, 1, -1):
-			if step >= n - 1:
-				continue
-			var j := (i + step) % n
-			var a := ring[i]
-			var b := ring[j]
-			var mouth := a.distance_to(b)
-			if mouth > POCKET_MOUTH or mouth < 0.3:
-				continue
-			var path := 0.0
-			var ok := true
-			var dir := (b - a) / mouth
-			for k in step:
-				var p := ring[(i + k) % n]
-				var q := ring[(i + k + 1) % n]
-				path += p.distance_to(q)
-				if k > 0:
-					# Counter-clockwise ring: the block lies to the left of a→b; a notch goes in there.
-					var side := dir.cross(p - a)
-					if side < -0.05 or side > POCKET_DEPTH:
-						ok = false
-						break
-			if not ok or path < mouth + POCKET_DETOUR:
-				continue
-			var inside := false
-			for t: float in [0.25, 0.5, 0.75]:
-				inside = inside or Geometry2D.is_point_in_polygon(a.lerp(b, t), ring)
-			if inside:
-				continue
-			best = j
-			break
+			if step < n - 1 and _ring_span(ring, i, step, 0.3, POCKET_MOUTH, POCKET_DEPTH):
+				best = (i + step) % n
+				break
 		if best >= 0:
 			walls.append_array([ring[i], ring[best]])
 			var k := i
 			while k != best:
 				covered[k] = 1
 				k = (k + 1) % n
+			i = i + ((best - i + n) % n)
+		else:
+			i += 1
+	# PT-17: then the long shallow bays (wider than a notch, at most BAY_DEPTH deep), on their own
+	# pass so a notch inside one keeps its own wall.
+	i = 0
+	while i < n:
+		var best := -1
+		for step in range(12, 1, -1):
+			if step < n - 1 and _ring_span(ring, i, step, POCKET_MOUTH, BAY_MOUTH, BAY_DEPTH):
+				best = (i + step) % n
+				break
+		if best >= 0:
+			walls.append_array([ring[i], ring[best]])
 			i = i + ((best - i + n) % n)
 		else:
 			i += 1
@@ -6807,6 +7821,35 @@ func _ring_bridges(ring: PackedVector2Array, originals: Array[PackedVector2Array
 				break
 		if open_ground:
 			walls.append_array([a, b])
+
+
+## Whether ring[i] to ring[i + step] is the mouth of a dent: the mouth from `lo` to `hi` m long,
+## outside the block, every vertex between on the block's side within `depth` of it, and the way
+## round longer than the mouth by POCKET_DETOUR.
+func _ring_span(ring: PackedVector2Array, i: int, step: int, lo: float, hi: float, depth: float) -> bool:
+	var n := ring.size()
+	var a := ring[i]
+	var b := ring[(i + step) % n]
+	var mouth := a.distance_to(b)
+	if mouth > hi or mouth < lo:
+		return false
+	var path := 0.0
+	var dir := (b - a) / mouth
+	for k in step:
+		var p := ring[(i + k) % n]
+		var q := ring[(i + k + 1) % n]
+		path += p.distance_to(q)
+		if k > 0:
+			# Counter-clockwise ring: the block lies to the left of a→b; a notch goes in there.
+			var side := dir.cross(p - a)
+			if side < -0.05 or side > depth:
+				return false
+	if path < mouth + POCKET_DETOUR:
+		return false
+	for t: float in [0.25, 0.5, 0.75]:
+		if Geometry2D.is_point_in_polygon(a.lerp(b, t), ring):
+			return false
+	return true
 
 
 ## The steps out of a block's front met by a car sliding along it (the ring's way; `turn` -1 for

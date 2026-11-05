@@ -7,7 +7,10 @@ extends Node
 ## work, no scans) on the seconds of play since the title, and makes each beat of 6.2 happen if it
 ## hasn't by itself (`decide`, a pure function of the facts so check_first10.gd tests it without
 ## the map). A beat the player reaches alone is "met"; one the director pushes is "fired". Every
-## beat waits while a job, a race, a rescue, a police stop or a card is on (`free`).
+## beat waits while a job, a race, a rescue, a police stop or a card is on (`free`). While a beat
+## is due and waits for that free moment (`due`), the guide holds what would come by itself (a
+## Podwózka request, a "Na czasie" offer: `offers_held`), so a player who takes every ride still
+## meets Halina and the first call in their windows (run 12: the call 83 s late behind a ride).
 ##
 ## | beat | the 6.2 time | what the director does (and its fallback) |
 ## | --- | --- | --- |
@@ -84,6 +87,10 @@ const GARAGE_AT := 570.0
 ## The garage beat stops waiting for a free moment here (its window ends at 660 s).
 const GARAGE_LATEST := 640.0
 const GUIDE_END := 900.0
+## The beats that wait for a free moment; while one of them is due the guide holds new offers.
+const HOLD_BEATS := ["race", "trap", "rescue", "tape", "powisle", "garage"]
+## A beat this close (s) holds new offers too.
+const HOLD_AHEAD := 45.0
 ## The replay judges by here at the latest (after the last window, before verify.sh's 48000 frames).
 const REPLAY_DEADLINE := 700.0
 ## An arrow stays at most this long (s), unless its beat is met first.
@@ -93,7 +100,7 @@ const HINT_COLOUR := Color("#ffd23f")
 ## The end card: the jobs it needs, its words ([Polish, English]), its button ("POLISH|ENGLISH",
 ## hud.gd) and the repo's name (README's; as text, no link).
 const END_JOBS := 10
-const REPO := "github.com/LubomirOlshansky/AroundWarsaw"
+const REPO := "aroundwarsaw.app"
 const END_TITLE := ["DZIĘKI ZA GRĘ!", "Thanks for playing!"]
 const END_BODY := [
 	"To już koniec dema. Trzy mosty twoje, kebaby dowiezione, a Palma… dalej sztuczna.",
@@ -102,7 +109,7 @@ const END_BODY := [
 const END_FREE := ["Miasto zostaje otwarte: jedź, dokąd chcesz. Syrenki i kasety czekają.",
 	"The city stays open: drive wherever you like. Syrenki and tapes still wait."]
 ## One line for both languages (the card has room for one): the data, the licence, the code.
-const END_CREDITS := "© OpenStreetMap (ODbL), GUGiK · MIT"
+const END_CREDITS := "© OpenStreetMap (ODbL), GUGiK"
 const END_BUTTON := "JEDŹ DALEJ|FREE ROAM"
 const END_COLOUR := Color("#ffd23f")
 ## The director's words, [Polish, English] (each at most 70 characters).
@@ -169,6 +176,8 @@ var _call_t := 0.0
 var _last_pos := Vector3.ZERO
 var _done_t := -1.0
 var _input_base := 0
+## A beat is due and waits for a free moment: new offers are held (`due`).
+var offers_held := false
 
 
 # --- the rules (static: check_first10.gd tests them without the map) ---------------------------
@@ -246,6 +255,28 @@ static func decide(now: float, f: Dictionary, done: Dictionary) -> Array[String]
 		out.append("garage")
 	if not is_done.call("done") and (now >= GUIDE_END or (is_done.call("garage") and f.get("garage", false))):
 		out.append("done")
+	return out
+
+
+## The beats due now (or within HOLD_AHEAD s) that only wait for a free moment: the ones `decide`
+## would fire then if nothing were on. While this is not empty the guide holds new offers
+## (`offers_held`): a 2-minute ride taken 5 s before a beat would push it past its window.
+static func due(now: float, f: Dictionary, done: Dictionary) -> Array[String]:
+	var out: Array[String] = []
+	if done.has("done"):
+		return out
+	var g := f.duplicate()
+	g["free"] = true
+	# A call under way ends in a rescue, and the helicopter's hint (which never waits) follows it,
+	# so the tape's beat behind them counts as near too.
+	g["rescued"] = bool(f.get("rescued", false)) or bool(f.get("rang", false))
+	var seen := done.duplicate()
+	for pass_i in 2:  # twice: a beat that fires at once (the heli hint) opens the next (the tape)
+		for id in decide(now + HOLD_AHEAD, g, seen):
+			if not seen.has(id):
+				seen[id] = now
+			if id in HOLD_BEATS and not id in out:
+				out.append(id)
 	return out
 
 
@@ -358,6 +389,7 @@ func tick() -> void:
 		for id in decide(t, f, fired):
 			_fire(id)
 		_follow_up(f)
+	_hold_offers(guide and not due(t, f, fired).is_empty())
 	if hint_shown() and (t > hint_until or _hint_met(f)):
 		hint_at = Vector3.INF
 	if not _end_up and f["free"] and not f["rang"] and end_due(wallet):
@@ -372,10 +404,26 @@ func tick() -> void:
 		_script(f)
 
 
+## Holds (or lets go of) what comes by itself: Podwózka's requests and the "Na czasie" offers.
+## A ride already under way runs on; only new ones wait (the PODWÓZKA button still asks for one).
+func _hold_offers(on: bool) -> void:
+	if on == offers_held:
+		return
+	offers_held = on
+	if jobs == null:
+		return
+	for n: Variant in [jobs.get("rides"), jobs.get("trend")]:
+		if n is Node and "guide_hold" in n:
+			n.guide_hold = on
+	if scripted:
+		print("first10: offers %s at %.1f s" % ["held" if on else "free", t])
+
+
 ## What the director knows now (see `decide`).
 func facts() -> Dictionary:
 	var air: bool = flying.is_valid() and bool(flying.call())
-	var busy: bool = (jobs != null and jobs.busy()) or (rivals != null and (rivals.busy() or rivals.first_waiting())) \
+	# PT-15: a ride request's card up counts (Halina won't roll up over it).
+	var busy: bool = (jobs != null and (jobs.busy() or jobs.ride_offered())) or (rivals != null and (rivals.busy() or rivals.first_waiting())) \
 			or (missions != null and (missions.has_target() or int(missions.state) in [Missions.State.OFFER, Missions.State.RESULT])) \
 			or (police != null and int(police.phase) != 0) or (garage != null and garage.is_open()) or _end_up
 	var orders: int = jobs.orders_started() if jobs != null else 0

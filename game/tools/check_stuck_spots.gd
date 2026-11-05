@@ -32,6 +32,24 @@ extends SceneTree
 ## notches and a taper in front of small steps (map_builder.gd `_bridge_pockets`). These spots
 ## steer like the point-to-steer stick held one way (an 8th field: the compass heading held).
 ##
+## PT-17 (2026-11-03): following the KASETA arrow by car at Plac Dąbrowskiego, the playtest car went
+## back and forth on Jasna's east pavement for 70 s until the tow. Jasna's facade there (by the
+## square's corner) has a 24 m bay 2.3 m deep between two rounded piers 2 m proud: a car whose
+## stick points into the block slid along the bay into one pier, was turned out along the wall into
+## the other, and so on. Fixed: bays up to 30 m wide and 2.5 m deep get a wall across the mouth too
+## (map_builder.gd BAY_MOUTH, BAY_DEPTH). 4 spots slide along it both ways (all 4 fail on the old map).
+##
+## PT-18 (2026-11-03): under the Trasa Łazienkowska, Solec's ramp up to the Trasa (deck group 7)
+## crosses Solec 5 m up. On the ramp, where it turns west over Solec, the mapped guard rail comes
+## in pieces 0.9 m apart with the parapet 0.5 m behind: a car sliding along it put its front corner
+## in a gap and caught the next piece's end, pinned at (1307, 959) (the playtest's 1.6 s stop at
+## (1308, 960)). Under the ramp, its pier stood 2 m off Solec's west kerb: a car on the kerb lane
+## drifting 5° west hit it head on. Fixed: guard rail gaps under 1.5 m on a deck get a shallow V behind the rail line (lanes cut through stay clear)
+## (map_builder.gd GUARD_JOIN), and piers keep 2 m more room beside a main road wherever their
+## slide finds it (tools/bake_structures.py PIER_ROADSIDE; 44 of 359 piers moved 1-2 m). All but
+## the last spot fail on the old map; a car that leaves Solec 3 m or more onto the verge can still
+## meet the pier, as at any pier.
+##
 ## Prints one line per spot and `check_stuck_spots: OK`, or the failures and exit 1. ~10 s on the Mac.
 ##   godot --headless --path game --fixed-fps 60 --script res://tools/check_stuck_spots.gd [-- --prebuilt --verbose]
 
@@ -63,6 +81,16 @@ const SPOTS := [
 	[-620.0, 181.0, 253.0, 7.0, 3.0, 0.0, "PT-7 west along Chmielna's block, the stick south-west past the notch", 200.0],
 	[-612.0, 176.0, 78.0, 7.0, 3.0, 0.0, "PT-7 Chmielna east, the stick to Krucza along the glass corner (the slit)", 150.0],
 	[-606.0, 180.0, 110.0, 7.0, 3.0, 0.0, "PT-7 across the Chmielna square to Krucza, along the glass corner", 150.0],
+	[-936.5, -298.0, 157.0, 7.0, 3.0, 0.0, "PT-17 Jasna south from Plac Dąbrowskiego, the stick into the bay", 120.0],
+	[-936.5, -298.0, 157.0, 12.0, 3.0, 0.0, "PT-17 Jasna south, faster, the stick south-east", 135.0],
+	[-930.0, -283.0, 337.0, 7.0, 3.0, 0.0, "PT-17 Jasna's pavement north to the square, the stick north-north-east", 30.0],
+	[-930.0, -283.0, 337.0, 7.0, 3.0, 0.0, "PT-17 Jasna's pavement north, the stick north-east (to the BUW tape)", 60.0],
+	[1327.0, 980.0, 330.0, 10.0, 5.0, 0.0, "PT-18 up Solec's ramp to the Trasa, the stick west-north-west along the rail", 300.0],
+	[1333.5, 1004.0, 347.0, 10.0, 5.0, 0.5, "PT-18 from the ramp's foot, the stick west-north-west", 300.0],
+	[1332.0, 1000.0, 345.0, 10.0, 5.0, 0.8, "PT-18 up the ramp, the stick west round the turn", 260.0],
+	[1311.0, 985.0, 342.0, 10.0, 4.0, 0.5, "PT-18 Solec north under the ramp, the kerb lane drifting 5° west past its pier"],
+	[1312.5, 985.0, 338.0, 10.0, 4.0, 0.5, "PT-18 Solec north under the ramp, drifting 9° west"],
+	[1305.0, 985.0, 342.0, 10.0, 4.0, 0.5, "PT-18 Solec's west verge north, west of the pier"],
 ]
 ## Sectors within this of a spot are loaded.
 const REACH := 300.0
@@ -114,7 +142,7 @@ func _initialize() -> void:
 		map.measure_sectors()
 	IndexPack.pack(map.index_data)
 	print("check_stuck_spots: %d sectors %s in %d ms%s" % [n, "loaded" if prebuilt else "built", Time.get_ticks_msec() - t0,
-			"" if prebuilt else ", %d pocket walls" % map.pocket_walls])
+			"" if prebuilt else ", %d pocket walls, %d guard rail gaps closed" % [map.pocket_walls, map.guard_joins]])
 
 
 func _next() -> bool:

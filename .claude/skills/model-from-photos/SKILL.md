@@ -1,6 +1,6 @@
 ---
 name: model-from-photos
-description: How Around Warsaw builds a landmark or building model that reads as the real one - reference photos first (Wikimedia Commons, free licences, kept in refs/), a spec written from the photos at a set detail level, the build, and a side-by-side check of the game shot against the photo with a scored checklist. Use when writing a landmark spec, building or reworking a model (landmarks.gd, models.gd, props.gd, map_builder facades), and when accepting one.
+description: How Around Warsaw builds a landmark or building model that reads as the real one - reference photos first (Wikimedia Commons and street-level Mapillary/Panoramax, free licences, kept in refs/), a spec written from the photos at a set detail level, the build, and a side-by-side check of the game shot against the photo with a scored checklist. Use when writing a landmark spec, building or reworking a model (landmarks.gd, models.gd, props.gd, map_builder facades), and when accepting one.
 ---
 
 # Models from photos: the detail bar and the photo check
@@ -23,7 +23,20 @@ GUGiK LoD2 heights and what the model remembered; nobody put a photo beside the 
   (`commons.wikimedia.org/w/api.php`, `generator=search`, `gsrnamespace=6`,
   `prop=imageinfo`, `iiprop=url|extmetadata`, `iiurlwidth=1600`), the 1600 px thumb, a
   descriptive User-Agent. Free downloads are pre-approved (CLAUDE.md "Hard rules").
-- **Who**: the Mac (or a Remote Control session on it). Cloud containers get 403 from
+- **Also from street level (F, 2026-11-04)**: Mapillary and Panoramax, both CC BY-SA 4.0 (Panoramax
+  also etalab-2.0, per photo): `python3 -I tools/street_photos.py X Z --r=40 --slug=<slug>` saves the
+  newest photos whose camera faces the point into `refs/<slug>/street/` with their SOURCES.md lines
+  (`--list` to look first). This works **in the cloud** (Mapillary needs `MAPILLARY_TOKEN` in the
+  environment, a client token from F's free developer app; Panoramax needs no key), so a cloud thread
+  can gather street photos for a landmark itself. Use them for what Commons rarely has: the
+  shopfronts and ground floor, the facade from the street the player drives, side and back faces,
+  street furniture, recent changes (Commons photos are often years old; Mapillary is often 2024-26).
+  Take several headings round the building (run it from 2-4 points on its streets). Car-mounted
+  photos are low and wide-angle: verticals lean, so read storeys and bays, not proportions, from
+  them. Faces and plates are blurred by the services; never crop a person into a reference. Never
+  Google Street View (its terms forbid it).
+- **Who**: Commons and the orthophoto from the Mac (or a Remote Control session on it); street-level
+  photos from anywhere. Cloud containers get 403 from
   Wikimedia: a cloud thread asks for the photos, or uses the photos the user drops in chat.
   Photos are never published, never traced into textures, and never shipped in the game.
 - Open every photo before using it; drop the wrong building, crops and interiors.

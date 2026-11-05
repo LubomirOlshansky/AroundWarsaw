@@ -56,20 +56,47 @@ const FINAL_LINES := {
 
 ## Loop 3h slice 4 (docs/DEMO.md 6.2, 1:30): the guided first race. After the first delivery Pani
 ## Halina (the ladder's first rung) rolls up behind the player and flashes (`call_first`); flash
-## back and she races to the Palm (FIRST_FINISH, ~800 m from the Rotunda's side of the centre). A
-## rubber band keeps her about FIRST_GAP m behind the player (her pace FIRST_PACE ± FIRST_GAIN per
-## metre off that gap, between FIRST_MIN and FIRST_MAX), and in the last FIRST_EASE m she never
-## passes a player who is close: an ordinary drive wins by a couple of seconds. A player far
-## behind (she is more than FIRST_LOSE m ahead) races a Halina at her plain pace and can lose; the
-## normal retry is any later race against her. The win counts as her rung beaten (ladder.gd).
+## back and she races to the Palm (FIRST_FINISH, ~800 m from the Rotunda's side of the centre).
+## Street races (docs/design/street-races.md R2, 2026-11-04; F: "she drives very slowly"): she
+## used to be held FIRST_GAP m BEHIND the player, so she never led. Now she leads and is caught
+## (`first_speed`): she paces off the player's own progress (`_rate`, m/s along the route) to stay
+## FIRST_LEAD m in front for the first half, then lets the gap close to FIRST_TAIL m behind by
+## FIRST_CATCH of the way, and in the last FIRST_EASE m she never passes a player who is close: an
+## ordinary drive wins by a few seconds after chasing her. A player far behind (she is more than
+## FIRST_LOSE m ahead) races her at FIRST_FAR_PACE of her top and can lose; the normal retry is any
+## later race against her. The win counts as her rung beaten (ladder.gd).
 const FIRST_FINISH := "Rondo de Gaulle'a (the Palm)"
-const FIRST_PACE := 1.15
-const FIRST_GAP := 25.0
-const FIRST_GAIN := 0.012
-const FIRST_MIN := 0.4
-const FIRST_MAX := 1.5
+const FIRST_LEAD := 30.0
+const FIRST_TAIL := 6.0
+const FIRST_CATCH := 0.85
+## Metres of gap error that double her pace over the player's (or halve it, at most -60 %).
+const FIRST_K := 60.0
+## Her slowest (a share of her racing top) and the pace she starts from (m/s) before the player's
+## progress is known.
+const FIRST_FLOOR := 0.3
+const FIRST_RATE0 := 8.0
+const FIRST_FAR_PACE := 0.8
 const FIRST_EASE := 140.0
 const FIRST_LOSE := 150.0
+## Street races (R2): every other race's rubber band, `band_mult`: a mix, by the rival's band
+## weight (ladder.gd: 0.8 for Halina down to 0.2 for Mike), of her own flat-out pace and the pace
+## that keeps her level with the player (the player's progress, faster by up to +80 % when she is
+## BAND_K m behind, down to -50 % ahead). It never boosts her past her own top while she is on
+## screen (off screen by at most BAND_BOOST × the weight), never slows her under BAND_FLOOR of her
+## top while on screen (still racing; BAND_FLOOR_UNSEEN out of sight), and never takes her over BAND_CAP of the player's top speed.
+const BAND_K := 80.0
+const BAND_BOOST := 0.3
+const BAND_FLOOR := 0.5
+## Out of sight she may wait more (a far-ahead Halina for an average driver): nobody sees it.
+const BAND_FLOOR_UNSEEN := 0.3
+## The bottom rungs (band weight from BAND_EASE_WEIGHT: Halina, Słoik, Bartek) lift off on the last
+## FIRST_EASE m for a player less than BAND_EASE_GAP × weight m behind (headless runs: an average
+## driver lost to Halina by 38 m, she held half her top on screen to the line).
+const BAND_EASE_WEIGHT := 0.5
+const BAND_EASE_GAP := 80.0
+## ... to this share of the player's own pace.
+const BAND_EASE_PACE := 0.6
+const BAND_CAP := 0.98
 ## The Palm is the finish when it is at most this far by road from her; else an ordinary one.
 const FIRST_FAR := 1600.0
 ## She rolls up from about FIRST_BACK m behind; the prompt waits FIRST_WAIT s for the flash, or
@@ -210,6 +237,9 @@ var jobs: Node
 ## Testing (--autopilot): the player's car follows a ghost driver in races, and
 ## tails `tail` (a rival index) before one.
 var autopilot := false
+## The autopilot's speed factor in a race (main.gd --ghost-pace): 1.8 an average player; over 10
+## (--ghost-pace=racer) a skilled player in racer mode.
+var ghost_pace := 1.8
 var tail := -1
 ## Set by the game each frame.
 var flying := false
@@ -276,6 +306,13 @@ var _rng := RandomNumberGenerator.new()
 ## been (s), and whether the prompt has nudged; `first_race` while that race runs, and
 ## `first_result` ("won", "lost", "declined") once it is over (first10.gd reads it).
 var _caller := -1
+## Street races (R2): the player's progress along the route (m/s, smoothed), the last reading
+## and the route's length at the start (the first race's band); the band's range this race.
+var _rate := FIRST_RATE0
+var _last_player_left := INF
+var _route_total := 0.0
+var _band_lo := 1.0
+var _band_hi := 1.0
 var _call_t := 0.0
 var _call_up := false
 var _nudged := false
@@ -319,6 +356,7 @@ func setup(lane_graph: LaneGraph, traffic_node: Traffic, hud_layer: CanvasLayer,
 	_beacon = Beacon.new()
 	world.add_child(_beacon)
 	_beacon.setup(RACE_COLOUR, Color("#2b2c2f"))
+	_beacon.pattern = Beacon.Pattern.CHEQUER  # colour-safe: a finish line (beacon.gd)
 	_beacon.waving = true
 	_cooldown.resize(RIVALS.size())
 	for i in RIVALS.size():
@@ -662,7 +700,8 @@ func _frame(dt: float) -> void:
 
 
 func _look_for_challenge() -> void:
-	if flying or missions.has_target() or (jobs != null and jobs.busy()):
+	# PT-15: not over a ride request's card either.
+	if flying or missions.has_target() or (jobs != null and (jobs.busy() or jobs.ride_offered())):
 		return
 	for i in _drivers.size():
 		if _cooldown[i] <= 0.0 and _can_challenge(i):
@@ -709,9 +748,23 @@ func _go() -> void:
 	if _first_hold:
 		d.held = true
 	# Loop 3h slice 3: each rung's own pace (Halina 1.25 ... Mike 1.5; the final 1.45), was 1.45 flat.
-	var pace := Ladder.pace(Ladder.FINAL if final_on else Ladder.rung_of(RIVALS[rival]["name"]))
-	d.speed_factor = FIRST_PACE if first_race else pace.x
+	var rung := Ladder.FINAL if final_on else Ladder.rung_of(RIVALS[rival]["name"])
+	var pace := Ladder.pace(rung)
+	d.speed_factor = pace.x
 	d.accel_factor = pace.y
+	# Street races (R1): racer mode, from the rung's racer stats and the player's car.
+	var stats := Ladder.racer(rung)
+	d.race_top = player_top() * float(stats["share"])
+	d.race_accel = float(stats["race_accel"])
+	d.race_lat = float(stats["lat"])
+	d.race_band = 1.0
+	d.race_still = 0.0
+	d.race_passes = 0
+	_rate = FIRST_RATE0
+	_last_player_left = INF
+	_route_total = 0.0
+	_band_lo = 1.0
+	_band_hi = 1.0
 	if final_on:
 		_prepare_final()
 		traffic.race_to(d, final_route.legs[_leg], _final_dists[_leg])
@@ -799,8 +852,7 @@ func _track(dt: float) -> void:
 		_rank_timer = 0.2
 		_rival_left = traffic.remaining(d)
 		_player_left = _player_remaining()
-		if first_race:
-			d.speed_factor = first_band(_rival_left, _player_left)
+		_band(d)
 	_show_status()
 
 
@@ -859,10 +911,9 @@ func _finish_race(won: bool, why: String) -> void:
 	_nudge_banner_t = 0.0
 	_beacon.visible = false
 	var d = _drivers[rival]
+	_race_log(d, won)
 	traffic.stop_racing(d)
-	d.held = false
-	d.speed_factor = 1.08
-	d.accel_factor = 1.3
+	_cruise(d)
 	_cooldown[rival] = 25.0
 	if _ghost != null:
 		traffic.remove(_ghost)
@@ -977,18 +1028,90 @@ func _first_finish() -> Dictionary:
 	return {}
 
 
-## The first race's rubber band: Halina's speed factor from what is left for her and for the
-## player (m). She aims FIRST_GAP m behind; close to the finish she lets a close player win; a
-## player more than FIRST_LOSE m behind her gets her plain pace (and can lose).
-static func first_band(her_left: float, player_left: float) -> float:
+## Street races (R2): the first race's speed for Halina (m/s): `her_left` and `player_left` are the
+## metres of route left, `total` the route's length at the start, `rate` the player's progress
+## (m/s along the route), `top` her racing top. She leads by FIRST_LEAD in the first half, the gap
+## closes to FIRST_TAIL behind her by FIRST_CATCH of the way; on the last FIRST_EASE m she lifts
+## off for a close player; with the player more than FIRST_LOSE m behind she races at FIRST_FAR_PACE.
+static func first_speed(her_left: float, player_left: float, total: float, rate: float, top: float) -> float:
 	if her_left == INF or player_left == INF:
-		return FIRST_PACE
+		return top * FIRST_FAR_PACE
 	var gap := her_left - player_left  # > 0: she is behind
 	if gap < -FIRST_LOSE:
-		return FIRST_PACE
+		return top * FIRST_FAR_PACE
+	var pace := maxf(rate, 4.0)
 	if her_left < FIRST_EASE and gap < 12.0:
-		return FIRST_MIN * 0.8  # the last stretch: she lifts off for a close player
-	return clampf(FIRST_PACE + (gap - FIRST_GAP) * FIRST_GAIN, FIRST_MIN, FIRST_MAX)
+		return clampf(pace * 0.8, 3.0, top)  # the last stretch: she lifts off for a close player
+	var progress := clampf(1.0 - player_left / maxf(total, 1.0), 0.0, 1.0)
+	var target := -FIRST_LEAD
+	if progress > 0.5:
+		target = lerpf(-FIRST_LEAD, FIRST_TAIL, clampf((progress - 0.5) / (FIRST_CATCH - 0.5), 0.0, 1.0))
+	var want := pace * (1.0 + clampf((gap - target) / FIRST_K, -0.6, 1.0))
+	return clampf(want, top * FIRST_FLOOR, top)
+
+
+## Street races (R2): every other race's band, a factor on the rival's racing top `top` (m/s):
+## `her_left`, `player_left` metres of route left, `rate` the player's progress (m/s), `weight`
+## the rival's band (see BAND_K above); `seen`: she is on screen (no boost past her top); `aim`:
+## the metres behind the player she aims for (ladder.gd).
+static func band_mult(her_left: float, player_left: float, weight: float, rate: float, top: float, seen: bool, aim := 0.0) -> float:
+	if her_left == INF or player_left == INF:
+		return 1.0
+	var gap := her_left - player_left - aim  # > 0: she is further behind than she aims
+	var follow := maxf(rate, 4.0) * (1.0 + clampf(gap / BAND_K, -0.5, 0.8)) / maxf(top, 1.0)
+	var mult := lerpf(1.0, follow, weight)
+	var ahead := player_left - her_left
+	if weight >= BAND_EASE_WEIGHT and her_left < FIRST_EASE and ahead > 0.0 and ahead < BAND_EASE_GAP * weight:
+		# The bottom rungs on the last stretch: a close player gets the win (she lifts off).
+		return clampf(maxf(rate, 4.0) * BAND_EASE_PACE / maxf(top, 1.0), BAND_FLOOR_UNSEEN, 1.0)
+	return clampf(mult, BAND_FLOOR if seen else BAND_FLOOR_UNSEEN, 1.0 if seen else 1.0 + BAND_BOOST * weight)
+
+
+## The player's car's top speed (m/s, its model and engine; nitro left out), as police.gd's chase_top.
+func player_top() -> float:
+	if car == null or not ("top_mult" in car and "max_speed" in car):
+		return 30.0
+	return float(car.max_speed) * float(car.top_mult)
+
+
+## Street races (R2): 5 times a second, the rival's rubber band from the gap.
+func _band(d) -> void:
+	if _player_left < INF and _last_player_left < INF:
+		var now := maxf(0.0, (_last_player_left - _player_left) / 0.2)
+		_rate = lerpf(_rate, minf(now, 40.0), 0.07)  # ~3 s smoothing
+	_last_player_left = _player_left
+	if _route_total <= 0.0 and _player_left < INF:
+		_route_total = maxf(_player_left, _rival_left)
+	var mult := 1.0
+	var top: float = maxf(d.race_top, 1.0)
+	if first_race and not final_on:
+		# Her speed against her top on this road (main roads; residential caps lower anyway).
+		mult = first_speed(_rival_left, _player_left, _route_total, _rate, top) / top
+	else:
+		var rung := Ladder.FINAL if final_on else Ladder.rung_of(RIVALS[rival]["name"])
+		var stats := Ladder.racer(rung)
+		mult = band_mult(_rival_left, _player_left, float(stats["band"]), _rate, top, d.visible, float(stats["aim"]))
+		mult = minf(mult, BAND_CAP * player_top() / top)
+	d.race_band = mult
+	_band_lo = minf(_band_lo, mult)
+	_band_hi = maxf(_band_hi, mult)
+
+
+## Street races: one line on how the rival raced (for tuning and check_race_ai's runs).
+func _race_log(d, won: bool) -> void:
+	print("race ai: %s %s in %.1f s · top %.1f m/s · band %.2f-%.2f · stopped %.1f s · %d passes · gap %.0f m" % [
+			RIVALS[rival]["name"], "lost to the player" if won else "won", _race_time, d.race_top, _band_lo, _band_hi,
+			d.race_still, d.race_passes, _rival_left - _player_left])
+
+
+## Back to cruising after a race: the town car's pace, no racer mode.
+func _cruise(d) -> void:
+	d.held = false
+	d.speed_factor = 1.08
+	d.accel_factor = 1.3
+	d.race_top = 0.0
+	d.race_accel = 0.0
+	d.race_band = 1.0
 
 
 ## Loop 3h slice 4: Halina (rival `name`) rolls up behind the player for the guided first race:
@@ -1118,6 +1241,12 @@ func _first_give_up(say: bool) -> void:
 	first_result = "declined"
 	state = State.CRUISE
 	hud.hide_challenge()
+
+
+## PT-15 (2026-11-03): a prompt is up (a rival's FLASH LIGHTS, or Halina's flash back) or Halina
+## is rolling up for it: rides.gd offers no ride over it.
+func calling() -> bool:
+	return state == State.PROMPT or _caller >= 0
 
 
 ## Loop 3h slice 4: the guided first race is waiting for its flash back.
@@ -1354,6 +1483,7 @@ func _track_final(dt: float) -> void:
 		var j := mini(2 * _cp + 1, final_route.legs.size() - 1)
 		var goal: Vector3 = final_target()
 		_player_left = _remaining_by(_final_dists[j], goal) + _after[j]
+		_band(d)
 	_show_status()
 
 
@@ -1386,10 +1516,9 @@ func _finish_final(won: bool, why: String) -> void:
 	_beacon.visible = false
 	_beacon.recolour(RACE_COLOUR)
 	var d = _drivers[_seba]
+	_race_log(d, won)
 	traffic.stop_racing(d)
-	d.held = false
-	d.speed_factor = 1.08
-	d.accel_factor = 1.3
+	_cruise(d)
 	_cooldown[_seba] = 25.0
 	if _ghost != null:
 		traffic.remove(_ghost)
@@ -1525,8 +1654,14 @@ func _start_ghost() -> void:
 		return
 	_ghost = traffic.add_ghost(hit[0], hit[1], hit[2])
 	_ghost.held = true
-	_ghost.speed_factor = 1.8
-	_ghost.accel_factor = 2.2
+	_ghost.speed_factor = ghost_pace
+	_ghost.accel_factor = 2.2 * ghost_pace / 1.8
+	if ghost_pace > 10.0:
+		# --ghost-pace=racer: a skilled player, racer mode at the car's own top on the roads.
+		_ghost.speed_factor = 1.8
+		_ghost.race_top = player_top()
+		_ghost.race_accel = 12.0
+		_ghost.race_lat = 8.5
 	if final_on:
 		_prepare_final()
 		traffic.race_to(_ghost, final_route.legs[_ghost_leg], _final_dists[_ghost_leg])
