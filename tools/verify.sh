@@ -142,6 +142,9 @@
 # The opening flyover: `opening` runs game/tools/check_opening.gd: the first launch's camera flight
 # (camera_shots.gd `open_view`) is short, starts on the Palace, ends exactly on the follow view and
 # moves smoothly frame to frame; no map (CI too).
+# Operation Unslop (2026-11-05): `streetpass` runs tools/street_pass.py --check (the street records in
+# docs/streets/ may never get worse), `models` runs tools/model_library.py --check (every model a
+# street record names is in the library or on its wanted list).
 # Street details (2026-11-01): `streetdetails` runs tools/check_street_details.py (the baked props along
 # the main line against the map: stale file, blocked spots, budget, kiosk spacing); `streetmesh` runs
 # game/tools/check_street_details.gd (every kind builds as one surface, a cell's triangle budget); CI too.
@@ -192,8 +195,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh monuments monumentmesh spec lod2 courts drape ground drive drive-prebuilt deckxray stuckspots stuckspots-prebuilt lanedrive finite steering laneassist stuckoffer handling stopassist questlines settings credits language tiers governor heliview hud places edge roadworks eggs tape crowds life buses zaglebie crashes loud oldtram trains packs wellness fans garage save districts syrenki cassettes ladder first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram teleport firstlife heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh monuments monumentmesh spec drape drive deckxray stuckspots finite steering laneassist stuckoffer handling stopassist questlines settings credits language tiers governor heliview hud places edge roadworks eggs tape crowds life buses zaglebie crashes loud oldtram trains packs wellness fans garage save districts syrenki cassettes ladder first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds police plain ram teleport firstlife prebuilt)
+STEPS_ALL=(map roads streets outline pois streetdetails streetpass models stops streetmesh parkdetails parkmesh monuments monumentmesh spec lod2 courts drape ground drive drive-prebuilt deckxray stuckspots stuckspots-prebuilt lanedrive finite steering laneassist stuckoffer handling stopassist questlines settings credits language tiers governor heliview hud places edge roadworks eggs tape crowds life buses zaglebie crashes loud oldtram trains packs wellness fans garage save districts syrenki cassettes ladder first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram teleport firstlife heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads streets outline pois streetdetails streetpass models stops streetmesh parkdetails parkmesh monuments monumentmesh spec drape drive deckxray stuckspots finite steering laneassist stuckoffer handling stopassist questlines settings credits language tiers governor heliview hud places edge roadworks eggs tape crowds life buses zaglebie crashes loud oldtram trains packs wellness fans garage save districts syrenki cassettes ladder first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds police plain ram teleport firstlife prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -689,6 +692,26 @@ for s in $want; do
 			case $code in
 				0) row PASS "streetdetails" $secs "check_street_details: OK · $counts" ;;
 				*) row FAIL "streetdetails" $secs "$(grep '^check_street_details: ' $logs/streetdetails.log | tail -1) · $counts ($logs/streetdetails.log)" ;;
+			esac ;;
+		streetpass)
+			t0=$EPOCHREALTIME
+			python3 -I $ROOT/tools/street_pass.py --check > $logs/streetpass.log 2>&1
+			code=$?
+			secs=$(printf '%.0f' $(( EPOCHREALTIME - t0 )))
+			case $code in
+				0) row PASS "streetpass" $secs "$(grep '^street_pass: ' $logs/streetpass.log | tail -1)" ;;
+				*) row FAIL "streetpass" $secs "$(grep '^street_pass: ' $logs/streetpass.log | tail -1) ($logs/streetpass.log)" ;;
+			esac ;;
+		models)
+			t0=$EPOCHREALTIME
+			python3 -I $ROOT/tools/model_library.py --check > $logs/models.log 2>&1
+			code=$?
+			secs=$(printf '%.0f' $(( EPOCHREALTIME - t0 )))
+			counts=$(grep -m1 '^model_library counts:' $logs/models.log)
+			counts=${counts#model_library counts: }
+			case $code in
+				0) row PASS "models" $secs "model_library: OK · $counts" ;;
+				*) row FAIL "models" $secs "$(grep '^model_library: ' $logs/models.log | tail -1) ($logs/models.log)" ;;
 			esac ;;
 		parkdetails)
 			t0=$EPOCHREALTIME

@@ -248,6 +248,25 @@ the steering. Review, findings and the A/B list: `docs/design/beta-values.md`.
 - [ ] GAMEPLAY_PLAN 1.5 items 2, 3, 5: wall look-ahead, junction pick, camera lead at junctions
 - [ ] If F picks them: the delivery streak "Seria", a smooth tip, slipstream, a shorter card wait
 
+## Operation Unslop: streets that don't look generated (F, 2026-11-05)
+
+F: "unslop the roads and the objects on them, make the streets prettier, street by street, using
+every workflow we have (maps, real street maps, photos), with Marszałkowska between Centrum and
+Świętokrzyska as the test, so it then improves the other places by itself; classify every object
+to a model we have, model the missing ones, and keep a database of models in the CRM". Plan:
+docs/design/operation-unslop.md (merges roads-and-objects-plan.md and road-objects.md). Tools:
+`tools/street_pass.py`, `tools/model_library.py`; records in docs/streets/, library in docs/models/;
+skill `street-pass`, agent `street-unslopper`; console tabs Streets and Models.
+Found: the test street's west carriageway changes lane count between OSM ways (2/3/2 lanes,
+6/10/6 m) where the street is the same; 16 lane lines end mid-block; no balustrade, tram railing,
+canopy-on-posts, Jersey barrier, yard gate or park fence model exists (library "wanted").
+Found: only 559 of 45,192 scanned trees stand inside a lane, none on the test street; trees on the
+road in F's shots are the drawn strip covering a real median (check T1 looks at the drawn surface).
+- [x] Pipeline, checks, records, model library, agent, skill, console tabs (2026-11-05)
+- [ ] Test street fixes and F's look (see the street record docs/streets/marszalkowska-centrum.md)
+- [ ] The wanted models, most-asked first
+- [ ] More classify rules from the test street's hand calls; then the next streets
+
 ## Road objects and collisions (F, 2026-11-04)
 
 F: "a lot of objects on the roads make the arcade driving harder, and you can't tell what many of
