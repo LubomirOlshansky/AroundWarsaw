@@ -4,6 +4,15 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Złote Tarasy 3D screen (F, 2026-11-05)
+Built from F's photos (`tarasy_screen.gd`, `led_screen.gdshader`). Open:
+- Phone look and bench check (the shader follows a ray into a box per pixel; cost is bounded by the
+  strip's size on screen, 1 draw call). Wipe/scene timings, glow strength at night, the flowers' and
+  the cat's drawing are first guesses to tune against F's videos.
+- The mapped "plate" over the entrance is a 10 m slab (17-27 m) where the real canopy is thin; the
+  screen starts above it (27.4 m). A photo pass on the entrance and canopy would lower both.
+- More scenes for the loop (F's ideas: sea, a car driving out of the screen) and a day/night level pass.
+
 ## Landmark look-check fixes (F's answers, 2026-11-03)
 F's answers on the reviewed look-check page (look-check-answers.md in the project files), the smaller
 ones. Shots in the project files, look-check-fixes/. Done:

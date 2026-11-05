@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-05
 
+- Złote Tarasy has its big curved 3D screen: it wraps the corner of the Skylight tower above the glass entrance and shows glowing flowers, a cat leaning out of the frame and the SCENA WARSZAWA title, floating in 3D as you drive past
 - The street where the game starts shows its shops as they are now: UNIKAT, the LUKA bakery, the huge new TAK MAKS on four floors, the two-storey FROGS XXL on the corner with its green seats and parasols, lit shop signs under the stores and new banners on the street side; and the Świętokrzyska metro entrances got their glass-and-steel triangle roofs.
 - Crazy drivers join the traffic: Szkoda Oktawia taxis and Szprynter courier vans speed, tailgate, overtake and cut in right in front of you, and once in a while the legendary Pasatini 1.9 TDJ storms past (black smoke, left lane, no indicator). They honk and shout when they cut you off, and KEBAB FM reports Pasatini sightings.
 - Race rivals drive like people now: they launch past you and make you chase, take shortcuts across squares, lawns and car parks, cut in front of you and block your line, and sometimes run wide in a corner or take a wrong turn. Each one has a style: Zbyszek knows every shortcut, Seba blocks, Słoik follows his satnav, and Mike is as fast as your car.
