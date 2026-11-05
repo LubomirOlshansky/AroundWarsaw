@@ -1,7 +1,7 @@
 # App Store Connect: ready answers
 
 Answers for Around Warsaw's App Store Connect forms, for TestFlight now and the App Store
-release later. Version 0.1 (build 1), bundle ID `com.olshanskysoft.aroundwarsaw`, team in
+release later. Version 0.1 (build 2, uploaded 2026-11-02), bundle ID `com.olshanskysoft.aroundwarsaw`, team in
 `game/export_presets.cfg`. The build: `tools/export_ios.sh` (docs/DEVELOPMENT.md). Field names
 follow App Store Connect's English labels as of October 2026; Apple renames things, so match by
 meaning. Character limits are Apple's; the counts in brackets were measured (Polish letters
@@ -102,7 +102,7 @@ Apple's 2025 questionnaire (ratings 4+, 9+, 13+, 16+, 18+). Answers:
 | Capabilities: advertising | **No** | |
 | Mature themes: profanity or crude humour | **None** | gentle Warsaw jokes, no swearing (warsaw-tone skill) |
 | Mature themes: horror or fear themes | **None** | |
-| Mature themes: alcohol, tobacco or drug use or references | **None** | the 3 a.m. delivery is kebab; nobody drinks, the night is safe (docs/design/vision.md pillar 5) |
+| Mature themes: alcohol, tobacco or drug use or references | **Infrequent/Mild** | a few joke lines name beer and sour wine; nobody drinks on screen (2026-11-02 check) |
 | Medical or treatment-focused content | **None** | the helicopter flies rescue calls, nothing medical is shown |
 | Sexual content or nudity, graphic sexual content | **None** | |
 | Violence: cartoon or fantasy violence | **None** | cars bump cars, kerbs and barriers; nobody is ever hurt, pedestrians and pigeons can't be hit |
@@ -256,3 +256,25 @@ the HUD layout, the frame rate), and **once a version that supports iPad is on t
 later versions can't drop iPad**. For TestFlight it doesn't matter. Before the first App Store
 release, decide: keep iPad (screenshots are rendered, a device pass on an iPad is needed), or set
 the preset to iPhone only (value `0`) before the first release.
+
+## Uploading a build (from the Mac)
+
+The first build, 0.1 (2), went up this way on 2026-11-02. Xcode must be signed in to the team's
+account (Xcode → Settings → Accounts); nothing else is typed in.
+
+1. Bump `application/version` (the build number) in the iOS preset of `game/export_presets.cfg`;
+   App Store Connect refuses a build number it has seen.
+2. `tools/autopilot.sh off` if the Autopilot editor plugin is on (export_ios.sh refuses it).
+3. `tools/export_ios.sh`, then `godot --headless --path game --export-release "iOS"
+   ../build/ios/NocnaWarszawa.ipa` so the Xcode project links the release template.
+4. Archive: in `build/ios`, `xcodebuild -project NocnaWarszawa.xcodeproj -scheme NocnaWarszawa
+   -configuration Release -destination 'generic/platform=iOS' -archivePath
+   ../NocnaWarszawa.xcarchive -allowProvisioningUpdates CODE_SIGN_IDENTITY="Apple Development" archive`
+   (Godot writes "Apple Distribution" for Release, which automatic signing rejects for an archive;
+   the export below re-signs for distribution).
+5. Upload: `xcodebuild -exportArchive -archivePath NocnaWarszawa.xcarchive -exportOptionsPlist
+   ExportOptions.plist -exportPath upload -allowProvisioningUpdates`, with an ExportOptions.plist of
+   `method` app-store-connect, `destination` upload, `signingStyle` automatic and the team ID.
+   Or open the archive in Xcode's Organizer and press Distribute App.
+
+Processing takes 5-30 minutes; Apple emails any ITMS warning.
