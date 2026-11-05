@@ -28,5 +28,7 @@ func _init() -> void:
 	var aabb := s.mesh_instance.mesh.get_aabb()
 	_expect(aabb.size.y > 20.0 and aabb.size.y < 25.0, "height %s" % aabb)
 	_expect(load(TarasyScreen.SHADER) is Shader, "shader missing")
-	print("tarasy_screen: %s (%.1f m)" % ["OK" if _problems == 0 else "FAIL", s.length])
+	var len := s.length
+	s.free()  # no leaked render objects at exit (verify counts every ERROR line)
+	print("tarasy_screen: %s (%.1f m)" % ["OK" if _problems == 0 else "FAIL", len])
 	quit(1 if _problems > 0 else 0)

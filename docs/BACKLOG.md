@@ -11,11 +11,12 @@ Built from F's photos (`tarasy_screen.gd`, `led_screen.gdshader`). Open:
   the cat's drawing are first guesses to tune against F's videos.
 - Rebuilt after F's photos and the Mac gather (refs/skylight/REPORT.md, 2026-11-05): the screen hangs on
   a graphite box over the entrance (the mapped plate raised to 38 m), an L in plan (south face + curved
-  west return); Skylight is silver-grey cladding (was blue-green), the lit glass crown is gone for a
-  high south parapet and an oval glass cap. Still to do from the report: the tower's slim round piers
-  and glass canopy at its foot (lowest 4-5 floors), the 4-floor glazed band at 20-33 m, the small dark
-  teal window dash per floor, the podium's louvres and pink brick curved end, the roof crane. The Mac's
-  photos show printed advert panels (older); F's photos show the LED screen, which we follow.
+  west return); Skylight (`_tarasy_skylight`) is silver-grey cladding with a dark window dash per floor,
+  a dark lobby with a 5 m canopy, the 4-floor glazed belt at 20-33 m, and a roof scooped on the west
+  half with an oval glass cap. Still to do from the report: slim round piers at the foot and the gold
+  stair slits (the foot is plain dark glass), the podium's louvres and pink brick curved end, the roof
+  crane, the Palace-side look. The Mac's photos show printed advert panels (older); F's photos show the
+  LED screen, which we follow.
 - More scenes for the loop (F's ideas: sea, a car driving out of the screen) and a day/night level pass.
 
 ## Landmark look-check fixes (F's answers, 2026-11-03)

@@ -121,9 +121,10 @@ city at day and night from the station side.
 
 ## Update 2026-11-05 (F's photos + the Mac gather, refs/skylight/REPORT.md)
 
-- **Skylight**: light silver-grey cladding with small dark-teal windows (not a blue-green curtain
-  wall); 26 floors of about 3.3 m, 105 m as mapped. The lit glass frustum crown is gone: a high curved
-  parapet on the south face (3.5 m) and an oval glass cap (12 x 7 m) on the west half.
+- **Skylight** (`_tarasy_skylight`): light silver-grey cladding with a dark window dash per floor (not
+  a blue-green curtain wall); 26 floors of about 3.3 m, 105 m as mapped; dark lobby glass with a 5 m
+  canopy; a 4-floor glazed belt at 20-33 m. The lit glass frustum crown is gone: the east half
+  of the roof stays at 105 m, the west half is scooped to 100 m with an oval glass cap.
 - **The screen block**: the mapped plate over the entrance (x -1409..-1368, z 437..449) is a graphite
   box 17 to 38 m; the 3D LED screen (`tarasy_screen.gd`) hangs on its south face and curved west
   return, an L in plan, 44 x 20 m.
