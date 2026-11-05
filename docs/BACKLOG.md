@@ -972,10 +972,16 @@ OSM name "Urząd Miasta Stołecznego Warszawy", cream-yellow, grey-green roof), 
 (`wojewodzki`; OSM maps it teal, now palace yellow), the old Stock Exchange and Bank of Poland
 (`gielda`), the Arsenal (`arsenal`), Pałac Mniszchów, Dom Bankowy Landaua. The OSM already maps
 the Treasury palace's portico columns and wing pavilions; they now read in yellow with pale columns.
-- Pass 2: a modelled pediment over the main portico and the stepped gables on the wings' square
-  ends (Corazzi's facade has a six-column Corinthian portico, wings two storeys on the square), the
-  Arsenal's real front (central risalit, tall roof), Giełda's rotunda, the Bankowa tenements
-  (unnamed in OSM: need a site by point, like `_tallest_at`).
+- Pass 2 DONE 2026-11-02 from the Mac photo report (`photo-reports/ratusz.md`, spec `bankowy.md`):
+  pale ochre-cream walls under green copper on the three palaces; the Ratusz's colonnaded wings on
+  the 34 mapped columns (stylobates, entablatures), the six-column giant portico on its arcaded base
+  under an attic with no pediment (the report: no pediment); the Bank Polski's rounded corner (piers,
+  the upper tier of arches, the drum and its shallow green dome). Filharmonia's Jasna front and
+  Teatr Polski's Karasia front from their reports too (specs `filharmonia.md`, `teatr_polski.md`).
+- Left: the Voivodeship wing's own front on the square (skin only), the Arsenal's real front
+  (central risalit, tall roof; the report has no photo of it), the Akcja pod Arsenałem boulder on
+  Długa (report photos 9-11, a quiet card), the Bankowa tenements (unnamed in OSM: a site by point,
+  like `_tallest_at`); Teatr Powszechny. Mac look checks in QUESTIONS.
 - Pałac Jabłonowskich (the old Ratusz with the clock tower) is on Plac Teatralny, not here, and is
   not modelled yet (OSM "Pałac Jabłonowskich", 39 points near (-990, -1185)); next to `teatr`.
 - Overlaps Za Żelazną Bramą (PR #215): none; it works west of Al. Jana Pawła II.

@@ -56,6 +56,7 @@ someone writes its lines.
 - On Świętokrzyska the main post office stands in its pale salmon plaster, with a little grey-silver dome on the Jasna corner and six white columns under a red POCZTA band at the door; on Zielna the PAST-a tower rises 51 m, with tall arches and castle-like merlons at the top, a gilt anchor on the roof and white-and-red banners down the front.
 - Warszawa Wschodnia stands on Praga's side of the tracks: a long glass hall under a flat roof with a zig-zag folded edge on green V-shaped legs, WARSZAWA WSCHODNIA in white letters over the platforms, and rust-brown roofs on columns over its five island platforms.
 - Fewer grass islands sitting across junctions: where Warsaw paints a hatched area, the game now does too, and walls no longer stick out at the ends of the Port Praski bridge.
+- Plac Bankowy's palaces look like the real ones: pale cream under green copper roofs, the city hall's wings end in white colonnades with the giant six-column portico at the back of its courtyard, and the old Bank Polski's rounded corner has its tier of arches and a green dome. On Jasna the Philharmonic shows its colonnade with a composer on every window sill and its green FN neon, and Teatr Polski on Karasia has its round corner bays and oval windows.
 
 ## 2026-11-02
 - The Supreme Court's colonnade on Plac Krasińskich is green as in Warsaw, not white: ribbed columns with dark lettering low down and rosettes in the capitals, under green beams.
