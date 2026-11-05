@@ -12,6 +12,9 @@ someone writes its lines.
 ## 2026-11-05
 
 - The title screen no longer freezes while the city loads: a loading bar with a percentage fills up until "Tap to drive", and the city is all there when you start.
+- Crazy drivers join the traffic: Szkoda Oktawia taxis and Szprynter courier vans speed, tailgate, overtake and cut in right in front of you, and once in a while the legendary Pasatini 1.9 TDJ storms past (black smoke, left lane, no indicator). They honk and shout when they cut you off, and KEBAB FM reports Pasatini sightings.
+- Race rivals drive like people now: they launch past you and make you chase, take shortcuts across squares, lawns and car parks, cut in front of you and block your line, and sometimes run wide in a corner or take a wrong turn. Each one has a style: Zbyszek knows every shortcut, Seba blocks, Słoik follows his satnav, and Mike is as fast as your car.
+- A race won by a few metres no longer says you won by 47 seconds, and a rival right by the finish no longer drives a loop round the block to reach it.
 - Quest bubbles, toasts and the radio announcements now stay on screen as long as it takes to read them: longer text stays longer.
 - Cyclists keep to the red cycle paths: the kerb-edge courier riders no longer ride the car lanes of a road that has a cycle path beside it.
 - Footbridges no longer sag onto the road or the tracks: the one over Aleja Armii Ludowej and the three over the Ochota cutting now span the gap level.
@@ -177,7 +180,7 @@ someone writes its lines.
 - Powiśle has more to look at: the Ostrogski Castle with the Chopin Museum on Tamka, the parish church, the Syrenka statue on the boulevard, the water station and the Kaskada boat.
 - A new ice-cream parlour on Tamka, DALEJ DALLA GELATO: the queue stands all year, and in winter everyone queues in puffer jackets.
 - St John's Cathedral in the Old Town has its brick front: a stepped gable with a tall pointed window, stone pinnacles and a small gabled porch.
-- MDM on Plac Konstytucji looks like the socialist-realist district now: arcades along the ground floor of the blocks facing the square and Marszałkowska, and four stone towers with pointed roofs at the corners, each with a terracotta relief.
+- MDM on Plac Konstytucji looks like the real blocks now: cream plaster over a sand-stone base with shopfronts, small stepped pavilions with finials on the corners, and glowing roof signs: the red MDM, the Hotel MDM, and parodies of Xiaomi and BYD.
 - Most Śląsko-Dąbrowski's "find it" spot now sits on the bridge itself, where a car can reach it.
 - The football ground on Łazienkowska is a real stadium now (as "Stadion Leguminy"): a panelled facade under a red and green band, a white roof round an open middle, white, green and red stands round a striped pitch, floodlight masts at the corners and LEGUMINA in green neon, with a card.
 
