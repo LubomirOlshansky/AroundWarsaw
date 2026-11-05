@@ -518,6 +518,16 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [ ] Collision rework v2: walls redirect by angle, never stop; Classic gets the wall follow; traffic shoved, not a stop (F's phone A/B)
 - [ ] Street sweeps with verdicts per object, first Marszałkowska, Świętokrzyska, Jerozolimskie; stairwells and canopies; soft fences; narrow streets
 
+### Left: smoother roads, road objects, then buildings (F, 2026-11-04; plan docs/design/roads-and-objects-plan.md, items in docs/plan/city-plan.json)
+- [x] Research and the day-by-day plan; `tools/street_features.py` (Mapillary detections against the game's props), 2026-11-04 (docs/tools only)
+- [ ] Junction shapes with kerb returns and smoothed bends (RS1, RS2), both city paths
+- [ ] Surfaces, crossings and kerb drops from OSM tags (RS4, RS6)
+- [ ] Width that varies along streets (RS3) and the asphalt's history in the shader (RS7, bench)
+- [x] Street-objects log and the object budget (log everything, add only what earns its place), 2026-11-04
+- [ ] Lamp density look test and the traffic-light poles A/B (F picks)
+- [ ] Road-objects sweeps street by street (the census order; road-objects.md)
+- [ ] Buildings: Tiny Warsaw list P1-P4 (docs/design/tinywarsaw-area-plan.md)
+
 ### Left: street races that feel like races (F, 2026-11-04; plan docs/design/street-races.md)
 - [x] Research and race AI audit: why Halina drives slowly and by the rules, R1-R7 (2026-11-04, docs only)
 - [x] R1 racer driving mode and R2 fair rubber band, R4's numbers per rung, police chasers in racer mode (2026-11-04; phone feel open)
