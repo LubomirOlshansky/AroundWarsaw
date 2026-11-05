@@ -179,6 +179,7 @@ then the Launch gate.
       landmark threads
 - [x] Model progress page on the wiki (F, 2026-11-02): wiki.aroundwarsaw.app/models/, generated from docs/CITY_INVENTORY.md
       Part 1 (stage per place: planned, researching, done from outline, done from photos), linked from Progress.
+- [ ] Tiny Warsaw list on our map (F, 2026-11-04; docs/design/tinywarsaw-area-plan.md, list in docs/inventory/tinywarsaw_area.md): 550 of their 1,393 names lie in our box, 430 still plain blocks; plan P1-P8 and the merged backlog groups
 - [ ] City inventory Part 3: the top not-done places, one thread each, photos first (Most Poniatowskiego,
       Muzeum Powstania, Pomnik Powstania, Hotel Warszawa and Cedet, Rondo ONZ towers, the monuments pass,
       Plac Bankowy, Świętokrzyska's NBP/Poczta/PAST-a, the outline builds' photo re-pass, Praga's faces)
@@ -187,6 +188,7 @@ then the Launch gate.
           3.7 m storeys over a taller ground floor, recessed pavilion, grey-bronze loop
   - [x] Praga's faces from the Mac's photo reports (2026-11-02): St Florian's cathedral (site `florian`) and Bazar
         Różyckiego (site `bazar`); Koneser and the Multimedia Fountain Park are off the map (QUESTIONS)
+  - [x] Plac Bankowy's colonnades and the Bank Polski corner, Filharmonia, Teatr Polski from the Mac photo reports (2026-11-02, specs `bankowy.md`, `filharmonia.md`, `teatr_polski.md`)
   - [x] Poczta Główna and PAST-a from the Mac photo reports (2026-11-03, specs `poczta.md`, `pasta.md`)
   - [ ] Narodowy Bank Polski (waits on its photo report)
 - [ ] **Warsaw modernism and brutalism, high priority** (F, 2026-11-03; docs/design/modernism-collection.md,
@@ -331,8 +333,10 @@ then the Launch gate.
 - [ ] Plac Bankowy as in real life (F, 2026-11-02): DONE the Blue Skyscraper in blue mirror glass
       (new skin S_MIRROR; the gold was its first copper cladding) and the palaces in their real
       colours (kept skins `ratusz`, `wojewodzki`, `gielda`, `arsenal`, `mniszchow`, `landau`, with
-      cards). Left: pediment and stepped gables on the Treasury palace, the Jabłonowski palace on
-      Plac Teatralny, Mac photo checks (QUESTIONS, BACKLOG "Plac Bankowy")
+      cards); the photo build 2026-11-02 (spec `bankowy.md`): the Ratusz's colonnades and giant
+      portico, the Bank Polski's corner and dome, copper roofs; Filharmonia and Teatr Polski fronts
+      (specs `filharmonia.md`, `teatr_polski.md`). Left: the Voivodeship front, the Arsenał, the
+      Jabłonowski palace on Plac Teatralny, Mac photo checks (QUESTIONS, BACKLOG "Plac Bankowy")
 - [x] The river's bar barges and houseboats as models (were 14 m boxes in the water): hulls,
       glazed decks, terraces, umbrellas, festoons, gangways, parody neon names, 2026-11-01
 - [x] The sailing marina in Port Czerniakowski (2026-11-02): club house on piles, 18 sailboats,
@@ -370,6 +374,7 @@ then the Launch gate.
   - [ ] S3d Warszawa Gdańska (the map's north edge, mostly off the map; the photo report shows it being rebuilt)
   - [x] Parks come alive (2026-11-01, `park_details.gd`, `tools/bake_park_details.py`): Ogród Saski, Ogród Krasińskich, Park Ujazdowski and the castle's park get sandstone statues, a fountain, a carousel, a playground, a gazebo, pergolas, a sundial, a footbridge, ducks and swans, squirrels, people on the benches, picnics and a yoga class; the Mac look check parked
   - [ ] Łazienki Królewskie (Palace on the Isle, Chopin monument, peacocks): south of the map's edge, waits for a map extension (QUESTIONS)
+  - [x] Plac Zawiszy: rails, sleepers, wires and trains cut at the cutting's end (`Trains.trim_rails`, polygon `TUNNEL_ZAWISZY`), the tunnel mouth moved to (-1964, 812), 2026-11-05 (F's screenshot); left: the cutting's slopes on the 10 m grid (Mac 1 m corridor), wire clutter over the 12 tracks, Mac look check
   - [x] The map's edges: the land runs on past the outline (ground fading into the sky, a tree line, blocks beyond, the rails and roads running out), Wschodnia and Gdańska first, 2026-11-01; the Mac look check parked
   - [x] Roadworks close every road at the map's edge (barriers, ROBOTY DROGOWE and OBJAZD boards, cones, an excavator, a tarp fence, blinking lamps; solid; traffic stops there), 2026-11-02; the Mac look check parked
   - [x] The roadworks' boards speak the player's language (ROAD WORKS / DETOUR → in English), 2026-11-02
