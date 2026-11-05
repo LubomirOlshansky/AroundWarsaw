@@ -26,22 +26,42 @@ touch git, game code, bakes or the map data.
 
 ## Do
 
-1. `python3 -I tools/street_pass.py --street=SLUG --evidence` (no `--write`: the thread writes the
-   record). `python3 -I tools/model_library.py --json=$SCRATCH/lib.json --md=$SCRATCH/lib.md` and
-   read the categories you need.
-2. For every block and every CHECK object, look at the newest street photos:
-   `python3 -I tools/street_photos.py X Z --r=25 --max=4 --slug=road-SLUG-<block>`, then Read the
-   saved images. Write down each photo's **date**. A photo older than `fresh_since` or older than
-   a `changed` zone's date says what used to be there, not what is there now.
+1. Start from the scout's evidence brief when the brief names one (agent `street-scout`, Haiku:
+   the photo pack docs/streets/SLUG-photos.md, the block dump, the fetched photo files). Without
+   it, run the two calls yourself: `python3 -I tools/street_pass.py --street=SLUG --photos` and
+   `--dump`. **Never load centrum.json by hand** to find lanes, lines, zebras or objects: `--dump`
+   prints them in s/t with the cause of each check. Read the model library only for the categories
+   you need (`docs/models/library.json`).
+2. Look at the photos the brief lists (Read the saved images). Write down each photo's **date**.
+   A photo older than `fresh_since` or older than a `changed` zone's date says what used to be
+   there, not what is there now. Fetch one more only when a block or object has no usable photo.
 3. Look at the before shots the brief names, if any.
 4. Compare the game and today's street per block: lane count per carriageway, lane widths,
    bus and cycle lanes, tram bed, median, zebras and where they are, stop lines and arrows, kerb
    line, trees and where they stand (pavement, median or a pit), lamps, shelters, barriers and
    railings, and the building fronts (storeys, bays, colour, ground-floor shops, roofs). The game
-   draws the map data, so name the **cause** of each difference: an outdated OSM tag, a bake rule
-   (which one, in which file), a missing model, or a wrong verdict.
+   draws the map data, so name the **cause** of each difference from the cause map (the skill,
+   section 4, and `--dump`): an outdated OSM tag, a bake rule (which one, in which file), a
+   missing model, or a wrong verdict.
 5. Give each object a verdict and a model id: one from the library, or a wanted id with a one-line
-   spec when the game has nothing that fits. Reuse before you ask for a new model.
+   spec when the game has nothing that fits. Reuse before you ask for a new model. Hand calls go
+   in the report as `decisions` lines (id → verdict, model, evidence) the thread can paste into
+   streets.json.
+6. **Look pass** (the checks measure lanes and objects near lanes; F sees the whole street): take
+   the game shots of each block and the 30 m on both sides (the brief's `--spots` shots, or ask
+   the thread for them) and look at them next to a fresh photo of the same place. List every
+   visible slop in these classes, with the place (`--at=X,Z`) and the cause:
+   (a) walls, fences and railings that read wrong (a solid slab where the real thing is open, a
+   wall round stairs); (b) level changes drawn flat (sunken plazas like Patelnia, stairs down to
+   the metro, ramps); (c) asphalt stubs, wedges and ragged edges, grey patches where two road
+   strips overlap; (d) lane jumps and lines that start or end for no reason; (e) people, cyclists
+   or cars where they shouldn't be (cyclists on the road beside a cycle path); (f) objects that are
+   missing, doubled or floating. Each becomes a flag (`flags` in streets.json: id, x, z, what,
+   should) so the record scores it, and a class you see twice becomes a check or a rule.
+   **F's flags come first**: every open F1 finding is answered (fixed, or the reason and the
+   thread that owns it).
+7. **Rule-bug alarm**: if the record's history shows a class that rose after the last re-bake,
+   say first whether the rule or the check is at fault, before any street fix.
 
 ## Rules
 

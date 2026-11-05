@@ -3,8 +3,9 @@
  "title": "Marszałkowska: Rondo Dmowskiego to Świętokrzyska",
  "updated": "2026-11-05",
  "stage": "evidence",
- "score": 83,
+ "score": 76,
  "counts": {
+  "F1": 7,
   "L1": 9,
   "L2": 14,
   "O1": 8,
@@ -15,31 +16,34 @@
    "id": "A",
    "title": "Rondo Dmowskiego to Złota",
    "counts": {
+    "F1": 5,
     "L1": 3,
     "L2": 5,
     "O1": 7
    },
-   "score": 79
+   "score": 64
   },
   {
    "id": "B",
    "title": "Złota to Sienkiewicza",
    "counts": {
+    "F1": 1,
     "L1": 3,
     "L2": 4,
     "P1": 1
    },
-   "score": 85
+   "score": 82
   },
   {
    "id": "C",
    "title": "Sienkiewicza to Świętokrzyska",
    "counts": {
+    "F1": 1,
     "L1": 3,
     "L2": 5,
     "O1": 1
    },
-   "score": 85
+   "score": 82
   }
  ],
  "history": [
@@ -72,6 +76,22 @@
     "A": 79,
     "B": 85,
     "C": 85
+   }
+  },
+  {
+   "date": "2026-11-05",
+   "score": 76,
+   "counts": {
+    "F1": 7,
+    "L1": 9,
+    "L2": 14,
+    "O1": 8,
+    "P1": 1
+   },
+   "blocks": {
+    "A": 64,
+    "B": 82,
+    "C": 82
    }
   }
  ],
@@ -156,6 +176,56 @@
   "RETEXTURE": 4
  },
  "findings": [
+  {
+   "check": "F1",
+   "x": -815,
+   "z": 414,
+   "s": -233.7,
+   "t": 43.1,
+   "note": "F-02: the metro stair entrance by the Rotunda reads as a walled pit -> should: a stair entrance: steps down, low parapet or open rail, the Centrum tube roof",
+   "block": "A",
+   "status": "open"
+  },
+  {
+   "check": "F1",
+   "x": -845,
+   "z": 385,
+   "s": -196.0,
+   "t": 25.1,
+   "note": "F-05: an asphalt wedge ending in the grass by the cycle path near the Rotunda -> should: no stub: grass or pavement, or the real slip road",
+   "block": "A",
+   "status": "open"
+  },
+  {
+   "check": "F1",
+   "x": -925,
+   "z": 410,
+   "s": -191.5,
+   "t": -58.6,
+   "note": "F-04: Patelnia is flat -> should: a sunken plaza with steps down, two glass-roofed stair entrances, the kiosk, the red hoarding by the road",
+   "block": "A",
+   "status": "open"
+  },
+  {
+   "check": "F1",
+   "x": -828,
+   "z": 348,
+   "s": -167.3,
+   "t": 54.0,
+   "note": "F-03: a long grey wall slab on the Rotunda plaza -> should: CHECK what stands there today; remove it if nothing does",
+   "block": "A",
+   "status": "open"
+  },
+  {
+   "check": "F1",
+   "x": -922,
+   "z": 170,
+   "s": 32.3,
+   "t": 28.1,
+   "note": "F-06: east carriageway steps from 3 to 2 lanes with ragged asphalt edges by Złota -> should: one smooth carriageway, the extra lane opening on a 20-30 m taper [changed since the data: Skwer Linearny na Złotej (car-free since 2026-08) and its crossing to Plac Centralny]",
+   "block": "A",
+   "status": "changed"
+  },
   {
    "check": "L1",
    "x": -862.1,
@@ -307,6 +377,16 @@
    "status": "changed"
   },
   {
+   "check": "F1",
+   "x": -940,
+   "z": 130,
+   "s": 76.1,
+   "t": 25.2,
+   "note": "F-07: ragged lane edge and a jagged bus pocket on the east carriageway -> should: a clean kerb line and a drawn bus bay [changed since the data: Skwer Linearny na Złotej (car-free since 2026-08) and its crossing to Plac Centralny]",
+   "block": "B",
+   "status": "changed"
+  },
+  {
    "check": "L1",
    "x": -934.3,
    "z": 168.8,
@@ -384,6 +464,16 @@
    "t": 30.4,
    "note": "bin on the drawn road (strip Henryka Sienkiewicza)",
    "block": "B",
+   "status": "open"
+  },
+  {
+   "check": "F1",
+   "x": -990,
+   "z": 40,
+   "s": 177.9,
+   "t": 9.7,
+   "note": "F-08: cyclists ride on the car road next to the red cycle path -> should: cyclists on the cycle path",
+   "block": "C",
    "status": "open"
   },
   {

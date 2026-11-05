@@ -264,6 +264,8 @@ Found: only 559 of 45,192 scanned trees stand inside a lane, none on the test st
 road in F's shots are the drawn strip covering a real median (check T1 looks at the drawn surface).
 - [x] Pipeline, checks, records, model library, agent, skill, console tabs (2026-11-05)
 - [x] Lane lines cut at zebras (bake_roads `_crossed`, whole map; 643 of 2,177 zebras had a line across), L2 reads a zebra cut as intentional (2026-11-05, Mac re-bake)
+- [x] Workflow speed-ups from the first street's logs (probe, evidence pack, rule-bug alarm, multi-spot shots, roads-only bake, Haiku scout) (2026-11-05)
+- [ ] `overlay_ortho.py --plain` (no overlay lines, to read paint) and the flight date in its notes; raw OSM extract in the map pack so bake-rule changes can be baked in the cloud
 - [ ] Chained-carriageway lane painting with tapers (L1, 354 joins city-wide); today's lanes override; `lane_split` width sanity
 - [ ] Test street fixes and F's look (see the street record docs/streets/marszalkowska-centrum.md)
 - [x] Barrier overrides by stable id: `street_pass.py --apply` writes game/data/road_objects.json from the records and hand `decisions`, map_builder draws REMOVE / styles; `tram_railing`, `balustrade`, `balustrade_rail` styles (2026-11-05)

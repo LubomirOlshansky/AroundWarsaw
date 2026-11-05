@@ -1417,7 +1417,7 @@
 "cat": "instanced",
 "name": "bench",
 "about": "",
-"file": "game/scripts/map_builder.gd:6513",
+"file": "game/scripts/map_builder.gd:6559",
 "count": 3843,
 "used_by": [
 "centrum.json"
@@ -1428,7 +1428,7 @@
 "cat": "instanced",
 "name": "bin",
 "about": "",
-"file": "game/scripts/map_builder.gd:6526",
+"file": "game/scripts/map_builder.gd:6572",
 "count": 1561,
 "used_by": [
 "centrum.json"
@@ -1439,7 +1439,7 @@
 "cat": "instanced",
 "name": "broadleaf",
 "about": "",
-"file": "game/scripts/map_builder.gd:6418",
+"file": "game/scripts/map_builder.gd:6464",
 "count": 44180,
 "used_by": [
 "centrum.json"
@@ -1450,7 +1450,7 @@
 "cat": "instanced",
 "name": "column",
 "about": "",
-"file": "game/scripts/map_builder.gd:6543",
+"file": "game/scripts/map_builder.gd:6589",
 "count": 309,
 "used_by": [
 "centrum.json"
@@ -1461,7 +1461,7 @@
 "cat": "instanced",
 "name": "conifer",
 "about": "",
-"file": "game/scripts/map_builder.gd:6419",
+"file": "game/scripts/map_builder.gd:6465",
 "count": 1012,
 "used_by": [
 "centrum.json"
@@ -1472,7 +1472,7 @@
 "cat": "instanced",
 "name": "lamp",
 "about": "",
-"file": "game/scripts/map_builder.gd:6432",
+"file": "game/scripts/map_builder.gd:6478",
 "count": 5385,
 "used_by": [
 "centrum.json"
@@ -1483,7 +1483,7 @@
 "cat": "instanced",
 "name": "parked",
 "about": "",
-"file": "game/scripts/map_builder.gd:6478",
+"file": "game/scripts/map_builder.gd:6524",
 "count": 4901,
 "used_by": [
 "centrum.json"
@@ -1494,7 +1494,7 @@
 "cat": "instanced",
 "name": "rack",
 "about": "",
-"file": "game/scripts/map_builder.gd:6533",
+"file": "game/scripts/map_builder.gd:6579",
 "count": 1649,
 "used_by": [
 "centrum.json"
@@ -1505,7 +1505,7 @@
 "cat": "instanced",
 "name": "shelter",
 "about": "",
-"file": "game/scripts/map_builder.gd:6587",
+"file": "game/scripts/map_builder.gd:6633",
 "count": 385,
 "used_by": [
 "centrum.json"
@@ -1516,7 +1516,7 @@
 "cat": "instanced",
 "name": "signal",
 "about": "",
-"file": "game/scripts/map_builder.gd:6477",
+"file": "game/scripts/map_builder.gd:6523",
 "count": 1133,
 "used_by": [
 "centrum.json"
@@ -1527,7 +1527,7 @@
 "cat": "barrier",
 "name": "balustrade",
 "about": "#8f8f8a, 0.3 m thick, 1.0 m high (one style for every balustrade)",
-"file": "game/scripts/map_builder.gd:4497",
+"file": "game/scripts/map_builder.gd:4499",
 "count": null,
 "used_by": [
 "centrum.json lines"
@@ -1537,8 +1537,8 @@
 "id": "barrier:balustrade_rail",
 "cat": "barrier",
 "name": "balustrade_rail",
-"about": "#a9a59d, 0.15 m thick, 1.0 m high (one style for every balustrade_rail)",
-"file": "game/scripts/map_builder.gd:4498",
+"about": "#a9a59d, open railing, 1.0 m high (one style for every balustrade_rail)",
+"file": "game/scripts/map_builder.gd:4500",
 "count": null,
 "used_by": [
 "centrum.json lines"
@@ -1560,7 +1560,7 @@
 "cat": "barrier",
 "name": "guard rail",
 "about": "",
-"file": "game/scripts/map_builder.gd:4782",
+"file": "game/scripts/map_builder.gd:4828",
 "count": null,
 "used_by": [
 "centrum.json guards"
@@ -1592,8 +1592,8 @@
 "id": "barrier:tram_railing",
 "cat": "barrier",
 "name": "tram_railing",
-"about": "#22262a, 0.06 m thick, 1.1 m high (one style for every tram_railing)",
-"file": "game/scripts/map_builder.gd:4496",
+"about": "#22262a, open railing, 1.1 m high (one style for every tram_railing)",
+"file": "game/scripts/map_builder.gd:4498",
 "count": null,
 "used_by": [
 "centrum.json lines"

@@ -147,28 +147,28 @@ Counts: barrier 8, detail 12, instanced 10, landmark 125, monument 10, park 14, 
 
 | Id | Name | In the map | Code | About |
 | --- | --- | --- | --- | --- |
-| `instanced:bench` | bench | 3843 | game/scripts/map_builder.gd:6513 |  |
-| `instanced:bin` | bin | 1561 | game/scripts/map_builder.gd:6526 |  |
-| `instanced:broadleaf` | broadleaf | 44180 | game/scripts/map_builder.gd:6418 |  |
-| `instanced:column` | column | 309 | game/scripts/map_builder.gd:6543 |  |
-| `instanced:conifer` | conifer | 1012 | game/scripts/map_builder.gd:6419 |  |
-| `instanced:lamp` | lamp | 5385 | game/scripts/map_builder.gd:6432 |  |
-| `instanced:parked` | parked | 4901 | game/scripts/map_builder.gd:6478 |  |
-| `instanced:rack` | rack | 1649 | game/scripts/map_builder.gd:6533 |  |
-| `instanced:shelter` | shelter | 385 | game/scripts/map_builder.gd:6587 |  |
-| `instanced:signal` | signal | 1133 | game/scripts/map_builder.gd:6477 |  |
+| `instanced:bench` | bench | 3843 | game/scripts/map_builder.gd:6559 |  |
+| `instanced:bin` | bin | 1561 | game/scripts/map_builder.gd:6572 |  |
+| `instanced:broadleaf` | broadleaf | 44180 | game/scripts/map_builder.gd:6464 |  |
+| `instanced:column` | column | 309 | game/scripts/map_builder.gd:6589 |  |
+| `instanced:conifer` | conifer | 1012 | game/scripts/map_builder.gd:6465 |  |
+| `instanced:lamp` | lamp | 5385 | game/scripts/map_builder.gd:6478 |  |
+| `instanced:parked` | parked | 4901 | game/scripts/map_builder.gd:6524 |  |
+| `instanced:rack` | rack | 1649 | game/scripts/map_builder.gd:6579 |  |
+| `instanced:shelter` | shelter | 385 | game/scripts/map_builder.gd:6633 |  |
+| `instanced:signal` | signal | 1133 | game/scripts/map_builder.gd:6523 |  |
 
 ## barrier (8)
 
 | Id | Name | In the map | Code | About |
 | --- | --- | --- | --- | --- |
-| `barrier:balustrade` | balustrade |  | game/scripts/map_builder.gd:4497 | #8f8f8a, 0.3 m thick, 1.0 m high (one style for every balustrade) |
-| `barrier:balustrade_rail` | balustrade_rail |  | game/scripts/map_builder.gd:4498 | #a9a59d, 0.15 m thick, 1.0 m high (one style for every balustrade_rail) |
+| `barrier:balustrade` | balustrade |  | game/scripts/map_builder.gd:4499 | #8f8f8a, 0.3 m thick, 1.0 m high (one style for every balustrade) |
+| `barrier:balustrade_rail` | balustrade_rail |  | game/scripts/map_builder.gd:4500 | #a9a59d, open railing, 1.0 m high (one style for every balustrade_rail) |
 | `barrier:fence` | fence | 4932 | game/scripts/map_builder.gd:4488 | #7d838a, 0.12 m thick, 1.6 m high (one style for every fence) |
-| `barrier:guard_rail` | guard rail |  | game/scripts/map_builder.gd:4782 |  |
+| `barrier:guard_rail` | guard rail |  | game/scripts/map_builder.gd:4828 |  |
 | `barrier:hedge` | hedge | 1083 | game/scripts/map_builder.gd:4487 | #4f7d39, 0.9 m thick, 1.2 m high (one style for every hedge) |
 | `barrier:platform` | platform | 351 | game/scripts/map_builder.gd:4490 | #d2cdc3, 2.4 m thick, 0.25 m high (one style for every platform) |
-| `barrier:tram_railing` | tram_railing |  | game/scripts/map_builder.gd:4496 | #22262a, 0.06 m thick, 1.1 m high (one style for every tram_railing) |
+| `barrier:tram_railing` | tram_railing |  | game/scripts/map_builder.gd:4498 | #22262a, open railing, 1.1 m high (one style for every tram_railing) |
 | `barrier:wall` | wall | 2083 | game/scripts/map_builder.gd:4489 | #a49d92, 0.35 m thick, 1.9 m high (one style for every wall) |
 
 ## detail (12)

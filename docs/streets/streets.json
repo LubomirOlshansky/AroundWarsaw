@@ -116,7 +116,78 @@
      "balustrade_rail",
      "stair at the tram platform tip: concrete upstand with a black rail (Mapillary 1023049187379291, 2026-08-30)"
     ]
-   }
+   },
+   "flags": [
+    {
+     "id": "F-01",
+     "x": -887,
+     "z": 402,
+     "by": "F 2026-11-05 (phone)",
+     "what": "black strip along the Patelnia edge by the road (the tram_railing style drawn as a solid 1.1 m slab)",
+     "should": "an open black railing you see through",
+     "done": "2026-11-05 open railing style"
+    },
+    {
+     "id": "F-02",
+     "x": -815,
+     "z": 414,
+     "by": "F 2026-11-05 (phone)",
+     "what": "the metro stair entrance by the Rotunda reads as a walled pit",
+     "should": "a stair entrance: steps down, low parapet or open rail, the Centrum tube roof"
+    },
+    {
+     "id": "F-03",
+     "x": -828,
+     "z": 348,
+     "by": "F 2026-11-05 (phone)",
+     "what": "a long grey wall slab on the Rotunda plaza",
+     "should": "CHECK what stands there today; remove it if nothing does"
+    },
+    {
+     "id": "F-04",
+     "x": -925,
+     "z": 410,
+     "by": "F 2026-11-05 (phone + aerial)",
+     "what": "Patelnia is flat",
+     "should": "a sunken plaza with steps down, two glass-roofed stair entrances, the kiosk, the red hoarding by the road"
+    },
+    {
+     "id": "F-05",
+     "x": -845,
+     "z": 385,
+     "by": "F 2026-11-05 (phone)",
+     "approx": true,
+     "what": "an asphalt wedge ending in the grass by the cycle path near the Rotunda",
+     "should": "no stub: grass or pavement, or the real slip road"
+    },
+    {
+     "id": "F-06",
+     "x": -922,
+     "z": 170,
+     "by": "F 2026-11-05 (phone)",
+     "approx": true,
+     "what": "east carriageway steps from 3 to 2 lanes with ragged asphalt edges by Złota",
+     "should": "one smooth carriageway, the extra lane opening on a 20-30 m taper"
+    },
+    {
+     "id": "F-07",
+     "x": -940,
+     "z": 130,
+     "by": "F 2026-11-05 (phone)",
+     "approx": true,
+     "what": "ragged lane edge and a jagged bus pocket on the east carriageway",
+     "should": "a clean kerb line and a drawn bus bay"
+    },
+    {
+     "id": "F-08",
+     "x": -990,
+     "z": 40,
+     "by": "F 2026-11-05 (phone)",
+     "approx": true,
+     "what": "cyclists ride on the car road next to the red cycle path",
+     "should": "cyclists on the cycle path"
+    }
+   ]
   }
  ]
 }

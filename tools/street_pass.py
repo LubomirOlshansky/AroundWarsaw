@@ -4,6 +4,11 @@ writes its record (the score the dev console shows), and fails when a swept stre
     python3 -I tools/street_pass.py --street=SLUG [--write] [--evidence] [--map=game/map/centrum.json]
     python3 -I tools/street_pass.py --check          # every street with a record; exit 1 if any got worse
     python3 -I tools/street_pass.py --list           # the streets defined in docs/streets/streets.json
+    python3 -I tools/street_pass.py --street=SLUG --dump[=BLOCK]   # the auditor's probe: ways, lines, zebras,
+                                                     # objects, findings and their causes, in s/t
+    python3 -I tools/street_pass.py --street=SLUG --photos         # one evidence pack: newest photos per block
+                                                     # side and CHECK object -> docs/streets/SLUG-photos.md
+    python3 -I tools/street_pass.py --apply          # game/data/road_objects.json from the records
 
 A street is a box in its own frame (`s` metres along the street, `t` metres across it) with blocks
 between junctions, the areas other threads own (findings there are listed as "owned", never scored)
@@ -45,9 +50,20 @@ import road_objects as RO  # noqa: E402  (the lanes, the solids census)
 
 DEFS = os.path.join(ROOT, "docs", "streets", "streets.json")
 OUT_DIR = os.path.join(ROOT, "docs", "streets")
-WEIGHTS = {"L1": 3, "L2": 1, "L3": 2, "L4": 2, "T1": 3, "P1": 2, "O1": 1}
+WEIGHTS = {"L1": 3, "L2": 1, "L3": 2, "L4": 2, "T1": 3, "P1": 2, "O1": 1, "F1": 3}
 TITLES = {"L1": "lane step", "L2": "loose lane line", "L3": "line on a kerb", "L4": "line through a zebra", "T1": "tree on the road",
-          "P1": "prop on the road", "O1": "solid within 1 m of a lane"}
+          "P1": "prop on the road", "O1": "solid within 1 m of a lane", "F1": "F's flag (a circled screenshot)"}
+# Where each check's findings come from (the street-pass skill's cause map): fix the rule, not the place.
+CAUSES = {
+    "L1": "tools/bake_roads.py bake_lane_lines: each OSM way painted on its own; lane count or width steps at way joins (RS3 tapers)",
+    "L2": "tools/bake_roads.py _paint_along/_crossed: a line cut where nothing explains it (a way end, a hidden strip)",
+    "L3": "tools/bake_roads.py bake_kerbs vs bake_lane_lines: the kerb and the paint read different widths (`w`, `c`)",
+    "L4": "tools/bake_roads.py _crossed: zebras must cut lane and centre lines (ZEBRA_HALF + ZEBRA_GAP)",
+    "T1": "the drawn strip covers a real median or pavement (map_builder _build_roads `w`/`c`, carriage areas), rarely a bad tree",
+    "P1": "tools/bake_osm.py snap_props / street_details: a prop not snapped clear of the drawn road",
+    "O1": "a solid barrier near a lane: verdict by classify() B-rules, style or REMOVE via --apply (road_objects.json)",
+    "F1": "F looked and saw slop the checks don't measure: find the class (a level, a wall, a stub, a behaviour), add a check or a rule for it, then close the flag with `done`",
+}
 LOOSE_REACH = 2.0      # L2: another line's end this close continues the line
 JUNCTION_REACH = 14.0  # L2: a line may end this close to a junction node
 STOP_REACH = 5.0       # L2: ...or to a stop line
@@ -299,6 +315,12 @@ def measure(d, sd):
         if best[1] is not None and best[0] < 1.0:
             add("O1", best[1], f"{cls}/{kind} {max(best[0], 0.0):.1f} m from a lane's edge")
 
+    # F1: F's flags (streets.json "flags": a circled screenshot turned into a place and a "should be").
+    # They stay open, and cost the score, until the street's definition marks them `done`.
+    for fl in sd.get("flags", []):
+        if not fl.get("done"):
+            add("F1", (fl["x"], fl["z"]), f"{fl['id']}: {fl['what']} -> should: {fl['should']}")
+
     # Blocks, owned areas, changed zones.
     for f in out:
         st = (f["s"], f["t"])
@@ -468,6 +490,131 @@ def evidence(sd):
     return res
 
 
+def dump(d, sd, block=None):
+    """--dump[=BLOCK]: everything an auditor needs about a block, in the street's frame (s along, t
+    across, metres), so nobody loads the 17 MB map by hand: the ways (direction, lanes, width,
+    offset), lane-line ends, zebras, stop lines, junction nodes, objects with verdict and model, and
+    the findings with their cause. Plain text, one table per kind."""
+    fr = Frame(sd["frame"])
+    blocks = [b for b in sd["blocks"] if not block or b["id"] == block]
+    if not blocks:
+        print(f"street_pass: no block {block} (blocks: {', '.join(b['id'] for b in sd['blocks'])})")
+        return 2
+    names = set(sd["names"])
+    t0, t1 = sd["t"]
+    findings = measure(d, sd)
+    objs = classify(d, sd)
+
+    def rng(pts):
+        ss = [fr.st(*p) for p in pts]
+        return min(x[0] for x in ss), max(x[0] for x in ss), sum(x[1] for x in ss) / len(ss)
+
+    for b in blocks:
+        s0, s1 = b["s"]
+
+        def inb(p, pad=0.0):
+            s, t = fr.st(*p)
+            return s0 - pad <= s <= s1 + pad and t0 - pad <= t <= t1 + pad
+        print(f"== block {b['id']} {b['title']}  s {s0}..{s1}, t {t0}..{t1}")
+        print("ways (name, kind, s range, mean t, dir, lanes, width m, offset c)")
+        for r in d["roads"]:
+            pts = pairs(r["p"])
+            if not any(inb(p, 5) for p in pts):
+                continue
+            a, z, tm = rng(pts)
+            first, last = fr.st(*pts[0]), fr.st(*pts[-1])
+            way = "north" if last[0] > first[0] else "south"
+            mark = "*" if r.get("name") in names else " "
+            print(f" {mark} {r.get('name') or '-':24.24} {r['k']:12.12} s {a:7.1f}..{z:7.1f} t {tm:6.1f} {way:5} "
+                  f"lanes {r.get('lanes') or '-':>2} w {float(r['w']):5.2f} c {float(r.get('c', 0) or 0):5.2f}"
+                  f"{'  oneway' if r.get('oneway') else ''}")
+        print("lines (kind, s range, mean t)  [lane/centre/edge/stop]")
+        for m in d["markings"]:
+            if m.get("k") not in ("lane", "centre", "edge", "stop"):
+                continue
+            pts = pairs(m["p"])
+            if not any(inb(p) for p in pts):
+                continue
+            a, z, tm = rng(pts)
+            print(f"   {m['k']:6} s {a:7.1f}..{z:7.1f} t {tm:6.1f}")
+        print("zebras and crossings (kind, s, t range)")
+        for w in d.get("paths", []):
+            if w.get("k") not in ("zebra", "cyclecross"):
+                continue
+            pts = pairs(w["p"])
+            if not any(inb(p, 3) for p in pts):
+                continue
+            ss = [fr.st(*p) for p in pts]
+            print(f"   {w['k']:10} s {sum(x[0] for x in ss) / len(ss):7.1f} t {min(x[1] for x in ss):6.1f}..{max(x[1] for x in ss):6.1f}")
+        jn = [fr.st(*n) for n in junction_nodes(d) if inb(n)]
+        print("junction nodes (s, t): " + ", ".join(f"({s:.0f},{t:.0f})" for s, t in sorted(jn)))
+        print("objects within 3 m of a lane (id, s, t, gap m, length m, verdict, model, rule)")
+        for o in objs:
+            s, t = fr.st(o["x"], o["z"])
+            if s0 <= s <= s1:
+                print(f"   {o['id']:28} s {s:6.1f} t {t:6.1f} gap {o['gap']:4} len {o['len']:5} {o['verdict']:9} {o.get('model', ''):20} {o.get('rule', '')}")
+        print("findings (check, s, t, status, note)")
+        for f in findings:
+            if f["block"] == b["id"]:
+                print(f"   {f['check']} s {f['s']:6.1f} t {f['t']:6.1f} {f['status']:7} {f['note']}")
+        used = sorted({f["check"] for f in findings if f["block"] == b["id"]})
+        for k in used:
+            print(f"cause {k}: {CAUSES[k]}")
+    return 0
+
+
+def photos(sd, slug_prefix, step=60.0, max_per=3):
+    """--photos: one evidence pack for the whole street. The newest photos per block (every `step` m
+    along both carriageways) and per CHECK object, saved by tools/street_photos.py under
+    refs/road-SLUG-*, and docs-ready table docs/streets/SLUG-photos.md (id, place, date, fresh?).
+    The auditor then only looks; nobody fetches by hand."""
+    import street_photos as SP
+    fr = Frame(sd["frame"])
+    fresh = sd.get("fresh_since", "")
+    t_l, t_r = sd.get("street_t", sd["t"])
+    rows = []
+    spots = []
+    for b in sd["blocks"]:
+        s = b["s"][0] + step / 2
+        while s < b["s"][1]:
+            for side, t in (("west", t_l + 4), ("east", t_r - 4)):
+                spots.append((f"{b['id']}-s{int(s)}-{side}", b["id"], s, t))
+            s += step
+    rec_path = os.path.join(OUT_DIR, sd["slug"] + ".json")
+    if os.path.exists(rec_path):
+        for o in json.load(open(rec_path, encoding="utf-8")).get("objects", []):
+            if o["verdict"] in ("CHECK", "A/B") and o["status"] == "open":
+                s, t = fr.st(o["x"], o["z"])
+                spots.append((o["id"].replace(":", "_"), "obj", s, t))
+    for name, blk, s, t in spots:
+        x, z = fr.xz(s, t)
+        lat, lon = SP.unproject(x, z)
+        got = []
+        for fetch in (SP.mapillary, SP.panoramax):
+            try:
+                got += fetch(lat, lon, 25)
+            except Exception as e:
+                print(f"street_pass: {fetch.__name__} failed at {name}: {e}", file=sys.stderr)
+        got = sorted(got, key=lambda p: p.get("date", ""), reverse=True)[:max_per]
+        for p in got:
+            rows.append((blk, name, round(s), round(t), f"{p['src']} {p.get('id', '')}", p.get("date", ""),
+                         (p.get("date", "") >= fresh) if fresh else None))
+        if not got:
+            rows.append((blk, name, round(s), round(t), "", "", None))
+    out = os.path.join(OUT_DIR, sd["slug"] + "-photos.md")
+    with open(out, "w", encoding="utf-8") as fh:
+        fh.write(f"# Evidence pack: {sd['title']}\n\nWritten by `tools/street_pass.py --street={sd['slug']} --photos` on "
+                 f"{datetime.date.today().isoformat()}. Fresh = on or after {fresh or '(no fresh_since)'}; older photos are "
+                 "history, not evidence. Fetch the images with `tools/street_photos.py X Z` only for the rows you look at.\n\n"
+                 "| Block | Spot | s | t | Photo (source id) | Date | Fresh |\n| --- | --- | --- | --- | --- | --- | --- |\n")
+        for r in rows:
+            fh.write(f"| {r[0]} | {r[1]} | {r[2]} | {r[3]} | {r[4]} | {r[5]} | {'yes' if r[6] else ('no' if r[6] is False else '-')} |\n")
+    gaps = sorted({r[1] for r in rows if not r[5] or r[6] is False} - {r[1] for r in rows if r[6]})
+    print(f"street_pass: {len(rows)} photo rows for {len(spots)} spots -> {os.path.relpath(out, ROOT)}")
+    print(f"  spots with no fresh photo ({len(gaps)}): " + ", ".join(gaps))
+    return 0
+
+
 def write_record(sd, findings, ev, objs):
     blocks, counts, total = summarise(findings, sd)
     path = os.path.join(OUT_DIR, sd["slug"] + ".json")
@@ -569,7 +716,10 @@ def main():
             print(f"street_pass counts: {sd['slug']} score {total} (record {rec['score']}) {counts}")
         if bad:
             print("\n".join(bad))
-            print(f"street_pass: FAIL ({len(bad)} checks got worse; fix, or re-record on purpose with --write)")
+            for k in sorted({b.split(": ")[1].split()[0] for b in bad}):
+                print(f"  {k} rose: suspect the rule, not the street ({CAUSES[k]})")
+            print(f"street_pass: FAIL ({len(bad)} checks got worse; a class that rises after a re-bake is a rule bug "
+                  "until shown otherwise; fix, or re-record on purpose with --write)")
             return 1
         print(f"street_pass: OK ({n} streets)")
         return 0
@@ -578,6 +728,10 @@ def main():
     if not sd:
         print("street_pass: --street=SLUG needed (see --list)")
         return 2
+    if "--dump" in opt:
+        return dump(d, sd, None if opt["--dump"] is True else opt["--dump"])
+    if "--photos" in opt:
+        return photos(sd, sd["slug"])
     findings = measure(d, sd)
     blocks, counts, total = summarise(findings, sd)
     ev = evidence(sd) if "--evidence" in opt else None
