@@ -659,6 +659,9 @@ west end: 90 → 93 draw calls (main 34 → 36, shadow 17 → 18), 0.39 → 0.41
 - [ ] That ram: 7 narrow closures let a car thrown aside by a kerb past the barrier's end, and at Andersa
   (-1961, -2763) it rides a level 7.5 m above the barriers; all stop at the edge wall, 7 m on. Widen the lines to the
   kerbs or walls beside them?
+- [ ] `check_streaming` fails on the Mac (2026-11-05, on 550c3f03 plus this fix): the pixel pairs show two different
+  places (the two runs no longer land on the same spot), and identity finds 38 building tiles and 402 collider faces
+  differing between the whole city and the sectors. Not from this fix (no mesh touched); needs its own look.
 - [ ] Phone: the meshes now cost the worker thread and ~30 MB at the start on the iPhone 11; bench it there.
 - ~~English boards~~ (satire doc #10, 2026-11-02): in English the boards read ROAD WORKS / DETOUR → (the
   British words, as wide as the Polish, so the board keeps its size); a language change in Settings builds the
