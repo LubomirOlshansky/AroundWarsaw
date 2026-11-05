@@ -26,6 +26,9 @@ spots' Mac look checks (2.12); (3) Jana Pawła II and the other boulevards block
 missing pieces (3.1); (5) the P3 groups (churches, palaces, culture, bridges); (6) then street by
 street through the whole box, houses, roads and parks, until it feels alive (F's standing ask).
 Progress is ticked in docs/ROADMAP.md "v1.0 checklist".
+**F's look-check answers (2026-11-03)** applied to Hotel Warszawa, Poczta, PAST-a, the Rising Museum,
+Norblin, Browary, Wschodnia, Bazar Różyckiego and Pasaż Wiecha (BACKLOG "Landmark look-check fixes");
+Cedet, the Europejski, the KP gate, the Castle and Poniatowski are other threads' items.
 
 ## Part 1. The plan, by priority
 

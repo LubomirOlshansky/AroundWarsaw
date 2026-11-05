@@ -3,6 +3,43 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+
+## Landmark look-check fixes (F's answers, 2026-11-03)
+F's answers on the reviewed look-check page (look-check-answers.md in the project files), the smaller
+ones. Shots in the project files, look-check-fixes/. Done:
+- ~~Hotel Warszawa: wings-to-base join, portal, crown cornice~~: one granite plinth, stone ground-floor
+  face and string course across wings and shaft; the wings rise to the back U's 25 m under cornices that
+  turn the corner; the portal has dark reveals and a cornice slab; both cornices step out (1.5 / 1.1 m)
+  over a shadow line (`_hw_cornice`).
+- ~~Poczta's colonnade~~: a shallow recess between two piers, columns half in the front's plane, the red
+  band as a canopy over the pavement; pale warm stone with a pink cast (`#ecd2c2`, skin too).
+- ~~PAST-a's colour~~: darker weathered grey-brown (`#877667`), base and trim darker. OSM footprint kept.
+- ~~MPW's pale bannered wing and deeper arches~~: MPW_LOW is a three-storey pale wing (12.5 m) with two
+  hung banners and four flags; W2's arches get a wide archivolt and a dark reveal, piers 0.6 m out.
+- ~~Norblin~~ (F's photos + the Mac's read of them): copper base (lit warm at night on the south faces),
+  dark office storeys with fine fins, the top two set back behind planters; the glass-roofed passage
+  between Galwan and Plater; the white workshops and the glazed hall on Prosta as white walls under dark
+  zinc hips (they were generic boxes; `tools/bake_sectors.py` SITE_AREAS has their area). Card text: no
+  chimney.
+- ~~Browary's garden~~: the 17 young trees replanted in four clumps (`tools/planted_trees.py` "groups",
+  an old map unplants and replants once: `browary@groups`; AO re-baked, 850 bytes changed), the path
+  edged in dark steel, the clearings in pale stone.
+- ~~Wschodnia~~: pleats 2.3 m deep and 0.9 m out, struts 0.42 m every 6 m spread 2.4 m; the two short
+  suburban platforms roofed from x 2020 east (WSC_SUBURBAN_X).
+- ~~Bazar Różyckiego~~: three units a side always; most old stalls get a patched sheet or tarp.
+- ~~Pasaż Wiecha~~: the slabs light warm grey with a balcony ledge every storey; the Y masts stand to
+  11 m with 2.2 m blades.
+Found and left:
+- Norblin: the glass roof's real extent and both court links (built: the gap between the two outlines);
+  the gate through the white house on Żelazna with its lit sign; café tables in the lane; the
+  rust-clad pavilion at the lane's far end; the lit stage pavilion at the glazed hall's west end.
+- Wschodnia: the ortho shows the main platforms' rust roofs much shorter (about x 1878-1966, two
+  pairs) than the built x 1860-2120 run; check with a photo before cutting them.
+- Pasaż Wiecha: a Christmas tree on the pasaż for a winter event (F: yes; needs a season flag).
+- MPW: the platform's overhang direction (west/south) stays provisional.
+- The Norblin copper glow at night is flat and strong at phone size; a phone look should say if it
+  needs toning down.
+
 ## Lessons from Tiny Warsaw (F, 2026-11-04; docs/design/tiny-warsaw-comparison.md)
 
 - **PWSM 1967 point blocks as one kit** (Jerozolimskie 135-141, Niemcewicza 24-25, Spiska 4A/16A, Grójecka 14A): candidate for the modernism lane, needs Mac photos first.
@@ -4111,3 +4148,7 @@ first rescue, the boulevard tape and its song, the Powiśle arrow, the garage at
   a notebook place in `places.json`. Content lane (game-designer for names and spots).
 
 - **Railway look (F, 2026-11-05):** Plac Zawiszy tunnel stretch fixed (rails cut, mouth moved, #this PR). Still off: the Ochota cutting's banks are the 10 m grid's smooth slopes (no retaining walls, tan ballast sheet climbing them), overhead wires drawn per track pile up over the 12 tracks; the second spot F found (night, a highway with a rail/tram overpass) is not located; Kładka nad Książęcą (deck 58, (262,500)-(228,426)) waits for F's description of what is wrong.
+
+- **Sagging footbridges (F, 2026-11-05):** the bake's path-deck heights sag 4-6 m onto the floor of a trench they cross (10 m grid): fixed at load by `map_builder._lift_sagging_deck` for 6 pieces (decks 37, 43, 48, 55). The Kładka nad Książęcą was probably not this (deck 58 (262,500)-(228,426) has no sag); F's report was the Armii Ludowej one. Piers under the lifted decks are the bake's (placed for the sagged profile): Mac look check for floating or missing supports; the proper fix is in `bake_roads._solve` (deck over a trench takes the rim level).
+
+- **Footbridges, bridges and stairs survey (F, 2026-11-05):** `docs/design/footbridges-stairs-survey.md`: 11 of 23 footbridges end 2.6-10.5 m above ground, all 36 path pieces have no rails or lamps, 2,262 stairs are flat strips. Ranked fix list (footbridge kit, stair kit, footbridge ends, bake sag fix, named footbridges, vehicle-bridge dressing); none started.
