@@ -9,6 +9,10 @@ that day here, in plain words a player would understand (no file names, no spoil
 rows in the progress log but no section here is listed automatically from the log's labels until
 someone writes its lines.
 
+## 2026-11-05
+
+- The railway at Plac Zawiszy no longer runs over the street: the tracks, sleepers and overhead wires stop where the cutting ends and the tunnel mouth stands, and trains disappear into it.
+
 ## 2026-11-04
 
 - Kebab and jar deliveries show the way on the minimap, say how long the kebab stays hot, and a NEXT button on the delivered card points you to the nearest kebab stand; races show the way to the finish, the gap in seconds, who just took the lead and how close the finish was; and Settings → Driving has a new Lane assist switch that keeps the car in its lane while you hold the steering near the middle.
