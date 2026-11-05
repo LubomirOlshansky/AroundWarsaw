@@ -109,10 +109,11 @@ def build():
         if ln.startswith("const BARRIER_STYLE"):
             j = i + 1
             while not mb[j].startswith("}"):
-                m = re.match(r'\s*"([a-z_]+)": \["(#[0-9a-f]+)", ([0-9.]+), ([0-9.]+)\]', mb[j])
+                m = re.match(r'\s*"([a-z_]+)": \["(#[0-9a-f]+)", ([0-9.]+), ([0-9.]+)(, \[[^\]]*\])?\]', mb[j])
                 if m:
                     k = m.group(1)
-                    lib.append({"id": "barrier:" + k, "cat": "barrier", "name": k, "about": f"{m.group(2)}, {m.group(3)} m thick, {m.group(4)} m high (one style for every {k})",
+                    kind = "open railing" if m.group(5) else f"{m.group(3)} m thick"
+                    lib.append({"id": "barrier:" + k, "cat": "barrier", "name": k, "about": f"{m.group(2)}, {kind}, {m.group(4)} m high (one style for every {k})",
                                 "file": f"game/scripts/map_builder.gd:{j + 1}", "count": line_kinds.get(k), "used_by": ["centrum.json lines"]})
                 j += 1
         if ln.startswith("func _build_guard_rails("):

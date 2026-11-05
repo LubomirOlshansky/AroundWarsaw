@@ -4098,15 +4098,25 @@ func _build_paths(st) -> void:
 	_layer = L_GROUND
 
 
+## Smooth roads loop 2: the depth bias of service roads and living streets (the streets' 0.3).
+const MINOR_ROAD_BIAS := 0.25
+
+
 ## Roads as strips `w` wide around their centreline shifted `c` to the right, except
 ## where a mapped carriageway area already covers them ("hide": metres along the road).
 func _build_roads(st) -> void:
 	_layer = L_ROAD
+	var keep := _drape_bias
 	for r in data["roads"]:
 		var minor: bool = r["k"] in ["service", "living_street"]
 		var col: Color = COL["road_minor"] if minor else COL["road"]
 		var w := float(r["w"])
 		var y := Y_ROAD - (0.005 if minor else 0.0)
+		# Smooth roads loop 2 (F's crop by the PKiN driveway): a service road's 10 m pieces sag
+		# over the grid's folds unlike the street's they run into, so 5 mm under it was not enough
+		# and its paler asphalt poked up through the street in flags cut along the grid lines.
+		# A lower depth bias (between the rail beds' and the roads') keeps it under every street.
+		_drape_bias = MINOR_ROAD_BIAS if minor and keep >= 0.0 else keep
 		_dk = int(r.get("dk", -1))
 		var full := _pts(r["p"])
 		var tapered: bool = r.has("wv")
@@ -4117,6 +4127,21 @@ func _build_roads(st) -> void:
 				# at its ends and bends no longer bulge past the narrower way.
 				var prof := _profile(r, full, run[3])
 				var rp: PackedVector2Array = run[0]
+				# Smooth roads loop 3: where the band goes under a mapped carriageway area, it runs
+				# on half its width under the area (as a plain strip's square cap does), so an
+				# area whose outline starts at a slant leaves no bare triangle by the kerb.
+				var ws: PackedFloat32Array = prof[0]
+				var cs: PackedFloat32Array = prof[1]
+				if run[1] and rp.size() >= 2:
+					rp.insert(0, rp[0] - (rp[1] - rp[0]).normalized() * ws[0] * 0.5)
+					ws.insert(0, ws[0])
+					cs.insert(0, cs[0])
+				if run[2] and rp.size() >= 2:
+					var e := rp.size() - 1
+					rp.append(rp[e] + (rp[e] - rp[e - 1]).normalized() * ws[e] * 0.5)
+					ws.append(ws[e])
+					cs.append(cs[e])
+				prof = [ws, cs]
 				_band_var(st, rp, prof[0], prof[1], y, col)
 				var mid := _offset_var(rp, prof[1])
 				for i in rp.size():
@@ -4140,6 +4165,7 @@ func _build_roads(st) -> void:
 					continue
 				if bend > 0.12:
 					_disc(st, poly[i], w * 0.5, y, col)
+	_drape_bias = keep
 	_dk = -1
 	_layer = L_GROUND
 
@@ -4309,10 +4335,13 @@ static func _offset(poly: PackedVector2Array, off: float) -> PackedVector2Array:
 ## and bus bays included; hatched areas are asphalt too (the hatching comes later).
 func _build_carriageways(st) -> void:
 	_layer = L_ROAD
+	var keep := _drape_bias
 	for c in data.get("carriage", []):
 		_dk = int(c.get("dk", -1))
 		var minor: bool = c["k"] in ["service", "living_street"]
+		_drape_bias = MINOR_ROAD_BIAS if minor and keep >= 0.0 else keep
 		_fill(st, _pts(c["p"]), Y_ROAD - (0.005 if minor else 0.0), COL["road_minor"] if minor else COL["road"])
+	_drape_bias = keep
 	_dk = -1
 	_layer = L_GROUND
 
@@ -4587,10 +4616,52 @@ const BARRIER_STYLE := {
 	# black steel railing along tram beds and platform edges (1.1 m); the balustrades go round stairs
 	# instead of the 1.9 m grey wall: granite at metro entrances, a concrete upstand with a rail
 	# at platform and underpass stairs.
-	"tram_railing": ["#22262a", 0.06, 1.1],
+	# A 4th entry makes the style an open railing (F, 2026-11-05: the solid 1.1 m black strip read
+	# as a black wall): [upstand height, rail colour]; posts every 2 m and two rails, see-through.
+	"tram_railing": ["#22262a", 0.06, 1.1, [0.0, "#22262a"]],
 	"balustrade": ["#8f8f8a", 0.3, 1.0],
-	"balustrade_rail": ["#a9a59d", 0.15, 1.0],
+	"balustrade_rail": ["#a9a59d", 0.2, 1.0, [0.45, "#2a2e33"]],
 }
+
+
+## An open railing along `poly`: an optional concrete upstand, then round-ish posts every 2 m and a
+## top and a middle rail you can see through (Operation Unslop's tram railing and stair balustrade).
+## It collides like a wall of the same height, so driving stays as it was.
+func _railing_along(st, poly: PackedVector2Array, height: float, upstand: float, up_col: Color, rail_col: Color, collide: bool) -> void:
+	if upstand > 0.0:
+		_wall_along(st, poly, 0.2, upstand, up_col, false)
+	var run := 0.0
+	var next_post := 0.0
+	var low := maxf(upstand, 0.0) + (0.1 if upstand > 0.0 else 0.35)
+	for i in poly.size() - 1:
+		var a := poly[i]
+		var b := poly[i + 1]
+		var length := a.distance_to(b)
+		if length < 0.05:
+			continue
+		var dir := (b - a) / length
+		var side := Vector2(-dir.y, dir.x) * 0.03
+		var ga := terrain_height(a.x, a.y)
+		var gb := terrain_height(b.x, b.y)
+		var n := Vector3(side.x, 0, side.y).normalized()
+		for h in [low, height - 0.05]:
+			for sgn in [1.0, -1.0]:
+				var o: Vector2 = side * sgn
+				_quad(st, Vector3(a.x + o.x, ga + h, a.y + o.y), Vector3(b.x + o.x, gb + h, b.y + o.y),
+						Vector3(b.x + o.x, gb + h + 0.05, b.y + o.y), Vector3(a.x + o.x, ga + h + 0.05, a.y + o.y), n * sgn, rail_col)
+			_quad(st, Vector3(a.x + side.x, ga + h + 0.05, a.y + side.y), Vector3(b.x + side.x, gb + h + 0.05, b.y + side.y),
+					Vector3(b.x - side.x, gb + h + 0.05, b.y - side.y), Vector3(a.x - side.x, ga + h + 0.05, a.y - side.y), Vector3.UP, rail_col.lightened(0.12))
+		while next_post <= run + length:
+			var p := a + dir * (next_post - run)
+			var y := lerpf(ga, gb, (next_post - run) / length)
+			var bottom := maxf(upstand, 0.0)
+			_box_oriented(st, Vector3(p.x, y + (bottom + height) * 0.5, p.y), Basis(Vector3.UP, atan2(-dir.x, -dir.y)),
+					Vector3(0.06, height - bottom, 0.06), rail_col)
+			next_post += 2.0
+		run += length
+		if collide:
+			_wall_faces.append_array([Vector3(a.x, ga - 0.3, a.y), Vector3(b.x, gb - 0.3, b.y), Vector3(b.x, gb + height + 1.5, b.y),
+					Vector3(a.x, ga - 0.3, a.y), Vector3(b.x, gb + height + 1.5, b.y), Vector3(a.x, ga + height + 1.5, a.y)])
 
 ## Operation Unslop's per-object decisions (tools/street_pass.py --apply writes them from the street
 ## records): {"items": {id: [verdict, style]}}. The id is road-objects.md's stable id: class, kind
@@ -4663,6 +4734,10 @@ func _build_barriers(st) -> void:
 					style = BARRIER_STYLE[str(o[1])]
 		# Loop 3b: a stop's platform is kerb height (0.25 m), not a wall: like the kerbs and
 		# islands, the car drives over it (check_drive.gd found buses brushing them).
+		if style.size() > 3:
+			var open: Array = style[3]
+			_railing_along(st, _pts(l["p"]), float(style[2]), float(open[0]), Color(style[0]), Color(str(open[1])), true)
+			continue
 		_wall_along(st, _pts(l["p"]), float(style[1]), float(style[2]), Color(style[0]), l["k"] != "platform")
 	_uv2 = Vector2.ZERO
 
