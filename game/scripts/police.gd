@@ -2512,6 +2512,13 @@ func _ghost_drive(c: CharacterBody3D, top: float) -> bool:
 		if chasing():
 			_auto_flip += 1
 			if top == ESCAPE_TOP:
+				# Beta values (2026-11-04): the escape is a player driving flat out, so the ghost
+				# drives in racer mode like rivals.gd's `--ghost-pace=racer` (the car's own top,
+				# corners by their radius, through reds). As a town car it took every corner at
+				# ~20 km/h, and once the chasers raced (#426) they never lost sight of it (P3, R1).
+				_ghost.race_top = float(c.max_speed) * float(c.top_mult)
+				_ghost.race_accel = ESCAPE_ACCEL
+				_ghost.race_lat = ESCAPE_LAT
 				_escape_route()
 	_ghost.v_cap = top
 	_ghost.accel_factor = 5.0
@@ -2532,6 +2539,9 @@ func _ghost_drive(c: CharacterBody3D, top: float) -> bool:
 ## chaser's side, where a traffic patrol saw the car within 60 m at 20 s (police.md's second-unit
 ## rule: L2, cap 40 s) and P3's L1 escape came at 34.2 s. Nothing the player meets changes.
 const ESCAPE_REACH := 900.0
+## The escape ghost's racer numbers (rivals.gd's skilled ghost: accel 12 m/s², 8.5 m/s² in corners).
+const ESCAPE_ACCEL := 12.0
+const ESCAPE_LAT := 8.5
 func _escape_route() -> void:
 	var u = _chaser()
 	var p := Vector2(_ghost.pos.x, _ghost.pos.z)

@@ -54,6 +54,7 @@ const BUDGET := {
 	"moderna": 90,
 	"pomnik_powstania": 1820,
 	"krasinski": 1810,
+	"sad_najwyzszy": 8000,
 	"ostrogski": 870,
 	"brama_uw": 950,
 	"bristol": 2450,

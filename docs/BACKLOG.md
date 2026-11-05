@@ -40,6 +40,44 @@ Found and left:
 - The Norblin copper glow at night is flat and strong at phone size; a phone look should say if it
   needs toning down.
 
+## Developer console follow-ups (F, 2026-11-04)
+
+Built: `tools/console.py` (README in `console/`). Open: C-1 road-objects census layer (tools/road_objects.py, PR #429) and
+Mapillary-derived points once that lane lands; C-2 render pairs (before/after, A/B) from `tools/shot_sheet.py` with a
+"pick one" state kept in the page; C-3 a Story tab (dialogue lines, quest chains, radio) and a Gameplay tab (tuning
+constants by system, with the Settings screens); C-4 per-place data fields in CITY_INVENTORY (approach, sources) so
+the "data used" colour is exact; C-5 a per-building design layer for the 115 hand-built sites (needs their positions
+baked into a small JSON); C-6 deploy decision (subdomain, access) for F.
+
+## Smoother roads, road objects, then buildings: the plan for the next days (F, 2026-11-04)
+
+Research and plan: docs/design/roads-and-objects-plan.md; the items with status in
+docs/plan/city-plan.json (dev console "Plan" tab). Builds on docs/design/road-objects.md (#429).
+Found (measured on main): roads are OSM-centreline ribbons with a disc at every bend; only 38 of
+461 km lie under a mapped carriageway area; 86 % of street junctions (2,262 of 2,639) are
+overlapping ribbons with no kerb returns; 3,700 polyline kinks over 20°; OSM `surface` is not read.
+Mapillary map features answer from the cloud (`tools/street_features.py`): the game has no traffic
+signs, poles, junction boxes, hydrants or manholes; detection positions are 10-20 m off, so they are
+evidence per street and junction, never coordinates.
+- [ ] RS1 junction shapes with kerb returns + RS2 kink fillets (pilot: Marszałkowska × Świętokrzyska,
+      Krucza × Hoża, Nowy Świat × Świętokrzyska), then city-wide; Mac re-bake
+- [ ] RS3 width that varies along a street (tapers between ways; ortho width profiles on the Mac)
+- [ ] RS4 surfaces from OSM tags (setts, paving, concrete) by id in the ground shader
+- [ ] RS5 tram beds and medians that read
+- [ ] RS6 crossings with kerb drops, zebras aligned to the crossing way
+- [ ] RS7 asphalt history (wheel tracks, seams, patches, manholes) in the shader; bench
+- [ ] RS8 road height profile smoothed along the centreline
+- [ ] RS9 markings from evidence (Mapillary presence, ortho look) per junction
+- [x] Street-objects log per street (`tools/street_objects.py` → docs/inventory/street_objects.md) and
+      the object budget (plan 3a, F 2026-11-04: log everything, add only what earns its place;
+      signs, poles, boxes, cones are log only)
+- [ ] Lamp density look test (Marszałkowska; Hoża has no game lamps), F picks
+- [ ] Traffic-light poles A/B: all as now, or only at main junctions and the places that matter
+- [ ] Open for F: a handful of gameplay signs (STREFA ZAMIESZKANIA, a trap's speed sign), or none
+- [ ] Mapillary no-entry / one-way detections against the game's `oneway` (lane-graph check, no signs added)
+- [ ] osm2streets (Apache 2.0, npm osm2streets-js) compared with RS1 on the pilot junctions (Mac)
+- [ ] Open for F: Warsaw's city geoportal (base map 1:500 kerbs) licence before any use beyond looking
+
 ## Towarowa 22 and the Rondo Daszyńskiego towers (F, 2026-11-03)
 
 - **Towarowa 22 built as finished** (site `towarowa22`, spec `docs/landmarks/specs/towarowa22.md`, from F's
@@ -199,7 +237,7 @@ experience". The plan, the road audit and the causes are in docs/GAMEPLAY_PLAN.m
   Mac: a harness that follows a route (P15 flights to Varso and x 2100, P16 frames at race speed)
   and the map hold at -700,900 that left the car in place twice (PT-19, intermittent)
 - [ ] 2.x Road fixes by street, forgiveness bevels, trap dead ends gated, score baseline in CI
-- [ ] 3.x Lane assist, wall look-ahead, junction pick, deck cut in the ghost, F's phone run
+- [ ] 3.x ~~Lane assist~~ (built 2026-11-04 behind a switch, see "Beta values"), wall look-ahead, junction pick, deck cut in the ghost, F's phone run
 - [ ] 4.1 Running clubs read as a blue blob at crossings: mixed kit, pairs, spread out
 - [ ] 4.2 Varso Place masses from photos (the gap between the tower and Varso 1/2)
 
@@ -220,11 +258,26 @@ police smarter, then test with Autopilot": R1, R2, R4's numbers and the police c
 - [ ] R4 part 2: aggression (nudges, blocking), mistakes near the player, Słoik's satnav wrong turn
 - [x] Police chasers in racer mode: quicker pull, corners by radius, careful through reds, round traffic; top speed still 0.8 of the player's (2026-11-04)
 - [ ] Phone feel of the races and chases (F's next device run); Autopilot row P17
-- [ ] R5 show the race: rival edge arrow, gap in seconds, lead-change line, slipstream, close-finish card
+- [x] R5 part 1 (2026-11-04, beta values): the route to the finish on the minimap (Trzy mosty: to the next bridge), the gap in seconds, a lead-change toast and tick, the finish margin on the card (`check_ladder`)
+- [ ] R5 part 2: the rival's own edge arrow; slipstream (A/B 9 in QUESTIONS)
+- [ ] R3 note (beta values R-4): rivals still route with the off-map links (`rivals.gd _distances`); the player can't drive them. Fix with routes by time
 - [ ] R6 the city reacts (honks, police on the rival); R7 race kinds (later)
 - [x] Race-AI runs: `tools/race_ai.sh` (every rival vs an average and a skilled autopilot), `--race-debug` (2026-11-04)
 - [ ] A headless `check_race_ai.gd` in verify (the runs take ~25 min: too long for verify; a short fixed-route version)
 - [ ] Street racer leaderboard "Ranking ulicy" (F, 2026-11-04; design in street-races.md section 8): 20 made-up drivers ranked by street points, win to climb, defence challenges, tier unlocks, an APKA: WYŚCIGI screen and best times per route; local first, online best times only with F's yes (L1-L5)
+
+## Beta values: deliveries, races and steering (F, 2026-11-04)
+
+F: test the gameplay and improve its two main beta values, the delivery mechanic and the racing with
+the steering. Review, findings and the A/B list: `docs/design/beta-values.md`.
+- [x] Deliveries: the route to the door on the minimap (`route_line.gd`, re-walked from the car every second); road lengths for orders, rides and "Na czasie" without the off-map links (~1 order in 30 counted a closed road out); the heat's clock in words; NASTĘPNE on the delivered card points at the stand nearest by road (`check_delivery`, verify step `delivery`, in CI) (2026-11-04)
+- [x] The police runs P3 and R1 failed on main since #426: the escape test car rode a town-car ghost; it now drives in racer mode (2026-11-04)
+- [x] Races: R5 part 1 (see "Street races") (2026-11-04)
+- [ ] F's phone A/B 1-11 (QUESTIONS "Beta values A/B", four entries)
+- [x] Lane assist "Asysta pasa" (GAMEPLAY_PLAN 1.5 item 1, test D2): Settings → Jazda, Classic only, off by default; pure pursuit 0.9 s ahead on the lane, a pull of 1.5 × the heading error while the strip is near the middle (`lane_assist.gd`, `check_lane_assist`, verify step `laneassist`, `--lane-assist=on|off`) (2026-11-04)
+- [ ] A real-map hands-off drive with the lane assist (Wisłostrada, Trasa Łazienkowska, the bridges): `check_lane_drive` with a Classic driver
+- [ ] GAMEPLAY_PLAN 1.5 items 2, 3, 5: wall look-ahead, junction pick, camera lead at junctions
+- [ ] If F picks them: the delivery streak "Seria", a smooth tip, slipstream, a shorter card wait
 
 ## Road objects and collisions (F, 2026-11-04)
 
@@ -270,6 +323,44 @@ F: "PKO Piramida looks bad". Chmielna 89 (~80 m, 2021-22), the glass wedge on V-
 the railway cutting next to Warta Tower; today an OSM extrusion. Later, photo way: a Mac gather
 `refs/chmielna89/` plus F's four photos (project files), then the wedge, the zigzag frame on the
 sloped face, the V legs, blue-grey glass. No bank name or logo (brands only as parodies).
+
+## Bar-crawl taxi quests (F, 2026-11-04, plan only)
+
+F: "quests about a bar crawl: you drive a company through famous bars in Warsaw for a limited amount of time."
+Nothing is built (PAUSE; Opus for the quest design, Sonnet for the lines). Plan first in `docs/design/` (a
+short `bar-crawl.md`), then build on the Podwózka rides (`rides.gd`, `ride_rules.gd`), the ZADANIA list
+(`main.gd` `_quest_entries`, quest-lists) and `StopAssist`. Same pattern as the ride stories above.
+- **The shape.** A group of 3-5 (a hen party, a stag night, students on a last-night-of-term, office
+  colleagues after a deal; each a named passenger group with its own voice lines) books the car for the
+  night. Three to five stops in a row, each a bar with a stop ring (9 m, `StopAssist`). The clock is the
+  limit: a hard budget for the whole crawl (for example 25 game minutes, or one real 8-10 minutes) and a
+  per-stop "stay" the group wants (they sit for a round, then pile back in, so you wait at the kerb with
+  the engine running). Late means the mood bar drops, a bar closes ("ostatnie zamówienia"), the crawl ends
+  early with a smaller tip; on time with a happy group is a bigger tip and a stamp. Mood: bumps, police
+  and sudden braking lower it, drift-free driving and shortcuts raise it.
+- **Routes from places already on the map** (all names are the existing parodies; real bars never
+  named, per the parodies rule):
+  1. *Nowogrodzka → Mazowiecka → Wilcza* (the "klasyczna"): KWARTA, KRAFTOWNIA IPA DO DNA, SCHRON PIWNY
+     (`Storefronts.NOWOGRODZKA`), TYGRYS JAZZ or SZKIC NOCĄ (`MAZOWIECKA`), MUZA NA BIS or GORĄCZKA PIĄTKOWA
+     (`WILCZA`). Dense, short hops: a skill route for tight streets and one-way grids.
+  2. *Powiśle and the river* (the "nad wodą"): Q-BAR POD WIADUKTEM and WINO POD ŁUKIEM in the viaduct's bays,
+     then the boulevard pavilions CUDAK, POMOSTEK, RZECZKA, ending on a bar barge (the `barka_*` sites).
+     Scenic, longer drives; the ending is the water's edge with the stop ring on the quay.
+  3. *Dom Partii and the Śródmieście clubs* (the "dla odważnych"): NEWTWICE, ZAMĘT, PRZEGRYWKI (the
+     G2 neons), then a Mazowiecka club at 01:00-03:00 when the `club` curve is full.
+  4. *Praga* (the "na drugą stronę", later): ŚWIAT PO PRASKU, POD KUFLEM ZA ROGIEM, KIJOWSKA DWÓJKA
+     (`Storefronts.PRAGA`) with a bridge crossing (Trzy mosty, Poniatowskiego) in the middle of the clock.
+  Ząbkowska stays out until the map grows north-east ("Grow the map north-east").
+- **Rules.** Night only (the quest is offered 20:00-04:00, Fri/Sat busiest, like the `pub` curve). Open
+  one at a time, not on the main line; the intro is a phone call or a flag at a kerb outside the first
+  bar. Drop-off ends at a Syrena-friendly address (a hotel, a night bus stop). Group chatter uses the
+  chatter budget (class `quest`); the passenger story format is the one from "Vitkac quests and ride
+  stories". Bars are reached by street, not teleported; stop assist applies. Colour-safe rings apply.
+- **Add-ons check** (when built): NPC conversation → Dialogue Manager is for authored branching scenes; a
+  linear crawl with set lines per stop is plain tables, "not used, because the stops are linear".
+- **Open to decide when built:** the clock (game vs real minutes), whether a crawl can be failed outright,
+  whether the tip feeds the post-beta economy ("Od słoika do Złotej"), a "Barowa karta" stamp collection
+  (all four routes) next to the notebook, and a phone feel test of the waiting at the kerb.
 
 ## Vitkac quests and ride stories (F, 2026-11-03)
 
@@ -611,7 +702,7 @@ spans (granite piers, steel arch ribs, red fascia, black railing, pier pedestals
 ## Plac Krasińskich: the Uprising Monument and the palace (CITY_INVENTORY 22 and 79, 2026-11-02)
 Built from photos gathered on the Mac (`refs/pomnik_powstania/`, `refs/krasinski/`) and LoD2, specs
 `pomnik_powstania.md` and `krasinski.md` (sites `pomnik_powstania` 1514 tris, `krasinski` 1508). Found and left:
-- The Supreme Court's colonnade behind the monument is green (ribbed green glass, ~#738483); OSM tags its columns "marble #deeded", so the game draws them white and the court as plain blocks. A Sąd Najwyższy model is its own item.
+- Sąd Najwyższy's colonnade fixed 2026-11-02 (site `sad_najwyzszy`, spec `sad_najwyzszy.md`): the 54 OSM columns and their beams are green and ribbed, with the lettering band and rosette capitals. Left: the court's main block (LoD2) keeps its map look; its fronts, the roof garden, the caryatids and the night glass need a Mac photo gather (QUESTIONS).
 - The monument's heights and the groups' facing are estimates from photos (no published height, no aerial); the bronze is simplified to blocky figures. The plaza's dark granite bands, the blue-green light strips, the floor plaque, the juniper beds and the brick wall with the Kotwica on the Długa side are not drawn; the 1 August candles are not there.
 - The palace's pediment relief is a flat recessed field, the cartouche over the central window and the roof statues of the garden front are not modelled; the dormer and chimney counts are rough (the report says so). The garden's round parterre and the pond's sculpture are the park's (the fountain is already there).
 - F's look check on the Mac or the phone: the slabs' lean, the fighters' size, the roof's green.

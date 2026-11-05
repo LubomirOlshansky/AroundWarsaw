@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-04
 
+- Kebab and jar deliveries show the way on the minimap, say how long the kebab stays hot, and a NEXT button on the delivered card points you to the nearest kebab stand; races show the way to the finish, the gap in seconds, who just took the lead and how close the finish was; and Settings → Driving has a new Lane assist switch that keeps the car in its lane while you hold the steering near the middle.
 - The website's "How it grew so far" now runs up to today (the Autopilot playtester, photo-built landmarks, the beta on TestFlight and Play, driving by buttons, smarter racers) and shows how many places are done; the GitHub links are gone, since the code is closed.
 - Street races feel like races now: rivals drive flat out, take corners fast, run red lights and overtake traffic and you; Pani Halina leads the first race so you have someone to chase, every race stays close to the end, and police chases corner and pull away like real pursuers.
 - With the steering strip and pedals, driving head-on into a wall no longer stops the car dead: it turns along the wall the way you steer and drives on.
@@ -54,6 +55,7 @@ someone writes its lines.
 - Fewer grass islands sitting across junctions: where Warsaw paints a hatched area, the game now does too, and walls no longer stick out at the ends of the Port Praski bridge.
 
 ## 2026-11-02
+- The Supreme Court's colonnade on Plac Krasińskich is green as in Warsaw, not white: ribbed columns with dark lettering low down and rosettes in the capitals, under green beams.
 - The Vistula boulevards are dressed for summer: the concrete bar pavilions on the embankment have lawn roofs, glass fronts, umbrella terraces and string lights, colourful container bars and kiosks sell beer, lemonade and zapiekanki through lit hatches, and timber deck strips with striped deck chairs line the water from the Old Town to Tamka.
 - Fabryka Norblina stands on its real block between Łucka, Żelazna and Prosta, with its court of big candelabra plane trees open off the glass street and green roofs with garden terraces; Browary's Central Garden is a dense little wood of 22 young trees round a winding gravel path with café tables under dark-blue parasols, and the office blocks have green roofs.
 - Across the river in Praga, St Florian's cathedral stands with its two red-brick towers and tall green spires, and Bazar Różyckiego on Targowa is a maze of patched old stalls beside the new green kiosks.
