@@ -461,6 +461,9 @@ const INFO := {
 	"krasinski": ["Pałac Krasińskich",
 			"Barok Tylmana z Gameren, 1677–1683. Dziś zbiory specjalne Biblioteki Narodowej.",
 			"Tylman van Gameren's baroque palace, 1677–1683. Today the National Library's special collections."],
+	"sad_najwyzszy": ["Sąd Najwyższy",
+			"Marek Budzyński i Zbigniew Badowski, 1999. Zielone kolumny przed gmachem niosą łacińskie sentencje prawa.",
+			"Marek Budzyński and Zbigniew Badowski, 1999. The green columns in front carry Latin maxims of the law."],
 	"moderna": ["Modernka Powiśle",
 			"Od frontu odnowiona przedwojenna kamienica, z tyłu nowe szkło i penthouse'y. Wisła trzysta kroków stąd.",
 			"A restored pre-war tenement at the front, new glass and penthouses behind. The Vistula is three hundred steps away."],
@@ -1039,6 +1042,9 @@ func _find_sites() -> void:
 	_find_hortus()
 	_find_moderna()
 	# Plac Krasińskich (CITY_INVENTORY 22 and 79, 2026-11-02): the Uprising Monument and the palace.
+	# Sąd Najwyższy's colonnade (2026-11-02): green ribbed columns instead of OSM's white boxes.
+	# Found (and built) before the monument: its beams' cells would cover the monument's tap.
+	_find_sad_najwyzszy()
 	_find_pomnik_powstania()
 	_find_krasinski()
 	# Bracka and Plac Trzech Krzyży (CITY_INVENTORY 80-82, 2026-11-03): Vitkac, Jabłkowski's, the Sheraton.
@@ -1410,6 +1416,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_pomnik_powstania(s)
 			"krasinski":
 				_build_krasinski(s)
+			"sad_najwyzszy":
+				_build_sad_najwyzszy(s)
 			"zbawiciela":
 				_build_zbawiciela(s)
 			"buw":
@@ -20827,6 +20835,112 @@ func _menorah(p: Vector2, y: float, s: float) -> void:
 			var elbow := foot + up * low + side * sd * r
 			_beam(foot + up * low, elbow, 0.08 * s, GETTO_BRONZE)
 			_beam(elbow, foot + up * 1.9 + side * sd * r, 0.08 * s, GETTO_BRONZE)
+
+
+## Sąd Najwyższy's colonnade (Marek Budzyński and Zbigniew Badowski, 1999; spec
+## docs/landmarks/specs/sad_najwyzszy.md, from the Mac's Plac Krasińskich photo reports, 2026-11-02).
+## OpenStreetMap maps the court's columns as 2 m boxes 12 m tall under 2 m beams (12-14 m) in
+## "marble #deeded", so they drew white; the photos show them green and ribbed, with dark metal
+## lettering low on the shafts and relief rosettes in the capitals. The main block (LoD2, real roof)
+## stays the map's: only the mapped colonnade is rebuilt, in its mapped plan and heights.
+const SN_BOX := Rect2(-1345.0, -1790.0, 145.0, 100.0)
+const SN_WEST_BEAM := Vector2(-1316.0, -1763.0)  # the north-west wing's beam, mapped without a colour
+const SN_GREEN := Color("#738483")
+const SN_RIB := Color("#83948f")
+const SN_CAP := Color("#8b9b95")
+const SN_ROSE := Color("#a9b5ab")
+const SN_LETTERS := Color("#4f5c59")
+const SN_BEAM := Color("#6f807e")
+const SN_BEAM_TOP := Color("#5c6b69")
+
+
+func _find_sad_najwyzszy() -> void:
+	if _landmark("Sąd Najwyższy").size() < 3:
+		return
+	var parts := _parts_in(_box_poly(SN_BOX), func(b: Dictionary) -> bool:
+			if str(b["c"]).to_lower() == "#deeded":
+				return true
+			return float(b["mh"]) >= 11.5 and _centre(_pts(b["p"])).distance_to(SN_WEST_BEAM) < 3.0)
+	if parts.is_empty():
+		return
+	var zone: Array = []
+	for b in parts:
+		zone.append(_pts(b["p"]))
+	_add_site("sad_najwyzszy", zone)
+	if not sites.is_empty() and sites[-1]["key"] == "sad_najwyzszy":
+		sites[-1]["parts"] = parts
+
+
+func _build_sad_najwyzszy(site: Dictionary) -> void:
+	var beams: Array[PackedVector2Array] = []
+	var beam_y: Array[float] = []
+	for b: Dictionary in site["parts"]:
+		if float(b["mh"]) < 11.5:
+			continue
+		var poly := _pts(b["p"])
+		_g = _ground_under(poly)
+		var y0 := _g + float(b["mh"])
+		_prism(poly, y0, _g + float(b["h"]), SN_BEAM, SN_BEAM_TOP, M_STONE, M_STONE)
+		# the beam's soffit, seen from the steps
+		var keep := _mode
+		_mode = M_STONE
+		_cap_piece(poly, y0 - 0.01, SN_BEAM.darkened(0.2))
+		_mode = keep
+		beams.append(poly)
+		beam_y.append(y0)
+	for b: Dictionary in site["parts"]:
+		if float(b["mh"]) >= 11.5:
+			continue
+		var poly := _pts(b["p"])
+		_g = _ground_under(poly)
+		var top := _g + float(b["h"])
+		var c := _centre(poly)
+		for k in beams.size():
+			if Geometry2D.is_point_in_polygon(c, beams[k]):
+				top = beam_y[k]  # the shaft meets its beam whatever the ground does
+				break
+		_sn_column(poly, _g, top)
+		_collide(poly)
+
+
+## One column: a dark plinth, the band of lettering, the green shaft with its ribs, the wider
+## capital with a rosette on every face.
+func _sn_column(poly: PackedVector2Array, g: float, top: float) -> void:
+	var none := Color(0, 0, 0, 0)
+	var plinth := Geometry2D.offset_polygon(poly, 0.06, Geometry2D.JOIN_MITER)
+	var cap := Geometry2D.offset_polygon(poly, 0.14, Geometry2D.JOIN_MITER)
+	var band := Geometry2D.offset_polygon(poly, 0.015, Geometry2D.JOIN_MITER)
+	var cap_y := top - 1.0
+	_prism(plinth[0] if not plinth.is_empty() else poly, g - 0.3, g + 0.5, SN_LETTERS.darkened(0.2), SN_LETTERS, M_STONE, M_STONE)
+	_prism(band[0] if not band.is_empty() else poly, g + 0.5, g + 3.0, SN_LETTERS, none, M_STONE)
+	_prism(poly, g + 3.0, cap_y, SN_GREEN, none, M_STONE)
+	_prism(cap[0] if not cap.is_empty() else poly, cap_y, top, SN_CAP, none, M_STONE)
+	var keep := _mode
+	_mode = M_STONE
+	for i in poly.size():
+		var a := poly[i]
+		var b := poly[(i + 1) % poly.size()]
+		var length := a.distance_to(b)
+		if length < 0.8:
+			continue
+		var d := (b - a) / length
+		var out := _out(poly, a, b)
+		# the ribs: two thin vertical fins on every face (front and sides, no tops: they end
+		# under the capital and on the lettering band)
+		var nrm := Vector3(out.x, 0.0, out.y)
+		var side := Vector3(d.x, 0.0, d.y)
+		for t: float in [length / 3.0, length * 2.0 / 3.0]:
+			var m := a + d * t
+			var l0 := m - d * 0.05
+			var l1 := m + d * 0.05
+			var f0 := l0 + out * 0.08
+			var f1 := l1 + out * 0.08
+			_quad(Vector3(f0.x, g + 3.0, f0.y), Vector3(f1.x, g + 3.0, f1.y), Vector3(f1.x, cap_y, f1.y), Vector3(f0.x, cap_y, f0.y), nrm, SN_RIB)
+			_quad(Vector3(l0.x, g + 3.0, l0.y), Vector3(f0.x, g + 3.0, f0.y), Vector3(f0.x, cap_y, f0.y), Vector3(l0.x, cap_y, l0.y), -side, SN_RIB.darkened(0.08))
+			_quad(Vector3(f1.x, g + 3.0, f1.y), Vector3(l1.x, g + 3.0, l1.y), Vector3(l1.x, cap_y, l1.y), Vector3(f1.x, cap_y, f1.y), side, SN_RIB.darkened(0.08))
+		var mid := (a + b) * 0.5 + out * 0.2
+		_disc(Vector3(mid.x, cap_y + 0.5, mid.y), nrm, minf(0.32, length * 0.2), 6, SN_ROSE)
+	_mode = keep
 
 
 # --- Bracka and Plac Trzech Krzyży: Vitkac, Jabłkowski's, the Sheraton (photo reports, 2026-11-03) ---
