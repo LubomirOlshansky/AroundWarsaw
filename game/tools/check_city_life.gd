@@ -613,6 +613,13 @@ func _check_city(nb: Notebook, data: Dictionary) -> void:
 		life.tick(0.5)
 	_expect(not bool(life.get("_active")), "city life active far from everything")
 	_expect(not (life.get("_chair") as MeshInstance3D).visible, "the chair shown far from the view")
+	# F, 2026-11-05: no kerb rider on a road with a cycle path beside it: a path 5 m off and parallel
+	# counts, one crossing at right angles or 30 m off does not.
+	var idx := CityLife.build_index([{"k": "cycle", "dk": -1, "w": 2.0, "p": [0.0, 5.0, 100.0, 5.0]}], [], Vector2.INF, Vector2.INF)
+	_expect(CityLife.cycle_path_near(idx["cyc"], idx["cyc_grid"], Vector2(50.0, 0.0), Vector2.RIGHT, 9.0), "a parallel cycle path 5 m off not found")
+	_expect(CityLife.cycle_path_near(idx["cyc"], idx["cyc_grid"], Vector2(50.0, 0.0), Vector2.LEFT, 9.0), "the path beside is direction-blind")
+	_expect(not CityLife.cycle_path_near(idx["cyc"], idx["cyc_grid"], Vector2(50.0, 0.0), Vector2.DOWN, 9.0), "a crossing road counted as beside")
+	_expect(not CityLife.cycle_path_near(idx["cyc"], idx["cyc_grid"], Vector2(50.0, 30.0), Vector2.RIGHT, 9.0), "a path 25 m off counted as beside")
 	_summary["city"] = "%d walkers at Plac Zbawiciela 07:30, Kolka %.0f m, dock %d bikes, %.0f µs per game second" % [
 			n_dogs, float(kolka.get("len", 0.0)), int((life.get("_docks") as Array)[0]["n"]) if not (life.get("_docks") as Array).is_empty() else 0, per_s]
 	life.queue_free()
