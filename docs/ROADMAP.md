@@ -72,7 +72,8 @@ then the Launch gate.
 - [x] Pokorna 2 remodelled as a block of flats: loggia windows, balconies, warm plaster (F, 2026-11-02, site `pokorna2`; Mac look check in QUESTIONS)
 - [x] Retro vaporwave filter replaces the VHS tape look; the Styl obrazu picker removed, always Sharp (2026-11-01; phone look check parked in QUESTIONS)
 - [x] Day, dusk and night; rain; water; synthesised sound; puddles and night water (3i part)
-- [x] Website beta signup (F, 2026-11-03): TestFlight join button (`/go/ios`), Android request form + Play link (`/go/android`), GitHub in the footer only
+- [x] Website beta signup (F, 2026-11-03): TestFlight join button (`/go/ios`), Android request form + Play link (`/go/android`), no GitHub links (closed source, 2026-11-04)
+- [x] Landing timeline brought up to 4 Nov, GitHub links removed (2026-11-04; deploy waits for F)
 - [x] Landing page, design wiki and /progress/ live; store texts and privacy manifest drafted
 - [x] Site visits and store-button clicks countable (F, 2026-11-02): `/go/ios` + `/go/android` counted in the Worker, Cloudflare traffic for visits; F deploys and sets the store URLs when listed (site/README "Visitors and store clicks")
 
@@ -503,17 +504,26 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [x] 0.3 The car visible under decks (2026-11-03): its warm silhouette through Trasa Łazienkowska, Most Łazienkowski's land spans and the viaducts whenever a deck hides it from the camera (`check_deck_xray`); phone look open
 - [x] Phase 0.4 helicopter high up: framed in the screen's middle, no blue sky or floating towers, 220 m cap except by towers (GAMEPLAY_PLAN 0.4, 2026-11-03, PR pending; phone check open)
 - [x] Steer + GAS / BRAKE (Classic) is the default controls (F, 2026-11-04): fresh saves and saves still on the old Point default start in Classic once; Point and Fixed stay in Settings → Jazda; the first-10 ghost finger holds GAZ and slides the steering strip (`check_settings`; phone feel open)
+- [x] Walls redirect, never stop, in Classic too: a head-on wall turns the car along it (the side the strip leans), no dead stop and no unstick; the unstick only turns the car where it fits (2026-11-04, `check_steering`, `check_stuck_offer`; phone feel open)
 - [ ] Phase 1: drivability sweep of every lane and turn, lane graph data fixes, Autopilot rows P11-P16
       (2026-11-04: P14 and the Trzy mosty legs drive clean steered, `check_lane_drive`; left: P15 flights, P16 frames)
 - [ ] Phase 2: road fixes street by street with a score baseline in CI
 - [ ] Phase 3: lane assist, wall look-ahead, junction pick, deck cut; F's phone run
 - [ ] Phase 4: running clubs that read, Varso Place masses, Chmielna 89 "Piramida" (later, photo way)
 
+### Left: road objects and collisions (F, 2026-11-04; plan docs/design/road-objects.md)
+- [x] Research: every solid object by the roads audited and measured (`tools/road_objects.py`), the street-by-street pipeline, the collision targets, skill `road-objects-sweep` and agent `road-auditor` (2026-11-04, docs + tool)
+- [ ] Collision rework v2: walls redirect by angle, never stop; Classic gets the wall follow; traffic shoved, not a stop (F's phone A/B)
+- [ ] Street sweeps with verdicts per object, first Marszałkowska, Świętokrzyska, Jerozolimskie; stairwells and canopies; soft fences; narrow streets
+
 ### Left: street races that feel like races (F, 2026-11-04; plan docs/design/street-races.md)
 - [x] Research and race AI audit: why Halina drives slowly and by the rules, R1-R7 (2026-11-04, docs only)
 - [x] R1 racer driving mode and R2 fair rubber band, R4's numbers per rung, police chasers in racer mode (2026-11-04; phone feel open)
 - [ ] R3 routes by time and shortcuts; R4 part 2 (aggression, mistakes); R5 show the race
 - [ ] R6 the city reacts; R7 race kinds (later)
+- [x] Street racer leaderboard designed: ranking, points, tiers, screen, local first (2026-11-04, docs only)
+- [ ] Leaderboard L1-L4: the ranking rules and save, the WYŚCIGI screen, defence challenges and unlocks, best times per route
+- [ ] Leaderboard L5: online best times (Game Center / Play Games), F's call
 
 ### After the beta: driving extras and the city economy (F, 2026-11-03; plan docs/design/city-economy.md)
 - [x] Research and plan: arcade driving references, economy and business games, the "Od słoika do Złotej" ladder, phases D1 and E1-E5; role briefs in docs/roles/ (2026-11-03, docs only)

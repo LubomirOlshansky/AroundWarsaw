@@ -151,6 +151,18 @@ experience". The plan, the road audit and the causes are in docs/GAMEPLAY_PLAN.m
   its hint show the GAZ pedal and the steering strip (pad and keyboard lines too). Open: F's phone
   feel; the Autopilot harness on the Mac now gets Classic's keys (A / D steer, W gas, S brake) in
   editor runs unless it passes `--controls=point`
+- [x] Walls redirect in Classic too (2026-11-04, collision rework v2 step 1, road-objects.md 7.1):
+  the wall follow lived only in Point's aim, so with Classic the default a head-on wall stopped the
+  car dead and the unstick turned it out after 1.5 s. `car.gd` `_classic_wall_steer`: gas on and
+  the nose into a wall (a car or tram after CAR_PUSH_TIME), the steering turns it along the wall,
+  the side the strip leans (past 0.2) or else the nose; a harder turn of the player's own wins.
+  `check_steering` head-on Classic: 0 → 19 km/h a second after the touch, pinned 1.4 → 0.4 s,
+  no unstick (now a gate: `wall_headon` pin 1 s, no unstick, all schemes; `wall_headon_right`:
+  the strip picks the side; `car_behind` now asks Classic too). Found on the way: the unstick
+  could turn a 4 m car across a 3 m gap, half into the walls, and driving on pushed it out
+  through one (Point escaped `check_stuck_offer`'s pen; Classic now did too): the unstick only
+  picks headings the car fits in (`_fits`, under 0.15 m into anything). Open: F's phone feel
+  (how firmly it turns off a wall), the same for buildings and traffic in rework v2
 - [ ] 1.1 `check_drivability.gd`: every lane, turn and dead end with the player's car; per-street score
 - [ ] 1.2 Lane graph data: 101 nodes off the main network, 15 kinks over 45°, ~300 lanes under 2.5 m
 - [ ] 1.3 Autopilot rows P11-P16 (PLAYTEST.md)
@@ -184,6 +196,31 @@ police smarter, then test with Autopilot": R1, R2, R4's numbers and the police c
 - [ ] R6 the city reacts (honks, police on the rival); R7 race kinds (later)
 - [x] Race-AI runs: `tools/race_ai.sh` (every rival vs an average and a skilled autopilot), `--race-debug` (2026-11-04)
 - [ ] A headless `check_race_ai.gd` in verify (the runs take ~25 min: too long for verify; a short fixed-route version)
+- [ ] Street racer leaderboard "Ranking ulicy" (F, 2026-11-04; design in street-races.md section 8): 20 made-up drivers ranked by street points, win to climb, defence challenges, tier unlocks, an APKA: WYŚCIGI screen and best times per route; local first, online best times only with F's yes (L1-L5)
+
+## Road objects and collisions (F, 2026-11-04)
+
+F: "a lot of objects on the roads make the arcade driving harder, and you can't tell what many of
+them are for; check every object street by street (real object to draw, leave out, a wall that
+matters on a bridge or estacade, better texture, the real object), and rework the collisions:
+walls redirect, never stop, for buildings and other cars too". Research and plan:
+`docs/design/road-objects.md`. Census tool `tools/road_objects.py` (3,553 solid objects within 3 m
+of a lane's edge: fences 410 and parked cars 412 within 1 m, deck rails and structure walls on the
+bridges and estacades, ~100 stairwell walls at 1.9 m, 64 canopies as solid 4 m blocks). Skill
+`road-objects-sweep`, agent `road-auditor`.
+Found: since Classic became the default controls (2026-11-04) the wall follow (point-to-steer only)
+is gone, so a head-on hit stops the car dead again (road-objects.md 1.1).
+- [x] Research, object audit, census, pipeline, collision targets, skill and agent (2026-11-04, docs + tool)
+- [ ] 1 Collision rework v2: response by impact angle, wall follow for Classic, head-on kick, corner pivot, traffic shove (4.2-4.3) behind `--collide=v2` and a setting; RO3/RO4 cases. F: 97 % kept on a graze feels too arcade: presets (97 / 90 / 80 %), A/B from the middle, F picks on the phone
+- [ ] 2 `check_lane_drive` contact log, `--street=`, sloppy driver, the 4.5 numbers (after #427)
+- [ ] 3 First sweep: Marszałkowska, Świętokrzyska, Jerozolimskie (S1-S3 cloud, S4-S5 Mac batch)
+- [ ] 4 Stairwell balustrades (1 m) and metro canopies city-wide; canopies on posts (rules B5, B6)
+- [ ] 5 Soft colliders for fences, hedges, parked-car corners; A/B on Marszałkowska's median fences (bench)
+- [ ] 6 Narrow streets: drive hull 0.3-0.5 m behind facades, parked cars every other one, no kerb jolt under 8 m
+- [ ] 7 The override file `game/data/road_objects.json`, `--classify`, the baseline in `check_map_data.py`
+- [ ] Census: apply `_by_road` to platforms (over-counted now); 48 lanes through buildings (gateways) to look at
+- [x] Street-level photos in the cloud (2026-11-04): F allowed the hosts and made a Mapillary app (`MAPILLARY_TOKEN`); `tools/street_photos.py` finds the photos facing a point; added to the model-from-photos skill, object-modeler and road-auditor
+- [x] `panoramax.openstreetmap.fr` allowed too (F, 2026-11-04)
 
 ## After the beta: driving extras and the city economy (F, 2026-11-03, plan only)
 
@@ -3209,6 +3246,8 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
   graphics").
 
 ## From the website (aroundwarsaw.app, 2026-10-29)
+
+- The design wiki (`tools/wiki_build.py`) still links to the repo on GitHub (✎ edit chips, spec links, `REPO`); they break once the repo is private. Drop them or decide the wiki goes down (F, 2026-11-04).
 - ~~The four beta links say "soon"~~ (website v2: the form collects emails for invites; add the
   public TestFlight and Play links to the beta section when they exist).
 - The site's form posts to the Stillplace Formspree form (`mykaeqjp`); give Around Warsaw its own

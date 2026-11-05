@@ -324,8 +324,8 @@
     [
       "30 Oct",
       {
-        "en": "The game becomes Around Warsaw and open source. The city notebook, PÓŁNOC FM, 40 more landmarks.",
-        "pl": "Gra staje się Around Warsaw i open source. Zeszyt miasta, PÓŁNOC FM, 40 kolejnych zabytków."
+        "en": "The game becomes Around Warsaw. The city notebook, PÓŁNOC FM, 40 more landmarks.",
+        "pl": "Gra staje się Around Warsaw. Zeszyt miasta, PÓŁNOC FM, 40 kolejnych zabytków."
       }
     ],
     [
@@ -333,6 +333,34 @@
       {
         "en": "The map grows north, couriers race you at night, a vintage tram and a first garage.",
         "pl": "Mapa rośnie na północ, kurierzy ścigają Cię nocą, stary tramwaj i pierwszy warsztat."
+      }
+    ],
+    [
+      "1 Nov",
+      {
+        "en": "Parks come alive, the Vistula boulevards fill with people, and churches, Ujazdowski Castle and MDM look like themselves. The Autopilot playtester starts hunting bugs.",
+        "pl": "Parki ożywają, bulwary nad Wisłą wypełniają się ludźmi, a kościoły, Zamek Ujazdowski i MDM wyglądają jak w życiu. Autopilot-playtester zaczyna szukać błędów."
+      }
+    ],
+    [
+      "2 Nov",
+      {
+        "en": "Landmarks start to be built from real photos: Krakowskie Przedmieście, the Warsaw Rising Museum, POLIN, Most Poniatowskiego. The quest list joins the map, and gamepads work.",
+        "pl": "Zabytki powstają ze zdjęć: Krakowskie Przedmieście, Muzeum Powstania Warszawskiego, POLIN, Most Poniatowskiego. Mapa dostaje listę zadań, działają gamepady."
+      }
+    ],
+    [
+      "3 Nov",
+      {
+        "en": "The beta opens: TestFlight for iPhone, Play for Android. A voiced fly-over intro, Arkadia, the Forest towers, Hotel Europejski and the Daszyńskiego skyline, and bar streets that wake up after dark.",
+        "pl": "Rusza beta: TestFlight na iPhone'a, Google Play na Androida. Intro z lektorem, Arkadia, wieże Forest, Hotel Europejski, panorama Daszyńskiego i barowe ulice, które budzą się po zmroku."
+      }
+    ],
+    [
+      "4 Nov",
+      {
+        "en": "Driving by buttons: steering strip and pedals by default. Rival racers drive like real ones, and a city progress console tracks every place.",
+        "pl": "Jazda na przyciskach: pasek skrętu i pedały domyślnie. Rywale ścigają się jak prawdziwi kierowcy, a konsola postępów śledzi każde miejsce w mieście."
       }
     ]
   ],
@@ -352,7 +380,7 @@
       ],
       [
         "Built",
-        "In public since 27 October 2026, with changes landing every day."
+        "Started 27 October 2026, with changes landing every day. 154 ranked places so far; 39 rebuilt from photos, 48 more from outlines."
       ],
       [
         "Privacy",
@@ -374,7 +402,7 @@
       ],
       [
         "Powstaje",
-        "Publicznie od 27 października 2026, zmiany codziennie."
+        "Od 27 października 2026, zmiany codziennie. 154 miejsca na liście; 39 odbudowanych ze zdjęć, 48 kolejnych z obrysów."
       ],
       [
         "Prywatność",
