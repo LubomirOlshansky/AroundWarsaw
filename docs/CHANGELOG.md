@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-05
 
+- Both radio stations now have their own jingles between songs: KEBAB FM in a warm woman's voice, MORDOR FM in a dry man's.
 - KEBAB FM and MORDOR FM now play real music: six vaporwave tracks and six minimal-techno tracks replace the first test loops.
 - Crazy drivers join the traffic: Szkoda Oktawia taxis and Szprynter courier vans speed, tailgate, overtake and cut in right in front of you, and once in a while the legendary Pasatini 1.9 TDJ storms past (black smoke, left lane, no indicator). They honk and shout when they cut you off, and KEBAB FM reports Pasatini sightings.
 - Race rivals drive like people now: they launch past you and make you chase, take shortcuts across squares, lawns and car parks, cut in front of you and block your line, and sometimes run wide in a corner or take a wrong turn. Each one has a style: Zbyszek knows every shortcut, Seba blocks, Słoik follows his satnav, and Mike is as fast as your car.

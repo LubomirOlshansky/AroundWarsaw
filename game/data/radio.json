@@ -68,7 +68,12 @@
       ],
       "encode": {
         "kbps": 64
-      }
+      },
+      "jingles": [
+        "res://audio/radio/nocna_fm/jingles/j1.ogg",
+        "res://audio/radio/nocna_fm/jingles/j2.ogg",
+        "res://audio/radio/nocna_fm/jingles/j3.ogg"
+      ]
     },
     {
       "id": "rondo_fm",
@@ -150,7 +155,11 @@
       ],
       "encode": {
         "kbps": 64
-      }
+      },
+      "jingles": [
+        "res://audio/radio/mordor_fm/jingles/j1.ogg",
+        "res://audio/radio/mordor_fm/jingles/j2.ogg"
+      ]
     },
     {
       "id": "polnoc_fm",

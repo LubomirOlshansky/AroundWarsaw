@@ -37,6 +37,7 @@ func _initialize() -> void:
 	var unknown: Array[String] = []
 	var total_bytes := 0
 	var tracks := 0
+	var jingles := 0
 	var data: Variant = null
 	if FileAccess.file_exists(Radio.PATH):
 		data = JSON.parse_string(FileAccess.get_file_as_string(Radio.PATH))
@@ -59,6 +60,15 @@ func _initialize() -> void:
 		if not (s.get("tracks") is Array):
 			problems.append("station %s: no tracks list" % id)
 			continue
+		# Station jingles (2026-11-05): each file exists, is under the station's folder and imports.
+		for j: Variant in s.get("jingles", []):
+			var jf := String(j)
+			if not jf.begins_with("res://audio/radio/%s/jingles/" % id) or not jf.ends_with(".ogg"):
+				problems.append("station %s: jingle %s is not res://audio/radio/%s/jingles/*.ogg" % [id, jf, id])
+			elif not (load(jf) is AudioStreamOggVorbis):
+				problems.append("station %s: jingle %s is missing or did not import" % [id, jf])
+			else:
+				jingles += 1
 		for t: Dictionary in s["tracks"]:
 			tracks += 1
 			var name := "%s / %s" % [id, t.get("title", "?")]
@@ -93,8 +103,8 @@ func _initialize() -> void:
 	await _check_radio(problems)
 	await _check_polnoc(problems)
 	await _check_greeting(problems)
-	var summary := "%d stations, %d tracks, %.2f MB of Ogg in game/audio/radio" % [
-			(data["stations"] as Array).size(), tracks, total_bytes / 1048576.0]
+	var summary := "%d stations, %d tracks, %d jingles, %.2f MB of Ogg in game/audio/radio" % [
+			(data["stations"] as Array).size(), tracks, jingles, total_bytes / 1048576.0]
 	print("radio: ", summary)
 	if not unknown.is_empty():
 		print("radio: WARN licence unknown on %d track(s), check before a release: %s" % [unknown.size(), ", ".join(unknown)])
