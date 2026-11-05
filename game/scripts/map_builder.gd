@@ -4357,6 +4357,11 @@ func _build_carriageways(st) -> void:
 		var minor: bool = c["k"] in ["service", "living_street"]
 		_drape_bias = MINOR_ROAD_BIAS if minor and keep >= 0.0 else keep
 		_fill(st, _pts(c["p"]), Y_ROAD - (0.005 if minor else 0.0), COL["road_minor"] if minor else COL["road"])
+	# Round 3 (F: "one clean asphalt surface"): the bare pockets walled in by roads where a
+	# driveway leaves a street (`asphalt_fills`, tools/road_smooth.py fill_pockets).
+	_drape_bias = MINOR_ROAD_BIAS if keep >= 0.0 else keep
+	for f in data.get("asphalt_fills", []):
+		_fill(st, _pts(f["p"]), Y_ROAD - 0.005, COL["road"])
 	_drape_bias = keep
 	_dk = -1
 	_layer = L_GROUND

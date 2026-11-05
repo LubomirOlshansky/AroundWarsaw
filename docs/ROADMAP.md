@@ -526,6 +526,7 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [ ] Surfaces, crossings and kerb drops from OSM tags (RS4, RS6)
 - [x] Smooth joins: width steps tapered over 20-30 m where two ways meet, lane lines stitched across, line kinks rounded (`tools/road_smooth.py`, whole map; verify `smooth`), 2026-11-05
 - [x] Tram beds and crossings like F's ChatGPT target: sleepers on the tracks' own bed, roads and footways across the bed paved, lines and kerbs cut there, metro stairs going down (`tools/road_smooth.py` tram_beds, tram_crossings, metro_steps), 2026-11-05
+- [x] Round 3 of F's priorities: bare pockets between roads filled, tiny driveway islands painted with hatching, zebras beside their cycle crossing and to the far kerb, lamps off the widened asphalt (check_streets now judges the drawn `wv` bands), walks across the tram bed, stop lines, solid approach lines and signal poles at main-street crossings (`tools/road_smooth.py`), 2026-11-05
 - [ ] Width that varies along streets from the ortho (RS3 part 2) and the asphalt's history in the shader (RS7, bench)
 - [x] Street-objects log and the object budget (log everything, add only what earns its place), 2026-11-04
 - [ ] Lamp density look test and the traffic-light poles A/B (F picks)
