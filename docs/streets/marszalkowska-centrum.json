@@ -3,11 +3,10 @@
  "title": "Marszałkowska: Rondo Dmowskiego to Świętokrzyska",
  "updated": "2026-11-05",
  "stage": "evidence",
- "score": 70,
+ "score": 83,
  "counts": {
   "L1": 9,
-  "L2": 16,
-  "L4": 19,
+  "L2": 14,
   "O1": 8,
   "P1": 1
  },
@@ -18,10 +17,9 @@
    "counts": {
     "L1": 3,
     "L2": 5,
-    "L4": 4,
     "O1": 7
    },
-   "score": 71
+   "score": 79
   },
   {
    "id": "B",
@@ -29,21 +27,19 @@
    "counts": {
     "L1": 3,
     "L2": 4,
-    "L4": 2,
     "P1": 1
    },
-   "score": 81
+   "score": 85
   },
   {
    "id": "C",
    "title": "Sienkiewicza to Świętokrzyska",
    "counts": {
     "L1": 3,
-    "L2": 7,
-    "L4": 13,
+    "L2": 5,
     "O1": 1
    },
-   "score": 57
+   "score": 85
   }
  ],
  "history": [
@@ -54,6 +50,16 @@
     "L1": 9,
     "L2": 16,
     "L4": 19,
+    "O1": 8,
+    "P1": 1
+   }
+  },
+  {
+   "date": "2026-11-05",
+   "score": 83,
+   "counts": {
+    "L1": 9,
+    "L2": 14,
     "O1": 8,
     "P1": 1
    }
@@ -216,46 +222,6 @@
    "status": "changed"
   },
   {
-   "check": "L4",
-   "x": -871.4,
-   "z": 336.1,
-   "s": -141.0,
-   "t": 17.5,
-   "note": "lane line painted through a zebra",
-   "block": "A",
-   "status": "open"
-  },
-  {
-   "check": "L4",
-   "x": -875.7,
-   "z": 337.7,
-   "s": -140.9,
-   "t": 12.9,
-   "note": "lane line painted through a zebra",
-   "block": "A",
-   "status": "open"
-  },
-  {
-   "check": "L4",
-   "x": -888.4,
-   "z": 342.2,
-   "s": -140.8,
-   "t": -0.6,
-   "note": "lane line painted through a zebra",
-   "block": "A",
-   "status": "open"
-  },
-  {
-   "check": "L4",
-   "x": -893.0,
-   "z": 343.5,
-   "s": -140.4,
-   "t": -5.3,
-   "note": "lane line painted through a zebra",
-   "block": "A",
-   "status": "open"
-  },
-  {
    "check": "O1",
    "x": -877.7,
    "z": 437.8,
@@ -396,26 +362,6 @@
    "status": "open"
   },
   {
-   "check": "L4",
-   "x": -938.3,
-   "z": 152.6,
-   "s": 54.4,
-   "t": 18.8,
-   "note": "lane line painted through a zebra [changed since the data: Skwer Linearny na Złotej (car-free since 2026-08) and its crossing to Plac Centralny]",
-   "block": "B",
-   "status": "changed"
-  },
-  {
-   "check": "L4",
-   "x": -957.1,
-   "z": 159.5,
-   "s": 54.5,
-   "t": -1.1,
-   "note": "lane line painted through a zebra [changed since the data: Skwer Linearny na Złotej (car-free since 2026-08) and its crossing to Plac Centralny]",
-   "block": "B",
-   "status": "changed"
-  },
-  {
    "check": "P1",
    "x": -968.5,
    "z": 38.4,
@@ -452,26 +398,6 @@
    "s": 363.7,
    "t": 18.1,
    "note": "3 -> 3 lanes, 7.8 -> 9.8 m wide where two ways meet",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -963.0,
-   "z": 34.6,
-   "s": 173.5,
-   "t": 36.9,
-   "note": "lane line ends mid-block",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -1005.5,
-   "z": 28.6,
-   "s": 194.0,
-   "t": -0.8,
-   "note": "lane line ends mid-block",
    "block": "C",
    "status": "open"
   },
@@ -522,136 +448,6 @@
    "s": 250.7,
    "t": 48.0,
    "note": "lane line ends mid-block",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L4",
-   "x": -986.8,
-   "z": 26.5,
-   "s": 189.4,
-   "t": 17.4,
-   "note": "lane line painted through a zebra",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L4",
-   "x": -1003.9,
-   "z": 32.8,
-   "s": 189.6,
-   "t": -0.8,
-   "note": "lane line painted through a zebra",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L4",
-   "x": -1037.8,
-   "z": -114.8,
-   "s": 339.6,
-   "t": 19.0,
-   "note": "lane line painted through a zebra",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L4",
-   "x": -1037.8,
-   "z": -114.8,
-   "s": 339.6,
-   "t": 19.0,
-   "note": "lane line painted through a zebra",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L4",
-   "x": -1055.6,
-   "z": -108.3,
-   "s": 339.8,
-   "t": 0.1,
-   "note": "lane line painted through a zebra",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L4",
-   "x": -1055.6,
-   "z": -108.3,
-   "s": 339.8,
-   "t": 0.1,
-   "note": "lane line painted through a zebra",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L4",
-   "x": -1029.2,
-   "z": -142.8,
-   "s": 362.8,
-   "t": 36.8,
-   "note": "lane line painted through a zebra",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L4",
-   "x": -1029.2,
-   "z": -142.8,
-   "s": 362.8,
-   "t": 36.8,
-   "note": "lane line painted through a zebra",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L4",
-   "x": -1029.2,
-   "z": -142.8,
-   "s": 362.8,
-   "t": 36.8,
-   "note": "centre line painted through a zebra",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L4",
-   "x": -1083.3,
-   "z": -125.7,
-   "s": 365.8,
-   "t": -19.8,
-   "note": "lane line painted through a zebra",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L4",
-   "x": -1083.3,
-   "z": -125.7,
-   "s": 365.8,
-   "t": -19.8,
-   "note": "centre line painted through a zebra",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L4",
-   "x": -1083.3,
-   "z": -125.7,
-   "s": 365.8,
-   "t": -19.8,
-   "note": "lane line painted through a zebra",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L4",
-   "x": -1083.3,
-   "z": -125.7,
-   "s": 365.8,
-   "t": -19.8,
-   "note": "lane line painted through a zebra",
    "block": "C",
    "status": "open"
   },

@@ -14,7 +14,7 @@ Records: docs/streets/<slug>.json (machine) and docs/streets/<slug>.md (people),
 The checks (docs/design/operation-unslop.md section 4):
   L1 lane step     two consecutive ways of the street, same direction, whose lane count or width
                    jumps (> 1 lane, or > 1.5 m) where they meet: the "odd lane split"
-  L2 loose line    a lane line ending in the middle of a block: no junction, stop line or
+  L2 loose line    a lane line ending in the middle of a block: no junction, stop line, zebra or
                    continuing line within reach of its end
   L3 line on kerb  a lane, edge or centre line crossing a kerb line
   L4 line thru zebra a lane or centre line painted across a zebra crossing (OSM footway=crossing
@@ -51,6 +51,7 @@ TITLES = {"L1": "lane step", "L2": "loose lane line", "L3": "line on a kerb", "L
 LOOSE_REACH = 2.0      # L2: another line's end this close continues the line
 JUNCTION_REACH = 14.0  # L2: a line may end this close to a junction node
 STOP_REACH = 5.0       # L2: ...or to a stop line
+ZEBRA_REACH = 3.5      # L2: ...or to a zebra (bake_roads cuts 2.4 m each side; more where a line meets it at an angle)
 CELL = 20.0
 
 
@@ -196,6 +197,8 @@ def measure(d, sd):
     lines = [m for m in d["markings"] if m.get("k") in ("lane", "edge", "centre") and any(here(p) for p in pairs(m["p"]))]
     stops = [pairs(m["p"]) for m in d["markings"] if m.get("k") == "stop" and any(near(p, 30) for p in pairs(m["p"]))]
     juncs = [n for n in junction_nodes(d) if near(n, 30)]
+    zebras = [pairs(w["p"]) for w in d.get("paths", []) if w.get("k") == "zebra" and any(near(p) for p in pairs(w["p"]))]
+    zsegs = [(a, b) for z in zebras for a, b in zip(z, z[1:])]
     endpoints = []
     for i, m in enumerate(lines):
         pts = pairs(m["p"])
@@ -211,6 +214,8 @@ def measure(d, sd):
             if any(math.hypot(e[0] - n[0], e[1] - n[1]) < JUNCTION_REACH for n in juncs):
                 continue
             if any(seg_dist(e, a, b)[0] < STOP_REACH for s in stops for a, b in zip(s, s[1:])):
+                continue
+            if any(seg_dist(e, a, b)[0] < ZEBRA_REACH for a, b in zsegs):
                 continue
             if any(j != m_i and math.hypot(e[0] - q[0], e[1] - q[1]) < LOOSE_REACH for q, j in endpoints):
                 continue
@@ -242,9 +247,7 @@ def measure(d, sd):
         if hit:
             add("L3", hit, f"{m['k']} line crosses a kerb")
 
-    # L4: lane and centre lines through zebras.
-    zebras = [pairs(w["p"]) for w in d.get("paths", []) if w.get("k") == "zebra" and any(near(p) for p in pairs(w["p"]))]
-    zsegs = [(a, b) for z in zebras for a, b in zip(z, z[1:])]
+    # L4: lane and centre lines through zebras (zsegs from L2 above).
     for m in lines:
         if m["k"] not in ("lane", "centre"):
             continue

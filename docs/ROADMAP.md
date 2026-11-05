@@ -532,7 +532,8 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 
 ### Left: Operation Unslop, street by street (F, 2026-11-05; plan docs/design/operation-unslop.md, skill `street-pass`)
 - [x] Street pass pipeline: `tools/street_pass.py` (blocks, owned and changed zones, checks L1-L3 T1 P1 O1, object verdicts, the street record and its ratchet in verify.sh), the model library `tools/model_library.py` (every model + the wanted ones; the match step), agent `street-unslopper`, console Streets and Models tabs (2026-11-05, tools only)
-- [ ] Test street Marszałkowska, Rondo Dmowskiego to Świętokrzyska: baseline 82 → fixes (lanes and markings from today's street, barriers by verdict, balustrades) → F's look
+- [x] Lane lines stop at zebras, whole map (`bake_roads._crossed`; Mac re-bake 2026-11-05): test street 70 → 83, L4 19 → 0
+- [ ] Test street Marszałkowska, Rondo Dmowskiego to Świętokrzyska: baseline 70, now 83 → fixes (lanes and markings from today's street, barriers by verdict, balustrades) → F's look
 - [x] First wanted models: `tram_railing`, `balustrade` (granite) and `balustrade_rail` as barrier styles, applied by id from the street records (`street_pass.py --apply` → `game/data/road_objects.json` → map_builder; check `overrides`), 11 barriers on the test street (2026-11-05)
 - [ ] Next wanted models, most-asked first (canopy on posts, Jersey barrier, yard gate, park fence); railing bars as a texture
 - [ ] Next streets with the same pipeline unchanged: Aleje Jerozolimskie, Nowy Świat, Świętokrzyska
