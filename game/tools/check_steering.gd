@@ -102,8 +102,9 @@ func _plan() -> void:
 			_add({"name": "turn90_%d" % v, "schemes": [s], "v0": v * KMH, "dur": 6.0, "kind": "turn90"})
 		_add({"name": "wall_glance", "schemes": [s], "v0": 50 * KMH, "dur": 4.0, "kind": "wall", "heading": 60.0,
 				"walls": [[Vector3(0, 2, -16), Vector3(400, 4, 1)]]})
+		# Walls redirect, never stop (road-objects.md 7.1): head-on slides off without the unstick.
 		_add({"name": "wall_headon", "schemes": [s], "v0": 20 * KMH, "dur": 5.0, "kind": "wall", "heading": 0.0,
-				"walls": [[Vector3(0, 2, -12), Vector3(400, 4, 1)]]})
+				"walls": [[Vector3(0, 2, -12), Vector3(400, 4, 1)]], "pin_max": 1.0, "unstick_max": 0})
 		# Into an inside corner, held there 3 s, then pointing back out (Classic: reversing).
 		_add({"name": "corner", "schemes": [s], "v0": 15 * KMH, "dur": 6.0, "kind": "wall", "heading": 45.0, "out_at": 3.0,
 				"walls": [[Vector3(-20, 2, -14.5), Vector3(40, 4, 1)], [Vector3(0.5, 2, 5), Vector3(1, 4, 40)]],
@@ -111,11 +112,15 @@ func _plan() -> void:
 		if not legacy:
 			# The driving-feel loop: a bollard under the right front corner, a stopped car's corner
 			# there, a stopped car square ahead (going round it, not sitting behind it: Point and
-			# Fixed steer round; Classic's straight stick is only turned out, so it isn't asked).
+			# Fixed steer round; Classic slides off it as off a wall).
 			_add({"name": "post_clip", "schemes": [s], "v0": 40 * KMH, "dur": 4.0, "kind": "wall", "heading": 0.0,
 					"walls": [[Vector3(0.75, 1, -10), Vector3(0.3, 2, 0.3)]], "past": -12.0})
 			_add({"name": "car_clip", "schemes": [s], "v0": 40 * KMH, "dur": 4.0, "kind": "wall", "heading": 0.0,
 					"cars": [[Vector3(1.3, 0.85, -14), Vector3(1.8, 1.5, 4.2)]], "past": -18.0})
+			# A stopped car square ahead, the gas held: Point steers round it, Classic slides off it
+			# like off a wall once it has pushed CAR_PUSH_TIME (road-objects.md 7.1).
+			_add({"name": "car_behind", "schemes": [s], "v0": 25 * KMH, "dur": 7.0, "kind": "wall", "heading": 0.0,
+					"cars": [[Vector3(0, 0.85, -12), Vector3(1.8, 1.5, 4.2)]], "past": -16.0})
 		if not legacy and s != "classic":
 			# G17: boxed in by four stopped cars (0.3 m of air ahead and behind, side by side): ghosts through the one
 			# ahead after 1.5 s and is past it well inside the 8 s a tow would take.
@@ -123,10 +128,12 @@ func _plan() -> void:
 					"cars": [[Vector3(0, 0.85, -4.4), Vector3(1.8, 1.5, 4.2)], [Vector3(0, 0.85, 4.4), Vector3(1.8, 1.5, 4.2)],
 					[Vector3(-1.85, 0.85, 0), Vector3(1.8, 1.5, 4.2)], [Vector3(1.85, 0.85, 0), Vector3(1.8, 1.5, 4.2)]],
 					"past": -10.0, "pin_max": 3.0})
-			_add({"name": "car_behind", "schemes": [s], "v0": 25 * KMH, "dur": 7.0, "kind": "wall", "heading": 0.0,
-					"cars": [[Vector3(0, 0.85, -12), Vector3(1.8, 1.5, 4.2)]], "past": -16.0})
 	if legacy:
 		return
+	# Classic's strip held right into a head-on wall (for 1.5 s, then straight): it slides off to the right (east).
+	_add({"name": "wall_headon_right", "schemes": ["classic"], "v0": 20 * KMH, "dur": 5.0, "kind": "wall", "heading": 0.0,
+			"walls": [[Vector3(0, 2, -12), Vector3(400, 4, 1)]], "pin_max": 1.0, "unstick_max": 0, "strip": 0.5,
+			"strip_until": 1.5, "end_heading": 90.0})
 	# Camera loop: straight on at about 90 km/h for 2.5 s (the look-ahead settles), then the brake
 	# to a stop: does the view slide back towards the car?
 	for s in ["classic", point_schemes[0]]:
@@ -296,6 +303,8 @@ func _input() -> Dictionary:
 			var facing := (-_car.global_transform.basis.z).dot(to_corner) > 0.0
 			inp["gas"] = not out or not facing
 			inp["brake"] = out and facing
+			if _test.has("strip") and _t < float(_test.get("strip_until", INF)):
+				inp["stick"] = Vector2(float(_test["strip"]), 0.0)
 		elif out:
 			inp["stick"] = _stick_for(heading + 180.0, "_stick_out")
 		else:
@@ -712,14 +721,19 @@ func _m_wall() -> String:
 	for k in range(_rows.size() - 30, _rows.size()):
 		end_speed += float(_rows[k]["moved"]) / 30.0
 	var unstuck := ""
+	var unsticks := 0
 	if _car.get("unsticks") != null:
-		unstuck = ", unstuck %d×" % int(_car.get("unsticks"))
+		unsticks = int(_car.get("unsticks"))
+		unstuck = ", unstuck %d×" % unsticks
 	var out := ""
 	if _test.has("out_at"):
 		# The corner is at (0, -14).
 		var d := Vector2(float(end["x"]), float(end["z"]) + 14.0).length()
 		out = ", %.1f m from the corner at the end" % d
 	var ok := end_speed >= 2.0 and longest <= float(_test.get("pin_max", 2.0))
+	ok = ok and unsticks <= int(_test.get("unstick_max", 99))
+	if _test.has("end_heading"):
+		ok = ok and absf(angle_difference(deg_to_rad(float(end["go"])), deg_to_rad(float(_test["end_heading"])))) < deg_to_rad(30.0)
 	if _test.has("past"):
 		# The driving-feel loop: got past the thing (north of `past`) by the end, and how soon.
 		var past_t := -1.0

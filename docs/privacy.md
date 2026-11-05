@@ -23,7 +23,7 @@ office). That data is built into the game; nothing about you is used with it.
 
 If this policy ever changes, the new version will be posted here with a new date.
 
-Questions: open an issue on the game's GitHub repository.
+Questions: write to us through the Support page (https://aroundwarsaw.app/support/).
 
 ---
 
@@ -45,4 +45,4 @@ przechowuje ich i nikomu ich nie przekazuje.
   zbiera.
 - **Podmioty trzecie.** Żadne dane nie trafiają do nikogo, bo żadne nie opuszczają telefonu.
 
-Pytania: zgłoś issue w repozytorium gry na GitHubie.
+Pytania: napisz do nas przez stronę Wsparcie (https://aroundwarsaw.app/support/).
