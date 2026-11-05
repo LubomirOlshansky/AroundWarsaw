@@ -4,6 +4,22 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Loading bar on the title screen (F, 2026-11-05)
+
+Built: `main.gd` loads `index.res` and `proxies.scn` with threaded requests under the title, the
+build yields a frame (tree paused, 3D view hidden) after each of its 8 steps, and the start's
+sectors fill the last stretch; `title.gd` draws the bar and the share ("loading bar:" lines in the
+log give each step's ms). Test runs (no title) build in one go as before. Left:
+- **Phone timing not measured yet**: the bar's step shares come from the cloud's software
+  renderer (the city 10 %, the core 16 %, traffic and life 27 %, jobs and places 13 %, police and
+  crowds 19 %, the rest 14 %); a run on the iPhone 16 Pro Max (and the 11) should read the
+  "loading bar:" lines and retune `_load_mark`'s shares and LOAD_FILES / LOAD_BUILT.
+- **The yields cost a frame each** (8 frames, ~0.15 s on the phone at most, the title only); in
+  the cloud the threaded load of the two files took ~0.5 s longer than the plain load (the
+  software renderer competes for the CPU there); check on the phone, else load them in place.
+- **The engine's own start** (the light-blue boot splash before the title, while main.tscn and its
+  scripts load) has no progress; the title's art as the boot splash image would hide it.
+
 ## Landmark look-check fixes (F's answers, 2026-11-03)
 F's answers on the reviewed look-check page (look-check-answers.md in the project files), the smaller
 ones. Shots in the project files, look-check-fixes/. Done:
