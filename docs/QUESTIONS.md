@@ -140,15 +140,14 @@ Newest first. One entry per question.
   on Marszałkowska (Złota and its fountain are now the 2026 linear park, built 2026-11-02).
   Default built: the ribbon all round, the flat roofline, today's kerbs and crossings. A Mac
   session with the photos (model-from-photos skill) can measure and build both.
-- **2026-11-01 · landmarks · MDM arcades, towers, reliefs: Mac look check** — Built in the cloud
-  (flat ground, no LoD2, no photo). Default built (`_build_mdm`, spec mdm.md): arcades with square
-  piers every 5.4 m, 2.9 m deep, 6.7 m high on the facades that face the square or the axis; four
-  towers (east and west blocks' south ends, the two south-gate blocks) rising 19 m above the
-  roof plus a 6 m spire; a placeholder terracotta relief (sun and two figures) on each tower's
-  square face. For F on the Mac: does the arcade sit right on the LoD2 walls (no gap, no
-  z-fight), are the arcades round-headed or flat in the photos, how tall are the real towers,
-  what do the real reliefs show, which blocks really have arcades. Check `--prebuilt` too
-  (the cloud could not bake the sectors).
+- **2026-11-05 · landmarks · MDM rework: Mac look check** — Built in the cloud from F's Street
+  View shots and Mapillary frames (refs/mdm_ne, refs/mdm_nw), flat ground, no LoD2. Default built
+  (`_build_mdm`, spec mdm.md): cream skin, a sand-stone base 11 m high 0.6 m proud on every street
+  face, deep arcades only within 80 m of the square's centre, four attic pavilions, roof neons
+  MDM (NE block's south end), BYDŁO (east block's roof), XIAOMY (the SE gate block), HOTEL MDM at
+  6 m. For F on the Mac: does the base sit right on the LoD2 walls, which facades truly have
+  arcades, where the real signs stand, balcony railings, the pavilions' shape; `--prebuilt` too.
+
 - **2026-11-01 · landmarks · church kit and Plac Zamkowy: Mac look check** — Built in the cloud
   from outlines alone (docs/design/churches.md, spec churches.md). Defaults: the front is the
   outline's end nearest a street; towers, caps and colours by a guessed style per church
