@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-05
 
+- Footbridges no longer sag onto the road or the tracks: the one over Aleja Armii Ludowej and the three over the Ochota cutting now span the gap level.
 - The railway at Plac Zawiszy no longer runs over the street: the tracks, sleepers and overhead wires stop where the cutting ends and the tunnel mouth stands, and trains disappear into it.
 
 ## 2026-11-04
