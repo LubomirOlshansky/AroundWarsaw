@@ -11,6 +11,47 @@ everything, add only what earns its place") and docs/design/road-objects.md (ver
 B1-B15, collisions). One street block per thread and PR. The first street was Marszałkowska,
 Rondo Dmowskiego to Świętokrzyska (`marszalkowska-centrum`).
 
+## Fast path and model split (Mac run 2026-11-05; no gate below is dropped, only waiting is)
+
+**Order: cheap and decisive first, minutes-long work last, once.**
+1. Measure and crops first (seconds): `street_pass.py` baseline, `overlay_ortho.py` crops, photos.
+   Decide the fix from them before any bake.
+2. One bake per batch of rule changes, never one per tweak. When only `bake_roads.py`
+   changed and the raw data and `lod2.*` did not, run bake-map steps 2 and 4-8 (bake_osm, AO,
+   lights, water, sectors, city) instead of `bake_all.sh` from the top (the prepare, terrain and
+   GUGiK steps are unchanged inputs). A changed raw input or terrain: the full chain.
+3. Shots last, in one batch: all fixed cameras and both city paths in one go. Every game run
+   still passes `--nosave` and quits.
+
+**Shot hygiene (each of these cost a lost run):**
+- `--out=DIR` must exist before the run (`mkdir -p`), or the game logs "Can't save PNG" and still
+  exits 0. After every shot run, count the PNGs and stop if one is missing.
+- Each run rebuilds the city (~70 s on the Mac). Group the cameras so no run is repeated, and
+  run `--prebuilt` only for the blocks you changed.
+- Open every shot you report. A shot nobody looked at is not evidence.
+
+**Self-check gates (after every re-bake):**
+- Compare the score per class before and after. A class that grows (L2 after a rule that cuts
+  lines) is a rule bug to fix in `street_pass.py` or the bake, not a footnote.
+- A finding inside a `changed` zone, or on a crop whose photo date is unknown, is listed, never
+  called fixed. The orthophoto's flight date is not logged (only its download date): say so in
+  every crop note. Overlay crops hide paint; use a plain crop to read arrows and zebras.
+- Bakes read `data/raw` and write only inside the worktree: a `data/` symlink to the main
+  checkout must not receive the worktree's `data/work` output.
+
+**Who does what** (the coordinator picks the model; a cheaper run that fails its gates is re-run
+one tier up, not patched; only the main session spawns agents):
+
+| Step | Model | Why |
+| --- | --- | --- |
+| Lookups, counts, log crunching, listing files and PNGs, check outputs into a table | Haiku (`scout`) | facts only, never edits |
+| Crops and notes per crop, shot batches, `verify.sh`, report and record writing, street photo gathering, docs bookkeeping, applying a written spec to props and signs | Sonnet (`qa-tester`, `object-modeler`) | routine, checkable |
+| A new bake or L/T/P/O rule, lane geometry, a root cause, performance, the "is this a rule bug" call, accepting the look of a street or a model | Opus (main session, `map-engineer`, `art-director`) | judgment, regressions |
+| Anything the phone must show, store or device runs | Opus plus F's yes | device-run skill |
+
+Escalate Sonnet to Opus when a score class grows, a check fails twice, or a spec needs a choice
+(a lane count, a verdict).
+
 ## 0. Claim and define
 
 1. Check open PRs, "In progress" in docs/QUESTIONS.md and the project's other threads for the
