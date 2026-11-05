@@ -253,6 +253,20 @@ func _check_city(nb: Notebook, data: Dictionary) -> void:
 		_expect((m.p2 as Vector2).distance_to(Vector2(st.x, st.z)) <= CityLife.NEAR_R, "a kerb rider %.0f m from the view" % (m.p2 as Vector2).distance_to(Vector2(st.x, st.z)))
 		off_kerb += int(_kerb_miss(graph, m) > 0.35)
 	_expect(off_kerb == 0, "%d of %d kerb riders off their kerb line" % [off_kerb, kerbers.size()])
+	# F, 2026-11-05: none of them on a road with a cycle path beside it (the bikes use the path).
+	var beside := 0
+	for m in kerbers:
+		beside += int(life.call("_cycle_path_beside", int(m.ke)))
+	_expect(beside == 0, "%d of %d kerb riders on a road with a cycle path beside it" % [beside, kerbers.size()])
+	# And the real graph: a long Marszałkowska edge with the red path beside it is excluded.
+	var mk_all := 0
+	var mk_open := 0
+	for e in graph.e_name.size():
+		if graph.e_name[e].begins_with("Marszałkowska") and CityLife.kerb_road(graph.e_lw[e], graph.e_class[e], graph.e_tn[e], graph.e_s1[e] - graph.e_s0[e]):
+			mk_all += 1
+			mk_open += int(not life.call("_cycle_path_beside", e))
+	_expect(mk_open < mk_all, "no Marszałkowska kerb edge excluded for a cycle path beside it")
+	print("couriers: Marszałkowska kerb edges %d, %d left open (no cycle path beside)" % [mk_all, mk_open])
 	# The race takes one: one fewer there, back when the stand has left the band (and come back).
 	var taken: Array = life.take_waiting(si)
 	_expect(not taken.is_empty() and (life.waiting_at(si) as Array).size() == want - 1, "the race's take: %d left (want %d)" % [
