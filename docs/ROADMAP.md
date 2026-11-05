@@ -121,7 +121,7 @@ then the Launch gate.
         floor in Junior, LUKA's bakery and the four-floor TAK MAKS in Sawa and Wars, the two-storey
         FROGS XXL with its green seats on H&M's corner, KURCZAKI WKRÓTCE next door, street-face banners
         and lit shop fasciae, all swapped in one file (game/data/eastern_wall_shops.json); Metro
-        Świętokrzyska's M2 triangle canopies; phone look parked
+        Świętokrzyska's M2 triangle canopies; green roof strips, TAK MAKS's red portal, PRALKA PLUS on the tower's crown; phone look parked
 
 ### Left: map and roads
 - [ ] Free-play playtest plan P1-P10 run with Autopilot and every confirmed PT bug fixed

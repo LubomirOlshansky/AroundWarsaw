@@ -8117,6 +8117,7 @@ func _build_dtc(_site: Dictionary) -> void:
 		_dtc_banners(outline, top, g, store.get("banners", []))
 		_dtc_fronts(outline, shop, g, store.get("fronts", []))
 		_dtc_props(outline, g, store.get("props", []))
+		_dtc_green(outline, g, store.get("roof_green", []))
 		_dtc_sign(outline, str(d["sign"]), g + DTC_BODY)
 		_collide(shop)
 	_mode = M_STONE
@@ -8388,6 +8389,14 @@ func _dtc_fronts(outline: PackedVector2Array, shop: PackedVector2Array, g: float
 		_quad(Vector3(b0.x, by1, b0.y), Vector3(b1.x, by1, b1.y), Vector3(t1.x, by1, t1.y), Vector3(t0.x, by1, t0.y), Vector3.UP, band.darkened(0.3))
 		_quad(Vector3(b0.x, by0, b0.y), Vector3(b1.x, by0, b1.y), Vector3(t1.x, by0, t1.y), Vector3(t0.x, by0, t0.y), Vector3.DOWN, band.darkened(0.4))
 		_dtc_words(spec.get("lines", []), m + co * 0.35, co, by0 + 0.05, by1 - 0.05, w, 1.6, Color(str(spec.get("ink", "#ffffff"))))
+		if spec.has("portal"):
+			# A coloured portal round the doors (the discount store's red frame): two posts at the
+			# board's ends down to the pavement, at the cantilever's edge.
+			var pc := Color(str(spec["portal"]))
+			for e: Vector2 in [b0, b1]:
+				var pp := e - co * 0.15
+				_prism(PackedVector2Array([pp - cd * 0.25 - co * 0.15, pp + cd * 0.25 - co * 0.15, pp + cd * 0.25 + co * 0.15, pp - cd * 0.25 + co * 0.15]),
+						g, by0, pc, pc, M_LAMP, M_STONE)
 		if bool(spec.get("two_storey", false)) and spec.has("glass"):
 			# The first floor behind the curtain wall: the shop's colour glowing through the glass.
 			var c0 := m - cd * w * 0.5 + co * 0.08
@@ -8396,6 +8405,33 @@ func _dtc_fronts(outline: PackedVector2Array, shop: PackedVector2Array, g: float
 			_mode = M_PAVILION
 			_quad(Vector3(c0.x, y0, c0.y), Vector3(c1.x, y0, c1.y), Vector3(c1.x, y0 + 4.0, c1.y), Vector3(c0.x, y0 + 4.0, c0.y), Vector3(co.x, 0, co.y), Color(str(spec["glass"])).darkened(0.15))
 	_mode = M_STONE
+
+
+## The green roof strips (`roof_green`, F's aerial photos): sedum along a long side of the main
+## roof, between the cornice and the set-back top storey, kept off the ends.
+func _dtc_green(outline: PackedVector2Array, g: float, list: Array) -> void:
+	for spec: Dictionary in list:
+		var want := _dtc_dir(str(spec.get("face", "west")))
+		var right := Vector2(want.y, -want.x)
+		var lo := INF
+		var hi := -INF
+		var top := -INF
+		for q in outline:
+			lo = minf(lo, q.dot(right))
+			hi = maxf(hi, q.dot(right))
+			top = maxf(top, q.dot(want))
+		var w := float(spec.get("w", 2.0))
+		var s0 := top - 0.9 - w
+		var s1 := top - 0.9
+		var r0 := lo + DTC_TOP_END * 0.5
+		var r1 := hi - DTC_TOP_END * 0.5
+		var band := PackedVector2Array([right * r0 + want * s0, right * r1 + want * s0, right * r1 + want * s1, right * r0 + want * s1])
+		var inset := Geometry2D.offset_polygon(outline, -0.9, Geometry2D.JOIN_MITER)
+		if inset.is_empty():
+			continue
+		var strip := _largest(Geometry2D.intersect_polygons(inset[0], band))
+		if strip.size() >= 3:
+			_prism(strip, g + DTC_BODY, g + DTC_BODY + 0.3, Color("#7d8a66"), Color(str(spec.get("colour", "#6f8f4a"))), M_STONE, M_STONE)
 
 
 ## The furniture outside a shop (`props`): FROGS XXL's cream parasols and green seats on the corner.
@@ -8486,7 +8522,10 @@ const TOWER75_AT := Vector2(-819.0, 254.0)
 const TOWER75_PODIUM := 7.0
 const TOWER75_CLAD := Color("#d9dcdc")
 const TOWER75_GLASS := Color("#3e4e5e")
-const TOWER75_WORD := "KOKA-KOLKA"
+## F's photos (2026-11-05): the appliance maker's red script on the tower's crown, beside the
+## discount store's red box; ours a parody, PRALKA PLUS (KOKA-KOLKA moves to the Sezam corner, the
+## Eastern Wall photo pass in BACKLOG).
+const TOWER75_WORD := "PRALKA PLUS"
 const SLAB_AT := [Vector2(-862.0, 86.0), Vector2(-853.0, 190.0), Vector2(-813.0, 207.0), Vector2(-778.0, 308.0)]
 const SLAB_BILLBOARD := 1     # the slab behind Sawa (index in SLAB_AT)
 ## F's look check (2026-11-03): light warm grey (provisional), with clear horizontal balcony

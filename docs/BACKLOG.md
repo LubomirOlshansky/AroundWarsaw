@@ -141,6 +141,9 @@ in Junior since Oct 2025), LUKA bakery (LUCA, Sawa, Oct 2026), TAK MAKS (TK Maxx
 floors, Sep 2026; also the red box on `tower75`'s roof), FROGS XXL two storeys on H&M's corner with
 green seats and cream parasols, KURCZAKI WKRÓTCE (the chicken chain coming next door). Metro
 Świętokrzyska's mapped canopies are now M2's steel-and-glass triangle tents (`Props._metro_tent`).
+Buildings from F's aerials: sedum strips along the main roofs (`roof_green`), TAK MAKS's red
+portal, and `tower75`'s crown now PRALKA PLUS (the appliance maker's parody) beside the red TAK MAKS box;
+KOKA-KOLKA is off the tower until the Sezam corner is built (Eastern Wall photo pass below).
 Left:
 - Phone look of the street-face signs (the camera sees the street faces edge-on when driving along
   Marszałkowska; they show when turning or rotating the view).
@@ -169,7 +172,7 @@ Plan only, nothing built (F paused new work; this wants his "go" for the Mac pho
   use something like ZMYWAKA or PRALKA PLUS, Polish, affectionate). Both are lit roof signs, `_dtc_sign` style.
 - **Chmielna:** keep the street clean, no excavation or roadworks. **Pasaż slabs:** the report's grey-white #D8D8D4 with a
   slightly warm tint (palette change in the existing `wiecha` model).
-- Open for the gather: the Sezam corner's exact outline, the Żabka corner on Wars.
+- Open for the gather: the Sezam corner's exact outline, the Żabka corner on Wars. (2026-11-05: the Amica parody PRALKA PLUS is on `tower75`; the cola sign is off the tower and waits for this Sezam build.)
 
 ## The helicopter high up (F's playtest, 2026-11-03; GAMEPLAY_PLAN 0.4 / 3.1)
 

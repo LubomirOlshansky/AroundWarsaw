@@ -66,7 +66,8 @@ Ground: the lowest terrain under each outline. Junior: 25 x 100 m; Sawa: 27 x 10
   `two_storey` shop also glows through the curtain wall's first floor. Nov 2026: Junior UNIKAT
   (Zara's old floor), Sawa LUKA bakery and TAK MAKS, Wars TAK MAKS on the south end and the
   street, FROGS XXL two storeys on the south-west corner with green seats and cream parasols,
-  KURCZAKI WKRÓTCE beside it.
+  KURCZAKI WKRÓTCE beside it. Also from F's aerials: sedum strips (`roof_green`) along the main
+  roof's street side (and Wars's back), and TAK MAKS's red portal posts round its doors (`portal`).
 - **Cornice (17-17.5 m)**: aluminium, the roof's edge.
 - **Top storey (17.5-20.5 m)**: pale panels in M_SKIN S_DARK (a fine dark grid), 3 m in from
   the edge on every side.
@@ -119,8 +120,8 @@ po Warsie i Sawie z legendy.", EN "The Eastern Wall's three glass department sto
 
 ## 7. Detail level and budget
 
-L2 (facade articulation from the mapped parts), triangle budget 1730 (1439 measured on
-2026-11-01 after the Mac photo check, 1647 on 2026-11-05 with the shop fronts and furniture,
+L2 (facade articulation from the mapped parts), triangle budget 1950 (1439 measured on
+2026-11-01 after the Mac photo check, 1767 on 2026-11-05 with the shop fronts, furniture, red portals and green roof strips,
 `check_mesh_quality.gd` BUDGET).
 
 ## 8. Parts table

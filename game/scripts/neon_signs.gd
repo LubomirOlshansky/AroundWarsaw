@@ -22,6 +22,8 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		"PROMOCJA", "LODY",
 		# The tower and the slab behind the stores (specs C and D): a parody and a drink.
 		"KOKA-KOLKA", "ORANŻADA",
+		# The tower75 crown from F's photos (2026-11-05): the appliance maker as a parody.
+		"PRALKA PLUS",
 		# The Pawilony (2026-10-31): the bars' little words and the gate's name.
 		"PIWO", "BAR", "SHOTY", "DISCO", "KARAOKE", "OTWARTE", "PAWILONY",
 		# The start area as real Warsaw (R1, docs/design/start-area-real.md, 2026-11-01): the
