@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-05
 
+- The Patelnia by Metro Centrum is a sunken square again: 3.4 m under the street behind retaining walls and railings, with stairs down from Marszałkowska and the wide steps from the park, and the metro's two ribbed glass vaults over the stairs to the station. By the Rotunda, the entrance to the underpass is a stair going down to a glass door instead of a walled box, and the grey slab in front of Wars is a low planter edge.
 - Plac Centralny in front of the Palace of Culture looks like the new square: young trees in groves on the lawns and along the axis, flower beds, a long stone seat-wall, wooden step seating round a pale paved heart, the red WARSZAWA letters, green deckchairs and tall lamps.
 - The railway at Plac Zawiszy no longer runs over the street: the tracks, sleepers and overhead wires stop where the cutting ends and the tunnel mouth stands, and trains disappear into it.
 

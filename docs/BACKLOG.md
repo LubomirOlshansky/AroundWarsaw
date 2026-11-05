@@ -4,6 +4,32 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## The Patelnia sunk, the Rotunda's stair, the Wars wall (F, 2026-11-05)
+
+F's screenshots and aerial (Operation Unslop thread): the Patelnia was drawn flat, the Rotunda's
+stair to the underpass stood as a walled box, a grey slab stood before Wars. Done 2026-11-05 (spec
+`docs/landmarks/specs/patelnia.md`, site `sunken`, `map_builder.gd` SUNKEN):
+- **Sunken places in the ground**: a ring's floor wins over the 10 m grid in terrain_height, and the
+  drawn ground is lowered in sub-cells over the ring grown by a sub-cell's diagonal (no slope inside
+  the walls). The Patelnia at 10.0 m (3.4 m under Marszałkowska), its north-east and Kokota stairs,
+  the Rotunda's stair (3.6 m down). Wall lines on a ring are the site's.
+- **The site**: retaining faces, coping, a paving band over the trench outside, dark railings and the
+  car's collision on every dropping edge; treads on the stairs; Metro Centrum's two smoky glass
+  barrels (their OpenStreetMap boxes go) and dark wells; the Rotunda's glazed door at the stair's foot.
+  The Patelnia's three metro canopies (storefronts) go: the barrels are the entrances.
+- **Low walls** (`map_builder.gd` LOW_WALLS): Wars's 25 m planter edge on Widok and the Rotunda stair's
+  planters at 0.55 m instead of 1.9 m.
+Left:
+- Mac/phone look check (QUESTIONS): the floor level, the railing's look, the barrels' glass tone, the
+  Rotunda stair's door and whether the wedge is all stair.
+- The stairs to the underpass by the Patelnia's south-east corner (`steps` by the mural's east end and
+  along the east wall) keep their blue tubes at street level; F's aerial shows the corner one open,
+  with treads. Sinking them needs the underpass level (deeper than the square) and their tubes'
+  ground; parked.
+- The other eleven stairwells round the roundabout are still flat under their tubes (sinking them is
+  the same SUNKEN entry each, with the tube's base kept at the street).
+- `tools/street_pass.py` (PR #441) was not on main when this landed: its `--check` runs once it merges.
+
 ## Landmark look-check fixes (F's answers, 2026-11-03)
 F's answers on the reviewed look-check page (look-check-answers.md in the project files), the smaller
 ones. Shots in the project files, look-check-fixes/. Done:
@@ -447,8 +473,8 @@ Left:
   (they are in the building material, like every landmark): the lawn shows through in the ghost's
   circle. A ground-level exemption in `building.gdshader` (by UV2.y, the height above ground) would
   fix it for every site's ground dressing (Dom Partii's court, Plac Defilad).
-- The stairwell walls are the map's 1.9 m walls (`lines` k wall): real balustrades are about 1 m.
-  Lowering them is a map-builder change for every mapped wall, not done here.
+- ~~The stairwell walls are the map's 1.9 m walls~~: the Patelnia's and the Rotunda stair's are now
+  retaining walls with railings (site `sunken`, 2026-11-05); the wells under the tubes keep theirs.
 ## Map checks in GitHub CI (2026-11-02)
 
 - Done: the `map` job in `.github/workflows/verify.yml`. The GUGiK-derived files (lod2.bin, lod2.json,

@@ -686,6 +686,7 @@ func _setup(d: Dictionary, building_mat: ShaderMaterial, flat_mat: ShaderMateria
 		_t_h = PackedFloat32Array(_terrain["h"])
 
 	_load_fills()
+	_load_sunken()
 	_load_aprons()
 	_load_decks()
 	_load_tunnels()
@@ -883,6 +884,11 @@ func terrain_height(x: float, z: float) -> float:
 func _fill_height(x: float, z: float) -> float:
 	var h := _grid_height(x, z)
 	_set_hit = false
+	# A sunken place's floor (SUNKEN) wins over the grid and the approaches.
+	if _sunk_box.has_point(Vector2(x, z)):
+		var f := sunk_floor(x, z)
+		if f < h:
+			return f
 	if _fill_cells.is_empty():
 		return h
 	var codes: PackedInt32Array = _fill_cells.get((floori(x / FILL_CELL) + 1024) * 4096 + floori(z / FILL_CELL) + 1024,
@@ -1468,6 +1474,135 @@ func _load_decks() -> void:
 		_decks.append({"pts": pts, "cum": cum, "h": PackedFloat32Array(piece["h"]), "l": float(piece["l"]),
 				"r": float(piece["r"]), "g": int(piece["g"]), "k": String(piece["k"]),
 				"o": PackedByteArray(piece.get("o", [])), "box": box.grow(reach)})
+
+
+# --- sunken places ---------------------------------------------------------------------------
+
+## Sunken places (F's aerial and photos, 2026-11-05): ground metres under the street within a
+## few metres, which the 10 m GUGiK grid can only draw as a blurred slope (the Patelnia by Metro
+## Centrum lay in a soft bowl; the Rotunda's stair to the underpass was a walled box at street
+## level). Each: `ring`, the plan outline (the retaining walls' line); the floor falls from the
+## grid's height at `a` (a stair's top) to `hb` at `b` (its foot), flat past either end, or lies
+## flat at `hb` when `a` == `b`; `sub`, the drawn ground's sub-cells per 10 m cell there.
+## terrain_height (the car, people, props) takes the floor inside the ring; the drawn ground
+## (`_drawn_corner`) takes it over the ring grown by one sub-cell's diagonal, so no sub-cell's
+## slope shows inside the walls (the band outside is under the coping the landmark site `sunken`
+## lays, landmarks.gd, with the walls, stair treads and railings). A wall line (`lines` k wall)
+## lying on a ring is the site's, so _build_barriers leaves it out (SINK_WALL_REACH).
+## Patelnia: the plaza (centrum.json `areas` k plaza) and Metro Centrum's pavilions (`landmarks`
+## "Metro Centrum"), floor 10.0 (the grid's own bottom there, 9.9-10.2); its north-east stair to
+## Marszałkowska (`steps` between the walls) and the wide west stair ("Schody Kokota"). Rotunda:
+## the wedge between the planters north-west of Rotunda PKO, the stair down to its lower floor and
+## the underpass (`steps` 11 m, 3.6 m down, then the landing under the Rotunda's edge).
+const SUNKEN := [
+	{"key": "patelnia", "sub": 10, "hb": 10.0, "a": Vector2(-911.5, 400.0), "b": Vector2(-911.5, 400.0),
+		"ring": [Vector2(-884.1, 424.3), Vector2(-883.7, 422.1), Vector2(-884.9, 416.0), Vector2(-886.1, 410.0),
+			Vector2(-887.7, 402.3), Vector2(-888.3, 401.5), Vector2(-885.5, 393.2), Vector2(-889.4, 376.1),
+			Vector2(-892.8, 376.6), Vector2(-897.1, 377.7), Vector2(-901.5, 368.3), Vector2(-909.8, 372.5),
+			Vector2(-928.5, 381.4), Vector2(-939.0, 386.2), Vector2(-934.3, 395.7), Vector2(-938.6, 397.7),
+			Vector2(-933.2, 408.9), Vector2(-935.7, 410.1), Vector2(-938.1, 411.2), Vector2(-937.3, 413.6),
+			Vector2(-937.3, 414.5), Vector2(-938.0, 416.3), Vector2(-939.5, 417.6), Vector2(-938.5, 420.5),
+			Vector2(-937.4, 423.5), Vector2(-935.7, 422.9), Vector2(-931.4, 422.3), Vector2(-926.2, 422.4),
+			Vector2(-919.0, 424.0), Vector2(-913.2, 425.9), Vector2(-908.4, 426.7), Vector2(-904.0, 426.6),
+			Vector2(-894.9, 424.9), Vector2(-889.3, 424.2), Vector2(-886.2, 424.1)]},
+	{"key": "patelnia_ne", "sub": 10, "hb": 10.0, "a": Vector2(-893.2, 367.0), "b": Vector2(-891.0, 377.0),
+		"ring": [Vector2(-894.7, 368.2), Vector2(-891.3, 367.5), Vector2(-889.4, 376.1), Vector2(-892.8, 376.6)]},
+	{"key": "patelnia_kokota", "sub": 10, "hb": 10.0, "a": Vector2(-952.4, 425.4), "b": Vector2(-938.6, 420.4),
+		"ring": [Vector2(-939.5, 417.6), Vector2(-944.5, 419.4), Vector2(-951.8, 422.0), Vector2(-953.0, 426.9),
+			Vector2(-949.7, 427.7), Vector2(-935.7, 422.9), Vector2(-937.4, 423.5), Vector2(-938.5, 420.5)]},
+	{"key": "rotunda_stair", "sub": 10, "hb": NAN, "drop": 3.6, "a": Vector2(-819.6, 366.3), "b": Vector2(-815.5, 377.4),
+		"ring": [Vector2(-820.5, 366.4), Vector2(-819.1, 365.9), Vector2(-813.4, 363.8), Vector2(-808.3, 377.8),
+			Vector2(-810.0, 380.0), Vector2(-811.4, 382.2), Vector2(-812.4, 384.3), Vector2(-813.1, 386.8)]},
+]
+## How far past a ring's grown outline the drawn ground's cells go fine (a sub-cell touching it).
+const SINK_MARGIN := 0.5
+## A wall line's segment with both ends this close to a sunken ring's edge is the site's.
+const SINK_WALL_REACH := 0.6
+## The rings as built: {"key", "ring", "grown", "box", "a", "b", "ha", "hb", "sub"}.
+var _sunk: Array[Dictionary] = []
+var _sunk_box := Rect2()
+
+
+func _load_sunken() -> void:
+	_sunk.clear()
+	_sunk_box = Rect2()
+	if _t_h.is_empty():
+		return
+	for e: Dictionary in SUNKEN:
+		var a: Vector2 = e["a"]
+		var sk := sunk_entry(e, _grid_height(a.x, a.y), float(_terrain["step"]))
+		_sunk.append(sk)
+		_sunk_box = sk["box"] if not _sunk_box.has_area() else _sunk_box.merge(sk["box"])
+
+
+## One SUNKEN entry as built, its stair's top at height `ha` (a flat floor: `hb`, or `ha` less its
+## `drop`); `step` the terrain grid's cell. The landmark checks' stub maps build theirs with this.
+static func sunk_entry(e: Dictionary, ha: float, step: float) -> Dictionary:
+	var ring := PackedVector2Array(e["ring"])
+	if Geometry2D.is_polygon_clockwise(ring):
+		ring.reverse()
+	var sub := int(e["sub"])
+	var grown_list := Geometry2D.offset_polygon(ring, step / sub * 1.42, Geometry2D.JOIN_MITER)
+	var grown: PackedVector2Array = grown_list[0] if not grown_list.is_empty() else ring
+	var box := Rect2(grown[0], Vector2.ZERO)
+	for q in grown:
+		box = box.expand(q)
+	var hb := float(e["hb"])
+	if is_nan(hb):
+		hb = ha - float(e["drop"])
+	return {"key": e["key"], "ring": ring, "grown": grown, "box": box, "a": e["a"], "b": e["b"], "ha": ha, "hb": hb, "sub": sub}
+
+
+## A sunken ring's floor at a point (its ring, or `grown` its ring grown for the drawn ground),
+## the lowest of those holding it; INF where none does.
+func sunk_floor(x: float, z: float, grown := false) -> float:
+	var p := Vector2(x, z)
+	var best := INF
+	for sk: Dictionary in _sunk:
+		if not (sk["box"] as Rect2).has_point(p):
+			continue
+		if not Geometry2D.is_point_in_polygon(p, sk["grown"] if grown else sk["ring"]):
+			continue
+		best = minf(best, sunk_level(sk, p))
+	return best
+
+
+## The floor of sunken ring `sk` at plan point p (from its stair's top to its foot, flat past them).
+static func sunk_level(sk: Dictionary, p: Vector2) -> float:
+	var a: Vector2 = sk["a"]
+	var ab: Vector2 = (sk["b"] as Vector2) - a
+	var l2 := ab.length_squared()
+	if l2 < 0.0001:
+		return float(sk["hb"])
+	var t := clampf((p - a).dot(ab) / l2, 0.0, 1.0)
+	return lerpf(float(sk["ha"]), float(sk["hb"]), t)
+
+
+## Whether plan point (x, z) lies in a SUNKEN ring (static: no map needed; the prebuilt path's
+## street props ask before the city is loaded).
+static func in_sunken(x: float, z: float) -> bool:
+	for e: Dictionary in SUNKEN:
+		if Geometry2D.is_point_in_polygon(Vector2(x, z), PackedVector2Array(e["ring"])):
+			return true
+	return false
+
+
+## Whether wall segment a-b lies on a sunken ring's edge (the site walls it).
+func _on_sunk_edge(a: Vector2, b: Vector2) -> bool:
+	if not _sunk_box.grow(1.0).has_point(a):
+		return false
+	for sk: Dictionary in _sunk:
+		var ring: PackedVector2Array = sk["ring"]
+		var near_a := false
+		var near_b := false
+		for i in ring.size():
+			var p := ring[i]
+			var q := ring[(i + 1) % ring.size()]
+			near_a = near_a or Geometry2D.get_closest_point_to_segment(a, p, q).distance_to(a) < SINK_WALL_REACH
+			near_b = near_b or Geometry2D.get_closest_point_to_segment(b, p, q).distance_to(b) < SINK_WALL_REACH
+		if near_a and near_b:
+			return true
+	return false
 
 
 ## Loop 3a (R1): the approaches' pieces and their cell index (`terrain_height` reads them).
@@ -3431,6 +3566,12 @@ func _fine_index() -> void:
 			for j in range(clampi(floori((lo.y - gz) / step), 0, nz - 2), clampi(floori((hi.y - gz) / step), 0, nz - 2) + 1):
 				for i in range(clampi(floori((lo.x - gx) / step), 0, nx - 2), clampi(floori((hi.x - gx) / step), 0, nx - 2) + 1):
 					_fine_cells[Vector2i(i, j)] = maxi(int(_fine_cells.get(Vector2i(i, j), 0)), SET_SUB)
+	# Sunken places: every cell their grown ring reaches, in their own sub-cells.
+	for sk: Dictionary in _sunk:
+		var r: Rect2 = (sk["box"] as Rect2).grow(SINK_MARGIN)
+		for j in range(clampi(floori((r.position.y - gz) / step), 0, nz - 2), clampi(floori((r.end.y - gz) / step), 0, nz - 2) + 1):
+			for i in range(clampi(floori((r.position.x - gx) / step), 0, nx - 2), clampi(floori((r.end.x - gx) / step), 0, nx - 2) + 1):
+				_fine_cells[Vector2i(i, j)] = maxi(int(_fine_cells.get(Vector2i(i, j), 0)), int(sk["sub"]))
 	for a in _aprons:
 		var o := Vector2(a[0], a[1])
 		var u := Vector2(a[2], a[3])
@@ -3467,6 +3608,9 @@ func _drawn_corner(x: float, z: float) -> float:
 	# sub-cells between two profiles' levels or across a corridor's edge stay under the road).
 	if _set_hit and t < g - 0.001:
 		t -= SET_SINK
+	# Over a sunken place grown by its sub-cell's diagonal: its floor (no sub-cell's slope inside).
+	if _sunk_box.has_point(Vector2(x, z)):
+		t = minf(t, sunk_floor(x, z, true))
 	return minf(g, t)
 
 
@@ -4515,16 +4659,57 @@ func _garden_ring(flat: Array) -> bool:
 	return true
 
 
+## Walls OpenStreetMap maps that stand low, not 1.9 m (F's screenshots, 2026-11-05): the 25 m
+## planter edge along Wars's south front on Widok (it stood as a grey slab before the shop
+## windows), and the planters round the Rotunda's stair down to the underpass (with the stair
+## sunk, SUNKEN, a 1.9 m loop of wall round it read as a walled pit). Each is the line's first
+## point.
+const LOW_WALLS := [Vector2(-820.1, 345.4), Vector2(-807.1, 378.0)]
+const LOW_WALL := ["#b3ada3", 0.4, 0.55]
+
+
+func _low_wall(flat: Array) -> bool:
+	if flat.size() < 4:
+		return false
+	var first := Vector2(flat[0], flat[1])
+	for at: Vector2 in LOW_WALLS:
+		if first.distance_to(at) < 0.5:
+			return true
+	return false
+
+
 func _build_barriers(st) -> void:
 	_uv2 = Vector2(0.5, -1.0)
 	for l in data.get("lines", []):
 		var style: Array = BARRIER_STYLE.get(l["k"], ["#999999", 0.3, 1.0])
 		if l["k"] == "wall" and _garden_ring(l["p"]):
 			style = GARDEN_RING
+		elif l["k"] == "wall" and _low_wall(l["p"]):
+			style = LOW_WALL
 		# Loop 3b: a stop's platform is kerb height (0.25 m), not a wall: like the kerbs and
 		# islands, the car drives over it (check_drive.gd found buses brushing them).
-		_wall_along(st, _pts(l["p"]), float(style[1]), float(style[2]), Color(style[0]), l["k"] != "platform")
+		var pts := _pts(l["p"])
+		if l["k"] == "wall" and not _sunk.is_empty() and _sunk_box.grow(2.0).intersects(_box_of_pts(pts)):
+			# The pieces off a sunken ring's edge (the site builds the walls on it).
+			var piece := PackedVector2Array()
+			for i in pts.size():
+				if i > 0 and _on_sunk_edge(pts[i - 1], pts[i]):
+					if piece.size() >= 2:
+						_wall_along(st, piece, float(style[1]), float(style[2]), Color(style[0]), true)
+					piece = PackedVector2Array()
+				piece.append(pts[i])
+			if piece.size() >= 2:
+				_wall_along(st, piece, float(style[1]), float(style[2]), Color(style[0]), true)
+			continue
+		_wall_along(st, pts, float(style[1]), float(style[2]), Color(style[0]), l["k"] != "platform")
 	_uv2 = Vector2.ZERO
+
+
+static func _box_of_pts(pts: PackedVector2Array) -> Rect2:
+	var r := Rect2(pts[0], Vector2.ZERO) if not pts.is_empty() else Rect2()
+	for q in pts:
+		r = r.expand(q)
+	return r
 
 
 ## Under every deck piece: its slab (concrete top, underside) and a parapet girder on the
