@@ -24174,6 +24174,11 @@ func _build_photo_fronts(site: Dictionary) -> void:
 	_g = _ground_under(_pts(d["outline"]))
 	for f: Dictionary in d["fronts"]:
 		_pf_front(f, d)
+	match str(d["id"]):
+		"101302509":
+			_pf_karnickich(d)
+		"145110262":
+			_pf_puslowski(d)
 
 
 ## One street front in the house's style. `classic`: sills, heads, string courses and a cornice;
@@ -24344,3 +24349,56 @@ func _build_tides(site: Dictionary) -> void:
 		_lbox(6.0, 1.0, 3.0, 1.0, y - 0.3, y + 2.6, TD_COPPER)
 		_lbox(6.0, 2.04, 2.6, 0.05, y, y + 2.2, TD_PANE, _lit(6.0, y))
 	_collide_raw(site)
+
+
+## Sets the frame on the house's main front; returns [width, height].
+func _pf_frame(d: Dictionary) -> Array:
+	var f: Dictionary = d["fronts"][0]
+	var from := Vector2(f["a"][0], f["a"][1])
+	var to := Vector2(f["b"][0], f["b"][1])
+	_o = from
+	_a = (to - from).normalized()
+	_b = Vector2(-_a.y, _a.x)
+	return [from.distance_to(to), float(f["h"])]
+
+
+## Pałac Karnickich's loggia: three open bays over two storeys between paired columns, a balustrade
+## at its foot and a pediment over each side window.
+func _pf_karnickich(d: Dictionary) -> void:
+	var fr := _pf_frame(d)
+	var mid: float = fr[0] * 0.5
+	var h: float = fr[1]
+	var g := _g
+	var trim := Color(d["trim"])
+	var half := 5.4
+	var y0 := g + 5.6
+	var y1 := g + h - 2.2
+	_lbox(mid, 0.4, half, 0.04, y0, y1, Color("#6a6044"))
+	_lbox(mid, 0.72, half + 0.4, 0.3, y1, y1 + 0.5, trim)
+	_lbox(mid, 0.72, half + 0.4, 0.3, y0 - 0.3, y0, trim)
+	_lbox(mid, 0.88, half + 0.3, 0.07, y0, y0 + 0.9, trim)
+	_lbox(mid, 0.72, half + 0.3, 0.26, (y0 + y1) * 0.5 - 0.15, (y0 + y1) * 0.5 + 0.1, trim)
+	for k: float in [-1.5, -0.5, 0.5, 1.5]:
+		_column(mid + k * 3.5, 0.8, 0.24, y0, y1, trim)
+	for s: float in [-1.0, 1.0]:
+		var u := mid + s * (half + 2.0)
+		_lbox(u, 0.5, 1.2, 0.2, y1 - 2.9, y1 - 2.7, trim)
+		_lbox(u, 0.5, 0.7, 0.2, y1 - 2.7, y1 - 2.45, trim)
+
+
+## Kamienica Pusłowskiego's portico: four columns to a heavy beam, a rail along its top, and iron
+## balconies on the two storeys above.
+func _pf_puslowski(d: Dictionary) -> void:
+	var fr := _pf_frame(d)
+	var mid: float = fr[0] * 0.5
+	var g := _g
+	var trim := Color(d["trim"])
+	var iron := Color("#26282a")
+	for k: float in [-1.5, -0.5, 0.5, 1.5]:
+		_column(mid + k * 2.5, 1.9, 0.3, g, g + 4.9, trim)
+	_lbox(mid, 1.1, 4.7, 1.0, g + 4.9, g + 5.5, trim)
+	_lbox(mid, 2.06, 4.7, 0.04, g + 5.5, g + 6.4, iron)
+	_lbox(mid, 1.1, 0.04, 1.0, g + 5.5, g + 6.4, iron)
+	_lbox(mid - 4.7, 1.1, 0.04, 1.0, g + 5.5, g + 6.4, iron)
+	_lbox(mid + 4.7, 1.1, 0.04, 1.0, g + 5.5, g + 6.4, iron)
+	_lbox(mid, 0.4, 1.4, 0.05, g + 0.2, g + 4.2, Color("#2b2320"))
