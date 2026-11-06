@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-06
+- The Bridge by Plac Europejski looks like itself now: its glass folds along long diagonal seams, the south corner steps down under a dark crown, ERZATZ (the bank's parody) glows blue at the top, and a tall timber lobby with leaning concrete columns sits under it. The brick and stone block at Grzybowska 77 in front got its stone piers, long balcony, framed windows and attic.
 - The food blogger from the Mlask job is now called Mrożulo (was Cringulo), on his van, the signs, the fans and the news.
 
 - A cobalt-blue motorboat now sits on the roof of the Forest tower, next to the PEPEO ŻUBR crown.

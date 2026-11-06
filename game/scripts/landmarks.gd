@@ -111,7 +111,7 @@ const TOWERS := [
 	{"key": "lim", "osm": "Centrum LIM", "style": S_GRID, "glass": "#24343a", "roof": "#6f777b", "sign": "PREZYDENT", "marriott": true},
 	{"key": "chalubinskiego8", "osm": "Chałubińskiego 8", "style": S_FINS, "glass": "#2f6f8f", "roof": "#c9cfd2", "mapped": true},
 	{"key": "spektrum", "osm": "Spektrum Tower", "style": S_BANDS, "glass": "#2f5563", "roof": "#7c878c", "mapped": true},
-	{"key": "bridge", "osm": "The Bridge", "style": S_FINS, "glass": "#6d8da6", "roof": "#b0bac2"},
+	# The Bridge is its own site now (_build_bridge, F's photos 2026-11-06).
 	# The second pass: the rest of the skyline over 80 m (the hotels by their addresses).
 	{"key": "grzybowska63", "osm": "Hilton Warsaw City", "style": S_BANDS, "glass": "#4d7590", "roof": "#9aa5ad", "sign": "CHILTON"},
 	{"key": "jp2_21", "osm": "The Westin Warsaw", "style": S_GRID, "glass": "#86aca7", "roof": "#a9b5b3", "mapped": true, "sign": "WESTYNKA"},
@@ -221,8 +221,11 @@ const INFO := {
 			"Ciemne szkło przy Twardej.",
 			"Dark glass on Twarda."],
 	"bridge": ["The Bridge",
-			"174 m przy Grzybowskiej.",
-			"174 m on Grzybowska."],
+			"174 m szkła przy Placu Europejskim. Fasada złamana ukośnymi szwami jak kartka papieru, na szczycie ciemna korona, a na dachu bank ERZATZ.",
+			"174 m of glass on Plac Europejski. Its faces fold along diagonal seams like a sheet of paper, a dark crown on top, and the ERZATZ bank on the roof."],
+	"grzybowska77": ["Grzybowska 77",
+			"Biurowiec z cegły i kamienia w stylu lat 50.: kamienne filary parteru, długi balkon nad ulicą. Stoi u stóp The Bridge.",
+			"An office block of brick and stone in the 1950s style: stone piers on the ground floor, a long balcony over the street. It stands at the foot of The Bridge."],
 	"grzybowska63": ["Chilton", "Hotel przy Grzybowskiej 63, 94 m. Na luzie.", "A hotel at Grzybowska 63, 94 m. Chilled."],
 	"jp2_21": ["Westynka", "Hotel przy Jana Pawła II 21, 94 m, z rurą szkła na fasadzie.", "A hotel at Jana Pawła II 21, 94 m, with a glass tube up its front."],
 	"marszalkowska94": ["Nowotel", "Hotel przy Marszałkowskiej 94/98, 95 m. Nowy od 1974 roku.", "A hotel at Marszałkowska 94/98, 95 m. New since 1974."],
@@ -987,6 +990,7 @@ func _find_sites() -> void:
 	_find_forest()
 	_find_towarowa22()
 	_find_gbc()
+	_find_bridge()
 	_find_flag()
 	_find_swieto()
 	# The museum and Plac Piłsudskiego loop (2026-10-31): the square's edges.
@@ -1395,6 +1399,10 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_towarowa22(s)
 			"gbc":
 				_build_gbc(s)
+			"bridge":
+				_build_bridge(s)
+			"grzybowska77":
+				_build_bellona(s)
 			"flaga":
 				_build_flag(s)
 			"swieto":
@@ -9040,6 +9048,403 @@ func _soffit(outer: PackedVector2Array, y: float, col: Color) -> void:
 		var p2 := outer[idx[i + 2]]
 		_tri(Vector3(p0.x, y, p0.y), Vector3(p1.x, y, p1.y), Vector3(p2.x, y, p2.y), Vector3.DOWN, col,
 				Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0, false)
+
+
+# --- The Bridge and Grzybowska 77 (F's photos, 2026-11-06) -----------------------------------
+
+## The Bridge (Plac Europejski, by Towarowa; spec docs/landmarks/specs/bridge.md), rebuilt from
+## F's nine photos (2026-11-06): a 174 m glass shaft whose faces fold along long diagonal seams
+## into big triangular facets, each tilted a little so it catches the sky differently; the south
+## end steps down to 149 m with a dark notched crown block (149-168 m) set in over it; the bank's
+## blue name on the top of the long faces as a parody, ERZATZ; a 12 m glazed atrium lobby set
+## back under the tower, its soffit timber, leaning concrete columns along the street faces.
+## The tower's frame: u along the long west face from its north end to the south, v across to
+## the east (metres from the west face's north corner).
+const BR_O := Vector2(-2778.8, 80.8)
+const BR_U := Vector2(0.2095, 0.9778)
+const BR_TOP := 174.0      ## the north part's roof (OSM's 174 m)
+const BR_STEP := 149.0     ## the south part's glass top (F's aerial: 25 m under the roof)
+const BR_CROWN := 168.0    ## the dark crown block's top
+const BR_CUT := 30.0       ## u of the step: the south 13 m of the tower is the low part
+const BR_LOBBY := 12.0     ## the atrium's height; the facets start over it
+const BR_GLASS := Color("#5a7d9c")
+const BR_SEAM := Color("#1e252c")
+const BR_DARK := Color("#24282c")
+const BR_ROOF := Color("#646b70")
+const BR_LOBBY_GLASS := Color("#9a8c76")  # warm: the timber slats behind the atrium's glass
+const BR_TIMBER := Color("#b0824e")
+const BR_CONCRETE := Color("#5e6266")
+const BR_SIGN := Color(0.2, 0.55, 1.0)  # the bank's blue
+## The folds, from F's aerial and the street photos: seams as polylines in (s, t), s along a face
+## from its north (or west) end, t up the tower's 174 m. They start and end beyond a face's edge
+## or on another seam, so each splits the face into whole facets.
+const BR_FOLDS_LONG := [
+	[Vector2(0.07, 1.03), Vector2(0.25, 0.51), Vector2(0.28, -0.03)],
+	[Vector2(0.72, 0.88), Vector2(0.48, 0.48), Vector2(0.29, 0.02)],
+	[Vector2(0.48, 0.50), Vector2(0.48, 0.09)],
+	[Vector2(0.26, 0.04), Vector2(0.70, 0.18), Vector2(1.03, 0.18)],
+	[Vector2(0.86, 0.47), Vector2(1.03, 0.22)],
+]
+const BR_FOLDS_SHORT := [
+	[Vector2(0.12, 1.03), Vector2(0.88, 0.32), Vector2(1.03, 0.26)],
+	[Vector2(-0.03, 0.40), Vector2(0.55, 0.12), Vector2(0.60, -0.03)],
+]
+## The facets' shading: a colour step and a turn of the normal (degrees about the vertical).
+const BR_SHADE := [[0.0, 0.0], [0.13, 11.0], [-0.11, -9.0], [0.07, 15.0], [-0.06, -13.0]]
+
+
+func _find_bridge() -> void:
+	var outline := _landmark("The Bridge")
+	if outline.size() >= 3:
+		_add_site("bridge", [outline])
+		if not sites.is_empty() and sites[-1]["key"] == "bridge":
+			sites[-1]["raw"] = outline
+	var g77 := _landmark("Bellona")
+	if g77.size() >= 3:
+		_add_site("grzybowska77", [g77])
+		if not sites.is_empty() and sites[-1]["key"] == "grzybowska77":
+			sites[-1]["raw"] = g77
+
+
+func _br_u(p: Vector2) -> float:
+	return (p - BR_O).dot(BR_U)
+
+
+func _build_bridge(site: Dictionary) -> void:
+	var raw: PackedVector2Array = site["raw"]
+	var ring := _simplify(raw, 1.6)
+	_g = _ground_under(raw)
+	var g := _g
+	var v := Vector2(BR_U.y, -BR_U.x)
+	var big := 200.0
+	var north_half := PackedVector2Array([BR_O - BR_U * big - v * big, BR_O + BR_U * BR_CUT - v * big,
+			BR_O + BR_U * BR_CUT + v * big, BR_O - BR_U * big + v * big])
+	var south_half := PackedVector2Array([BR_O + BR_U * BR_CUT - v * big, BR_O + BR_U * big - v * big,
+			BR_O + BR_U * big + v * big, BR_O + BR_U * BR_CUT + v * big])
+	var north := _largest(Geometry2D.intersect_polygons(ring, north_half))
+	var south := _largest(Geometry2D.intersect_polygons(ring, south_half))
+	var longest := 0.0
+	for i in ring.size():
+		longest = maxf(longest, ring[i].distance_to(ring[(i + 1) % ring.size()]))
+	# The shaft: every face of the outline, faceted along its folds.
+	for i in ring.size():
+		var a := ring[i]
+		var b := ring[(i + 1) % ring.size()]
+		var l := a.distance_to(b)
+		if l < 0.5:
+			continue
+		var folds: Array = []
+		if l >= longest * 0.6:
+			folds = BR_FOLDS_LONG
+		elif l >= 12.0:
+			folds = BR_FOLDS_SHORT
+		_br_face(ring, a, b, g, folds)
+	# The step's inner face: the north part's glass from the low part's top to the roof.
+	_mode = M_SKIN + float(S_FINS) / 16.0
+	for i in north.size():
+		var a := north[i]
+		var b := north[(i + 1) % north.size()]
+		if absf(_br_u(a) - BR_CUT) < 0.05 and absf(_br_u(b) - BR_CUT) < 0.05:
+			_wall(a, b, g + BR_STEP, g + BR_TOP, _out(north, a, b), BR_GLASS)
+	# Roofs: the north part's flat top with a plant box; the low part's ledge and its dark crown.
+	_mode = M_STONE
+	_cap(north, g + BR_TOP, BR_ROOF)
+	_no_roof = true
+	_prism(_square(_centre(north), 3.0), g + BR_TOP, g + BR_TOP + 3.0, BR_ROOF.darkened(0.15), BR_ROOF, M_STONE, M_STONE)
+	_no_roof = false
+	if south.size() >= 3:
+		_cap(south, g + BR_STEP, BR_ROOF)
+		var box := _largest(Geometry2D.offset_polygon(south, -0.9))
+		if box.size() >= 3:
+			_prism(box, g + BR_STEP, g + BR_CROWN, BR_DARK, BR_DARK.lightened(0.1), M_SKIN + float(S_DARK) / 16.0, M_STONE)
+	_br_lobby(ring, g)
+	_br_sign(north, g)
+	_aviation(north, func(_q: Vector2) -> float: return g + BR_TOP)
+	_collide(raw)
+	pocket_rings.append(raw)
+
+
+## One face a→b of the shaft, from the lobby's top to its roof (the step where it crosses BR_CUT),
+## split along `folds` into facets, each a shade lighter or darker and turned a few degrees; dark
+## seams over the folds.
+func _br_face(ring: PackedVector2Array, a: Vector2, b: Vector2, g: float, folds: Array) -> void:
+	var l := a.distance_to(b)
+	var e := (b - a) / l
+	var out := _out(ring, a, b)
+	var ua := _br_u(a)
+	var ub := _br_u(b)
+	# s runs from the face's north end (smaller u); for a face across the tower (u nearly the
+	# same at both ends), from its west end.
+	var flip := ua > ub + 0.5 if absf(ua - ub) > 0.5 else (a.x > b.x)
+	var top_at := func(x: float) -> float:
+		var q := a + e * x
+		return BR_TOP if _br_u(q) < BR_CUT else BR_STEP
+	var y0 := BR_LOBBY
+	var face := PackedVector2Array()
+	face.append(Vector2(0.0, y0))
+	face.append(Vector2(l, y0))
+	var ta: float = top_at.call(0.02)
+	var tb: float = top_at.call(l - 0.02)
+	face.append(Vector2(l, tb))
+	if absf(ta - tb) > 0.1:
+		var xc := clampf((BR_CUT - ua) / (ub - ua) * l, 0.0, l)
+		face.append(Vector2(xc, tb))
+		face.append(Vector2(xc, ta))
+	face.append(Vector2(0.0, ta))
+	var pieces: Array = [face]
+	var face_cw := Geometry2D.is_polygon_clockwise(face)
+	var seams: Array = []
+	for f: Array in folds:
+		var pts: Array[Vector2] = []
+		for q: Vector2 in f:
+			var x := (1.0 - q.x) * l if flip else q.x * l
+			pts.append(Vector2(x, q.y * BR_TOP))
+		seams.append(pts)
+		for k in range(pts.size() - 1):
+			var p0: Vector2 = pts[k]
+			var p1: Vector2 = pts[k + 1]
+			var d := (p1 - p0).normalized()
+			var nn := Vector2(-d.y, d.x) * 0.04
+			p0 -= d * 0.3
+			p1 += d * 0.3
+			var strip := PackedVector2Array([p0 - nn, p1 - nn, p1 + nn, p0 + nn])
+			var next: Array = []
+			for pc: PackedVector2Array in pieces:
+				# A seam ending inside a facet cuts a hole (the other winding): not a facet.
+				for r in Geometry2D.clip_polygons(pc, strip):
+					if r.size() >= 3 and Geometry2D.is_polygon_clockwise(r) == face_cw:
+						next.append(r)
+			pieces = next
+	var keep := _mode
+	_mode = M_SKIN + float(S_FINS) / 16.0
+	var nv := Vector3(out.x, 0.0, out.y)
+	for pc: PackedVector2Array in pieces:
+		var c := _centre(pc)
+		var hsh := fposmod(sin(c.x * 0.731 + c.y * 0.173 + a.x * 0.01) * 43758.5453, 1.0)
+		var sh: Array = BR_SHADE[int(hsh * BR_SHADE.size()) % BR_SHADE.size()] if folds.size() > 0 else BR_SHADE[0]
+		var col := BR_GLASS.lightened(float(sh[0])) if float(sh[0]) >= 0.0 else BR_GLASS.darkened(-float(sh[0]))
+		var n := nv.rotated(Vector3.UP, deg_to_rad(float(sh[1])))
+		var idx := Geometry2D.triangulate_polygon(pc)
+		for t in range(0, idx.size() - 2, 3):
+			var q0 := pc[idx[t]]
+			var q1 := pc[idx[t + 1]]
+			var q2 := pc[idx[t + 2]]
+			var w0 := a + e * q0.x
+			var w1 := a + e * q1.x
+			var w2 := a + e * q2.x
+			var top := maxf(ta, tb)
+			_tri(Vector3(w0.x, g + q0.y, w0.y), Vector3(w1.x, g + q1.y, w1.y), Vector3(w2.x, g + q2.y, w2.y), n, col,
+					Vector2(q0.x, q0.y), Vector2(q1.x, q1.y), Vector2(q2.x, q2.y), top)
+	# The seams: dark mullion-thick lines 0.1 to 0.35 m proud, clipped to the face's top.
+	_mode = M_STONE
+	for si in seams.size():
+		var pts: Array = seams[si]
+		# Each seam, and each leg of one, a little prouder than the last: where two meet their beams
+		# never share a plane.
+		for k in range(pts.size() - 1):
+			var proud := 0.1 + 0.05 * si + 0.025 * k
+			var p0: Vector2 = pts[k]
+			var p1: Vector2 = pts[k + 1]
+			var lim0: float = top_at.call(clampf(p0.x, 0.02, l - 0.02))
+			var lim1: float = top_at.call(clampf(p1.x, 0.02, l - 0.02))
+			p0 = Vector2(clampf(p0.x, 0.0, l), clampf(p0.y, y0, lim0))
+			p1 = Vector2(clampf(p1.x, 0.0, l), clampf(p1.y, y0, lim1))
+			if p0.distance_to(p1) < 0.5:
+				continue
+			var w0 := a + e * p0.x + out * proud
+			var w1 := a + e * p1.x + out * proud
+			_beam(Vector3(w0.x, g + p0.y, w0.y), Vector3(w1.x, g + p1.y, w1.y), 0.5, BR_SEAM, false)
+	_mode = keep
+
+
+## The atrium: warm glass set 1.6 m back under the tower (the timber slats show through), the
+## timber soffit, and leaning concrete columns in V pairs every 9 m along the faces.
+func _br_lobby(ring: PackedVector2Array, g: float) -> void:
+	var inner := _largest(Geometry2D.offset_polygon(ring, -1.6))
+	if inner.size() < 3:
+		return
+	_prism(inner, g - 0.4, g + BR_LOBBY, BR_LOBBY_GLASS, Color(0, 0, 0, 0), M_PAVILION)
+	_soffit(ring, g + BR_LOBBY, BR_TIMBER)
+	var keep := _mode
+	_mode = M_STONE
+	for i in ring.size():
+		var a := ring[i]
+		var b := ring[(i + 1) % ring.size()]
+		var l := a.distance_to(b)
+		if l < 10.0:
+			continue
+		var e := (b - a) / l
+		var o := _out(ring, a, b)
+		var n := floori(l / 9.0)
+		var pad := (l - (n - 1) * 9.0) * 0.5
+		for k in n:
+			var p := a + e * (pad + 9.0 * k) - o * 0.8
+			var lean := e * (2.2 if k % 2 == 0 else -2.2)
+			_beam(Vector3(p.x - lean.x, g - 0.2, p.y - lean.y), Vector3(p.x + lean.x, g + BR_LOBBY, p.y + lean.y), 0.8, BR_CONCRETE)
+	_mode = keep
+
+
+## ERZATZ, the bank's parody (the tower's new tenant, F 2026-11-06), in blue at the top of the two long faces of the north part
+## (F's aerial: high on the long face, over the north end), 4 m under the roof.
+func _br_sign(north: PackedVector2Array, g: float) -> void:
+	var v := Vector2(BR_U.y, -BR_U.x)
+	for i in north.size():
+		var a := north[i]
+		var b := north[(i + 1) % north.size()]
+		var l := a.distance_to(b)
+		var o := _out(north, a, b)
+		if l < 20.0 or absf(o.dot(v)) < 0.8:
+			continue
+		var mid := (a + b) * 0.5 + o * 0.15
+		var k := 0.62 * l / Neon.length_of(BR_WORD)
+		var base_y := g + BR_TOP - 4.0 - Neon.ROW_H * Neon.PIXEL * k
+		signs.append([BR_WORD, Vector3(mid.x, base_y, mid.y), Vector3(o.x, 0.0, o.y), k, BR_SIGN])
+
+
+const BR_WORD := "ERZATZ"
+
+
+## Grzybowska 77 (spec docs/landmarks/specs/bridge.md, part 2), from F's photos: a post-war office
+## block in warm tan brick over a pale stone ground floor of square piers (dark glazing and brown
+## spandrels between them), a stone band with a long balcony and a black rail over the street,
+## four storeys of windows in stone frames, a stone cornice, a set-back pale attic storey and roof
+## plant. The wall it shares with The Bridge has no windows.
+const G77_GROUND := 5.6
+const G77_FLOOR := 3.35
+const G77_TOP := 19.4      ## the cornice (G77_GROUND + 4 storeys)
+const G77_ATTIC := 3.0
+const G77_BRICK := Color("#b08a6a")
+const G77_STONE := Color("#d9d2c3")
+const G77_PANE := Color("#4a5560")
+const G77_SPANDREL := Color("#7a5038")
+const G77_ROOF := Color("#8f9396")
+const G77_RAIL := Color("#25282a")
+const G77_BAY := 3.3
+
+
+func _build_bellona(site: Dictionary) -> void:
+	var raw: PackedVector2Array = site["raw"]
+	var ring := _simplify(raw, 0.8)
+	_g = _ground_under(raw)
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	_mode = M_STONE
+	var tower := _landmark("The Bridge")
+	var shared := PackedVector2Array()
+	if tower.size() >= 3:
+		shared = _largest(Geometry2D.offset_polygon(tower, 1.5))
+	# Windows and piers first (proud of the walls), then the walls.
+	_g77_ground(ring, g, shared)
+	for k in 4:
+		var y0 := G77_GROUND + 0.6 + G77_FLOOR * k + 0.85
+		_g77_windows(ring, g, y0, y0 + 1.85, shared)
+	_prism(ring, g - 0.4, g + G77_GROUND, G77_STONE.darkened(0.25), none, M_STONE)
+	_prism(ring, g + G77_GROUND, g + G77_GROUND + 0.6, G77_STONE, none, M_STONE)
+	_prism(ring, g + G77_GROUND + 0.6, g + G77_TOP, G77_BRICK, none, M_STONE)
+	var cornice := _largest(Geometry2D.offset_polygon(ring, 0.35, Geometry2D.JOIN_MITER))
+	_prism(cornice, g + G77_TOP, g + G77_TOP + 0.7, G77_STONE, G77_ROOF, M_STONE, M_STONE)
+	_g77_balcony(ring, g, shared)
+	# The attic, 2 m back, pale, a row of small windows; roof plant on it.
+	var attic := _largest(Geometry2D.offset_polygon(ring, -2.0))
+	if attic.size() >= 3:
+		var ay := G77_TOP + 0.7
+		_g77_windows(attic, g, ay + 0.8, ay + 2.2, PackedVector2Array())
+		_prism(attic, g + ay, g + ay + G77_ATTIC, G77_STONE.darkened(0.05), G77_ROOF, M_STONE, M_STONE)
+		_parapet(ring, g + ay, 0.9, G77_STONE)
+		var c := _centre(attic)
+		_no_roof = true
+		for d: Vector2 in [Vector2(-6.0, 3.0), Vector2(5.0, -4.0)]:
+			_prism(_square(c + d, 1.8), g + ay + G77_ATTIC, g + ay + G77_ATTIC + 1.6, G77_ROOF.darkened(0.2), G77_ROOF, M_STONE, M_STONE)
+		_no_roof = false
+	_collide(raw)
+	pocket_rings.append(raw)
+
+
+## Stone-framed windows on every face not shared with the tower: a pale frame 0.04 m proud, the
+## pane (curtain-wall glass, lit at night) 0.08 m proud, one per bay.
+func _g77_windows(ring: PackedVector2Array, g: float, y0: float, y1: float, shared: PackedVector2Array) -> void:
+	var keep := _mode
+	for i in ring.size():
+		var a := ring[i]
+		var b := ring[(i + 1) % ring.size()]
+		var l := a.distance_to(b)
+		var n := floori((l - 1.0) / G77_BAY)
+		if n < 1:
+			continue
+		var e := (b - a) / l
+		var o := _out(ring, a, b)
+		var pad := (l - n * G77_BAY) * 0.5 + G77_BAY * 0.5
+		for k in n:
+			var p := a + e * (pad + k * G77_BAY)
+			if shared.size() >= 3 and Geometry2D.is_point_in_polygon(p, shared):
+				continue
+			_mode = M_STONE
+			_wall(p - e * 0.95 + o * 0.04, p + e * 0.95 + o * 0.04, g + y0 - 0.25, g + y1 + 0.25, o, G77_STONE)
+			_mode = M_GLASS
+			_wall(p - e * 0.7 + o * 0.08, p + e * 0.7 + o * 0.08, g + y0, g + y1, o, G77_PANE)
+	_mode = keep
+
+
+## The ground floor: square stone piers 0.9 m wide, 0.4 m proud, one per bay; between them dark
+## glazing over a brown spandrel.
+func _g77_ground(ring: PackedVector2Array, g: float, shared: PackedVector2Array) -> void:
+	var keep := _mode
+	for i in ring.size():
+		var a := ring[i]
+		var b := ring[(i + 1) % ring.size()]
+		var l := a.distance_to(b)
+		var n := floori(l / G77_BAY)
+		if n < 1:
+			continue
+		var e := (b - a) / l
+		var o := _out(ring, a, b)
+		var pad := (l - n * G77_BAY) * 0.5
+		for k in n + 1:
+			var p := a + e * (pad + k * G77_BAY)
+			if shared.size() >= 3 and Geometry2D.is_point_in_polygon(p, shared):
+				continue
+			var pier := PackedVector2Array([p - e * 0.45, p + e * 0.45, p + e * 0.45 + o * 0.4, p - e * 0.45 + o * 0.4])
+			_prism(pier, g - 0.4, g + G77_GROUND, G77_STONE, G77_STONE, M_STONE, M_STONE)
+			if k < n:
+				var m := p + e * G77_BAY * 0.5 + o * 0.06
+				_mode = M_STONE
+				_wall(m - e * 1.15, m + e * 1.15, g + 0.6, g + 1.5, o, G77_SPANDREL)
+				_mode = M_GLASS
+				_wall(m - e * 1.15, m + e * 1.15, g + 1.5, g + G77_GROUND - 0.4, o, G77_PANE)
+	_mode = keep
+
+
+## The long balcony over the ground floor on the street face (F's photo from Towarowa): a stone
+## slab 1.1 m deep along the longest face, a black rail on its edge.
+func _g77_balcony(ring: PackedVector2Array, g: float, shared: PackedVector2Array) -> void:
+	var best := -1
+	var longest := 0.0
+	for i in ring.size():
+		var a := ring[i]
+		var b := ring[(i + 1) % ring.size()]
+		var mid := (a + b) * 0.5
+		if shared.size() >= 3 and Geometry2D.is_point_in_polygon(mid, shared):
+			continue
+		if a.distance_to(b) > longest:
+			longest = a.distance_to(b)
+			best = i
+	if best < 0:
+		return
+	var a := ring[best]
+	var b := ring[(best + 1) % ring.size()]
+	var e := (b - a) / longest
+	var o := _out(ring, a, b)
+	var p0 := a + e * 0.6
+	var p1 := b - e * 0.6
+	var y := g + G77_GROUND + 0.6
+	_prism(PackedVector2Array([p0, p1, p1 + o * 1.1, p0 + o * 1.1]), y - 0.25, y, G77_STONE, G77_STONE, M_STONE, M_STONE)
+	var r0 := p0 + o * 1.05
+	var r1 := p1 + o * 1.05
+	_beam(Vector3(r0.x, y + 1.0, r0.y), Vector3(r1.x, y + 1.0, r1.y), 0.08, G77_RAIL, false)
+	var steps := floori(longest / 1.6)
+	for k in steps + 1:
+		var p := p0.lerp(p1, float(k) / float(steps)) + o * 1.05
+		_beam(Vector3(p.x, y, p.y), Vector3(p.x, y + 1.0, p.y), 0.05, G77_RAIL, false)
 
 
 # --- Behind the Eastern Wall: the re-clad tower and the 1960s slabs ---------------------------
