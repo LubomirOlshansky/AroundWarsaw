@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-06
+- Plac Pięciu Rogów looks as it has since 2022: no road across it any more, one level of pale slabs, stone cubes with wooden seats, café umbrellas, slim lamps, the blue egg and the shallow water patch. Chmielna got its café gardens and lamps, and Krucza is as wide as the real one, with parked cars along it.
 - The food blogger from the Mlask job is now called Mrożulo (was Cringulo), on his van, the signs, the fans and the news.
 
 - A cobalt-blue motorboat now sits on the roof of the Forest tower, next to the PEPEO ŻUBR crown.

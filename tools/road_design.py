@@ -39,6 +39,7 @@ Spec (docs/roads/AREA.json), map metres, +x east, +z south; offsets are to the r
   median broken where a side street or U-turn crosses (paved; the lanes' paint runs on). closed:
   [{"s0", "s1", "side"}] where the map has a road crossing the kerb but the photo has an unbroken
   kerb (a footway-only service way, a plaza access): no automatic opening there.
+  park_cars (area level): true puts parked cars along every `park` lane (road_design.park_cars).
   open_ends (area level): [{"x", "z", "note"}] path ends checked on the ortho that really stop at
   the kerb with no crossing; the continuity gate passes them.
 
@@ -1157,6 +1158,55 @@ def reseat_objects(out, d):
     return moved
 
 
+PARK_EVERY = 5.8     # m between parked cars' middles in a parking lane (a 4.6 m car and its gap)
+PARK_FILL = 0.72     # of the spaces taken (deterministic by place), as on the street photos
+PARK_CLEAR = 6.0     # m kept free each side of a crossing's middle and beyond a mouth's half width
+CAR_COLOURS = 10     # tools/bake_osm.py's parked-car palette
+
+
+def park_cars(out, d):
+    """Cars along every `park` lane of the designed streets (Krucza, 2026-11-06: the photos' rows of
+    parked cars), parallel to the kerb and facing the lane's way, a space every PARK_EVERY m, some
+    empty; none on a crossing, in a side road's mouth or past the street's ends. The map's parked
+    cars that stood on the new asphalt (OSM car parks the wider street now covers) go first.
+    Only for an area whose spec says "park_cars": true (the Palace's parking lanes stay empty).
+    Returns (taken off, added)."""
+    asphalt = Footprint([pts_of(c["p"]) for c in d.out["carriage"]], 0.2)
+    v = out.get("parked", [])
+    keep, gone = [], 0
+    for i in range(0, len(v) - 3, 4):
+        if asphalt.has(v[i], v[i + 1]):
+            gone += 1
+        else:
+            keep += v[i:i + 4]
+    added = 0
+    for st in d.streets.values():
+        stops = [(float(c["s"]), PARK_CLEAR) for c in st.spec.get("crossings", [])]
+        stops += [(float(o["s"]), float(o.get("w", 8.0)) / 2 + float(o.get("r", 4.0)) + 1.0)
+                  for o in d.openings_of(st)]
+        s = st.s0 + PARK_EVERY
+        while s < st.s1 - PARK_EVERY:
+            if any(abs(s - c) < r for c, r in stops):
+                s += PARK_EVERY
+                continue
+            p, t = st.at(s)
+            for cw in st.lanes(s):
+                for lane, l, r in cw:
+                    if lane.get("k") != "park":
+                        continue
+                    q = st.point(s, (l + r) / 2.0)
+                    h = (math.sin(q[0] * 3.1 + q[1] * 1.7) * 43758.5453) % 1.0
+                    if h >= PARK_FILL:
+                        continue
+                    f = mul(t, float(lane.get("d", 1)))
+                    keep += [round(q[0], 1), round(q[1], 1), round(math.atan2(-f[0], -f[1]), 2),
+                             int(h * 1000) % CAR_COLOURS]
+                    added += 1
+            s += PARK_EVERY
+    out["parked"] = keep
+    return gone, added
+
+
 PATH_SET = 1.3    # m from the kerb to the middle of a footway / cycle track moved off the new asphalt
 
 
@@ -1545,6 +1595,8 @@ def apply_design(out, d):
     out["tram_xings"] += o["tram_xings"]
     stats["traffic edges on the designed lanes"] = retarget_graph(out, d)
     stats["objects moved off the new asphalt"] = reseat_objects(out, d)
+    if d.spec.get("park_cars"):
+        stats["parked cars off the new asphalt"], stats["parked cars in the parking lanes"] = park_cars(out, d)
     out.setdefault("road_design", {})[d.area] = d.spec.get("version", VERSION)
     return stats
 
