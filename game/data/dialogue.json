@@ -524,6 +524,8 @@
     ]
   ],
   "podwozka_request": [
+    ["Uwagi: „randka Pod Gigantami, spóźnienie = koniec związku”.", "Note: \"date at Pod Gigantami, late = relationship over\".", {"only": "date"}],
+    ["Uwagi: „mam kwiaty, proszę hamować delikatnie”.", "Note: \"I have flowers, please brake gently\".", {"only": "date"}],
     [
       "Uwagi: „stoję pod Frogsem”.",
       "Note: \"I'm outside the Frogs.\""
@@ -639,6 +641,10 @@
     ]
   ],
   "podwozka_passenger": [
+    ["Czekają na mnie Pod Gigantami. Oni stoją tam od stu lat. Ona nie będzie.", "They're waiting for me at Pod Gigantami. The giants have stood there for a century. She won't.", {"only": "date"}],
+    ["Jak wyglądam? Tylko szczerze. Nie, jednak nie mów.", "How do I look? Be honest. No, actually, don't.", {"only": "date"}],
+    ["Kwiaty się trzymają? Bo ja średnio.", "Are the flowers holding up? Because I'm not.", {"only": "date"}],
+    ["Ostatnio kierowca wiózł mnie przez Pragę. Tamta randka też nie wypaliła.", "Last time a driver took me via Praga. That date didn't work out either.", {"only": "date"}],
     [
       "Ale aplikacja mówi w lewo! Aplikacja się nie myli. Prawie.",
       "But the app says left! The app is never wrong. Almost.",

@@ -143,6 +143,9 @@ const INFO := {
 	"palace": ["Pałac Kultury i Nauki",
 			"237 m razem z iglicą. Otwarty w 1955 roku.",
 			"237 m with its spire. Opened in 1955."],
+	"gigantami": ["Kamienica Pod Gigantami",
+			"Dwaj kamienni giganci trzymają balkon nad bramą. Dobre miejsce na randkę, jeśli zdążysz.",
+			"Two stone giants hold up the balcony over the gate. A fine place for a date, if you get there in time."],
 	"filtry": ["Stacja Filtrów Lindleya",
 			"Czysta woda dla Warszawy od 1886 roku. William Lindley, Sokrat Starynkiewicz i 36 filtrów ukrytych pod trawą.",
 			"Clean water for Warsaw since 1886. William Lindley, Sokrat Starynkiewicz and 36 filter beds hidden under the grass."],
@@ -1133,6 +1136,10 @@ func _find_sites() -> void:
 	if not sites.is_empty() and sites[-1]["key"] == "filtry":
 		sites[-1]["raw"] = _circle(FT_C, FT_R, 16)
 		sites[-1]["ring"] = sites[-1]["raw"]
+	# Kamienica Pod Gigantami (F, 2026-11-06): LoD2's mass in its stone, the front is ours.
+	_add_site("gigantami", [_pts(GG_OUTLINE)])
+	if not sites.is_empty() and sites[-1]["key"] == "gigantami":
+		sites[-1]["skin"] = {"mode": M_MONUMENT, "wall": GG_STONE, "roof": Color("#6c6a66")}
 	# Street blocks with modelled fronts (Nowy Świat, 2026-11-06).
 	_find_blocks()
 
@@ -1685,6 +1692,9 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_karowa18a(s)
 			"filtry":
 				_build_filtry(s)
+			"gigantami":
+				_mark_zone(s)  # the mass stays LoD2's, in its skin; the street front is ours
+				_build_gigantami(s)
 			"krolewska":
 				pass  # a skin with no card: drawn by the builder, not on the picking grid
 			_:
@@ -23550,3 +23560,101 @@ func _build_filtry(site: Dictionary) -> void:
 	_prism(_circle(FT_BUST, 0.26, 8), _g + 2.5, _g + 2.95, Color("#3e4a44"), Color("#3e4a44"), M_STONE, M_STONE)
 	_g = keep
 	_collide_raw(site)
+
+
+# --- Kamienica Pod Gigantami (F, 2026-11-06): spec docs/landmarks/specs/gigantami.md ------------
+
+const GG_OUTLINE := [2.6, 757.7, 4.1, 766.2, -3.0, 767.5, -6.0, 768.0, -6.5, 767.5, -15.6, 769.0, -15.0, 773.6, -14.0, 773.5,
+		-13.4, 774.2, -13.2, 777.5, -12.7, 778.1, -12.2, 781.6, -12.7, 782.3, -14.0, 782.4, -13.6, 784.8, -11.5, 786.3,
+		-9.9, 784.3, -3.9, 783.6, -4.1, 782.3, -0.6, 781.8, 6.5, 780.4, 7.9, 788.7, -27.7, 793.6, -31.8, 764.9, -32.1, 763.1]
+const GG_N := Vector2(-32.1, 763.1)  # the street front's north corner, on Aleje Ujazdowskie
+const GG_S := Vector2(-27.7, 793.6)
+const GG_STONE := Color("#b5ae9f")
+const GG_BASE := Color("#a29b8c")
+const GG_PALE := Color("#cfc8b8")
+const GG_GLASS := Color("#2e3840")
+const GG_IRON := Color("#2b2d2e")
+const GG_BAY := 3.42
+const GG_FLOORS := [5.4, 9.6, 13.4, 17.0]  # sills of the four upper storeys
+
+
+## One window at bay centre u: dark pane, pale frame and sill, a cornice over it when `head`.
+func _gg_window(u: float, y: float, h: float, head: bool) -> void:
+	_lbox(u, 0.36, 0.72, 0.03, y, y + h, GG_GLASS)
+	_lbox(u - 0.8, 0.36, 0.1, 0.1, y - 0.1, y + h + 0.1, GG_PALE)
+	_lbox(u + 0.8, 0.36, 0.1, 0.1, y - 0.1, y + h + 0.1, GG_PALE)
+	_lbox(u, 0.4, 1.0, 0.16, y - 0.24, y - 0.06, GG_PALE)
+	_lbox(u, 0.42, 1.0 if head else 0.9, 0.18 if head else 0.1, y + h + 0.06, y + h + (0.3 if head else 0.2), GG_PALE)
+
+
+## A giant, a block figure of about 4 m: legs on the pier, a bowed torso and head, one arm up to the
+## balcony. `side` is -1 or 1 from the gate: the arm reaching up stands on the gate's side.
+func _gg_giant(u: float, side: float, g: float) -> void:
+	var c := GG_PALE.lightened(0.08)
+	_lbox(u - 0.2, 0.92, 0.18, 0.22, g + 1.5, g + 3.0, c)
+	_lbox(u + 0.2, 0.92, 0.18, 0.22, g + 1.5, g + 3.0, c)
+	_lbox(u, 0.98, 0.42, 0.28, g + 3.0, g + 4.3, c)
+	_lbox(u + side * 0.14, 1.04, 0.34, 0.24, g + 4.3, g + 4.8, c)
+	_lbox(u + side * 0.2, 1.14, 0.17, 0.17, g + 4.8, g + 5.14, c)
+	_lbox(u - side * 0.5, 0.92, 0.13, 0.15, g + 3.7, g + 5.5, c)
+	_lbox(u + side * 0.56, 0.98, 0.12, 0.14, g + 2.7, g + 4.0, c)
+
+
+## The street front on Aleje Ujazdowskie, 30.8 m and nine bays: a banded stone ground floor, patterned
+## stone above, pale pilasters round the middle bays, the long iron balcony on the third storey, a
+## deep cornice with a balustrade, and the gate with its two giants under a small balcony.
+func _build_gigantami(site: Dictionary) -> void:
+	_o = GG_N
+	_a = (GG_S - GG_N).normalized()
+	_b = Vector2(-_a.y, _a.x)  # out of the front
+	var width := GG_N.distance_to(GG_S)
+	var mid := width * 0.5
+	var ring := _pts(GG_OUTLINE)
+	_g = _ground_under(ring)
+	var g := _g
+	_lbox(mid, 0.14, mid, 0.2, g - 0.3, g + 4.9, GG_BASE)
+	_lbox(mid, 0.14, mid, 0.2, g + 4.9, g + 21.0, GG_STONE)
+	for y: float in [1.2, 2.4, 3.6]:
+		_lbox(mid, 0.34, mid, 0.03, g + y, g + y + 0.09, GG_BASE.darkened(0.14))
+	_lbox(mid, 0.36, mid, 0.08, g + 4.75, g + 5.1, GG_PALE)
+	for k in 9:
+		var u := mid + (k - 4) * GG_BAY
+		if k != 4:
+			_lbox(u, 0.36, 0.95, 0.03, g + 1.0, g + 3.8, GG_GLASS)
+			_lbox(u, 0.4, 1.05, 0.1, g + 3.8, g + 4.0, GG_PALE)
+		for i in GG_FLOORS.size():
+			_gg_window(u, g + GG_FLOORS[i], 2.5 if i < 2 else 2.2, i == 1)
+	for k: float in [-2.5, -1.5, -0.5, 0.5, 1.5, 2.5]:  # the pilasters round the middle
+		_lbox(mid + k * GG_BAY, 0.42, 0.26, 0.12, g + 9.3, g + 19.6, GG_PALE)
+	# The long balcony, seven bays, on brackets, and the two small ones above it.
+	var half := GG_BAY * 3.6
+	_lbox(mid, 0.9, half, 0.62, g + 9.2, g + 9.42, GG_PALE)
+	_lbox(mid, 1.48, half, 0.04, g + 10.32, g + 10.4, GG_IRON)
+	_lbox(mid, 1.48, half, 0.03, g + 9.42, g + 9.56, GG_IRON)
+	var bars := 40
+	for k in bars + 1:
+		_lbox(mid - half + 2.0 * half * k / bars, 1.48, 0.03, 0.03, g + 9.56, g + 10.32, GG_IRON)
+	_lbox(mid - half, 0.9, 0.03, 0.6, g + 9.42, g + 10.4, GG_IRON)
+	_lbox(mid + half, 0.9, 0.03, 0.6, g + 9.42, g + 10.4, GG_IRON)
+	for k: int in [-3, 3]:
+		var u: float = mid + k * GG_BAY
+		_lbox(u, 0.78, 1.1, 0.42, g + 13.1, g + 13.3, GG_PALE)
+		_lbox(u, 1.18, 1.1, 0.03, g + 14.12, g + 14.2, GG_IRON)
+		for j in 7:
+			_lbox(u - 1.1 + j * 2.2 / 6.0, 1.18, 0.03, 0.03, g + 13.3, g + 14.12, GG_IRON)
+	# The cornice, its frieze and the balustrade on top.
+	_lbox(mid, 0.3, mid, 0.14, g + 19.7, g + 20.2, GG_PALE)
+	_lbox(mid, 0.72, mid + 0.4, 0.56, g + 20.6, g + 21.2, GG_PALE)
+	_lbox(mid, 0.32, mid, 0.14, g + 21.2, g + 22.2, GG_STONE)
+	_lbox(mid, 0.32, mid + 0.1, 0.18, g + 22.2, g + 22.4, GG_PALE)
+	# The gate, its piers, the giants and the small balcony they hold.
+	_lbox(mid, 0.38, 1.25, 0.04, g, g + 3.4, Color("#241d1a"))
+	_prism(_rect(mid, 0.38, 0.9, 0.05), g + 3.4, g + 4.1, Color("#241d1a"), Color("#241d1a"), M_STONE, M_STONE)
+	_lbox(mid - 1.95, 0.72, 0.6, 0.58, g, g + 1.5, GG_PALE)
+	_lbox(mid + 1.95, 0.72, 0.6, 0.58, g, g + 1.5, GG_PALE)
+	_gg_giant(mid - 1.95, 1.0, g)
+	_gg_giant(mid + 1.95, -1.0, g)
+	_lbox(mid, 1.0, 2.7, 0.76, g + 5.5, g + 5.84, GG_PALE)
+	_lbox(mid, 1.7, 2.7, 0.1, g + 5.84, g + 6.7, GG_PALE)
+	_lbox(mid - 2.65, 1.0, 0.1, 0.72, g + 5.84, g + 6.7, GG_PALE)
+	_lbox(mid + 2.65, 1.0, 0.1, 0.72, g + 5.84, g + 6.7, GG_PALE)
