@@ -347,6 +347,23 @@ experience". The plan, the road audit and the causes are in docs/GAMEPLAY_PLAN.m
 - [ ] 4.1 Running clubs read as a blue blob at crossings: mixed kit, pairs, spread out
 - [ ] 4.2 Varso Place masses from photos (the gap between the tower and Varso 1/2)
 
+## Dead electric cars: Bartek's TESŁO and stranded EVs (F, 2026-11-06)
+
+Built (`game/scripts/ev_tow.gd`, check `evtow`): a call from Bartek (ODBIERZ / ODRZUĆ, then LECĘ!),
+the helicopter takes off, the TESŁO Model Ś (parody: white fastback, green plates) hooks on a 10 m
+sling (damped pendulum, the loaded helicopter 25 % slower), set down on a charger bay by
+Elektrownia Powiśle, Hala Koszyki, Złote Tarasy or the Palace (Marszałkowska); 180 zł + 30
+respect, +60 zł under 150 s. Bartek's lines (`ev_tow`), stranded drivers (`ev_stranded`), KEBAB FM
+(`radio_host` tag `ev`); "tesla", "elon musk", "supercharger", "cybertruck" on the brand denylist.
+Stranded TESŁOs (every 3-5 min, kerb lane of a main road, hazards blinking, traffic goes round an
+invisible parked car) can be carried from the helicopter for a 60 zł tip. Open:
+- [ ] Phone feel of the swing and the slower loaded helicopter (QUESTIONS), and of the first call at 5-8 min
+- [ ] A ringtone and a winch sound (sfx.gd has none; Access.buzz only)
+- [ ] The charger bays are the kerb lane by each place: real charger spots from OSM (`amenity=charging_station` is not in our extracts) and a Mac photo check
+- [ ] The car hangs through roofs lower than it (it rides over them): fine for arcade, check it reads on the phone
+- [ ] A QUESTS list row for the call (quest_lines.gd) and a map marker for stranded cars
+- [ ] An egg-book card "Zielone tablice" after three carries
+
 ## Crazy drivers in traffic (F, 2026-11-05)
 
 Built (spec `docs/design/crazy-drivers.md`): Szkoda Oktawia taxis, Szprynter couriers and one Pasatini 1.9 TDJ drive in racer mode with no route (traffic.gd `CRAZY_*`, `crazy_drivers.gd`, check `crazy`). Open:
