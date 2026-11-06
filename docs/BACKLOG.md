@@ -4,6 +4,16 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Warsaw's trams, new and old (F, 2026-11-06)
+
+F's six photos (newest tram, old pair, rebuilt pair; /mnt/project-files/new-trams/f-photos/). Built:
+`tram_fleet.gd` (kinds CLASSIC, SMILE "Uśmiech", PAIR "Akwarium", PAIR_NEW), trams.gd `FLEET` per
+tram, per-tram car length (the pair's 13.5 m cars), the vintage swap restoring each tram's own look;
+check `tramfleet`. No maker's or model name anywhere: nicknames only.
+- [ ] Phone look of the three new looks (day and night lamps), and the old pairs' share of the 8
+- [ ] The newest tram's short three-section version, and the newest one's own bell/hum sound
+- [ ] Old pairs: a squeal and a heavier rumble than the low-floor trams (sfx)
+
 ## The Emilii Plater underpass entrances (F, 2026-11-06)
 
 F's screenshots: walled boxes with steps on flat ground. Done 2026-11-06 (spec
@@ -4138,7 +4148,7 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
 - **The hours are a guess**: 09:00-19:00, one run an hour starting in the first half hour, 25 min
   each; the set at 29 km/h. Tune with F on the phone.
 - **No boxy 1970s set**: vision's T13 pairs the rounded tram with a boxy 1970s one; only the
-  rounded one runs. A second look (a 105N-like boxy set) is a mesh swap away if wanted.
+  rounded one runs. A second look (an old boxy set) is a mesh swap away if wanted.
 - **The rails don't change**: it runs the modern trams' pieces, stops and lights; no heritage
   route (Warsaw's tourist line T) of its own. A route would need the map lane's track pieces
   named by line.

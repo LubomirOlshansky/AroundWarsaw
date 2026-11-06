@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-06
+- Warsaw's trams now come new and old: the newest trams with their dark glass face and smiling yellow nose, the old boxy yellow-and-red pairs with the round red "t", and rebuilt pairs with a new front, all running beside today's yellow trams.
 - The food blogger from the Mlask job is now called Mrożulo (was Cringulo), on his van, the signs, the fans and the news.
 
 - Your mate Bartek calls: his electric TESŁO died at 0 %. Answer, and you take the helicopter, hook his car on a rope and carry it, swinging, to a charger while he jokes about winter range, free parking with green plates and the diesel parked at the charger. Dead TESŁOs with hazard lights now and then block a lane, and you can lift those to a charger too, for a tip.

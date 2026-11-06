@@ -1148,7 +1148,7 @@ static func tram_mesh(cab: bool, rear := false) -> ArrayMesh:
 	var zf := -hl - nose
 	var lower := PackedVector2Array([Vector2(-hl, 0.32), Vector2(zf, 0.62), Vector2(zf, 1.1), Vector2(hl, 1.1), Vector2(hl, 0.32)])
 	var lw := _widths(lower, W)
-	# The Rondo photos (2026-10-31): a Pesa Swing is yellow with a black skirt and a red roof.
+	# The Rondo photos (2026-10-31): today's yellow tram has a black skirt and a red roof.
 	var skirt := fin(Color("#1d1e20"))
 	s.loft(lower, lw, [skirt, skirt, skirt, skirt, null], skirt)
 	var house := PackedVector2Array([Vector2(zf, 1.1), Vector2(zf + (0.38 if cab else 0.0), 3.2), Vector2(hl, 3.2), Vector2(hl, 1.1)])
