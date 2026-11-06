@@ -406,7 +406,7 @@ func tick(pos: Vector3, kmh: float, flying: bool, away: bool) -> void:
 func _set_pill(on: bool) -> void:
 	if hud == null:
 		return
-	if on and not hud.pill_shown("tape") and hud.pill_free():
+	if on and not hud.pill_shown("tape") and hud.pill_free_for("tape"):
 		hud.show_pill("KASETA", "time tape", "tape")
 		_pill_up = true
 	elif not on and hud.pill_shown("tape"):
