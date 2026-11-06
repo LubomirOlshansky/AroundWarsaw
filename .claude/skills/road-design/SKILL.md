@@ -68,6 +68,9 @@ spec that already has its pattern (another mid-block stretch, another opening).
 - Kerbs run continuous past zebras (the renderer lowers them and lays tactile pads there); they break
   only at openings and junction mouths.
 - Every side road the old map had needs an opening or a gap, or it ends at a kerb.
+- A roundabout is a junction with `ring` (docs/roads/rondo.json): its arms end at the centre, the
+  island and the outer circle come from the ring, `mouth` puts the arm medians' noses on the ring.
+  Measure it on a polar unroll of the ortho round the centre (lane lines become straight rows).
 - Every zebra and cycle crossing meets its footway / cycle track at the kerb: apply_design moves
   pavements the wider kerb covers out to it, bends cut paths onto the nearest crossing and paints
   crossings over side-road mouths; a crossing the old map had and the design lacks shows up as a

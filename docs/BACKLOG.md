@@ -56,8 +56,8 @@ Left:
 
 ## Road design rollout: every street on the map (F, 2026-11-06; docs/design/road-design-rollout.md)
 
-Areas and progress: docs/plan/road-areas.json, `python3 -I tools/road_progress.py` (main streets 5.1%,
-all streets 2.9% after areas 1-4). Quality bar: docs/design/road-design-quality.md.
+Areas and progress: docs/plan/road-areas.json, `python3 -I tools/road_progress.py` (main streets 5.7%,
+all streets 3.2% after areas 1-4 and 6). Quality bar: docs/design/road-design-quality.md.
 
 - Area 3 done (docs/roads/krolewska.json): Marszałkowska Świętokrzyska to Królewska, the junction,
   Królewska both ways, Marszałkowska north to the Plac Bankowy bend. Left: side streets (Zielna,
@@ -66,8 +66,12 @@ all streets 2.9% after areas 1-4). Quality bar: docs/design/road-design-quality.
 - Area 4 done (docs/roads/swietokrzyska.json): Świętokrzyska to Nowy Świat, the Mazowiecka junction,
   Mazowiecka to short of Kredytowa. Left: the shaded stretch Mazowiecka-Czackiego (north parking
   assumed), the Mazowiecka bike box drawn as a cycle crossing, Kredytowa junction.
-- Tier A core, next: 5 Jerozolimskie east, 6 Rondo
-  Dmowskiego, 7 Marszałkowska south, 8 Emilii Plater south + Chałubińskiego, 9 Rondo ONZ +
+- Area 6 done (docs/roads/rondo.json): Rondo Dmowskiego as a real roundabout (`ring` junctions in
+  tools/road_design.py) with its four arms. Left: no stop lines in the ring before the tram
+  crossings (the photo does not show them clearly; question for F); the slip lanes south-east and
+  east of the ring and the stairwell beds stay as mapped; the ring traffic still follows the OSM
+  ring edges.
+- Tier A core, next: 5 Jerozolimskie east, 7 Marszałkowska south, 8 Emilii Plater south + Chałubińskiego, 9 Rondo ONZ +
   Świętokrzyska west, 10 Królewska + Plac Małachowskiego, 11 Jerozolimskie west, 12 Plac Trzech
   Krzyży + Ujazdowskie. Each with an in-game before/after page for F.
 - Ortho tiles for areas 3-12: fetched 2026-11-06 into refs/road_design2/ (87 tiles, 64 MB, Mac;

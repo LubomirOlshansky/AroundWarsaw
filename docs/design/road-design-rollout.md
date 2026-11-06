@@ -79,3 +79,15 @@ done when a design in docs/roads/ covers it, applied to the map or not.
   short of Kredytowa. Two mid-block OSM footways across Mazowiecka are `open_ends` (no zebra on the
   photo). Continuity 0; lane drive passes, with Mazowiecka driven by `--route` (the street filter
   finds no Mazowiecka lanes, on main too).
+- **6, Rondo Dmowskiego** (2026-11-06, docs/roads/rondo.json): the generator learned roundabouts
+  (`ring` on a junction). The island follows the landmark's edge (landmarks.gd `_rondo_r`, 25.2 m
+  at the tram cross, 26.8 m on the diagonals) and is left to the landmark. The ring has three dashed
+  lane lines (28.6, 31.9 and 35.0 m), broken over the tram cross. The outer edge is a 44 m circle,
+  met by each arm's kerbs in 10 m fillets. The arm medians end at 39 m with a stop line at 40.5 m.
+  Arms: Marszałkowska north (west carriageway 3 lanes, then 4 lanes widening to the ring; it steps
+  out square round the metro stairwell at 61-57 m; the northbound carriageway bends east round the
+  green median; zebra 8 m and cycle crossing at 129/122 m), Marszałkowska south (4 lanes out, 3 in),
+  Jerozolimskie east (the south green to 62 m), and area 1's Jerozolimskie end to the west.
+  Generator additions: per-kerb `l_at`/`r_at` steps, `shift` for carriageways that move sideways,
+  and `greens` (grass strips in a tram median). Continuity 0; check 0; the lane-drive bot passes
+  12 routes (both streets both ways plus every straight and right turn through the ring).
