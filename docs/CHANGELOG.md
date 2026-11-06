@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-06
 
+- Aleje Ujazdowskie 47 stands in its dark grey render, with balconies and the green pharmacy signs.
 - The garden in front of Pałac Krasińskich has its flower ring, gravel cross and clipped hedges.
 - Kamienica Ławrynowicza on Aleje Ujazdowskie is back in its striped yellow and red brick, with arcades and stepped gables.
 - Kamienica Wedla is white and ornate now, with its zinc corner roof and a neon zebra that glows at night.

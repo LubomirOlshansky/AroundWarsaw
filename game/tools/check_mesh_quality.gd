@@ -23,6 +23,7 @@ extends SceneTree
 const Landmarks := preload("res://scripts/landmarks.gd")
 ## Triangles a site may hold: measured on 2026-10-31 plus about 20 % (raise on purpose only).
 const BUDGET := {
+	"ujazdowskie47": 3000,
 	"krasinski_ogrod": 900,
 	"lawrynowicz": 8000,
 	"wedel": 8000,

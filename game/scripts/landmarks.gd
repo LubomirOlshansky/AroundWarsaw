@@ -1169,6 +1169,11 @@ func _find_sites() -> void:
 		_add_site("krasinski_ogrod", [_rect(0.0, 70.0, 44.0, 56.0)])
 		if not sites.is_empty() and sites[-1]["key"] == "krasinski_ogrod":
 			sites[-1]["quiet"] = true
+	# Aleje Ujazdowskie 47 (F's photos, 2026-11-06): no landmark, LoD2's mass, the front is ours.
+	_add_site("ujazdowskie47", [_pts(U47_OUTLINE)])
+	if not sites.is_empty() and sites[-1]["key"] == "ujazdowskie47":
+		sites[-1]["skin"] = {"mode": M_MONUMENT, "wall": U47_WALL, "roof": Color("#5f6264")}
+		sites[-1]["quiet"] = true
 	# Street blocks with modelled fronts (Nowy Świat, 2026-11-06).
 	_find_blocks()
 
@@ -1721,6 +1726,9 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_karowa18a(s)
 			"filtry":
 				_build_filtry(s)
+			"ujazdowskie47":
+				_id = 0  # not tappable
+				_build_ujazdowskie47()
 			"krasinski_ogrod":
 				_id = 0  # not tappable
 				_build_kras_garden()
@@ -24049,3 +24057,78 @@ func _build_kras_garden() -> void:
 		_kg_flat(_rect(0.0, v + 6.0, 9.0, 0.4), 0.6, KG_HEDGE)
 		_kg_flat(_rect(-9.0, v, 0.4, 6.0), 0.6, KG_HEDGE)
 		_kg_flat(_rect(9.0, v, 0.4, 6.0), 0.6, KG_HEDGE)
+
+
+# --- Aleje Ujazdowskie 47 (F's photos, 2026-11-06): spec docs/landmarks/specs/ujazdowskie47.md --
+
+const U47_OUTLINE := [-63.4, 769.7, -60.0, 788.5, -78.1, 793.4, -91.9, 797.1, -94.8, 797.9, -95.1, 795.4, -94.1, 794.3, -94.0, 792.9,
+		-93.4, 787.1, -89.8, 787.5, -87.5, 788.5, -73.8, 784.7, -75.4, 774.6, -75.8, 774.3, -76.2, 771.6, -75.9, 771.6]
+const U47_S := Vector2(-60.0, 788.5)
+const U47_N := Vector2(-63.4, 769.7)
+const U47_WALL := Color("#6c6f70")
+const U47_BASE := Color("#5a5d5f")
+const U47_TRIM := Color("#7c7f80")
+const U47_FRAME := Color("#e4e0d6")
+const U47_GLASS := Color("#2b343c")
+const U47_IRON := Color("#222426")
+const U47_GREEN := Color("#1f7a55")
+
+
+## A tall window with a pale frame, a pane that lights at night and a dark sill.
+func _u47_window(u: float, y: float, h: float) -> void:
+	_lbox(u, 0.33, 0.72, 0.03, y, y + h, U47_GLASS, _lit(u, y))
+	_lbox(u, 0.35, 0.8, 0.04, y + h, y + h + 0.1, U47_FRAME)
+	_lbox(u, 0.35, 0.8, 0.04, y - 0.1, y, U47_FRAME)
+	_lbox(u, 0.4, 0.95, 0.12, y - 0.26, y - 0.1, U47_TRIM)
+
+
+## An iron balcony at bay centre u on the storey with sill y.
+func _u47_balcony(u: float, y: float) -> void:
+	_lbox(u, 0.7, 1.0, 0.36, y - 0.3, y - 0.08, U47_TRIM)
+	_lbox(u, 1.04, 1.0, 0.03, y + 0.72, y + 0.8, U47_IRON)
+	for j in 6:
+		_lbox(u - 1.0 + j * 0.4, 1.04, 0.025, 0.025, y - 0.08, y + 0.72, U47_IRON)
+
+
+## The front from F's two photos: 19 m and six bays of dark grey render. Two storeys between tall
+## piers under a heavy cornice, arched openings and the green pharmacy signs at street level, three
+## storeys above with hooded windows and balconies, a balustraded attic.
+func _build_ujazdowskie47() -> void:
+	_o = U47_S
+	_a = (U47_N - U47_S).normalized()
+	_b = Vector2(-_a.y, _a.x)  # out of the front
+	_g = _ground_under(_pts(U47_OUTLINE))
+	var g := _g
+	var width := U47_S.distance_to(U47_N)
+	var mid := width * 0.5
+	var bay := width / 6.0
+	_lbox(mid, 0.14, mid, 0.18, g - 0.3, g + 9.4, U47_BASE)
+	_lbox(mid, 0.14, mid, 0.18, g + 9.4, g + 23.4, U47_WALL)
+	_lbox(mid, 0.5, mid, 0.34, g + 9.3, g + 9.9, U47_BASE.darkened(0.14))
+	_lbox(mid, 0.36, mid, 0.14, g + 22.7, g + 23.4, U47_BASE)
+	_lbox(mid, 0.74, mid + 0.3, 0.5, g + 23.4, g + 23.7, U47_TRIM)
+	_lbox(mid, 0.26, mid, 0.14, g + 23.7, g + 24.8, U47_WALL)
+	for k in 7:  # the piers between the bays of the two lower storeys
+		_lbox(k * bay, 0.42, 0.42, 0.16, g, g + 9.3, U47_WALL)
+	for k in 6:
+		var u := (k + 0.5) * bay
+		if k == 0:
+			_lbox(u, 0.33, 0.9, 0.03, g + 0.2, g + 3.7, Color("#30231b"))
+		else:
+			_lbox(u, 0.33, 1.0, 0.03, g + 0.9, g + 3.5, U47_GLASS, _lit(u, 1.0))
+		_lbox(u, 0.38, 0.6, 0.06, g + 3.7, g + 4.1, U47_GLASS)
+		_lbox(u, 0.42, 1.2, 0.1, g + 4.1, g + 4.3, U47_TRIM)
+		if k >= 2:  # the pharmacy
+			_lbox(u, 0.42, 0.92, 0.05, g + 3.2, g + 3.55, U47_GREEN)
+		_u47_window(u, g + 5.7, 2.5)
+		if k > 0 and k < 5:
+			_lbox(u, 0.56, 0.95, 0.22, g + 4.9, g + 5.6, U47_TRIM)
+		_u47_window(u, g + 11.0, 2.4)
+		if k > 0 and k < 5:
+			_lbox(u, 0.36, 0.75, 0.1, g + 13.6, g + 14.2, U47_TRIM)  # the hood
+		_u47_window(u, g + 15.1, 2.2)
+		_u47_window(u, g + 19.1, 2.2)
+		if k == 0 or k == 5:
+			_u47_balcony(u, g + 15.1)
+		elif k < 5:
+			_u47_balcony(u, g + 19.1)
