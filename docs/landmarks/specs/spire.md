@@ -92,13 +92,33 @@ brightens past the bloom threshold; the jets glow cool blue.
 
 ## 7. Detail level and budget
 
-L3. Mesh budget 7000 triangles (check_mesh_quality), up from 2700: 13 shaft rings of ~60 sides,
+L3. Mesh budget 6200 triangles (check_mesh_quality; 5763 built), up from 2700: 13 shaft rings of ~60 sides,
 the crown screen and coping, ~36 columns, the canopy bow (two skins of 24 quads and a rim), the wings'
 extra storey and eaves, the kerbs, islands, channel and 26 trees. No new building materials (+0
 draw calls in the city mesh). The ticker and the jets are two small meshes with their own shaders:
 +2 draw calls when in view, no per-frame script. Phone bench still to run.
 
-## 8. Open
+## 8. Parts table
+
+| id | shape | size | position | material | feature |
+| --- | --- | --- | --- | --- | --- |
+| lobby | prism, ring(10 m) x 0.9 | 29 x 40 x 10 | outline centre | M_PAVILION + 0.5 | the set-back lit lobby |
+| shaft | 13 lofted rings | 45 x 61 x 170 | outline centre | M_SKIN S_MIRROR | the swelling glass tower |
+| crown | two-sided screen and coping | 39 x 52 x 2-11 | roof rim | M_SKIN S_MIRROR, M_STONE, steel | the saddle crown |
+| spines | lofted strips | 2 x 0.15 x 190 | both narrow ends | M_PAVILION + 0.5 | the lit spines |
+| columns | ~36 beams in Λ pairs | 0.75 x 0.75 x 10 | round the lobby | M_GOLD + 0.5 | the steel columns |
+| canopy | bow of 24 quads, two skins, rim, 4 legs | 42 x 16 x 7 | north end, 11-18 m | M_GOLD + 0.5, M_STONE | the mirrored canopy |
+| masts | two posts | 1 x 1 x 40 | OSM part spots | M_STONE | the beacon masts |
+| ticker | strip on the ring | 155 x 5.6 | 165.5-171.1 m | spire_ticker.gdshader | the running adverts |
+| wing-b, wing-c | crescent prisms, top storey, eave, plant screen | 22 x 76 x 58, 22 x 60 x 58 | mapped outlines | M_SKIN S_MIRROR, S_FINS, M_STONE | Spire B and C |
+| plaza | half disc, 11 bollards | 52 x 22 x 0.9 | north of the lobby | M_STONE | the paved front |
+| kerbs | granite rings | 0.45 x 0.35-0.55 | round the mapped pools and basin | M_STONE | the pools' edges |
+| islands | round planters | 3.6 x 0.45 | in the big pool | M_STONE | the planted islands |
+| channel | strip and kerb | 2.6 x 35 | Spire B's west face | M_STONE | the pebble channel |
+| jets | 20 cones with splash rings | 0.45-3.4 m | basin, pools, channel | spire_jets.gdshader | the fountains |
+| trees | trunk and cones | 6.5-11 m | planters, islands, by the pool | M_STONE | locusts and cypresses |
+
+## 9. Open
 
 - Phone look and bench (the ticker's text size from the follow camera, the jets' bob).
 - The real canopy's double curve is a three-band bow here; the crown's points follow the photos'

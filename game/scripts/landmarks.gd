@@ -3773,18 +3773,12 @@ func _spire(outline: PackedVector2Array, g: float, glass: Color, roof: Color, sk
 		axis = -axis
 	var keep := _mode
 	var cw := Geometry2D.is_polygon_clockwise(base)
-	# The lobby: dark lit glass standing back under the shaft, the shaft's underside in steel.
+	# The lobby: dark lit glass standing back under the shaft.
 	var foot := SpireMotion.ring(base, SPIRE_LOBBY)
 	var lobby := PackedVector2Array()
 	for q in foot:
 		lobby.append(c + (q - c) * 0.9)
 	_prism(lobby, g - 0.4, g + SPIRE_LOBBY, SPIRE_LOBBY_GLASS, Color(0, 0, 0, 0), M_PAVILION + 0.5, M_STONE)
-	_mode = M_STEEL
-	for i in foot.size():
-		var j := (i + 1) % foot.size()
-		var y := g + SPIRE_LOBBY
-		_quad(Vector3(foot[i].x, y, foot[i].y), Vector3(foot[j].x, y, foot[j].y), Vector3(lobby[j].x, y, lobby[j].y),
-				Vector3(lobby[i].x, y, lobby[i].y), Vector3.DOWN, SPIRE_MIRROR_UNDER)
 	# The shaft.
 	for s in SPIRE_RINGS.size() - 1:
 		var h0: float = SPIRE_RINGS[s]
@@ -3877,8 +3871,13 @@ func _spire_crown(base: PackedVector2Array, c: Vector2, axis: Vector2, g: float,
 		_mode = M_STONE
 		_quad(Vector3(a.x, y0, a.y), Vector3(b.x, y0, b.y), Vector3(b.x, yb, b.y), Vector3(a.x, ya, a.y), Vector3(-o.x, 0.0, -o.y), Color("#8ea4b5"))
 		# the top edge: a steel coping
-		_quad(Vector3(a.x, ya, a.y), Vector3(b.x, yb, b.y), Vector3(b.x + o.x * 0.3, yb + 0.25, b.y + o.y * 0.3),
-				Vector3(a.x + o.x * 0.3, ya + 0.25, a.y + o.y * 0.3), Vector3(o.x, 1.0, o.y).normalized(), SPIRE_STEEL)
+		var ca := Vector3(a.x, ya, a.y)
+		var cb := Vector3(b.x, yb, b.y)
+		var cd := Vector3(a.x + o.x * 0.3, ya + 0.25, a.y + o.y * 0.3)
+		var cn := (cb - ca).cross(cd - ca).normalized()
+		if cn.dot(Vector3(o.x, 1.0, o.y)) < 0.0:
+			cn = -cn
+		_quad(ca, cb, Vector3(b.x + o.x * 0.3, yb + 0.25, b.y + o.y * 0.3), cd, cn, SPIRE_STEEL)
 		run += length
 	_mode = keep
 
@@ -3956,7 +3955,9 @@ func _spire_canopy(foot: PackedVector2Array, c: Vector2, axis: Vector2, g: float
 		var a2: Vector3 = pt.call(edge[k].x, edge[k].y, true)
 		var b2: Vector3 = pt.call(edge[k + 1].x, edge[k + 1].y, true)
 		var mid := Vector2((a.x + b.x) * 0.5, (a.z + b.z) * 0.5) - root
-		var n := Vector3(mid.x, 0.0, mid.y).normalized()
+		var n := (b2 - a2).cross(a - a2).normalized()
+		if n.dot(Vector3(mid.x, 0.0, mid.y)) < 0.0:
+			n = -n
 		_quad(a2, b2, b, a, n, Color("#f0f3f4"))
 	_mode = keep
 	# four slender legs, two Λ's, under the middle of the bow
