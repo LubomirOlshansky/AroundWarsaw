@@ -14805,6 +14805,10 @@ const POW_BLUE := Color(0.2, 0.5, 1.0)     # the upper pavilion's letters over t
 # The round pavilion from F's photos (2026-11-06): the saucer's knife edge, the letter boxes on
 # the rim, the festoons, the terrace and the jazz stage (powisle_jazz_plan).
 const POW_EDGE := 0.35         # the rim's white edge
+const POW_RIBS := 16           # the top's radial seams (F's archive photo), their width, colour
+const POW_RIB_W := 0.22
+const POW_RIB := Color("#c9c6bd")
+const POW_DRAIN_R := 0.75      # the round drain in the dish's middle
 const POW_LETTER_W := 1.05     # one letter box: width, depth, height, the gap between two
 const POW_LETTER_D := 0.32
 const POW_LETTER_H := 1.75
@@ -15051,6 +15055,47 @@ func _pow_lower() -> void:
 				_tri(q[0], q[1], q[2], nt, POW_WHITE.darkened(0.04), Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
 			else:
 				_quad(q[0], q[1], q[2], q[3], nt, POW_WHITE.darkened(0.04))
+	# The top's ribs (F's archive photo, 2026-11-06): radial seams from the round drain in the
+	# middle out to the rim, raised a little over the dish, following its rings; the drain dark.
+	var dish := func(t: float) -> float:
+		var tt := clampf(t, 0.0, 1.0)
+		var ys := [0.0, 0.45, 0.8, 1.0]
+		for j in 3:
+			var a: float = ys[j]
+			var b: float = ys[j + 1]
+			if tt <= b:
+				var ya := top_y - POW_DISH * (1.0 - a * a)
+				var yb := top_y - POW_DISH * (1.0 - b * b)
+				return lerpf(ya, yb, (tt - a) / (b - a))
+		return top_y
+	var stops := [POW_DRAIN_R / POW_LOW_R, 0.45, 0.8, 0.985]
+	for k in POW_RIBS:
+		var d := Vector2.from_angle(TAU * (k + 0.5) / POW_RIBS)
+		var e := Vector2(-d.y, d.x) * POW_RIB_W * 0.5
+		for j in stops.size() - 1:
+			var t0: float = stops[j]
+			var t1: float = stops[j + 1]
+			var p0 := c + d * t0 * POW_LOW_R
+			var p1 := c + d * t1 * POW_LOW_R
+			var y0: float = dish.call(t0) + 0.04
+			var y1: float = dish.call(t1) + 0.04
+			var q0 := Vector3(p0.x - e.x, y0, p0.y - e.y)
+			var q1 := Vector3(p1.x - e.x, y1, p1.y - e.y)
+			var q2 := Vector3(p1.x + e.x, y1, p1.y + e.y)
+			var q3 := Vector3(p0.x + e.x, y0, p0.y + e.y)
+			var nr := (q1 - q0).cross(q3 - q0).normalized()
+			if nr.y < 0.0:
+				nr = -nr
+			_quad(q0, q1, q2, q3, nr, POW_RIB)
+	var drain := PackedVector2Array()
+	for k in 12:
+		drain.append(c + Vector2.from_angle(TAU * k / 12.0) * POW_DRAIN_R)
+	var dy: float = dish.call(0.0) + 0.03
+	for k in 12:
+		var a := drain[k]
+		var b := drain[(k + 1) % 12]
+		_tri(Vector3(c.x, dy, c.y), Vector3(a.x, dy, a.y), Vector3(b.x, dy, b.y), Vector3.UP, POW_GREY.darkened(0.25),
+				Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
 	# The rim: a thin white edge (the photos: a knife edge, about a third of a metre).
 	_prism(rim, top_y - POW_EDGE, top_y, POW_WHITE, none, M_STONE)
 	# The underside: from the drum's top curving up to the rim's lower edge, in three bands.

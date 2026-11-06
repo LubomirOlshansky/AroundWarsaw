@@ -2,7 +2,7 @@
 
 **Round pavilion rebuilt from F's four photos, 2026-11-06** (day, summer café, dusk event, night
 event): the saucer's thin white knife edge (0.35 m) and its underside curving up from the drum to
-the rim; WARSZAWA POWIŚLE in fifteen separate dark teal-black letter boxes (1.05 x 1.75 m) on a
+the rim; on top, 16 radial seams from a round drain in the middle out to the rim (F's 1960s archive photo); WARSZAWA POWIŚLE in fifteen separate dark teal-black letter boxes (1.05 x 1.75 m) on a
 steel rail along the rim's front arc, yellow tube letters on stand-offs (yellow by day, lit at
 night, a neon glyph over each for the glow); a festoon of warm bulbs all round the rim's lower edge
 and three more out to posts over the deck chairs; a dark transom band round the glass drum. The
