@@ -4519,7 +4519,87 @@ const BARRIER_STYLE := {
 	"fence": ["#7d838a", 0.12, 1.6],
 	"wall": ["#a49d92", 0.35, 1.9],
 	"platform": ["#d2cdc3", 2.4, 0.25],
+	# Operation Unslop (2026-11-05, docs/streets/marszalkowska-centrum-audit.md "Wanted models"):
+	# styles a street pass gives single barriers by id (OBJECT_OVERRIDES). The tram railing is the
+	# black steel railing along tram beds and platform edges (1.1 m); the balustrades go round stairs
+	# instead of the 1.9 m grey wall: granite at metro entrances, a concrete upstand with a rail
+	# at platform and underpass stairs.
+	# A 4th entry makes the style an open railing (F, 2026-11-05: the solid 1.1 m black strip read
+	# as a black wall): [upstand height, rail colour]; posts every 2 m and two rails, see-through.
+	"tram_railing": ["#22262a", 0.06, 1.1, [0.0, "#22262a"]],
+	"balustrade": ["#8f8f8a", 0.3, 1.0],
+	"balustrade_rail": ["#a9a59d", 0.2, 1.0, [0.45, "#2a2e33"]],
 }
+
+
+## An open railing along `poly`: an optional concrete upstand, then round-ish posts every 2 m and a
+## top and a middle rail you can see through (Operation Unslop's tram railing and stair balustrade).
+## It collides like a wall of the same height, so driving stays as it was.
+func _railing_along(st, poly: PackedVector2Array, height: float, upstand: float, up_col: Color, rail_col: Color, collide: bool) -> void:
+	if upstand > 0.0:
+		_wall_along(st, poly, 0.2, upstand, up_col, false)
+	var run := 0.0
+	var next_post := 0.0
+	var low := maxf(upstand, 0.0) + (0.1 if upstand > 0.0 else 0.35)
+	for i in poly.size() - 1:
+		var a := poly[i]
+		var b := poly[i + 1]
+		var length := a.distance_to(b)
+		if length < 0.05:
+			continue
+		var dir := (b - a) / length
+		var side := Vector2(-dir.y, dir.x) * 0.03
+		var ga := terrain_height(a.x, a.y)
+		var gb := terrain_height(b.x, b.y)
+		var n := Vector3(side.x, 0, side.y).normalized()
+		for h in [low, height - 0.05]:
+			for sgn in [1.0, -1.0]:
+				var o: Vector2 = side * sgn
+				_quad(st, Vector3(a.x + o.x, ga + h, a.y + o.y), Vector3(b.x + o.x, gb + h, b.y + o.y),
+						Vector3(b.x + o.x, gb + h + 0.05, b.y + o.y), Vector3(a.x + o.x, ga + h + 0.05, a.y + o.y), n * sgn, rail_col)
+			_quad(st, Vector3(a.x + side.x, ga + h + 0.05, a.y + side.y), Vector3(b.x + side.x, gb + h + 0.05, b.y + side.y),
+					Vector3(b.x - side.x, gb + h + 0.05, b.y - side.y), Vector3(a.x - side.x, ga + h + 0.05, a.y - side.y), Vector3.UP, rail_col.lightened(0.12))
+		while next_post <= run + length:
+			var p := a + dir * (next_post - run)
+			var y := lerpf(ga, gb, (next_post - run) / length)
+			var bottom := maxf(upstand, 0.0)
+			_box_oriented(st, Vector3(p.x, y + (bottom + height) * 0.5, p.y), Basis(Vector3.UP, atan2(-dir.x, -dir.y)),
+					Vector3(0.06, height - bottom, 0.06), rail_col)
+			next_post += 2.0
+		run += length
+		if collide:
+			_wall_faces.append_array([Vector3(a.x, ga - 0.3, a.y), Vector3(b.x, gb - 0.3, b.y), Vector3(b.x, gb + height + 1.5, b.y),
+					Vector3(a.x, ga - 0.3, a.y), Vector3(b.x, gb + height + 1.5, b.y), Vector3(a.x, ga + height + 1.5, a.y)])
+
+## Operation Unslop's per-object decisions (tools/street_pass.py --apply writes them from the street
+## records): {"items": {id: [verdict, style]}}. The id is road-objects.md's stable id: class, kind
+## and the outline's mean rounded to a 2 m cell ("barrier:fence:-870:392"), so a re-bake keeps it.
+## REMOVE leaves the barrier out; RETEXTURE / REPLACE draw it in the named BARRIER_STYLE.
+const OBJECT_OVERRIDES := "res://data/road_objects.json"
+var _object_overrides := {}
+
+
+func _load_object_overrides() -> void:
+	_object_overrides = {}
+	if not FileAccess.file_exists(OBJECT_OVERRIDES):
+		return
+	var j: Variant = JSON.parse_string(FileAccess.get_file_as_string(OBJECT_OVERRIDES))
+	if j is Dictionary and (j as Dictionary).get("items") is Dictionary:
+		_object_overrides = j["items"]
+
+
+## The stable id of a barrier line (tools/street_pass.py stable_id: the mean of its points, each
+## coordinate floor(c / 2 + 0.5) * 2).
+static func barrier_id(kind: String, flat: Array) -> String:
+	var n := flat.size() / 2
+	var cx := 0.0
+	var cz := 0.0
+	for i in n:
+		cx += float(flat[i * 2])
+		cz += float(flat[i * 2 + 1])
+	cx /= maxf(n, 1)
+	cz /= maxf(n, 1)
+	return "barrier:%s:%d:%d" % [kind, int(floor(cx / 2.0 + 0.5)) * 2, int(floor(cz / 2.0 + 0.5)) * 2]
 
 
 ## The Royal Castle's gardens map their fountain basins, the vases' round beds and the round
@@ -4548,12 +4628,24 @@ func _garden_ring(flat: Array) -> bool:
 
 func _build_barriers(st) -> void:
 	_uv2 = Vector2(0.5, -1.0)
+	_load_object_overrides()
 	for l in data.get("lines", []):
 		var style: Array = BARRIER_STYLE.get(l["k"], ["#999999", 0.3, 1.0])
 		if l["k"] == "wall" and _garden_ring(l["p"]):
 			style = GARDEN_RING
+		if not _object_overrides.is_empty() and l["k"] != "platform":
+			var o: Variant = _object_overrides.get(barrier_id(l["k"], l["p"]))
+			if o is Array:
+				if str(o[0]) == "REMOVE":
+					continue
+				if (o as Array).size() > 1 and BARRIER_STYLE.has(str(o[1])):
+					style = BARRIER_STYLE[str(o[1])]
 		# Loop 3b: a stop's platform is kerb height (0.25 m), not a wall: like the kerbs and
 		# islands, the car drives over it (check_drive.gd found buses brushing them).
+		if style.size() > 3:
+			var open: Array = style[3]
+			_railing_along(st, _pts(l["p"]), float(style[2]), float(open[0]), Color(style[0]), Color(str(open[1])), true)
+			continue
 		_wall_along(st, _pts(l["p"]), float(style[1]), float(style[2]), Color(style[0]), l["k"] != "platform")
 	_uv2 = Vector2.ZERO
 

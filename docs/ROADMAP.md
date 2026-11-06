@@ -547,6 +547,18 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [ ] Road-objects sweeps street by street (the census order; road-objects.md)
 - [ ] Buildings: Tiny Warsaw list P1-P4 (docs/design/tinywarsaw-area-plan.md)
 
+### Left: Operation Unslop, street by street (F, 2026-11-05; plan docs/design/operation-unslop.md, skill `street-pass`)
+- [x] Street pass pipeline: `tools/street_pass.py` (blocks, owned and changed zones, checks L1-L3 T1 P1 O1, object verdicts, the street record and its ratchet in verify.sh), the model library `tools/model_library.py` (every model + the wanted ones; the match step), agent `street-unslopper`, console Streets and Models tabs (2026-11-05, tools only)
+- [x] Lane lines stop at zebras, whole map (`bake_roads._crossed`; Mac re-bake 2026-11-05): test street 70 → 83, L4 19 → 0
+- [ ] Test street Marszałkowska, Rondo Dmowskiego to Świętokrzyska: baseline 70, now 83 → fixes (lanes and markings from today's street, barriers by verdict, balustrades) → F's look
+- [x] First wanted models: `tram_railing`, `balustrade` (granite) and `balustrade_rail` as barrier styles, applied by id from the street records (`street_pass.py --apply` → `game/data/road_objects.json` → map_builder; check `overrides`), 11 barriers on the test street (2026-11-05)
+- [x] Unslop progress on the console's City map: each street pass block coloured by its score (green 90+, light green 80+, amber 65+, red), with the baseline in the label; "Show on map" in the Streets tab (2026-11-05)
+- [x] Faster street-pass loop, same gates: `street_pass.py --dump` (block probe) and `--photos` (one evidence pack), the rule-bug alarm with a cause map, `--spots=` (all cameras in one game run; a missing `--out` is made, a failed PNG exits 1), `bake_all.sh --roads` with step timings, agent `street-scout` (Haiku) before `street-unslopper` (Opus) (2026-11-05)
+- [x] Road loop from the smooth-roads review: `verify.sh --roads`, fixed cameras per street (`street_pass.py --spots`), target image step (Codex), rounds with a handoff note (2026-11-05)
+- [ ] One road layout per street chain plus junction templates, replacing the road_smooth repair passes
+- [ ] Next wanted models, most-asked first (canopy on posts, Jersey barrier, yard gate, park fence)
+- [ ] Next streets with the same pipeline unchanged: Aleje Jerozolimskie, Nowy Świat, Świętokrzyska
+
 ### Left: street races that feel like races (F, 2026-11-04; plan docs/design/street-races.md)
 - [x] Research and race AI audit: why Halina drives slowly and by the rules, R1-R7 (2026-11-04, docs only)
 - [x] R1 racer driving mode and R2 fair rubber band, R4's numbers per rung, police chasers in racer mode (2026-11-04; phone feel open)
