@@ -219,6 +219,12 @@ def measure(d, sd):
         if la and lb and la != lb:
             lane_joins.append(key)
         dw = abs(float(a["w"]) - float(b["w"]))
+        # The lane lesson (F, 2026-11-05): a lane count change is paint inside a continuous kerb.
+        # When road_smooth tapered the drawn width (`wv`) so both ways meet at the same width,
+        # the kerb doesn't step here: not a lane step (a lane line may still start, see L2).
+        wa, wb = a.get("wv"), b.get("wv")
+        if wa and wb and abs(float(wa[-1]) - float(wb[0])) <= 0.5:
+            continue
         if (la and lb and abs(la - lb) >= 1) or dw > 1.5:
             add("L1", key, f"{la} -> {lb} lanes, {a['w']:.1f} -> {b['w']:.1f} m wide where two ways meet")
 
