@@ -4320,12 +4320,9 @@ func _build_zygmunt(_site: Dictionary) -> void:
 	# with its bronze ring and Corinthian capital and the square abacus (photo report zygmunt.md).
 	for k in 4:
 		_prism(_circle(c, 3.8 - k * 0.45, 8), g - 0.4 + k * 0.15, g + 0.15 + k * 0.15, ZYGMUNT_GRANITE, ZYGMUNT_GRANITE, M_STONE, M_STONE)
-	_prism(_circle(c, 1.9, 4), g + 0.75, g + 1.5, ZYGMUNT_PLINTH.darkened(0.12), none, M_STONE)
+	_prism(_circle(c, 1.9, 4), g + 0.3, g + 1.5, ZYGMUNT_PLINTH.darkened(0.12), none, M_STONE)
 	_prism(_circle(c, 1.5, 4), g + 1.5, g + 4.6, ZYGMUNT_PLINTH, none, M_STONE)
-	for k in 4:  # the bronze inscription plaques, one on each face
-		var d := Vector2.from_angle(TAU * (k + 0.5) / 4.0)
-		var pc := c + d * 1.5 * 0.7071
-		_prism(_circle(pc, 0.4, 4), g + 2.0, g + 4.0, ZYGMUNT_BRONZE, none, M_STONE)
+	_prism(_circle(c, 1.58, 4), g + 4.0, g + 4.6, ZYGMUNT_BRONZE, none, M_STONE)  # the bronze inscription band
 	_prism(_circle(c, 1.7, 4), g + 4.6, g + 5.0, ZYGMUNT_PLINTH, ZYGMUNT_PLINTH.lightened(0.05), M_STONE, M_STONE)
 	# The shaft, tapering a little, over a bronze sculpted ring; then the capital and the abacus.
 	_mode = M_STONE
@@ -13894,7 +13891,7 @@ func _wsz_gallery(u0: float, sd: float) -> void:
 ## dome and a lantern, 40 m high. `c` is the world position (x, z) of its centre.
 func _wsz_drum(c: Vector2) -> void:
 	var g := _g
-	_prism(_circle(c, 6.0, 12), g + 18.0, g + 31.0, WSZ_WALL, WSZ_TRIM, M_MONUMENT, M_STONE)
+	_prism(_circle(c, 6.0, 12), g - 0.6, g + 31.0, WSZ_WALL, WSZ_TRIM, M_MONUMENT, M_STONE)
 	_prism(_circle(c, 6.4, 12), g + 31.0, g + 31.8, WSZ_TRIM, WSZ_TRIM, M_STONE, M_STONE)
 	var prof := [[6.0, 31.8], [5.2, 33.6], [3.8, 35.6], [2.2, 37.4], [1.2, 38.6]]
 	for k in prof.size() - 1:
