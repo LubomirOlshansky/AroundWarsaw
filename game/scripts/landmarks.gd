@@ -143,6 +143,9 @@ const INFO := {
 	"palace": ["Pałac Kultury i Nauki",
 			"237 m razem z iglicą. Otwarty w 1955 roku.",
 			"237 m with its spire. Opened in 1955."],
+	"lawrynowicz": ["Kamienica Ławrynowicza",
+			"Pasiasta jak tort: żółta i czerwona cegła, arkady i schodkowe szczyty przy Alejach Ujazdowskich.",
+			"Striped like a layer cake: yellow and red brick, arcades and stepped gables on Aleje Ujazdowskie."],
 	"wedel": ["Kamienica Wedla",
 			"Biała, bogato zdobiona kamienica, a nad jej rogiem cwałuje neonowa zebra.",
 			"A white tenement with a neon zebra galloping over the corner."],
@@ -1154,6 +1157,10 @@ func _find_sites() -> void:
 	_add_site("wedel", [_pts(WD_OUTLINE)])
 	if not sites.is_empty() and sites[-1]["key"] == "wedel":
 		sites[-1]["skin"] = {"mode": M_MONUMENT, "wall": WD_WHITE, "roof": WD_ZINC}
+	# Kamienica Ławrynowicza (F's photos, 2026-11-06): LoD2's mass in its brick, the front is ours.
+	_add_site("lawrynowicz", [_pts(LW_OUTLINE)])
+	if not sites.is_empty() and sites[-1]["key"] == "lawrynowicz":
+		sites[-1]["skin"] = {"mode": M_MONUMENT, "wall": LW_BRICK, "roof": Color("#6c6a66")}
 	# Street blocks with modelled fronts (Nowy Świat, 2026-11-06).
 	_find_blocks()
 
@@ -1706,6 +1713,9 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_karowa18a(s)
 			"filtry":
 				_build_filtry(s)
+			"lawrynowicz":
+				_mark_zone(s)  # the mass stays LoD2's, in its skin; the street front is ours
+				_build_lawrynowicz(s)
 			"wedel":
 				_mark_zone(s)  # the mass stays LoD2's, in its skin; the fronts and the corner are ours
 				_build_wedel(s)
@@ -23893,3 +23903,93 @@ func _build_wedel(site: Dictionary) -> void:
 		_lbox(-0.4, v, 0.55, 0.55, g + WD_EAVE, g + WD_EAVE + 3.2, white)
 		_lbox(-0.4, v, 0.32, 0.32, g + WD_EAVE + 3.2, g + WD_EAVE + 3.9, WD_ZINC)
 	_wd_zebra(_w(-2.8, 0.0), g + WD_EAVE + 4.6)
+
+
+# --- Kamienica Ławrynowicza (F's photos, 2026-11-06): spec docs/landmarks/specs/lawrynowicz.md --
+
+const LW_OUTLINE := [-27.4, 795.5, -27.7, 793.6, 7.9, 788.7, 10.8, 788.4, 15.3, 812.6, -23.5, 820.1]
+const LW_N := Vector2(-27.4, 795.5)  # the street front on Aleje Ujazdowskie
+const LW_S := Vector2(-23.5, 820.1)
+const LW_BRICK := Color("#d8b67a")
+const LW_RED := Color("#a7523a")
+const LW_STONE := Color("#d9c9a4")
+const LW_GLASS := Color("#2c3944")
+const LW_IRON := Color("#25272a")
+const LW_EAVE := 20.6
+
+
+## An arched window: pane with a stepped head, a red-and-yellow arch over it and a stone sill.
+func _lw_window(u: float, v: float, y: float, w: float, h: float) -> void:
+	_lbox(u, v + 0.22, w, 0.03, y, y + h, LW_GLASS, _lit(u, y))
+	_lbox(u, v + 0.22, w * 0.62, 0.03, y + h, y + h + 0.28, LW_GLASS)
+	_lbox(u, v + 0.26, w + 0.2, 0.1, y + h, y + h + 0.14, LW_RED)
+	_lbox(u, v + 0.26, w * 0.82, 0.1, y + h + 0.28, y + h + 0.46, LW_RED)
+	_lbox(u, v + 0.28, w + 0.18, 0.14, y - 0.2, y - 0.04, LW_STONE)
+
+
+## A balcony slab with a brick parapet, standing out from v at height y.
+func _lw_balcony(u: float, v: float, half: float, y: float) -> void:
+	_lbox(u, v + 0.75, half, 0.6, y - 0.28, y - 0.06, LW_STONE)
+	_lbox(u, v + 1.3, half, 0.07, y - 0.06, y + 0.8, LW_BRICK)
+	_lbox(u, v + 1.3, half, 0.09, y + 0.8, y + 0.92, LW_RED)
+
+
+## A stepped gable centred at u on top of the wall at height y: `steps` narrowing brick courses.
+func _lw_gable(u: float, v: float, half: float, y: float, steps: int) -> void:
+	for k in steps:
+		var w := half * (1.0 - float(k) / steps)
+		_lbox(u, v + 0.18, w, 0.2, y + k * 0.9, y + (k + 1) * 0.9, LW_BRICK if k % 2 == 0 else LW_RED)
+	_lbox(u, v + 0.18, 0.3, 0.2, y + steps * 0.9, y + steps * 0.9 + 0.6, LW_RED)
+
+
+## Kamienica Ławrynowicza, from F's photos: 24.9 m of banded yellow and red brick, a slightly proud
+## tower at each end with paired arched windows and a stepped gable, arcades at street level, a
+## middle gable with a round window, balconies down the front and iron cresting along the roof.
+func _build_lawrynowicz(site: Dictionary) -> void:
+	_o = LW_N
+	_a = (LW_S - LW_N).normalized()
+	_b = Vector2(-_a.y, _a.x)  # out of the front
+	_g = _ground_under(_pts(LW_OUTLINE))
+	var g := _g
+	var width := LW_N.distance_to(LW_S)
+	var mid := width * 0.5
+	var tower := 2.45  # a tower's half width
+	_lbox(mid, 0.14, mid, 0.2, g - 0.3, g + LW_EAVE, LW_BRICK)
+	for c: float in [tower, width - tower]:
+		_lbox(c, 0.3, tower, 0.3, g - 0.3, g + LW_EAVE + 2.0, LW_BRICK)
+	var y := 0.8
+	while y < LW_EAVE + 2.0:  # the red courses, closer together low down
+		_lbox(mid, 0.36, mid, 0.03, g + y, g + y + 0.26, LW_RED)
+		_lbox(tower, 0.62, tower, 0.03, g + y, g + y + 0.26, LW_RED)
+		_lbox(width - tower, 0.62, tower, 0.03, g + y, g + y + 0.26, LW_RED)
+		y += 1.05
+	# Street level: wide arches, and the gate with its dark door in the middle.
+	for k in 5:
+		var u := 2.5 + k * 5.0
+		if k == 2:
+			_lbox(u, 0.36, 1.5, 0.03, g, g + 3.6, Color("#20262c"))
+			_lbox(u, 0.4, 1.9, 0.16, g + 3.6, g + 4.2, LW_RED)
+			_lbox(u, 0.4, 1.3, 0.16, g + 4.2, g + 4.7, LW_BRICK)
+		else:
+			_lw_window(u, 0.4 if k == 0 or k == 4 else 0.14, g + 0.9, 1.5, 2.7)
+	# The towers: paired windows on four storeys, balconies on three, then the gables.
+	for c: float in [tower, width - tower]:
+		for y2: float in [6.0, 9.5, 13.0, 16.4]:
+			_lw_window(c - 0.95, 0.38, g + y2, 0.7, 2.2)
+			_lw_window(c + 0.95, 0.38, g + y2, 0.7, 2.2)
+		for y3: float in [9.3, 12.8, 16.2]:
+			_lw_balcony(c, 0.4, 2.1, g + y3)
+		_lw_gable(c, 0.4, tower, g + LW_EAVE + 2.0, 4)
+	# The middle: five bays on four storeys, a long balcony and a gable with a round window.
+	for k in 5:
+		var u := mid + (k - 2) * 2.85
+		for y2: float in [6.0, 9.5, 13.0, 16.4]:
+			_lw_window(u, 0.12, g + y2, 0.8, 2.2)
+	_lw_balcony(mid, 0.14, 4.2, g + 9.3)
+	_lbox(mid, 0.3, mid - 4.4, 0.16, g + LW_EAVE - 0.4, g + LW_EAVE + 0.1, LW_STONE)
+	_lw_gable(mid, 0.14, 3.2, g + LW_EAVE + 0.1, 4)
+	_lbox(mid, 0.5, 0.75, 0.06, g + LW_EAVE + 0.8, g + LW_EAVE + 2.2, LW_GLASS, _lit(mid, 21.0))
+	# Iron cresting along the roof between the gables.
+	_lbox(mid, -0.5, mid - 5.0, 0.03, g + LW_EAVE + 1.0, g + LW_EAVE + 1.08, LW_IRON)
+	for k in 14:
+		_lbox(5.2 + k * (width - 10.4) / 13.0, -0.5, 0.03, 0.03, g + LW_EAVE + 0.1, g + LW_EAVE + 1.0, LW_IRON)
