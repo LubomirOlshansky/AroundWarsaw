@@ -48,6 +48,9 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		"ZACHODNIE", "POLE", "KARFUREK", "MERLINEK", "KINO SITKO",
 		# The railway (docs/design/railway.md, S2): the round pavilion's letters at Powiśle.
 		"WARSZAWA", "POWIŚLE",
+		# F's photos (2026-11-06): the round pavilion's letters one box each (the ones N, O, W, T, E, L
+		# don't give), and the jazz stage's valance.
+		"A", "R", "S", "Z", "P", "I", "Ś", "JAZZ",
 		# S3a: Warszawa Stadion's roof letters.
 		"STADION",
 		# S3e: Warszawa Wschodnia's fascia letters (with WARSZAWA above).

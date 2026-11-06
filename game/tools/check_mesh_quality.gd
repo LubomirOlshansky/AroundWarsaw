@@ -176,7 +176,7 @@ const BUDGET := {
 	"plac_centralny_lamps": 700,
 	"getto": 650,
 	"ochota": 1420,
-	"powisle": 1770,
+	"powisle": 6800,
 	"barka_wieczor": 1820,
 	"barka_biala": 1400,
 	"barka_marina": 2240,
