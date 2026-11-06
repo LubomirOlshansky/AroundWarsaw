@@ -575,6 +575,9 @@ const INFO := {
 	"zodiak": ["Zodiak",
 			"Pawilon w Pasażu Wiecha: dawny bar, dziś Warszawski Pawilon Architektury z kawiarnią.",
 			"A pavilion in Pasaż Wiecha: once a bar, now the Warsaw Architecture Pavilion and its café."],
+	"sowa": ["Sowa Club · City 25",
+			"Szklany pawilon w Alejach, różowy neon od zmierzchu do świtu. CITY 25 grilluje 25 godzin na dobę, a SOWA CLUB jest dla nocnych sów.",
+			"A glass pavilion on the Aleje, pink neon from dusk to dawn. CITY 25 grills 25 hours a day, and SOWA CLUB is for night owls."],
 	"wiecha": ["Pasaż Wiecha",
 			"Deptak za Domami Towarowymi Centrum, nazwany na cześć Stefana Wiecheckiego „Wiecha”. Pawilony z witrynami pod blokami.",
 			"The walkway behind the Eastern Wall's stores, named after the writer Stefan Wiechecki, \"Wiech\". Shop pavilions under the slabs."],
@@ -1025,6 +1028,8 @@ func _find_sites() -> void:
 	_find_modern_pavilions()
 	# First scene items 4-5 (2026-11-02, the Mac photo report dt_pawilony): Pasaż Wiecha's pavilions.
 	_find_wiecha()
+	# F's photos (2026-11-06): SOWA CLUB and CITY 25, the neon glass pavilion on Al. Jerozolimskie.
+	_find_sowa()
 	# Skwer Linearny na Złotej (F's photo, 2026-11-02): Dom pod Orłami over the new square.
 	_find_orly()
 	# City inventory item 4 (2026-11-02, Mac photos refs/hotel_warszawa, refs/cedet): Hotel Warszawa
@@ -1577,6 +1582,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_pawilony(s)
 			"cepelia":
 				_build_cepelia(s)
+			"sowa":
+				_build_sowa(s)
 			"rondo":
 				_id = 0
 				_build_rondo(s)
@@ -14403,6 +14410,196 @@ func _build_zodiak(site: Dictionary) -> void:
 		var k := minf(0.6 * a.distance_to(b) / Neon.length_of(ZOD_WORD), 1.0 / (Neon.ROW_H * Neon.PIXEL))
 		signs.append([ZOD_WORD, Vector3(mid.x, g + ZOD_H + ZOD_ROOF + 0.05, mid.y), Vector3(o.x, 0.0, o.y), k, ZOD_COLOUR])
 	_collide(room)
+
+
+# --- SOWA CLUB and CITY 25 (F's photos, 2026-11-06) ------------------------------------------
+
+## The neon glass pavilion on Al. Jerozolimskie 2-6, on the lawn between the 1950s block and the
+## street east of Rondo de Gaulle'a, from F's three photos (two at night, one by day): a white
+## two-storey box on the west end with the restaurant's roof sign (RESTAURANT / CITY 24 / GRILL&BAR
+## round a blue crescent), a glass box for the club east of it (a glass shop storey, an upper
+## storey of printed glass, a pink-and-white scalloped valance), pink tubes on every edge, a violet
+## band at the first floor, the club's name in red and white letters on the roof, and a terrace on
+## a plinth in front with a glass rail, beer banners and four umbrellas. Every name is a parody:
+## SOGO CLUB is SOWA CLUB (the night owls'), CITY 24 is CITY 25 (an hour more than the others),
+## the soda is PEPSZY ("lepszy"), the beer KACBERG (kac: the hangover). The 2026 street photos
+## (refs/sogo/) show a lawn there now: the game keeps the pavilion. Placed from the OpenStreetMap
+## outlines of the block (nos. 4, 6) and its glass ground-floor strip (no. 2): SOWA_O is the
+## strip's west front corner, u runs east along it, v out to the street.
+const SOWA_O := Vector2(19.0, 131.0)
+const SOWA_A := Vector2(0.933, -0.358)
+const SOWA_TOWER := Vector4(14.0, 1.0, 23.0, 10.0)    # u0, v0, u1, v1 of the restaurant's box
+const SOWA_BOX := Vector4(23.0, 0.5, 50.0, 10.0)      # the club's glass box
+const SOWA_DECK := Vector4(23.5, 10.0, 50.0, 13.8)    # the terrace (an advertising column stands at v 14.7)
+const SOWA_TOWER_H := 8.5
+const SOWA_LOW := 3.4          # the glass shop storey's top
+const SOWA_H := 7.6            # the glass box's top
+const SOWA_WHITE := Color("#eceae4")
+const SOWA_GLASS := Color("#4d5a68")
+const SOWA_PRINT := Color("#5a4560")   # the upper storey's printed glass
+const SOWA_FRAME := Color("#26252b")
+const SOWA_BOARD := Color("#1b1a2c")
+const SOWA_PLINTH := Color("#b9b2a2")
+const SOWA_MURAL := Color("#d48a3c")   # the printed banner on the terrace's front wall
+const SOWA_DECK_TOP := Color("#6e5d4c")
+const SOWA_RAIL := Color("#a9bcc6")
+const SOWA_BRELLA := Color("#1e3a34")
+const SOWA_VALANCE := [Color("#e0417f"), Color("#f2eeea")]
+const SOWA_PINK := Color(1.0, 0.22, 0.82)
+const SOWA_VIOLET := Color(0.55, 0.3, 1.0)
+const SOWA_LIT := M_PAVILION + 0.375   # the glass box lit pink from inside at night (building.gdshader)
+const SOWA_BLUE := Color(0.2, 0.55, 1.0)
+const SOWA_RED := Color(1.0, 0.16, 0.18)
+const SOWA_WHITE_T := Color(0.95, 0.95, 1.0)
+const SOWA_ORANGE := Color(1.0, 0.5, 0.12)
+const SOWA_GREEN := Color(0.25, 1.0, 0.45)
+
+
+func _sowa_frame() -> void:
+	_o = SOWA_O
+	_a = SOWA_A
+	_b = Vector2(-SOWA_A.y, SOWA_A.x)
+
+
+func _sowa_rect(r: Vector4) -> PackedVector2Array:
+	return _rect((r.x + r.z) * 0.5, (r.y + r.w) * 0.5, (r.z - r.x) * 0.5, (r.w - r.y) * 0.5)
+
+
+func _find_sowa() -> void:
+	_sowa_frame()
+	var all := Vector4(SOWA_TOWER.x, SOWA_BOX.y, SOWA_DECK.z, SOWA_DECK.w)
+	_add_site("sowa", [_sowa_rect(all)])
+
+
+## A neon tube: a thin lit box in the local plan.
+func _sowa_tube(cu: float, cv: float, hu: float, hv: float, y0: float, y1: float, col: Color) -> void:
+	_prism(_rect(cu, cv, hu, hv), y0, y1, col, col, M_LAMP, M_LAMP)
+
+
+## A sign word on the face at local v, its bottom middle at (u, y), facing the street.
+func _sowa_sign(word: String, u: float, v: float, y: float, k: float, col: Color) -> void:
+	var at := _w(u, v)
+	signs.append([word, Vector3(at.x, y, at.y), Vector3(_b.x, 0.0, _b.y), k, col])
+
+
+func _build_sowa(_site: Dictionary) -> void:
+	_sowa_frame()
+	var none := Color(0, 0, 0, 0)
+	var all := _sowa_rect(Vector4(SOWA_TOWER.x, SOWA_BOX.y, SOWA_DECK.z, SOWA_DECK.w))
+	var g := _ground_under(all)
+	var top := g
+	for q in all:
+		top = maxf(top, map.terrain_height(q.x, q.y))
+	var f := top + 0.3           # the floor: on a plinth over the slope
+	_g = f
+	_mode = M_STONE
+	# The plinth under everything, its street face the terrace's printed banner.
+	_prism(_sowa_rect(Vector4(SOWA_TOWER.x, SOWA_BOX.y, SOWA_BOX.z, SOWA_BOX.w)), g - 0.4, f, SOWA_PLINTH, none, M_STONE)
+	_prism(_sowa_rect(SOWA_DECK), g - 0.4, f, SOWA_MURAL, SOWA_DECK_TOP, M_STONE, M_STONE)
+	# The restaurant's white box, its edges in pink tubes.
+	var t := SOWA_TOWER
+	_prism(_sowa_rect(t), f, f + SOWA_TOWER_H, SOWA_WHITE, SOWA_WHITE.darkened(0.15), M_STONE, M_STONE)
+	_lbox((t.x + t.z) * 0.5, t.w + 0.02, 2.2, 0.03, f, f + 2.5, SOWA_GLASS.lightened(0.1), M_PAVILION)  # the door's glass
+	for u: float in [t.x, t.z]:
+		_sowa_tube(u, t.w + 0.05, 0.06, 0.06, f + 0.3, f + SOWA_TOWER_H, SOWA_PINK)
+	_sowa_tube((t.x + t.z) * 0.5, t.w + 0.05, (t.z - t.x) * 0.5, 0.06, f + SOWA_TOWER_H - 0.12, f + SOWA_TOWER_H, SOWA_PINK)
+	# The soda's panel and the menu words on the white front.
+	_lbox(t.x + 2.6, t.w + 0.04, 1.3, 0.04, f + 3.0, f + 5.4, SOWA_BOARD, M_STONE)
+	_sowa_tube(t.x + 2.6, t.w + 0.1, 0.45, 0.02, f + 4.75, f + 5.05, SOWA_RED)
+	_sowa_tube(t.x + 2.6, t.w + 0.1, 0.45, 0.02, f + 4.45, f + 4.75, SOWA_BLUE)
+	_sowa_sign("PEPSZY", t.x + 2.6, t.w + 0.08, f + 3.3, 0.32, SOWA_BLUE)
+	_sowa_sign("STEKI", t.x + 6.3, t.w, f + 6.6, 0.3, SOWA_ORANGE)
+	_sowa_sign("PIZZA", t.x + 6.3, t.w, f + 5.7, 0.3, SOWA_RED)
+	_sowa_sign("BURGERY", t.x + 6.3, t.w, f + 4.8, 0.3, SOWA_GREEN)
+	# The roof sign: a dark board, RESTAURANT / CITY 25 / GRILL BAR and the blue crescent.
+	var bu := (t.x + t.z) * 0.5
+	var bv := t.w - 0.6
+	_lbox(bu, bv, 5.0, 0.12, f + SOWA_TOWER_H, f + SOWA_TOWER_H + 4.2, SOWA_BOARD, M_STONE)
+	for y: float in [f + SOWA_TOWER_H + 0.05, f + SOWA_TOWER_H + 4.1]:
+		_sowa_tube(bu, bv + 0.15, 5.0, 0.04, y, y + 0.08, SOWA_PINK)
+	var k := 0.85
+	var lc := Neon.length_of("CITY") * k
+	var l25 := Neon.length_of("25") * k
+	var u0 := bu - (lc + 0.3 + l25) * 0.5 - 0.4
+	var face := bv + 0.13
+	_sowa_sign("RESTAURANT", bu - 0.6, face, f + SOWA_TOWER_H + 3.05, 0.42, SOWA_PINK)
+	_sowa_sign("CITY", u0 + lc * 0.5, face, f + SOWA_TOWER_H + 1.1, k, SOWA_WHITE_T)
+	_sowa_sign("25", u0 + lc + 0.3 + l25 * 0.5, face, f + SOWA_TOWER_H + 1.1, k, SOWA_ORANGE)
+	_sowa_sign("GRILL BAR", bu - 0.6, face, f + SOWA_TOWER_H + 0.2, 0.4, SOWA_PINK)
+	var cc := Vector2(bu + 2.4, f + SOWA_TOWER_H + 2.2)
+	for n in 15:
+		var ang := deg_to_rad(-70.0 + 150.0 * n / 14.0)
+		var cu := cc.x + cos(ang) * 2.1
+		var cy := cc.y + sin(ang) * 1.9
+		_sowa_tube(cu, face + 0.1, 0.11, 0.05, cy - 0.09, cy + 0.09, SOWA_BLUE)
+	# The entrance canopy before the door: white, a pink tube on its edge, its name.
+	_lbox(bu + 2.0, t.w + 1.4, 2.4, 1.4, f + 2.6, f + 3.0, SOWA_WHITE, M_STONE)
+	_sowa_tube(bu + 2.0, t.w + 2.83, 2.4, 0.04, f + 2.6, f + 2.7, SOWA_PINK)
+	for u: float in [bu - 0.3, bu + 4.3]:
+		_lbox(u, t.w + 2.7, 0.05, 0.05, f, f + 2.6, SOWA_FRAME, M_STONE)
+	_sowa_sign("CITY 25", bu + 2.0, t.w + 2.84, f + 2.62, 0.22, SOWA_PINK)
+	# The club's glass box: the shop storey, the printed upper storey, the frames.
+	var bx := SOWA_BOX
+	var box := _sowa_rect(bx)
+	_prism(box, f, f + SOWA_LOW, SOWA_GLASS, none, SOWA_LIT)
+	_mullions(box, f, f + SOWA_LOW, 2.5, 0.05, SOWA_FRAME)
+	_prism(box, f + SOWA_LOW, f + SOWA_LOW + 0.3, SOWA_FRAME, none, M_STONE)
+	_prism(box, f + SOWA_LOW + 0.3, f + SOWA_H - 0.6, SOWA_PRINT, none, SOWA_LIT)
+	_mullions(box, f + SOWA_LOW + 0.3, f + SOWA_H - 0.6, 2.2, 0.05, SOWA_FRAME)
+	_prism(box, f + SOWA_H - 0.6, f + SOWA_H, SOWA_WHITE, SOWA_WHITE.darkened(0.25), M_STONE, M_STONE)
+	# The scalloped valance under the roof edge: pink and white stripes on the front and the sides.
+	_mode = M_STONE
+	var cols: Array = SOWA_VALANCE
+	var nf := roundi((bx.z - bx.x) / 0.9)
+	for i in nf:
+		var cu := bx.x + (i + 0.5) * (bx.z - bx.x) / nf
+		_lbox(cu, bx.w + 0.18, (bx.z - bx.x) / nf * 0.5, 0.06, f + SOWA_H - 1.15, f + SOWA_H - 0.55, cols[i % 2], M_STONE)
+	var ns := roundi((bx.w - bx.y) / 0.9)
+	for i in ns:
+		var cv := bx.y + (i + 0.5) * (bx.w - bx.y) / ns
+		_lbox(bx.z + 0.18, cv, 0.06, (bx.w - bx.y) / ns * 0.5, f + SOWA_H - 1.15, f + SOWA_H - 0.55, cols[i % 2], M_STONE)
+	# The pink tubes: the roof edge, the floor line and every corner; the violet band.
+	var mu := (bx.x + bx.z) * 0.5
+	var hu := (bx.z - bx.x) * 0.5
+	var mv := (bx.y + bx.w) * 0.5
+	var hv := (bx.w - bx.y) * 0.5
+	for y: float in [f + SOWA_H - 0.1, f + 0.35]:
+		_sowa_tube(mu, bx.w + 0.26, hu + 0.26, 0.05, y, y + 0.12, SOWA_PINK)
+		_sowa_tube(bx.z + 0.26, mv, 0.05, hv + 0.26, y, y + 0.12, SOWA_PINK)
+	for c: Vector2 in [Vector2(bx.z + 0.26, bx.w + 0.26), Vector2(bx.x + 0.1, bx.w + 0.26), Vector2(bx.z + 0.26, bx.y + 0.1)]:
+		_sowa_tube(c.x, c.y, 0.06, 0.06, f + 0.35, f + SOWA_H, SOWA_PINK)
+	_sowa_tube(mu, bx.w + 0.2, hu, 0.05, f + SOWA_LOW + 0.12, f + SOWA_LOW + 0.22, SOWA_VIOLET)
+	_sowa_tube(bx.z + 0.2, mv, 0.05, hv, f + SOWA_LOW + 0.12, f + SOWA_LOW + 0.22, SOWA_VIOLET)
+	_sowa_sign("ZAPRASZAMY", mu, bx.w + 0.2, f + SOWA_LOW + 0.32, 0.36, SOWA_VIOLET)
+	_sowa_sign("24H", bx.z - 3.0, bx.w + 0.1, f + 4.6, 0.55, SOWA_RED)
+	# The club's name on the roof: red and white letters on a slim dark rail at the back.
+	var lw := Neon.length_of("SOWA")
+	var nu := mu + 4.0
+	_lbox(nu, bx.y + 1.0, lw + 0.6, 0.06, f + SOWA_H, f + SOWA_H + 0.25, SOWA_FRAME, M_STONE)
+	for u: float in [nu - lw, nu, nu + lw]:
+		_lbox(u, bx.y + 1.0, 0.06, 0.06, f + SOWA_H, f + SOWA_H + 1.8, SOWA_FRAME, M_STONE)
+	_sowa_sign("SOWA", nu - lw * 0.5 - 0.15, bx.y + 1.1, f + SOWA_H + 0.25, 1.0, SOWA_RED)
+	_sowa_sign("CLUB", nu + lw * 0.5 + 0.15, bx.y + 1.1, f + SOWA_H + 0.25, 1.0, SOWA_WHITE_T)
+	# The terrace: a glass rail with the beer's banners, a gap for the steps at the west end.
+	var d := SOWA_DECK
+	_lbox((d.x + 2.0 + d.z) * 0.5, d.w - 0.06, (d.z - d.x - 2.0) * 0.5, 0.04, f, f + 1.0, SOWA_RAIL, M_STONE)
+	_lbox(d.z - 0.06, (d.y + d.w) * 0.5, 0.04, (d.w - d.y) * 0.5, f, f + 1.0, SOWA_RAIL, M_STONE)
+	_lbox((d.x + 2.0 + d.z) * 0.5, d.w - 0.03, (d.z - d.x - 2.0) * 0.5, 0.05, f + 0.98, f + 1.06, SOWA_FRAME, M_STONE)
+	for u: float in [d.x + 6.5, d.x + 14.5]:
+		_lbox(u, d.w, 1.6, 0.03, f + 0.2, f + 0.85, Color("#1f6a3c"), M_STONE)
+		_sowa_sign("KACBERG", u, d.w, f + 0.3, 0.32, SOWA_GREEN)
+	# The steps down to the pavement in the rail's gap, one 0.45 m tread each.
+	for i in 4:
+		_lbox(d.x + 1.0, d.w + 0.2 + i * 0.45, 0.9, 0.24, g - 0.3, lerpf(f, g, (i + 1) / 5.0), SOWA_PLINTH, M_STONE)
+	_collide(_sowa_rect(Vector4(SOWA_TOWER.x, SOWA_BOX.y, SOWA_BOX.z, SOWA_BOX.w)))
+	_collide(_sowa_rect(Vector4(d.x + 2.0, d.y, d.z, d.w)))
+	# The umbrellas (each sets its own frame, so they come last).
+	var spots: Array[Vector2] = []
+	for i in 4:
+		spots.append(_w(d.x + 4.5 + i * 6.2, (d.y + d.w) * 0.5 + 0.2))
+	var yaw := atan2(SOWA_A.x, SOWA_A.y)
+	for p: Vector2 in spots:
+		_umbrella(p, yaw, f, SOWA_BRELLA)
 
 
 # --- Pasaż Wiecha's pavilions (first scene items 4-5, 2026-11-02) ------------------------------

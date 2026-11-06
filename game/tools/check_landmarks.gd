@@ -208,6 +208,8 @@ func _fly_checks() -> int:
 			alt = 3.0  # the statue stands 5 m, the water station's roof 4 m: a 6 m heli flies over them
 		elif info["key"] == "underpass":
 			alt = 35.0  # ground-level stairs; the way in from the east crosses Jerozolimskie's 25 m tenements
+		elif info["key"] == "sowa":
+			alt = 4.0  # the pavilion stands 7.6-8.5 m over its plinth; the 1950s block behind lifts the default
 		elif info["key"] == "tarasy":
 			alt = 15.0  # the wave stands 30 m; the towers in its box (110 m) would lift the heli over it
 		var dir := Vector2(1, 0.35).normalized()

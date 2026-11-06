@@ -159,6 +159,7 @@ const BUDGET := {
 	"tower75": 220,
 	"cepelia": 900,
 	"zodiak": 600,
+	"sowa": 1500,  # SOWA CLUB and CITY 25 (F's photos, 2026-11-06): 1298 tris
 	"wiecha": 1800,
 	"orly": 1600,
 	"hotel_warszawa": 2300,

@@ -303,6 +303,12 @@ const MAZOWIECKA := {
 	"club_maz_bank": [Vector2(-751.0, -460.0), 12, 12.0],
 	"club_maz_lombard": [Vector2(-760.0, -497.0), 10, 10.0],
 }
+## SOWA CLUB and CITY 25 (F's photos, 2026-11-06; landmarks.gd `_build_sowa`): night owls on the
+## pavement in front of the neon pavilion's terrace on Al. Jerozolimskie, on the `club` curve like
+## MAZOWIECKA, with their own lines (`sowa_club`, `talk`). id -> [spot, most people, radius].
+const SOWA := {
+	"club_sowa": [Vector2(56.6, 134.2), 10, 4.5],
+}
 ## The pub crowd's weekday factor *guess*, Monday first, by the night's day (01:00 Saturday is
 ## Friday's night): milder than the clubs', the strip is never empty after work.
 const PUB_WEEKDAY := [0.45, 0.45, 0.55, 0.75, 1.0, 1.0, 0.4]
@@ -930,6 +936,10 @@ func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
 	for kid: String in MAZOWIECKA:
 		var ks: Array = MAZOWIECKA[kid]
 		_add_site({"id": kid, "kind": "chill", "club": true, "sit": false, "at": ks[0], "max": int(ks[1]), "radius": float(ks[2])})
+	for sid: String in SOWA:
+		var ss: Array = SOWA[sid]
+		_add_site({"id": sid, "kind": "chill", "club": true, "sit": false, "at": ss[0], "max": int(ss[1]), "radius": float(ss[2]),
+				"talk": "sowa_club"})
 	for fid: String in FIRST_SCENE:
 		var fs: Array = FIRST_SCENE[fid]
 		_add_site({"id": fid, "kind": "chill", "street": true, "sit": bool(fs[4]), "at": first_scene_at(float(fs[0]), float(fs[1])),
@@ -1892,6 +1902,8 @@ func tick(step: float) -> void:
 			_office_talk(s, step, hour, rain)
 		elif near and kind == "meet":
 			_meet_talk(s, step)
+		elif near and kind == "chill" and s.has("talk"):
+			_site_talk(s, step)
 	_redraw()
 	_dawn(hour, weekday, live, look, step, eye2)
 	_office(hour, weekday, rain, step, eye2)
@@ -2038,6 +2050,19 @@ func _meet_talk(s: Dictionary, step: float) -> void:
 		return
 	s["chat_t"] = _rng.randf_range(CHAT_GAP.x, CHAT_GAP.y)
 	_say(_anchor(s, _rng.randi() % maxi(int(s["n"]), 1)), "", "car_meet", "", BUBBLE)
+
+
+## A chill spot with lines of its own (`talk`: SOWA's night owls): one every CHAT_GAP s on screen.
+func _site_talk(s: Dictionary, step: float) -> void:
+	if int(s["n"]) < 2:
+		return
+	if on_screen.is_valid() and not on_screen.call(_ground(s["door"]), 2.0):
+		return
+	s["chat_t"] = float(s.get("chat_t", 0.0)) - step
+	if float(s["chat_t"]) > 0.0:
+		return
+	s["chat_t"] = _rng.randf_range(CHAT_GAP.x, CHAT_GAP.y)
+	_say(_anchor(s, _rng.randi() % maxi(int(s["n"]), 1)), "", str(s["talk"]), "", BUBBLE)
 
 
 ## An office group's overheard line every 12-25 s while it is on screen (the `office` lines).

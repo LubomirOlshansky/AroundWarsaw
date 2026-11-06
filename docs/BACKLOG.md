@@ -4,6 +4,19 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## SOWA CLUB and CITY 25 (F, 2026-11-06)
+
+F's three photos of the Sogo Club / City 24 pavilion. Done 2026-11-06 (site `sowa`, landmarks.gd
+`_build_sowa`; crowds.gd `SOWA`, lines `sowa_club`): the pavilion on the lawn in front of
+Al. Jerozolimskie 4-6, every name a parody (SOWA CLUB, CITY 25, PEPSZY, KACBERG). Left:
+- **Where it stood**: the 2026 street photos and the GUGiK orthophoto show lawns there now and OSM
+  has no outline, so the footprint (36 x 10 m plus the terrace) is placed from the photos against
+  the block. A Mac photo gather (Commons, older orthophotos) would pin its real size and spot.
+- **The printed glass**: the upper storey's car and city pictures, the round "24h / 7 dni" discs
+  and the terrace's printed banner are plain colour; a texture pass would add them.
+- **Phone**: the look of the pink glass and tubes at night, and a bench there (1,298 triangles,
+  one shader branch for the pink glow).
+
 ## The Emilii Plater underpass entrances (F, 2026-11-06)
 
 F's screenshots: walled boxes with steps on flat ground. Done 2026-11-06 (spec

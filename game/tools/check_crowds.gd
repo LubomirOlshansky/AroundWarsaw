@@ -332,6 +332,8 @@ func _check_sites(c: Crowds) -> void:
 	# before 21 and by morning, 01:00 Saturday still Friday's, a Tuesday a fifth, rain under a third.
 	_expect(Crowds.MAZOWIECKA.size() >= 5 and Crowds.MAZOWIECKA.keys().all(func(id: String) -> bool: return c.by_id.has(id)),
 			"Mazowiecka: %d club spots are sites" % Crowds.MAZOWIECKA.size())
+	_expect(Crowds.SOWA.keys().all(func(id: String) -> bool: return c.by_id.has(id) and str(c.sites[c.by_id[id]].get("talk", "")) == "sowa_club"),
+			"SOWA CLUB: the night owls' spot is a site with its own lines")
 	_expect(Crowds.club_level(0.5, 6, 7, false) == 0.6 and Crowds.club_level(1.5, 6, 7, false) == 1.0
 			and Crowds.club_level(10.0, 5, 7, false) == 0.0 and Crowds.club_level(0.5, 3, 7, false) <= 0.25
 			and Crowds.club_level(1.5, 6, 1, false) >= 0.6 and Crowds.club_level(1.5, 6, 7, true) <= 0.3,

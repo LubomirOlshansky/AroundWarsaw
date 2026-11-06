@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-06
+- A pink neon glass pavilion is back on Aleje Jerozolimskie by Rondo de Gaulle'a: SOWA CLUB and the CITY 25 grill, open 25 hours a day, with a terrace, an info card and night owls outside with plenty to say.
 - The food blogger from the Mlask job is now called Mrożulo (was Cringulo), on his van, the signs, the fans and the news.
 
 - A cobalt-blue motorboat now sits on the roof of the Forest tower, next to the PEPEO ŻUBR crown.
