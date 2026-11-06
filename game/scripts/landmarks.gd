@@ -118,7 +118,8 @@ const TOWERS := [
 	{"key": "jp2_21", "osm": "The Westin Warsaw", "style": S_GRID, "glass": "#86aca7", "roof": "#a9b5b3", "mapped": true, "sign": "WESTYNKA"},
 	{"key": "marszalkowska94", "osm": "Novotel Warszawa Centrum", "style": S_TILE, "glass": "#d9dcdf", "roof": "#c9c9c2", "vsign": "NOWOTEL", "chamfer": true},
 	{"key": "central", "osm": "Central Tower", "style": S_DARK, "glass": "#3e5c78", "roof": "#6f7d88"},
-	{"key": "ilmet", "osm": "Ilmet", "style": S_BANDS, "glass": "#7d5a48", "roof": "#8c8278"},
+	# Ilmet (Mapillary 2026-02 and 2025 street photos): a round-cornered terracotta-banded shaft whose top steps in twice.
+	{"key": "ilmet", "osm": "Ilmet", "style": S_BANDS, "glass": "#8a5e4c", "roof": "#8c8278", "chamfer": true},
 	{"key": "platinum_a", "osm": "Platinum Tower A", "style": S_RIBBON, "glass": "#6b7f8e", "roof": "#c4c8c8"},
 	{"key": "platinum_b", "osm": "Platinum Tower B", "style": S_RIBBON, "glass": "#6b7f8e", "roof": "#c4c8c8"},
 	{"key": "lucka", "osm": "Łucka City", "style": S_RIBBON, "glass": "#7c8c98", "roof": "#bfc3c3"},
