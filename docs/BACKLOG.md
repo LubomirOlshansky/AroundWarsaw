@@ -11,6 +11,18 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - PT-25 (suspect): crazy drivers honk but said no line in 5 cut-ins.
 - PT-26, PT-27 (S3): a bubble over the steering hint; the KEBAB label over BRAKE.
 
+## Road design system: round 2 (F, 2026-11-06; docs/design/road-design-palace-results.md)
+
+- Seams where a designed street ends in the middle of a block: the old lane lines carry on up to 2.4 m
+  to the side (7 line jogs for `road_smooth --check`, and street_pass K2/L2 rise). Close the area on
+  junctions before applying it to the shipped map.
+- Emilii Plater × Świętokrzyska and × Jerozolimskie (IMG_7264 "Y", IMG_7266 stepped widening) still
+  come from the OSM ribbons.
+- Marszałkowska's two U-turns through the tram bed (s 191, 283-291 from the junction): the spec has no
+  paved gap in a tram median yet.
+- The traffic lane graph still follows the OSM ways; make it from the spec's lanes.
+- The GUGiK ortho predates the Marszałkowska crossings at Sienkiewicza and by the metro (taken from OSM).
+
 ## Loading bar on the title screen (F, 2026-11-05)
 
 Built: `main.gd` loads `index.res` and `proxies.scn` with threaded requests under the title, the

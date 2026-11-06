@@ -1,0 +1,198 @@
+{
+ "area": "palace",
+ "version": 1,
+ "note": "Roads round the Palace of Culture, designed from zero (docs/design/road-design-system.md). Offsets in metres to the right of each axis (right as seen from above facing along it); measured on the GUGiK orthophoto 2025 (refs/road_design, Mac) and OSM lane tags (tools/road_design.py palace --needs).",
+ "streets": [
+  {
+   "id": "m_north",
+   "name": "Marszałkowska",
+   "k": "secondary",
+   "axis": [[-1075.32, -187.58], [-1055.7, -134.28]],
+   "end": "j_ms",
+   "sections": [
+    {
+     "s": 0,
+     "med": ["tram"],
+     "cw": [
+      {
+       "l": -15.0,
+       "r": -4.8,
+       "lanes": [{"d": -1}, {"d": -1}, {"d": -1}]
+      },
+      {
+       "l": 4.8,
+       "r": 15.5,
+       "lanes": [{"d": 1, "t": "T"}, {"d": 1, "t": "T"}, {"d": 1, "t": "R"}]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "m_south",
+   "name": "Marszałkowska",
+   "k": "secondary",
+   "axis": [[-1055.7, -134.28], [-885.28, 328.54]],
+   "start": "j_ms",
+   "openings": [{"s": 153.2, "side": 1, "w": 9.0, "r": 5.0}, {"s": 192, "side": -1, "w": 9.0, "r": 6.0}, {"s": 340, "side": 1, "w": 8.0, "r": 4.0}],
+   "crossings": [{"s": 177, "w": 4.0, "bs": 181, "bw": 2.2}, {"s": 303, "w": 4.0, "bs": 299.5, "bw": 2.2}],
+   "sections": [
+    {
+     "s": 0,
+     "med": ["tram"],
+     "cw": [
+      {
+       "l": -15.0,
+       "r": -3.5,
+       "lanes": [{"d": -1, "t": "R"}, {"d": -1, "t": "T"}, {"d": -1, "t": "T"}]
+      },
+      {
+       "l": 3.0,
+       "r": 15.5,
+       "lanes": [{"d": 1}, {"d": 1}, {"d": 1}]
+      }
+     ]
+    },
+    {
+     "s": 73,
+     "taper": 12,
+     "med": ["tram"],
+     "cw": [
+      {
+       "l": -15.0,
+       "r": -3.5,
+       "lanes": [{"d": -1}, {"d": -1}, {"d": -1}]
+      },
+      {
+       "l": 3.0,
+       "r": 15.8,
+       "lanes": [{"d": 1, "w": 3.3}, {"d": 1, "w": 3.3}, {"d": 1, "w": 3.6}, {"k": "park", "d": 1, "w": 2.6}]
+      }
+     ]
+    },
+    {
+     "s": 360,
+     "taper": 12,
+     "med": ["tram"],
+     "cw": [
+      {
+       "l": -15.0,
+       "r": -3.5,
+       "lanes": [{"d": -1, "k": "bus", "w": 3.5}, {"d": -1}, {"d": -1}]
+      },
+      {
+       "l": 3.0,
+       "r": 15.0,
+       "lanes": [{"d": 1, "w": 3.3}, {"d": 1, "w": 3.3}, {"k": "gap", "d": 1, "w": 1.8}, {"d": 1, "w": 3.6}]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "s_east",
+   "name": "Świętokrzyska",
+   "k": "secondary",
+   "axis": [[-1055.7, -134.28], [-975.0, -161.0]],
+   "start": "j_ms",
+   "sections": [
+    {
+     "s": 0,
+     "cw": [
+      {
+       "l": -7.5,
+       "r": 7.5,
+       "lanes": [{"d": -1, "w": 3.0, "t": "T"}, {"d": -1, "w": 3.0, "t": "T"}, {"d": -1, "w": 3.0, "t": "L"}, {"d": 1, "w": 4.4}, {"d": 1, "k": "bike", "w": 1.6}]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "s_west",
+   "name": "Świętokrzyska",
+   "k": "secondary",
+   "axis": [[-1055.7, -134.28], [-1169.98, -97.56]],
+   "start": "j_ms",
+   "sections": [
+    {
+     "s": 0,
+     "cw": [
+      {
+       "l": -7.5,
+       "r": 10.0,
+       "lanes": [{"d": -1, "w": 3.5, "t": "TR"}, {"d": -1, "w": 3.5, "t": "LT"}, {"d": 1, "w": 3.5}, {"d": 1, "w": 3.5}, {"k": "gap", "d": 1, "w": 3.5}]
+      }
+     ]
+    },
+    {
+     "s": 98,
+     "taper": 8,
+     "cw": [
+      {
+       "l": -7.5,
+       "r": 13.0,
+       "lanes": [{"d": -1, "w": 3.5}, {"d": -1, "w": 3.5}, {"d": 1, "w": 3.5}, {"d": 1, "w": 3.5}, {"k": "park", "d": 1, "w": 6.5}]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "e_mid",
+   "name": "Emilii Plater",
+   "k": "tertiary",
+   "axis": [[-1451.7, 71.01], [-1318.58, 448.21]],
+   "crossings": [{"s": 180, "w": 4.5}, {"s": 305, "w": 5.0}],
+   "sections": [
+    {
+     "s": 0,
+     "med": ["island"],
+     "cw": [
+      {
+       "l": -15.5,
+       "r": -3.0,
+       "lanes": [{"d": -1, "k": "bike", "w": 1.5}, {"d": -1}, {"d": -1}, {"d": -1}]
+      },
+      {
+       "l": 2.5,
+       "r": 13.5,
+       "lanes": [{"d": 1}, {"d": 1}, {"d": 1}, {"d": 1, "k": "bike", "w": 1.5}]
+      }
+     ]
+    },
+    {
+     "s": 115,
+     "med": ["island"],
+     "cw": [
+      {
+       "l": -16.0,
+       "r": -4.5,
+       "lanes": [{"d": -1, "k": "bike", "w": 1.5}, {"d": -1}, {"d": -1}, {"d": -1}]
+      },
+      {
+       "l": 3.0,
+       "r": 13.0,
+       "lanes": [{"d": 1}, {"d": 1}, {"d": 1}, {"d": 1, "k": "bike", "w": 1.5}]
+      }
+     ]
+    }
+   ],
+   "gaps": [{"s0": 59, "s1": 71}, {"s0": 125, "s1": 135}],
+   "openings": [{"s": 65, "side": 1, "w": 9, "r": 5}, {"s": 186, "side": 1, "w": 4.5, "r": 3}, {"s": 237, "side": 1, "w": 5, "r": 4}, {"s": 339, "side": 1, "w": 4, "r": 3}, {"s": 364, "side": 1, "w": 4, "r": 3}, {"s": 402, "side": 1, "w": 4, "r": 3}, {"s": 97, "side": -1, "w": 6, "r": 4}, {"s": 193, "side": -1, "w": 5, "r": 4}, {"s": 395, "side": -1, "w": 5, "r": 4}]
+  }
+ ],
+ "junctions": [
+  {
+   "id": "j_ms",
+   "name": "Marszałkowska × Świętokrzyska",
+   "r": 6.0,
+   "arms": {
+    "m_north": {"x": 31.0, "w": 8.5, "bx": 25.3},
+    "m_south": {"x": 23.45, "w": 9.5, "bx": 17.0, "bw": 2.6},
+    "s_east": {"x": 24.5, "w": 7.0, "bx": 20.0},
+    "s_west": {"x": 26.0, "w": 8.0, "bx": 21.0}
+   }
+  }
+ ]
+}
