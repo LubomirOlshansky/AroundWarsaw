@@ -24,6 +24,10 @@ extends RefCounted
 ## Polish, ROAD WORKS / DETOUR → in English (the British board's words, as wide as the Polish so
 ## the board keeps its size). The text is in the meshes, so a language change in Settings builds
 ## the roadworks again (`rebuild`).
+##
+## The prebuilt city (2026-11-05): the bake never yields to the worker thread, so map/index.res holds
+## the colliders alone and the phone had invisible barriers. The streamer calls `rebuild` on opening
+## it; the boards need the player's language anyway, which a bake can't know.
 
 const Models := preload("res://scripts/models.gd")
 const Props := preload("res://scripts/props.gd")
