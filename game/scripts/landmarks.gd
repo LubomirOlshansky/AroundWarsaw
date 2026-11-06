@@ -733,8 +733,8 @@ func _init(builder, map_data: Dictionary) -> void:
 	# Loop 3c: the info cards (and so the picking ids) for every site up front, in site order,
 	# so a sector built alone gives its landmarks the same ids as the whole city.
 	for s in sites:
-		if s.has("block"):
-			continue  # street blocks come last and are no landmarks: no card, no map icon
+		if s.has("block") or s.has("quiet"):
+			continue  # street blocks and gardens come last and are no landmarks: no card, no map icon
 		var card: Array = INFO.get(s["key"], [s["key"], "", ""])
 		info.append({"key": s["key"], "name": card[0], "pl": card[1], "en": card[2],
 				"centre": (s["box"] as Rect2).get_center(), "box": s["box"]})
@@ -1161,6 +1161,14 @@ func _find_sites() -> void:
 	_add_site("lawrynowicz", [_pts(LW_OUTLINE)])
 	if not sites.is_empty() and sites[-1]["key"] == "lawrynowicz":
 		sites[-1]["skin"] = {"mode": M_MONUMENT, "wall": LW_BRICK, "roof": Color("#6c6a66")}
+	# The formal garden before Pałac Krasińskich (F's photos, 2026-11-06).
+	if _landmark("Pałac Krasińskich").size() >= 3:
+		_o = KRAS
+		_a = KRAS_AXIS
+		_b = Vector2(-_a.y, _a.x)
+		_add_site("krasinski_ogrod", [_rect(0.0, 70.0, 44.0, 56.0)])
+		if not sites.is_empty() and sites[-1]["key"] == "krasinski_ogrod":
+			sites[-1]["quiet"] = true
 	# Street blocks with modelled fronts (Nowy Świat, 2026-11-06).
 	_find_blocks()
 
@@ -1713,6 +1721,9 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_karowa18a(s)
 			"filtry":
 				_build_filtry(s)
+			"krasinski_ogrod":
+				_id = 0  # not tappable
+				_build_kras_garden()
 			"lawrynowicz":
 				_mark_zone(s)  # the mass stays LoD2's, in its skin; the street front is ours
 				_build_lawrynowicz(s)
@@ -21253,7 +21264,7 @@ const KRAS_RISE := 5.2         # LoD2: the ridge ~21.5 m
 const KRAS_WALL := Color("#e6e5e0")
 const KRAS_TRIM := Color("#c3c5bc")
 const KRAS_RELIEF := Color("#b9bbba")
-const KRAS_ROOF := Color("#80ad95")
+const KRAS_ROOF := Color("#6ea58b")
 const KRAS_LEAD := Color("#a0a7ac")
 const KRAS_DARK := Color("#1d2a3a")
 const KRAS_DOOR := Color("#5e432f")
@@ -23993,3 +24004,48 @@ func _build_lawrynowicz(site: Dictionary) -> void:
 	_lbox(mid, -0.5, mid - 5.0, 0.03, g + LW_EAVE + 1.0, g + LW_EAVE + 1.08, LW_IRON)
 	for k in 14:
 		_lbox(5.2 + k * (width - 10.4) / 13.0, -0.5, 0.03, 0.03, g + LW_EAVE + 0.1, g + LW_EAVE + 1.0, LW_IRON)
+
+
+# --- The garden before Pałac Krasińskich (F's photos, 2026-11-06) ------------------------------
+
+const KG_LAWN := Color("#7fbb6a")
+const KG_GRAVEL := Color("#dccfb4")
+const KG_FLOWER := Color("#8a4f9a")
+const KG_RED := Color("#b23a52")
+const KG_HEDGE := Color("#3f6b42")
+
+
+## A flat bed in the garden frame: `h` metres over the highest ground under its edge and middle, so
+## the slope of the lawn doesn't bury it.
+func _kg_flat(poly: PackedVector2Array, h: float, col: Color, base := INF) -> float:
+	var c := _centre(poly)
+	var hi: float = map.terrain_height(c.x, c.y)
+	for q in poly:
+		hi = maxf(hi, map.terrain_height(q.x, q.y))
+	if base != INF:
+		hi = base
+	_prism(poly, hi - 0.8, hi + h, col, col, M_STONE, M_STONE)
+	return hi
+
+
+## The formal garden on the palace's axis, from the aerial photos: the flower ring round the two
+## fountains, then a cross of lawn on gravel with flowers in its corners, and hedged lawn panels.
+func _build_kras_garden() -> void:
+	_o = KRAS
+	_a = KRAS_AXIS
+	_b = Vector2(-_a.y, _a.x)
+	var ring := _kg_flat(_circle(_w(0.0, 42.0), 13.0, 28), 0.04, KG_FLOWER)
+	_kg_flat(_circle(_w(0.0, 42.0), 10.5, 28), 0.08, KG_LAWN, ring)
+	var cross := _kg_flat(_circle(_w(0.0, 86.0), 16.0, 12), 0.12, KG_GRAVEL)
+	_kg_flat(_rect(0.0, 86.0, 13.5, 3.0), 0.2, KG_LAWN, cross)
+	_kg_flat(_rect(0.0, 86.0, 3.0, 13.5), 0.2, KG_LAWN, cross)
+	for su: float in [-1.0, 1.0]:
+		for sv: float in [-1.0, 1.0]:
+			_kg_flat(_rect(su * 7.5, 86.0 + sv * 7.5, 3.0, 3.0), 0.2, KG_RED if su == sv else KG_FLOWER, cross)
+			_pinnacle(su * 4.2, 86.0 + sv * 4.2, 1.1, cross + 0.15, 2.6, KG_HEDGE)
+	for v: float in [60.0, 112.0]:  # the lawn panels, hedge all round
+		_kg_flat(_rect(0.0, v, 9.0, 6.0), 0.14, KG_LAWN)
+		_kg_flat(_rect(0.0, v - 6.0, 9.0, 0.4), 0.6, KG_HEDGE)
+		_kg_flat(_rect(0.0, v + 6.0, 9.0, 0.4), 0.6, KG_HEDGE)
+		_kg_flat(_rect(-9.0, v, 0.4, 6.0), 0.6, KG_HEDGE)
+		_kg_flat(_rect(9.0, v, 0.4, 6.0), 0.6, KG_HEDGE)
