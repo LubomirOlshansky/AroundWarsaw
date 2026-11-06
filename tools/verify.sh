@@ -54,7 +54,8 @@
 # outline, the minimap's mesh over the corner left outside; centrum.json only (CI too).
 # The edge roadworks (2026-11-02): `roadworks` runs game/tools/check_edge_roadworks.gd: every road
 # leaving the map closed by roadworks, the traffic shut there, rays through the barriers, the budget;
-# centrum.json only (CI too).
+# centrum.json only (CI too). `roadworks-prebuilt` runs game/tools/check_edge_prebuilt.gd: the prebuilt
+# city (the phone's) has the closures' meshes, and the real car rammed into each one stops.
 # Loop MW-5: `radio` also checks PÓŁNOC FM (its 7 tracks and seams, the hours, reruns, the host,
 # the unlocks); `sounds` runs game/tools/check_city_sounds.gd: the city's sounds at the notebook's
 # places (the emitters, the hours, the cap of 8, the bells, the 02:00 beat); centrum.json only (CI too).
@@ -209,7 +210,7 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads smooth streets outline pois streetdetails streetpass models overrides stops streetmesh parkdetails parkmesh monuments monumentmesh spec lod2 courts drape ground drive drive-prebuilt deckxray stuckspots stuckspots-prebuilt lanedrive finite steering laneassist stuckoffer handling stopassist questlines settings credits language tiers governor heliview hud places edge roadworks eggs tape crowds life buses zaglebie crashes loud crazy oldtram trains packs wellness fans garage save districts syrenki cassettes ladder racecuts first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram teleport firstlife heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_ALL=(map roads smooth streets outline pois streetdetails streetpass models overrides stops streetmesh parkdetails parkmesh monuments monumentmesh spec lod2 courts drape ground drive drive-prebuilt deckxray stuckspots stuckspots-prebuilt lanedrive finite steering laneassist stuckoffer handling stopassist questlines settings credits language tiers governor heliview hud places edge roadworks roadworks-prebuilt eggs tape crowds life buses zaglebie crashes loud crazy oldtram trains packs wellness fans garage save districts syrenki cassettes ladder racecuts first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram teleport firstlife heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
 STEPS_QUICK=(map roads smooth streets outline pois streetdetails streetpass models overrides stops streetmesh parkdetails parkmesh monuments monumentmesh spec drape drive deckxray stuckspots finite steering laneassist stuckoffer handling stopassist questlines settings credits language tiers governor heliview hud places edge roadworks eggs tape crowds life buses zaglebie crashes loud crazy oldtram trains packs wellness fans garage save districts syrenki cassettes ladder racecuts first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds police plain ram teleport firstlife prebuilt)
 # Operation Unslop review (2026-11-05): the road loop ran the whole --quick (~100 steps, most start
 # the game) after every tweak. --roads keeps only the steps a road rule can break; steps not in
@@ -852,6 +853,7 @@ for s in $want; do
 		edge) check edge '^check_edge:' --script res://tools/check_edge.gd ;;
 		# The edge roadworks (2026-11-02): every road leaving the map closed, traffic stopped there, solid.
 		roadworks) check roadworks '^check_edge_roadworks:' --script res://tools/check_edge_roadworks.gd ;;
+		roadworks-prebuilt) skip_prebuilt roadworks-prebuilt || check roadworks-prebuilt '^check_edge_prebuilt:' --fixed-fps 60 --script res://tools/check_edge_prebuilt.gd ;;
 		# Loop MW-6: the egg cards and their triggers; KASETA's then cards and ghosts.
 		eggs) check eggs '^check_eggs:' --script res://tools/check_eggs.gd ;;
 		tape) check tape '^check_tape:' --script res://tools/check_tape.gd ;;
