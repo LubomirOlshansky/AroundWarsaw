@@ -1142,6 +1142,28 @@ def reseat_objects(out, d):
     return moved
 
 
+def clip_half(ring, p, d):
+    """The part of a polygon on the side of the line through p (normal d) that d points to."""
+    def side(q):
+        return (q[0] - p[0]) * d[0] + (q[1] - p[1]) * d[1]
+    out = []
+    n = len(ring)
+    for i in range(n):
+        a, b = ring[i], ring[(i + 1) % n]
+        sa, sb = side(a), side(b)
+        if sa >= 0:
+            out.append(a)
+        if (sa >= 0) != (sb >= 0):
+            t = sa / (sa - sb)
+            out.append((a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t))
+    return out
+
+
+def ring_area(ring):
+    return 0.5 * sum(ring[i][0] * ring[(i + 1) % len(ring)][1] - ring[(i + 1) % len(ring)][0] * ring[i][1]
+                     for i in range(len(ring)))
+
+
 def apply_design(out, d):
     """Removes the old road layers in the design's footprint and writes the design's own."""
     fp = Footprint(d.footprint + d.mouths, FOOT_PAD)
@@ -1174,7 +1196,32 @@ def apply_design(out, d):
             r["hide"] = h
             hidden += 1
     stats["roads hidden"] = hidden
+    old_carriage = out.get("carriage", [])
     drop("carriage", lambda f: f.get("dk") is None and mostly_in(f))
+    # an old carriage piece that ran on past a designed street's free end: the part beyond the
+    # end stays (cut square at the end's cross-section), or the street would stop in a hole
+    kept = {id(f) for f in out["carriage"]}
+    ends = []
+    for st in d.streets.values():
+        if st.spec.get("start") is None:
+            p, dd = st.at(0.0)
+            ends.append((p, mul(dd, -1.0)))
+        if st.spec.get("end") is None:
+            p, dd = st.at(st.L)
+            ends.append((p, dd))
+    tails = 0
+    for f in old_carriage:
+        if id(f) in kept:
+            continue
+        ring = pts_of(f["p"])
+        for p, dd in ends:
+            if min(math.dist(p, q) for q in ring) > 80.0:
+                continue
+            piece = clip_half(ring, p, dd)
+            if len(piece) >= 3 and abs(ring_area(piece)) > 2.0:
+                out["carriage"].append({"k": f.get("k", "secondary"), "p": flat(piece)})
+                tails += 1
+    stats["carriage kept past free ends"] = tails
     drop("asphalt_fills", lambda f: centre_in(f))
     drop("islands", lambda f: f.get("dk") is None and centre_in(f))
     drop("tram_noses", lambda f: centre_in(f))
