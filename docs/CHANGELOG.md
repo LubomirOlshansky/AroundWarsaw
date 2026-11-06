@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-06
 
+- Stacja Filtrów has its brick water tower, raised lawns and a history card, plus new radio lines about its past.
 - More than 500 plain blocks across the city now have their real shapes, and Nowy Świat's houses have real windows, cornices and dormers that light up one by one at night.
 - A cobalt-blue motorboat now sits on the roof of the Forest tower, next to the PEPEO ŻUBR crown.
 - The underpass entrances at Emilii Plater and Aleje Jerozolimskie are real stairs going down now instead of walled boxes: granite parapets round the two wells, steel canopies over the pavement stairs (Śródmieście's green ones with posters on the south side), and people walking down into the passage and coming up out of it.
