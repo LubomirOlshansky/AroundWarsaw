@@ -44,6 +44,8 @@ const NAME := "Wiślana Szprotka"
 
 ## The start pontoon on the left bank at the harbour's mouth, and where the car stops by it.
 const PONTOON := [Vector2(1464.0, 703.0), Vector2(1500.0, 690.0)]
+## The pontoon's deck is 3.2 m wide: solid for the boats (solid_at), a capsule along PONTOON.
+const PONTOON_HALF_W := 1.8
 const CAR_SPOT := Vector2(1446.0, 716.0)
 const ARRIVE := 9.0
 const PILL_R := 45.0
@@ -948,6 +950,10 @@ func solid_at(centre: Vector3, r: float) -> Vector2:
 		if d < BARGE_HALF_W + r and d > 0.001:
 			out += (p - q) / d * (BARGE_HALF_W + r - d)
 	var p2 := Vector2(centre.x, centre.z)
+	var pq := Geometry2D.get_closest_point_to_segment(p2, PONTOON[0], PONTOON[1])
+	var pd := p2.distance_to(pq)
+	if pd < PONTOON_HALF_W + r and pd > 0.001:
+		out += (p2 - pq) / pd * (PONTOON_HALF_W + r - pd)
 	var cell := Vector2i(floori(p2.x / PIER_CELL), floori(p2.y / PIER_CELL))
 	for dx in range(-1, 2):
 		for dz in range(-1, 2):
