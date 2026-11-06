@@ -71,3 +71,11 @@ done when a design in docs/roads/ covers it, applied to the map or not.
   junction side. Królewska west is one carriageway with no median, and Królewska east has a
   fenced 1 m island. Continuity 0. The lane-drive bot passes Marszałkowska, Królewska and
   Świętokrzyska both ways.
+- **4, Świętokrzyska east to Nowy Świat** (2026-11-06, docs/roads/swietokrzyska.json): the street
+  starts on area 1's `s_east` end with the same cross-section. West of Jasna: one lane west, a
+  hatched area opening into a second lane east, a cycle lane, and a parking-bay strip. Further east:
+  one lane each way, parking, the south cycle lane. From Czackiego: cycle lanes on both sides, two
+  lanes west and one east. Mazowiecka junction `j_sm` (8 m zebra on Mazowiecka). Mazowiecka stops
+  short of Kredytowa. Two mid-block OSM footways across Mazowiecka are `open_ends` (no zebra on the
+  photo). Continuity 0; lane drive passes, with Mazowiecka driven by `--route` (the street filter
+  finds no Mazowiecka lanes, on main too).
