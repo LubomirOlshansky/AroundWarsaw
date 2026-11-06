@@ -146,7 +146,7 @@ three stations, never two on one track piece, leave and re-enter) joins `verify.
 
 F: "rework all the rails from Dworzec Centralny to Ochota with the tunnel, it looks too bad; make
 the trains stop at the stations and people get in and out; the kładka from Kolejowa to the office
-towers; check the infrastructure elsewhere; improve the trains, like InterCity". Built:
+towers; check the infrastructure elsewhere; improve the trains, like the long-distance ones". Built:
 
 - **The cutting** (`rail_cut.gd`, map_builder `_fill_height` / `_build_cut_*` / `_build_cutting`):
   the 10 m grid drew it as a soft valley with tan ballast climbing the slopes. The tracks inside
@@ -175,7 +175,7 @@ towers; check the infrastructure elsewhere; improve the trains, like InterCity".
   buffers past a stop is a terminus: the train stops and runs back out (`_turn_back`). Passengers:
   when a train in view comes to rest, 0-2 people step off each door and walk away along the
   platform, and 0-2 who waited walk to each door and in (own MultiMesh of the pedestrians' figure,
-  40 instances, +1 draw call only while any are about). Cars: the suburban kinds are Elf-like
+  40 instances, +1 draw call only while any are about). Cars: the suburban kinds are modern low-floor
   units (sloped nose, black windscreen up into the roof, wide windows in a dark band, two door
   pairs, skirt, roof boxes); the long-distance kind is a locomotive (blunt cab both ends, grilles,
   two pantographs) with coaches (window band over a navy stripe, a door near each end).

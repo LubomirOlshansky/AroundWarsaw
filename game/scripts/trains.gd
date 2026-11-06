@@ -49,8 +49,8 @@ const GIVE_UP := 45.0
 ## The kinds, all our own liveries (parody names in docs/design/railway.md section 4; the names on
 ## the sides are left for a later pass).
 const KINDS := [
-	{"name": "KOLEJE MAZOWE", "cars": 4, "body": "#f1f0ea", "band": "#2f8a45", "door": "#f0c22c", "roof": "#9a9d9f", "stops": true, "share": 0.5, "shape": "elf"},
-	{"name": "SKiM", "cars": 3, "body": "#d3262c", "band": "#3a3d42", "door": "#f0c22c", "roof": "#8a8d90", "stops": true, "share": 0.3, "shape": "elf"},
+	{"name": "KOLEJE MAZOWE", "cars": 4, "body": "#f1f0ea", "band": "#2f8a45", "door": "#f0c22c", "roof": "#9a9d9f", "stops": true, "share": 0.5, "shape": "unit"},
+	{"name": "SKiM", "cars": 3, "body": "#d3262c", "band": "#3a3d42", "door": "#f0c22c", "roof": "#8a8d90", "stops": true, "share": 0.3, "shape": "unit"},
 	{"name": "INTERSZYBKO", "cars": 6, "body": "#d9dcdf", "band": "#1f3e78", "door": "#4a5058", "roof": "#6f7377", "stops": false, "share": 0.2, "shape": "ic", "loco": "#2f4f86"},
 ]
 
@@ -977,8 +977,8 @@ func _pose(t: Train) -> void:
 
 
 ## One car of a kind (front at -Z), built from the vehicles' shapes (models.gd Shape), F
-## 2026-11-06 (a photo of an SKM Elf at a platform): `role` 0 a cab car, 1 a car between, 2 a
-## locomotive. The suburban kinds ("shape" elf) are low-floor units: a sloped nose with a big
+## 2026-11-06 (a photo of a red suburban unit at a platform): `role` 0 a cab car, 1 a car between, 2 a
+## locomotive. The suburban kinds ("shape" unit) are low-floor units: a sloped nose with a big
 ## black windscreen running up into the roof, wide windows in a dark band, two sliding doors a
 ## side in the door colour, a grey skirt, air-conditioning boxes on the roof and the pantograph
 ## over the cab car. The long-distance kind ("shape" ic) is a locomotive with a blunt sloped cab
@@ -995,10 +995,10 @@ static func car_mesh(kind: Dictionary, role: int) -> ArrayMesh:
 	var glass := Models.fin(Models.GLASS)
 	var lit := Models.fin(Models.GLASS, Models.LIT_WINDOW)
 	var lamp := Models.fin(Models.HEADLIGHT, Models.HEAD_LAMP)
-	var elf := String(kind.get("shape", "elf")) == "elf"
+	var unit := String(kind.get("shape", "unit")) == "unit"
 	var hl := CAR * 0.5
 	var W := 1.45
-	var top := 4.0 if elf else 4.05
+	var top := 4.0 if unit else 4.05
 	var floor_y := 1.0
 	# The noses: a cab at -Z (cab car, locomotive) and at +Z (the locomotive's other end).
 	var ends: Array[float] = []
@@ -1006,7 +1006,7 @@ static func car_mesh(kind: Dictionary, role: int) -> ArrayMesh:
 		ends.append(-1.0)
 	if role == 2:
 		ends.append(1.0)
-	var nose := 3.0 if elf else 1.8
+	var nose := 3.0 if unit else 1.8
 	var z0 := -hl + (nose if ends.has(-1.0) else 0.0)
 	var z1 := hl - (nose if ends.has(1.0) else 0.0)
 	# The body between the noses.
@@ -1020,7 +1020,7 @@ static func car_mesh(kind: Dictionary, role: int) -> ArrayMesh:
 		var sl := (zf - zj)  # signed nose length, outwards
 		var prof := PackedVector2Array()
 		var half := PackedFloat32Array()
-		if elf:
+		if unit:
 			prof = PackedVector2Array([Vector2(zj, floor_y), Vector2(zj + sl * 0.93, floor_y), Vector2(zf, 1.75),
 					Vector2(zj + sl * 0.72, 2.75), Vector2(zj + sl * 0.22, top), Vector2(zj, top)])
 			half = PackedFloat32Array([W, W - 0.08, W - 0.18, W - 0.22, W - 0.08, W])
@@ -1029,13 +1029,13 @@ static func car_mesh(kind: Dictionary, role: int) -> ArrayMesh:
 					Vector2(zj + sl * 0.45, 3.75), Vector2(zj + sl * 0.15, top), Vector2(zj, top)])
 			half = PackedFloat32Array([W, W - 0.05, W - 0.1, W - 0.12, W - 0.05, W])
 		# (loft takes each face's outside from the outline's middle: either end's order works.)
-		var skin := [null, body, body, glass, roof, null] if elf else [null, body, glass, body, roof, null]
+		var skin := [null, body, body, glass, roof, null] if unit else [null, body, glass, body, roof, null]
 		s.loft(prof, half, skin, body)
 		# Lamps low on the nose, a dark coupler under it, the skirt's front.
 		for x: float in [-0.9, 0.9]:
 			s.box(Vector3(x, 1.45, zf + e * 0.03), Vector3(0.36, 0.18, 0.08), lamp)
 		s.box(Vector3(0.0, 0.85, zf + e * 0.15), Vector3(0.5, 0.3, 0.5), dark)
-		if elf:
+		if unit:
 			# The black mask round the windscreen down the nose's sides.
 			for sgn: float in [-1.0, 1.0]:
 				s.side_rect(sgn * (W + 0.012), sgn, 2.55, 3.55, minf(zj, zj + sl * 0.5), maxf(zj, zj + sl * 0.5), glass)
@@ -1054,13 +1054,13 @@ static func car_mesh(kind: Dictionary, role: int) -> ArrayMesh:
 				s.side_rect(x, sgn, 2.3, 3.4, gz - 1.2, gz + 1.2, dark)
 			s.side_rect(x, sgn, 1.25, 1.65, z0, z1, band)
 			continue
-		if elf:
+		if unit:
 			doors = [lerpf(z0, z1, 0.22), lerpf(z0, z1, 0.78)]
 		else:
 			doors = [z0 + 1.6, z1 - 1.6]
 		s.side_rect(x, sgn, 1.2, 1.45, z0, z1, band)
-		var y0 := 2.15 if elf else 2.3
-		var y1 := 3.45 if elf else 3.3
+		var y0 := 2.15 if unit else 2.3
+		var y1 := 3.45 if unit else 3.3
 		var stops: Array[float] = [z0 + 0.3]
 		for d: float in doors:
 			stops.append(d - 0.85)
