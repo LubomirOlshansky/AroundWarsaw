@@ -60,6 +60,9 @@ spec that already has its pattern (another mid-block stretch, another opening).
 
 ## Rules that keep it clean
 
+- Every area meets the AAA checklist in docs/design/road-design-quality.md (all of F's review
+  lessons); its before/after page shows each line.
+
 - Never patch a designed street's output; change the spec and rebuild. Applying twice is refused
   (`road_design` marker in the map); start from main's map.
 - Kerbs run continuous past zebras (the renderer lowers them and lays tactile pads there); they break

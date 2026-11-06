@@ -44,7 +44,7 @@ a mouth where they meet a designed kerb.
 
 ## Gates (every area)
 
-`--check` 0 problems; continuity 0 (paths meet crossings both ways); `check_lane_drive.gd` passes;
+The quality bar is docs/design/road-design-quality.md (every lesson from F's reviews). `--check` 0 problems; continuity 0 (paths meet crossings both ways); `check_lane_drive.gd` passes;
 `check_map_data.py` counts recorded on purpose; the phone bench before the first area goes into the
 shipped map (the carriageway comes in 8 m pieces).
 
