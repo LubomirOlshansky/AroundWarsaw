@@ -56,7 +56,7 @@ done when a design in docs/roads/ covers it, applied to the map or not.
 
 ## Open questions
 
-- When does the design replace the OSM ribbons in the shipped map? Default: after area 6 closes the
-  core around the Palace with no free ends, with a phone bench (BACKLOG).
+- Decided (F, 2026-11-06): the design replaces the OSM ribbons in the shipped map after area 6
+  closes the core around the Palace with no free ends, with a phone bench first (BACKLOG).
 - The traffic lane graph still follows the OSM ways moved onto the designed lanes; a graph built
   from the spec's lanes is its own item.
