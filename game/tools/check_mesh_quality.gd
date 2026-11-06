@@ -110,7 +110,7 @@ const BUDGET := {
 	"gwardii": 1450,
 	"hub_b": 100,
 	"hub_c": 90,
-	"ilmet": 180,
+	"ilmet": 400,
 	"jp2_21": 280,
 	"kopernik": 1720,
 	"legia": 700,
