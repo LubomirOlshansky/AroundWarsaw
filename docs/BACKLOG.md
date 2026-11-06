@@ -171,7 +171,12 @@ evidence per street and junction, never coordinates.
   Mennica's 13 m ground storeys are an arcade of round stainless columns before a copper lobby;
   GPY has its black spandrel patches and dark top storeys, and decked terraces with trees and red
   tables on the Z and X wings; the HUB's towers have parapets and roof plant blocks and the podium
-  its glazed skylight. Left: RD-2b Mennica's plaza (the fountain and the steel ring: where they
+  its glazed skylight. From F's photos the same day: the seven Rondo Daszyńskiego metro entrances
+  are the red glass butterfly canopies (props.gd `_metro_wings`, red lifts too), Unit's podium is
+  warm grey stone panels, Mennica carries the bank's name as the parody MBĄK, Skyliner's fin is
+  bronze-gold (photos in /mnt/project-files/daszynskiego-rd/f-photos/). Left: Skyliner's full-height
+  gold strip and its recess band; Mennica's slanted crown with the open steel screen; the hotel's
+  name band (a parody); GPY's grey stone grid and the Z/X wings' dark bands. RD-2b Mennica's plaza (the fountain and the steel ring: where they
   stand, from F's photos), its bulging plan and the west building's curved glass front; RD-4b the
   HUB's darker north-east faces; RD-5 a Mac/phone look check of all five, night photos (F offered
   photos 2026-11-06); RD-6 not found: a scan of every mesh round Skyliner and the HUB from 90 to

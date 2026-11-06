@@ -81,22 +81,25 @@ const TOWERS := [
 	# Skyliner: dark teal glass in a fine storey grid, the roof cut rising to the east (the Rondo)
 	# with a glass fin on the high corner, the black crown block (130-180 m) and the mast at the
 	# north end; no real sign up there, so the parody NOSE AGENCY sits on the block's east face.
+	# F's HUB photos (2026-11-06): the fin is bronze-gold (the full-height gold strip under it: BACKLOG).
 	{"key": "skyliner", "osm": "Skyliner", "style": S_BANDS, "glass": "#3a5f7c", "roof": "#59636b", "sign": "NOSE AGENCY",
-			"crown_from": 125.0, "crown": "#1e2226", "crown_sign": true, "slope_to": Vector2(1.0, 0.0), "fin": "#7fa7c8"},
+			"crown_from": 125.0, "crown": "#1e2226", "crown_sign": true, "slope_to": Vector2(1.0, 0.0), "fin": "#c9a24a"},
 	# Warsaw Unit: sky-blue glass between black strips (each corner and the middle of the long
 	# faces), the 22 m black crown block (180-202 m) with the insurer's logo, here WARTKA in red.
 	# RD-1 (2026-11-06, the report and street photos): the shaft tapers from the 27 m base to
 	# 90 % at 168.8 m and the crown stands on the narrowed top (`taper`: from, to, scale); the
-	# base is a dark sloped-glass podium whose lifted wings (9 m up) stand over a glass hall set
-	# 6 m in, so the tower's foot reads as the two-storey gate (`hall`, `podium`).
+	# base's lifted wings (9 m up) stand over a glass hall set 6 m in, so the tower's foot reads
+	# as the two-storey gate (`hall`); F's photos (2026-11-06) show the podium blocks clad in a
+	# fine grid of warm grey stone panels, floodlit at night (`podium`, `podium_style`).
 	{"key": "unit", "osm": "Warsaw Unit", "style": S_BANDS, "glass": "#6f99c2", "roof": "#8a96a0", "sign": "WARTKA",
 			"crown_from": 168.0, "crown": "#1b1e22", "crown_sign": true, "sign_col": Color(1.0, 0.15, 0.12), "strips": "#20252c",
-			"taper": Vector3(27.0, 168.8, 0.9), "hall": 6.0, "podium": "#2e4560"},
+			"taper": Vector3(27.0, 168.8, 0.9), "hall": 6.0, "podium": "#cbc1b3", "podium_style": S_TILE},
 	# Mennica Legacy Tower: silver-blue glass with vertical silver fins, a flat top (no crown).
 	# RD-2 (2026-11-06): the 13 m ground storeys are an open arcade: the copper-tinted lobby
 	# set 5 m in under the shaft's soffit, the mapped posts as round stainless columns (`arcade`).
+	# F's photos (2026-11-06): the bank's white name high on the faces, here the parody MBĄK.
 	{"key": "mennica", "osm": "Mennica Legacy Tower", "style": S_FINS, "glass": "#86a6c4", "roof": "#b5c0c9",
-			"arcade": 13.0, "lobby": "#8a4a32", "columns": "#c9ced3"},
+			"sign": "MBĄK", "sign_col": Color(0.95, 0.97, 1.0), "arcade": 13.0, "lobby": "#8a4a32", "columns": "#c9ced3"},
 	# Generation Park Y: blue glass in a white grid (white piers every 3 m), a flat roof; 140 m.
 	# RD-3 (2026-11-06): black spandrel patches a bay or two wide every few storeys and the two
 	# dark top storeys (`patches`), and the decked roof terraces of the Z and X wings (`terraces`:
@@ -3231,6 +3234,8 @@ func _build_tower(site: Dictionary) -> void:
 			# The podium: the tower's glass, a step warmer and darker (Unit's: dark sloped glass).
 			wall = Color(spec["podium"]) if spec.has("podium") \
 					else glass.darkened(0.12).lerp(Color("#b8a88c"), 0.0 if spec.get("cool", false) else 0.15)
+			if spec.has("podium_style"):
+				part_skin = M_SKIN + float(spec["podium_style"]) / 16.0
 		if spec.has("arcade") and absf(h - float(spec["arcade"])) < 0.5 and mh < 0.5:
 			# RD-2 the arcade's lobby: copper-tinted glass 5 m in from the column line, lit warm.
 			var lobby := Geometry2D.offset_polygon(poly, -5.0)
@@ -3285,7 +3290,7 @@ func _build_tower(site: Dictionary) -> void:
 	if tp.z > 0.0:
 		top_poly = _scaled(top_poly, taper_c, shrink.call(g + top_h))
 	if not lifted.is_empty():
-		_gate_hall(lifted, g, lift_h, float(spec["hall"]), Color(spec["podium"]))
+		_gate_hall(lifted, g, lift_h, float(spec["hall"]), Color("#2e4560"))
 	if spec.has("skylight"):
 		_podium_skylight(spec["skylight"][0], float(spec["skylight"][1]))
 	for t: Array in site.get("terraces", []):
@@ -3628,7 +3633,7 @@ func _dusk_details(spec: Dictionary, poly: PackedVector2Array, g: float, top_h: 
 	if spec.get("marriott", false):
 		_marriott(poly, g, top_h)
 	if spec.has("sign") and not spec.get("crown_sign", false):
-		_crown_signs(poly, g + top_h, str(spec["sign"]), DUSK_WARM, 3.0,
+		_crown_signs(poly, g + top_h, str(spec["sign"]), spec.get("sign_col", DUSK_WARM), 3.0,
 				0.75 if spec.get("marriott", false) else 0.7)
 	if spec.has("base_sign"):
 		# A shop's name over the ground floor on the south and east faces (Rondo 1's clinic).

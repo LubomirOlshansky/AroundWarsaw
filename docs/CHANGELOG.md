@@ -10,7 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-06
-- The towers at Rondo Daszyńskiego got their details: Warsaw Unit narrows towards its crown and stands on a glass hall, Mennica Legacy Tower rests on a row of steel columns, Generation Park Y has its black window patches and roof terraces with trees, and the HUB has its parapets and a glass skylight between the towers.
+- The towers at Rondo Daszyńskiego got their details: Warsaw Unit narrows towards its crown and stands on a glass hall, Mennica Legacy Tower rests on a row of steel columns, Generation Park Y has its black window patches and roof terraces with trees, and the HUB has its parapets and a glass skylight between the towers. The metro entrances at the Rondo are now the red glass butterfly canopies.
 - The food blogger from the Mlask job is now called Mrożulo (was Cringulo), on his van, the signs, the fans and the news.
 
 - A cobalt-blue motorboat now sits on the roof of the Forest tower, next to the PEPEO ŻUBR crown.
