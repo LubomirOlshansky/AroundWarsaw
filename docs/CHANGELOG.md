@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-06
+- New side job: your bestie Zuzia phones for a coffee run in Powiśle. Swap the car for a city bike, race to four fancy cafés for stamps and very expensive coffee, and get it all back by BLIK if you make it in time.
 - The food blogger from the Mlask job is now called Mrożulo (was Cringulo), on his van, the signs, the fans and the news.
 
 - A cobalt-blue motorboat now sits on the roof of the Forest tower, next to the PEPEO ŻUBR crown.

@@ -4,6 +4,17 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Coffee run (F, 2026-11-06)
+
+Built 2026-11-06 (docs/design/coffee-run.md): Zuzia's call, the ROWERILO dock by Elektrownia, the
+player's bike, four café stamps against the clock, the BLIK back. Left:
+- **Phone check**: the bike's readability at the 80 m view, the clock, the hint lines.
+- **Café signs**: the four doors are beacons only; signs on existing shells or from photos.
+- **Zuzia on screen**: she is a phone voice and a hint line; no figure rides along.
+- **Bike sound**: the engine loop still plays on the bike; a bell and pedalling instead.
+- **Free ROWERILO**: taking a bike at any dock outside the run.
+- **Garage while biking**: entering the garage mid-run turns the bike back into the car's model.
+
 ## The Emilii Plater underpass entrances (F, 2026-11-06)
 
 F's screenshots: walled boxes with steps on flat ground. Done 2026-11-06 (spec
