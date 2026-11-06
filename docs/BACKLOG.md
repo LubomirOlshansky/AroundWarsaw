@@ -56,8 +56,8 @@ Left:
 
 ## Road design rollout: every street on the map (F, 2026-11-06; docs/design/road-design-rollout.md)
 
-Areas and progress: docs/plan/road-areas.json, `python3 -I tools/road_progress.py` (main streets 6.9%,
-all streets 3.9% after areas 1-6). Quality bar: docs/design/road-design-quality.md.
+Areas and progress: docs/plan/road-areas.json, `python3 -I tools/road_progress.py` (main streets 7.9%,
+all streets 4.6% after areas 1-6 and 7 part 1). Quality bar: docs/design/road-design-quality.md.
 
 - Area 3 done (docs/roads/krolewska.json): Marszałkowska Świętokrzyska to Królewska, the junction,
   Królewska both ways, Marszałkowska north to the Plac Bankowy bend. Left: side streets (Zielna,
@@ -76,7 +76,10 @@ all streets 3.9% after areas 1-6). Quality bar: docs/design/road-design-quality.
   south side was measured in shadow; the ring's red cycle track is not in the map (no cycle
   crossings drawn until it is); the far half of the 16 m zebra east of the ring; the Nowy Świat Y
   stays as mapped; turn arrows left out.
-- Tier A core, next: 7 Marszałkowska south, 8 Emilii Plater south + Chałubińskiego, 9 Rondo ONZ +
+- Area 7 part 1 done (docs/roads/marszalkowska_s.json): Marszałkowska from Rondo Dmowskiego to
+  Wilcza with five junctions. Left: Plac Konstytucji and on to Plac Zbawiciela (part 2); angled
+  parking bays as pavement; side-street parking guessed.
+- Tier A core, next: 7 part 2 Plac Konstytucji to Plac Zbawiciela, 8 Emilii Plater south + Chałubińskiego, 9 Rondo ONZ +
   Świętokrzyska west, 10 Królewska + Plac Małachowskiego, 11 Jerozolimskie west, 12 Plac Trzech
   Krzyży + Ujazdowskie. Each with an in-game before/after page for F.
 - Ortho tiles for areas 3-12: fetched 2026-11-06 into refs/road_design2/ (87 tiles, 64 MB, Mac;

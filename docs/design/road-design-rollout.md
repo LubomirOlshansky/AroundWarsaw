@@ -113,3 +113,14 @@ done when a design in docs/roads/ covers it, applied to the map or not.
   arm at its fillet tangents) and `island`. Continuity 0; check 0; lane drive passes 13 routes.
   Left: the red cycle track round the ring is not in the map, so its crossings are left out; the
   Nowy Świat Y stays as mapped.
+- **7, part 1: Marszałkowska south to Wilcza** (2026-11-07, docs/roads/marszalkowska_s.json): from
+  area 6's south arm end, 640 m to short of Plac Konstytucji, on an axis along the tram midline
+  (it drifts 4 m east between Żurawia and Hoża). Two carriageways of three or four lanes (the
+  map's counts per block), the southbound side narrowing from four lanes to three before
+  Nowogrodzka, grass strips by the tracks north of Nowogrodzka. Junctions Nowogrodzka, Żurawia,
+  Wspólna, Hoża, Wilcza: one zebra across Marszałkowska each on its painted side, a stop line on the
+  other where the cars queue; side arms one-way as mapped (Wspólna west two-way), each with its
+  zebra, and the western arms with a cycle crossing for the west-side cycle track; Skorupki an
+  east-side opening. Continuity 0; check 0; lane drive passes 15 routes. Left: angled parking bays
+  stay pavement; side-street parking lanes guessed from widths; the rondo's east slip road as
+  mapped. Part 2 is Plac Konstytucji to Plac Zbawiciela (the street bends east past Wilcza).
