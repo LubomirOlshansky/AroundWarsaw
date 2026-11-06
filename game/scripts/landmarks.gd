@@ -143,6 +143,9 @@ const INFO := {
 	"palace": ["Pałac Kultury i Nauki",
 			"237 m razem z iglicą. Otwarty w 1955 roku.",
 			"237 m with its spire. Opened in 1955."],
+	"wedel": ["Kamienica Wedla",
+			"Biała, bogato zdobiona kamienica, a nad jej rogiem cwałuje neonowa zebra.",
+			"A white tenement with a neon zebra galloping over the corner."],
 	"szpitalna5": ["Szpitalna 5",
 			"Narożna kamienica w brzoskwiniowym tynku, z balkonami i ślepą arkadą na rogu.",
 			"A corner tenement in peach plaster, with iron balconies and a blind arch at the corner."],
@@ -1147,6 +1150,10 @@ func _find_sites() -> void:
 	_add_site("szpitalna5", [_pts(SZ_OUTLINE)])
 	if not sites.is_empty() and sites[-1]["key"] == "szpitalna5":
 		sites[-1]["skin"] = {"mode": M_MONUMENT, "wall": SZ_WALL, "roof": Color("#6c6a66")}
+	# Kamienica Wedla (F's photos, 2026-11-06): LoD2's mass, both fronts and the corner are ours.
+	_add_site("wedel", [_pts(WD_OUTLINE)])
+	if not sites.is_empty() and sites[-1]["key"] == "wedel":
+		sites[-1]["skin"] = {"mode": M_MONUMENT, "wall": WD_WHITE, "roof": WD_ZINC}
 	# Street blocks with modelled fronts (Nowy Świat, 2026-11-06).
 	_find_blocks()
 
@@ -1699,6 +1706,9 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_karowa18a(s)
 			"filtry":
 				_build_filtry(s)
+			"wedel":
+				_mark_zone(s)  # the mass stays LoD2's, in its skin; the fronts and the corner are ours
+				_build_wedel(s)
 			"szpitalna5":
 				_mark_zone(s)  # the mass stays LoD2's, in its skin; the two street fronts are ours
 				_build_szpitalna5(s)
@@ -23588,9 +23598,14 @@ const GG_BAY := 3.42
 const GG_FLOORS := [5.4, 9.6, 13.4, 17.0]  # sills of the four upper storeys
 
 
+## A pane's material: its own number from where it stands, so night lights each window whole.
+func _lit(u: float, y: float) -> float:
+	return M_PANE + 0.01 + 0.98 * fposmod(sin(u * 12.9898 + y * 78.233 + _o.x) * 437.585, 1.0)
+
+
 ## One window at bay centre u: dark pane, pale frame and sill, a cornice over it when `head`.
 func _gg_window(u: float, y: float, h: float, head: bool) -> void:
-	_lbox(u, 0.36, 0.72, 0.03, y, y + h, GG_GLASS)
+	_lbox(u, 0.36, 0.72, 0.03, y, y + h, GG_GLASS, _lit(u, y))
 	_lbox(u - 0.8, 0.36, 0.1, 0.1, y - 0.1, y + h + 0.1, GG_PALE)
 	_lbox(u + 0.8, 0.36, 0.1, 0.1, y - 0.1, y + h + 0.1, GG_PALE)
 	_lbox(u, 0.4, 1.0, 0.16, y - 0.24, y - 0.06, GG_PALE)
@@ -23688,7 +23703,7 @@ const SZ_TOP := 24.6
 
 ## One window: dark pane, white sill and head; on the first floor a small pediment over it.
 func _sz_window(u: float, y: float, h: float, pediment: bool) -> void:
-	_lbox(u, 0.36, 0.68, 0.03, y, y + h, SZ_GLASS)
+	_lbox(u, 0.36, 0.68, 0.03, y, y + h, SZ_GLASS, _lit(u, y))
 	_lbox(u, 0.42, 0.95, 0.15, y - 0.22, y - 0.06, SZ_WHITE)
 	_lbox(u, 0.4, 0.88, 0.12, y + h + 0.06, y + h + 0.2, SZ_WHITE)
 	if pediment:
@@ -23753,3 +23768,128 @@ func _build_szpitalna5(site: Dictionary) -> void:
 	_g = _ground_under(_pts(SZ_OUTLINE))
 	_sz_front(SZ_SOUTH, SZ_CORNER, 10, [3, 7], -1)
 	_sz_front(SZ_CORNER, SZ_WEST, 12, [], 1)
+
+
+# --- Kamienica Wedla (F's photos, 2026-11-06): spec docs/landmarks/specs/wedel.md ---------------
+
+const WD_OUTLINE := [-635.4, 66.8, -597.4, 53.2, -593.1, 65.7, -592.5, 67.3, -602.6, 71.1, -602.3, 71.9, -607.1, 73.6, -607.4, 72.9,
+		-611.9, 74.5, -612.4, 74.3, -613.4, 71.3, -616.5, 72.4, -616.6, 73.3, -616.7, 74.0, -616.1, 74.2, -614.6, 77.0, -615.0, 78.3,
+		-614.2, 79.7, -613.6, 80.6, -611.6, 81.5, -603.4, 78.6, -602.7, 78.6, -602.2, 80.8, -599.9, 80.0, -599.3, 80.4, -598.3, 83.3,
+		-611.5, 88.0, -622.2, 91.8, -623.7, 92.7, -627.5, 86.4, -636.7, 70.1, -636.4, 70.0, -635.7, 67.9, -635.4, 67.1]
+const WD_CORNER := Vector2(-636.2, 67.0)  # the corner under the zebra
+const WD_EAST := Vector2(-597.4, 53.2)  # the Górskiego front's far end
+const WD_SOUTH := Vector2(-623.7, 92.7)  # the Szpitalna front's far end
+const WD_WHITE := Color("#efe9dc")
+const WD_SHADE := Color("#d9d1c0")
+const WD_ZINC := Color("#71828a")
+const WD_BAND := Color("#6a5f53")
+const WD_AWNING := Color("#6e2a2e")
+const WD_GLASS := Color("#2c3640")
+const WD_IRON := Color("#23262a")
+const WD_EAVE := 19.6
+
+
+## One window: pane, sill and head; `arched` adds a stepped head for the top storey.
+func _wd_window(u: float, y: float, h: float, arched: bool) -> void:
+	_lbox(u, 0.36, 0.72, 0.03, y, y + h, WD_GLASS, _lit(u, y))
+	_lbox(u, 0.42, 1.0, 0.15, y - 0.22, y - 0.06, WD_WHITE)
+	_lbox(u, 0.4, 0.92, 0.12, y + h + 0.04, y + h + 0.24, WD_WHITE)
+	if arched:
+		_lbox(u, 0.36, 0.48, 0.03, y + h, y + h + 0.3, WD_GLASS)
+		_lbox(u, 0.42, 0.62, 0.12, y + h + 0.24, y + h + 0.5, WD_WHITE)
+
+
+## A dormer standing on the mansard at bay centre u: a window in a white frame under a zinc cap.
+func _wd_dormer(u: float, g: float) -> void:
+	_lbox(u, -1.0, 0.82, 0.55, g + WD_EAVE + 0.3, g + WD_EAVE + 2.6, WD_WHITE)
+	_lbox(u, -0.42, 0.52, 0.03, g + WD_EAVE + 0.7, g + WD_EAVE + 2.2, WD_GLASS)
+	_lbox(u, -1.0, 1.0, 0.72, g + WD_EAVE + 2.6, g + WD_EAVE + 2.85, WD_WHITE)
+	_lbox(u, -1.0, 0.6, 0.5, g + WD_EAVE + 2.85, g + WD_EAVE + 3.1, WD_ZINC)
+
+
+## One street front from `from` to `to` in `bays` bays: dark banded piers and burgundy awnings at
+## street level, three white storeys (arched on top), a heavy cornice, dormers on the mansard.
+func _wd_front(from: Vector2, to: Vector2, bays: int) -> void:
+	_o = from
+	_a = (to - from).normalized()
+	_b = Vector2(-_a.y, _a.x)
+	var width := from.distance_to(to)
+	var bay := width / bays
+	var mid := width * 0.5
+	var g := _g
+	_lbox(mid, 0.14, mid, 0.2, g - 0.3, g + 5.4, WD_SHADE)
+	_lbox(mid, 0.14, mid, 0.2, g + 5.4, g + WD_EAVE, WD_WHITE)
+	_lbox(mid, 0.42, mid, 0.14, g + 5.1, g + 5.6, WD_WHITE)
+	_lbox(mid, 0.42, mid, 0.1, g + 9.5, g + 9.72, WD_SHADE)
+	_lbox(mid, 0.42, mid, 0.1, g + 13.5, g + 13.72, WD_SHADE)
+	for k in bays:
+		var u := (k + 0.5) * bay
+		_lbox(u, 0.36, 1.05, 0.03, g + 0.4, g + 4.0, WD_GLASS)
+		var awning := PackedVector2Array([_w(u - 1.2, 0.3), _w(u + 1.2, 0.3), _w(u + 1.2, 1.5), _w(u - 1.2, 1.5)])
+		_prism(awning, g + 3.5, g + 4.7, WD_AWNING, WD_AWNING, M_STONE, M_STONE)
+		for y: float in [0.5, 1.3, 2.1, 2.9]:  # the banded pier beside the shop
+			_lbox(k * bay, 0.4, 0.42, 0.1, g + y, g + y + 0.4, WD_BAND)
+		_wd_window(u, g + 6.3, 2.5, false)
+		_wd_window(u, g + 10.3, 2.4, false)
+		_wd_window(u, g + 14.5, 2.2, true)
+		if k % 2 == 1:
+			_wd_dormer(u, g)
+	_lbox(mid, 0.45, mid, 0.18, g + WD_EAVE - 1.4, g + WD_EAVE - 0.7, WD_SHADE)
+	_lbox(mid, 0.8, mid + 0.4, 0.6, g + WD_EAVE - 0.7, g + WD_EAVE, WD_WHITE)
+	# Two long stone balconies with balusters over the shops, a third of the way along.
+	for c: float in [0.3, 0.72]:
+		_lbox(width * c, 0.95, 2.4, 0.62, g + 5.5, g + 5.76, WD_WHITE)
+		_lbox(width * c, 1.5, 2.4, 0.08, g + 5.76, g + 6.6, WD_WHITE)
+
+
+## The rooftop zebra: a black-and-white striped body on a mast with a rider in red. Lit at night.
+func _wd_zebra(c: Vector2, y: float) -> void:
+	_o = c
+	_a = Vector2(0.94, -0.34)
+	_b = Vector2(-_a.y, _a.x)
+	var white := Color("#f6f2e8")
+	var black := Color("#191a1c")
+	_lbox(0.0, 0.0, 0.08, 0.08, y, y + 1.6, WD_IRON)
+	_lbox(-2.2, 0.0, 2.5, 0.05, y + 1.6, y + 1.8, WD_IRON)
+	for k in 6:
+		var u := -1.5 + k * 0.6
+		_lbox(u, 0.0, 0.3, 0.18, y + 3.0, y + 4.0, white if k % 2 == 0 else black, M_LAMP)
+	for u: float in [-1.4, -0.9, 1.0, 1.5]:
+		_lbox(u, 0.0, 0.1, 0.12, y + 1.8, y + 3.0, white, M_LAMP)
+	_lbox(1.9, 0.0, 0.26, 0.15, y + 3.6, y + 5.0, white, M_LAMP)
+	_lbox(2.2, 0.0, 0.42, 0.14, y + 4.7, y + 5.2, black, M_LAMP)
+	_lbox(-2.0, 0.0, 0.26, 0.08, y + 3.5, y + 3.7, black, M_LAMP)
+	_lbox(0.0, 0.0, 0.3, 0.2, y + 4.0, y + 5.1, Color("#c23a40"), M_LAMP)
+	_lbox(0.0, 0.0, 0.17, 0.17, y + 5.1, y + 5.5, Color("#e6c7a8"), M_LAMP)
+
+
+## Kamienica Wedla, from F's three photos: LoD2's mass; the Górskiego and Szpitalna fronts; at the
+## corner a pediment, the bays of two storeys, a tall zinc roof between two turrets and the zebra.
+func _build_wedel(site: Dictionary) -> void:
+	_g = _ground_under(_pts(WD_OUTLINE))
+	var g := _g
+	_wd_front(WD_EAST, WD_CORNER, 12)
+	_wd_front(WD_CORNER, WD_SOUTH, 8)
+	# The corner, in a frame on its diagonal.
+	_o = WD_CORNER
+	_a = Vector2(0.86, 0.51)
+	_b = Vector2(-_a.y, _a.x)
+	_a = (Vector2(-0.34, -0.94) + Vector2(-0.89, 0.46)).normalized()  # out of the corner
+	_b = Vector2(_a.y, -_a.x)
+	var white := WD_WHITE
+	_lbox(0.3, 0.0, 1.0, 2.2, g + 5.6, g + 13.4, white)  # the bay of two storeys
+	_lbox(1.32, 0.0, 0.03, 1.1, g + 6.4, g + 8.8, WD_GLASS)
+	_lbox(1.32, 0.0, 0.03, 1.1, g + 10.3, g + 12.6, WD_GLASS)
+	_lbox(0.3, 0.0, 1.3, 2.5, g + 13.4, g + 13.7, white)
+	_lbox(1.45, 0.0, 0.03, 2.3, g + 13.7, g + 14.6, WD_IRON)
+	_lbox(1.3, 0.0, 0.24, 2.6, g + 5.3, g + 5.7, white)
+	_prism(PackedVector2Array([_w(-3.2, -3.2), _w(0.5, -3.2), _w(0.5, 3.2), _w(-3.2, 3.2)]), g + WD_EAVE, g + WD_EAVE + 1.1, white, white, M_STONE, M_STONE)
+	_lbox(0.0, 0.0, 0.0 + 0.5, 2.0, g + WD_EAVE + 1.1, g + WD_EAVE + 1.6, white)
+	# The tall zinc roof and its two turrets.
+	var roof := PackedVector2Array([_w(-5.2, -3.1), _w(-0.4, -3.1), _w(-0.4, 3.1), _w(-5.2, 3.1)])
+	_prism(roof, g + WD_EAVE, g + WD_EAVE + 3.4, WD_ZINC, WD_ZINC, M_STONE, M_STONE)
+	_prism(PackedVector2Array([_w(-4.6, -2.3), _w(-1.0, -2.3), _w(-1.0, 2.3), _w(-4.6, 2.3)]), g + WD_EAVE + 3.4, g + WD_EAVE + 4.6, WD_ZINC, WD_ZINC, M_STONE, M_STONE)
+	for v: float in [-3.2, 3.2]:
+		_lbox(-0.4, v, 0.55, 0.55, g + WD_EAVE, g + WD_EAVE + 3.2, white)
+		_lbox(-0.4, v, 0.32, 0.32, g + WD_EAVE + 3.2, g + WD_EAVE + 3.9, WD_ZINC)
+	_wd_zebra(_w(-2.8, 0.0), g + WD_EAVE + 4.6)

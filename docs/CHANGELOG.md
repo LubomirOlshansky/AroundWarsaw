@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-06
 
+- Kamienica Wedla is white and ornate now, with its zinc corner roof and a neon zebra that glows at night.
 - Szpitalna 5 is a real corner tenement now, in peach plaster with iron balconies and its blind arch.
 - Kamienica Pod Gigantami stands on Aleje Ujazdowskie with its two stone giants, and some passengers now need a fast ride to a date there.
 - Stacja Filtrów has its brick water tower, raised lawns and a history card, plus new radio lines about its past.
