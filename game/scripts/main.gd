@@ -6896,8 +6896,8 @@ var _stop_at := 0
 
 
 func _stop_step() -> void:
-	const WAIT := 40
-	const SETTLE := 28
+	const WAIT := 60
+	const SETTLE := 50
 	if stops.is_empty() or frame < 120 or _stop_at >= stops.size():
 		return
 	var k := frame - 120
@@ -6911,6 +6911,7 @@ func _stop_step() -> void:
 		base_size = s[4]
 		_view_size = s[4]
 		cam.size = s[4]
+		cam_focus = car.global_position
 	elif k % WAIT == SETTLE:
 		var at := _stop_at
 		_stop_at += 1

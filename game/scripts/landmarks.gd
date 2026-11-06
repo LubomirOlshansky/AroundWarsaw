@@ -143,6 +143,9 @@ const INFO := {
 	"palace": ["Pałac Kultury i Nauki",
 			"237 m razem z iglicą. Otwarty w 1955 roku.",
 			"237 m with its spire. Opened in 1955."],
+	"szpitalna5": ["Szpitalna 5",
+			"Narożna kamienica w brzoskwiniowym tynku, z balkonami i ślepą arkadą na rogu.",
+			"A corner tenement in peach plaster, with iron balconies and a blind arch at the corner."],
 	"gigantami": ["Kamienica Pod Gigantami",
 			"Dwaj kamienni giganci trzymają balkon nad bramą. Dobre miejsce na randkę, jeśli zdążysz.",
 			"Two stone giants hold up the balcony over the gate. A fine place for a date, if you get there in time."],
@@ -1140,6 +1143,10 @@ func _find_sites() -> void:
 	_add_site("gigantami", [_pts(GG_OUTLINE)])
 	if not sites.is_empty() and sites[-1]["key"] == "gigantami":
 		sites[-1]["skin"] = {"mode": M_MONUMENT, "wall": GG_STONE, "roof": Color("#6c6a66")}
+	# Szpitalna 5 (F's photos, 2026-11-06): LoD2's mass in its plaster, both street fronts are ours.
+	_add_site("szpitalna5", [_pts(SZ_OUTLINE)])
+	if not sites.is_empty() and sites[-1]["key"] == "szpitalna5":
+		sites[-1]["skin"] = {"mode": M_MONUMENT, "wall": SZ_WALL, "roof": Color("#6c6a66")}
 	# Street blocks with modelled fronts (Nowy Świat, 2026-11-06).
 	_find_blocks()
 
@@ -1692,6 +1699,9 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_karowa18a(s)
 			"filtry":
 				_build_filtry(s)
+			"szpitalna5":
+				_mark_zone(s)  # the mass stays LoD2's, in its skin; the two street fronts are ours
+				_build_szpitalna5(s)
 			"gigantami":
 				_mark_zone(s)  # the mass stays LoD2's, in its skin; the street front is ours
 				_build_gigantami(s)
@@ -23658,3 +23668,91 @@ func _build_gigantami(site: Dictionary) -> void:
 	_lbox(mid, 1.7, 2.7, 0.1, g + 5.84, g + 6.7, GG_PALE)
 	_lbox(mid - 2.65, 1.0, 0.1, 0.72, g + 5.84, g + 6.7, GG_PALE)
 	_lbox(mid + 2.65, 1.0, 0.1, 0.72, g + 5.84, g + 6.7, GG_PALE)
+
+
+# --- Szpitalna 5 (F's photos, 2026-11-06): spec docs/landmarks/specs/szpitalna5.md --------------
+
+const SZ_OUTLINE := [-669.3, 128.2, -673.5, 120.4, -673.2, 120.3, -677.4, 112.8, -679.6, 106.5, -644.4, 93.2, -643.4, 92.8,
+		-636.4, 105.1, -634.7, 108.2, -627.5, 120.5, -641.8, 126.5, -655.0, 131.9, -665.1, 136.1]
+const SZ_CORNER := Vector2(-643.4, 92.8)  # Szpitalna meets Przeskok
+const SZ_SOUTH := Vector2(-627.5, 120.5)
+const SZ_WEST := Vector2(-679.6, 106.5)
+const SZ_WALL := Color("#e8c9a6")
+const SZ_WHITE := Color("#f1ece0")
+const SZ_BASE := Color("#e6dfd1")
+const SZ_GLASS := Color("#2e3a44")
+const SZ_IRON := Color("#26282a")
+const SZ_FLOORS := [5.3, 9.3, 13.2, 17.1, 20.8]  # sills of the five upper storeys
+const SZ_TOP := 24.6
+
+
+## One window: dark pane, white surround and sill; on the first floor a small pediment over it.
+func _sz_window(u: float, y: float, h: float, pediment: bool) -> void:
+	_lbox(u, 0.36, 0.68, 0.03, y, y + h, SZ_GLASS)
+	_lbox(u, 0.36, 0.05, 0.03, y, y + h, SZ_WHITE)
+	_lbox(u - 0.76, 0.38, 0.09, 0.09, y - 0.1, y + h + 0.1, SZ_WHITE)
+	_lbox(u + 0.76, 0.38, 0.09, 0.09, y - 0.1, y + h + 0.1, SZ_WHITE)
+	_lbox(u, 0.42, 0.95, 0.15, y - 0.22, y - 0.06, SZ_WHITE)
+	_lbox(u, 0.4, 0.88, 0.12, y + h + 0.06, y + h + 0.2, SZ_WHITE)
+	if pediment:
+		_lbox(u, 0.42, 0.8, 0.12, y + h + 0.2, y + h + 0.32, SZ_WHITE)
+		_lbox(u, 0.42, 0.45, 0.12, y + h + 0.32, y + h + 0.48, SZ_WHITE)
+
+
+## A wrought-iron balcony at bay centre u on the storey with sill y.
+func _sz_balcony(u: float, y: float) -> void:
+	_lbox(u, 0.85, 1.25, 0.5, y - 0.26, y - 0.06, SZ_WHITE)
+	_lbox(u, 1.3, 1.25, 0.03, y + 0.85, y + 0.92, SZ_IRON)
+	for j in 11:
+		_lbox(u - 1.25 + j * 0.25, 1.3, 0.025, 0.025, y - 0.06, y + 0.85, SZ_IRON)
+	_lbox(u - 1.25, 0.85, 0.025, 0.48, y + 0.85, y + 0.92, SZ_IRON)
+	_lbox(u + 1.25, 0.85, 0.025, 0.48, y + 0.85, y + 0.92, SZ_IRON)
+
+
+## One street front from `from` to `to`, seen with the street on its left-hand normal: `bays` bays;
+## storeys above the first carry balconies at `balconies`; `arch` is the bay with the blind arch.
+func _sz_front(from: Vector2, to: Vector2, bays: int, balconies: Array, arch: int) -> void:
+	_o = from
+	_a = (to - from).normalized()
+	_b = Vector2(-_a.y, _a.x)
+	var width := from.distance_to(to)
+	var bay := width / bays
+	var mid := width * 0.5
+	var g := _g
+	_lbox(mid, 0.14, mid, 0.2, g - 0.3, g + 4.9, SZ_BASE)
+	_lbox(mid, 0.14, mid, 0.2, g + 4.9, g + SZ_TOP, SZ_WALL)
+	for y: float in [1.3, 2.5, 3.7]:
+		_lbox(mid, 0.34, mid, 0.03, g + y, g + y + 0.08, SZ_BASE.darkened(0.1))
+	_lbox(mid, 0.38, mid, 0.1, g + 4.7, g + 5.05, SZ_WHITE)
+	_lbox(mid, 0.38, mid, 0.08, g + 12.9, g + 13.05, SZ_WHITE)
+	_lbox(mid, 0.38, mid, 0.08, g + 16.8, g + 16.95, SZ_WHITE)
+	for k in bays:
+		var u := (k + 0.5) * bay
+		_lbox(u, 0.36, 1.0, 0.03, g + 0.9, g + 3.8, SZ_GLASS)
+		_lbox(u, 0.4, 1.12, 0.09, g + 3.8, g + 4.0, SZ_WHITE)
+		for i in SZ_FLOORS.size():
+			if k == arch and i >= 3:
+				continue
+			_sz_window(u, g + SZ_FLOORS[i], 2.35 if i < 3 else 2.0, i == 0)
+			if i > 0 and k in balconies:
+				_sz_balcony(u, g + SZ_FLOORS[i])
+	if arch >= 0:  # the blind arch over the top two storeys: white frame, peach panel
+		var u := (arch + 0.5) * bay
+		_lbox(u - 1.2, 0.36, 0.14, 0.1, g + 17.0, g + 22.6, SZ_WHITE)
+		_lbox(u + 1.2, 0.36, 0.14, 0.1, g + 17.0, g + 22.6, SZ_WHITE)
+		_lbox(u, 0.36, 1.2, 0.1, g + 23.4, g + 23.6, SZ_WHITE)
+		_lbox(u, 0.36, 0.85, 0.1, g + 23.0, g + 23.4, SZ_WHITE)
+		_lbox(u, 0.36, 1.05, 0.1, g + 22.6, g + 23.0, SZ_WHITE)
+	# Corner pilasters, the cornice and a white band under it.
+	_lbox(0.3, 0.4, 0.34, 0.12, g + 5.1, g + SZ_TOP - 0.6, SZ_WHITE)
+	_lbox(width - 0.3, 0.4, 0.34, 0.12, g + 5.1, g + SZ_TOP - 0.6, SZ_WHITE)
+	_lbox(mid, 0.34, mid, 0.14, g + SZ_TOP - 0.7, g + SZ_TOP - 0.3, SZ_WHITE)
+	_lbox(mid, 0.75, mid + 0.5, 0.58, g + SZ_TOP - 0.3, g + SZ_TOP + 0.2, SZ_WHITE)
+
+
+## Szpitalna 5, from F's two photos: five plastered storeys over a banded white ground floor, iron
+## balconies on the Szpitalna front, the blind arch at the corner on the Przeskok front.
+func _build_szpitalna5(site: Dictionary) -> void:
+	_g = _ground_under(_pts(SZ_OUTLINE))
+	_sz_front(SZ_SOUTH, SZ_CORNER, 10, [3, 7], -1)
+	_sz_front(SZ_CORNER, SZ_WEST, 12, [], 1)
