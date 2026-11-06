@@ -6,7 +6,7 @@ Small problems that agents reported or that showed up in screenshots. They are f
 
 ## Street blocks across the city (F, 2026-11-06)
 
-509 plain blocks are modelled, 50 of them along Nowy Świat with colours checked against street
+512 plain blocks are modelled, 50 of them along Nowy Świat with colours checked against street
 photos (`game/data/street_blocks/`, one gzipped file each; sites `blk_<id>`, `_find_blocks`,
 `_build_block`; panes M_PANE). They join the city mesh, are no landmarks (no card, no icon), and
 collide on our outline. Blocks with real window openings bring their own roofs; the others keep
@@ -17,7 +17,7 @@ to 185 MB. Left:
 - **#29 Nowy Świat**: still its old block; its LoD2 is one mesh with the wing behind.
 - **Detail worth adding**: the long iron balconies of Nowy Świat 54/56 and 58.
 - **Outside Nowy Świat** the blocks had a look for breakage, not a house-by-house photo check.
-- **Photo builds F asked for (2026-11-06, still their old blocks)**: Block 136840337, Chmielna 28, Filtrowa 65, Filtrowa 67, Filtrowa 73, Generated landmark module for pw_req (Politechnika Warszawska & Lwowsk, GfK Polonia, Gorskiego1 U-plan courtyard block, Grójecka 14A, Hotel Indigo, Kamienica, Kamienica Pusłowskiego, Kamienica Wedla, Kamienica Ławrynowicza, Krucza51 angled street wing, Pałac Karnickich, Pod Gigantami; west to Aleje Ujazdowskie; giants flank central street, Solec 22, Solec 24, Solec Residence, South Aleje11/19 continuous slab with regular masonry window grid, Szpitalna 5 historic tenement, The Tides, Wspólna 47/49; reference/DSM decisions in inventory/REFERENCES, Zgoda 11, Zgoda 3. Pod Gigantami is done: photo model, card, and the date ride (`DATE_SHARE`, passenger kind `date`).
+- **Photo builds F asked for (2026-11-06, still their old blocks)**: Block 136840337, Filtrowa 65, Filtrowa 67, Filtrowa 73, Generated landmark module for pw_req (Politechnika Warszawska & Lwowsk, GfK Polonia, Gorskiego1 U-plan courtyard block, Grójecka 14A, Hotel Indigo, Kamienica, Kamienica Pusłowskiego, Kamienica Wedla, Kamienica Ławrynowicza, Krucza51 angled street wing, Pałac Karnickich, Pod Gigantami; west to Aleje Ujazdowskie; giants flank central street, Solec 22, Solec 24, Solec Residence, South Aleje11/19 continuous slab with regular masonry window grid, Szpitalna 5 historic tenement, The Tides, Wspólna 47/49; reference/DSM decisions in inventory/REFERENCES, Zgoda 3. Pod Gigantami is done: photo model, card, and the date ride (`DATE_SHARE`, passenger kind `date`).
 
 ## The Emilii Plater underpass entrances (F, 2026-11-06)
 
