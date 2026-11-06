@@ -29,6 +29,14 @@ verify step `coffee` (`--trend-job=8 --autopilot`).
    gratis… w dni robocze 6:00-6:05"); late, half back and no respect ("Twoja kawa wystygła, to ją
    wypiłam"). Flying, or cancelling, ends the run and gives the car back.
 
+## Playtest (2026-11-06)
+
+Autopilot on F's Mac rode the first leg for real: dock to KROPKA. in 17 s, an average of 6.97 m/s
+(top 8.5), no stucks, the HUD clean; the bike was too small at the car's view (now the camera closes
+in). Its later legs never ran (the run's wall-clock budget went on the 70 s city build). By the lane
+graph the four stamp legs are ~1.4 km by road: at that measured 7 m/s plus the stamps, ~225 s of the
+300 s clock, so a clean ride has ~75 s to spare.
+
 ## The cafés (parodies; the real names are in brand_denylist.json)
 
 | # | In game | Behind it (real, 2025-26) | Door | Coffee, price | Joke |
