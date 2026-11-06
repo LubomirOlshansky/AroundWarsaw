@@ -69,7 +69,7 @@ often, known to every visitor; **B** characteristic, known to locals, gives a st
 | 8 | Złote Tarasy (with Lumen, Skylight) | Złota / Aleja Jana Pawła II | shopping centre, offices | ◐ | photo re-pass: the wave, Lumen's ribbons, Skylight's crown |
 | 9 | Warszawa Centralna | Aleje Jerozolimskie | station | ★ | the wings' walls (QUESTIONS) |
 | 10 | Zamek Królewski (OSM: Wieża Zegarowa) | Plac Zamkowy | royal castle | ⏳ | PR #299 (Clock Tower, Vistula front, Kubicki's Arcades); then a photo check |
-| 11 | Kolumna Zygmunta | Plac Zamkowy | monument | ◐ | photo check |
+| 11 | Kolumna Zygmunta | Plac Zamkowy | monument | ◐ | photo-checked 2026-11-06 (zygmunt.md): granite, bronze ring and capital, four steps; cross/sabre sides still need an in-game look |
 | 12 | Rynek Starego Miasta and its Syrenka | Rynek Starego Miasta | square, statue | ◐ | photo re-pass: paving, umbrellas, the statue's pose; the north and west fronts' gables |
 | 13 | Stadion Narodowy | Aleja Zieleniecka | stadium | ★ | the bank's grass against the orthophoto |
 | 14 | Most Poniatowskiego (towers and deck) | Aleja Poniatowskiego | bridge | ★ | built 2026-11-02 from `refs/poniatowski/` (30 Commons photos, four orthos), spec `poniatowski.md`; the Powiśle viaduct's arcade and the north stairs 2026-11-03, rebuilt the same day as open ribs and struts with bars in the closed bays (F's answer); F's look on the Mac or the phone |
@@ -95,7 +95,7 @@ often, known to every visitor; **B** characteristic, known to locals, gives a st
 | # | Place | Street | Kind | Status | Next |
 | --- | --- | --- | --- | --- | --- |
 | 31 | Pomnik Syreny nad Wisłą (OSM: Syrenka na Powiślu) | Wybrzeże Kościuszkowskie | statue | ◐ | photo check of the plinth |
-| 32 | Pomnik Mikołaja Kopernika and Pałac Staszica | Krakowskie Przedmieście | monument, palace | ◐ | photo check |
+| 32 | Pomnik Mikołaja Kopernika and Pałac Staszica | Krakowskie Przedmieście | monument, palace | ◐ | photo report staszic.md (2026-11-06): colours fixed; front is an arcade not a portico, dome and statue spot wait on an orientation check (QUESTIONS) |
 | 33 | Pomnik Adama Mickiewicza | Krakowskie Przedmieście | monument | ★ | photos gathered (`refs/krakowskie/`); built 2026-11-02 from them, spec `mickiewicz.md`; F's look on the Mac or the phone |
 | 34 | Kościół Świętego Krzyża | Krakowskie Przedmieście | church | ◐ | photo check: the helms, the dome |
 | 35 | Brama Uniwersytetu Warszawskiego and Pałac Kazimierzowski | Krakowskie Przedmieście | gate, palace | ★ | photos gathered (`refs/krakowskie/`); built 2026-11-02 from them, specs `brama_uw.md`, `kazimierzowski.md`; F's look on the Mac or the phone |
@@ -170,7 +170,7 @@ often, known to every visitor; **B** characteristic, known to locals, gives a st
 | 99 | Pałac Paca, Pałac Branickich (Miodowa), Pałac Prymasowski, Pałac Blanka, Pałac Jabłonowskich | Miodowa / Senatorska | palaces | ✗ | Miodowa street pass: palace fronts from photos |
 | 100 | Katedra polowa, the Cerkiew, Kapucyni (Miodowa churches) | Miodowa | churches | ◐ | church kit; photo check |
 | 101 | Synagoga Nożyków and Próżna's pre-war tenements (Kamienica Zalmana Nożyka, Kamienica Wolanowskiego) | Próżna / Twarda | synagogue, tenements | ◐ | the synagogue is the church kit's; Próżna's facades ✗ (photo build) |
-| 102 | Plac Grzybowski and Kościół Wszystkich Świętych | Plac Grzybowski | square, church | ◐ | photo check; the square's fountain and benches |
+| 102 | Plac Grzybowski and Kościół Wszystkich Świętych | Plac Grzybowski | square, church | ◐ | photo-checked 2026-11-06 (wszystkich.md): spired towers, arcade galleries, crossing drum, sandy stone; the square's planter wall and bollards open |
 | 103 | Dom pod Orłami and Skwer Linearny na Złotej | Jasna / Złota | historic office, new park | ★ | Mac look check |
 | 104 | Hotel Wiktoria (Sofitel Victoria) and Królewska (OSM: Sofitel Victoria) | Królewska | hotel | ◐ | photo check |
 | 105 | Ministerstwo Finansów | Świętokrzyska | ministry | ◐ | photo check |

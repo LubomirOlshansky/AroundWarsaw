@@ -4033,8 +4033,8 @@ const SKINS := [
 	{"key": "archikatedra", "osm": "Archikatedra pw. Świętego Jana Chrzciciela", "mode": M_GOTHIC, "wall": "#9a4b38", "roof": "#6e3a2e"},
 	{"key": "sw_anna", "osm": "Kościół pw. Świętej Anny", "mode": M_MONUMENT, "wall": "#e6dcc4", "roof": "#8a5a44"},
 	{"key": "sw_krzyz", "osm": "Kościół pw. Świętego Krzyża", "mode": M_MONUMENT, "wall": "#e3d9c0", "roof": "#5d6e64"},
-	{"key": "staszic", "osm": "Pałac Staszica", "mode": M_MONUMENT, "wall": "#e2d6b8", "roof": "#5f6f6a"},
-	{"key": "wszystkich", "osm": "Kościół Wszystkich Świętych", "mode": M_MONUMENT, "wall": "#ddcfaa", "roof": "#6e7f6e"},
+	{"key": "staszic", "osm": "Pałac Staszica", "mode": M_MONUMENT, "wall": "#e6dcc4", "roof": "#6a8f80"},
+	{"key": "wszystkich", "osm": "Kościół Wszystkich Świętych", "mode": M_MONUMENT, "wall": "#c6b186", "roof": "#6e7f6e"},
 	{"key": "wizytki", "osm": "Kościół Wizytek", "mode": M_MONUMENT, "wall": "#ecdfc0", "roof": "#6d8f7f"},
 	{"key": "karmelici", "osm": "Kościół Wniebowzięcia Najświętszej Maryi Panny i świętego Józefa Oblubieńca", "mode": M_MONUMENT, "wall": "#d9cba6", "roof": "#5e8f80"},
 	{"key": "zamoyski", "osm": "Pałac Zamoyskich", "mode": M_MONUMENT, "wall": "#e7dcba", "roof": "#6a6762"},
@@ -4294,8 +4294,10 @@ func _mdm_crown(c: Vector2, block_h: float, ha: float, hb: float) -> void:
 ## stepped granite base, the pedestal, the 12 m shaft, the capital and the king in bronze with
 ## his cross raised and his sabre. A circle zone round it; the same on both city paths.
 const ZYGMUNT := Vector2(-724.2, -1465.4)
-const ZYGMUNT_GRANITE := Color("#8d8a86")
-const ZYGMUNT_STONE := Color("#d2c4ad")
+const ZYGMUNT_GRANITE := Color("#a39e96")  # steps (photo report zygmunt.md)
+const ZYGMUNT_STONE := Color("#9a9186")  # the shaft, grey-brown granite
+const ZYGMUNT_PLINTH := Color("#77746f")  # the pedestal, dark grey granite
+const ZYGMUNT_CAPITAL := Color("#4a443a")
 const ZYGMUNT_BRONZE := Color("#4f4a40")
 func _find_zygmunt() -> void:
 	_add_site("zygmunt", [_circle(ZYGMUNT, 4.0, 16)])
@@ -4314,17 +4316,23 @@ func _build_zygmunt(_site: Dictionary) -> void:
 	_g = _ground_under(_circle(c, 3.4, 8))
 	var g := _g
 	var none := Color(0, 0, 0, 0)
-	# Three octagonal steps, the pedestal (a dark plinth, pale stone, a cornice).
-	for k in 3:
-		_prism(_circle(c, 3.4 - k * 0.4, 8), g - 0.4 + k * 0.4, g + 0.4 + k * 0.4, ZYGMUNT_GRANITE, ZYGMUNT_GRANITE, M_STONE, M_STONE)
-	_prism(_circle(c, 1.75, 4), g + 1.2, g + 2.5, ZYGMUNT_GRANITE, none, M_STONE)
-	_prism(_circle(c, 1.4, 4), g + 2.5, g + 4.8, ZYGMUNT_STONE, none, M_STONE)
-	_prism(_circle(c, 1.6, 4), g + 4.8, g + 5.2, ZYGMUNT_GRANITE, ZYGMUNT_GRANITE, M_STONE, M_STONE)
-	# The shaft, tapering a little, then the capital and the block the king stands on.
+	# Four broad low granite steps, the dark granite pedestal with bronze plaques, then the shaft
+	# with its bronze ring and Corinthian capital and the square abacus (photo report zygmunt.md).
+	for k in 4:
+		_prism(_circle(c, 3.8 - k * 0.45, 8), g - 0.4 + k * 0.15, g + 0.15 + k * 0.15, ZYGMUNT_GRANITE, ZYGMUNT_GRANITE, M_STONE, M_STONE)
+	_prism(_circle(c, 1.9, 4), g + 0.75, g + 1.5, ZYGMUNT_PLINTH.darkened(0.12), none, M_STONE)
+	_prism(_circle(c, 1.5, 4), g + 1.5, g + 4.6, ZYGMUNT_PLINTH, none, M_STONE)
+	for k in 4:  # the bronze inscription plaques, one on each face
+		var d := Vector2.from_angle(TAU * (k + 0.5) / 4.0)
+		var pc := c + d * 1.5 * 0.7071
+		_prism(_circle(pc, 0.4, 4), g + 2.0, g + 4.0, ZYGMUNT_BRONZE, none, M_STONE)
+	_prism(_circle(c, 1.7, 4), g + 4.6, g + 5.0, ZYGMUNT_PLINTH, ZYGMUNT_PLINTH.lightened(0.05), M_STONE, M_STONE)
+	# The shaft, tapering a little, over a bronze sculpted ring; then the capital and the abacus.
 	_mode = M_STONE
-	_frustum(_circle(c, 0.5, 16), g + 5.2, _circle(c, 0.4, 16), g + 17.4, ZYGMUNT_STONE)
-	_prism(_circle(c, 0.75, 4), g + 17.4, g + 18.0, ZYGMUNT_BRONZE, none, M_STONE)
-	_prism(_circle(c, 0.95, 4), g + 18.0, g + 18.6, ZYGMUNT_STONE, ZYGMUNT_STONE, M_STONE, M_STONE)
+	_prism(_circle(c, 0.8, 8), g + 5.0, g + 6.0, ZYGMUNT_BRONZE, ZYGMUNT_BRONZE, M_STONE, M_STONE)
+	_frustum(_circle(c, 0.6, 16), g + 6.0, _circle(c, 0.45, 16), g + 16.2, ZYGMUNT_STONE)
+	_frustum(_circle(c, 0.5, 12), g + 16.2, _circle(c, 0.85, 12), g + 17.8, ZYGMUNT_CAPITAL)
+	_prism(_circle(c, 0.95, 4), g + 17.8, g + 18.6, ZYGMUNT_STONE, ZYGMUNT_STONE, M_STONE, M_STONE)
 	# The king (facing south, down Krakowskie Przedmieście): robe, body, head; the cross held
 	# high in his left hand, the sabre in his right.
 	_prism(_circle(c, 0.42, 8), g + 18.6, g + 19.9, ZYGMUNT_BRONZE, none, M_STONE)
@@ -12176,10 +12184,10 @@ func _krzyz_tower(cu: float) -> void:
 const STASZIC := Vector2(-415.8, -405.5)
 const STASZIC_AXIS := Vector2(0.166, 0.986)
 const STASZIC_MID := 14.0
-const STASZIC_WALL := Color("#e2d6b8")
+const STASZIC_WALL := Color("#e6dcc4")
 const STASZIC_TRIM := Color("#f0e9d6")
 const STASZIC_BASE := Color("#b9ae96")
-const STASZIC_ROOF := Color("#5f6f6a")
+const STASZIC_ROOF := Color("#6a8f80")
 const STASZIC_DOOR := Color("#3a3d40")
 const STASZIC_GRANITE := Color("#8f8b85")
 const STASZIC_BRONZE := Color("#4a4f46")
@@ -13776,8 +13784,9 @@ func _kop_hash(a: float, b: float) -> float:
 const WSZ := Vector2(-1393.3, -165.9)
 const WSZ_AXIS := Vector2(-0.925, 0.38)
 const WSZ_MID := 18.45
-const WSZ_WALL := Color("#ddcfaa")
-const WSZ_TRIM := Color("#efe6cc")
+const WSZ_WALL := Color("#c6b186")  # weathered sandy ochre (photo report wszystkich.md)
+const WSZ_TRIM := Color("#d6c9a6")
+const WSZ_ARCADE := Color("#d9d0bb")
 const WSZ_BASE := Color("#b5aa8e")
 const WSZ_COPPER := Color("#6e8f7e")
 const WSZ_GOLD := Color("#c9a24a")
@@ -13799,8 +13808,9 @@ func _build_wszystkich(_site: Dictionary) -> void:
 	_lbox(m, -0.55, 10.75, 0.75, g + 1.4, g + 9.0, WSZ_WALL, M_STONE, WSZ_WALL)
 	_lbox(m, -0.5, 10.5, 0.7, g + 9.0, g + 19.0, WSZ_WALL, M_MONUMENT, WSZ_WALL)
 	_mode = M_GLASS
-	for u: float in [-5.4, 0.0, 5.4]:
-		_wall(_w(m + u - 1.2, 0.24), _w(m + u + 1.2, 0.24), g + 1.5, g + 6.6, _b, WSZ_DOOR)
+	_wall(_w(m - 2.0, 0.24), _w(m + 2.0, 0.24), g + 1.5, g + 8.4, _b, WSZ_DOOR)  # the large central portal
+	for u: float in [-6.2, 6.2]:  # two small arched doors
+		_wall(_w(m + u - 0.9, 0.24), _w(m + u + 0.9, 0.24), g + 1.5, g + 5.0, _b, WSZ_DOOR)
 	_mode = M_STONE
 	for u: float in [-8.1, -2.7, 2.7, 8.1]:
 		_lbox(m + u, 0.4, 0.35, 0.2, g + 1.4, g + 7.4, WSZ_TRIM, M_STONE, WSZ_TRIM)
@@ -13815,13 +13825,16 @@ func _build_wszystkich(_site: Dictionary) -> void:
 	var kb := _b
 	_a = kb
 	_b = ka
-	_gable(0.6, -1.3, m, 10.8, g + 19.9, 4.4, WSZ_WALL, WSZ_COPPER)
+	_gable(0.6, -1.3, m, 10.8, g + 19.9, 3.0, WSZ_WALL, WSZ_COPPER)
 	_a = ka
 	_b = kb
-	var oc := _w(m, 0.65)
-	_disc(Vector3(oc.x, g + 22.0, oc.y), Vector3(_b.x, 0.0, _b.y), 1.0, 8, WSZ_DOOR)
-	_lbox(m, -0.5, 0.15, 0.15, g + 24.3, g + 27.0, WSZ_GOLD, M_STONE, WSZ_GOLD)
-	_lbox(m, -0.5, 0.7, 0.15, g + 25.6, g + 26.0, WSZ_GOLD, M_STONE, WSZ_GOLD)
+	_lbox(m, -0.5, 0.15, 0.15, g + 22.9, g + 25.4, WSZ_GOLD, M_STONE, WSZ_GOLD)
+	_lbox(m, -0.5, 0.7, 0.15, g + 24.1, g + 24.5, WSZ_GOLD, M_STONE, WSZ_GOLD)
+	# the open round-arched galleries running out from both towers (about 20 m, 7 m high)
+	for sd: float in [-1.0, 1.0]:
+		_wsz_gallery(m + sd * (m + 0.2), sd)
+	# the crossing drum with its ribbed copper dome, behind the front (x -1375, z -106)
+	_wsz_drum(Vector2(-1375.0, -106.0))
 	# the car meets the steps
 	_collide(_rect(m, 1.5, 7.2, 1.2))
 
@@ -13848,16 +13861,47 @@ func _wsz_tower(cu: float) -> void:
 		for sv: float in [-1.0, 1.0]:
 			_lbox(cu + su * 3.35, cv + sv * 3.55, 0.6, 0.6, g + 25.5, g + 34.0, WSZ_TRIM, M_STONE, WSZ_TRIM)
 	_lbox(cu, cv, 4.1, 4.3, g + 34.0, g + 35.0, WSZ_TRIM, M_STONE, WSZ_TRIM)
-	# the dome
+	# the smaller open-arcade stage (35-46 m): four corner piers and a balustrade, then the
+	# pointed copper spire on a bulb with a ball and a cross, no domes (photo report)
+	_lbox(cu, cv, 2.7, 2.9, g + 35.0, g + 36.0, WSZ_TRIM, M_STONE, WSZ_TRIM)
+	_lbox(cu, cv, 2.3, 2.5, g + 36.0, g + 44.6, WSZ_WALL, M_MONUMENT, WSZ_WALL)
+	for su: float in [-1.0, 1.0]:
+		for sv: float in [-1.0, 1.0]:
+			_lbox(cu + su * 2.35, cv + sv * 2.5, 0.5, 0.5, g + 36.0, g + 44.6, WSZ_TRIM, M_STONE, WSZ_TRIM)
+	_lbox(cu, cv, 2.9, 3.1, g + 44.6, g + 46.0, WSZ_TRIM, M_STONE, WSZ_TRIM)
 	var c := _w(cu, cv)
-	var prof := [[3.4, 35.0], [3.4, 37.0], [3.7, 38.4], [3.2, 41.0], [2.2, 43.4], [1.3, 44.8]]
+	var prof := [[2.8, 46.0], [2.2, 48.0], [2.5, 49.2], [1.5, 50.6], [0.9, 52.0], [0.2, 54.6]]
 	for k in prof.size() - 1:
 		_frustum(_circle(c, float(prof[k][0]), 8), g + float(prof[k][1]), _circle(c, float(prof[k + 1][0]), 8),
 				g + float(prof[k + 1][1]), WSZ_COPPER.lightened(0.03 * k), WSZ_COPPER)
-	_prism(_circle(c, 1.0, 8), g + 44.8, g + 48.0, WSZ_TRIM, WSZ_COPPER, M_MONUMENT, M_STONE)
-	_frustum(_circle(c, 1.3, 8), g + 48.0, _circle(c, 0.2, 8), g + 52.5, WSZ_COPPER, WSZ_COPPER)
-	_lbox(cu, cv, 0.18, 0.18, g + 52.5, g + 58.0, WSZ_GOLD, M_STONE, WSZ_GOLD)
-	_lbox(cu, cv, 0.7, 0.18, g + 55.4, g + 55.8, WSZ_GOLD, M_STONE, WSZ_GOLD)
+	_lbox(cu, cv, 0.18, 0.18, g + 54.6, g + 58.0, WSZ_GOLD, M_STONE, WSZ_GOLD)
+	_lbox(cu, cv, 0.7, 0.18, g + 56.4, g + 56.8, WSZ_GOLD, M_STONE, WSZ_GOLD)
+
+
+## One open arcade gallery of All Saints, 20 m long and 7 m high, from the tower at `u0` out
+## along the front in direction `sd`: rusticated piers, a cream arcade wall and a flat cornice.
+func _wsz_gallery(u0: float, sd: float) -> void:
+	var g := _g
+	var cu := u0 + sd * 10.0
+	_lbox(cu, 1.0, 10.0, 0.5, g - 0.4, g + 0.5, WSZ_BASE, M_STONE, WSZ_BASE)
+	_lbox(cu, 0.6, 10.0, 0.4, g + 0.5, g + 7.0, WSZ_ARCADE, M_MONUMENT, WSZ_ARCADE)
+	for k in 6:
+		_lbox(u0 + sd * (1.0 + 3.6 * k), 0.8, 0.4, 0.35, g + 0.5, g + 6.4, WSZ_ARCADE.darkened(0.04), M_STONE, WSZ_ARCADE)
+	_lbox(cu, 0.6, 10.2, 0.6, g + 7.0, g + 7.5, WSZ_TRIM, M_STONE, WSZ_TRIM)
+
+
+## The crossing drum behind the front: a round drum about 12 m across under a ribbed copper
+## dome and a lantern, 40 m high. `c` is the world position (x, z) of its centre.
+func _wsz_drum(c: Vector2) -> void:
+	var g := _g
+	_prism(_circle(c, 6.0, 12), g + 18.0, g + 31.0, WSZ_WALL, WSZ_TRIM, M_MONUMENT, M_STONE)
+	_prism(_circle(c, 6.4, 12), g + 31.0, g + 31.8, WSZ_TRIM, WSZ_TRIM, M_STONE, M_STONE)
+	var prof := [[6.0, 31.8], [5.2, 33.6], [3.8, 35.6], [2.2, 37.4], [1.2, 38.6]]
+	for k in prof.size() - 1:
+		_frustum(_circle(c, float(prof[k][0]), 12), g + float(prof[k][1]), _circle(c, float(prof[k + 1][0]), 12),
+				g + float(prof[k + 1][1]), WSZ_COPPER, WSZ_COPPER)
+	_prism(_circle(c, 0.9, 8), g + 38.6, g + 40.4, WSZ_TRIM, WSZ_COPPER, M_STONE, M_STONE)
+	_prism(_circle(c, 0.12, 4), g + 40.4, g + 42.4, WSZ_GOLD, WSZ_GOLD, M_STONE, M_STONE)
 
 
 ## The Visitationists' church (Kościół Wizytek; Karol Bay and Jakub Fontana, 1728-1761) on
