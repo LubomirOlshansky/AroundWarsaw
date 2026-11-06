@@ -14,6 +14,18 @@ check `tramfleet`. No maker's or model name anywhere: nicknames only.
 - [ ] The newest tram's short three-section version, and the newest one's own bell/hum sound
 - [ ] Old pairs: a squeal and a heavier rumble than the low-floor trams (sfx)
 
+## Secret rave: LEKTI, Ziomek, Smoła (F, 2026-11-06; docs/design/secret-rave.md)
+
+Built: night and day raves, LEKTI's voiced break-in on MORDOR FM, Ziomek's call and ride, the
+strict three-question door, Smoła's cutaway room (option A). Left:
+- [ ] Portraits and icons in one style (PixelLab, on the Mac with F's OK, about 50 generations): Ziomek, Bartek, LEKTI, Pan Kołek and the doorman on the call cards, icons for the door's questions
+- [ ] Techno tracks for MORDOR FM (it has one mall track, so "pick a track" in the room is not built yet); ElevenLabs Music on F's Creator plan, then a track button in the room
+- [ ] Phone check: the rig's beams and strobe at night, the room's look and the TAŃCZ timing on the iPhone; bench by an active spot (4 draw calls expected) and inside the room (3-4)
+- [ ] Other cards (rides, jobs) can still pop up during the quest; hold them while it runs
+- [ ] The dawn after: leaving at 05:00-06:00, Ziomek's last line, the city in the dawn look
+- [ ] Opaski (wristbands) collected per spot, a card in the notebook
+- [ ] Option B: a walk-around room (a person controller inside), only if A plays well
+
 ## The Emilii Plater underpass entrances (F, 2026-11-06)
 
 F's screenshots: walled boxes with steps on flat ground. Done 2026-11-06 (spec
@@ -1529,8 +1541,13 @@ the OSM outlines, no photos; specs in docs/landmarks/specs/):
 Plan: docs/design/railway.md. One PR per item, in this order:
 - ~~S1 Warszawa Ochota and S2 Warszawa Powiśle as landmarks~~ Done 2026-11-01 (sites `ochota`,
   `powisle`, specs in docs/landmarks/specs/). Left: Mac photo checks (Ochota's stripes, supports and
-  stairs; Powiśle's arches, the saucer's profile, the canopies' length, the neon's letters); the
-  stairs from the round pavilion up to the platforms; a WARSZAWA OCHOTA sign if the real one has it.
+  stairs; Powiśle's arches, the canopies' length); the stairs from the round pavilion up to the
+  platforms; a WARSZAWA OCHOTA sign if the real one has it. The round pavilion's saucer and letters
+  were rebuilt from F's photos on 2026-11-06 (jazz nights, below).
+- Powiśle jazz nights (F, 2026-11-06, spec `powisle.md` 9), open: the phone's look of the letter
+  boxes and the bulbs (draw calls unchanged, triangles up), the jazz loop's level against the radio on
+  the phone's speaker, the coloured light washes under the saucer (the game's camera never sees the
+  underside, so none were built), the projected line patterns of F's night photo, planters.
 
 ## Krakowskie Przedmieście street by street (F, 2026-11-02), pass 1
 Built (cloud, Sonnet): eight shopfronts (`Storefronts.KRAKOWSKIE`, 93 venue signs in check_parodies), original names, at the mapped house numbers 20/22, 19, 27, 56, 45, 58/60, 64, 69. Open:
