@@ -14,7 +14,7 @@ except where a plan says otherwise, because they are crowd spots and single line
 | 3 | Techno-yoga | BUILT (#343) | Yoga mats with techno and hamsters running; part of the same spot family | Sonnet |
 | 4 | Women's club 40+ | BUILT (#343) | Circle "waking the little girl inside"; circle crowd spot | Sonnet |
 | 5 | Huge queues | extend | Queues exist (KUKŁA, ZAKWAS, PIURE, clubs); add more venues, not a new system | Sonnet |
-| 6 | Pizzeria KRINGULA | BUILT (#331) | A brick pizzeria beside Cringulo's van lore; joke still to refine | Sonnet |
+| 6 | Pizzeria KRINGULA | BUILT (#331) | A brick pizzeria beside Mrożulo's van lore; joke still to refine | Sonnet |
 | 7 | Legia fans | BUILT (#336) | Friendly scarf-and-song fans near Stadion Leguminy, harmless red smoke | Opus |
 | 8 | Park activities | BUILT (#343) | Yoga and kung-fu practice on park lawns (Łazienki, Pole Mokotowskie, Skaryszak) | Sonnet |
 | 9 | Bike paths | BUILT (bike markings, #341) | Compare our cycleways with Warsaw's real network and fill the gaps | Opus |
@@ -50,7 +50,7 @@ MIESZANE-MIESZANE window in the evening (#11), and a "kolejka w kolejce" joke wh
 for the queue's start sign. No new system.
 
 ## 6 Pizzeria KRINGULA (extend, Sonnet)
-Cringulo (the blogger) and his "TŁUSTA PEPA" pizza already exist (food-hype lane). The new piece
+Mrożulo (the blogger) and his "TŁUSTA PEPA" pizza already exist (food-hype lane). The new piece
 is a brick-and-mortar place, KRINGULA PIZZA, sign and a very long queue of delighted fans with
 "MLASK" bubbles, a "stage" pose for a photo. F said the exact joke still needs work: build the sign
 and the queue first, keep the joke text in dialogue.json for F to rewrite. Never a real person's
