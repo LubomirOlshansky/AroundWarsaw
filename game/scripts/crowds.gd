@@ -177,8 +177,8 @@ const PADEL_MAX := 14
 ## the evening line for the lift up to LORETKA, the date bar on its roof: 18:00-01:00, 10 (16 on
 ## Friday and Saturday), in twos, tag "timber".
 const KUKLA := ["kukla_marszalkowska", "kukla_nowy_swiat"]
-## G5: the "Cringulo effect" (trend_job.gd's "Mlask"): a reviewed place's queue at its longest
-## while it's open, for the rest of that game day, tag "cringulo" (the fans' `viral` lines).
+## G5: the "Mrożulo effect" (trend_job.gd's "Mlask"): a reviewed place's queue at its longest
+## while it's open, for the rest of that game day, tag "mrozulo" (the fans' `viral` lines).
 const KUKLA_MAX := 30
 const PIURE_ID := "hotel_piure"
 const PIURE_MAX := 16
@@ -348,7 +348,7 @@ const ZAKWAS_MAX := 18
 ## queues for): the hype shop, open 12:00-23:00, never under 24 in the line, 40 at the Friday and
 ## Saturday dinner hours and on a Sunday afternoon; tag "kringula" (ecstatic fans, placeholder copy,
 ## the real joke is F's to write: QUESTIONS). Same trend-queue machinery as KUKŁA, so the
-## "Cringulo effect" lifts it too.
+## "Mrożulo effect" lifts it too.
 const KRINGULA := ["kringula_pizza"]
 const KRINGULA_MAX := 40
 const KRINGULA_MIN := 24
@@ -403,8 +403,8 @@ const POLICE_BUBBLE := Color("#8fb0ff")
 ## The pose of a figure.
 enum { STAND, SIT, BROAD }
 
-## The "Cringulo effect": trend site id -> the weekday it was reviewed on (cringulo_boost).
-var cringulo := {}
+## The "Mrożulo effect": trend site id -> the weekday it was reviewed on (mrozulo_boost).
+var mrozulo := {}
 var _weekday_now := 0
 var _month_now := 7
 ## The view's focus (the camera's), -> Vector3.
@@ -790,15 +790,15 @@ static func padel_queue(hour: float, weekday: int) -> Array:
 	return [3, "padel"]
 
 
-## The "Cringulo effect" on a trend site (a Wiralek slot or KUKŁA) for today: its queue at its
+## The "Mrożulo effect" on a trend site (a Wiralek slot or KUKŁA) for today: its queue at its
 ## longest while it is open, and the fans' lines (trend_job.gd's "Mlask").
-func cringulo_boost(id: String) -> void:
+func mrozulo_boost(id: String) -> void:
 	if by_id.has(id):
-		cringulo[id] = _weekday_now
+		mrozulo[id] = _weekday_now
 		var s: Dictionary = sites[by_id[id]]
 		s["next"] = 0.0
 		if log_on:
-			print("night: the Cringulo effect at %s" % id)
+			print("night: the Mrożulo effect at %s" % id)
 
 
 ## KUKŁA's line now: [people, "kolejka"]. Warsaw queues: never under 8 while it's open.
@@ -1851,8 +1851,8 @@ func tick(step: float) -> void:
 					q = zakwas_queue(hour, weekday)
 				elif trend.is_valid():
 					q = trend.call(str(s["id"]))
-				if int(q[0]) > 0 and int(cringulo.get(str(s["id"]), -1)) == weekday:
-					q = [int(s["max"]), "cringulo"]
+				if int(q[0]) > 0 and int(mrozulo.get(str(s["id"]), -1)) == weekday:
+					q = [int(s["max"]), "mrozulo"]
 				want = mini(roundi(int(q[0]) * k), int(s["max"]) * 2)
 				s["tag"] = str(q[1])
 		s["want"] = want

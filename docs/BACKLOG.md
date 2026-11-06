@@ -9,6 +9,22 @@ Small problems that agents reported or that showed up in screenshots. They are f
 Done: Brama Zachodnia, Equator and Equator II re-skinned from street photos (refs/brama, refs/equator, refs/equator2, gitignored), BLUZOFT on Equator II's roof edge, the jokes (the real firm's name is in brand_denylist.json; only the parody appears). Open:
 - Equator and Equator II keep the OSM footprints and heights (53.8 m and 50.5 m); the photos show stepped, curved faces, the perforated-metal car-park screen and the green-glazed Brama ground floor, none modelled yet. Needs a Mac photo pass from the tracks side (F's screenshot angle).
 - An office crowd site at the Equator doors (the jokes only reach the Rondo Daszyńskiego crowd now).
+## The Emilii Plater underpass entrances (F, 2026-11-06)
+
+F's screenshots: walled boxes with steps on flat ground. Done 2026-11-06 (spec
+`docs/landmarks/specs/underpass-emilii-plater.md`, site `underpass`, SUNKEN `epl_*`): the five
+entrances within ~100 m of the crossing are sunk with stairs and passage mouths, and walkers go in
+and come out (pedestrians.gd `_portals`). Left:
+- **Look check from photos gathered on the Mac**: the parapet heights, the canopies' size and
+  colour (only street photos from Mapillary so far), and whether the north pavement stair's dark
+  glass box is a lift or a canopy.
+- **The NW box's stair** is not mapped (only footway 8754 ends at its open side): built as one
+  flight south. Check that its direction is right.
+- **Further entrances not reworked**: the Śródmieście WKD ones west of Emilii Plater (steps 1665,
+  224, 225, wall 485, about 120 m out), and the points the street pass named at (-1150, 575) and
+  (-975, 545) on Jerozolimskie, which have no stairs mapped. The next SUNKEN entries.
+- **The passages themselves** are not modelled: a walker goes in at one mouth and is gone, with no
+  link to another entrance.
 
 ## The Patelnia sunk, the Rotunda's stair, the Wars wall (F, 2026-11-05)
 
@@ -168,6 +184,7 @@ evidence per street and junction, never coordinates.
 Built (spec `docs/landmarks/specs/forest.md`): the three-slab tower with crown bands, colour fins and PEPEO ŻUBR, the finned wings with black top storeys and roof gardens, the courtyard's amphitheatre, pavilion and 43 young trees. Left:
 
 - **Wing heights** (F, 2026-11-03: estimate from the photos): the low wings are 31 m, eight storeys under the black top storey, against OSM's 20.8 m; the 27.4 m terrace wing keeps OSM's height so its crowd's deck (crowds.gd `forest_terrace`) stays put.
+- **The roof boat** (F, 2026-11-06): a 10 m cobalt-blue bowrider on a cradle on the tallest slab's roof (`_forest_boat`), clear of the sign. Left: a crane or sling to explain it, a night glow.
 - **The roof crane and the tower's lobby**: the window-cleaning crane on the crown and the glazed double-height lobby are not modelled.
 - **Older docs still name the real tenant** in a few places (CITY_INVENTORY, LANDMARKS, QUESTIONS, MUSIC, inventory candidates, wiki_build.py): a sweep to the parody is open.
 
@@ -334,6 +351,23 @@ experience". The plan, the road audit and the causes are in docs/GAMEPLAY_PLAN.m
 - [ ] 3.x ~~Lane assist~~ (built 2026-11-04 behind a switch, see "Beta values"), wall look-ahead, junction pick, deck cut in the ghost, F's phone run
 - [ ] 4.1 Running clubs read as a blue blob at crossings: mixed kit, pairs, spread out
 - [ ] 4.2 Varso Place masses from photos (the gap between the tower and Varso 1/2)
+
+## Dead electric cars: Bartek's TESŁO and stranded EVs (F, 2026-11-06)
+
+Built (`game/scripts/ev_tow.gd`, check `evtow`): a call from Bartek (ODBIERZ / ODRZUĆ, then LECĘ!),
+the helicopter takes off, the TESŁO Model Ś (parody: white fastback, green plates) hooks on a 10 m
+sling (damped pendulum, the loaded helicopter 25 % slower), set down on a charger bay by
+Elektrownia Powiśle, Hala Koszyki, Złote Tarasy or the Palace (Marszałkowska); 180 zł + 30
+respect, +60 zł under 150 s. Bartek's lines (`ev_tow`), stranded drivers (`ev_stranded`), KEBAB FM
+(`radio_host` tag `ev`); "tesla", "elon musk", "supercharger", "cybertruck" on the brand denylist.
+Stranded TESŁOs (every 3-5 min, kerb lane of a main road, hazards blinking, traffic goes round an
+invisible parked car) can be carried from the helicopter for a 60 zł tip. Open:
+- [ ] Phone feel of the swing and the slower loaded helicopter (QUESTIONS), and of the first call at 5-8 min
+- [ ] A ringtone and a winch sound (sfx.gd has none; Access.buzz only)
+- [ ] The charger bays are the kerb lane by each place: real charger spots from OSM (`amenity=charging_station` is not in our extracts) and a Mac photo check
+- [ ] The car hangs through roofs lower than it (it rides over them): fine for arcade, check it reads on the phone
+- [ ] A QUESTS list row for the call (quest_lines.gd) and a map marker for stranded cars
+- [ ] An egg-book card "Zielone tablice" after three carries
 
 ## Crazy drivers in traffic (F, 2026-11-05)
 
@@ -1093,7 +1127,7 @@ tapped again it goes. Empty while a race, job or rescue is on. `--quest-pick=N` 
   the tab (its first row picked out), the D-pad up / down moves the pick in the pad's yellow ring (a
   place's row centres the map on it), Y takes it as a tap; A stays the teleport hold. The card shows
   the keys while the pad is used. Left: phone look (are four rows enough, is the card in the map's way).
-- **G12c: done (2026-11-02).** AUTO also lists the open "Na czasie" slots, Cringulo's van (Mlask) and
+- **G12c: done (2026-11-02).** AUTO also lists the open "Na czasie" slots, Mrożulo's van (Mlask) and
   the Friday PISTACJA drop (trend_job.gd `offer_places`, only places not cooling down), the ladder's
   next rival where they cruise now (the pin follows them, quest_lines.gd `MOVING`) or Seba's start for
   "Trzy mosty" at night; HELI the peacock's roof call while Pan Paw is up (missions.gd
@@ -1709,10 +1743,10 @@ real ones added to `brand_denylist.json`). One PR each:
       `timber`), TIMBER on a billboard and a column poster, 10 date lines, radio lines, 2026-11-01.
 - [x] G4 KOSZTA COFFEE ×3, GREEN CAFFE NERWO ×2 (one on the mapped pavilion), KUKŁA ×2 with its
       all-day queue (8-30, tag `kolejka`), 8 queue lines, radio lines, a KUKŁA poster, 2026-11-01.
-- [x] G5 Cringulo: his cream van at one of four spots by weekday (11-21), the "Mlask" job in
+- [x] G5 Mrożulo: his cream van at one of four spots by weekday (11-21), the "Mlask" job in
       `trend_job.gd` (`--trend-job=6`): fetch from a new place, bring it warm in 5 min, his review
       card with a MLASK grade, the sticker back in 4 min, the place's queue at its longest for the
-      day (crowds.gd `cringulo_boost`); 9 review lines, 4 owner lines, 6 fan lines, CRINGULO PIZZA
+      day (crowds.gd `mrozulo_boost`); 9 review lines, 4 owner lines, 6 fan lines, MROŻULO PIZZA
       sold out at Frogs (3 till lines, a poster), radio news; rules in `check_city_life.gd`, 2026-11-01.
 - [x] F's follow-up: the rooftop bar is LORETKA (was LUŹNO) with its summer terrace on the roof
       (deck, planters, eight tables with poufs, pink parasols, the bar, string lights; landmarks
@@ -1721,10 +1755,10 @@ real ones added to `brand_denylist.json`). One PR each:
       chain with an upside-down golden W, at the real chain's central restaurants, 2026-11-01.
 - [x] The notebook card "Kolejki" (place `kolejki`, chapter Kolejka po trend, at KUKŁA on Nowy Świat), 2026-11-02.
 - [x] Left from G3-G5, done 2026-11-02: Podwózka `timber` passengers (evenings 18-01, 20 % of
-      normal rides, 3 request and 4 ride lines; `rides.gd`), five fans behind Cringulo's van with
-      `viral` "cringulo" bubbles, and the egg `easter_mlask` (the car stopped within 9 m of the van
+      normal rides, 3 request and 4 ride lines; `rides.gd`), five fans behind Mrożulo's van with
+      `viral` "mrozulo" bubbles, and the egg `easter_mlask` (the car stopped within 9 m of the van
       for 3 s while he is out; `trend_job.gd`, 48 cards now).
-- [x] The van's CRINGULO TV lettering (pixel font, dark, both flanks under the pink band; a second
+- [x] The van's MROŻULO TV lettering (pixel font, dark, both flanks under the pink band; a second
       surface, +424 tris, check budget 800), 2026-11-02.
 - [ ] Still left: Mac look check of the lettering's size and the fans' spot behind the van
       (the side of the kerb), the egg's wording; phone checks of every sign's size, the queues and
@@ -4294,7 +4328,7 @@ first rescue, the boulevard tape and its song, the Powiśle arrow, the garage at
   front with a neon word (a new word like SZISZA in the neon font, which has no Ł/Ó/Ś yet) and maybe
   a notebook place in `places.json`. Content lane (game-designer for names and spots).
 
-- **Railway look (F, 2026-11-05):** Plac Zawiszy tunnel stretch fixed (rails cut, mouth moved, #this PR). Still off: the Ochota cutting's banks are the 10 m grid's smooth slopes (no retaining walls, tan ballast sheet climbing them), overhead wires drawn per track pile up over the 12 tracks; the second spot F found (night, a highway with a rail/tram overpass) is not located; Kładka nad Książęcą (deck 58, (262,500)-(228,426)) waits for F's description of what is wrong.
+- **Railway look (F, 2026-11-05, reworked 2026-11-06):** Plac Zawiszy tunnel stretch fixed (#438). The Ochota cutting is shaped at load from the tracks (`rail_cut.gd`: flat bed at the lowest grid level beside the tracks, straight banks to the rims, concrete walls where it is narrow and deep and by the tunnel mouth), gantries replace the per-track masts over multi-track runs, Główna's island platforms are built (`rail_yard.gd`) and its footbridge is level with stairs and lifts. Still open: the second spot F found (night, a highway with a rail/tram overpass) is not located; Kładka nad Książęcą (deck 58) waits for F's description; `tools/check_roads.py`'s Python mirror of the heights does not know the cut (it reads the grid there, so C11 cannot see a mismatch); the footbridge's end towers are OSM's plain buildings and its stairs/lifts are generic (Mac photo pass: refs/kladka from Mapillary 2021 shows concrete towers); a Warszawa Główna station building / canopy is not built; trains turn back at Główna's buffers instantly (no driver walk); the wire spans of single tracks are still per-track masts.
 
 - **Sagging footbridges (F, 2026-11-05):** the bake's path-deck heights sag 4-6 m onto the floor of a trench they cross (10 m grid): fixed at load by `map_builder._lift_sagging_deck` for 6 pieces (decks 37, 43, 48, 55). The Kładka nad Książęcą was probably not this (deck 58 (262,500)-(228,426) has no sag); F's report was the Armii Ludowej one. Piers under the lifted decks are the bake's (placed for the sagged profile): Mac look check for floating or missing supports; the proper fix is in `bake_roads._solve` (deck over a trench takes the rim level).
 

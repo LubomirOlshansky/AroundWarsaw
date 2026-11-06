@@ -16,6 +16,7 @@ then the Launch gate.
 
 ### Done (built and checked headless)
 - [x] Zachodnia offices (F, 2026-11-06): Brama Zachodnia (terracotta), Equator (graphite ribbon glazing), Equator II (blue-grey ribbon glass) skinned from Mapillary/Panoramax street photos (TOWERS keys `brama`, `equator`, `equator2`), the parody BLUZOFT on Equator II (9th floor); about 40 developer / AI / vibe-coding jokes in dialogue.json (radio_host, office, passenger, kebab_order office); PR pending, phone check open
+- [x] Dead electric cars (F, 2026-11-06, `ev_tow.gd`): Bartek phones, his TESŁO Model Ś is at 0 %; LECĘ! takes you up in the helicopter, the car hooks onto a sling and swings under you to a charger by Elektrownia Powiśle, Hala Koszyki, Złote Tarasy or the Palace while he talks EV memes (winter range, green plates, a diesel on the charger); stranded TESŁOs with hazards block a kerb lane now and then and can be carried for a tip (`check_ev_tow`, verify step `evtow`; phone feel and ringtone open)
 - [x] Loading bar on the title screen (F, 2026-11-05: the start looked frozen, then the city popped in): the map files load on threads, the build yields between its steps, a neon bar with "building the city… 42 %" runs to "TAP TO DRIVE" (PR pending; phone timing check open)
 - [x] Crazy drivers in traffic (F, 2026-11-05; spec `crazy-drivers.md`): Szkoda Oktawia taxis, Szprynter couriers and one Pasatini 1.9 TDJ in the race rivals' racer mode with no route: fast, tailgating, passing, cutting in and blocking, a fresh red now and then; a horn and a line when one cuts you off, KEBAB FM's Pasatini sightings (`check_crazy_drivers`, verify step `crazy`; phone feel open)
 - [x] Readable messages (F, 2026-11-05): speech bubbles, toasts and the radio ticker stay up by text length (chatter.gd `read_time`, 3-11 s, more with large text), never shorter than before (PR pending; tap to dismiss/recall not built)
@@ -54,7 +55,11 @@ then the Launch gate.
 - [x] The Patelnia sunk 3.4 m with retaining walls, railings, its two stairs and Metro Centrum's two glass
       barrels; the Rotunda's underpass stair going down to a glazed door; Wars's slab a low planter edge
       (F, 2026-11-05; spec `patelnia.md`; sunken ground in `map_builder.gd` SUNKEN; look check parked)
+- [x] The Emilii Plater underpass's five entrances sunk with real stairs: granite parapets round the two
+      wells, steel canopies over the pavement flights (green on the south side), dark passage mouths, and
+      people walking in and out (F, 2026-11-06; spec `underpass-emilii-plater.md`; site `underpass`)
 - [x] Arkadka redesign, roof car park, BANK PEPEO sign and the Forest roof terrace (F, 2026-11-01; spec `arkadia.md`)
+- [x] Cobalt-style motorboat on the Forest tower's roof (F, 2026-11-06; spec `forest.md` section 4)
 - [x] Arkadka rebuilt from F's photos: the fountain plaza, curved entrance with piers, canopies and fanned glass gables, the sign tower with its crown, logo panels and screen, the office wing, the brick wing and rotunda with yellow awnings, the letter sign (F, 2026-11-03; spec `arkadia.md`)
 - [x] Forest rebuilt from F's photos: the stepped three-slab tower with colour fins and PEPEO ŻUBR in its crown, the finned wings with black top storeys and roof gardens, the courtyard amphitheatre and trees (F, 2026-11-03; spec `forest.md`; wing heights parked)
 - [x] Towarowa 22 built as finished, the "Warsaw of the future": tower row, the printing hall's yellow frame over a garden, Park Słowa, a drone port and the gilded last crane of Wola (F, 2026-11-03; spec `towarowa22.md`, from F's renders; look check parked)
@@ -166,7 +171,7 @@ then the Launch gate.
       Elektrownia Powiśle at their tallest cell (the box middle is open air), the Most
       Śląsko-Dąbrowski place hint sits on the bridge (`places` WARN gone). Still needs a Mac run
       (no terrain in the cloud): Łazienkowski's slab edges, deck 4's parapet, the Karowa footbridge's end
-- [ ] Loop 3e leftovers still open: the rail cutting (Mac re-bake); deck 4 fixed 2026-11-03 (walls cut
+- [ ] Loop 3e leftovers still open: the rail cutting (shaped at load from the tracks since 2026-11-06, `rail_cut.gd`; a Mac re-bake would give the real 1 m banks); deck 4 fixed 2026-11-03 (walls cut
       from deck ends, `bake_structures.py` `BARRIER_TOP`); the Karowa footbridge and Łazienkowski's loop
       ramps parked (QUESTIONS). Most Łazienkowski's east edge settled
       2026-11-02: the river crossing is whole, the Praga viaducts end at the outline under edge roadworks
@@ -393,6 +398,7 @@ then the Launch gate.
   - [ ] Łazienki Królewskie (Palace on the Isle, Chopin monument, peacocks): south of the map's edge, waits for a map extension (QUESTIONS)
   - [x] Footbridges over a trench sagged onto the floor (Armii Ludowej (380, 1500), Ochota cutting (-2170, 880) x2, (-2324, 927); deck 48 at (1590, 1650) too): `_lift_sagging_deck` lifts a path deck to the line between its ends, 2026-11-05 (F's night screenshot); bake solver left as is (Mac re-bake would fix at the source), Mac look check
   - [x] Plac Zawiszy: rails, sleepers, wires and trains cut at the cutting's end (`Trains.trim_rails`, polygon `TUNNEL_ZAWISZY`), the tunnel mouth moved to (-1964, 812), 2026-11-05 (F's screenshot); left: the cutting's slopes on the 10 m grid (Mac 1 m corridor), wire clutter over the 12 tracks, Mac look check
+  - [x] Centralna to Ochota reworked (F, 2026-11-06): the cutting with a flat track bed, straight grass banks, concrete retaining walls with pilasters at the tunnel mouth, fences along the top, lattice gantries over the multi-track runs; Warszawa Główna's island platforms (OSM maps them as footways) raised with tiles, white edge, yellow line and lamps; the Główna footbridge held over the catenary with glass parapets, a stair and a glass lift down to each platform; trains stop at Główna and turn back at its buffers; people get off and on at every door; the suburban units are modern low-floor units (sloped nose, black windscreen, yellow doors), the long-distance train is a locomotive with coaches; Mac look check
   - [x] The map's edges: the land runs on past the outline (ground fading into the sky, a tree line, blocks beyond, the rails and roads running out), Wschodnia and Gdańska first, 2026-11-01; the Mac look check parked
   - [x] Roadworks close every road at the map's edge (barriers, ROBOTY DROGOWE and OBJAZD boards, cones, an excavator, a tarp fence, blinking lamps; solid; traffic stops there), 2026-11-02; the Mac look check parked
   - [x] The roadworks' boards speak the player's language (ROAD WORKS / DETOUR → in English), 2026-11-02
@@ -454,11 +460,11 @@ then the Launch gate.
   - [x] G2 part 2: Dom Partii's bars as neons, 2026-11-01
   - [x] G3 HOTEL PIURE, the LORETKA date bar and TIMBER jokes, 2026-11-01
   - [x] G4 KOSZTA COFFEE, GREEN CAFFE NERWO, KUKŁA and the queues, 2026-11-01
-  - [x] G5 Cringulo: the "Mlask" job, his pizza, fans and news, 2026-11-01
+  - [x] G5 Mrożulo: the "Mlask" job, his pizza, fans and news, 2026-11-01 (renamed from Cringulo, 2026-11-06)
   - [x] LORETKA's summer terrace with couples, PRZEGRYWKI, WACZEK burger neons, 2026-11-01
   - [x] The "Kolejki" notebook card at KUKŁA on Nowy Świat (place `kolejki`, 2026-11-02; `check_places` not run in the cloud, no Godot)
-  - [x] Podwózka TIMBER date passengers, fans by Cringulo's van and the egg `easter_mlask`, 2026-11-02
-  - [x] The van's CRINGULO TV lettering, 2026-11-02
+  - [x] Podwózka TIMBER date passengers, fans by Mrożulo's van and the egg `easter_mlask`, 2026-11-02
+  - [x] The van's MROŻULO TV lettering, 2026-11-02
   - [ ] Still left (BACKLOG): Mac and phone look checks
 - [x] Roof rescues never name a real chain (2026-11-02, `missions.gd` `ROOF_PARODIES`): Puro shows as Hotel Piure, Green Caffè Nero as Green Caffè Nerwo; headless check not run in the cloud (no Godot)
 - [x] Zagłębie Kebabowe and Kino Femina (F, 2026-11-02; spec docs/design/zaglebie-kebabowe.md): five parody kebab shops on Al. Solidarności, Femina's neon, delivery twists, the craft kebab's choice, Szlak Szpili, 2026-11-02 (the Mac photo check of Femina's front is open; a queue outside ZAKWAS I ROŻEN, 2026-11-02)
