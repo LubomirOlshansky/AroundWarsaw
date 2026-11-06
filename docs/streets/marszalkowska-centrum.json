@@ -1,15 +1,14 @@
 {
  "slug": "marszalkowska-centrum",
  "title": "Marszałkowska: Rondo Dmowskiego to Świętokrzyska",
- "updated": "2026-11-05",
+ "updated": "2026-11-06",
  "stage": "evidence",
- "score": 66,
+ "score": 73,
  "counts": {
   "F1": 7,
   "L1": 9,
-  "L2": 22,
+  "L2": 21,
   "L3": 1,
-  "L4": 10,
   "O1": 8,
   "P1": 1
  },
@@ -21,10 +20,9 @@
     "F1": 5,
     "L1": 3,
     "L2": 7,
-    "L4": 4,
     "O1": 7
    },
-   "score": 54
+   "score": 62
   },
   {
    "id": "B",
@@ -32,12 +30,11 @@
    "counts": {
     "F1": 1,
     "L1": 3,
-    "L2": 5,
+    "L2": 4,
     "L3": 1,
-    "L4": 2,
     "P1": 1
    },
-   "score": 75
+   "score": 80
   },
   {
    "id": "C",
@@ -46,10 +43,9 @@
     "F1": 1,
     "L1": 3,
     "L2": 10,
-    "L4": 4,
     "O1": 1
    },
-   "score": 69
+   "score": 77
   }
  ],
  "history": [
@@ -252,6 +248,23 @@
     "A": 54,
     "B": 75,
     "C": 69
+   }
+  },
+  {
+   "date": "2026-11-06",
+   "score": 73,
+   "counts": {
+    "F1": 7,
+    "L1": 9,
+    "L2": 21,
+    "L3": 1,
+    "O1": 8,
+    "P1": 1
+   },
+   "blocks": {
+    "A": 62,
+    "B": 80,
+    "C": 77
    }
   }
  ],
@@ -487,46 +500,6 @@
    "status": "changed"
   },
   {
-   "check": "L4",
-   "x": -887.3,
-   "z": 345.2,
-   "s": -144.0,
-   "t": -0.6,
-   "note": "lane line painted through a zebra",
-   "block": "A",
-   "status": "open"
-  },
-  {
-   "check": "L4",
-   "x": -874.8,
-   "z": 340.3,
-   "s": -143.7,
-   "t": 12.8,
-   "note": "lane line painted through a zebra",
-   "block": "A",
-   "status": "open"
-  },
-  {
-   "check": "L4",
-   "x": -870.5,
-   "z": 338.7,
-   "s": -143.7,
-   "t": 17.4,
-   "note": "lane line painted through a zebra",
-   "block": "A",
-   "status": "open"
-  },
-  {
-   "check": "L4",
-   "x": -892.1,
-   "z": 346.5,
-   "s": -143.5,
-   "t": -5.6,
-   "note": "lane line painted through a zebra",
-   "block": "A",
-   "status": "open"
-  },
-  {
    "check": "O1",
    "x": -877.7,
    "z": 437.8,
@@ -658,16 +631,6 @@
   },
   {
    "check": "L2",
-   "x": -959.0,
-   "z": 157.2,
-   "s": 57.2,
-   "t": -2.1,
-   "note": "lane line ends mid-block [changed since the data: Skwer Linearny na Złotej (car-free since 2026-08) and its crossing to Plac Centralny]",
-   "block": "B",
-   "status": "changed"
-  },
-  {
-   "check": "L2",
    "x": -991.8,
    "z": 61.6,
    "s": 158.3,
@@ -691,30 +654,10 @@
    "x": -964.3,
    "z": 125.8,
    "s": 88.6,
-   "t": 3.9,
+   "t": 3.8,
    "note": "edge line crosses a kerb",
    "block": "B",
    "status": "open"
-  },
-  {
-   "check": "L4",
-   "x": -939.6,
-   "z": 146.2,
-   "s": 60.8,
-   "t": 19.9,
-   "note": "lane line painted through a zebra [changed since the data: Skwer Linearny na Złotej (car-free since 2026-08) and its crossing to Plac Centralny]",
-   "block": "B",
-   "status": "changed"
-  },
-  {
-   "check": "L4",
-   "x": -959.0,
-   "z": 153.1,
-   "s": 61.1,
-   "t": -0.7,
-   "note": "lane line painted through a zebra [changed since the data: Skwer Linearny na Złotej (car-free since 2026-08) and its crossing to Plac Centralny]",
-   "block": "B",
-   "status": "changed"
   },
   {
    "check": "P1",
@@ -863,46 +806,6 @@
    "s": 370.1,
    "t": -22.5,
    "note": "lane line ends mid-block",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L4",
-   "x": -1001.9,
-   "z": 34.8,
-   "s": 186.9,
-   "t": 0.4,
-   "note": "lane line painted through a zebra",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L4",
-   "x": -1039.0,
-   "z": -139.5,
-   "s": 363.2,
-   "t": 26.5,
-   "note": "centre line painted through a zebra",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L4",
-   "x": -1039.0,
-   "z": -139.5,
-   "s": 363.2,
-   "t": 26.5,
-   "note": "lane line painted through a zebra",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L4",
-   "x": -1039.0,
-   "z": -139.5,
-   "s": 363.2,
-   "t": 26.5,
-   "note": "lane line painted through a zebra",
    "block": "C",
    "status": "open"
   },

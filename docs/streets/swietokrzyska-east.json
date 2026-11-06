@@ -1,12 +1,13 @@
 {
  "slug": "swietokrzyska-east",
  "title": "Świętokrzyska: Metro Świętokrzyska to Emilii Plater",
- "updated": "2026-11-05",
+ "updated": "2026-11-06",
  "stage": "baseline",
- "score": 90,
+ "score": 89,
  "counts": {
   "L1": 5,
-  "L2": 6,
+  "L2": 9,
+  "L3": 1,
   "O1": 1
  },
  "blocks": [
@@ -15,19 +16,20 @@
    "title": "Marszałkowska to Wallenberga",
    "counts": {
     "L1": 2,
-    "L2": 2,
+    "L2": 5,
+    "L3": 1,
     "O1": 1
    },
-   "score": 91
+   "score": 86
   },
   {
    "id": "B",
    "title": "Wallenberga to Emilii Plater",
    "counts": {
     "L1": 2,
-    "L2": 4
+    "L2": 2
    },
-   "score": 90
+   "score": 92
   }
  ],
  "history": [
@@ -42,6 +44,35 @@
    "blocks": {
     "A": 91,
     "B": 90
+   }
+  },
+  {
+   "date": "2026-11-06",
+   "score": 83,
+   "counts": {
+    "L1": 5,
+    "L2": 9,
+    "L3": 5,
+    "L4": 3,
+    "O1": 1
+   },
+   "blocks": {
+    "A": 80,
+    "B": 86
+   }
+  },
+  {
+   "date": "2026-11-06",
+   "score": 89,
+   "counts": {
+    "L1": 5,
+    "L2": 9,
+    "L3": 1,
+    "O1": 1
+   },
+   "blocks": {
+    "A": 86,
+    "B": 92
    }
   }
  ],
@@ -77,6 +108,26 @@
    "status": "open"
   },
   {
+   "check": "L2",
+   "x": -1053.3,
+   "z": -106.1,
+   "s": -2.1,
+   "t": -27.9,
+   "note": "lane line ends mid-block",
+   "block": "-",
+   "status": "open"
+  },
+  {
+   "check": "L2",
+   "x": -1071.7,
+   "z": -158.1,
+   "s": -1.7,
+   "t": 27.3,
+   "note": "lane line ends mid-block",
+   "block": "-",
+   "status": "open"
+  },
+  {
    "check": "L1",
    "x": -1064.4,
    "z": -131.8,
@@ -98,6 +149,26 @@
   },
   {
    "check": "L2",
+   "x": -1075.0,
+   "z": -156.9,
+   "s": 1.9,
+   "t": 27.2,
+   "note": "lane line ends mid-block",
+   "block": "A",
+   "status": "open"
+  },
+  {
+   "check": "L2",
+   "x": -1087.3,
+   "z": -128.9,
+   "s": 22.6,
+   "t": 4.7,
+   "note": "lane line ends mid-block",
+   "block": "A",
+   "status": "open"
+  },
+  {
+   "check": "L2",
    "x": -1195.5,
    "z": -88.8,
    "s": 138.0,
@@ -113,6 +184,26 @@
    "s": 138.5,
    "t": 5.4,
    "note": "lane line ends mid-block",
+   "block": "A",
+   "status": "open"
+  },
+  {
+   "check": "L2",
+   "x": -1307.9,
+   "z": -46.2,
+   "s": 258.1,
+   "t": -1.8,
+   "note": "lane line ends mid-block",
+   "block": "A",
+   "status": "open"
+  },
+  {
+   "check": "L3",
+   "x": -1147.5,
+   "z": -112.4,
+   "s": 84.8,
+   "t": 8.7,
+   "note": "edge line crosses a kerb",
    "block": "A",
    "status": "open"
   },
@@ -158,30 +249,10 @@
   },
   {
    "check": "L2",
-   "x": -1451.7,
-   "z": 2.3,
-   "s": 409.9,
-   "t": -1.0,
-   "note": "lane line ends mid-block",
-   "block": "B",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -1453.8,
-   "z": -3.3,
-   "s": 410.0,
-   "t": 5.0,
-   "note": "lane line ends mid-block",
-   "block": "B",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -1454.9,
-   "z": -6.1,
-   "s": 410.2,
-   "t": 8.0,
+   "x": -1474.7,
+   "z": 28.5,
+   "s": 440.1,
+   "t": -18.3,
    "note": "lane line ends mid-block",
    "block": "B",
    "status": "open"

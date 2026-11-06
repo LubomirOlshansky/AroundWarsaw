@@ -66,6 +66,8 @@ VERSION = 2
 # for a taper), 969 line jogs -> 16. Lower these when a change leaves fewer; never raise them.
 CHECK_STEPS = 10
 CHECK_JOGS = 23
+CHECK_ZLINES = 2        # lane or centre lines still under a zebra (Unslop L4; 215 before the final cut; ratchet down)
+CHECK_EDGEX = 400       # edge-line segments across a kerb (Unslop L3; 540 before seating; many are real corner mouths; ratchet down)
 MINOR = {"service", "living_street"}
 CHAIN_COS = 0.85        # ways carry on: their directions at the join within ~32 degrees
 STEP_MIN = 0.3          # m: a smaller edge step is invisible
@@ -1308,7 +1310,9 @@ def edge_steps(roads, near=None, every=None):
 
 def measure(d):
     return {"steps": len(edge_steps(d["roads"])),
-            "jogs": len([j for j in jogs(d["markings"]) if abs(j[5]) > STEP_MIN])}
+            "jogs": len([j for j in jogs(d["markings"]) if abs(j[5]) > STEP_MIN]),
+            "zlines": cut_zebras(d, dry=True),
+            "edgex": seat_edges(d, dry=True)}
 
 
 TRAM_BED_STEP = 1.0   # m between the samples along a track
@@ -2589,6 +2593,141 @@ def shape_openings(out, on_bed):
     return len(noses)
 
 
+# --- Unslop (Świętokrzyska round, 2026-11-06): lane lines cut at the zebras' final shape -------
+
+ZEBRA_CUT = 2.4        # m from a zebra's path: bake_roads ZEBRA_HALF + ZEBRA_GAP (stripes 3.6 m wide)
+ZEBRA_CUT_STEP = 0.25  # m between the samples along a line
+ZEBRA_CUT_MIN = 2.0    # m: a shorter piece left between two zebras is dropped (a stub)
+ZEBRA_CUT_KINDS = ("lane", "centre")
+
+
+def cut_zebras(out, dry=False):
+    """Cuts every lane and centre line where it runs under a zebra. bake_roads cuts the lines it paints
+    when it draws them, but the smoothing then stitches, spreads and rounds lines, and lines it moved
+    or joined can run through a zebra again, and zebras it moved beside a cycle crossing or ran on to
+    the kerbs cover ground its lines had not been cut for (check L4). Returns the number of lines cut
+    (dry: the number that would be, nothing changed)."""
+    cell = 12.0
+    grid = defaultdict(list)
+    for w in out.get("paths", []):
+        if w.get("k") != "zebra":
+            continue
+        q = pts_of(w["p"])
+        for a, b in zip(q, q[1:]):
+            for i in range(math.floor((min(a[0], b[0]) - ZEBRA_CUT) / cell), math.floor((max(a[0], b[0]) + ZEBRA_CUT) / cell) + 1):
+                for j in range(math.floor((min(a[1], b[1]) - ZEBRA_CUT) / cell), math.floor((max(a[1], b[1]) + ZEBRA_CUT) / cell) + 1):
+                    grid[(i, j)].append((a, b, w.get("dk", -1)))
+
+    def under(x, z, lv):
+        for a, b, zlv in grid.get((math.floor(x / cell), math.floor(z / cell)), ()):
+            if zlv == lv and seg_dist((x, z), a, b) < ZEBRA_CUT:
+                return True
+        return False
+
+    kept = []
+    cut = 0
+    for m in out["markings"]:
+        if m["k"] not in ZEBRA_CUT_KINDS:
+            kept.append(m)
+            continue
+        lv = m.get("dk", -1)
+        pts = pts_of(m["p"])
+        dense = []
+        for a, b in zip(pts, pts[1:]):
+            n = max(1, math.ceil(math.hypot(b[0] - a[0], b[1] - a[1]) / ZEBRA_CUT_STEP))
+            for i in range(n):
+                dense.append((a[0] + (b[0] - a[0]) * i / n, a[1] + (b[1] - a[1]) * i / n))
+        dense.append(pts[-1])
+        if not any(under(x, z, lv) for x, z in dense):
+            kept.append(m)
+            continue
+        runs, run = [], []
+        for x, z in dense:
+            if under(x, z, lv):
+                if run:
+                    runs.append(run)
+                run = []
+            else:
+                run.append((x, z))
+        if run:
+            runs.append(run)
+        cut += 1
+        if dry:
+            kept.append(m)
+            continue
+        for r in runs:
+            if len(r) >= 2 and length(r) >= ZEBRA_CUT_MIN:
+                piece = dict(m)
+                piece["p"] = flat_of(simplify(r, 0.05))
+                kept.append(piece)
+    out["markings"] = kept
+    return cut
+
+
+SEAT_MARGIN = 0.15     # m: an edge line sits this far inside the kerb it runs along
+SEAT_SHIFT_MAX = 0.3   # m: a point is moved at most this far (a bigger shift shows as a line jog; the edge is really elsewhere)
+
+
+def seat_edges(out, dry=False):
+    """Settles every edge line on the inside of the kerb it runs along. The kerbs and the edge lines
+    are moved by different rules (fit_kerbs, snap_lines), so where a line runs within centimetres of its
+    kerb it can wander across it and the paint ends up on the kerb (check L3). A segment of an edge line
+    that crosses a kerb segment gets its end points that lie on the wrong side (the side most of the
+    segment is on) or closer than SEAT_MARGIN moved onto the right side, SEAT_MARGIN from the kerb.
+    Returns the number of edge-line points moved (dry: the number of edge-line segments that cross a
+    kerb, nothing changed)."""
+    cell = 8.0
+    segs = []
+    grid = defaultdict(list)
+    for k in out.get("kerbs", []):
+        q = pts_of(k["p"])
+        for a, b in zip(q, q[1:]):
+            segs.append((a, b))
+            n = len(segs) - 1
+            for i in range(math.floor((min(a[0], b[0]) - 1.0) / cell), math.floor((max(a[0], b[0]) + 1.0) / cell) + 1):
+                for j in range(math.floor((min(a[1], b[1]) - 1.0) / cell), math.floor((max(a[1], b[1]) + 1.0) / cell) + 1):
+                    grid[(i, j)].append(n)
+
+    def side(c, e, p):
+        ux, uz = e[0] - c[0], e[1] - c[1]
+        L = math.hypot(ux, uz)
+        if L < 1e-6:
+            return 0.0, (0.0, 0.0)
+        return ((p[0] - c[0]) * -uz + (p[1] - c[1]) * ux) / L, (-uz / L, ux / L)
+
+    moved = 0
+    for m in out["markings"]:
+        if m["k"] != "edge":
+            continue
+        pts = pts_of(m["p"])
+        changed = False
+        for i in range(len(pts) - 1):
+            a, b = pts[i], pts[i + 1]
+            mid = ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)
+            for n in grid.get((math.floor(mid[0] / cell), math.floor(mid[1] / cell)), ()):
+                c, e = segs[n]
+                if not _segs_cross(a, b, c, e):
+                    continue
+                if dry:
+                    moved += 1
+                    break
+                sa, nrm = side(c, e, a)
+                sb, _ = side(c, e, b)
+                if abs(sa) < 1e-6 and abs(sb) < 1e-6:
+                    continue
+                sg = 1.0 if (sa if abs(sa) >= abs(sb) else sb) > 0 else -1.0
+                for j, sv in ((i, sa), (i + 1, sb)):
+                    if sv * sg < SEAT_MARGIN and SEAT_MARGIN - sv * sg <= SEAT_SHIFT_MAX:
+                        p = pts[j]
+                        pts[j] = (p[0] + nrm[0] * sg * (SEAT_MARGIN - sv * sg), p[1] + nrm[1] * sg * (SEAT_MARGIN - sv * sg))
+                        moved += 1
+                        changed = True
+                break
+        if changed:
+            m["p"] = flat_of(pts)
+    return moved
+
+
 def apply(out):
     """Smooths the finished map data in place; returns a one-line summary."""
     if int(out.get("road_smooth", 0)) >= VERSION:
@@ -2635,6 +2774,8 @@ def apply(out):
     pockets = fill_pockets(out)
     painted = paint_islands(out, _asphalt_sampler(out)[0])
     kit = crossing_kit(out, _street_tests(out)[0])
+    zcut = cut_zebras(out)
+    seated = seat_edges(out)
     poles = clear_poles(out, _street_tests(out)[0])
     scooters = clear_scooters(out, _street_tests(out)[0])
     after = measure(out)
@@ -2643,7 +2784,7 @@ def apply(out):
             f"widened to their street's kerbs ({spread} lane-line points spread), {len(tapers)} joins tapered, {km} kerb and {em} edge-line points moved, {fit} edges fitted to "
             f"their kerbs, {bridged} kerb breaks by a tram bed closed, {joined} lines "
             f"stitched, {rounded} line kinks rounded; edge steps {before['steps']} -> {after['steps']}, "
-            f"line jogs {before['jogs']} -> {after['jogs']}; {sleepers} tram tracks on a bed, {xings} crossings of a bed paved ({xing_cut} line points under them dropped), {noses} median noses rounded, {stairs} metro stairs, {pockets} bare pockets between roads filled, {painted} driveway islands painted, {beside} zebras moved beside their cycle crossing, zebras run on {zebra_m} m to the kerbs, {kit[0]} main-street crossings given {kit[1]} stop lines and {kit[2]} signal poles, {poles} lamps and poles stepped off the asphalt")
+            f"line jogs {before['jogs']} -> {after['jogs']}; {sleepers} tram tracks on a bed, {xings} crossings of a bed paved ({xing_cut} line points under them dropped), {noses} median noses rounded, {stairs} metro stairs, {pockets} bare pockets between roads filled, {painted} driveway islands painted, {beside} zebras moved beside their cycle crossing, zebras run on {zebra_m} m to the kerbs, {kit[0]} main-street crossings given {kit[1]} stop lines and {kit[2]} signal poles, {poles} lamps and poles stepped off the asphalt, {zcut} lane lines cut at zebras, {seated} edge-line points seated inside their kerbs")
 
 
 def main():
@@ -2654,10 +2795,11 @@ def main():
         d = json.load(fh)
     if "--check" in sys.argv:
         m = measure(d)
-        ok = bool(d.get("road_smooth")) and m["steps"] <= CHECK_STEPS and m["jogs"] <= CHECK_JOGS
+        ok = bool(d.get("road_smooth")) and m["steps"] <= CHECK_STEPS and m["jogs"] <= CHECK_JOGS and m["zlines"] <= CHECK_ZLINES and m["edgex"] <= CHECK_EDGEX
         why = "" if d.get("road_smooth") else " (the map was never smoothed: run tools/road_smooth.py)"
         print(f"road_smooth: {'OK' if ok else 'FAIL'}: edge steps {m['steps']} (max {CHECK_STEPS}), "
-              f"line jogs {m['jogs']} (max {CHECK_JOGS}){why}")
+              f"line jogs {m['jogs']} (max {CHECK_JOGS}), lines under zebras {m['zlines']} (max {CHECK_ZLINES}), "
+              f"edge lines across kerbs {m['edgex']} (max {CHECK_EDGEX}){why}")
         return 0 if ok else 1
     if "--report" in sys.argv or "--dry" in sys.argv:
         m = measure(d)

@@ -1,12 +1,13 @@
 {
  "slug": "swietokrzyska-west",
  "title": "Świętokrzyska: Emilii Plater to Rondo ONZ",
- "updated": "2026-11-05",
+ "updated": "2026-11-06",
  "stage": "baseline",
- "score": 86,
+ "score": 78,
  "counts": {
   "L1": 4,
-  "L2": 2
+  "L2": 3,
+  "L3": 4
  },
  "blocks": [
   {
@@ -14,9 +15,10 @@
    "title": "Emilii Plater to Rondo ONZ",
    "counts": {
     "L1": 4,
-    "L2": 2
+    "L2": 2,
+    "L3": 4
    },
-   "score": 86
+   "score": 78
   }
  ],
  "history": [
@@ -29,6 +31,31 @@
    },
    "blocks": {
     "C": 86
+   }
+  },
+  {
+   "date": "2026-11-06",
+   "score": 80,
+   "counts": {
+    "L1": 4,
+    "L2": 3,
+    "L3": 5,
+    "L4": 1
+   },
+   "blocks": {
+    "C": 80
+   }
+  },
+  {
+   "date": "2026-11-06",
+   "score": 78,
+   "counts": {
+    "L1": 4,
+    "L2": 3,
+    "L3": 4
+   },
+   "blocks": {
+    "C": 78
    }
   }
  ],
@@ -72,13 +99,13 @@
   },
   {
    "check": "L2",
-   "x": -1617.8,
-   "z": 43.9,
-   "s": 139.2,
-   "t": -3.4,
-   "note": "lane line ends mid-block [owned by: Rondo ONZ (ring and towers: own landmark pass)]",
+   "x": -1474.7,
+   "z": 28.5,
+   "s": -4.0,
+   "t": -17.9,
+   "note": "lane line ends mid-block",
    "block": "-",
-   "status": "owned"
+   "status": "open"
   },
   {
    "check": "L1",
@@ -122,6 +149,16 @@
   },
   {
    "check": "L2",
+   "x": -1504.2,
+   "z": 9.3,
+   "s": 20.9,
+   "t": 7.0,
+   "note": "lane line ends mid-block",
+   "block": "C",
+   "status": "open"
+  },
+  {
+   "check": "L2",
    "x": -1594.4,
    "z": -4.7,
    "s": 106.3,
@@ -131,12 +168,42 @@
    "status": "open"
   },
   {
-   "check": "L2",
-   "x": -1616.2,
-   "z": 49.7,
-   "s": 138.8,
-   "t": -9.4,
-   "note": "lane line ends mid-block",
+   "check": "L3",
+   "x": -1502.5,
+   "z": 13.7,
+   "s": 20.2,
+   "t": 2.3,
+   "note": "edge line crosses a kerb",
+   "block": "C",
+   "status": "open"
+  },
+  {
+   "check": "L3",
+   "x": -1553.2,
+   "z": 30.8,
+   "s": 73.3,
+   "t": -3.9,
+   "note": "edge line crosses a kerb",
+   "block": "C",
+   "status": "open"
+  },
+  {
+   "check": "L3",
+   "x": -1564.8,
+   "z": 69.7,
+   "s": 92.7,
+   "t": -39.6,
+   "note": "edge line crosses a kerb",
+   "block": "C",
+   "status": "open"
+  },
+  {
+   "check": "L3",
+   "x": -1577.0,
+   "z": 47.3,
+   "s": 100.0,
+   "t": -15.1,
+   "note": "edge line crosses a kerb",
    "block": "C",
    "status": "open"
   }
