@@ -125,16 +125,16 @@
       "A listener asks if GREEN CAFFE NERWO spells names right. No."
     ],
     [
-      "Pilne: Cringulo zjadł pierogi na Mokotowie. Kolejka już na Puławskiej.",
-      "Breaking: Cringulo ate pierogi in Mokotów. The queue's on Puławska."
+      "Pilne: Mrożulo zjadł pierogi na Mokotowie. Kolejka już na Puławskiej.",
+      "Breaking: Mrożulo ate pierogi in Mokotów. The queue's on Puławska."
     ],
     [
       "Pizza Cringula znowu wyprzedana. Frogsy proszą: nie stójcie w drzwiach.",
-      "Cringulo's pizza is sold out again. Frogs asks: don't block the door."
+      "Mrożulo's pizza is sold out again. Frogs asks: don't block the door."
     ],
     [
-      "Cringulo dał trzy mlaski. Lokal zamknięty z powodu remontu. Duszy.",
-      "Cringulo gave three smacks. The place is closed for repairs. Of the soul."
+      "Mrożulo dał trzy mlaski. Lokal zamknięty z powodu remontu. Duszy.",
+      "Mrożulo gave three smacks. The place is closed for repairs. Of the soul."
     ],
     [
       "Kino Muranów wyświetla film o gołębiu. Trzy godziny, bez dialogów, sala pełna.",
@@ -1637,11 +1637,11 @@
       }
     ],
     [
-      "CRINGULO PIZZA · TŁUSTA PEPA · TYLKO WE FROGS",
-      "Cringulo pizza · Fat Pepa · only at Frogs",
+      "MROŻULO PIZZA · TŁUSTA PEPA · TYLKO WE FROGS",
+      "Mrożulo pizza · Fat Pepa · only at Frogs",
       {
         "poster": [
-          "CRINGULO",
+          "MROŻULO",
           "PIZZA",
           "TŁUSTA",
           "PEPA"
@@ -2421,45 +2421,45 @@
       }
     ],
     [
-      "Stoję od szóstej. Cringulo dał tu dziewięć mlasków.",
-      "Been here since six. Cringulo gave it nine smacks.",
+      "Stoję od szóstej. Mrożulo dał tu dziewięć mlasków.",
+      "Been here since six. Mrożulo gave it nine smacks.",
       {
-        "only": "cringulo"
+        "only": "mrozulo"
       }
     ],
     [
       "Nie jestem głodny. Jestem fanem.",
       "I'm not hungry. I'm a fan.",
       {
-        "only": "cringulo"
+        "only": "mrozulo"
       }
     ],
     [
-      "Zamówię to samo co Cringulo. Nie wiem co, ale to samo.",
-      "I'll have what Cringulo had. Don't know what. The same.",
+      "Zamówię to samo co Mrożulo. Nie wiem co, ale to samo.",
+      "I'll have what Mrożulo had. Don't know what. The same.",
       {
-        "only": "cringulo"
+        "only": "mrozulo"
       }
     ],
     [
       "Mlask, mlask. Tak się mówi. Wiem z filmiku.",
       "Smack, smack. That's how you say it. I saw the video.",
       {
-        "only": "cringulo"
+        "only": "mrozulo"
       }
     ],
     [
       "Była tu wczoraj cisza. Potem wyszedł odcinek.",
       "It was dead quiet yesterday. Then the episode came out.",
       {
-        "only": "cringulo"
+        "only": "mrozulo"
       }
     ],
     [
       "Mam koszulkę z jego twarzą. Z tyłu: „na grubaska”.",
       "I've got the shirt with his face. On the back: \"go chunky\".",
       {
-        "only": "cringulo"
+        "only": "mrozulo"
       }
     ],
     [
@@ -2940,7 +2940,7 @@
     ],
     [
       "Pizzy Cringula nie ma od wtorku. Pytają co pięć minut.",
-      "No Cringulo pizza since Tuesday. They ask every five minutes."
+      "No Mrożulo pizza since Tuesday. They ask every five minutes."
     ],
     [
       "TŁUSTA PEPA wyprzedana. SEROWY GRUBAS też. Został hot dog.",
@@ -3690,7 +3690,7 @@
       }
     ]
   ],
-  "cringulo_review": [
+  "mrozulo_review": [
     [
       "Ciasto chrupie, sos jest, ser ciągnie się jak kredyt.",
       "The crust crunches, there's sauce, the cheese stretches like a mortgage.",
@@ -3755,10 +3755,10 @@
       }
     ]
   ],
-  "cringulo_owner": [
+  "mrozulo_owner": [
     [
-      "Cringulo nas polecił? Otwieram drugą kasę.",
-      "Cringulo recommends us? Opening a second till."
+      "Mrożulo nas polecił? Otwieram drugą kasę.",
+      "Mrożulo recommends us? Opening a second till."
     ],
     [
       "Przyklejam na szybie. Jutro kolejka do Pałacu.",
@@ -3766,7 +3766,7 @@
     ],
     [
       "Mlask od Cringula? Mama będzie dumna. Kucharz płacze.",
-      "A smack from Cringulo? Mum will be proud. The chef is crying."
+      "A smack from Mrożulo? Mum will be proud. The chef is crying."
     ],
     [
       "Dziękuję! Podnoszę ceny, zanim fani dojadą.",

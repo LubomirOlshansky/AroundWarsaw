@@ -2936,7 +2936,7 @@ func _life_start() -> void:
 	if trend_job_flag > 0 and trend_job != null:
 		var i := trend_job_flag - 1
 		if trend_job_flag == 6:
-			# "Mlask" (G5): Cringulo's van parked by the car, his request at once (KUKŁA by Nowy
+			# "Mlask" (G5): Mrożulo's van parked by the car, his request at once (KUKŁA by Nowy
 			# Świat if no Wiralek slot is new enough).
 			if crowds != null and crowds.by_id.has(Crowds.KUKLA[1]):
 				_put_car_near(crowds.sites[crowds.by_id[Crowds.KUKLA[1]]]["door"], 120.0)
@@ -4589,7 +4589,7 @@ func _open_full_map() -> void:
 ## the słoiki stations and the Leżak depots (jobs.gd `offer_places`), Warsztat u Mirka, and "ask for
 ## a ride" (Podwózka's rule). HELI: the cassettes on the roofs not taken, and "a rescue call" (one
 ## only the helicopter reaches). Nothing while a race, a job or a rescue is on.
-## G12c: AUTO also lists the open "Na czasie" slots, Cringulo's van (Mlask) and the Friday drop
+## G12c: AUTO also lists the open "Na czasie" slots, Mrożulo's van (Mlask) and the Friday drop
 ## (trend_job.gd `offer_places`), and the ladder's next rival where they cruise now (or Seba's start
 ## for "Trzy mosty" at night); HELI the peacock's roof call while Pan Paw is still up there. While a
 ## race, a job, a ride or a rescue is on, its one row ("Teraz · ...") leads the vehicle's tab.

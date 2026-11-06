@@ -225,14 +225,14 @@ func _check_trends() -> void:
 	_expect(TrendJob.grade_words(7.5) == ["7,5 MLASKA", "7.5 SMACKS"] and TrendJob.grade_words(3.0)[0] == "3 MLASKI"
 			and TrendJob.grade_words(9.0)[0] == "9 MLASKÓW" and TrendJob.grade_words(1.0) == ["1 MLASK", "1 SMACK"],
 			"mlask grades: %s %s %s" % [TrendJob.grade_words(7.5), TrendJob.grade_words(3.0), TrendJob.grade_words(9.0)])
-	_expect(TrendJob.van_out(12.0) and not TrendJob.van_out(10.5) and not TrendJob.van_out(21.0), "Cringulo's van hours")
+	_expect(TrendJob.van_out(12.0) and not TrendJob.van_out(10.5) and not TrendJob.van_out(21.0), "Mrożulo's van hours")
 	var spots := {}
 	for wd in range(1, 8):
 		spots[TrendJob.van_spot(wd)] = true
-	_expect(spots.size() == TrendJob.ML_SPOTS.size(), "Cringulo's van: %d spots over the week" % spots.size())
+	_expect(spots.size() == TrendJob.ML_SPOTS.size(), "Mrożulo's van: %d spots over the week" % spots.size())
 	var vm := TrendJob.van_mesh()
 	var vtris := (vm.surface_get_array_len(0) + vm.surface_get_array_len(1)) / 3
-	_expect(vtris <= 800, "Cringulo's van: %d triangles (budget 800, with the CRINGULO TV lettering)" % vtris)
+	_expect(vtris <= 800, "Mrożulo's van: %d triangles (budget 800, with the MROŻULO TV lettering)" % vtris)
 	_summary["mlask"] = "%d zł warm, %d cold, van %d tris" % [int(mp["zl"]), int(mc["zl"]), vtris]
 	# Each slot runs days 1-8 in turn, the queue by day, the word until WKRÓTCE.
 	for slot in 3:
