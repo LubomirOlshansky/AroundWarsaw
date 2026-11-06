@@ -166,8 +166,11 @@ const JAM_RADIUS := 4.0
 ## wall nothing pins it against, a gap inside a building, a ledge): `stalled` reaches STALL_TIME
 ## and the game offers the tow on the context button. Time off the controls neither counts nor
 ## resets it; leaving the spot does. Parked, held by the stop assist or in the water: never.
+## PT-24 (2026-11-06): the spot was 4 m, so backing off a wall to take another run at it (5-8 m
+## back) started the count again every try; 10 m holds a ram-and-reverse in one spot, and a car
+## that drives on still leaves it in a couple of seconds.
 const STALL_TIME := 8.0
-const STALL_RADIUS := 4.0
+const STALL_RADIUS := 10.0
 ## The driving-feel loop (the ram test): the share of the speed going into a car or a tram that
 ## is kept for the next frame (it was none: a rear-ended car stopped the player dead).
 const CAR_KEEP := 0.5
