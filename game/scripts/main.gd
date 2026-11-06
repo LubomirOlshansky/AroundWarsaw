@@ -4,7 +4,8 @@ extends Node
 ##
 ## Command-line options (after `--`): --demo drives the car (or circles the
 ## helicopter) by itself, --shots=60,240 saves screenshots at those frames and
-## quits, --out=DIR sets where they go, --style=N picks a style, --yaw=N rotates
+## quits, --out=DIR sets where they go (made if missing), --spots=NAME:X,Z[,HEADING];...
+## shoots each spot in one run (files NAME_FFFF.png), --style=N picks a style, --yaw=N rotates
 ## the camera, --heli starts in the helicopter, --mission=N starts rescue call N
 ## at once, --autopilot flies or drives to the mission targets (for testing; the
 ## car ghosts through buildings) or drives the race route, --no-traffic leaves the
@@ -296,6 +297,10 @@ var shots: Array[int] = []
 ## without one says so in _exit_tree).
 var _shots_saved: Array[int] = []
 var out_dir := "user://"
+## --spots: [name, Vector2 x/z, heading or INF] per camera; one run shoots them all, the city
+## built once (a street pass needs 6-10 cameras; a launch per camera cost ~70 s each).
+var shot_spots: Array = []
+var _spot_i := 0
 var frame := 0
 var start_at := Vector3.INF
 ## --heading=deg: the car's heading at the start (0 = north, 90 = east), for testing.
@@ -816,6 +821,8 @@ func _ready() -> void:
 		title = Title.new()
 		title.touch_off = no_touch  # desktop: --no-touch
 		title.language_chosen.connect(_on_language_chosen)
+		# The loading bar: the title runs while the tree is paused for the build (_load_step).
+		title.process_mode = Node.PROCESS_MODE_ALWAYS
 		add_child(title)
 	else:
 		loading = _loading_card()
@@ -845,9 +852,11 @@ func _ready() -> void:
 	radio.tune(start_index, true)
 	print("save: %s (%s)" % [wallet.summary(), ProjectSettings.globalize_path(Wallet.PATH) if not no_save else "not saved"])
 	_resume_start()  # save and resume: the car where the last session left it
+	_start_preloads()  # the loading bar: the big map files load on threads under the title
 	await get_tree().process_frame
 	await get_tree().process_frame
 	var t0 := Time.get_ticks_msec()
+	await _wait_preloads()
 	_place_start()  # loop MW-1: --place=<id>, the sectors round the place
 	_syrenka_start()  # loop 3h slice 2: --syrenka=<id|n>
 	if trzy_mosty_flag:
@@ -865,7 +874,13 @@ func _ready() -> void:
 		push_error(no_map)
 		get_tree().quit(1)
 		return
-	_build_world()
+	if title != null:
+		get_tree().paused = true  # the loading bar: nothing half-built moves between the build's steps
+	await _build_world()
+	if title != null:
+		get_tree().paused = false
+	view.visible = true
+	_preloaded.clear()
 	_put_at_resume()
 	print("city built in %d ms, %s" % [Time.get_ticks_msec() - t0, _scene_stats()])
 	if loading != null:
@@ -881,6 +896,7 @@ func _ready() -> void:
 		_new_game_pending = false
 		# The loading fix: "tap to drive" once the sectors round the start are in (_title_frame).
 		_title_wait_t = Time.get_ticks_msec()
+		_title_pending = streamer.pending() if streamer != null else 0
 	else:
 		radio.now_playing()
 		_fallback_toast()
@@ -911,6 +927,80 @@ func _exit_tree() -> void:
 ## show no proxies. -1: the prompt is up.
 const TITLE_WAIT_MS := 8000
 var _title_wait_t := -1
+## The loading bar: the most sectors the title has waited for at once.
+var _title_pending := 0
+
+
+## The loading bar (F, 2026-11-05: "it freezes, later I see the road"): the title screen showed a
+## still "building the city…" for the second or two the build blocked the main thread, then the
+## city. Now the title shows a bar that moves: the big map files (the prebuilt index and the
+## proxies) load on threads first (ResourceLoader's threaded requests, LOAD_FILES of the bar),
+## the build yields a frame between its steps with the tree paused (up to LOAD_BUILT), and the
+## start's sectors fill the rest (_title_frame). Test runs (no title) build in one go, as before.
+const LOAD_FILES := 0.12
+const LOAD_BUILT := 0.6
+## The threaded requests' paths, and what they loaded (held until the build has used them, so the
+## streamer's own `load` takes them from the cache).
+var _preload_paths: PackedStringArray = []
+var _preloaded: Array[Resource] = []
+
+
+func _start_preloads() -> void:
+	if title == null or monolithic or not ((prebuilt or not OS.has_feature("editor")) and solo_site == ""):
+		return
+	for path in [SectorStreamer.INDEX_SCENE, SectorStreamer.PROXY_SCENE]:
+		if ResourceLoader.exists(path) and ResourceLoader.load_threaded_request(path, "", true) == OK:
+			_preload_paths.append(path)
+
+
+func _wait_preloads() -> void:
+	var t0 := Time.get_ticks_msec()
+	var frames := 0
+	while not _preload_paths.is_empty():
+		var sum := 0.0
+		var busy := false
+		for path in _preload_paths:
+			var at := []
+			if ResourceLoader.load_threaded_get_status(path, at) == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+				busy = true
+				sum += float(at[0]) if not at.is_empty() else 0.0
+			else:
+				sum += 1.0
+		if title != null:
+			title.progress = maxf(title.progress, LOAD_FILES * sum / float(_preload_paths.size()))
+		if not busy:
+			break
+		frames += 1
+		await get_tree().process_frame
+	if not _preload_paths.is_empty():
+		print("loading bar: %s on threads in %d ms (%d frames)" % [", ".join(_preload_paths), Time.get_ticks_msec() - t0, frames])
+	for path in _preload_paths:
+		var r := ResourceLoader.load_threaded_get(path)
+		if r != null:
+			_preloaded.append(r)
+	_preload_paths = []
+
+
+## The loading bar: the build's start (ticks, moved on by the frames shown), then each step's ms,
+## printed under the title as "loading bar: the build's steps".
+var _load_ms: Array[int] = []
+
+
+## A build step done: its ms noted, the bar moved and a frame shown (under the title only).
+func _load_mark(share: float) -> void:
+	var now := Time.get_ticks_msec()
+	_load_ms.append(now - _load_ms[0] - _load_ms.slice(1).reduce(func(a: int, b: int) -> int: return a + b, 0))
+	await _load_step(share)
+	_load_ms[0] += Time.get_ticks_msec() - now  # the frames shown don't count in the next step
+
+
+## The loading bar: the build's share so far (LOAD_FILES..LOAD_BUILT) and a frame to show it, under
+## the title only (test runs build in one go).
+func _load_step(share: float) -> void:
+	if title == null:
+		return
+	title.progress = maxf(title.progress, lerpf(LOAD_FILES, LOAD_BUILT, share))
+	await get_tree().process_frame
 
 
 func _title_frame() -> void:
@@ -918,6 +1008,10 @@ func _title_frame() -> void:
 		streamer.hurry = title != null
 	if title == null or _title_wait_t < 0:
 		return
+	if streamer != null and _title_pending > 0:
+		# The loading bar's last stretch: the start's sectors still to come.
+		_title_pending = maxi(_title_pending, streamer.pending())
+		title.progress = maxf(title.progress, LOAD_BUILT + (1.0 - LOAD_BUILT) * (1.0 - float(streamer.pending()) / float(_title_pending)))
 	if streamer == null or streamer.idle() or Time.get_ticks_msec() - _title_wait_t > TITLE_WAIT_MS:
 		print("title: the start's sectors in after %d ms%s" % [Time.get_ticks_msec() - _title_wait_t,
 				"" if streamer == null or streamer.idle() else " (not all: the wait's limit)"])
@@ -1142,6 +1236,9 @@ func _build_world() -> void:
 	view.stretch = true
 	view.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	view.set_anchors_preset(Control.PRESET_FULL_RECT)
+	# The loading bar: the 3D view isn't drawn under the title until the build is done (the frames
+	# the build yields then cost only the title's draw).
+	view.visible = title == null
 	add_child(view)
 	sv = SubViewport.new()
 	sv.msaa_3d = Viewport.MSAA_DISABLED
@@ -1170,6 +1267,7 @@ func _build_world() -> void:
 	# exported game (and --prebuilt) loads the sectors tools/bake_city.gd built on the Mac, the
 	# editor builds them from their files. --monolithic builds the whole city at once from
 	# centrum.json, as before loop 3c (the pixel diff's reference; city.scn is gone).
+	_load_ms = [Time.get_ticks_msec()]
 	if not monolithic:
 		data = _open_streamed_city(world, flat_mat)
 		flat_mat = map.flat_material
@@ -1186,6 +1284,7 @@ func _build_world() -> void:
 		world.add_child(map)
 		data = map.build(MAP_PATH, building_mat, flat_mat)
 		map.open_maps_whole()  # loop 3d-2b: every sector's map slices on the GPU at once
+	await _load_mark(0.1)
 
 	for a in data["areas"]:
 		if a["k"] == "water":
@@ -1299,7 +1398,7 @@ func _build_world() -> void:
 	_on_station_changed(radio.station, radio.stations[radio.station] if radio.station >= 0 else {})
 	radio.ticker.connect(hud.ticker)
 	hud.set_radio_name(radio.label())
-	hud.visible = not hide_hud
+	hud.visible = not hide_hud and title == null  # the loading bar: not over the title between the build's steps
 	hud.rotate_pressed.connect(func(d: int):
 		if not follow:
 			_rotate_camera(d))
@@ -1349,6 +1448,7 @@ func _build_world() -> void:
 				sfx.coin())
 	if pop_flag > 0:
 		get_tree().create_timer(2.0).timeout.connect(func() -> void: wallet.pay(pop_flag))
+	await _load_mark(0.26)
 	if data.has("graph"):
 		graph = LaneGraph.new(data["graph"], map)
 	if debug_roads:
@@ -1357,6 +1457,7 @@ func _build_world() -> void:
 		dr.setup(map, graph, _vehicle_position, data)
 	if not no_traffic and graph != null:
 		_build_life(data, world)
+	await _load_mark(0.53)
 	if graph != null:
 		_build_side_jobs(data, world)
 	_build_notebook(data)
@@ -1369,6 +1470,7 @@ func _build_world() -> void:
 	_build_street_details(world)
 	_build_park_details(world)
 	_build_garage(world)
+	await _load_mark(0.66)
 	# Loop MW-5: a PÓŁNOC FM track opened (a chapter, an egg, --unlock=N): a toast.
 	radio.track_unlocked.connect(func(_n: int, track: Dictionary, _why: String) -> void:
 		var t := Radio.unlock_toast(String(track["title"]))
@@ -1421,11 +1523,13 @@ func _build_world() -> void:
 	if cam_test != "":
 		_start_cam_test()
 	_build_sound(data, world)
+	await _load_mark(0.67)
 	# Loop 3g-1: the police, on the traffic's lane graph (none with --no-police).
 	if traffic != null and not police_opts.get("off", false):
 		_build_police(data, world)
 	_build_crowds(data, world)
 	_build_city_life(data, world)
+	await _load_mark(0.85)
 	_build_buses(data, world)
 	_build_old_tram(world)
 	_build_crash_scenes()
@@ -1436,6 +1540,7 @@ func _build_world() -> void:
 	_build_crazy_drivers(world)
 	_build_wellness(world)
 	_build_first10()
+	await _load_mark(0.99)
 	_set_quality(quality_choice)
 	get_tree().root.size_changed.connect(_apply_style)
 	_apply_style()
@@ -1507,6 +1612,9 @@ func _build_world() -> void:
 		RenderingServer.frame_pre_draw.connect(_stress_wait)
 	_apply_experiments()
 	_apply_fps()
+	await _load_mark(1.0)
+	if title != null:
+		print("loading bar: the build's steps %s ms" % [_load_ms.slice(1)])
 	_bench_t0 = Time.get_ticks_msec()
 	if bench or probe:
 		# The macOS driver may keep vsync on anyway (the frame rate then tops out at
@@ -3673,6 +3781,19 @@ func _parse_args() -> void:
 			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_NO_FOCUS, true)
 		elif arg.begins_with("--out="):
 			out_dir = arg.trim_prefix("--out=")
+		elif arg.begins_with("--spots="):
+			# NAME:X,Z[,HEADING];NAME:X,Z... : one run shoots every spot (street passes, before/after).
+			for item in arg.trim_prefix("--spots=").split(";", false):
+				var nv := item.split(":")
+				var v := nv[1].split(",") if nv.size() > 1 else PackedStringArray()
+				if v.size() < 2:
+					push_error("--spots: '%s' is not NAME:X,Z[,HEADING]" % item)
+					continue
+				shot_spots.append([nv[0], Vector2(float(v[0]), float(v[1])), float(v[2]) if v.size() > 2 else INF])
+			if not shot_spots.is_empty():
+				start_at = Vector3(shot_spots[0][1].x, 0.0, shot_spots[0][1].y)
+				if shot_spots[0][2] != INF:
+					start_heading = shot_spots[0][2]
 		elif arg.begins_with("--style="):
 			_flag_style = posmod(int(arg.trim_prefix("--style=")), STYLES.size())
 		elif arg.begins_with("--at="):
@@ -4757,7 +4878,7 @@ func _stuck_offer_frame() -> void:
 	var want: bool = not flying and not autopilot and _bench_ghost == null and title == null \
 			and not car.in_water and car.stalled >= Car.STALL_TIME \
 			and not (fotka != null and fotka.is_open())
-	if want and hud.pill_free():
+	if want and not hud.pill_shown("unstuck") and hud.pill_free_for("unstuck"):
 		hud.show_pill("POMOC DROGOWA", "tow truck", "unstuck")
 		if Gamepad.in_use():
 			hud.toast(Gamepad.fmt("Utknąłeś? {a}: pomoc drogowa."), Gamepad.fmt("Stuck? {a}: tow truck."))
@@ -6770,10 +6891,55 @@ func _capture(n: int) -> void:
 	if ghost_debug > 0:
 		print("ghost: frame %d centre %.1f %.1f radii %.1f %.1f (screen px)" % [n, _ghost_px.x, _ghost_px.y, _ghost_px.z, _ghost_px.w])
 	var img := get_viewport().get_texture().get_image()
-	img.save_png(out_dir.path_join("shot_%04d.png" % n))
+	# A missing --out folder used to end the run with code 0 and no PNG: make it, and fail loudly.
+	var dir := ProjectSettings.globalize_path(out_dir)
+	if not DirAccess.dir_exists_absolute(dir):
+		DirAccess.make_dir_recursive_absolute(dir)
+	var name := "shot_%04d.png" % n
+	if not shot_spots.is_empty():
+		name = "%s_%04d.png" % [shot_spots[_spot_i][0], n - _spot_base]
+	var err := img.save_png(out_dir.path_join(name))
+	if err != OK:
+		printerr("shots: could not write %s (error %d)" % [out_dir.path_join(name), err])
+		get_tree().quit(1)
+		return
 	_shots_saved.append(n)
 	if n == shots.max():
+		if _spot_i + 1 < shot_spots.size():
+			_next_spot()
+			return
 		_quit_quietly()  # sweep 2: was get_tree().quit()
+
+
+## --spots: the frame the current spot's shot frames count from.
+var _spot_base := 0
+
+
+## --spots: moves the car (and the camera, with no blend) to the next spot and shifts the shot
+## frames by the frames spent so far, so each spot gets the same settle time as the first.
+func _next_spot() -> void:
+	_spot_i += 1
+	var sp: Array = shot_spots[_spot_i]
+	var p: Vector2 = sp[1]
+	car.global_position = Vector3(p.x, map.ground_height(p.x, p.y), p.y)
+	if sp[2] != INF:
+		car.rotation.y = -deg_to_rad(sp[2])
+	car.vel = Vector3.ZERO
+	car.forward_speed = 0.0
+	car.reset_physics_interpolation()
+	cam_focus = car.global_position
+	# The same view as the first spot (and as a single --at run): keep the camera's yaw, since
+	# _cut_camera turns a following camera behind the car.
+	var yaw := cam_yaw
+	var yaw_target := cam_yaw_target
+	_cut_camera()
+	cam_yaw = yaw
+	cam_yaw_target = yaw_target
+	var shift: int = frame - _spot_base
+	_spot_base = frame
+	for i in shots.size():
+		shots[i] += shift
+	print("shots: spot %s at %.0f, %.0f (frame %d, shots %s)" % [sp[0], p.x, p.y, frame, str(shots)])
 
 
 # --- sweep 2: a shots run quits without leaking its sounds ---------------------------------

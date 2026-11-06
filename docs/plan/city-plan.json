@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-04",
+ "updated": "2026-11-05",
  "doc": "docs/design/roads-and-objects-plan.md",
  "note": "One item per thread and PR. status: open | running | done | parked. Threads update their item's status in the same PR. Object rule (F, 2026-11-04): log every object per street (docs/inventory/street_objects.md); add to the game only what earns its place.",
  "days": [
@@ -285,6 +285,49 @@
      "needs": "-",
      "status": "open",
      "ref": "docs/design/tinywarsaw-area-plan.md"
+    }
+   ]
+  },
+  {
+   "id": "U",
+   "date": "2026-11-05",
+   "title": "Operation Unslop: street by street",
+   "items": [
+    {
+     "id": "U.1",
+     "title": "Street pass pipeline, model library, agent, console Streets and Models tabs",
+     "area": "unslop",
+     "model": "Opus",
+     "needs": "-",
+     "status": "done",
+     "ref": "docs/design/operation-unslop.md"
+    },
+    {
+     "id": "U.2",
+     "title": "Test street: Marszałkowska, Rondo Dmowskiego to Świętokrzyska (baseline 82)",
+     "area": "unslop",
+     "model": "Opus",
+     "needs": "Mac re-bake for lane fixes",
+     "status": "running",
+     "ref": "docs/streets/marszalkowska-centrum.md"
+    },
+    {
+     "id": "U.3",
+     "title": "Wanted models, most-asked first (balustrade, tram railing, canopy on posts)",
+     "area": "unslop",
+     "model": "Sonnet (object-modeler), Opus accepts",
+     "needs": "photos",
+     "status": "open",
+     "ref": "docs/models/library.md"
+    },
+    {
+     "id": "U.4",
+     "title": "Next streets unchanged: Aleje Jerozolimskie, Nowy Świat, Świętokrzyska",
+     "area": "unslop",
+     "model": "Opus",
+     "needs": "U.2 accepted",
+     "status": "open",
+     "ref": ".claude/skills/street-pass/SKILL.md"
     }
    ]
   }

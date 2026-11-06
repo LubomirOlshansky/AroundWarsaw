@@ -534,7 +534,7 @@ func _idle_tick(dt: float) -> void:
 ## The top row's context button reads PODWÓZKA while the player could take a ride.
 func _set_pill(on: bool) -> void:
 	var shown: bool = hud.pill_shown("ride")
-	if on and not shown:
+	if on and not shown and hud.pill_free_for("ride"):
 		hud.show_pill("PODWÓZKA", "ride app", "ride")
 	elif not on and shown:
 		hud.hide_pill()
@@ -543,7 +543,7 @@ func _set_pill(on: bool) -> void:
 ## G10: the context button reads START KURS while the passenger waits within START_REACH.
 func _set_start(on: bool) -> void:
 	var shown: bool = hud.pill_shown("ride_start")
-	if on and not shown:
+	if on and not shown and hud.pill_free_for("ride_start"):
 		hud.show_pill("START KURS", "start the ride", "ride_start")
 	elif not on and shown:
 		hud.hide_pill()

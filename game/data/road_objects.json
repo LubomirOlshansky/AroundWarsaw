@@ -1,0 +1,60 @@
+{
+ "_about": "tools/street_pass.py --apply: per-barrier verdicts from the street records (docs/streets/), read by map_builder.gd _build_barriers (OBJECT_OVERRIDES). Do not edit by hand: change the street's record or its `decisions` in docs/streets/streets.json and re-run.",
+ "items": {
+  "barrier:fence:-1024:-64": [
+   "RETEXTURE",
+   "tram_railing",
+   "marszalkowska-centrum"
+  ],
+  "barrier:fence:-856:424": [
+   "RETEXTURE",
+   "tram_railing",
+   "marszalkowska-centrum"
+  ],
+  "barrier:fence:-870:392": [
+   "RETEXTURE",
+   "tram_railing",
+   "marszalkowska-centrum"
+  ],
+  "barrier:wall:-814:414": [
+   "REPLACE",
+   "balustrade_rail",
+   "marszalkowska-centrum"
+  ],
+  "barrier:wall:-862:416": [
+   "REPLACE",
+   "balustrade_rail",
+   "marszalkowska-centrum"
+  ],
+  "barrier:wall:-878:430": [
+   "REPLACE",
+   "balustrade_rail",
+   "marszalkowska-centrum"
+  ],
+  "barrier:wall:-882:408": [
+   "REPLACE",
+   "balustrade_rail",
+   "marszalkowska-centrum"
+  ],
+  "barrier:wall:-882:428": [
+   "REPLACE",
+   "balustrade_rail",
+   "marszalkowska-centrum"
+  ],
+  "barrier:wall:-886:402": [
+   "RETEXTURE",
+   "tram_railing",
+   "marszalkowska-centrum"
+  ],
+  "barrier:wall:-916:190": [
+   "REPLACE",
+   "balustrade",
+   "marszalkowska-centrum"
+  ],
+  "barrier:wall:-922:174": [
+   "REPLACE",
+   "balustrade",
+   "marszalkowska-centrum"
+  ]
+ }
+}
