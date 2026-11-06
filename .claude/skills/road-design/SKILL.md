@@ -27,6 +27,12 @@ spec that already has its pattern (another mid-block stretch, another opening).
    and read off, every 50-100 m: each carriageway's kerbs (offsets, + is right of the axis), the
    median or tram bed, the cycle lanes, where the section changes, the crossings' s, the stop lines.
    Tall buildings lean over the street in the photo: take those stretches from OSM.
+4b. **Seed (faster).** `python3 -I tools/road_design_seed.py --street NAME --box X0,Z0,X1,Z1 --id ID
+   [--axis '[[x,z],[x,z]]']` drafts the street from the map's ribbons (carriageways, lane counts,
+   tram/island median, zebras). Give it the axis (tram midline etc.) when you have one. A draft, never the
+   answer: lane counts double at ribbon joins and junction ribbons bleed in; fix it on the ortho overlay.
+   Carriageways closer than 1 m have no island between them, so a median that starts mid-street is two
+   carriageways that move apart (the count of carriageways is the same in every section).
 5. **Spec.** `docs/roads/AREA.json` (format in the tool's docstring): streets (axis, sections with
    `cw` lanes `d`/`k`/`t`/`w` and `med`, `crossings`, `openings` for side roads and driveways, `gaps`
    for median breaks) and junctions (arms with zebra `x`/`w` and cycle crossing `bx`/`bw`, corner
@@ -39,7 +45,10 @@ spec that already has its pattern (another mid-block stretch, another opening).
 7. **Shots.** Before shots on main's map, then apply (`--from`/`--out` onto `game/map/centrum.json`),
    `python3 -I tools/bake_sectors.py`, after shots at the same spots (`--spots=NAME:X,Z,HEADING;...`,
    heading is a compass bearing, recipe in the cloud-godot-shots memory). Same `--yaw`, `--size`,
-   `--time=day`, `--no-traffic` for both.
+   `--time=day` for both (traffic on is fine with `--shots=40`).
+7b. **Drive.** `godot --headless --path game --fixed-fps 60 --script res://tools/check_lane_drive.gd --
+   "--streets=A,B" --box=X0,Z0,X1,Z1 [--route="NAME:x,z>x,z;..."]` on main's map and on the designed
+   one: every street both ways plus routes into the side roads and through each junction.
 8. **Gates.** `python3 -I tools/check_map_data.py` (record new counts on purpose), `tools/verify.sh`
    (`--roads` set); the bench if the area adds many carriage chunks (they are 8 m pieces).
 

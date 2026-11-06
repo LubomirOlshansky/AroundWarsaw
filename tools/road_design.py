@@ -59,6 +59,7 @@ BIKE_EVERY = 40.0     # m between bike symbols in a cycle lane
 KERB_RETURN = 9.0     # m: default corner radius
 FOOT_PAD = 2.5        # m round the designed asphalt where the old road layers are removed
 MIN_MOUTH = 1.0       # m: an arm's carriageway starts at least this far from the corners' tangents
+ISLAND_MIN = 1.0     # m: carriageways closer than this have no island between them (one carriageway)
 NOSE = 1.2            # m: a median's rounded end stops this far behind a crossing
 HATCH = 3.0           # m between a painted gap's bars
 CHUNK = 8.0           # m: carriageway polygons in pieces this long (they drape on the terrain)
@@ -605,11 +606,21 @@ class Design:
             else:
                 # a raised median (grass or paving) with rounded noses short of the crossings,
                 # broken where a side street crosses (gaps), the break paved as carriageway
-                for (g0, g1) in gaps:
+                # where a section brings the carriageways together (under ISLAND_MIN apart) there is
+                # no island: the street is one carriageway there, its middle paved
+                narrow = []
+                for sx in frange(t0, t1, 1.0):
+                    if mr(sx) - ml(sx) < ISLAND_MIN:
+                        if narrow and sx - narrow[-1][1] <= 1.01:
+                            narrow[-1][1] = sx
+                        else:
+                            narrow.append([sx, sx])
+                narrow = [(max(t0, a - 0.5), min(t1, b + 0.5)) for a, b in narrow]
+                for (g0, g1) in gaps + narrow:
                     ring = st.line(g0, g1, ml) + st.line(g1, g0, mr)
                     self.out["carriage"].append({"k": st.k, "p": flat(ring)})
                     self.footprint.append(ring)
-                for (u0, u1) in self.runs_minus(t0, t1, self.crossings.get(st.id, []) + gaps):
+                for (u0, u1) in self.runs_minus(t0, t1, self.crossings.get(st.id, []) + gaps + narrow):
                     m0, m1 = u0 + NOSE, u1 - NOSE
                     if m1 - m0 < 2.0:
                         continue
@@ -1090,6 +1101,47 @@ def hide_ranges(road, fp):
 VERSION = 1
 
 
+# point objects (flat lists, STRIDE values each, x and z first) that stand by the kerb: the ones the
+# old OSM street left on what is now carriageway are moved onto the new pavement (Unslop's and the
+# bakes' furniture is kept; only its place changes). Medians and islands keep theirs.
+OBJECT_LAYERS = {"lamps": 2, "signals": 3, "shelters": 3, "benches": 3, "bins": 3, "bikes": 3, "columns": 3,
+                 "trees3d": 6}
+KERB_SET = 0.8        # m behind the kerb where a moved object stands
+
+
+def reseat_objects(out, d):
+    asphalt = Footprint([pts_of(c["p"]) for c in d.out["carriage"]], 0.2)
+    moved = 0
+    for layer, k in OBJECT_LAYERS.items():
+        v = out.get(layer)
+        if not v or not isinstance(v[0], (int, float)):
+            continue
+        for i in range(0, len(v) - 1, k):
+            x, z = v[i], v[i + 1]
+            if not asphalt.has(x, z):
+                continue
+            best = None
+            for st in d.streets.values():
+                s, off = project(st, (x, z))
+                if s is None or not (st.s0 <= s <= st.s1):
+                    continue
+                side = 1 if off > 0 else -1
+                gap = abs(off) - abs(st.outer(s, side))
+                if gap > 0.5:
+                    continue             # beyond this street (on another's asphalt)
+                if best is None or abs(gap) < abs(best[3]):
+                    best = (st, s, side, gap)
+            if best is None:
+                continue                 # in a junction box or a mouth: left as it is
+            st, s, side, _ = best
+            q = st.point(s, st.outer(s, side) + side * KERB_SET)
+            if asphalt.has(q[0], q[1]):
+                continue                 # by a mouth or a corner: no pavement there to move to
+            v[i], v[i + 1] = round(q[0], 2), round(q[1], 2)
+            moved += 1
+    return moved
+
+
 def apply_design(out, d):
     """Removes the old road layers in the design's footprint and writes the design's own."""
     fp = Footprint(d.footprint + d.mouths, FOOT_PAD)
@@ -1198,6 +1250,7 @@ def apply_design(out, d):
     out.setdefault("tram_xings", [])
     out["tram_xings"] += o["tram_xings"]
     stats["traffic edges on the designed lanes"] = retarget_graph(out, d)
+    stats["objects moved off the new asphalt"] = reseat_objects(out, d)
     out.setdefault("road_design", {})[d.area] = d.spec.get("version", VERSION)
     return stats
 
