@@ -4,6 +4,13 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Autopilot findings on recent work (2026-11-06; docs/PLAYTEST.md)
+
+- PT-23 (S2): the tow offer never comes while the ride button is up; a pinned car gets no help.
+- PT-24 (suspect): backing off a wall resets the stall timer, so the offer may never come.
+- PT-25 (suspect): crazy drivers honk but said no line in 5 cut-ins.
+- PT-26, PT-27 (S3): a bubble over the steering hint; the KEBAB label over BRAKE.
+
 ## Loading bar on the title screen (F, 2026-11-05)
 
 Built: `main.gd` loads `index.res` and `proxies.scn` with threaded requests under the title, the
