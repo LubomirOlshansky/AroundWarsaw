@@ -129,6 +129,10 @@ const Police := preload("res://scripts/police.gd")
 const Buses := preload("res://scripts/buses.gd")
 const OldTram := preload("res://scripts/old_tram.gd")
 const CrashScenes := preload("res://scripts/crash_scenes.gd")
+## Sekretny rave (rave.gd, F's ask 2026-11-06): LEKTI on MORDOR FM, Ziomek's call, the raves' rigs.
+const Rave := preload("res://scripts/rave.gd")
+## Inside the club after the door (club.gd): the cutaway room.
+const Club := preload("res://scripts/club.gd")
 const EvTow := preload("res://scripts/ev_tow.gd")
 ## Packs (docs/design/packs.md): running clubs, cycling packs and coffee raves.
 const Packs := preload("res://scripts/packs.gd")
@@ -503,6 +507,15 @@ var ev_flag := ""
 var ev_log := false
 var _ev_auto := false
 var _crash_auto := false
+## Sekretny rave (rave.gd): flags --rave-call (LEKTI and Ziomek's call now), --rave-smola (Ziomek's
+## Smoła night now), --rave=on / --rave=day (that rave on at any hour), --rave-spot=ID, --rave=0,
+## --rave-log.
+var rave: Rave
+var club: Club
+var rave_flag := ""
+var rave_spot := ""
+var rave_log := false
+var _rave_auto := false
 var old_tram_flag := ""
 var tram_log := false
 ## Packs (packs.gd): running clubs, cycling packs, coffee raves; flags --packs=0 (none), --packs-now
@@ -1545,6 +1558,7 @@ func _build_world() -> void:
 	_build_buses(data, world)
 	_build_old_tram(world)
 	_build_crash_scenes()
+	_build_rave(data, world)
 	_build_ev_tow(world)
 	_build_storefronts(data, world)
 	_build_packs(data, world)
@@ -2688,6 +2702,100 @@ func _build_crash_scenes() -> void:
 		crash_scenes.place(Vector2(p.x, p.z), Vector2(f.x, f.z).normalized(), true, at)
 
 
+# --- the secret raves ---------------------------------------------------------------------------
+
+## LEKTI's invites, Ziomek's calls and the raves' rigs (rave.gd). None with --no-traffic or --rave=0.
+func _build_rave(data: Dictionary, world: Node3D) -> void:
+	if traffic == null or graph == null or rave_flag == "0":
+		return
+	rave = Rave.new()
+	rave.name = "Rave"
+	rave.hud = hud
+	rave.dialogue = dialogue
+	rave.wallet = wallet
+	rave.missions = missions
+	rave.map = map
+	rave.graph = graph
+	rave.radio = radio
+	rave.city_sounds = city_sounds
+	rave.origin = data.get("origin", [52.234, 21.024])
+	rave.log_on = rave_log
+	rave.auto = _rave_auto
+	rave.force = rave_flag if rave_flag in ["on", "day"] else ""
+	rave.vehicle = func() -> Array:
+		if flying:
+			return [heli.global_position, heli.speed() * 3.6, true]
+		return [car.global_position, car.vel.length() * 3.6, false]
+	rave.focus = func() -> Vector3: return cam_focus
+	rave.clock = tod.local_clock
+	rave.free_now = _rave_free
+	rave.enter_club = _enter_club
+	world.add_child(rave)
+	rave.setup(world)
+	if rave_spot != "":
+		for i in rave.spots.size():
+			if String(rave.spots[i]["id"]) == rave_spot:
+				rave.night_spot = i
+	if rave_flag in ["club", "patio"]:
+		get_tree().create_timer(1.0).timeout.connect(func() -> void:
+			_enter_club("SMOŁA", "SMOŁA")
+			if rave_flag == "patio":
+				club.go_patio())
+	if rave_flag in ["call", "smola"]:
+		get_tree().create_timer(1.0).timeout.connect(func() -> void:
+			if rave_flag == "smola":
+				rave.ring("smola")
+			else:
+				rave.tease()
+				rave.ring())
+
+
+## Into the club's room (club.gd): the HUD aside, the car waiting (its process off), the camera
+## on the room (`_update_camera`).
+func _enter_club(pl: String, en: String) -> void:
+	if club == null:
+		club = Club.new()
+		club.name = "Club"
+		club.hud = hud
+		club.dialogue = dialogue
+		club.wallet = wallet
+		club.radio = radio
+		club.cam = cam
+		club.log_on = rave_log
+		add_child(club)
+		club.left.connect(_on_club_left)
+	club.enter(car.get_parent(), pl, en, radio.station_index("mordor_fm"))
+	hud.visible = false
+	car.vel = Vector3.ZERO
+	car.forward_speed = 0.0
+	car.process_mode = Node.PROCESS_MODE_DISABLED
+
+
+func _on_club_left() -> void:
+	hud.visible = not hide_hud
+	car.process_mode = Node.PROCESS_MODE_INHERIT
+	_cut_camera()
+
+
+## Nothing else on: no title, bench, Spacer, guide, card, call, ride, job, race; on the ground.
+func _rave_free() -> bool:
+	if club != null and club.inside:
+		return false
+	if ev_tow != null and ev_tow.busy():
+		return false
+	if title != null or _phone_bench or _bench_ghost != null or (spacer != null and spacer.on):
+		return false
+	if first10 != null and first10.guide_on():
+		return false
+	if hud.cards_up() or missions.state != Missions.State.CLOSED or missions.has_target():
+		return false
+	if (rides != null and rides.busy()) or (jobs != null and jobs.busy()) or (trend_job != null and trend_job.busy()):
+		return false
+	if rivals != null and rivals.busy():
+		return false
+	return not flying and not car.in_water
+
+
 # --- dead electric cars ----------------------------------------------------------------------
 
 ## Bartek's call and the stranded TESŁO cars (ev_tow.gd). None with --no-traffic or --ev=0.
@@ -2721,6 +2829,8 @@ func _build_ev_tow(world: Node3D) -> void:
 
 ## Nothing else on: no title, bench, Spacer, guide, card, rescue, ride, job, race or tow.
 func _ev_free() -> bool:
+	if (rave != null and rave.busy()) or (club != null and club.inside):
+		return false
 	if title != null or _phone_bench or _bench_ghost != null or (spacer != null and spacer.on):
 		return false
 	if first10 != null and first10.guide_on():
@@ -4148,6 +4258,14 @@ func _parse_args() -> void:
 			bus_log = true
 		elif arg.begins_with("--crash="):
 			crash_flag = arg.trim_prefix("--crash=")
+		elif arg in ["--rave-call", "--rave-smola", "--rave-club", "--rave-patio"]:
+			rave_flag = arg.trim_prefix("--rave-")
+		elif arg.begins_with("--rave-spot="):
+			rave_spot = arg.trim_prefix("--rave-spot=")
+		elif arg.begins_with("--rave="):
+			rave_flag = arg.trim_prefix("--rave=")
+		elif arg == "--rave-log":
+			rave_log = true
 		elif arg == "--ev-call" or arg == "--ev-tow" or arg == "--ev-stranded":
 			ev_flag = arg.trim_prefix("--ev-")
 		elif arg.begins_with("--ev-tow="):
@@ -4373,6 +4491,7 @@ func _parse_args() -> void:
 	_governor_on = _flag_governor == 1 if _flag_governor >= 0 else not test_run
 	# The crash scenes' timer: a normal launch only (a test run with --crash=on or =now too).
 	_crash_auto = not test_run
+	_rave_auto = not test_run
 	_ev_auto = not test_run
 	# Loop G1b: test runs (and --last-session=) never write Auto's image state, even with the
 	# governor on and without --nosave.
@@ -6182,6 +6301,14 @@ func _main_line_tick(dt: float) -> void:
 ## The arrow and minimap dot for the mission target.
 func _show_target() -> void:
 	_free_now = false
+	if rave != null and rave.has_target() and not flying:
+		var vp: Vector3 = rave.target_position()
+		var at_v := _vehicle_position()
+		var mv := roundi(Vector2(vp.x - at_v.x, vp.z - at_v.z).length())
+		var on_v := cam.unproject_position(vp + Vector3(0, 3.5, 0)) * float(view.stretch_shrink)
+		hud.set_target(on_v, rave.target_label(mv), rave.target_colour(), mv > 12)
+		_put_target(Vector2(vp.x, vp.z), rave.target_colour(), false)
+		_new_target("job", vp)
 	if ev_tow != null and ev_tow.has_target():
 		var ep: Vector3 = ev_tow.target_position()
 		var at_e := _vehicle_position()
@@ -6877,6 +7004,13 @@ func _screen_to_world(s: Vector2) -> Vector3:
 
 
 func _update_camera(dt: float) -> void:
+	if club != null and club.inside:
+		# The club's room (club.gd): a fixed cutaway view from its open corner.
+		var cb := Basis.from_euler(Vector3(deg_to_rad(camera_pitch), deg_to_rad(club.yaw), 0.0))
+		cam.size = club.view_size
+		cam.global_transform = Transform3D(cb, club.centre + cb.z * 120.0)
+		cam.far = 300.0
+		return
 	var vehicle: Node3D = heli if flying else car
 	var speed: float = heli.speed() if flying else absf(car.forward_speed)
 	if follow:
