@@ -361,6 +361,23 @@ experience". The plan, the road audit and the causes are in docs/GAMEPLAY_PLAN.m
 - [ ] 4.1 Running clubs read as a blue blob at crossings: mixed kit, pairs, spread out
 - [ ] 4.2 Varso Place masses from photos (the gap between the tower and Varso 1/2)
 
+## Dead electric cars: Bartek's TESŁO and stranded EVs (F, 2026-11-06)
+
+Built (`game/scripts/ev_tow.gd`, check `evtow`): a call from Bartek (ODBIERZ / ODRZUĆ, then LECĘ!),
+the helicopter takes off, the TESŁO Model Ś (parody: white fastback, green plates) hooks on a 10 m
+sling (damped pendulum, the loaded helicopter 25 % slower), set down on a charger bay by
+Elektrownia Powiśle, Hala Koszyki, Złote Tarasy or the Palace (Marszałkowska); 180 zł + 30
+respect, +60 zł under 150 s. Bartek's lines (`ev_tow`), stranded drivers (`ev_stranded`), KEBAB FM
+(`radio_host` tag `ev`); "tesla", "elon musk", "supercharger", "cybertruck" on the brand denylist.
+Stranded TESŁOs (every 3-5 min, kerb lane of a main road, hazards blinking, traffic goes round an
+invisible parked car) can be carried from the helicopter for a 60 zł tip. Open:
+- [ ] Phone feel of the swing and the slower loaded helicopter (QUESTIONS), and of the first call at 5-8 min
+- [ ] A ringtone and a winch sound (sfx.gd has none; Access.buzz only)
+- [ ] The charger bays are the kerb lane by each place: real charger spots from OSM (`amenity=charging_station` is not in our extracts) and a Mac photo check
+- [ ] The car hangs through roofs lower than it (it rides over them): fine for arcade, check it reads on the phone
+- [ ] A QUESTS list row for the call (quest_lines.gd) and a map marker for stranded cars
+- [ ] An egg-book card "Zielone tablice" after three carries
+
 ## Crazy drivers in traffic (F, 2026-11-05)
 
 Built (spec `docs/design/crazy-drivers.md`): Szkoda Oktawia taxis, Szprynter couriers and one Pasatini 1.9 TDJ drive in racer mode with no route (traffic.gd `CRAZY_*`, `crazy_drivers.gd`, check `crazy`). Open:
@@ -4320,7 +4337,7 @@ first rescue, the boulevard tape and its song, the Powiśle arrow, the garage at
   front with a neon word (a new word like SZISZA in the neon font, which has no Ł/Ó/Ś yet) and maybe
   a notebook place in `places.json`. Content lane (game-designer for names and spots).
 
-- **Railway look (F, 2026-11-05):** Plac Zawiszy tunnel stretch fixed (rails cut, mouth moved, #this PR). Still off: the Ochota cutting's banks are the 10 m grid's smooth slopes (no retaining walls, tan ballast sheet climbing them), overhead wires drawn per track pile up over the 12 tracks; the second spot F found (night, a highway with a rail/tram overpass) is not located; Kładka nad Książęcą (deck 58, (262,500)-(228,426)) waits for F's description of what is wrong.
+- **Railway look (F, 2026-11-05, reworked 2026-11-06):** Plac Zawiszy tunnel stretch fixed (#438). The Ochota cutting is shaped at load from the tracks (`rail_cut.gd`: flat bed at the lowest grid level beside the tracks, straight banks to the rims, concrete walls where it is narrow and deep and by the tunnel mouth), gantries replace the per-track masts over multi-track runs, Główna's island platforms are built (`rail_yard.gd`) and its footbridge is level with stairs and lifts. Still open: the second spot F found (night, a highway with a rail/tram overpass) is not located; Kładka nad Książęcą (deck 58) waits for F's description; `tools/check_roads.py`'s Python mirror of the heights does not know the cut (it reads the grid there, so C11 cannot see a mismatch); the footbridge's end towers are OSM's plain buildings and its stairs/lifts are generic (Mac photo pass: refs/kladka from Mapillary 2021 shows concrete towers); a Warszawa Główna station building / canopy is not built; trains turn back at Główna's buffers instantly (no driver walk); the wire spans of single tracks are still per-track masts.
 
 - **Sagging footbridges (F, 2026-11-05):** the bake's path-deck heights sag 4-6 m onto the floor of a trench they cross (10 m grid): fixed at load by `map_builder._lift_sagging_deck` for 6 pieces (decks 37, 43, 48, 55). The Kładka nad Książęcą was probably not this (deck 58 (262,500)-(228,426) has no sag); F's report was the Armii Ludowej one. Piers under the lifted decks are the bake's (placed for the sagged profile): Mac look check for floating or missing supports; the proper fix is in `bake_roads._solve` (deck over a trench takes the rim level).
 
