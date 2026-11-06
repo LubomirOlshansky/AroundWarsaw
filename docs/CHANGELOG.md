@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-06
 
+- The office blocks by Dworzec Zachodni (Equator, Equator II, Brama Zachodnia) now look like the real ones: graphite and blue-grey glass, a terracotta tower; a BLUZOFT sign sits on Equator II. KEBAB FM, the office crowds, taxi passengers and kebab orders got developer, AI-replaces-us and vibe-coding jokes.
 - When your car is stuck, the POMOC DROGOWA tow button now comes up even while the ride app button is on screen, and it also comes when you keep backing off a wall and trying again.
 
 ## 2026-11-05

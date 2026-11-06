@@ -185,7 +185,7 @@ func _fly_checks() -> int:
 					if h > top:
 						top = h
 						top_at = Vector2(x, z)
-		if info["key"] in ["elektrownia", "stadion_pkp", "ostrogski", "mpw", "bulwary_pawilony", "bulwary_bary"]:
+		if info["key"] in ["elektrownia", "stadion_pkp", "ostrogski", "mpw", "equator2", "bulwary_pawilony", "bulwary_bary"]:
 			c = top_at  # open yards, platforms, rows along the river (Ostrogski's courtyard between its two blocks): the box's middle is air, aim at the tallest cell
 		var alt := clampf(top * 0.5, 6.0, 45.0)
 		if info["key"] == "arkady":

@@ -4,6 +4,12 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Zachodnia offices and BLUZOFT (F, 2026-11-06)
+
+Done: Brama Zachodnia, Equator and Equator II re-skinned from street photos (refs/brama, refs/equator, refs/equator2, gitignored), BLUZOFT on Equator II's roof edge, the jokes (the real firm's name is in brand_denylist.json; only the parody appears). Open:
+- Equator and Equator II keep the OSM footprints and heights (53.8 m and 50.5 m); the photos show stepped, curved faces, the perforated-metal car-park screen and the green-glazed Brama ground floor, none modelled yet. Needs a Mac photo pass from the tracks side (F's screenshot angle).
+- An office crowd site at the Equator doors (the jokes only reach the Rondo Daszyńskiego crowd now).
+
 ## The Patelnia sunk, the Rotunda's stair, the Wars wall (F, 2026-11-05)
 
 F's screenshots and aerial (Operation Unslop thread): the Patelnia was drawn flat, the Rotunda's
