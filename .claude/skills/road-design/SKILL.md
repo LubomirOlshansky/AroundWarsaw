@@ -71,6 +71,9 @@ spec that already has its pattern (another mid-block stretch, another opening).
 - A roundabout is a junction with `ring` (docs/roads/rondo.json): its arms end at the centre, the
   island and the outer circle come from the ring, `mouth` puts the arm medians' noses on the ring.
   Measure it on a polar unroll of the ortho round the centre (lane lines become straight rows).
+  Arms that leave the ring sideways (docs/roads/degaulle.json) end on the ring instead: use
+  `halves`, a larger `corners` circle where an arm's outer kerb never comes inside `ro`, and tight
+  `radii` at the noses between two such arms.
 - Every zebra and cycle crossing meets its footway / cycle track at the kerb: apply_design moves
   pavements the wider kerb covers out to it, bends cut paths onto the nearest crossing and paints
   crossings over side-road mouths; a crossing the old map had and the design lacks shows up as a

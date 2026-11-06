@@ -47,7 +47,10 @@ Spec (docs/roads/AREA.json), map metres, +x east, +z south; offsets are to the r
   roundabout: the island round c (ri, ri + rd on the diagonals of the frame u), the ring's outer
   edge a circle ro (per corner "a/b") met by each arm's kerbs in fillets of radius r, its dashed
   lane lines at the radii `lines`, all broken over a tram cross `track` m either side of the
-  axes; an arm's "mouth" is where its medians end, "stop" where its stop line is.
+  axes ("tram_axes": "v" for one tram line along v); "island": true draws the island itself (raised
+  paving either side of the tram); "halves": true cuts the ring's asphalt in two along v instead of
+  fanning it (for arms that leave the ring sideways); "radii" per corner "a/b" (a tight nose; where
+  two arms' kerbs meet outside the circle the corner is a plain kerb return); an arm's "mouth" is where its medians end, "stop" where its stop line is.
   open_ends (area level): [{"x", "z", "note"}] path ends checked on the ortho that really stop at
   the kerb with no crossing; the continuity gate passes them.
 
@@ -433,6 +436,7 @@ class Design:
         self.out = {k: [] for k in ("carriage", "kerbs", "islands", "medians", "markings", "symbols",
                                     "zebras", "cyclecross", "tram_xings")}
         self.footprint = []     # polygons of designed asphalt and medians
+        self.ring_islands = []  # (centre, radius) of roundabout islands the design draws itself
         self.mouths = []        # side-road mouths: old kerbs and lines go, the side road stays
         self.crossings = {}     # street id -> [(s0, s1)] where kerbs and lines break
         self.stops = {}         # street id -> [(s of the stop line, direction of the lanes it stops)]
@@ -474,6 +478,13 @@ class Design:
         arms = self.arms(j)
         n = len(arms)
         ring_spec = j.get("ring")
+        if ring_spec:
+            # round a roundabout the arms go in the order of where they meet the ring
+            C = tuple(ring_spec["c"])
+            for a in arms:
+                q = add(a["p"], mul(a["dir"], 30.0))
+                a["ang"] = math.atan2(q[1] - C[1], q[0] - C[0])
+            arms.sort(key=lambda a: a["ang"])
         corners = self.ring_corners(j, arms) if ring_spec else self.plain_corners(j, arms)
         self._finish_junction(j, arms, corners)
         if ring_spec:
@@ -512,6 +523,25 @@ class Design:
             corners.append({"a": a, "b": b, "ta": ta, "tb": tb, "arc": arc(centre, r, a1, a2)})
         return corners
 
+    def _kerb_return(self, a, b, r):
+        """A corner arc of radius r between arm a's +1 kerb and arm b's -1 kerb, or None."""
+        pa = self.arm_kerb(a, +1, 0.0)
+        pb = self.arm_kerb(b, -1, 0.0)
+        hit = line_hit(pa, a["dir"], pb, b["dir"])
+        if hit is None:
+            return None
+        phi = math.acos(max(-1.0, min(1.0, dot(a["dir"], b["dir"]))))
+        if phi < 1e-3 or phi > math.radians(170):
+            return None
+        corner = add(pa, mul(a["dir"], hit[0]))
+        t = r / math.tan(phi / 2.0)
+        p1 = add(corner, mul(a["dir"], t))
+        p2 = add(corner, mul(b["dir"], t))
+        centre = add(corner, mul(norm(add(a["dir"], b["dir"])), r / math.sin(phi / 2.0)))
+        a1 = math.atan2(p1[1] - centre[1], p1[0] - centre[0])
+        a2 = math.atan2(p2[1] - centre[1], p2[0] - centre[0])
+        return {"a": a, "b": b, "ta": hit[0] + t, "tb": hit[1] + t, "arc": arc(centre, r, a1, a2)}
+
     # roundabouts ---------------------------------------------------------------------------
 
     @staticmethod
@@ -538,12 +568,22 @@ class Design:
         circle rc: (distance out along the arm, kerb tangent point, circle tangent point, centre)."""
         d = a["dir"]
         nrm = (-d[1], d[0]) if side > 0 else (d[1], -d[0])
-        t = rc
-        h = 0.0
-        for _ in range(5):
-            k = self.arm_kerb(a, side, t)
-            h = dot(sub(k, C), nrm)
-            t = math.sqrt(max((rc + r) ** 2 - (h + r) ** 2, 1.0))
+        # the distance out along the arm where a circle of radius r on the pavement side of the
+        # kerb touches the ring's circle from outside (bisection: the arm need not point at C,
+        # an arm that leaves the ring sideways ends on the ring, not at its centre)
+        f = lambda t: math.dist(add(self.arm_kerb(a, side, t), mul(nrm, r)), C) - (rc + r)
+        lo, hi = 0.0, 120.0
+        if f(lo) >= 0.0:
+            hi = lo
+        for _ in range(50):
+            if hi - lo < 0.01:
+                break
+            mid = (lo + hi) / 2.0
+            if f(mid) < 0.0:
+                lo = mid
+            else:
+                hi = mid
+        t = hi
         k = self.arm_kerb(a, side, t)
         centre = add(k, mul(nrm, r))
         q = add(C, mul(sub(centre, C), rc / math.dist(centre, C)))
@@ -551,7 +591,8 @@ class Design:
 
     def ring_corners(self, j, arms):
         """A roundabout's outer edge: between two arms a circle round the centre (ring.ro, or
-        ring.corners["a/b"] for that corner), met by each arm's kerb in a fillet of radius ring.r."""
+        ring.corners["a/b"] for that corner), met by each arm's kerb in a fillet of radius ring.r
+        (ring.radii["a/b"] for that corner: a tight nose where an arm leaves the ring sideways)."""
         g = j["ring"]
         C = tuple(g["c"])
         r = float(g.get("r", KERB_RETURN))
@@ -559,16 +600,25 @@ class Design:
         corners = []
         for i in range(n):
             a, b = arms[i], arms[(i + 1) % n]
-            rc = float(g.get("corners", {}).get("%s/%s" % (a["st"].id, b["st"].id), g["ro"]))
-            ta, ka, qa, ca = self._ring_fillet(C, a, +1, rc, r)
-            tb, kb, qb, cb = self._ring_fillet(C, b, -1, rc, r)
+            key = "%s/%s" % (a["st"].id, b["st"].id)
+            rc = float(g.get("corners", {}).get(key, g["ro"]))
+            rr = float(g.get("radii", {}).get(key, r))
+            ta, ka, qa, ca = self._ring_fillet(C, a, +1, rc, rr)
+            tb, kb, qb, cb = self._ring_fillet(C, b, -1, rc, rr)
             ang = lambda c, p: math.atan2(p[1] - c[1], p[0] - c[0])
-            arc_a = arc(ca, r, ang(ca, ka), ang(ca, qa))
+            arc_a = arc(ca, rr, ang(ca, ka), ang(ca, qa))
             a1, a2 = ang(C, qa), ang(C, qb)
             sweep = (a2 - a1) % (2 * math.pi)
+            if sweep > 1.5 * math.pi:
+                # the two fillets overlap: the arms' kerbs meet outside the ring's circle, so the
+                # corner is a plain kerb return between them (an arm beside another's mouth)
+                plain = self._kerb_return(a, b, rr)
+                if plain:
+                    corners.append(plain)
+                    continue
             m = max(2, int(sweep * rc / 1.0))
             circ = [add(C, (rc * math.cos(a1 + sweep * k / m), rc * math.sin(a1 + sweep * k / m))) for k in range(m + 1)]
-            arc_b = arc(cb, r, ang(cb, qb), ang(cb, kb))
+            arc_b = arc(cb, rr, ang(cb, qb), ang(cb, kb))
             corners.append({"a": a, "b": b, "ta": ta, "tb": tb, "arc": dedupe(arc_a + circ + arc_b)})
         return corners
 
@@ -614,28 +664,78 @@ class Design:
             i = j
         return pieces
 
+    def ring_halves(self, g, loop):
+        """The ring's asphalt as two pieces cut along the frame's v axis (where the arms along
+        it cross the ring): for a ring whose outer edge runs out and back along arms that leave
+        it sideways, where a fan from the centre would cross itself. None if a cut ray does
+        not cross the outer edge exactly once."""
+        C, u, v = self.ring_frame(g)
+        n = len(loop)
+        hits = []
+        for sgn in (1.0, -1.0):
+            ray = mul(v, sgn)
+            found = []
+            for i in range(n):
+                p, q = loop[i], loop[(i + 1) % n]
+                h = line_hit(C, ray, p, sub(q, p))
+                if h and h[0] > 0.0 and 0.0 <= h[1] < 1.0:
+                    found.append((i, add(p, mul(sub(q, p), h[1])), sgn))
+            if len(found) != 1:
+                return None
+            hits.append(found[0])
+        pieces = []
+        for (i0, p0, s0), (i1, p1, s1) in (hits, hits[::-1]):
+            chain = [p0]
+            k = i0
+            while k != i1:
+                k = (k + 1) % n
+                chain.append(loop[k])
+            chain.append(p1)
+            # back along the island, through the same half as the chain: from the far cut's
+            # side (phi 0 on +v, pi on -v) to the near one's
+            mid = chain[len(chain) // 2]
+            upper = dot(sub(mid, C), u) > 0.0          # the half with phi in (0, pi)
+            phi1 = 0.0 if s1 > 0 else math.pi
+            phi0 = 0.0 if s0 > 0 else math.pi
+            if upper:
+                a1, a2 = phi1, phi0                    # both in [0, pi]
+            else:
+                a1 = phi1 + (2 * math.pi if phi1 == 0.0 else 0.0)
+                a2 = phi0 + (2 * math.pi if phi0 == 0.0 else 0.0)   # both in [pi, 2 pi]
+            m = max(4, int(abs(a2 - a1) * float(g["ri"]) / 1.0))
+            inner = [self.ring_island(g, a1 + (a2 - a1) * k / m) for k in range(m + 1)]
+            piece = dedupe(chain + inner)
+            pieces.append(piece)
+        return pieces
+
     def ring_details(self, j):
-        """The island's kerb (broken where the tram cross runs through it) and the ring's dashed
-        lane lines (ring.lines: radii), broken over the tram cross (ring.track: its half width)."""
+        """The island's kerb (broken where the tram runs through it) and the ring's dashed lane
+        lines (ring.lines: radii), broken over the tracks (ring.track: their half width;
+        ring.tram_axes "uv" for a tram cross, "v" for one line along v)."""
         g = j["ring"]
         track = float(g.get("track", 0.0))
         cross = bool(g.get("tram", track > 0.0))
-        quarters = 4 if cross else 1
-        for q in range(quarters):
-            p0 = q * math.pi / 2.0
-            r0 = float(g["ri"])
-            gap = math.asin(min(0.9, track / r0)) if cross else 0.0
-            span = (math.pi / 2.0 if cross else 2 * math.pi) - 2 * gap
+        sectors = (4 if g.get("tram_axes", "uv") == "uv" else 2) if cross else 1
+        size = 2 * math.pi / sectors
+        r0 = float(g["ri"])
+        gap = math.asin(min(0.9, track / r0)) if cross else 0.0
+        for q in range(sectors):
+            span = size - 2 * gap
             n = max(4, int(span * r0 / 1.0))
-            pts = [self.ring_island(g, p0 + gap + span * k / n) for k in range(n + 1)]
+            pts = [self.ring_island(g, q * size + gap + span * k / n) for k in range(n + 1)]
             self.out["kerbs"].append({"p": flat(pts)})          # the island on its right
+            if g.get("island") and cross:
+                # a paved island the tram crosses at grade: one raised piece either side
+                self.out["islands"].append({"p": flat(pts)})
+        if g.get("island"):
+            self.ring_islands.append((tuple(g["c"]), float(g["ri"]) + float(g.get("rd", 0.0))))
         C, u, v = self.ring_frame(g)
         for rl in g.get("lines", []):
             rl = float(rl)
-            gap = math.asin(min(0.9, (track + 0.5) / rl)) if cross else 0.0
-            for q in range(quarters):
-                p0 = q * math.pi / 2.0 + gap
-                span = (math.pi / 2.0 if cross else 2 * math.pi) - 2 * gap
+            gl = math.asin(min(0.9, (track + 0.5) / rl)) if cross else 0.0
+            for q in range(sectors):
+                p0 = q * size + gl
+                span = size - 2 * gl
                 n = max(4, int(span * rl / 1.0))
                 pts = [add(C, add(mul(v, rl * math.cos(p0 + span * k / n)), mul(u, rl * math.sin(p0 + span * k / n))))
                        for k in range(n + 1)]
@@ -683,7 +783,17 @@ class Design:
                 st.t1 = st.L - a["throat"]
         # the junction's asphalt: round the arms' mouths and the corner arcs
         ring = []
+        halves = bool(ring_spec and ring_spec.get("halves"))
         for i, a in enumerate(arms):
+            if halves:
+                # the outer edge crosses each arm where its corner fillets leave the kerbs (the
+                # throat covers the rest down to the mouth), so it never doubles back on a kerb
+                # that flares out towards the ring
+                ring.append(self.arm_kerb(a, -1, max(a["mouth"], corners[(i - 1) % n]["tb"])))
+                ring.append(self.arm_kerb(a, +1, max(a["mouth"], corners[i]["ta"])))
+                ring.append(self.arm_kerb(a, +1, corners[i]["ta"]))
+                ring += corners[i]["arc"]
+                continue
             ring.append(self.arm_kerb(a, -1, a["mouth"]))
             ring.append(self.arm_kerb(a, +1, a["mouth"]))
             c = corners[i]
@@ -692,7 +802,8 @@ class Design:
             ring += [self.arm_kerb(c["b"], -1, d) for d in self._up(c["tb"], c["b"]["mouth"])]
         ring = dedupe(ring)
         if ring_spec:
-            for piece in self.ring_pieces(ring_spec, ring):
+            pieces = self.ring_halves(ring_spec, ring) if ring_spec.get("halves") else None
+            for piece in pieces or self.ring_pieces(ring_spec, ring):
                 self.out["carriage"].append({"k": j.get("k", "secondary"), "p": flat(piece)})
                 self.footprint.append(piece)
         else:
@@ -1721,7 +1832,11 @@ def apply_design(out, d):
                 tails += 1
     stats["carriage kept past free ends"] = tails
     drop("asphalt_fills", lambda f: centre_in(f))
-    drop("islands", lambda f: f.get("dk") is None and centre_in(f))
+    def in_ring_island(f):
+        p = pts_of(f["p"])
+        c = (sum(q[0] for q in p) / len(p), sum(q[1] for q in p) / len(p))
+        return any(math.dist(c, rc) < rr for rc, rr in d.ring_islands)
+    drop("islands", lambda f: f.get("dk") is None and (centre_in(f) or in_ring_island(f)))
     drop("tram_noses", lambda f: centre_in(f))
     drop("tram_xings", lambda f: centre_in(f))
     drop("medians", lambda f: f.get("dk") is None and centre_in(f, "s"))

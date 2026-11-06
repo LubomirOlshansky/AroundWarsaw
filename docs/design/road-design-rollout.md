@@ -100,6 +100,16 @@ done when a design in docs/roads/ covers it, applied to the map or not.
   on all four arms; Krucza north has an island median, Krucza south is one five-lane carriageway.
   Bracka is a south-side mouth. The street stops with a free end 55 m short of the de Gaulle
   centre. Continuity 0; check 0; lane drive passes 9 routes (both streets, all turns at Krucza).
-  Part 2, Rondo de Gaulle'a: a circular island (r 14.6 m, the palm) round one tram axis. Its north
-  and south arms are Y pairs of one-way roads, and the northbound exit leaves the ring tangentially
-  about 24 m off the centre, which the ring model (radial arms) cannot build yet.
+- **5, part 2: Rondo de Gaulle'a** (2026-11-06, docs/roads/degaulle.json): a circular island
+  (r 14.6 m, the palm) cut by the tram along Jerozolimskie (`tram_axes` "v", drawn as two raised
+  halves with `island`), three lanes round it (lines at 18.4 and 22.2 m), outer circle 26 m, 28.6 m
+  where Nowy Świat leaves north on a tangent. Arms: Jerozolimskie west from part 1's free end
+  (widening to four lanes out; part 1 gained the north parking lane east of Bracka, s 162),
+  Jerozolimskie east (stop line 50 m out behind a 16 m zebra on the photo), Nowy Świat north as two
+  7 m one-ways (in straight down, out on a tangent: arms that need not point at the centre) and
+  Nowy Świat south as a dual carriageway with a paved splitter island narrowing into a grass median.
+  Generator additions: ring `radii` per corner, a plain kerb return where two arms' kerbs meet
+  outside the circle, `halves` (the ring's asphalt cut in two along v, the outer edge crossing each
+  arm at its fillet tangents) and `island`. Continuity 0; check 0; lane drive passes 13 routes.
+  Left: the red cycle track round the ring is not in the map, so its crossings are left out; the
+  Nowy Świat Y stays as mapped.

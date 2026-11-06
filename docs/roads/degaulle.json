@@ -1,0 +1,436 @@
+{
+ "area": "degaulle",
+ "version": 1,
+ "note": "Rondo de Gaulle'a (area 5 part 2): the ring round the palm island, the tram straight through it along Aleje Jerozolimskie, and Nowy Świat's arms (a Y of one-ways north, a dual carriageway south), measured on the 2026 ortho (docs/design/road-design-rollout.md). Joins jerozolimskie_e at je_b's free end.",
+ "open_ends": [],
+ "streets": [
+  {
+   "id": "dg_w",
+   "name": "Aleje Jerozolimskie",
+   "axis": [
+    [
+     -269.52,
+     264.71
+    ],
+    [
+     -216.85,
+     247.07
+    ]
+   ],
+   "end": "j_dg",
+   "sections": [
+    {
+     "s": 0,
+     "med": [
+      "tram"
+     ],
+     "cw": [
+      {
+       "l": -16.2,
+       "r": -3.8,
+       "lanes": [
+        {
+         "d": -1,
+         "k": "park",
+         "w": 2.4
+        },
+        {
+         "d": -1
+        },
+        {
+         "d": -1
+        },
+        {
+         "d": -1
+        }
+       ]
+      },
+      {
+       "l": 3.6,
+       "r": 15.2,
+       "lanes": [
+        {
+         "d": 1
+        },
+        {
+         "d": 1
+        },
+        {
+         "d": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "s": 12,
+     "taper": 10,
+     "med": [
+      "tram"
+     ],
+     "cw": [
+      {
+       "l": -16.3,
+       "r": -3.8,
+       "lanes": [
+        {
+         "d": -1
+        },
+        {
+         "d": -1
+        },
+        {
+         "d": -1
+        },
+        {
+         "d": -1
+        }
+       ]
+      },
+      {
+       "l": 3.6,
+       "r": 15.2,
+       "lanes": [
+        {
+         "d": 1
+        },
+        {
+         "d": 1
+        },
+        {
+         "d": 1
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dg_e",
+   "name": "Aleje Jerozolimskie",
+   "axis": [
+    [
+     -216.85,
+     247.07
+    ],
+    [
+     -160.37,
+     226.83
+    ]
+   ],
+   "start": "j_dg",
+   "sections": [
+    {
+     "s": 0,
+     "med": [
+      "tram"
+     ],
+     "cw": [
+      {
+       "l": -18.0,
+       "r": -7.5,
+       "lanes": [
+        {
+         "d": -1
+        },
+        {
+         "d": -1
+        },
+        {
+         "d": -1
+        }
+       ]
+      },
+      {
+       "l": 3.0,
+       "r": 15.0,
+       "lanes": [
+        {
+         "d": 1
+        },
+        {
+         "d": 1
+        },
+        {
+         "d": 1
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dg_ni",
+   "name": "Nowy Świat",
+   "axis": [
+    [
+     -252.07,
+     216.67
+    ],
+    [
+     -243.67,
+     238.63
+    ]
+   ],
+   "end": "j_dg",
+   "sections": [
+    {
+     "s": 0,
+     "cw": [
+      {
+       "l": -3.6,
+       "r": 3.6,
+       "lanes": [
+        {
+         "d": 1
+        },
+        {
+         "d": 1
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dg_no",
+   "name": "Nowy Świat",
+   "axis": [
+    [
+     -206.41,
+     225.8
+    ],
+    [
+     -233.08,
+     210.08
+    ]
+   ],
+   "start": "j_dg",
+   "sections": [
+    {
+     "s": 0,
+     "cw": [
+      {
+       "l": -3.6,
+       "r": 3.6,
+       "lanes": [
+        {
+         "d": 1
+        },
+        {
+         "d": 1
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dg_s",
+   "name": "Nowy Świat",
+   "axis": [
+    [
+     -216.85,
+     247.07
+    ],
+    [
+     -195.79,
+     309.1
+    ]
+   ],
+   "start": "j_dg",
+   "crossings": [
+    {
+     "s": 31.5,
+     "w": 8.0
+    }
+   ],
+   "sections": [
+    {
+     "s": 0,
+     "med": [
+      "island"
+     ],
+     "cw": [
+      {
+       "l": -17.5,
+       "r": -6.5,
+       "lanes": [
+        {
+         "d": -1
+        },
+        {
+         "d": -1
+        },
+        {
+         "d": -1
+        }
+       ]
+      },
+      {
+       "l": 6.0,
+       "r": 16.0,
+       "lanes": [
+        {
+         "d": 1
+        },
+        {
+         "d": 1
+        },
+        {
+         "d": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "s": 29,
+     "taper": 12,
+     "med": [
+      "island"
+     ],
+     "cw": [
+      {
+       "l": -16.5,
+       "r": -2.0,
+       "lanes": [
+        {
+         "d": -1
+        },
+        {
+         "d": -1
+        },
+        {
+         "d": -1
+        }
+       ]
+      },
+      {
+       "l": 5.0,
+       "r": 15.0,
+       "lanes": [
+        {
+         "d": 1
+        },
+        {
+         "d": 1
+        },
+        {
+         "d": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "s": 42,
+     "taper": 8,
+     "med": [
+      "grass"
+     ],
+     "cw": [
+      {
+       "l": -12.5,
+       "r": -1.0,
+       "lanes": [
+        {
+         "d": -1
+        },
+        {
+         "d": -1
+        },
+        {
+         "d": -1
+        }
+       ]
+      },
+      {
+       "l": 1.5,
+       "r": 11.5,
+       "lanes": [
+        {
+         "d": 1
+        },
+        {
+         "d": 1
+        },
+        {
+         "d": 1
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "junctions": [
+  {
+   "id": "j_dg",
+   "k": "secondary",
+   "ring": {
+    "c": [
+     -216.85,
+     247.07
+    ],
+    "u": [
+     0.33738,
+     0.94137
+    ],
+    "ri": 14.6,
+    "rd": 0.0,
+    "track": 2.6,
+    "tram_axes": "v",
+    "ro": 26.0,
+    "r": 8.0,
+    "lines": [
+     18.4,
+     22.2
+    ],
+    "halves": true,
+    "island": true,
+    "corners": {
+     "dg_no/dg_e": 28.6,
+     "dg_w/dg_ni": 29.5
+    },
+    "radii": {
+     "dg_ni/dg_no": 2.5,
+     "dg_w/dg_ni": 5.0
+    }
+   },
+   "arms": {
+    "dg_w": {
+     "mouth": 23.5,
+     "x": 37.2,
+     "w": 8.5
+    },
+    "dg_e": {
+     "mouth": 23.0,
+     "x": 37.5,
+     "w": 8.0,
+     "stop": 50.5
+    },
+    "dg_ni": {
+     "mouth": 0.5,
+     "x": 18.5,
+     "w": 6.5
+    },
+    "dg_no": {
+     "mouth": 0.5,
+     "x": 28.4,
+     "w": 6.0
+    },
+    "dg_s": {
+     "mouth": 21.0,
+     "cross": false,
+     "stop": 36.8
+    }
+   }
+  }
+ ]
+}
