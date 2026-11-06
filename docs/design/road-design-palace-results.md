@@ -105,3 +105,10 @@ tracks, and the Emilii Plater approach to Jerozolimskie had the island in the wr
 - **Emilii Plater approach** (e_mid s 495-639): no island from 495 to 553 (paved, as on the photo),
   then the island −5.0..0.5 to the crossing; northbound 2 lanes + a 2 m cycle lane, southbound
   4 lanes widening to 5 at the stop line (L, L, T, T, R; 17 m of asphalt on the ortho).
+- **Round 2c (same evening, F's corners).** Paths that stopped near the new kerb without being cut
+  (they ended at the old crossings) are led to the new crossings too; every crossing end on a kerb
+  gets a short link from the nearest path of its kind; dead stubs to old crossings go; the gate
+  checks both ways (path end -> crossing and crossing end -> path). Two more lost crossings back
+  (j_mid cycle crossing s 303, e_nn zebra s 122). Marszałkowska south arm re-measured: 15 m zebra,
+  lanes 5.8..15.0 / -15.0..-5.3 at the tram stop. Emilii Plater's 5th southbound lane is a bus lane
+  (BUS painted on the photo).
