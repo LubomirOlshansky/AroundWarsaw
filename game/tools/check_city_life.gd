@@ -24,6 +24,7 @@ extends SceneTree
 
 const CityLife := preload("res://scripts/city_life.gd")
 const TrendJob := preload("res://scripts/trend_job.gd")
+const Crowds := preload("res://scripts/crowds.gd")
 const ScooterZones := preload("res://scripts/scooter_zones.gd")
 const Notebook := preload("res://scripts/notebook.gd")
 const EggBook := preload("res://scripts/egg_book.gd")
@@ -234,6 +235,22 @@ func _check_trends() -> void:
 	var vtris := (vm.surface_get_array_len(0) + vm.surface_get_array_len(1)) / 3
 	_expect(vtris <= 800, "Mrożulo's van: %d triangles (budget 800, with the MROŻULO TV lettering)" % vtris)
 	_summary["mlask"] = "%d zł warm, %d cold, van %d tris" % [int(mp["zl"]), int(mc["zl"]), vtris]
+	# "Dżemini" (G5b, F 2026-11-06): 60 zł + 10 zł a km, tip 20 and +25 respect warm; cold half, no
+	# tip, no respect. DŻEMINI's line: a handful before the MLASK, the longest in town after it, a
+	# little shorter 02-07. The sticker mesh stays small.
+	var dw := TrendJob.dz_pay(1500.0, true)
+	var dc := TrendJob.dz_pay(1500.0, false)
+	_expect(int(dw["base"]) == 75 and int(dw["zl"]) == 95 and int(dw["respect"]) == TrendJob.DZ_RESPECT, "dzemini pay: %s" % [dw])
+	_expect(int(dc["zl"]) == 38 and int(dc["tip"]) == 0 and int(dc["respect"]) == 0, "dzemini pay cold: %s" % [dc])
+	_expect(Crowds.dzemini_queue(13.0, false) == [Crowds.DZEMINI_NEW, "dzemini_new"]
+			and Crowds.dzemini_queue(13.0, true) == [Crowds.DZEMINI_MAX, "dzemini"]
+			and Crowds.dzemini_queue(4.0, true) == [Crowds.DZEMINI_NIGHT, "dzemini"]
+			and Crowds.dzemini_queue(23.5, true)[0] == Crowds.DZEMINI_MAX, "DŻEMINI's queue before and after the MLASK")
+	var sm := TrendJob.sticker_mesh()
+	var stris := sm.surface_get_array_len(0) / 3
+	_expect(stris <= 400, "the MLASK sticker: %d triangles (budget 400)" % stris)
+	_summary["dzemini"] = "%d zł warm, %d cold, queue %d after the MLASK, sticker %d tris" % [int(dw["zl"]), int(dc["zl"]),
+			Crowds.DZEMINI_MAX, stris]
 	# Each slot runs days 1-8 in turn, the queue by day, the word until WKRÓTCE.
 	for slot in 3:
 		var last_trend := -1

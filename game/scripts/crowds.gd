@@ -357,6 +357,14 @@ const KRINGULA_MIN := 24
 ## tag "mieszane" (the people in it say the two words; no new system, trend-queue machinery).
 const MIESZANE := ["kebab_mieszane"]
 const MIESZANE_MAX := 14
+## DŻEMINI KEBAB (F, 2026-11-06; trend_job.gd "Dżemini"): the new kebab an AI agent carves, open
+## round the clock. Before Mrożulo's MLASK a handful wait (tag "dzemini_new"); after it (the save's
+## `keep` "dzemini_mlask", `dzemini_hype`) the city's longest line for good: DZEMINI_MAX by day,
+## DZEMINI_NIGHT 02:00-07:00, tag "dzemini" (the jokes about the agent).
+const DZEMINI_ID := "dzemini_kebab"
+const DZEMINI_MAX := 40
+const DZEMINI_NIGHT := 26
+const DZEMINI_NEW := 3
 ## The other hyped chains' morning lines (F's #5, huge queues everywhere): the green-café's pavilion
 ## and KOSZTA on Marszałkowska, 7:00-11:00 on a working day 16 and a half-length line later, tag "kolejka".
 const COFFEE := ["nerwo_pawilon", "koszta_marszalkowska"]
@@ -405,6 +413,8 @@ enum { STAND, SIT, BROAD }
 
 ## The "Mrożulo effect": trend site id -> the weekday it was reviewed on (mrozulo_boost).
 var mrozulo := {}
+## DŻEMINI KEBAB has had Mrożulo's MLASK (trend_job.gd sets it, from the save too): its line for good.
+var dzemini_hype := false
 var _weekday_now := 0
 var _month_now := 7
 ## The view's focus (the camera's), -> Vector3.
@@ -722,6 +732,16 @@ static func mieszane_queue(hour: float, weekday: int) -> Array:
 	return [MIESZANE_MAX / 3, "mieszane"]
 
 
+## DŻEMINI KEBAB's line now: [people, tag]. Open round the clock; a few before the MLASK
+## ("dzemini_new"), the longest line in town after it ("dzemini"), a little shorter 02:00-07:00.
+static func dzemini_queue(hour: float, hype: bool) -> Array:
+	if not hype:
+		return [DZEMINI_NEW, "dzemini_new"]
+	if hour >= 2.0 and hour < 7.0:
+		return [DZEMINI_NIGHT, "dzemini"]
+	return [DZEMINI_MAX, "dzemini"]
+
+
 ## The hyped coffee chains' line now: [people, "kolejka"]. 7:00-18:00, the working-day morning rush
 ## fullest; half-length otherwise.
 static func coffee_queue(hour: float, weekday: int) -> Array:
@@ -788,6 +808,14 @@ static func padel_queue(hour: float, weekday: int) -> Array:
 	if weekday >= 6 and hour >= 9.0 and hour < 13.0:
 		return [PADEL_MAX * 3 / 4, "padel"]
 	return [3, "padel"]
+
+
+## DŻEMINI KEBAB got Mrożulo's MLASK (trend_job.gd "Dżemini", or the save at start): its line for
+## good, rewritten at the next tick.
+func dzemini_mlask() -> void:
+	dzemini_hype = true
+	if by_id.has(DZEMINI_ID):
+		sites[by_id[DZEMINI_ID]]["next"] = 0.0
 
 
 ## The "Mrożulo effect" on a trend site (a Wiralek slot or KUKŁA) for today: its queue at its
@@ -866,7 +894,7 @@ func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
 		var ll: Array = Storefronts.TRENDY[vid]
 		_add_site({"id": vid, "kind": "trend", "max": PISTACJA_MAX if vid == PISTACJA_ID else PADEL_MAX, "tag": "",
 				"at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})
-	for vid: String in KUKLA + [PIURE_ID] + MILK + GELATO + KRINGULA + MIESZANE + COFFEE:
+	for vid: String in KUKLA + [PIURE_ID] + MILK + GELATO + KRINGULA + MIESZANE + COFFEE + [DZEMINI_ID]:
 		var ll: Array = Storefronts.HYPE[vid]
 		var vmax := KUKLA_MAX
 		if vid == PIURE_ID:
@@ -881,6 +909,8 @@ func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
 			vmax = MIESZANE_MAX
 		elif vid in COFFEE:
 			vmax = COFFEE_MAX
+		elif vid == DZEMINI_ID:
+			vmax = DZEMINI_MAX
 		_add_site({"id": vid, "kind": "trend", "max": vmax, "tag": "",
 				"at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})
 	var zak: Dictionary = Zaglebie.shop(ZAKWAS_TAG)
@@ -1849,6 +1879,8 @@ func tick(step: float) -> void:
 					q = piure_queue(hour, weekday)
 				elif s["id"] == ZAKWAS_ID:
 					q = zakwas_queue(hour, weekday)
+				elif s["id"] == DZEMINI_ID:
+					q = dzemini_queue(hour, dzemini_hype)
 				elif trend.is_valid():
 					q = trend.call(str(s["id"]))
 				if int(q[0]) > 0 and int(mrozulo.get(str(s["id"]), -1)) == weekday:

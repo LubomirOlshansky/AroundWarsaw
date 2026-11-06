@@ -545,6 +545,9 @@ var life_soak := false
 var zajac_flag := false
 var trend_day_flag := -1
 var trend_job_flag := 0
+## --dzemini: Mrożulo's MLASK already on DŻEMINI KEBAB (the queue for good, the sticker), the car by
+## the shop (trend_job.gd "Dżemini"; shots without driving the job).
+var dzemini_flag := false
 var start_kebab := -1
 ## Loop jobs-2: --courier-race[=N] (kebab order N, default 0, with the courier's challenge forced).
 var courier_race := false
@@ -2288,6 +2291,9 @@ func _build_storefronts(data: Dictionary, world: Node3D) -> void:
 		storefronts.preset_stamps(stamps_flag)
 	if rides != null:
 		rides.frogs = storefronts
+	# "Dżemini" (trend_job.gd): the MLASK sticker goes on DŻEMINI KEBAB's wall.
+	if trend_job != null:
+		trend_job.storefronts = storefronts
 	# Loop jobs-2: the Leżak round-up, at the zones storefronts.gd painted (jobs.gd steps it).
 	if jobs != null:
 		var ru := RoundupJob.new()
@@ -2816,7 +2822,7 @@ func _build_city_life(data: Dictionary, world: Node3D) -> void:
 		trend_job.egg = func(id: String) -> bool: return egg_book != null and egg_book.fire(id, _egg_state())
 		if spacer != null:
 			trend_job.quiet = spacer.on
-	if zajac_flag or trend_job_flag > 0 or armchair_flag:
+	if zajac_flag or trend_job_flag > 0 or armchair_flag or dzemini_flag:
 		_life_start.call_deferred()
 
 
@@ -2851,6 +2857,13 @@ func _life_start() -> void:
 			cam_focus = car.global_position
 			print("life: --armchair: the man at %.0f, %.0f, the car %.0f m from him" % [ap.x, ap.z,
 					Vector2(car.global_position.x, car.global_position.z).distance_to(Vector2(ap.x, ap.z))])
+	if dzemini_flag and trend_job != null and crowds != null and crowds.by_id.has(Crowds.DZEMINI_ID):
+		trend_job.dz_done = true
+		crowds.dzemini_mlask()
+		var dsite: Dictionary = crowds.sites[crowds.by_id[Crowds.DZEMINI_ID]]
+		_put_car_near(dsite.get("door", dsite["at"]), 40.0)
+		print("trend job: --dzemini: the MLASK on DŻEMINI, the car %.0f m from its door" % [
+				Vector2(car.global_position.x, car.global_position.z).distance_to(dsite.get("door", dsite["at"]))])
 	if trend_job_flag > 0 and trend_job != null:
 		var i := trend_job_flag - 1
 		if trend_job_flag == 6:
@@ -2861,6 +2874,15 @@ func _life_start() -> void:
 			life.tick(0.0)
 			if not trend_job.offer_mlask(true):
 				print("trend job: --trend-job=6: no request (no van spot or new place)")
+			return
+		if trend_job_flag == 8:
+			# "Dżemini" (G5b): Mrożulo's call at once, the car by DŻEMINI KEBAB on Świętokrzyska.
+			if crowds != null and crowds.by_id.has(Crowds.DZEMINI_ID):
+				_put_car_near(crowds.sites[crowds.by_id[Crowds.DZEMINI_ID]]["at"], 80.0)
+			life.tick(0.0)
+			await get_tree().create_timer(1.0).timeout
+			if not trend_job.offer_dzemini(true):
+				print("trend job: --trend-job=8: no request (no shop door, kerb or van spot)")
 			return
 		if trend_job_flag == 7:
 			# "Czwarty" at WTS DeSki's padel courts (landmarks.gd DESKI), whatever the clock.
@@ -4117,13 +4139,16 @@ func _parse_args() -> void:
 		elif arg == "--life-soak":
 			life_soak = true
 			life_log = true
+		elif arg == "--dzemini":
+			dzemini_flag = true
+			trend_log = true
 		elif arg == "--zajac":
 			zajac_flag = true
 			life_log = true
 		elif arg.begins_with("--trend-day="):
 			trend_day_flag = maxi(0, int(arg.trim_prefix("--trend-day=")))
 		elif arg == "--trend-job" or arg.begins_with("--trend-job="):
-			trend_job_flag = clampi(int(arg.trim_prefix("--trend-job=")) if arg.contains("=") else 1, 1, 7)
+			trend_job_flag = clampi(int(arg.trim_prefix("--trend-job=")) if arg.contains("=") else 1, 1, 8)
 			trend_log = true
 		elif arg.begins_with("--club="):
 			# Loop MW-3: the car at a club's door (places.json id or name), no title.
@@ -4252,7 +4277,7 @@ func _parse_args() -> void:
 	if first10_flag or end_card_flag or first_race_flag:
 		show_title = false  # loop 3h slice 4: --first10 and --end-card are test runs
 	# Loop MW-4: --zajac is Kolka's Wednesday evening (Live), --life-soak a Friday dusk.
-	if zajac_flag or life_soak or trend_job_flag > 0 or armchair_flag:
+	if zajac_flag or life_soak or trend_job_flag > 0 or armchair_flag or dzemini_flag:
 		show_title = false
 		free_roam = true
 	if zajac_flag:

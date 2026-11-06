@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-06
+- A new mission: Mrożulo phones and asks for a kebab from DŻEMINI KEBAB, the new place on Świętokrzyska where an AI agent carves the meat. Bring it to his van while it's warm, he says "Wjeżdżam w to", sends you a TYGRAM message, and from then on the shop wears his MLASK sticker and has the longest queue in town, full of jokes about the agent.
 - The food blogger from the Mlask job is now called Mrożulo (was Cringulo), on his van, the signs, the fans and the news.
 
 - A cobalt-blue motorboat now sits on the roof of the Forest tower, next to the PEPEO ŻUBR crown.
