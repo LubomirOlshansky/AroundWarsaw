@@ -23686,12 +23686,9 @@ const SZ_FLOORS := [5.3, 9.3, 13.2, 17.1, 20.8]  # sills of the five upper store
 const SZ_TOP := 24.6
 
 
-## One window: dark pane, white surround and sill; on the first floor a small pediment over it.
+## One window: dark pane, white sill and head; on the first floor a small pediment over it.
 func _sz_window(u: float, y: float, h: float, pediment: bool) -> void:
 	_lbox(u, 0.36, 0.68, 0.03, y, y + h, SZ_GLASS)
-	_lbox(u, 0.36, 0.05, 0.03, y, y + h, SZ_WHITE)
-	_lbox(u - 0.76, 0.38, 0.09, 0.09, y - 0.1, y + h + 0.1, SZ_WHITE)
-	_lbox(u + 0.76, 0.38, 0.09, 0.09, y - 0.1, y + h + 0.1, SZ_WHITE)
 	_lbox(u, 0.42, 0.95, 0.15, y - 0.22, y - 0.06, SZ_WHITE)
 	_lbox(u, 0.4, 0.88, 0.12, y + h + 0.06, y + h + 0.2, SZ_WHITE)
 	if pediment:
@@ -23703,8 +23700,8 @@ func _sz_window(u: float, y: float, h: float, pediment: bool) -> void:
 func _sz_balcony(u: float, y: float) -> void:
 	_lbox(u, 0.85, 1.25, 0.5, y - 0.26, y - 0.06, SZ_WHITE)
 	_lbox(u, 1.3, 1.25, 0.03, y + 0.85, y + 0.92, SZ_IRON)
-	for j in 11:
-		_lbox(u - 1.25 + j * 0.25, 1.3, 0.025, 0.025, y - 0.06, y + 0.85, SZ_IRON)
+	for j in 7:
+		_lbox(u - 1.25 + j * 2.5 / 6.0, 1.3, 0.03, 0.03, y - 0.06, y + 0.85, SZ_IRON)
 	_lbox(u - 1.25, 0.85, 0.025, 0.48, y + 0.85, y + 0.92, SZ_IRON)
 	_lbox(u + 1.25, 0.85, 0.025, 0.48, y + 0.85, y + 0.92, SZ_IRON)
 

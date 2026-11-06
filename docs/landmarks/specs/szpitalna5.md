@@ -19,12 +19,12 @@ Plaster #e8c9a6, white #f1ece0, base #e6dfd1, iron #26282a, glass #2e3a44; M_STO
 Shop glass at street level. Night windows from the skin on the other faces.
 
 ## Detail level and budget
-L3 at the fronts, triangle budget 9000. Shots: the corner from both streets.
+L3, triangle budget 8000. Shots: the corner from both streets.
 
 ## Parts table
 | id | shape | size | position | material | feature |
 | --- | --- | --- | --- | --- | --- |
 | fronts | slabs | 24.6 m tall | two street faces | M_STONE | plaster |
-| windows | boxes | 22 bays, 5 storeys | fronts | M_STONE | rhythm |
+| windows | boxes | 110 windows | fronts | M_STONE | rhythm |
 | balconies | slab, iron rail | 2.5 m | Szpitalna bays 3, 7 | M_STONE | balconies |
 | arch | boxes | 2.4 x 6.6 m | Przeskok bay 1 | M_STONE | blind arch |
