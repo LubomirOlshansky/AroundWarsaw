@@ -17,7 +17,7 @@ to 185 MB. Left:
 - **#29 Nowy Świat**: still its old block; its LoD2 is one mesh with the wing behind.
 - **Detail worth adding**: the long iron balconies of Nowy Świat 54/56 and 58.
 - **Outside Nowy Świat** the blocks had a look for breakage, not a house-by-house photo check.
-- **Photo fronts (2026-11-06)**: 17 houses keep LoD2's mass under street fronts read from F's photos (`game/data/photo_fronts.json`, `_build_photo_fronts`; styles classic, plain, ribbon, glass, fins). Weak evidence, check again: Aleje Jerozolimskie 11/19 (no facade photo), Solec 24 (photo shows the small house beside it). The block near Zgoda 13 stays on its old block until F says what it should be.
+- **Photo fronts (2026-11-06)**: 17 houses keep LoD2's mass under street fronts read from F's photos (`game/data/photo_fronts.json`, `_build_photo_fronts`; styles classic, plain, ribbon, glass, fins). Weak evidence, check again: Aleje Jerozolimskie 11/19 (no facade photo), Solec 24 (photo shows the small house beside it).
 ## Secret rave: LEKTI, Ziomek, Smoła (F, 2026-11-06; docs/design/secret-rave.md)
 
 Built: night and day raves, LEKTI's voiced break-in on MORDOR FM, Ziomek's call and ride, the

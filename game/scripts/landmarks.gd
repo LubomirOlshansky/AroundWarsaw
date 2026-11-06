@@ -1179,6 +1179,13 @@ func _find_sites() -> void:
 	if not sites.is_empty() and sites[-1]["key"] == "ujazdowskie47":
 		sites[-1]["skin"] = {"mode": M_MONUMENT, "wall": U47_WALL, "roof": Color("#5f6264")}
 		sites[-1]["quiet"] = true
+	# Scena Relax (F's photos, 2026-11-06): the old cinema with its yellow banner.
+	if _landmark("Scena Relax").size() >= 3:
+		_add_site("scena_relax", [_landmark("Scena Relax")])
+		if not sites.is_empty() and sites[-1]["key"] == "scena_relax":
+			sites[-1]["raw"] = _landmark("Scena Relax")
+			sites[-1]["ring"] = sites[-1]["raw"]
+			sites[-1]["quiet"] = true
 	# The Tides (F's photos, 2026-11-06): no landmark card, a full model over the mapped outline.
 	_add_site("tides", [_pts(TD_OUTLINE)])
 	if not sites.is_empty() and sites[-1]["key"] == "tides":
@@ -1743,6 +1750,9 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_karowa18a(s)
 			"filtry":
 				_build_filtry(s)
+			"scena_relax":
+				_id = 0  # not tappable
+				_build_scena_relax(s)
 			"tides":
 				_id = 0  # not tappable
 				_build_tides(s)
@@ -8266,29 +8276,11 @@ func _build_dtc(_site: Dictionary) -> void:
 ## R1 (docs/design/start-area-real.md): the old Kino Relax behind Junior (Złota 8, 1970, Poland's
 ## first 70 mm cinema), heritage-listed and reopened as the theatre Scena Relax: its name in
 ## letters on the roof edge the start's camera sees. Only a sign (the building stays the map's).
-const RELAX_WORD := "SCENA RELAX"
-const RELAX_PINK := Color(1.0, 0.32, 0.5)
+const RELAX_RED := Color(0.86, 0.1, 0.16)  # the red word on the yellow banner
+## The word in a 3 x 5 grid, row by row from the top.
+const RELAX_GLYPHS := ["110101110101101", "111100110100111", "100100100100111", "010101111101101", "101101010101101"]
 func _dtc_relax() -> void:
-	var outline := _landmark("Scena Relax")
-	if outline.size() < 3:
-		return
-	var best := -1
-	var best_score := 0.0
-	for i in outline.size():
-		var a := outline[i]
-		var b := outline[(i + 1) % outline.size()]
-		var score := _out(outline, a, b).dot(DTC_SOUTH) * minf(a.distance_to(b), 20.0)
-		if score > best_score:
-			best_score = score
-			best = i
-	if best < 0:
-		return
-	var a := outline[best]
-	var b := outline[(best + 1) % outline.size()]
-	var o := _out(outline, a, b)
-	var mid := (a + b) * 0.5
-	var k := minf(0.8 * a.distance_to(b) / Neon.length_of(RELAX_WORD), 1.8 / (Neon.ROW_H * Neon.PIXEL))
-	signs.append([RELAX_WORD, Vector3(mid.x, _ground_under(outline) + 10.5, mid.y), Vector3(o.x, 0.0, o.y), k, RELAX_PINK])
+	pass  # the word is on the banner now (_build_scena_relax)
 
 
 ## The top storey's plan: the outline drawn in 3 m, then cut back to DTC_TOP_END from each end
@@ -25282,3 +25274,32 @@ func _pf_puslowski(d: Dictionary) -> void:
 	_lbox(mid - 4.7, 1.1, 0.04, 1.0, g + 5.5, g + 6.4, iron)
 	_lbox(mid + 4.7, 1.1, 0.04, 1.0, g + 5.5, g + 6.4, iron)
 	_lbox(mid, 0.4, 1.4, 0.05, g + 0.2, g + 4.2, Color("#2b2320"))
+
+
+# --- Scena Relax (F's photos, 2026-11-06): spec docs/landmarks/specs/scena_relax.md -------------
+
+## The old Kino Relax on Złota: a glazed foyer under a concrete band, a plain hall behind, and on the
+## south front the big yellow banner that carries the red word (`_dtc_relax`).
+func _build_scena_relax(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["raw"]
+	_g = _ground_under(ring)
+	var g := _g
+	var concrete := Color("#b9b6ad")
+	_prism(ring, g - 0.3, g + 4.0, Color("#2e3c44"), concrete, M_STONE, M_STONE)
+	_prism(ring, g + 4.0, g + 5.2, concrete, concrete, M_STONE, M_STONE)
+	_prism(ring, g + 5.2, g + 14.0, Color("#918e87"), Color("#77756f"), M_STONE, M_STONE)
+	_o = Vector2(-889.4, 117.9)
+	_a = (Vector2(-866.9, 109.8) - _o).normalized()
+	_b = Vector2(-_a.y, _a.x)  # out of the south front
+	var width := _o.distance_to(Vector2(-866.9, 109.8))
+	var mid := width * 0.5
+	_lbox(mid, 0.45, mid - 0.4, 0.25, g + 5.4, g + 13.4, Color("#ecb92c"))
+	_lbox(mid, 2.2, mid + 0.6, 2.2, g + 3.7, g + 4.1, concrete)
+	for l in RELAX_GLYPHS.size():
+		for r in 5:
+			for c in 3:
+				if RELAX_GLYPHS[l][r * 3 + c] == "1":
+					_lbox(mid + (l - 2) * 4.3 + (c - 1) * 1.05, 0.74, 0.52, 0.03, g + 11.9 - r * 1.05, g + 12.95 - r * 1.05, RELAX_RED, M_LAMP)
+	for k in 7:
+		_lbox(1.2 + k * (width - 2.4) / 6.0, 0.15, 0.12, 0.12, g, g + 3.9, concrete.darkened(0.2))
+	_collide_raw(site)
