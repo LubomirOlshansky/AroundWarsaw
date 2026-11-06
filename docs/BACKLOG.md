@@ -6,7 +6,7 @@ Small problems that agents reported or that showed up in screenshots. They are f
 
 ## Street blocks across the city (F, 2026-11-06)
 
-536 plain blocks are modelled, 50 of them along Nowy Świat with colours checked against street
+535 plain blocks are modelled, 50 of them along Nowy Świat with colours checked against street
 photos (`game/data/street_blocks/`, one gzipped file each; sites `blk_<id>`, `_find_blocks`,
 `_build_block`; panes M_PANE). They join the city mesh, are no landmarks (no card, no icon), and
 collide on our outline. Blocks with real window openings bring their own roofs; the others keep
