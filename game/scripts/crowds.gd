@@ -186,6 +186,16 @@ const PIURE_MAX := 16
 ## (landmarks.gd `loretka_plan`, the same seats the model builds): May to September, dry
 ## evenings 17:00-01:00, every seat on Friday and Saturday, 10 otherwise.
 const LORETKA_ID := "loretka_terrace"
+## F (2026-11-06): the jazz evenings under the Powiśle saucer (landmarks.gd powisle_jazz_plan):
+## the band on the stage (four, while the concert is on), sitters in the deck chairs and an
+## audience standing in front, 18:30-23:30 every evening, fuller on Friday and Saturday and in
+## the summer, thinner in rain; and the café's tables round the terrace from noon.
+const JAZZ_ID := "powisle_jazz"
+const JAZZ_CAFE_ID := "powisle_cafe"
+const JAZZ_HOURS := Vector2(18.5, 23.5)
+const JAZZ_BAND := 4
+## The band's shirts: black, white, a mustard jacket, a burgundy one.
+const JAZZ_SHIRTS := ["#1b1b1e", "#f1efe9", "#c99a2e", "#6e2230"]
 const LORETKA_WEEKNIGHT := 10
 const Landmarks := preload("res://scripts/landmarks.gd")
 const FirstScene := preload("res://scripts/first_scene.gd")
@@ -569,6 +579,43 @@ static func guitar_on(steps_n: int, hour: float) -> bool:
 ## Plac Zbawiciela's summer crowd: Fri/Sat nights 21:00-02:00, summer, dry (rain 0.1 *guess*).
 ## City-life satire #1: the car meet's level 0..1 (*guesses*): a few by day, the most from 20:00
 ## to 01:00, Friday and Saturday nights fuller, a third in the rain, nobody 04:00-10:00.
+## Is the jazz concert on at `hour`? Every evening, JAZZ_HOURS.
+static func jazz_on(hour: float) -> bool:
+	var h := fmod(hour + 24.0, 24.0)
+	return h >= JAZZ_HOURS.x and h < JAZZ_HOURS.y
+
+
+## How full the jazz audience is (0..1 of the deck chairs and the standing places): half on a
+## weeknight, full on Friday and Saturday (weekday 5, 6), fuller from May to September, a third
+## off in rain (the saucer keeps the stage dry, not the audience); filling over the first hour.
+static func jazz_level(hour: float, weekday: int, month: int, rain: bool) -> float:
+	if not jazz_on(hour):
+		return 0.0
+	var h := fmod(hour + 24.0, 24.0)
+	var lvl := 1.0 if weekday == 5 or weekday == 6 else 0.55
+	if month < 5 or month > 9:
+		lvl *= 0.7
+	if rain:
+		lvl *= 0.65
+	return lvl * clampf(0.35 + (h - JAZZ_HOURS.x) * 0.65, 0.35, 1.0)
+
+
+## The café's tables (0..1 of the seats): from noon, busiest in the evening, empty after 01:00
+## and in the morning; summer fuller, rain nearly empty (the tables stand in the open).
+static func jazz_cafe_level(hour: float, month: int, rain: bool) -> float:
+	var h := fmod(hour + 24.0, 24.0)
+	var lvl := 0.0
+	if h >= 12.0 and h < 17.0:
+		lvl = 0.45
+	elif h >= 17.0:
+		lvl = 0.85
+	elif h < 1.0:
+		lvl = 0.5
+	if month < 5 or month > 9:
+		lvl *= 0.5
+	return lvl * (0.15 if rain else 1.0)
+
+
 static func meet_level(hour: float, weekday: int, rain: bool) -> float:
 	var h := int(floor(fmod(hour + 24.0, 24.0)))
 	var lvl := 0.0
@@ -896,6 +943,10 @@ func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
 			mid += q
 		_add_site({"id": LORETKA_ID, "kind": "terrace", "at": mid / float(lo.size()), "max": (lor["seats"] as Array).size(),
 				"plan": lor})
+	var jazz := Landmarks.powisle_jazz_plan()
+	_add_site({"id": JAZZ_ID, "kind": "jazz", "at": jazz["centre"], "max": JAZZ_BAND + (jazz["chairs"] as Array).size()
+			+ (jazz["standing"] as Array).size(), "plan": jazz})
+	_add_site({"id": JAZZ_CAFE_ID, "kind": "jazz_cafe", "at": Landmarks.POW_LOW_C, "max": (jazz["seats"] as Array).size(), "plan": jazz})
 	if at.has(ROOF_ID):
 		_add_site({"id": ROOF_ID, "kind": "roof", "at": at[ROOF_ID], "max": ROOF_MAX, "curve": "roof"})
 		_add_site({"id": ROOF_DOOR_ID, "kind": "queue", "at": at[ROOF_ID], "max": ROOF_DOOR_MAX, "curve": "roof",
@@ -1202,6 +1253,8 @@ func _place_site(s: Dictionary) -> void:
 			_place_roof(s)
 		"terrace":
 			_place_terrace(s)
+		"jazz", "jazz_cafe":
+			_place_jazz(s)
 		"deck":
 			_place_deck(s)
 		"meet":
@@ -1414,6 +1467,54 @@ func _place_terrace(s: Dictionary) -> void:
 		slots.append({"p": st[0], "y": y, "pose": SIT, "yaw": float(st[1]), "shirt": BRIGHT[(k * 3 + 1) % BRIGHT.size()]})
 		k += 1
 	s["slots"] = slots
+
+
+## The jazz evenings (landmarks.gd powisle_jazz_plan): the band first (on the stage, the pianist
+## and the drummer sitting), then the deck chairs' sitters and the standing audience mixed in a
+## seeded order (so a thin evening is spread out, not only the front row); the café's sitters at
+## its tables. Bright clothes, the band in its own.
+func _place_jazz(s: Dictionary) -> void:
+	var plan: Dictionary = s["plan"]
+	s["door"] = s["at"]
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 1955
+	var slots: Array = []
+	if s["kind"] == "jazz_cafe":
+		var k := 0
+		for st: Array in plan["seats"]:
+			slots.append({"p": st[0], "pose": SIT, "yaw": float(st[1]), "shirt": BRIGHT[(k * 7 + 3) % BRIGHT.size()]})
+			k += 1
+		var order := range(slots.size())
+		_shuffle(order, rng)
+		var mixed: Array = []
+		for i: int in order:
+			mixed.append(slots[i])
+		s["slots"] = mixed
+		return
+	var top := Landmarks.powisle_floor(map) + Landmarks.POW_STAGE_H
+	var i := 0
+	for b: Array in plan["band"]:
+		slots.append({"p": b[0], "y": top, "pose": SIT if int(b[2]) == 1 else STAND, "yaw": float(b[1]), "shirt": JAZZ_SHIRTS[i % JAZZ_SHIRTS.size()]})
+		i += 1
+	var rest: Array = []
+	for ch: Array in plan["chairs"]:
+		var to: Vector2 = ch[1]
+		rest.append({"p": (ch[0] as Vector2) - to * 0.1, "pose": SIT, "yaw": atan2(-to.x, -to.y), "shirt": BRIGHT[rng.randi() % BRIGHT.size()]})
+	for st: Array in plan["standing"]:
+		rest.append({"p": st[0], "pose": STAND, "yaw": float(st[1]), "shirt": BRIGHT[rng.randi() % BRIGHT.size()] if rng.randf() < 0.6 else DARK[rng.randi() % DARK.size()]})
+	var order := range(rest.size())
+	_shuffle(order, rng)
+	for j: int in order:
+		slots.append(rest[j])
+	s["slots"] = slots
+
+
+static func _shuffle(a: Array, rng: RandomNumberGenerator) -> void:
+	for i in range(a.size() - 1, 0, -1):
+		var j := rng.randi_range(0, i)
+		var t: Variant = a[i]
+		a[i] = a[j]
+		a[j] = t
 
 
 ## Level 26: the tower's outline (`roof_ring`), the figures RING_IN m inside it (on the roof
@@ -1694,7 +1795,7 @@ func _figures(s: Dictionary) -> Array:
 			if bool(s.get("guitar_on", false)):
 				var face: Vector2 = s["face"]
 				out.append([_ground(s["guitar"]), atan2(-face.x, -face.y), SIT, GUITAR_SHIRT, 0.0])
-		"plan_c", "roof", "terrace", "chill", "deck", "stop", "office", "meet":
+		"plan_c", "roof", "terrace", "chill", "deck", "stop", "office", "meet", "jazz", "jazz_cafe":
 			var slots: Array = s["slots"]
 			for k in mini(n, slots.size()):
 				var sl: Dictionary = slots[k]
@@ -1827,6 +1928,12 @@ func tick(step: float) -> void:
 				want = office_count(int(s["max"]), hour, weekday, rain, k)
 			"meet":
 				want = roundi(int(s["max"]) * k * meet_level(hour, weekday, rain))
+			"jazz":
+				want = 0
+				if jazz_on(hour):
+					want = mini(JAZZ_BAND + roundi((int(s["max"]) - JAZZ_BAND) * k * jazz_level(hour, weekday, month, rain)), int(s["max"]))
+			"jazz_cafe":
+				want = mini(roundi(int(s["max"]) * k * jazz_cafe_level(hour, month, rain)), int(s["max"]))
 			"trend":
 				var q: Array = [0, ""]
 				if s["id"] == PISTACJA_ID:

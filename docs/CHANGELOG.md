@@ -11,10 +11,14 @@ someone writes its lines.
 
 ## 2026-11-06
 - Plac Pięciu Rogów looks as it has since 2022: no road across it any more, one level of pale slabs, stone cubes with wooden seats, café umbrellas, slim lamps, the blue egg and the shallow water patch. Chmielna got its café gardens and lamps, and Krucza is as wide as the real one, with parked cars along it.
+- Warszawa Powiśle's "UFO" pavilion looks like the real one now: the yellow WARSZAWA POWIŚLE letters in their dark boxes on the rim, warm bulbs all round it, orange deck chairs and café tables, and every evening from 18:30 a jazz band plays on a little stage under the saucer, with people listening and music you can hear as you drive by.
+- Secret techno raves: lights and dancers under the viaduct, in Praga and by the tracks at night, a day rave on the Praga beach, LEKTI breaking into MORDOR FM with the password, and Ziomek calling you to drive him there, past a strict door with three questions and a cash-only ticket, into a jungle-filled club with a fairy-lit patio out the back.
 - The food blogger from the Mlask job is now called Mrożulo (was Cringulo), on his van, the signs, the fans and the news.
 
+- Your mate Bartek calls: his electric TESŁO died at 0 %. Answer, and you take the helicopter, hook his car on a rope and carry it, swinging, to a charger while he jokes about winter range, free parking with green plates and the diesel parked at the charger. Dead TESŁOs with hazard lights now and then block a lane, and you can lift those to a charger too, for a tip.
 - A cobalt-blue motorboat now sits on the roof of the Forest tower, next to the PEPEO ŻUBR crown.
 - The underpass entrances at Emilii Plater and Aleje Jerozolimskie are real stairs going down now instead of walled boxes: granite parapets round the two wells, steel canopies over the pavement stairs (Śródmieście's green ones with posters on the south side), and people walking down into the passage and coming up out of it.
+- The railway from Centralna to Ochota is rebuilt: the cutting has a flat track bed with straight grass banks, concrete walls at the tunnel mouth and fences along the top, steel gantries carry the wires over the tracks, Warszawa Główna has real raised platforms and its footbridge crosses high over the wires with stairs and lifts down to each platform; trains stop there too, people get off and on at every door, the local trains look like modern red or white-and-green units, and the long-distance train has a locomotive pulling its coaches.
 - When your car is stuck, the POMOC DROGOWA tow button now comes up even while the ride app button is on screen, and it also comes when you keep backing off a wall and trying again.
 
 ## 2026-11-05
