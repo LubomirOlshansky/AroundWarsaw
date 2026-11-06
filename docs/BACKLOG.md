@@ -118,6 +118,16 @@ Found and left:
 - The Norblin copper glow at night is flat and strong at phone size; a phone look should say if it
   needs toning down.
 
+## The Bridge and Grzybowska 77 from F's photos (F, 2026-11-06)
+
+Done (spec `docs/landmarks/specs/bridge.md`; photos in the project files, `bridge/photos/`).
+Left open:
+- The folds are drawn as seams over facets shaded a step apart; the real faces tilt in and out by
+  a metre or more (the base corner tapers): a true folded mesh if the look check asks for it.
+- The atrium's timber slats are only seen as the lobby glass's warm tone; no interior.
+- Grzybowska 77's attic height (3 m over the cornice) is estimated from the aerial; OSM says 20.8 m in all.
+- Phone look check: the tower and the block by day and night, the blue ERZATZ from the Towarowa side.
+
 ## Foksal 13 and 15 from F's photos (F, 2026-11-05)
 
 Built (site `foksal`, spec docs/landmarks/specs/foksal.md). Open:
