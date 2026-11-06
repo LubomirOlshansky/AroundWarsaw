@@ -11,10 +11,11 @@ Usage:
       the right of the axis (-HALF..HALF), with a 1 m ruler (yellow, red = axis) and s every 10 m.
       Read a street's cross-section straight off it. --map draws a map's kerbs (cyan) and
       markings (magenta) on top, to check a design lines up.
-  python3 -I tools/road_design_plot.py flat MAP.json OUT.png X0 Z0 X1 Z1 [--scale PX] [--ortho ORTHO.png]
+  python3 -I tools/road_design_plot.py flat MAP.json OUT.png X0 Z0 X1 Z1 [--scale PX] [--ortho ORTHO.png] [--graph]
       A flat render of a map's road layers (ribbons with their hide ranges, carriage areas,
       medians, islands, kerbs, markings, zebras, cycle crossings, arrows) over plain ground or
-      over the ortho, for before/after pictures.
+      over the ortho, for before/after pictures. --graph draws the traffic lanes on top (cyan,
+      a dot at each lane's start).
 
 Needs Pillow (as tools/overlay_*.py do).
 """
@@ -117,6 +118,9 @@ MARK_W = {"edge": 0.2, "lane": 0.22, "centre": 0.2, "stop": 0.5, "bus": 0.3, "cy
 def flat(args):
     S = float(opt(args, "--scale", "2"))
     ortho = opt(args, "--ortho", None)
+    graph = "--graph" in args
+    if graph:
+        args.remove("--graph")
     mp, out = args[0], args[1]
     X0, Z0, X1, Z1 = map(float, args[2:6])
     data = json.load(open(mp))
@@ -249,6 +253,20 @@ def flat(args):
                     sg = 1 if ch == "R" else -1
                     nx, nz = -dz * sg, dx * sg
                     g.line([(x + dx * 0.6 * S, z + dz * 0.6 * S), (x + dx * 0.6 * S + nx * 0.9 * S, z + dz * 0.6 * S + nz * 0.9 * S)], fill=WHITE, width=px(0.3))
+    if graph:
+        for e in data.get("graph", {}).get("edges", []):
+            if not near(e["p"]):
+                continue
+            q = [(e["p"][i], e["p"][i + 1]) for i in range(0, len(e["p"]), 2)]
+            for k in range(int(e["n"])):
+                off = float(e["o"]) + float(e["lw"]) * k
+                line = []
+                for i, (x, z) in enumerate(q):
+                    a0, b0 = q[max(i - 1, 0)], q[min(i + 1, len(q) - 1)]
+                    L = math.hypot(b0[0] - a0[0], b0[1] - a0[1]) or 1
+                    line.append(P(x - (b0[1] - a0[1]) / L * off, z + (b0[0] - a0[0]) / L * off))
+                g.line(line, fill=(0, 200, 230, 255), width=max(1, round(0.25 * S)))
+                g.ellipse([line[0][0] - 3, line[0][1] - 3, line[0][0] + 3, line[0][1] + 3], fill=(0, 120, 200, 255))
     img.save(out)
     print("flat: %s %dx%d px" % (out, W, H))
 

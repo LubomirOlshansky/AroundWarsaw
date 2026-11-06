@@ -379,13 +379,15 @@ class Street:
 # --- the design -------------------------------------------------------------------------------
 
 class Design:
-    def __init__(self, spec):
+    def __init__(self, spec, roads=None):
         self.spec = spec
+        self.roads = roads      # the map's road ribbons: side roads found on them get openings
         self.area = spec["area"]
         self.streets = {s["id"]: Street(s) for s in spec["streets"]}
         self.out = {k: [] for k in ("carriage", "kerbs", "islands", "medians", "markings", "symbols",
                                     "zebras", "cyclecross", "tram_xings")}
         self.footprint = []     # polygons of designed asphalt and medians
+        self.mouths = []        # side-road mouths: old kerbs and lines go, the side road stays
         self.crossings = {}     # street id -> [(s0, s1)] where kerbs and lines break
         self.stops = {}         # street id -> [(s of the stop line, direction of the lanes it stops)]
         self.notes = []
@@ -622,7 +624,7 @@ class Design:
         # outer kerbs, continuous past the crossings (the renderer lowers them under each zebra,
         # map_builder _lowered_kerb, and lays the tactile pads on them); open at side roads
         breaks = []
-        for op in st.spec.get("openings", []):
+        for op in self.openings_of(st):
             breaks.append(self.opening(st, op))
         for side in (-1, +1):
             own = [b for b in breaks if not (isinstance(b, tuple) and len(b) == 3 and b[2] != side)]
@@ -658,7 +660,12 @@ class Design:
             kerbs.append(pts)
         ring = kerbs[0] + list(reversed(kerbs[1]))
         self.out["carriage"].append({"k": op.get("k", "service"), "p": flat(ring)})
-        self.footprint.append(ring)
+        for pts, lw in op.get("links", []):
+            band = strip(pts, lw / 2.0)
+            if band:
+                self.out["carriage"].append({"k": op.get("k", "service"), "p": flat(band)})
+                self.mouths.append(band)
+        self.mouths.append(ring)
         # kerb returns: the pavement on the line's right
         for sgn, pts in zip((-1, +1), kerbs):
             run = pts if (sgn * side) < 0 else list(reversed(pts))
@@ -779,12 +786,93 @@ class Design:
                 return True
         return False
 
+    def openings_of(self, st):
+        """The street's side-road openings: found on the map's own roads where one crosses the
+        street's outer kerb (when the map is given), plus any the spec marks "keep"; else the spec's."""
+        if self.roads is None:
+            return st.spec.get("openings", [])
+        if not hasattr(st, "auto_open"):
+            st.auto_open = self.find_openings(st) + [o for o in st.spec.get("openings", []) if o.get("keep")]
+        return st.auto_open
+
+    def find_openings(self, st):
+        names = {x.spec.get("name") for x in self.streets.values()}
+        t0 = getattr(st, "t0", st.s0)
+        t1 = getattr(st, "t1", st.s1)
+        xs = [p[0] for p in st.pts]
+        zs = [p[1] for p in st.pts]
+        box = (min(xs) - 40, min(zs) - 40, max(xs) + 40, max(zs) + 40)
+        hits = []
+        for r in self.roads:
+            if r.get("bridge") or r.get("name") in names or r.get("k") in SIDE_SKIP:
+                continue
+            p = pts_of(r["p"])
+            if not any(box[0] < x < box[2] and box[1] < z < box[3] for x, z in p):
+                continue
+            prev = None
+            for q in dense(p, 1.0):
+                s, off = project(st, q)
+                if s is None or not (t0 + 4.0 < s < t1 - 4.0):
+                    prev = None
+                    continue
+                side = 1 if off > 0 else -1
+                out = side * (off - st.outer(s, side))      # > 0: beyond the kerb, on the pavement
+                if prev is not None and prev[2] == side and (prev[1] > 0) != (out > 0) and abs(off) < 60:
+                    hits.append((side, (s + prev[0]) / 2.0, float(r.get("w", 4.0)), r.get("k", "service"), r, q))
+                prev = (s, out, side)
+        # one opening per side road mouth; the road must run on at least 3 m past the kerb
+        found = []
+        for side, s, w, k, r, at in sorted(hits, key=lambda h: (h[0], h[1])):
+            ok = False
+            for q in pts_of(r["p"]):
+                ss, off = project(st, q)
+                if ss is not None and abs(ss - s) < 40 and side * (off - st.outer(ss, side)) > 3.0:
+                    ok = True
+                    break
+            if not ok:
+                continue
+            # the side road's own line from the kerb out (8 m): paved, so a road meeting the street at
+            # an angle still reaches the mouth
+            out_pts = []
+            for q in dense(pts_of(r["p"]), 0.5):
+                ss, off = project(st, q)
+                if ss is not None and math.dist(q, at) < 9.0 and side * (off - st.outer(ss, side)) > -1.0:
+                    out_pts.append(q)
+            links = [(out_pts, w)] if len(out_pts) >= 2 else []
+            if found and found[-1]["side"] == side and abs(found[-1]["s"] - s) < (found[-1]["w"] + w) / 2.0 + 4.0:
+                f = found[-1]                       # two ribbons of one mouth (in and out): one wider mouth
+                lo, hi = min(f["s"] - f["w"] / 2.0, s - w / 2.0), max(f["s"] + f["w"] / 2.0, s + w / 2.0)
+                f["s"], f["w"] = (lo + hi) / 2.0, hi - lo
+                f["links"] += links
+                continue
+            found.append({"s": s, "side": side, "w": max(3.5, w + 0.8),
+                          "r": 3.0 if k in ("service", "living_street", "track", "pedestrian") else 5.0, "auto": True,
+                          "links": links})
+        return found
+
     def build(self):
         for j in self.spec.get("junctions", []):
             self.build_junction(j)
         for st in self.streets.values():
             self.build_street(st)
         return self
+
+
+def strip(pts, half):
+    """A polygon `half` either side of a polyline."""
+    if len(pts) < 2:
+        return None
+    left, right = [], []
+    for i, p in enumerate(pts):
+        a, b = pts[max(i - 1, 0)], pts[min(i + 1, len(pts) - 1)]
+        d = norm(sub(b, a))
+        n = right_of(d)
+        left.append(add(p, mul(n, -half)))
+        right.append(add(p, mul(n, half)))
+    return left + list(reversed(right))
+
+
+SIDE_SKIP = ("footway", "path", "cycleway", "steps", "pedestrian", "platform", "corridor")
 
 
 def boundary_kind(a, b):
@@ -823,25 +911,35 @@ def dedupe(ring, eps=0.05):
     return out
 
 
-def nose_round(left, right):
-    """A median outline (left edge forward, right edge back) with half-round ends."""
-    def cap(p, q):
-        c = lerp(p, q, 0.5)
-        r = math.dist(p, q) / 2.0
-        a1 = math.atan2(p[1] - c[1], p[0] - c[0])
-        pts = []
-        n = 8
-        # the half circle bulging away from the median's body
-        body = sub(c, lerp(left[len(left) // 2], right[len(right) // 2], 0.5))
-        sgn = 1.0
-        mid = (c[0] + r * math.cos(a1 + math.pi / 2), c[1] + r * math.sin(a1 + math.pi / 2))
-        if dot(sub(mid, c), body) < 0:
-            sgn = -1.0
-        for k in range(1, n):
-            ang = a1 + sgn * math.pi * k / n
-            pts.append((c[0] + r * math.cos(ang), c[1] + r * math.sin(ang)))
-        return pts
-    return left + cap(left[-1], right[0]) + right + cap(right[-1], left[0])
+NOSE_R = 0.8          # m: corner radius of a median's square end (as kerbed in Warsaw)
+
+
+def nose_round(left, right, rc=NOSE_R):
+    """A median outline (left edge forward, right edge back) with square ends, their two corners
+    rounded by `rc` (Warsaw's medians end square across the lane, not in a half circle)."""
+    def corner(a, P, b):
+        # quadratic curve from a to b with P as the control: a rounded corner at P
+        return [add(add(mul(a, (1 - t) ** 2), mul(P, 2 * (1 - t) * t)), mul(b, t * t))
+                for t in (k / 6.0 for k in range(7))]
+
+    def toward(P, Q, d):
+        L = math.dist(P, Q)
+        return lerp(P, Q, min(0.45, d / L)) if L > 0 else P
+
+    w0 = math.dist(left[-1], right[0])
+    w1 = math.dist(right[-1], left[0])
+    r0 = max(0.05, min(rc, w0 / 2.0 - 0.05))
+    r1 = max(0.05, min(rc, w1 / 2.0 - 0.05))
+    body_l, body_r = left[1:-1], right[1:-1]
+    out = []
+    # start corner (left[0]), coming from right[-1]
+    out += corner(toward(left[0], right[-1], r1), left[0], toward(left[0], left[1], r1))
+    out += body_l
+    out += corner(toward(left[-1], left[-2], r0), left[-1], toward(left[-1], right[0], r0))
+    out += corner(toward(right[0], left[-1], r0), right[0], toward(right[0], right[1], r0))
+    out += body_r
+    out += corner(toward(right[-1], right[-2], r1), right[-1], toward(right[-1], left[0], r1))
+    return out
 
 
 # --- applying to the map ----------------------------------------------------------------------
@@ -964,7 +1062,7 @@ VERSION = 1
 
 def apply_design(out, d):
     """Removes the old road layers in the design's footprint and writes the design's own."""
-    fp = Footprint(d.footprint, FOOT_PAD)
+    fp = Footprint(d.footprint + d.mouths, FOOT_PAD)
     fp_tight = Footprint(d.footprint, 0.3)
     stats = {}
 
@@ -1069,8 +1167,87 @@ def apply_design(out, d):
     out["paths"] += [{"k": "cyclecross", "p": z["p"]} for z in o["cyclecross"]]
     out.setdefault("tram_xings", [])
     out["tram_xings"] += o["tram_xings"]
+    stats["traffic edges on the designed lanes"] = retarget_graph(out, d)
     out.setdefault("road_design", {})[d.area] = d.spec.get("version", VERSION)
     return stats
+
+
+BLEND = 12.0          # m: at a street's free end the traffic lanes blend back to the old ones
+
+
+def drive_lanes(st, s, d):
+    """(centre offset, count, mean width) of the lanes driven in direction d at s (lane and bus)."""
+    xs = []
+    for row in st.lanes(s):
+        for (x, l, r) in row:
+            if int(x.get("d", 1)) == d and x.get("k", "lane") in ("lane", "bus"):
+                xs.append((l, r))
+    if not xs:
+        return None
+    lo = min(l for l, r in xs)
+    hi = max(r for l, r in xs)
+    return ((lo + hi) / 2.0, len(xs), sum(r - l for l, r in xs) / len(xs))
+
+
+def retarget_graph(out, d):
+    """Moves the traffic graph's edges on the designed streets onto the designed lanes: the edge's
+    line follows the middle of its direction's lanes, with their count and width (the graph's
+    junctions and links stay as they were). Returns how many edges moved."""
+    g = out.get("graph")
+    if not g:
+        return 0
+    moved = 0
+    for e in g["edges"]:
+        if e.get("br"):
+            continue
+        for st in d.streets.values():
+            if e.get("name") != st.spec.get("name"):
+                continue
+            p = dense(pts_of(e["p"]), 2.0)
+            proj = []
+            for q in p:
+                ss, off = project(st, q)
+                ok = ss is not None and 0.0 <= ss <= st.L and math.dist(q, st.point(ss, off)) < 0.6 and abs(off) < 30
+                proj.append((ss, off) if ok else None)
+            on = [x for x in proj if x is not None]
+            if len(on) < max(3, len(p) // 2):
+                continue
+            dirn = 1 if on[-1][0] > on[0][0] else -1
+            mid = drive_lanes(st, on[len(on) // 2][0], dirn)
+            if mid is None:
+                continue
+            # the edge must already run on its direction's side (a two-way street's lanes share a line)
+            if abs(on[len(on) // 2][1] - mid[0]) > 9.0:
+                continue
+            free0 = st.spec.get("start") is None
+            free1 = st.spec.get("end") is None
+            new = []
+            for q, x in zip(p, proj):
+                if x is None:
+                    new.append(q)
+                    continue
+                ss = x[0]
+                lane = drive_lanes(st, ss, dirn)
+                if lane is None:
+                    new.append(q)
+                    continue
+                w = 1.0
+                if free0:
+                    w = min(w, ss / BLEND)
+                if free1:
+                    w = min(w, (st.L - ss) / BLEND)
+                w = max(0.0, min(1.0, w))
+                new.append(lerp(q, st.point(ss, lane[0]), w))
+            old_len = plen(pts_of(e["p"]))
+            new_len = plen(new)
+            e["s1"] = round(max(float(e["s0"]) + 0.1, new_len - (old_len - float(e["s1"]))), 2)
+            e["p"] = flat(new)
+            e["n"] = mid[1]
+            e["lw"] = round(mid[2], 2)
+            e["o"] = round(-(mid[1] - 1) / 2.0 * mid[2], 2)
+            moved += 1
+            break
+    return moved
 
 
 def load_spec(area):
@@ -1089,7 +1266,7 @@ def apply_all(out):
         area = name[:-5]
         if area in out.get("road_design", {}):
             continue
-        d = Design(load_spec(area)).build()
+        d = Design(load_spec(area), out["roads"]).build()
         apply_design(out, d)
         problems = check(d)
         done.append("%s (%d problems)" % (area, len(problems)))
@@ -1248,6 +1425,11 @@ def main(argv):
         out = json.load(f)
     if area in out.get("road_design", {}):
         raise SystemExit("road_design: %s is already applied to %s; use --from with the map from before" % (area, src))
+    # built again on the map: the side roads' mouths come from the map's own roads
+    d = Design(load_spec(area), out["roads"]).build()
+    for st in d.streets.values():
+        for o in getattr(st, "auto_open", []):
+            print("  opening %s s %.0f %s w %.1f" % (st.id, o["s"], "right" if o["side"] > 0 else "left", o["w"]))
     stats = apply_design(out, d)
     print("road_design: removed " + ", ".join("%s %d" % kv for kv in stats.items()))
     with open(dst, "w", encoding="utf-8") as f:
