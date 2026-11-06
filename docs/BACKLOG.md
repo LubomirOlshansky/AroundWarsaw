@@ -90,7 +90,7 @@ signs, poles, junction boxes, hydrants or manholes; detection positions are 10-2
 evidence per street and junction, never coordinates.
 - [ ] RS1 junction shapes with kerb returns + RS2 kink fillets (pilot: Marszałkowska × Świętokrzyska,
       Krucza × Hoża, Nowy Świat × Świętokrzyska), then city-wide; Mac re-bake
-- [ ] RS3 width that varies along a street (tapers between ways; ortho width profiles on the Mac)
+- [ ] RS3 width that varies along a street: tapers between ways done (road_smooth.py, 2026-11-05); ortho width profiles on the Mac left
 - [ ] RS4 surfaces from OSM tags (setts, paving, concrete) by id in the ground shader
 - [ ] RS5 tram beds and medians that read
 - [ ] RS6 crossings with kerb drops, zebras aligned to the crossing way
@@ -361,9 +361,15 @@ Found: only 559 of 45,192 scanned trees stand inside a lane, none on the test st
 road in F's shots are the drawn strip covering a real median (check T1 looks at the drawn surface).
 - [x] Pipeline, checks, records, model library, agent, skill, console tabs (2026-11-05)
 - [x] Lane lines cut at zebras (bake_roads `_crossed`, whole map; 643 of 2,177 zebras had a line across), L2 reads a zebra cut as intentional (2026-11-05, Mac re-bake)
+- [x] Smooth joins (F, 2026-11-05 "smooth, like hand designed"): `tools/road_smooth.py` (run by bake_osm, also on a baked map) tapers the asphalt where two ways of a carriageway change width (799 joins: the narrower way flares to the wider one over 20-30 m, no round cap bulging past the kerb), moves kerbs and edge lines that jogged with the step, stitches lane lines across joins (2,483) and rounds small line kinks (3,116); edge steps 727 → 12, line jogs 969 → 16 ; where a smooth kerb runs past a flare the asphalt follows the kerb, and no flare beside a driveway mouth; streets drawn 0.3-3 m short of a tram bed go out onto its ballast (23 ways, Mapillary 2026-08-30 shows the asphalt meeting the tracks) and kerb breaks along a tram bed are closed; service roads always drawn under streets; a way narrower than its street at both ends takes the street's kerb line (64 ways, F's satellite lesson: kerbs run straight, lanes change by paint) (verify step `smooth`; street_pass K1, K2)
 - [x] Workflow speed-ups from the first street's logs (probe, evidence pack, rule-bug alarm, multi-spot shots, roads-only bake, Haiku scout) (2026-11-05)
 - [ ] `overlay_ortho.py --plain` (no overlay lines, to read paint) and the flight date in its notes; raw OSM extract in the map pack so bake-rule changes can be baked in the cloud
 - [ ] Chained-carriageway lane painting with tapers (L1, 354 joins city-wide); today's lanes override; `lane_split` width sanity
+- [ ] Lane changes as paint (F's satellite shots 2026-11-05): within one street's kerbs a new lane starts as a line out of the edge line with hatching in the spare width, instead of the edge moving; lane widths from the street's width, not each way's count
+- [ ] Crossing kit poles (road_smooth crossing_kit, 82 at 79 zebras across main streets with no mapped signal) have no lit lamps and no controller: give them a ped/vehicle cycle, and check the places on Mapillary (some may be unsignalled)
+- [ ] Lane changes inside straight kerbs: a widened way spreads its lanes over the chain's width (spread_lanes); F's round 3 asks for 3.25 m lanes from one edge with chevron hatching in the spare width (round 4 asked again: edge-connected white chevrons where the lane count changes; not built yet, the reference view at Złota has no such change left in sight)
+- [ ] Tram medians have no collision: a car can cross the gravel bed anywhere, so the U-turn opening is a look, not a route the car needs (decide whether medians get kerb collision outside openings)
+- [ ] The 10 joins left with a step have no room for a taper (ways shorter than 8 m between joins): merge such stubs in the bake
 - [ ] Test street fixes and F's look (see the street record docs/streets/marszalkowska-centrum.md)
 - [x] Barrier overrides by stable id: `street_pass.py --apply` writes game/data/road_objects.json from the records and hand `decisions`, map_builder draws REMOVE / styles; `tram_railing`, `balustrade`, `balustrade_rail` styles (2026-11-05)
 - [ ] The other wanted models
