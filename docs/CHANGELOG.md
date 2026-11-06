@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-06
+- Every open-air railway station now has shelters, benches, bins, lamps and blue name boards on its platforms, and people stand waiting and get on the next train.
 - The food blogger from the Mlask job is now called Mrożulo (was Cringulo), on his van, the signs, the fans and the news.
 
 - A cobalt-blue motorboat now sits on the roof of the Forest tower, next to the PEPEO ŻUBR crown.
