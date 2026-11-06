@@ -1132,6 +1132,7 @@ func _find_sites() -> void:
 	_add_site("filtry", [_circle(FT_C, FT_R + 1.0, 28)])
 	if not sites.is_empty() and sites[-1]["key"] == "filtry":
 		sites[-1]["raw"] = _circle(FT_C, FT_R, 16)
+		sites[-1]["ring"] = sites[-1]["raw"]
 	# Street blocks with modelled fronts (Nowy Świat, 2026-11-06).
 	_find_blocks()
 
