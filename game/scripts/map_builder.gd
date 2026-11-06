@@ -4797,11 +4797,17 @@ func _garden_ring(flat: Array) -> bool:
 ## Operation Unslop, Świętokrzyska (2026-11-06): OSM maps the planter edges inside traffic islands (Emilii Plater's median by the Palace: two wavy walls 95 m long) as `wall`; drawn 1.9 m high they read as a twisting beige ribbon across the junction. A wall lying inside a traffic island is a low planter edge (13 on the map), like the garden rings. They are a planting bed's granite kerb (Mapillary 2995066364107910, 2020-07), 0.2 m.
 const ISLAND_EDGE := ["#8e8b84", 0.25, 0.2]
 var _island_boxes: Array = []
+var _island_src: Array = []
 
 
 func _in_island(flat: Array) -> bool:
-	if _island_boxes.is_empty():
-		for isl in data.get("islands", []):
+	# `data` is swapped for every sector the builder makes: rebuild the boxes when it changes
+	# (a cache from the first sector left every later sector's median walls at 1.9 m).
+	var src: Array = data.get("islands", [])
+	if not is_same(src, _island_src):
+		_island_src = src
+		_island_boxes.clear()
+		for isl in src:
 			var poly := PackedVector2Array()
 			var fp: Array = isl["p"]
 			for i in fp.size() / 2:
