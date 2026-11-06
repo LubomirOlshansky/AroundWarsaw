@@ -10,7 +10,7 @@ extends SceneTree
 ##   3. the rope: a car let go beside a still hook swings and settles straight under it at the
 ##      rope's length, never further; the loaded helicopter speeding up drags it behind and it hangs back
 ##      down when the hook stops; a floor under the hook holds the car up (resting);
-##   4. the hooking and the pay: within reach, low and slow hooks; too far, too high, inside the
+##   4. a roof above the hook is a wall, not a floor (Autopilot run 2026-11-06); the hooking and the pay: within reach, low and slow hooks; too far, too high, inside the
 ##      roof or too fast doesn't; a quick carry adds the bonus, a stranger tips less;
 ##   5. the real lane graph: every charger found by its place (bay within 200 m, totem off the
 ##      carriageway); pick_charger gives one at least 600 m away when there is one; Bartek's car
@@ -192,6 +192,9 @@ func _check_rope(digest: PackedStringArray) -> void:
 
 
 func _check_rules(digest: PackedStringArray) -> void:
+	# A roof higher than the hook is a wall, one under it a floor (Autopilot run 2026-11-06).
+	if not EvTow.is_wall(108.0, 59.0) or EvTow.is_wall(20.0, 59.0) or not EvTow.is_wall(58.0, 59.0):
+		problems.append("is_wall: a 108 m roof under a 59 m hook must be a wall, a 20 m one a floor")
 	if not EvTow.can_hook(3.0, 6.0, 2.0):
 		problems.append("can_hook: 3 m off, 6 m above, 2 m/s doesn't hook")
 	for row: Array in [[EvTow.HOOK_R + 1.0, 6.0, 2.0, "too far"], [3.0, EvTow.ROPE + 3.0, 2.0, "too high"],

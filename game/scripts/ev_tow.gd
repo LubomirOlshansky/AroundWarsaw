@@ -671,11 +671,20 @@ func _hook() -> void:
 ## Every frame while the car hangs: the pendulum, the car's pose, the rope.
 func _carry(dt: float) -> void:
 	var anchor := _anchor()
-	var floor_y: float = map.top_height(hang.x, hang.z, 1.2) if map != null else 0.0
+	var before := hang
+	var floor_y := _floor(hang, anchor)
 	var hv: Vector3 = heli.vel
 	var r := swing_step(hang, hang_v, anchor, Vector3(hv.x, heli.vy, hv.z), ROPE, minf(dt, 0.05), floor_y)
 	hang = r[0]
 	hang_v = r[1]
+	# A roof the car can't sit on under the hook is a wall (Autopilot run, 2026-11-06: swung over
+	# a 108 m tower's footprint the car "rested" on its roof, 50 m above the helicopter): the car
+	# stays where it was across, losing its sideways speed.
+	if map != null and is_wall(map.top_height(hang.x, hang.z, 1.2), anchor.y):
+		hang.x = before.x
+		hang.z = before.z
+		hang_v.x = 0.0
+		hang_v.z = 0.0
 	var resting: bool = r[2]
 	job["resting"] = resting
 	# The car turns with the helicopter, slowly, and tilts with the rope while it hangs.
@@ -697,6 +706,21 @@ func _carry(dt: float) -> void:
 		# rope_mesh runs from 0 down to -1: its local +y is the way up the rope (car to hook).
 		_rope.global_transform = Transform3D(Basis(rx, ry, rz) * Basis.from_scale(Vector3(1, len, 1)), anchor)
 	_carry_clock += dt
+
+
+## The floor under the hanging car at `p`: the top of whatever is there (ground, deck, roof),
+## or the ground where that top is a wall (`is_wall`).
+func _floor(p: Vector3, anchor: Vector3) -> float:
+	if map == null:
+		return 0.0
+	var top: float = map.top_height(p.x, p.z, 1.2)
+	return map.ground_height(p.x, p.z) if is_wall(top, anchor.y) else top
+
+
+## A surface `top` high is a wall for a car hanging from a hook at `anchor_y`, not a floor: the
+## car on it would stand level with the hook or above it.
+static func is_wall(top: float, anchor_y: float) -> bool:
+	return top + SIZE.y > anchor_y - 0.5
 
 
 ## The rope's top: under the helicopter's belly, drawn where the helicopter is drawn.

@@ -4,6 +4,23 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## The Emilii Plater underpass entrances (F, 2026-11-06)
+
+F's screenshots: walled boxes with steps on flat ground. Done 2026-11-06 (spec
+`docs/landmarks/specs/underpass-emilii-plater.md`, site `underpass`, SUNKEN `epl_*`): the five
+entrances within ~100 m of the crossing are sunk with stairs and passage mouths, and walkers go in
+and come out (pedestrians.gd `_portals`). Left:
+- **Look check from photos gathered on the Mac**: the parapet heights, the canopies' size and
+  colour (only street photos from Mapillary so far), and whether the north pavement stair's dark
+  glass box is a lift or a canopy.
+- **The NW box's stair** is not mapped (only footway 8754 ends at its open side): built as one
+  flight south. Check that its direction is right.
+- **Further entrances not reworked**: the Śródmieście WKD ones west of Emilii Plater (steps 1665,
+  224, 225, wall 485, about 120 m out), and the points the street pass named at (-1150, 575) and
+  (-975, 545) on Jerozolimskie, which have no stairs mapped. The next SUNKEN entries.
+- **The passages themselves** are not modelled: a walker goes in at one mouth and is gone, with no
+  link to another entrance.
+
 ## The Patelnia sunk, the Rotunda's stair, the Wars wall (F, 2026-11-05)
 
 F's screenshots and aerial (Operation Unslop thread): the Patelnia was drawn flat, the Rotunda's
