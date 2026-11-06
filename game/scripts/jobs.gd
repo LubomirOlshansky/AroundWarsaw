@@ -29,6 +29,7 @@ const Props := preload("res://scripts/props.gd")
 const LaneGraph := preload("res://scripts/lane_graph.gd")
 const CourierRace := preload("res://scripts/courier_race.gd")
 const Zaglebie := preload("res://scripts/zaglebie.gd")
+const RouteLine := preload("res://scripts/route_line.gd")
 
 const KEBAB_COLOUR := Color("#ff8a3d")
 const SLOIK_COLOUR := Color("#4fd8c4")
@@ -174,6 +175,14 @@ var _craft_t := 0.0
 var _welcomed := false
 ## Testing: --craft=plain makes the autopilot take the plain kebab at the craft shop.
 var craft_plain := false
+## Beta values (2026-11-04): the way to the door (or to the next stand) on the minimap, and the
+## stand the delivered card's NASTĘPNE picked (-1: none). The pointer goes once the car pulls in
+## there, or as soon as anything else (a ride, a race, a rescue, the helicopter) is on.
+var _route: RouteLine
+var _route_on := false
+var next_stand := -1
+## The result card up now is a delivery (not a dropped order): NASTĘPNE is on it.
+var _delivered := false
 
 
 func setup(nodes: Dictionary, data: Dictionary, world: Node3D) -> void:
@@ -189,6 +198,7 @@ func setup(nodes: Dictionary, data: Dictionary, world: Node3D) -> void:
 	car = nodes["car"]
 	tod = nodes["tod"]
 	_rng.randomize()
+	_route = RouteLine.new(graph)
 	var t0 := Time.get_ticks_msec()
 	var stand_mesh := Props.kebab_stand()
 	_stand_halo = Props.halo(7.5, Color(1.0, 0.5, 0.25, 0.5))
@@ -538,26 +548,36 @@ func side_busy() -> bool:
 func has_target() -> bool:
 	if round_busy():
 		return roundup.has_target()  # loop jobs-2
-	return state == State.DELIVER
+	return state == State.DELIVER or _pointing()
+
+
+## Beta values: the delivered card's NASTĘPNE points at a stand while nothing else is on.
+func _pointing() -> bool:
+	return state == State.IDLE and next_stand >= 0 and next_stand < _stands.size()
 
 
 func target_position() -> Vector3:
 	if round_busy():
 		return roundup.target_position()
+	if _pointing():
+		return _stands[next_stand]["ring"]
 	return _order["ring"]
 
 
-## Where the car should stop now (stop_assist.gd): the door, or the round-up's depot to unload.
+## Where the car should stop now (stop_assist.gd): the door, the next stand, or the round-up's
+## depot to unload.
 func stop_spot() -> Vector3:
 	if round_busy():
 		return roundup.stop_spot()
+	if _pointing():
+		return _stands[next_stand]["ring"]
 	return _order["ring"] if state == State.DELIVER else Vector3.INF
 
 
 func target_colour() -> Color:
 	if round_busy():
 		return roundup.target_colour()
-	return KEBAB_COLOUR if job == Job.KEBAB else SLOIK_COLOUR
+	return KEBAB_COLOUR if job == Job.KEBAB or _pointing() else SLOIK_COLOUR
 
 
 ## Nothing else on: no rescue under way, no race, not flying.
@@ -586,10 +606,12 @@ func _process(dt: float) -> void:
 	match state:
 		State.IDLE:
 			_look_for_work()
+			_route_tick(dt)
 		State.ORDER:
 			_order_tick()
 		State.DELIVER:
 			_deliver_tick(dt)
+			_route_tick(dt)
 		State.RESULT:
 			if _t > RESULT_LIFE or _flat(car.global_position, _result_at) > RESULT_OFF:
 				print("jobs: the result card went by itself (%s)" % ("%.0f s" % _t if _t > RESULT_LIFE else "drove off"))
@@ -602,6 +624,12 @@ func _look_for_work() -> void:
 	var free := _free()
 	_show_places(free)
 	if not free:
+		if next_stand >= 0:
+			# Something else is on now: the pointer to the next stand goes, and its route (unless the
+			# other activity has drawn its own since: hud.gd's owner rule).
+			print("jobs: the pointer to stand %d went (another activity)" % next_stand)
+			next_stand = -1
+			_route_off(true)
 		return
 	var p := car.global_position
 	var slow: bool = car.vel.length() < PULL_IN_SPEED
@@ -707,6 +735,77 @@ func _release() -> void:
 	for st in _stations:
 		(st["person"] as Node3D).visible = true
 	_remove_ghost()
+	if next_stand < 0:
+		_route_off(true)
+
+
+# --- the route on the minimap (beta values, 2026-11-04) -----------------------------------------
+
+## Walks the minimap's route again from the car now and then (route_line.gd).
+func _route_tick(dt: float) -> void:
+	if not _route.active():
+		return
+	var heading := Vector2(-sin(car.rotation.y), -cos(car.rotation.y))
+	if _route.update(Vector2(car.global_position.x, car.global_position.z), heading, dt):
+		hud.set_minimap_route(_route.points, target_colour(), "jobs")
+		_route_on = true
+
+
+## The route to `ring` on lane point (e, s), or (not `reached`, over the river) to node `finish`.
+func _route_to(e: int, s: float, ring: Vector3, reached := true, finish := -1) -> void:
+	var tail := Vector2(ring.x, ring.z)
+	if reached and e >= 0:
+		_route.to_lane(e, s, tail)
+	elif finish >= 0:
+		_route.to_node(finish, tail)
+	else:
+		_route.clear()
+		return
+	_route_tick(RouteLine.REFRESH)
+	print("jobs: route on the minimap to %d,%d, %d points" % [roundi(ring.x), roundi(ring.z), _route.points.size()])
+
+
+## The route goes; `hud_too`: off the minimap as well (unless another activity drew one since).
+func _route_off(hud_too: bool) -> void:
+	_route.clear()
+	if _route_on and hud_too:
+		hud.clear_minimap_route("jobs")
+	_route_on = false
+
+
+## The delivered card's NASTĘPNE: the stand nearest the car by road (one search from the car's
+## lane), its arrow, ring and route until the car pulls in or something else starts.
+func point_next_stand() -> int:
+	if _stands.is_empty():
+		return -1
+	var p := Vector2(car.global_position.x, car.global_position.z)
+	var heading := Vector2(-sin(car.rotation.y), -cos(car.rotation.y))
+	var hit := graph.snap(p, 40.0, heading, true)
+	var best := -1
+	var best_d := INF
+	var dist := PackedFloat32Array()
+	if not hit.is_empty():
+		dist = graph.distances_from(graph.e_b[int(hit[0])], false)
+	for i in _stands.size():
+		var s := _stands[i]
+		var d := INF
+		if not dist.is_empty():
+			d = graph.trip(dist, int(hit[0]), float(hit[2]), int(s["edge"]), float(s["s"]))
+		if d >= INF:
+			d = Vector2(s["ring"].x, s["ring"].z).distance_to(p) * 1.4
+		if d < best_d:
+			best_d = d
+			best = i
+	if best < 0:
+		return -1
+	next_stand = best
+	_stands[best]["cool"] = false
+	var st := _stands[best]
+	_route_to(int(st["edge"]), float(st["s"]), st["ring"])
+	var who: String = "Kebab 24h" if st["name"] == "" else String(st["name"]).capitalize()
+	hud.toast("Następne zamówienie: %s, %d m" % [who, roundi(best_d)], "Next order: %s, %d m" % [who, roundi(best_d)])
+	print("jobs: next order pointer to stand %d (%s), %d m by road" % [best, who, roundi(best_d)])
+	return best
 
 
 # --- kebab -------------------------------------------------------------------------------
@@ -754,7 +853,10 @@ func _make_kebab_order(i: int, n: int, first := false) -> Dictionary:
 ## the one whose trip is nearest `aim` m (the guided first order).
 func _pick_address(e: int, s: float, from: Vector2, lo: float, hi: float, rng: RandomNumberGenerator, test: Callable,
 		aim := 0.0) -> Dictionary:
-	var dist := graph.distances_from(graph.e_b[e])
+	# Beta values (2026-11-04): without the off-map links. The player can't drive them (the edge
+	# roadworks close every road out), yet ~1 order in 30 counted one: a "1,053 m" trip that was
+	# really much longer by the roads on the map, with a clock (and a heat) to match the short one.
+	var dist := graph.distances_from(graph.e_b[e], false)
 	var list: Array[Dictionary] = []
 	for a in _addresses:
 		var d: float = (a["door"] as Vector2).distance_to(from)
@@ -810,6 +912,8 @@ func _begin_kebab(i: int, n: int) -> void:
 		_stands[i]["cool"] = true
 		return
 	_orders += 1
+	next_stand = -1
+	_route_off(true)
 	job = Job.KEBAB
 	state = State.ORDER
 	_t = 0.0
@@ -904,6 +1008,8 @@ func _go() -> void:
 	_beacon.waving = true
 	_beacon.recolour(KEBAB_COLOUR if job == Job.KEBAB else SLOIK_COLOUR)
 	_beacon.place(ring, ARRIVE - 0.5)
+	# Beta values: the way there on the minimap (the edge arrow alone points through the blocks).
+	_route_to(int(_order["edge"]), float(_order["s"]), ring, bool(_order["reached"]), int(_order["finish"]))
 	if job == Job.KEBAB:
 		_heat = start_heat
 		_beacon.recolour(KEBAB_COLOUR)
@@ -940,6 +1046,8 @@ func _deliver_tick(dt: float) -> void:
 	elif d > 40.0:
 		hint = ["Jedź do pomarańczowego światła", "Head for the orange beacon"] if job == Job.KEBAB \
 				else ["Jedź do turkusowego światła", "Head for the teal beacon"]
+		if job == Job.KEBAB:
+			hint = heat_hint()
 	elif d < ARRIVE:
 		hint = ["Stań pod drzwiami", "Stop at the door"]
 	else:
@@ -963,8 +1071,23 @@ func _deliver_tick(dt: float) -> void:
 				hint[0], _stress, SLOIK_COLOUR, "", {"jars": [_jars, JARS], "shake": clampf(_stress, 0.0, 1.0)}, hint[1])
 
 
+## Beta values (2026-11-04): the kebab's clock in words [pl, en]: how long it stays hot (the tip's
+## top band), then warm (a tip at all), from the heat's own decay (_deliver_tick: 0.6 / fair a
+## second). It was a bare "GORĄCY 85 %" that never said how long was left.
+func heat_hint() -> Array:
+	var rate := 0.6 / maxf(float(_order.get("fair", 60.0)), 1.0)
+	if _heat >= 0.7:
+		var s := ceili((_heat - 0.7) / rate - 0.01)
+		return ["Gorący jeszcze %d s" % s, "Hot for %d s more" % s]
+	if _heat >= 0.4:
+		var s := ceili((_heat - 0.4) / rate - 0.01)
+		return ["Ciepły jeszcze %d s, potem bez napiwku" % s, "Warm for %d s, then no tip" % s]
+	return ["Zimny: bez napiwku, kurs się liczy", "Cold: no tip, the fare still counts"]
+
+
 func _arrive() -> void:
 	state = State.RESULT
+	_delivered = true
 	_result_shown()
 	hud.hide_status()
 	_remove_ghost()
@@ -1025,7 +1148,7 @@ func _kebab_result() -> void:
 			" · nowy rekord!" if record and best > 0.0 else (" · rekord %s" % _clock_text(best) if best > 0.0 else "")]
 	hud.show_card("DOWIEZIONE · " + ("WCIĄŻ GORĄCY" if _heat >= 0.7 else ("CIEPŁY" if hot else "ZIMNY")),
 			"%s%s, %s: %s\n%s%s" % [quote, _order["customer"], _order["name"], times_pl, money_pl, race_pl],
-			PackedStringArray(["OK"]), KEBAB_COLOUR if hot else Color("#7fb8de"), true,
+			PackedStringArray(["OK", "NASTĘPNE"]), KEBAB_COLOUR if hot else Color("#7fb8de"), true,
 			"Delivered · " + ("still hot" if _heat >= 0.7 else ("warm" if hot else "cold")),
 			"%s%s · %s%s" % [quote_en, times, money, race_en])
 	print("kebab delivered: %s in %.1f s, heat %d%%, %s, paid %d zł (wallet %d zł)" % [_order["name"], _clock,
@@ -1079,6 +1202,8 @@ func _begin_sloik(n: int) -> void:
 		_station = {}
 		return
 	_orders += 1
+	next_stand = -1
+	_route_off(true)
 	job = Job.SLOIK
 	state = State.ORDER
 	_t = 0.0
@@ -1220,7 +1345,11 @@ func _on_card(index: int) -> void:
 				courier.cancel()
 				_release()
 		State.RESULT:
+			# Beta values: the delivered kebab card's NASTĘPNE points at the nearest stand.
+			var next := index == 1 and job == Job.KEBAB and _delivered
 			_release()
+			if next:
+				point_next_stand()
 
 
 ## Loop jobs-2: key L or the ŚCIGAJ button takes the courier's challenge (false when there is none).
@@ -1242,7 +1371,7 @@ func primary() -> bool:
 func secondary() -> bool:
 	if round_busy():
 		return roundup.secondary()
-	if state == State.ORDER:
+	if state == State.ORDER or (state == State.RESULT and _delivered and job == Job.KEBAB):
 		_on_card(1)
 		return true
 	return false
@@ -1250,6 +1379,7 @@ func secondary() -> bool:
 
 func _abandon() -> void:
 	state = State.RESULT
+	_delivered = false
 	_result_shown()
 	courier.cancel()
 	hud.hide_status()
@@ -1410,7 +1540,7 @@ func _start_ghost() -> void:
 	# Kebabs go fast; mum's jars go gently.
 	_ghost.speed_factor = 1.3 if job == Job.KEBAB else 0.95
 	_ghost.accel_factor = 1.5 if job == Job.KEBAB else 0.9
-	traffic.race_to(_ghost, finish, graph.distances_to(finish))
+	traffic.race_to(_ghost, finish, graph.distances_to(finish, INF, false))
 
 
 func _remove_ghost() -> void:

@@ -44,6 +44,7 @@ extends Node
 ## into the frame's phases (process after the streamer, draw, to the next physics frame, physics).
 
 const MapBuilder := preload("res://scripts/map_builder.gd")
+const EdgeRoadworks := preload("res://scripts/edge_roadworks.gd")
 const Proxies := preload("res://scripts/sector_proxies.gd")
 const IndexPack := preload("res://scripts/index_pack.gd")
 const CityMaps := preload("res://scripts/city_maps.gd")
@@ -231,6 +232,8 @@ func open(world: Node3D, use_prebuilt: bool, building_mat: ShaderMaterial, flat_
 		map.setup_streamed(index, building_mat, flat_mat)
 	map.name = "City"
 	world.add_child(map)
+	if prebuilt:
+		EdgeRoadworks.rebuild(map)
 	for k: Array in map.index_data["sectors"]["keys"]:
 		keys.append(Vector2i(int(k[0]), int(k[1])))
 	# Loop 3d-2b: the baked maps' slots, one per sector in full detail (all of them with --sectors=all).
@@ -310,6 +313,7 @@ static func open_whole(parent: Node, use_prebuilt: bool) -> Node3D:
 	if use_prebuilt:
 		map = (load(INDEX_SCENE) as PackedScene).instantiate()
 		parent.add_child(map)
+		EdgeRoadworks.rebuild(map)
 	else:
 		map = MapBuilder.new()
 		parent.add_child(map)
@@ -582,6 +586,17 @@ func idle() -> bool:
 		if s == WANTED or s == LOADING or s == ADDING:
 			return false
 	return true
+
+
+## The loading bar (main.gd `_title_frame`): sectors still wanted, loading or being added (the
+## worker's own counts once while it runs).
+func pending() -> int:
+	var n := 0
+	for key in keys:
+		var s: int = _state[key]["s"]
+		if s == WANTED or s == LOADING or s == ADDING:
+			n += 1
+	return n
 
 
 ## Sectors in full detail now.

@@ -262,6 +262,12 @@ autopilot as an average driver (`--ghost-pace=1.8`: the town car's corners, 1.8 
 and as a skilled one (`--ghost-pace=racer`: racer mode at the car's own top). Results in
 section 7.
 
+**R5 part 1** (beta values, 2026-11-04, `docs/design/beta-values.md` section 2): the route to the
+finish on the minimap (Trzy mosty: to the next bridge, again at each checkpoint), the gap in seconds
+(`rivals.gd time_gap`, `gap_words`: metres over the trailing car's speed, at least 8 m/s; "łeb w
+łeb!" under 6 m), a lead-change toast and tick (past 8 m the other way, once in 6 s, not in the first
+3 s) and the finish margin on the card. Not built: the rival's own edge arrow, slipstream (A/B).
+
 ---
 
 ## 7. Results (2026-11-04)
@@ -394,3 +400,71 @@ data). Beat a rival's time on a route for a star. This is the natural thing to p
 
 Order: after R3-R5 (the races themselves first), before the economy layer's E4 (the rival
 developer's race takeovers can reuse the board's drivers).
+
+---
+
+## 9. Human rivals (F, 2026-11-05)
+
+F after playing: every rival, Halina up, is "not competitive at all": slow, only on the roads,
+never a skrót, never cuts in front, nobody to chase. Research summary for F:
+/mnt/project-files/race-ai/rival-ai-research.md (Midnight Club's open-city AI, Game AI Pro's
+racing chapter, Pure's opening and target distances, Forza's multi-line Drivatars, fair rubber
+banding). No add-on: the smart part is our own lane-graph code. Built (R3 part 1, R4 part 2):
+
+- **They lead.** `aim` is now ahead of the player from Słoik up (Słoik 5 m, Bartek 25, Seba 35,
+  Zbyszek 40, Mike and the final 50); Halina 15 m behind after her launch (the first rung stays a
+  new player's win; the guided first race keeps `first_speed`). Shares 0.8 (Halina) to 1.0 (Mike,
+  the final: the player's own top speed), pull 8-12 m/s², grip 6-10. Racer road-class caps
+  33/29/25/16 m/s (were 30/25/19/12: 68 km/h on the side streets). The band's floor on screen is
+  0.65 of the top (was 0.5), its cap the player's top (was 0.98), and for the first `OPEN_BURST`
+  12 s it never holds a rival under its top (Pure: they launch past you, the race starts as a
+  chase). The band also moves corner grip (×0.85-1.15): behind, a rival corners harder.
+- **Shortcuts.** `tools/race_cuts.py` finds straight cuts between two junctions that save at least
+  30 m and 1.5× by road (22-160 m long) through a clear 2.8 m corridor: no building, landmark,
+  wall, fence, hedge, platform, steps, rails, water or pitch, no tree, lamp, parked car, kiosk,
+  shelter, column, bench, bin or bike stand, level ground (terrain), at most 30 % on a
+  carriageway and one road crossed, and no park or street detail or monument from game/data. 600 on the map (game/data/race_cuts.json, keyed by
+  position). `race_cuts.gd` snaps them to the graph and hands them out by knowledge (`cuts`:
+  Słoik 0, Halina 0.3, Bartek 0.4, Mike 0.5, Seba 0.6, Zbyszek and the final 1.0). The race's
+  distances count the cuts the rival knows (`distances_to`'s `extra_in`), exactly as the driver
+  takes them (`Traffic.best_cut`: the cut plus the road on must save `RaceCuts.GAIN` 12 m; it joins
+  only roads within 100° of its line), so a racer never circles a cut it won't take. The racer
+  drives it as a long junction curve at most 16 m/s. The ghost (autopilot) keeps roads only.
+- **Mistakes, wrong turns, a phone.** `mistake` per corner within 110 m of the player: 30 % too fast,
+  then a slide out wide and 0.8 s of lifting off (Halina 0.3, Bartek 0.2). `wrong`: Słoik takes the
+  second-best way once a race (more than 300 m out). `phone`: Mike lifts off for 1.2 s once, a third
+  to two thirds in.
+- **Blocking and cutting in.** `block`: with the player 3-22 m behind and catching, once in 2.5 s
+  the rival rolls it and, on a hit, moves across onto the player's line once (Game AI Pro's one
+  lateral move), holding 2.2 s (Seba 0.9, Zbyszek 0.4, Bartek and Mike 0.3, the final 1.0). From
+  0.5 a pass on the player pulls back in 7 m sooner, in front of the bumper.
+- **Lines** (`HUMAN_LINES`, within 120 m, 6 s apart): a shortcut ("Skrótem, kierowniku!",
+  Zbyszek's "since '87", Halina's bazaar), a wrong turn, a mistake, a block, Mike's call.
+- **Check:** `racecuts` (`check_race_cuts.gd`): the file snaps, knowledge, the routing never
+  longer with cuts, 60 races driven by `best_cut` all arrive and about one in four takes a cut.
+
+Not built: wrong-way hops along one-way streets (a cut along a road is refused: it would drive
+through oncoming cars), a rival's own slipstream, nudges (contact) beyond the block, and the cut
+shown to the player after a loss.
+
+### 9.1 Results (headless, `tools/race_ai.sh` and single runs, 2026-11-05)
+
+Every rival against the autopilot as an average driver (`--ghost-pace=1.8`) and a skilled one
+(`--ghost-pace=racer`: racer mode at the car's own top), the same start spots and finishes as
+section 7. Margin: the time the loser still needed at the line.
+
+| Rival | Average driver, main | Average driver, now | Skilled driver, main | Skilled driver, now |
+| --- | --- | --- | --- | --- |
+| Pani Halina | player by 27 m | player by 2.0 s | player by 40 m | player by 8.4 s |
+| Słoik z Radomia | Słoik by 44 m | player by 1.8 s (Słoik by 8 m in a tuning run) | player by 218 m | player by 8.4 s, Słoik led twice |
+| Bulwar Bartek | Bartek by 178 m | Bartek by 14.9 s | player by 122 m | **Bartek by 1.9 s** (2 shortcuts, 3 blocks) |
+| Seba z Pragi | Seba by 128 m | Seba by 16.1 s | Seba by 12 m | **Seba by 1.2 s** (9 blocks) |
+| Taksiarz Zbyszek | Zbyszek by 63 m | Zbyszek by 89 s (a shortcut) | player by 191 m | **player by 1.9 s**, two lead changes |
+| Mordor Mike | Mike by 341 m | Mike by 34.7 s | player by 105 m | **player by 4.2 s**, four lead changes |
+
+On main a skilled player beat five of six by 40-218 m; now the top four are races decided by
+1-4 s with lead changes, and a beginner still beats Halina and Słoik by a hair. Shortcuts: 0-2 a
+race (the racecuts check: about one race in four for a rival who knows them all); most finishes'
+last kilometre has few clear cuts, so more of them would need wrong-way hops (R3 part 2). Open for
+the phone: the feel of the block and the cut-in at the player's own speed, and whether Halina's
+photo finish is too close for a first-time player (the guided first race keeps its own script).

@@ -22,6 +22,8 @@ extends RefCounted
 ## (default) / Dużo picks the gap (GAPS). Pure state on its own clock: tools/check_chatter.gd
 ## drives it with tick() and no game.
 
+const Access := preload("res://scripts/access.gd")
+
 enum {QUEST, POLICE, REACTION, AMBIENT}
 
 ## Seconds between two new bubbles for each level: Mało, Średnio (the default), Dużo.
@@ -36,6 +38,15 @@ const BUMP_MIN_KMH := 15.0
 ## A bump's reaction (a driver's shout) comes in the same moment as the hit: the hit counts this long.
 const HIT_MEMORY := 0.6
 const NEAR_MISS_GAP := 60.0
+
+## Reading time (F 2026-11-05: "messages disappear too fast, I don't have time to read"): how long
+## a line stays up is its length, not a fixed few seconds. READ_BASE s to notice it, then
+## READ_PER_CHAR per character (about 16 characters a second, slow enough for a glance at a phone
+## while driving), never under READ_MIN or over READ_MAX; large text (access.gd) adds its scale.
+const READ_BASE := 1.4
+const READ_PER_CHAR := 0.065
+const READ_MIN := 3.0
+const READ_MAX := 11.0
 
 var level := DEFAULT_LEVEL
 var clock := 0.0
@@ -52,6 +63,12 @@ var _near_miss_at := -INF
 var _quiet_until := -INF
 var _hit_at := -INF
 var _hit_kmh := 0.0
+
+
+## Seconds a line of `text` (all of it, English gloss included) needs to be read.
+static func read_time(text: String) -> float:
+	var t := READ_BASE + text.length() * READ_PER_CHAR
+	return clampf(t * Access.text_scale, READ_MIN, READ_MAX * Access.text_scale)
 
 
 func gap() -> float:

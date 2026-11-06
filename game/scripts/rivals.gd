@@ -32,9 +32,13 @@ const Beacon := preload("res://scripts/beacon.gd")
 const Ladder := preload("res://scripts/ladder.gd")
 const TrzyMosty := preload("res://scripts/trzy_mosty.gd")
 const Districts := preload("res://scripts/districts.gd")
+const RouteLine := preload("res://scripts/route_line.gd")
+const RaceCuts := preload("res://scripts/race_cuts.gd")
 
 const CHALLENGE_RANGE := 15.0
 const FINISH_RADIUS := 16.0
+## The finish margin's metres are at most the straight line to the finish times this.
+const MARGIN_DETOUR := 1.4
 const RACE_COLOUR := Color("#ff4fd8")
 const WIN_COLOUR := Color("#56d68a")
 const LOSE_COLOUR := Color("#e2574c")
@@ -73,7 +77,7 @@ const FIRST_CATCH := 0.85
 const FIRST_K := 60.0
 ## Her slowest (a share of her racing top) and the pace she starts from (m/s) before the player's
 ## progress is known.
-const FIRST_FLOOR := 0.3
+const FIRST_FLOOR := 0.25
 const FIRST_RATE0 := 8.0
 const FIRST_FAR_PACE := 0.8
 const FIRST_EASE := 140.0
@@ -86,17 +90,41 @@ const FIRST_LOSE := 150.0
 ## top while on screen (still racing; BAND_FLOOR_UNSEEN out of sight), and never takes her over BAND_CAP of the player's top speed.
 const BAND_K := 80.0
 const BAND_BOOST := 0.3
-const BAND_FLOOR := 0.5
+const BAND_FLOOR := 0.65
+## ... and for the bottom rungs (band weight from BAND_EASE_WEIGHT: Halina, Słoik), so a slow player
+## can still catch them (headless, 2026-11-05: Halina at 0.65 of her new top beat an average driver).
+const BAND_FLOOR_LOW := 0.35
 ## Out of sight she may wait more (a far-ahead Halina for an average driver): nobody sees it.
 const BAND_FLOOR_UNSEEN := 0.3
 ## The bottom rungs (band weight from BAND_EASE_WEIGHT: Halina, Słoik, Bartek) lift off on the last
 ## FIRST_EASE m for a player less than BAND_EASE_GAP × weight m behind (headless runs: an average
 ## driver lost to Halina by 38 m, she held half her top on screen to the line).
 const BAND_EASE_WEIGHT := 0.5
-const BAND_EASE_GAP := 80.0
-## ... to this share of the player's own pace.
-const BAND_EASE_PACE := 0.6
-const BAND_CAP := 0.98
+const BAND_EASE_GAP := 160.0
+## ... to this share of the player's own pace (at least BAND_EASE_FLOOR of her top), on the last
+## BAND_EASE_LEFT m (2026-11-05: 140 m and 0.6 let the faster Halina hold off an average driver).
+const BAND_EASE_PACE := 0.5
+const BAND_EASE_FLOOR := 0.15
+const BAND_EASE_LEFT := 250.0
+const BAND_CAP := 1.0
+## Human rivals (F 2026-11-05, Pure's opening): for the first OPEN_BURST s of a race (not the guided
+## first one) the band never holds a rival under its own top, so it launches past the player and
+## the race starts as a chase.
+const OPEN_BURST := 12.0
+## What a rival says when it does something human (traffic.gd counts it), [Polish, English] (each
+## at most 70 characters), only within HUMAN_NEAR m of the player and HUMAN_QUIET s after its last line.
+const HUMAN_NEAR := 120.0
+const HUMAN_QUIET := 6.0
+const HUMAN_LINES := {
+	"cut": [["Skrótem, kierowniku!", "Shortcut, boss!"], ["Kto zna miasto, ten nie jeździ ulicami!", "Know the city, skip the streets!"]],
+	"cut_zbyszek": [["Ten skrót znam od osiemdziesiątego siódmego!", "Known this shortcut since '87!"], ["Przez plac, szefie, jak za dawnych lat!", "Across the square, chief, like the old days!"]],
+	"cut_halina": [["Babcia zna drogę na bazar na skróty!", "Granny knows the shortcut to the bazaar!"], ["Przepraszam, gołąbki! Babcia się spieszy!", "Sorry, pigeons! Granny's in a hurry!"]],
+	"wrong": [["Nawigacja mówi: zawróć. Mama mówi: jedź prosto!", "Satnav says turn back. Mum says go straight!"], ["To nie ta ulica? Wszystkie tu takie same!", "Wrong street? They all look the same here!"]],
+	"mistake": [["Ups, za szybko!", "Whoops, too fast!"], ["Ten zakręt wczoraj był łagodniejszy!", "That corner was gentler yesterday!"]],
+	"mistake_halina": [["Jezus Maria, ten zakręt!", "Good Lord, that corner!"], ["Za moich czasów zakręty były prostsze!", "In my day the corners were straighter!"]],
+	"block": [["Nie tędy, mordo!", "Not this way, buddy!"], ["Zajęte, mordo, szukaj innej drogi!", "Taken, buddy, find another way!"]],
+	"phone": [["Halo? Nie teraz, jestem na wyścigu… znaczy na callu!", "Hello? Not now, I'm in a race... I mean a call!"]],
+}
 ## The Palm is the finish when it is at most this far by road from her; else an ordinary one.
 const FIRST_FAR := 1600.0
 ## She rolls up from about FIRST_BACK m behind; the prompt waits FIRST_WAIT s for the flash, or
@@ -292,6 +320,18 @@ var _finish: Dictionary = {}
 var _dist := PackedFloat32Array()
 ## Finish node -> driving distances to it from every node (computed once each).
 var _dist_to := {}
+## Human rivals: the city's shortcuts (race_cuts.gd), the race's links for the rival's known ones
+## (empty: none) and the distances with them, per finish node.
+var _cuts: RaceCuts
+var _cut_in := {}
+var _cut_table := {}
+var _cut_dist := {}
+var _stats := {}
+var _seen_cuts := 0
+var _seen_mistakes := 0
+var _seen_wrong := 0
+var _seen_blocks := 0
+var _phone_at := INF
 var _t := 0.0
 var _race_time := 0.0
 var _races := 0
@@ -310,6 +350,25 @@ var _caller := -1
 ## and the route's length at the start (the first race's band); the band's range this race.
 var _rate := FIRST_RATE0
 var _last_player_left := INF
+## Beta values (2026-11-04, docs/design/beta-values.md): the race shown better (street races R5):
+## the way to the finish (or the next bridge) on the minimap, the gap in seconds, a lead change said
+## once, and the finish's margin in seconds on the card.
+var _route: RouteLine
+var _route_cp := -1
+## Who leads now (true: the player) as last said, the seconds since, and the two speeds smoothed (m/s).
+var _lead_player := true
+var _lead_known := false
+var _lead_said := 0.0
+var _v_player := 0.0
+var _v_rival := 0.0
+## A lead changes hands only past this many metres the other way (no flicker side by side), and is
+## said at most once in LEAD_GAP s.
+const LEAD_MARGIN := 8.0
+const LEAD_GAP := 6.0
+## Side by side: the gap reads "łeb w łeb" under this many metres.
+const LEVEL_M := 6.0
+## The time gap's speed floor (m/s): standing still, the trailing car would never get there.
+const GAP_FLOOR := 8.0
 var _route_total := 0.0
 var _band_lo := 1.0
 var _band_hi := 1.0
@@ -339,6 +398,9 @@ func setup(lane_graph: LaneGraph, traffic_node: Traffic, hud_layer: CanvasLayer,
 	car = player_car
 	_rng.seed = 7
 	_find_finishes(data)
+	_cuts = RaceCuts.new()
+	_cuts.load_cuts(graph)
+	print("rivals: %d shortcuts (%d of %d unmatched)" % [_cuts.a.size(), _cuts.missed, _cuts.total])
 	# Loop 3h slice 3: the ladder and the final's route.
 	ladder = Ladder.new()
 	ladder.wallet = wallet
@@ -596,7 +658,8 @@ func start_race(i: int) -> void:
 		_finish = {}  # the player is far from the Palm (another stand's order): a nearer finish, the same tuning
 	if _finish.is_empty():
 		_finish = _pick_finish(d)
-	_dist = _distances(_finish["node"])
+	_use_cuts(Ladder.rung_of(RIVALS[i]["name"]), i)
+	_dist = _race_distances(_finish["node"])
 	print("race: %s to %s, %d m by road (picked in %.1f ms)" % [RIVALS[i]["name"], _finish["name"],
 			roundi(graph.remaining(_dist, d.edge, d.s)), (Time.get_ticks_usec() - t0) / 1000.0])
 	_races += 1
@@ -635,6 +698,24 @@ func _pick_finish(d) -> Dictionary:
 	return fits[(_races * 7 + rival * 3) % fits.size()]
 
 
+## Human rivals: the shortcuts rival i knows on rung `rung` (its `cuts` share) for this race.
+func _use_cuts(rung: int, i: int) -> void:
+	_stats = Ladder.racer(rung)
+	var both := _cuts.links(float(_stats["cuts"]), hash(String(RIVALS[i]["name"])))
+	_cut_table = both[0]
+	_cut_in = both[1]
+	_cut_dist = {}
+
+
+## The race's distances to `node`: with the rival's shortcuts (cached per race), else the roads'.
+func _race_distances(node: int) -> PackedFloat32Array:
+	if _cut_in.is_empty():
+		return _distances(node)
+	if not _cut_dist.has(node):
+		_cut_dist[node] = graph.distances_to(node, INF, true, _cut_in)
+	return _cut_dist[node]
+
+
 func _distances(node: int) -> PackedFloat32Array:
 	if not _dist_to.has(node):
 		_dist_to[node] = graph.distances_to(node)
@@ -645,6 +726,106 @@ func _process(dt: float) -> void:
 	var t0 := Time.get_ticks_usec()
 	_frame(dt)
 	spent_usec += Time.get_ticks_usec() - t0
+
+
+# --- beta values: the race shown better (street races R5) ------------------------------------------
+
+## The route on the minimap from COUNTDOWN to the finish: to the finish, or in the final to the
+## next bridge's checkpoint (again when the checkpoint is passed).
+func _route_tick(dt: float) -> void:
+	if graph == null or car == null:
+		return
+	if _route == null:
+		_route = RouteLine.new(graph)
+	if final_on:
+		if _final_dists.size() < final_route.legs.size():
+			return
+		if _route_cp != _cp:
+			_route_cp = _cp
+			var j := mini(2 * _cp + 1, final_route.legs.size() - 1)
+			var goal: Vector3 = final_target()
+			_route.to_node(final_route.legs[j], Vector2(goal.x, goal.z), _final_dists[j])
+	elif not _route.active():
+		_route.to_node(int(_finish["node"]), Vector2(_finish["pos"].x, _finish["pos"].z))
+	var heading := Vector2(-sin(car.rotation.y), -cos(car.rotation.y))
+	if _route.update(Vector2(car.global_position.x, car.global_position.z), heading, dt):
+		hud.set_minimap_route(_route.points, FINAL_COLOUR if final_on else RACE_COLOUR, "race")
+
+
+func _route_off() -> void:
+	if _route != null:
+		_route.clear()
+	_route_cp = -1
+	if hud != null and hud.has_method("clear_minimap_route"):
+		hud.clear_minimap_route("race")
+
+
+## Seconds between the two cars: the metres between them over the trailing car's speed (at least
+## GAP_FLOOR m/s), so 40 m at 80 km/h reads 1.8 s.
+static func time_gap(gap_m: float, trailing_speed: float) -> float:
+	return absf(gap_m) / maxf(trailing_speed, GAP_FLOOR)
+
+
+## The status line's gap [pl, en]: "Pani Halina 2,4 s za tobą", or level under LEVEL_M m.
+static func gap_words(who: String, gap_m: float, seconds: float, first: bool) -> Array:
+	if absf(gap_m) < LEVEL_M:
+		return ["%s: łeb w łeb!" % who, "%s: neck and neck!" % who]
+	var s := ("%.1f" % seconds)
+	return ["%s %s s %s" % [who, s.replace(".", ","), "za tobą" if first else "przed tobą"],
+			"%s %s s %s" % [who, s, "behind" if first else "ahead"]]
+
+
+## The lead changes hands (from the 5 Hz ranking): a toast and a tick, once in LEAD_GAP s.
+func _lead_tick(dt: float) -> void:
+	_lead_said += dt
+	var margin := _rival_left - _player_left  # > 0: the player is in front
+	var now := _lead_player
+	if _lead_player and margin < -LEAD_MARGIN:
+		now = false
+	elif not _lead_player and margin > LEAD_MARGIN:
+		now = true
+	if not _lead_known or now == _lead_player:
+		return
+	_lead_player = now
+	if _lead_said < LEAD_GAP or _race_time < 3.0:
+		return
+	_lead_said = 0.0
+	var who: String = RIVALS[rival]["name"]
+	if now:
+		hud.toast("PROWADZISZ! %s za tobą" % who, "YOU LEAD! %s is behind" % who)
+	else:
+		hud.toast("%s cię wyprzedza!" % who, "%s takes the lead!" % who)
+	Access.buzz(40, 0.5)
+	print("race: lead change at %.1f s, %s in front" % [_race_time, "the player" if now else who])
+
+
+## The two speeds for the gap, smoothed over about a second (5 Hz).
+func _speeds(d) -> void:
+	_v_player = lerpf(_v_player, Vector2(car.vel.x, car.vel.z).length(), 0.25)
+	_v_rival = lerpf(_v_rival, float(d.v), 0.25)
+	if not _lead_known:
+		# The first ranking sets who leads, quietly.
+		_lead_known = true
+		_lead_player = _player_left <= _rival_left
+
+
+## The finish's margin in seconds: the one still driving needs this long at their speed now.
+## The metres are capped by the straight line to the finish x MARGIN_DETOUR (PT-22: a route left
+## that loops round a dual carriageway made an 11 m gap read "by 47.1 s").
+func _finish_margin(won: bool) -> float:
+	if final_on:
+		return time_gap(_rival_left if won else _player_left, _v_rival if won else _v_player)
+	var goal := Vector2(_finish["pos"].x, _finish["pos"].z)
+	if won:
+		var d = _drivers[rival]
+		return time_gap(minf(_rival_left, Vector2(d.pos.x, d.pos.z).distance_to(goal) * MARGIN_DETOUR), _v_rival)
+	var at := Vector2(car.global_position.x, car.global_position.z)
+	return time_gap(minf(_player_remaining(), at.distance_to(goal) * MARGIN_DETOUR), _v_player)
+
+
+## The trailing car's speed for the gap: the player's when behind, the rival's when in front.
+func _gap_seconds(first: bool) -> float:
+	return time_gap(_rival_left - _player_left, _v_rival if first else _v_player)
 
 
 func _frame(dt: float) -> void:
@@ -688,6 +869,7 @@ func _frame(dt: float) -> void:
 			var n := 3 - int(_t)
 			hud.show_banner(str(n) if n > 0 else "START!", Color.WHITE if n > 0 else WIN_COLOUR)
 			_show_status()
+			_route_tick(dt)
 			if _t >= 3.0:
 				_go()
 		State.RACE:
@@ -697,6 +879,8 @@ func _frame(dt: float) -> void:
 			if _t > 1.0 and _nudge_banner_t <= 0.0:
 				hud.hide_banner()
 			_track(dt)
+			if state == State.RACE:
+				_route_tick(dt)
 
 
 func _look_for_challenge() -> void:
@@ -742,6 +926,10 @@ func _go() -> void:
 	# PT-11: in the first race she waits at the line until the player moves (`_first_start`).
 	_first_hold = first_race
 	_go_nudged = false
+	_lead_known = false
+	_lead_said = 0.0
+	_v_player = 0.0
+	_v_rival = 0.0
 	_stall_t = 0.0
 	_stalls = 0
 	_nudge_banner_t = 0.0
@@ -760,6 +948,20 @@ func _go() -> void:
 	d.race_band = 1.0
 	d.race_still = 0.0
 	d.race_passes = 0
+	# Human rivals: shortcuts, mistakes, wrong turns, blocking (ladder.gd's personality).
+	d.cuts = _cut_table
+	d.race_mistake = float(stats.get("mistake", 0.0))
+	d.race_wrong = int(stats.get("wrong", 0))
+	d.race_block = float(stats.get("block", 0.0))
+	d.cuts_taken = 0
+	d.mistakes = 0
+	d.wrong_turns = 0
+	d.blocks = 0
+	_seen_cuts = 0
+	_seen_mistakes = 0
+	_seen_wrong = 0
+	_seen_blocks = 0
+	_phone_at = _rng.randf_range(0.3, 0.6) if bool(stats.get("phone", false)) else INF
 	_rate = FIRST_RATE0
 	_last_player_left = INF
 	_route_total = 0.0
@@ -844,7 +1046,9 @@ func _track(dt: float) -> void:
 	if to_finish < FINISH_RADIUS and not flying:
 		_finish_race(true, "")
 		return
-	if d.arrived:
+	# The rival finishes at the same circle as the player (PT-22: a finish node across a dual
+	# carriageway routed the rival round a 500 m loop from 30 m away).
+	if d.arrived or Vector2(d.pos.x, d.pos.z).distance_to(Vector2(_finish["pos"].x, _finish["pos"].z)) < FINISH_RADIUS:
 		_finish_race(false, "")
 		return
 	_rank_timer -= dt
@@ -853,6 +1057,9 @@ func _track(dt: float) -> void:
 		_rival_left = traffic.remaining(d)
 		_player_left = _player_remaining()
 		_band(d)
+		_speeds(d)
+		_lead_tick(0.2)
+		_human_tick(d)
 	_show_status()
 
 
@@ -892,8 +1099,9 @@ func _show_status() -> void:
 	var goal_en: String = _finish["en"]
 	var hint := ["Jedź %s! Różowa strzałka pokaże drogę." % goal_pl, "Drive %s! The pink arrow shows the way." % goal_en]
 	if state == State.RACE:
-		hint = ["Jedź %s! %s: %d m %s." % [goal_pl, r["name"], roundi(gap), "za tobą" if first else "przed tobą"],
-				"Drive %s! %s is %d m %s." % [goal_en, r["name"], roundi(gap), "behind" if first else "ahead"]]
+		# Beta values (R5): the gap in seconds ("Pani Halina 2,4 s za tobą"); it was metres.
+		var g := gap_words(r["name"], gap, _gap_seconds(first), first)
+		hint = ["Jedź %s! %s." % [goal_pl, g[0]], "Drive %s! %s." % [goal_en, g[1]]]
 	hud.show_status("WYŚCIG · " + Lang.pick(goal_pl, goal_en).to_upper(), _clock(_race_time), "%d m" % metres,
 			hint[0], 0.0, RACE_COLOUR, ("1ST" if first else "2ND") if state == State.RACE else "", {}, hint[1])
 
@@ -903,6 +1111,7 @@ func _finish_race(won: bool, why: String) -> void:
 		_finish_final(won, why)
 		return
 	state = State.RESULT
+	_route_off()
 	hud.hide_banner()
 	hud.hide_status()
 	if first_race and hud.finger_shown():
@@ -919,6 +1128,11 @@ func _finish_race(won: bool, why: String) -> void:
 		traffic.remove(_ghost)
 		_ghost = null
 	var r: Dictionary = RIVALS[rival]
+	# Beta values (R5): a close finish shows as close: "o 0,8 s".
+	var margin := _finish_margin(won) if why == "" else 0.0
+	var by_pl := " (o %s s)" % ("%.1f" % margin).replace(".", ",")
+	var by_en := " (by %.1f s)" % margin
+	print("race: finish margin %.1f s" % margin)
 	# The rival talks back: a grudging line when they lose, a gloat when they win.
 	var line: Array = r["lose" if won else "win"][_rng.randi() % 2]
 	_say(rival, line[0], line[1], 5.0)
@@ -962,17 +1176,17 @@ func _finish_race(won: bool, why: String) -> void:
 		var total := (" · wallet %s · respect %d" % [_money(wallet.zl), wallet.respect]) if wallet != null else ""
 		var total_pl := (" · w portfelu %s · szacunek %d" % [_money(wallet.zl), wallet.respect]) if wallet != null else ""
 		var record_pl := record.replace("new best!", "nowy rekord!").replace("best", "rekord")
-		hud.show_card("WYGRANA · 1. MIEJSCE", "Meta: %s, czas %s%s. %s za tobą.\n„%s”\n+%d zł (stawka%s) · szacunek +%d%s" % [
-				_finish["name"], _clock(_race_time), record_pl, who, line[0], stake, bonus_pl, gain, total_pl],
+		hud.show_card("WYGRANA · 1. MIEJSCE", "Meta: %s, czas %s%s. %s za tobą%s.\n„%s”\n+%d zł (stawka%s) · szacunek +%d%s" % [
+				_finish["name"], _clock(_race_time), record_pl, who, by_pl, line[0], stake, bonus_pl, gain, total_pl],
 				PackedStringArray(["OK"]), WIN_COLOUR, false, "Win · 1st",
-				"You beat %s to %s in %s%s. %s +%d zł (the stake%s) · respect +%d%s" % [
-				who, _finish["name"], _clock(_race_time), record, line[1], stake, bonus_en, gain, total])
+				"You beat %s to %s in %s%s%s. %s +%d zł (the stake%s) · respect +%d%s" % [
+				who, _finish["name"], _clock(_race_time), by_en, record, line[1], stake, bonus_en, gain, total])
 		Access.buzz(150, 0.9)
 	else:
 		var short := roundi(_player_remaining())
-		var reason := why if why != "" else "%s got to %s first. You were %d m short after %s." % [who, _finish["name"], short, _clock(_race_time)]
-		var reason_pl := "Wyścig poddany." if why != "" else "%s pierwszy na mecie: %s. Zabrakło ci %d m, czas %s." % [
-				who, _finish["name"], short, _clock(_race_time)]
+		var reason := why if why != "" else "%s got to %s first. You were %d m short%s after %s." % [who, _finish["name"], short, by_en, _clock(_race_time)]
+		var reason_pl := "Wyścig poddany." if why != "" else "%s pierwszy na mecie: %s. Zabrakło ci %d m%s, czas %s." % [
+				who, _finish["name"], short, by_pl, _clock(_race_time)]
 		hud.show_card("PRZEGRANA · 2. MIEJSCE", "%s\n„%s”" % [reason_pl, line[0]],
 				PackedStringArray(["OK"]), LOSE_COLOUR, false, "Lose · 2nd", "%s %s" % [reason, line[1]])
 
@@ -1061,10 +1275,11 @@ static func band_mult(her_left: float, player_left: float, weight: float, rate: 
 	var follow := maxf(rate, 4.0) * (1.0 + clampf(gap / BAND_K, -0.5, 0.8)) / maxf(top, 1.0)
 	var mult := lerpf(1.0, follow, weight)
 	var ahead := player_left - her_left
-	if weight >= BAND_EASE_WEIGHT and her_left < FIRST_EASE and ahead > 0.0 and ahead < BAND_EASE_GAP * weight:
+	if weight >= BAND_EASE_WEIGHT and her_left < BAND_EASE_LEFT and ahead > 0.0 and ahead < BAND_EASE_GAP * weight:
 		# The bottom rungs on the last stretch: a close player gets the win (she lifts off).
-		return clampf(maxf(rate, 4.0) * BAND_EASE_PACE / maxf(top, 1.0), BAND_FLOOR_UNSEEN, 1.0)
-	return clampf(mult, BAND_FLOOR if seen else BAND_FLOOR_UNSEEN, 1.0 if seen else 1.0 + BAND_BOOST * weight)
+		return clampf(maxf(rate, 4.0) * BAND_EASE_PACE / maxf(top, 1.0), BAND_EASE_FLOOR, 1.0)
+	var floor := (BAND_FLOOR_LOW if weight >= BAND_EASE_WEIGHT else BAND_FLOOR) if seen else BAND_FLOOR_UNSEEN
+	return clampf(mult, floor, 1.0 if seen else 1.0 + BAND_BOOST * weight)
 
 
 ## The player's car's top speed (m/s, its model and engine; nitro left out), as police.gd's chase_top.
@@ -1091,17 +1306,56 @@ func _band(d) -> void:
 		var rung := Ladder.FINAL if final_on else Ladder.rung_of(RIVALS[rival]["name"])
 		var stats := Ladder.racer(rung)
 		mult = band_mult(_rival_left, _player_left, float(stats["band"]), _rate, top, d.visible, float(stats["aim"]))
+		if _race_time < OPEN_BURST:
+			mult = maxf(mult, 1.0)  # Pure's opening: launch past the player first
 		mult = minf(mult, BAND_CAP * player_top() / top)
 	d.race_band = mult
 	_band_lo = minf(_band_lo, mult)
 	_band_hi = maxf(_band_hi, mult)
 
 
+## Human rivals, 5 times a second: the phone call (Mike) and a line for what the rival just did
+## (traffic.gd's counts: a shortcut, a wrong turn, a mistake, a block), if the player is near.
+func _human_tick(d) -> void:
+	if _phone_at < INF and _route_total > 0.0 and _rival_left < INF and 1.0 - _rival_left / _route_total >= _phone_at:
+		_phone_at = INF
+		d.daze = 1.2  # lifts off for the call (coasting, not a stop)
+		_human_say("phone")
+	var kind := ""
+	if d.cuts_taken > _seen_cuts:
+		_seen_cuts = d.cuts_taken
+		kind = "cut"
+	if d.wrong_turns > _seen_wrong:
+		_seen_wrong = d.wrong_turns
+		kind = "wrong"
+	if d.mistakes > _seen_mistakes:
+		_seen_mistakes = d.mistakes
+		kind = "mistake"
+	if d.blocks > _seen_blocks:
+		_seen_blocks = d.blocks
+		kind = "block"
+	if kind != "":
+		_human_say(kind)
+
+
+func _human_say(kind: String) -> void:
+	var d = _drivers[rival]
+	if quiet or Vector2(d.pos.x - car.global_position.x, d.pos.z - car.global_position.z).length() > HUMAN_NEAR \
+			or _t - _said[rival] < HUMAN_QUIET:
+		return
+	var lines: Array = HUMAN_LINES[kind]
+	for w in String(RIVALS[rival]["name"]).to_lower().split(" "):
+		if HUMAN_LINES.has(kind + "_" + w):
+			lines = HUMAN_LINES[kind + "_" + w]
+	var line: Array = lines[_rng.randi() % lines.size()]
+	_say(rival, line[0], line[1], 2.5)
+
+
 ## Street races: one line on how the rival raced (for tuning and check_race_ai's runs).
 func _race_log(d, won: bool) -> void:
-	print("race ai: %s %s in %.1f s · top %.1f m/s · band %.2f-%.2f · stopped %.1f s · %d passes · gap %.0f m" % [
+	print("race ai: %s %s in %.1f s · top %.1f m/s · band %.2f-%.2f · stopped %.1f s · %d passes · %d cuts · %d mistakes · %d wrong · %d blocks · gap %.0f m" % [
 			RIVALS[rival]["name"], "lost to the player" if won else "won", _race_time, d.race_top, _band_lo, _band_hi,
-			d.race_still, d.race_passes, _rival_left - _player_left])
+			d.race_still, d.race_passes, d.cuts_taken, d.mistakes, d.wrong_turns, d.blocks, _rival_left - _player_left])
 
 
 ## Back to cruising after a race: the town car's pace, no racer mode.
@@ -1112,6 +1366,10 @@ func _cruise(d) -> void:
 	d.race_top = 0.0
 	d.race_accel = 0.0
 	d.race_band = 1.0
+	d.cuts = {}
+	d.race_mistake = 0.0
+	d.race_wrong = 0
+	d.race_block = 0.0
 
 
 ## Loop 3h slice 4: Halina (rival `name`) rolls up behind the player for the guided first race:
@@ -1394,6 +1652,7 @@ func start_final() -> void:
 	_seba_waiting = false
 	final_on = true
 	rival = _seba
+	_use_cuts(Ladder.FINAL, _seba)
 	_cp = _start_leg >> 1
 	_leg = _start_leg
 	_ghost_leg = _start_leg
@@ -1417,7 +1676,7 @@ func start_final() -> void:
 ## One leg's distances a frame (about 8 ms each on the Linux container) during the challenge.
 func _prepare_final_step() -> void:
 	if _final_dists.size() < final_route.legs.size():
-		_final_dists.append(_distances(final_route.legs[_final_dists.size()]))
+		_final_dists.append(_race_distances(final_route.legs[_final_dists.size()]))
 		if _final_dists.size() == final_route.legs.size():
 			_sum_legs()
 
@@ -1425,7 +1684,7 @@ func _prepare_final_step() -> void:
 ## Every leg's distances now (the start of the race, or the ghost).
 func _prepare_final() -> void:
 	while _final_dists.size() < final_route.legs.size():
-		_final_dists.append(_distances(final_route.legs[_final_dists.size()]))
+		_final_dists.append(_race_distances(final_route.legs[_final_dists.size()]))
 	if _after.size() != final_route.legs.size():
 		_sum_legs()
 
@@ -1458,7 +1717,7 @@ func _track_final(dt: float) -> void:
 			return
 	if _ghost != null and _ghost.arrived and _ghost_leg < final_route.legs.size() - 1:
 		_ghost_leg += 1
-		traffic.race_to(_ghost, final_route.legs[_ghost_leg], _final_dists[_ghost_leg])
+		traffic.race_to(_ghost, final_route.legs[_ghost_leg], _distances(final_route.legs[_ghost_leg]))
 	_rank_timer -= dt
 	if _rank_timer <= 0.0:
 		# 5 Hz: the checkpoint, the finish and who is in front.
@@ -1484,6 +1743,8 @@ func _track_final(dt: float) -> void:
 		var goal: Vector3 = final_target()
 		_player_left = _remaining_by(_final_dists[j], goal) + _after[j]
 		_band(d)
+		_speeds(d)
+		_lead_tick(0.2)
 	_show_status()
 
 
@@ -1500,14 +1761,15 @@ func _show_final_status() -> void:
 		leg_pl = "MOST %d/3" % (_cp + 1)
 	var hint := ["Uwaga…", "Get ready…"]
 	if state == State.RACE:
-		hint = ["%s: %d m %s" % [r["name"], roundi(gap), "za tobą" if first else "przed tobą"],
-				"%s is %d m %s" % [r["name"], roundi(gap), "behind" if first else "ahead"]]
+		hint = gap_words(r["name"], gap, _gap_seconds(first), first)
 	hud.show_status("%s · TRZY MOSTY" % leg_pl, _clock(_race_time), "%d m" % metres,
 			hint[0], 0.0, FINAL_COLOUR, ("1ST" if first else "2ND") if state == State.RACE else "", {}, hint[1])
 
 
 func _finish_final(won: bool, why: String) -> void:
 	state = State.RESULT
+	_route_off()
+	var margin := _finish_margin(won)
 	final_on = false
 	_start_leg = 0
 	_ghost_spot = []
@@ -1548,19 +1810,19 @@ func _finish_final(won: bool, why: String) -> void:
 		var record_pl := record.replace("new best!", "nowy rekord!").replace("best", "rekord")
 		var crown_pl := "KORONA NOCNEJ WARSZAWY TWOJA!\n" if first else ""
 		var crown_en := "The crown of Warsaw by night is yours! " if first else ""
-		hud.show_card("TRZY MOSTY · WYGRANA", "%sTrzy razy przez Wisłę i pierwsze miejsce pod Narodowym, czas %s%s.\n„%s”\n+%d zł · szacunek +%d%s" % [
-				crown_pl, _clock(_race_time), record_pl, line[0], stake, gain, total_pl],
+		hud.show_card("TRZY MOSTY · WYGRANA", "%sTrzy razy przez Wisłę i pierwsze miejsce pod Narodowym, czas %s%s, o %s s przed Sebą.\n„%s”\n+%d zł · szacunek +%d%s" % [
+				crown_pl, _clock(_race_time), record_pl, ("%.1f" % margin).replace(".", ","), line[0], stake, gain, total_pl],
 				PackedStringArray(["OK"]), FINAL_COLOUR, false, "Three bridges · Win",
-				"%sThree times over the Vistula and first to the Stadium in %s%s. %s +%d zł · respect +%d%s" % [
-				crown_en, _clock(_race_time), record, line[1], stake, gain, total])
+				"%sThree times over the Vistula and first to the Stadium in %s%s, %.1f s ahead of Seba. %s +%d zł · respect +%d%s" % [
+				crown_en, _clock(_race_time), record, margin, line[1], stake, gain, total])
 		Access.buzz(200, 1.0)
 	else:
 		var gave_up := why != ""
 		hud.show_card("TRZY MOSTY · PRZEGRANA", "%s\n„%s”\nRewanż: Rondo Daszyńskiego, w nocy." % [
-				"Finał poddany." if gave_up else "%s pierwszy pod Narodowym (mosty: %d/3, czas %s)." % [who, _cp, _clock(_race_time)], line[0]],
+				"Finał poddany." if gave_up else "%s pierwszy pod Narodowym (mosty: %d/3, czas %s, zabrakło %s s)." % [who, _cp, _clock(_race_time), ("%.1f" % margin).replace(".", ",")], line[0]],
 				PackedStringArray(["OK"]), LOSE_COLOUR, false, "Three bridges · Lose",
 				"%s %s Rematch: Rondo Daszyńskiego, at night." % [
-				"You gave up the final." if gave_up else "%s got to the Stadium first (bridges %d/3, %s)." % [who, _cp, _clock(_race_time)], line[1]])
+				"You gave up the final." if gave_up else "%s got to the Stadium first (bridges %d/3, %s, %.1f s short)." % [who, _cp, _clock(_race_time), margin], line[1]])
 
 
 ## --ladder=N: the first N rungs beaten for this run (in memory; use with --nosave).
@@ -1664,9 +1926,10 @@ func _start_ghost() -> void:
 		_ghost.race_lat = 8.5
 	if final_on:
 		_prepare_final()
-		traffic.race_to(_ghost, final_route.legs[_ghost_leg], _final_dists[_ghost_leg])
+		traffic.race_to(_ghost, final_route.legs[_ghost_leg], _distances(final_route.legs[_ghost_leg]))
 		return
-	traffic.race_to(_ghost, _finish["node"], _dist)
+	# Roads only (the ghost knows no shortcuts: a route counting cuts would send it round them).
+	traffic.race_to(_ghost, _finish["node"], _distances(_finish["node"]))
 
 
 func _follow(at: Vector3, yaw: float, speed: float) -> void:

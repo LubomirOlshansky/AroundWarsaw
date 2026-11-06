@@ -14,6 +14,8 @@ const CityMaps := preload("res://scripts/city_maps.gd")
 ## Loop 2c: the parked cars' mesh and paints come from the vehicles' models (one source).
 const Models := preload("res://scripts/models.gd")
 const Trains := preload("res://scripts/trains.gd")
+const RailCut := preload("res://scripts/rail_cut.gd")
+const RailYard := preload("res://scripts/rail_yard.gd")
 const MapEdge := preload("res://scripts/map_edge.gd")
 const EdgeRoadworks := preload("res://scripts/edge_roadworks.gd")
 ## Pasaż Wiecha's white Y masts stand where the map has its lamps (first_scene.gd PASAZ).
@@ -61,6 +63,8 @@ const L_FOAM := 18.0
 const L_TRAMBED := 19.0
 ## First-scene item 5 (2026-11-02): the tactile warning pads where a crossing meets a kerb.
 const L_TACTILE := 20.0
+## Smooth roads loop 7 (F's ChatGPT target, 2026-11-05): a tram track's sleepers on its own bed.
+const L_SLEEPERS := 21.0
 
 const Y_GROUND := 0.0
 const Y_AREA := 0.02
@@ -82,7 +86,7 @@ const COL := {
 	"pitch": Color("#6fa94f"),
 	"water": Color("#5ea8d8"),
 	"road": Color("#4f535a"),
-	"road_minor": Color("#62666c"),
+	"road_minor": Color("#4f535a"),
 	# R3 of docs/design/start-area-real.md: Warsaw's footways are light grey concrete, not sand.
 	"foot": Color("#dddcd6"),
 	"cycle": Color("#c86e5c"),
@@ -523,6 +527,7 @@ func _build_parts(marks, roofs_only: bool) -> void:
 		_drape_bias = 0.01
 		_cover_on = true
 		_build_areas(flat)
+		_build_cut_banks(flat)
 		_cover_on = false
 		# The sandbars over the water (fill 0.02, rim 0.07, foam 0.09) and the natural banks' wet
 		# bands and foam (0.07, 0.09), under the paving and the paths.
@@ -536,6 +541,8 @@ func _build_parts(marks, roofs_only: bool) -> void:
 		_drape_bias = 0.1
 		_build_paths(flat)
 		_build_steps(flat)
+		_drape_bias = 0.18
+		_build_cut_floor(flat)
 		_drape_bias = 0.2
 		_build_rail_beds(flat)
 		_drape_bias = 0.3
@@ -546,6 +553,14 @@ func _build_parts(marks, roofs_only: bool) -> void:
 		_drape_bias = 0.34
 		_build_islands(flat)
 		_build_medians(flat)
+		# Smooth roads loop 7: the sleepers over the tram bed, the crossings over them, and the
+		# cycle crossings (0.36) and kerbs over both.
+		_drape_bias = 0.35
+		_build_tram_sleepers(flat)
+		_drape_bias = 0.355
+		_build_tram_crossings(flat)
+		_drape_bias = 0.357
+		_build_tram_noses(flat)
 		_drape_bias = 0.36
 		_build_kerbs(flat)
 		_build_shore_stone(flat)
@@ -584,6 +599,9 @@ func _build_parts(marks, roofs_only: bool) -> void:
 	_build_walls(walls)
 	_build_portals(walls)
 	_build_rail_portals(walls)
+	_build_cutting(walls)
+	_build_yard_platforms(walls)
+	_build_footbridge_stairs(walls)
 	_build_catenary(walls)
 	_build_srednicowy(walls)
 	_build_poniatowski(walls)
@@ -686,8 +704,11 @@ func _setup(d: Dictionary, building_mat: ShaderMaterial, flat_mat: ShaderMateria
 		_t_h = PackedFloat32Array(_terrain["h"])
 
 	_load_fills()
+	_load_sunken()
+	_load_cut()
 	_load_aprons()
 	_load_decks()
+	_index_cut_decks()
 	_load_tunnels()
 
 
@@ -879,10 +900,125 @@ func terrain_height(x: float, z: float) -> float:
 
 
 ## The grid raised to any approach whose corridor holds the point (terrain_height before the
-## aprons).
+## aprons), then the railway cutting's floor and banks (`_cut`, rail_cut.gd): the floor never
+## rises over the ground; a bank or its shoulder replaces the grid unless an approach raised it.
 func _fill_height(x: float, z: float) -> float:
+	var h := _fill_height_base(x, z)
+	if not _cut.box.has_point(Vector2(x, z)):
+		return h
+	# Under an island platform (rail_yard.gd) the ground is the tracks' bed: the 10 m grid keeps
+	# the old platforms as a blurred 0.5-0.8 m rise, which the new slab sits on, not in.
+	var yb := _yard.base_at(Vector2(x, z))
+	if not is_nan(yb):
+		return minf(h, yb)
+	# A bridge over the cut lands on its rims: no bank cut into the ground at a deck's end (the
+	# apron's corridor, from 3 m under the deck on), or the car drops off it (check_drive).
+	if _near_apron(x, z):
+		return h
+	var land := _landing_blend(x, z)
+	if land <= 0.0:
+		return h
+	var g := _grid_height(x, z)
+	var c: Vector3 = _cut.at(x, z, g)
+	if c.y < 0.5:
+		return h
+	if land < 1.0:
+		# Blending out of a landing's ring: no step at its edge (check_drape).
+		c.x = lerpf(h, c.x, land)
+	if c.y < 1.5:
+		# Within half a metre of the grid the floor is left to it (the areas laid on the grid's
+		# own triangles poked under a shallow cut's edge: check_drape).
+		return h if g - c.x < 0.5 else minf(h, c.x)
+	if h > g + 0.05:
+		return h
+	# By a bridge over the cut the bank never digs under the grid: its abutment stands on the
+	# rim (Grójecka's viaduct by Ochota: the lanes ran off the deck end onto the bank).
+	if c.x < g and _by_cut_deck(x, z):
+		return g
+	return c.x
+
+
+## Deck segments over the cut box by 16 m cell (_index_cut_decks, after the decks load).
+var _cut_deck_cells := {}
+const CUT_DECK_REACH := 7.0
+
+
+func _index_cut_decks() -> void:
+	_cut_deck_cells.clear()
+	_cut_landings.clear()
+	var box: Rect2 = _cut.box.grow(20.0)
+	for d: Dictionary in _decks:
+		if not box.intersects(d["box"]):
+			continue
+		var pts: PackedVector2Array = d["pts"]
+		var w := maxf(float(d["l"]), float(d["r"])) + CUT_DECK_REACH
+		var hs: PackedFloat32Array = d["h"]
+		for k: int in [0, pts.size() - 1]:
+			if hs.size() == pts.size() and absf(hs[k] - _grid_height(pts[k].x, pts[k].y)) < 2.0:
+				_cut_landings.append(Vector3(pts[k].x, pts[k].y, maxf(float(d["l"]), float(d["r"])) + 4.0))
+		for i in pts.size() - 1:
+			var a := pts[i]
+			var b := pts[i + 1]
+			var lo := a.min(b) - Vector2.ONE * w
+			var hi := a.max(b) + Vector2.ONE * w
+			for cz in range(floori(lo.y / 16.0), floori(hi.y / 16.0) + 1):
+				for cx in range(floori(lo.x / 16.0), floori(hi.x / 16.0) + 1):
+					var list: PackedVector3Array = _cut_deck_cells.get(Vector2i(cx, cz), PackedVector3Array())
+					list.append_array(PackedVector3Array([Vector3(a.x, a.y, w), Vector3(b.x, b.y, w)]))
+					_cut_deck_cells[Vector2i(cx, cz)] = list
+
+
+## Where a deck over the cut box lands on the ground (an end within 2 m of the grid): the ground
+## round it keeps its height, cut or not (the car rolls off the deck there).
+var _cut_landings := PackedVector3Array()
+
+
+## 0 within a landing's ring, rising to 1 over LANDING_BLEND past it.
+const LANDING_BLEND := 6.0
+
+
+func _landing_blend(x: float, z: float) -> float:
+	var t := 1.0
+	for e in _cut_landings:
+		var r := e.z + LANDING_BLEND
+		if absf(x - e.x) < r and absf(z - e.y) < r:
+			t = minf(t, clampf((Vector2(x - e.x, z - e.y).length() - e.z) / LANDING_BLEND, 0.0, 1.0))
+	return t
+
+
+func _by_cut_deck(x: float, z: float) -> bool:
+	var list: PackedVector3Array = _cut_deck_cells.get(Vector2i(floori(x / 16.0), floori(z / 16.0)), PackedVector3Array())
+	var p := Vector2(x, z)
+	for k in range(0, list.size(), 2):
+		var a := Vector2(list[k].x, list[k].y)
+		var b := Vector2(list[k + 1].x, list[k + 1].y)
+		if Geometry2D.get_closest_point_to_segment(p, a, b).distance_to(p) < list[k].z:
+			return true
+	return false
+
+
+func _near_apron(x: float, z: float) -> bool:
+	if _apron_cells.is_empty():
+		return false
+	var list: PackedInt32Array = _apron_cells.get((floori(x / FILL_CELL) + 1024) * 4096 + floori(z / FILL_CELL) + 1024,
+			PackedInt32Array())
+	for k in list:
+		var a: PackedFloat32Array = _aprons[k]
+		var along := (x - a[0]) * a[2] + (z - a[1]) * a[3]
+		var lat := (z - a[1]) * a[2] - (x - a[0]) * a[3]
+		if along >= -3.0 and along <= a[4] and lat >= -a[6] - 1.0 and lat <= a[7] + 1.0:
+			return true
+	return false
+
+
+func _fill_height_base(x: float, z: float) -> float:
 	var h := _grid_height(x, z)
 	_set_hit = false
+	# A sunken place's floor (SUNKEN) wins over the grid and the approaches.
+	if _sunk_box.has_point(Vector2(x, z)):
+		var f := sunk_floor(x, z)
+		if f < h:
+			return f
 	if _fill_cells.is_empty():
 		return h
 	var codes: PackedInt32Array = _fill_cells.get((floori(x / FILL_CELL) + 1024) * 4096 + floori(z / FILL_CELL) + 1024,
@@ -1453,8 +1589,94 @@ func _deck_hit(d: Dictionary, p: Vector2) -> Vector3:
 	return Vector3(height, best, inside)
 
 
+## F, 2026-11-05: footbridges over a road in a trench (Aleja Armii Ludowej, (380, 1500)) or over
+## the Ochota cutting ((-2170, 880), (-2324, 927)) came down to the floor under them: the bake
+## solved their height off the 10 m grid, which has the trench's floor between its two rims, so the
+## deck sank 4-6 m below its ends onto the road or the tracks. A path deck whose lowest point
+## sits within SAG_ON_GROUND of the ground and under the straight line between its ends by more
+## than SAG_DIP is lifted onto that line (never lowered), a level bridge over the gap.
+const SAG_DIP := 2.0
+const SAG_ON_GROUND := 0.6
+
+
+func _lift_sagging_deck(pts: PackedVector2Array, cum: PackedFloat32Array, hs: PackedFloat32Array) -> void:
+	var n := pts.size()
+	var total := cum[n - 1]
+	if n < 3 or total < 1.0 or hs.size() != n:
+		return
+	var worst := 0.0
+	var at := -1
+	for i in range(1, n - 1):
+		var dip := lerpf(hs[0], hs[n - 1], cum[i] / total) - hs[i]
+		if dip > worst:
+			worst = dip
+			at = i
+	if worst < SAG_DIP or hs[at] - terrain_height(pts[at].x, pts[at].y) > SAG_ON_GROUND:
+		return
+	for i in range(1, n - 1):
+		hs[i] = maxf(hs[i], lerpf(hs[0], hs[n - 1], cum[i] / total))
+
+
+## Footbridges over a rail yard (F, 2026-11-06: the kładka over Warszawa Główna, from Kolejowa
+## to the towers on Jerozolimskie, came down to the ballast twice where OSM ties the stairs to
+## its platforms): a path deck crossing RAIL_BRIDGE_MIN tracks holds RAIL_BRIDGE_CLEAR over the
+## highest of them from its first track to its last (the catenary under it), its ends climbing
+## to that from where they land. Each: {"pts", "cum", "h", "a", "b"} (the level run's ends along
+## it), for the stairs and lifts down to the platforms (_build_footbridge_stairs).
+const RAIL_BRIDGE_MIN := 4
+const RAIL_BRIDGE_CLEAR := 7.4
+var _rail_bridges: Array[Dictionary] = []
+
+
+func _lift_rail_footbridge(pts: PackedVector2Array, cum: PackedFloat32Array, hs: PackedFloat32Array) -> void:
+	var n := pts.size()
+	if n < 2 or hs.size() != n:
+		return
+	var box := Rect2(pts[0], Vector2.ZERO)
+	for q in pts:
+		box = box.expand(q)
+	var first := INF
+	var last := -INF
+	var top := -INF
+	var count := 0
+	for r: Dictionary in data.get("rails", []):
+		if r.has("dk") and int(r["dk"]) >= 0:
+			continue
+		var f: Array = r["p"]
+		for i in range(0, f.size() - 3, 2):
+			var a := Vector2(f[i], f[i + 1])
+			var b := Vector2(f[i + 2], f[i + 3])
+			if not box.grow(1.0).intersects(Rect2(a, Vector2.ZERO).expand(b)):
+				continue
+			for k in n - 1:
+				var x: Variant = Geometry2D.segment_intersects_segment(pts[k], pts[k + 1], a, b)
+				if x == null:
+					continue
+				var along := cum[k] + pts[k].distance_to(x)
+				first = minf(first, along)
+				last = maxf(last, along)
+				top = maxf(top, terrain_height((x as Vector2).x, (x as Vector2).y))
+				count += 1
+	if count < RAIL_BRIDGE_MIN:
+		return
+	var level := top + RAIL_BRIDGE_CLEAR
+	var total := cum[n - 1]
+	var a0 := maxf(first - 3.0, 0.0)
+	var b0 := minf(last + 3.0, total)
+	for i in n:
+		var c := cum[i]
+		var want := level
+		if c < a0:
+			want = lerpf(hs[0], level, c / a0)
+		elif c > b0:
+			want = lerpf(level, hs[n - 1], (c - b0) / maxf(total - b0, 0.01))
+		hs[i] = maxf(hs[i], want)
+	_rail_bridges.append({"pts": pts, "cum": cum, "h": hs, "a": a0, "b": b0})
+
+
 func _load_decks() -> void:
 	_decks.clear()
+	_rail_bridges.clear()
 	var data_decks: Dictionary = data.get("decks", {})
 	for piece in data_decks.get("pieces", []):
 		var pts := _pts(piece["p"])
@@ -1465,9 +1687,223 @@ func _load_decks() -> void:
 		for q in pts:
 			box = box.expand(q)
 		var reach := maxf(float(piece["l"]), float(piece["r"])) + 1.0
-		_decks.append({"pts": pts, "cum": cum, "h": PackedFloat32Array(piece["h"]), "l": float(piece["l"]),
+		var hs := PackedFloat32Array(piece["h"])
+		if String(piece["k"]) == "path":
+			_lift_sagging_deck(pts, cum, hs)
+			_lift_rail_footbridge(pts, cum, hs)
+		_decks.append({"pts": pts, "cum": cum, "h": hs, "l": float(piece["l"]),
 				"r": float(piece["r"]), "g": int(piece["g"]), "k": String(piece["k"]),
 				"o": PackedByteArray(piece.get("o", [])), "box": box.grow(reach)})
+
+
+# --- sunken places ---------------------------------------------------------------------------
+
+## Sunken places (F's aerial and photos, 2026-11-05): ground metres under the street within a
+## few metres, which the 10 m GUGiK grid can only draw as a blurred slope (the Patelnia by Metro
+## Centrum lay in a soft bowl; the Rotunda's stair to the underpass was a walled box at street
+## level). Each: `ring`, the plan outline (the retaining walls' line); the floor falls from the
+## grid's height at `a` (a stair's top) to `hb` at `b` (its foot), flat past either end, or lies
+## flat at `hb` when `a` == `b`; `sub`, the drawn ground's sub-cells per 10 m cell there.
+## terrain_height (the car, people, props) takes the floor inside the ring; the drawn ground
+## (`_drawn_corner`) takes it over the ring grown by one sub-cell's diagonal, so no sub-cell's
+## slope shows inside the walls (the band outside is under the coping the landmark site `sunken`
+## lays, landmarks.gd, with the walls, stair treads and railings). A wall line (`lines` k wall)
+## lying on a ring is the site's, so _build_barriers leaves it out (SINK_WALL_REACH).
+## Patelnia: the plaza (centrum.json `areas` k plaza) and Metro Centrum's pavilions (`landmarks`
+## "Metro Centrum"), floor 10.0 (the grid's own bottom there, 9.9-10.2); its north-east stair to
+## Marszałkowska (`steps` between the walls) and the wide west stair ("Schody Kokota"). Rotunda:
+## the wedge between the planters north-west of Rotunda PKO, the stair down to its lower floor and
+## the underpass (`steps` 11 m, 3.6 m down, then the landing under the Rotunda's edge).
+const SUNKEN := [
+	{"key": "patelnia", "sub": 10, "hb": 10.0, "a": Vector2(-911.5, 400.0), "b": Vector2(-911.5, 400.0),
+		"ring": [Vector2(-884.1, 424.3), Vector2(-883.7, 422.1), Vector2(-884.9, 416.0), Vector2(-886.1, 410.0),
+			Vector2(-887.7, 402.3), Vector2(-888.3, 401.5), Vector2(-885.5, 393.2), Vector2(-889.4, 376.1),
+			Vector2(-892.8, 376.6), Vector2(-897.1, 377.7), Vector2(-901.5, 368.3), Vector2(-909.8, 372.5),
+			Vector2(-928.5, 381.4), Vector2(-939.0, 386.2), Vector2(-934.3, 395.7), Vector2(-938.6, 397.7),
+			Vector2(-933.2, 408.9), Vector2(-935.7, 410.1), Vector2(-938.1, 411.2), Vector2(-937.3, 413.6),
+			Vector2(-937.3, 414.5), Vector2(-938.0, 416.3), Vector2(-939.5, 417.6), Vector2(-938.5, 420.5),
+			Vector2(-937.4, 423.5), Vector2(-935.7, 422.9), Vector2(-931.4, 422.3), Vector2(-926.2, 422.4),
+			Vector2(-919.0, 424.0), Vector2(-913.2, 425.9), Vector2(-908.4, 426.7), Vector2(-904.0, 426.6),
+			Vector2(-894.9, 424.9), Vector2(-889.3, 424.2), Vector2(-886.2, 424.1)]},
+	{"key": "patelnia_ne", "sub": 10, "hb": 10.0, "a": Vector2(-893.2, 367.0), "b": Vector2(-891.0, 377.0),
+		"ring": [Vector2(-894.7, 368.2), Vector2(-891.3, 367.5), Vector2(-889.4, 376.1), Vector2(-892.8, 376.6)]},
+	{"key": "patelnia_kokota", "sub": 10, "hb": 10.0, "a": Vector2(-952.4, 425.4), "b": Vector2(-938.6, 420.4),
+		"ring": [Vector2(-939.5, 417.6), Vector2(-944.5, 419.4), Vector2(-951.8, 422.0), Vector2(-953.0, 426.9),
+			Vector2(-949.7, 427.7), Vector2(-935.7, 422.9), Vector2(-937.4, 423.5), Vector2(-938.5, 420.5)]},
+	{"key": "rotunda_stair", "sub": 10, "hb": NAN, "drop": 3.6, "a": Vector2(-819.6, 366.3), "b": Vector2(-815.5, 377.4),
+		"ring": [Vector2(-820.5, 366.4), Vector2(-819.1, 365.9), Vector2(-813.4, 363.8), Vector2(-808.3, 377.8),
+			Vector2(-810.0, 380.0), Vector2(-811.4, 382.2), Vector2(-812.4, 384.3), Vector2(-813.1, 386.8)]},
+	# The underpass under Aleje Jerozolimskie at Emilii Plater (F, 2026-11-06: "add stairs and
+	# arrange it like in real life with people going in and out"; site `underpass`, spec
+	# docs/landmarks/specs/underpass-emilii-plater.md). `at`/`top`: a lower flight's top lies `top`
+	# under the grid at `at` (the flight above's own top); `style` the edge (granite parapet, or a
+	# low parapet under a steel canopy); `walk` the walkers' way from the street down and on under
+	# the street through the mouth (its last point hidden in the passage, pedestrians.gd).
+	# The north-east well in the lawn (the mapped walls, line 421): a flight down to a landing,
+	# a second flight on south into the passage under the pavement.
+	{"key": "epl_ne", "site": "underpass", "style": "parapet", "sub": 20, "hb": NAN, "drop": 1.7,
+		"a": Vector2(-1254.1, 550.2), "b": Vector2(-1252.3, 555.6),
+		"ring": [Vector2(-1256.0, 551.2), Vector2(-1251.6, 549.8), Vector2(-1249.8, 554.7), Vector2(-1245.3, 553.2),
+			Vector2(-1244.3, 556.2), Vector2(-1243.3, 559.1), Vector2(-1247.9, 560.7), Vector2(-1253.3, 562.6),
+			Vector2(-1255.4, 556.4), Vector2(-1254.4, 556.1)]},
+	{"key": "epl_ne_low", "site": "underpass", "style": "parapet", "sub": 20, "hb": NAN, "drop": 1.9,
+		"at": Vector2(-1254.1, 550.2), "top": 1.7, "a": Vector2(-1250.4, 561.6), "b": Vector2(-1248.1, 568.4),
+		"ring": [Vector2(-1247.9, 560.7), Vector2(-1245.6, 567.6), Vector2(-1248.1, 568.4), Vector2(-1249.8, 569.0),
+			Vector2(-1252.0, 562.5), Vector2(-1253.2, 562.9), Vector2(-1253.3, 562.6)],
+		"walk": [Vector2(-1254.1, 550.2), Vector2(-1252.3, 555.6), Vector2(-1250.4, 561.6), Vector2(-1248.1, 568.4),
+			Vector2(-1246.8, 572.2)]},
+	# The north-west box on Centralna's forecourt (line 419): one flight south from footway 8754's end.
+	{"key": "epl_nw", "site": "underpass", "style": "parapet", "sub": 20, "hb": NAN, "drop": 3.6,
+		"a": Vector2(-1309.3, 579.9), "b": Vector2(-1307.0, 586.5),
+		"ring": [Vector2(-1307.0, 579.1), Vector2(-1304.2, 587.1), Vector2(-1306.4, 587.9), Vector2(-1308.7, 588.7),
+			Vector2(-1311.5, 581.0), Vector2(-1311.6, 580.7)],
+		"walk": [Vector2(-1309.3, 579.9), Vector2(-1307.0, 586.5), Vector2(-1305.1, 591.7)]},
+	# The north pavement's flight (steps 76) under its dark steel-and-glass canopy.
+	{"key": "epl_n", "site": "underpass", "style": "canopy_dark", "sub": 20, "hb": NAN, "drop": 3.6,
+		"a": Vector2(-1227.5, 572.7), "b": Vector2(-1239.0, 576.7),
+		"ring": [Vector2(-1227.7, 571.3), Vector2(-1241.3, 576.0), Vector2(-1240.4, 578.7), Vector2(-1226.8, 573.9)],
+		"walk": [Vector2(-1227.5, 572.7), Vector2(-1239.0, 576.7), Vector2(-1244.7, 578.7)]},
+	# The south pavement's two flights to Warszawa Śródmieście (steps 36, 220) under green canopies.
+	{"key": "epl_s1", "site": "underpass", "style": "canopy_green", "sub": 20, "hb": NAN, "drop": 3.6,
+		"a": Vector2(-1247.6, 619.9), "b": Vector2(-1236.4, 616.2),
+		"ring": [Vector2(-1247.4, 621.3), Vector2(-1234.1, 616.9), Vector2(-1234.9, 614.2), Vector2(-1248.3, 618.7)],
+		"walk": [Vector2(-1247.6, 619.9), Vector2(-1236.4, 616.2), Vector2(-1230.7, 614.3)]},
+	{"key": "epl_s2", "site": "underpass", "style": "canopy_green", "sub": 20, "hb": NAN, "drop": 3.6,
+		"a": Vector2(-1215.4, 609.1), "b": Vector2(-1226.7, 612.9),
+		"ring": [Vector2(-1215.6, 607.7), Vector2(-1229.0, 612.2), Vector2(-1228.1, 614.9), Vector2(-1214.7, 610.3)],
+		"walk": [Vector2(-1215.4, 609.1), Vector2(-1226.7, 612.9), Vector2(-1232.4, 614.8)]},
+]
+## How far past a ring's grown outline the drawn ground's cells go fine (a sub-cell touching it).
+const SINK_MARGIN := 0.5
+## A wall line's segment with both ends this close to a sunken ring's edge is the site's.
+const SINK_WALL_REACH := 0.6
+## The rings as built: {"key", "ring", "grown", "box", "a", "b", "ha", "hb", "sub", "site", "style", "walk"}.
+var _sunk: Array[Dictionary] = []
+var _sunk_box := Rect2()
+
+
+func _load_sunken() -> void:
+	_sunk.clear()
+	_sunk_box = Rect2()
+	if _t_h.is_empty():
+		return
+	for e: Dictionary in SUNKEN:
+		var at: Vector2 = e.get("at", e["a"])
+		var sk := sunk_entry(e, _grid_height(at.x, at.y), float(_terrain["step"]))
+		_sunk.append(sk)
+		_sunk_box = sk["box"] if not _sunk_box.has_area() else _sunk_box.merge(sk["box"])
+
+
+## One SUNKEN entry as built, its stair's top at height `ha` less its `top` (a flat floor: `hb`, or
+## the top less its `drop`); `step` the terrain grid's cell. The landmark checks' stub maps build theirs with this.
+static func sunk_entry(e: Dictionary, ha: float, step: float) -> Dictionary:
+	var ring := PackedVector2Array(e["ring"])
+	if Geometry2D.is_polygon_clockwise(ring):
+		ring.reverse()
+	var sub := int(e["sub"])
+	var grown_list := Geometry2D.offset_polygon(ring, step / sub * 1.42, Geometry2D.JOIN_MITER)
+	var grown: PackedVector2Array = grown_list[0] if not grown_list.is_empty() else ring
+	var box := Rect2(grown[0], Vector2.ZERO)
+	for q in grown:
+		box = box.expand(q)
+	ha -= float(e.get("top", 0.0))
+	var hb := float(e["hb"])
+	if is_nan(hb):
+		hb = ha - float(e["drop"])
+	return {"key": e["key"], "ring": ring, "grown": grown, "box": box, "a": e["a"], "b": e["b"], "ha": ha, "hb": hb, "sub": sub,
+			"site": e.get("site", "sunken"), "style": e.get("style", "rail"), "walk": PackedVector2Array(e.get("walk", []))}
+
+
+## A sunken ring's floor at a point (its ring, or `grown` its ring grown for the drawn ground),
+## the lowest of those holding it; INF where none does.
+func sunk_floor(x: float, z: float, grown := false) -> float:
+	var p := Vector2(x, z)
+	var best := INF
+	for sk: Dictionary in _sunk:
+		if not (sk["box"] as Rect2).has_point(p):
+			continue
+		if not Geometry2D.is_point_in_polygon(p, sk["grown"] if grown else sk["ring"]):
+			continue
+		best = minf(best, sunk_level(sk, p))
+	return best
+
+
+## The floor of sunken ring `sk` at plan point p (from its stair's top to its foot, flat past them).
+static func sunk_level(sk: Dictionary, p: Vector2) -> float:
+	var a: Vector2 = sk["a"]
+	var ab: Vector2 = (sk["b"] as Vector2) - a
+	var l2 := ab.length_squared()
+	if l2 < 0.0001:
+		return float(sk["hb"])
+	var t := clampf((p - a).dot(ab) / l2, 0.0, 1.0)
+	return lerpf(float(sk["ha"]), float(sk["hb"]), t)
+
+
+## The railway cutting west of Centralna (rail_cut.gd), from every rail of the map (the index's in
+## streamed mode), the tunnel's stretch cut away as trains.gd does.
+var _cut = RailCut.new()
+
+
+## Platforms OSM maps only as footways between two tracks (rail_yard.gd).
+var _yard = RailYard.new()
+
+
+## A footway's lift over the ground (an island platform OSM maps as a footway: RailYard.HEIGHT),
+## by its ends (RailYard.key); pedestrians.gd asks.
+func footway_lift(line: PackedVector2Array) -> float:
+	return float(_yard.lifts.get(RailYard.key(line), 0.0)) if line.size() >= 2 else 0.0
+
+
+func _load_cut() -> void:
+	_cut = RailCut.new()
+	_yard = RailYard.new()
+	_yard.setup(data.get("paths", []), Trains.trim_rails(data.get("rails", [])), data.get("platforms", []))
+	if _t_h.is_empty():
+		return
+	var t0 := Time.get_ticks_msec()
+	_yard.set_bases(_grid_height)
+	_cut.setup(Trains.trim_rails(data.get("rails", [])), _grid_height)
+	var samples := 0
+	for t: Dictionary in _cut.tracks:
+		for c in (t["cut"] as PackedByteArray):
+			samples += c
+	var runs := _cut.edges()
+	var walled := 0
+	var banked := 0
+	for r: Dictionary in runs:
+		for w in (r["wall"] as PackedByteArray):
+			walled += w
+			banked += 1 - w
+	print("rail yard: %d footways are island platforms, %d footway rings platform outlines" % [_yard.platforms.size(), _yard.rings.size()])
+	print("rail cut: %d tracks, %d samples in the cutting (%.1f km), %d edge runs (%d bank, %d wall samples), %d ms" % [
+			_cut.tracks.size(), samples, samples * RailCut.STEP / 1000.0, runs.size(), banked, walled, Time.get_ticks_msec() - t0])
+
+
+## Whether plan point (x, z) lies in a SUNKEN ring (static: no map needed; the prebuilt path's
+## street props ask before the city is loaded).
+static func in_sunken(x: float, z: float) -> bool:
+	for e: Dictionary in SUNKEN:
+		if Geometry2D.is_point_in_polygon(Vector2(x, z), PackedVector2Array(e["ring"])):
+			return true
+	return false
+
+
+## Whether wall segment a-b lies on a sunken ring's edge (the site walls it).
+func _on_sunk_edge(a: Vector2, b: Vector2) -> bool:
+	if not _sunk_box.grow(1.0).has_point(a):
+		return false
+	for sk: Dictionary in _sunk:
+		var ring: PackedVector2Array = sk["ring"]
+		var near_a := false
+		var near_b := false
+		for i in ring.size():
+			var p := ring[i]
+			var q := ring[(i + 1) % ring.size()]
+			near_a = near_a or Geometry2D.get_closest_point_to_segment(a, p, q).distance_to(a) < SINK_WALL_REACH
+			near_b = near_b or Geometry2D.get_closest_point_to_segment(b, p, q).distance_to(b) < SINK_WALL_REACH
+		if near_a and near_b:
+			return true
+	return false
 
 
 ## Loop 3a (R1): the approaches' pieces and their cell index (`terrain_height` reads them).
@@ -1597,6 +2033,444 @@ func _build_portals(st) -> void:
 	_uv2 = Vector2.ZERO
 
 
+## The railway cutting west of Centralna (rail_cut.gd, F 2026-11-06): its banks in grass and its
+## floor in ballast (flat layers), and on the walls surface the concrete retaining walls where the
+## cutting is too narrow for a bank (by the tunnel's mouth) and the fence along every bank's top,
+## both solid, both broken where a street or footway meets them.
+const CUT_FLOOR := Color("#7b7368")
+const CUT_FENCE := Color("#7d838a")
+const CUT_PARAPET := 1.05
+const CUT_PILASTER := 6.0
+
+
+func _build_cut_banks(st) -> void:
+	if _cut.tracks.is_empty():
+		return
+	var keep := _layer
+	_layer = L_GREEN
+	var streets := _cut_street_cells()
+	for run: Dictionary in _cut.edges():
+		var toe: PackedVector2Array = run["toe"]
+		var top: PackedVector2Array = run["top"]
+		var wall: PackedByteArray = run["wall"]
+		for k in toe.size() - 1:
+			if wall[k] == 1 or wall[k + 1] == 1:
+				continue
+			var quad := PackedVector2Array([toe[k], toe[k + 1], top[k + 1], top[k]])
+			# A path or street down the bank keeps its own surface (check_drape: the grass lay
+			# over the Ochota footbridge's foot).
+			var mid := (toe[k] + toe[k + 1] + top[k] + top[k + 1]) * 0.25
+			if _cut_by_street(streets, mid) or _cut_by_street(streets, top[k]) or _cut_by_street(streets, toe[k]):
+				continue
+			if Geometry2D.is_polygon_clockwise(quad):
+				quad.reverse()
+			_fill_on_grid(st, quad, Y_AREA + BANK_Y, COL["grass"])
+	_layer = keep
+
+
+## The cutting's floor between its tracks: ballast, under the tracks' own beds.
+func _build_cut_floor(st) -> void:
+	if _cut.tracks.is_empty():
+		return
+	var keep := _layer
+	_layer = L_GRAVEL
+	for t: Dictionary in _cut.tracks:
+		var pts: PackedVector2Array = t["p"]
+		var cut: PackedByteArray = t["cut"]
+		var run := PackedVector2Array()
+		for k in pts.size():
+			if cut[k] == 1:
+				run.append(pts[k])
+			elif run.size() > 0:
+				if run.size() >= 2:
+					_strip(st, run, RailCut.FLOOR_W * 2.0, Y_PATH, CUT_FLOOR, false)
+				run = PackedVector2Array()
+		if run.size() >= 2:
+			_strip(st, run, RailCut.FLOOR_W * 2.0, Y_PATH, CUT_FLOOR, false)
+	_layer = keep
+
+
+## Street and footway segments near the cutting (16 m cells), for the walls' and fences' gaps.
+func _cut_street_cells() -> Dictionary:
+	var cells := {}
+	var box: Rect2 = _cut.box.grow(10.0)
+	for key in ["roads", "paths", "trams"]:
+		for r: Dictionary in data.get(key, []):
+			var poly := _pts(r["p"])
+			var w := float(r.get("w", 3.0)) * 0.5
+			for i in poly.size() - 1:
+				var a := poly[i]
+				var b := poly[i + 1]
+				if not box.has_point(a) and not box.has_point(b):
+					continue
+				var lo := a.min(b) - Vector2.ONE * (w + 3.0)
+				var hi := a.max(b) + Vector2.ONE * (w + 3.0)
+				for cz in range(floori(lo.y / 16.0), floori(hi.y / 16.0) + 1):
+					for cx in range(floori(lo.x / 16.0), floori(hi.x / 16.0) + 1):
+						var list: Array = cells.get(Vector2i(cx, cz), [])
+						list.append([a, b, w])
+						cells[Vector2i(cx, cz)] = list
+	return cells
+
+
+func _cut_by_street(cells: Dictionary, p: Vector2) -> bool:
+	for seg: Array in cells.get(Vector2i(floori(p.x / 16.0), floori(p.y / 16.0)), []):
+		var q := Geometry2D.get_closest_point_to_segment(p, seg[0], seg[1])
+		if q.distance_to(p) < float(seg[2]) + 1.5:
+			return true
+	return false
+
+
+func _build_cutting(st) -> void:
+	if _cut.tracks.is_empty():
+		return
+	var streets := _cut_street_cells()
+	_uv2 = Vector2(0.5, -1.0)
+	for run: Dictionary in _cut.edges():
+		var toe: PackedVector2Array = run["toe"]
+		var top: PackedVector2Array = run["top"]
+		var fh: PackedFloat32Array = run["fh"]
+		var rh: PackedFloat32Array = run["rh"]
+		var outs: PackedVector2Array = run["out"]
+		var wall: PackedByteArray = run["wall"]
+		var fence := PackedVector2Array()
+		var along := 0.0
+		for k in toe.size():
+			var free := not _cut_by_street(streets, top[k])
+			var mine := not _in_sector or _sector_rect.has_point(top[k])
+			# The fence along a bank's top, in runs between the streets and the walls.
+			if wall[k] == 0 and free and mine:
+				fence.append(top[k])
+			else:
+				if fence.size() >= 2:
+					_railing_along(st, fence, 1.7, 0.0, CUT_FENCE, CUT_FENCE.darkened(0.2), true)
+				fence = PackedVector2Array()
+				if wall[k] == 0 and free and mine and k > 0:
+					fence.append(top[k])
+			if k == toe.size() - 1:
+				break
+			var seg := toe[k].distance_to(toe[k + 1])
+			if wall[k] == 1 and wall[k + 1] == 1 and seg > 0.05:
+				var mid := (toe[k] + toe[k + 1]) * 0.5
+				if mine or (not _in_sector or _sector_rect.has_point(mid)):
+					if not _in_sector or _sector_rect.has_point(mid):
+						_cut_wall_piece(st, toe[k], toe[k + 1], outs[k], outs[k + 1], fh[k], fh[k + 1], rh[k], rh[k + 1],
+								free and not _cut_by_street(streets, top[k + 1]), along)
+			along += seg
+		if fence.size() >= 2:
+			_railing_along(st, fence, 1.7, 0.0, CUT_FENCE, CUT_FENCE.darkened(0.2), true)
+	_uv2 = Vector2.ZERO
+
+
+## One piece of retaining wall from a to b (its face over the floor's edge, `out` towards the
+## street): the face from under the floor to the parapet's top, the parapet's cap and back, the
+## wall's top (a concrete band WALL_W wide over the ground's climb behind it), a pilaster every
+## CUT_PILASTER m, the parapet solid where no street meets it.
+func _cut_wall_piece(st, a: Vector2, b: Vector2, oa: Vector2, ob: Vector2, fa: float, fb: float, ra: float, rb: float,
+		parapet: bool, along: float) -> void:
+	var lift := CUT_PARAPET if parapet else 0.12
+	var ta := ra + lift
+	var tb := rb + lift
+	var a1 := a + oa * 0.3
+	var b1 := b + ob * 0.3
+	var a2 := a + oa * (RailCut.WALL_W + 0.4)
+	var b2 := b + ob * (RailCut.WALL_W + 0.4)
+	var nin := Vector3(-(oa.x + ob.x), 0.0, -(oa.y + ob.y)).normalized()
+	_quad(st, Vector3(a.x, fa - 0.3, a.y), Vector3(b.x, fb - 0.3, b.y), Vector3(b.x, tb, b.y), Vector3(a.x, ta, a.y),
+			nin, WALL_CONCRETE)
+	# A darker plinth band over the floor (the drainage channel's kerb).
+	var pa := a - Vector2(nin.x, nin.z) * 0.02
+	var pb := b - Vector2(nin.x, nin.z) * 0.02
+	_quad(st, Vector3(pa.x, fa - 0.3, pa.y), Vector3(pb.x, fb - 0.3, pb.y), Vector3(pb.x, fb + 0.6, pb.y),
+			Vector3(pa.x, fa + 0.6, pa.y), nin, WALL_CONCRETE.darkened(0.18))
+	_quad(st, Vector3(a.x, ta, a.y), Vector3(b.x, tb, b.y), Vector3(b1.x, tb, b1.y), Vector3(a1.x, ta, a1.y), Vector3.UP, WALL_COPING)
+	_quad(st, Vector3(a1.x, ra + 0.1, a1.y), Vector3(b1.x, rb + 0.1, b1.y), Vector3(b2.x, rb + 0.1, b2.y),
+			Vector3(a2.x, ra + 0.1, a2.y), Vector3.UP, WALL_COPING.darkened(0.08))
+	if parapet:
+		_quad(st, Vector3(a1.x, ra + 0.1, a1.y), Vector3(b1.x, rb + 0.1, b1.y), Vector3(b1.x, tb, b1.y), Vector3(a1.x, ta, a1.y),
+				-nin, WALL_CONCRETE.darkened(0.05))
+		_wall_faces.append_array([Vector3(a1.x, ra - 0.5, a1.y), Vector3(b1.x, rb - 0.5, b1.y), Vector3(b1.x, tb + 1.5, b1.y),
+				Vector3(a1.x, ra - 0.5, a1.y), Vector3(b1.x, tb + 1.5, b1.y), Vector3(a1.x, ta + 1.5, a1.y)])
+	# The top band's outer edge, down to the street's ground.
+	_quad(st, Vector3(a2.x, ra - 0.6, a2.y), Vector3(b2.x, rb - 0.6, b2.y), Vector3(b2.x, rb + 0.1, b2.y),
+			Vector3(a2.x, ra + 0.1, a2.y), -nin, WALL_CONCRETE.darkened(0.05))
+	# Pilasters where a multiple of CUT_PILASTER falls on the piece.
+	var seg := a.distance_to(b)
+	var next := ceilf(along / CUT_PILASTER) * CUT_PILASTER
+	while next < along + seg:
+		var t := (next - along) / seg
+		var p := a.lerp(b, t)
+		var d := (b - a) / seg
+		var basis := Basis(Vector3.UP, atan2(-d.x, -d.y))
+		var lo := lerpf(fa, fb, t) - 0.3
+		var hi := lerpf(ta, tb, t)
+		_box_oriented(st, Vector3(p.x + nin.x * 0.12, (lo + hi) * 0.5, p.y + nin.z * 0.12), basis,
+				Vector3(0.24, hi - lo, 0.7), WALL_CONCRETE.darkened(0.07))
+		next += CUT_PILASTER
+
+
+## Island platforms OSM maps as footways (rail_yard.gd): the tiled top RailYard.HEIGHT over the
+## ground between the two tracks' edges, white edge bands and the yellow line 0.9 m in, the
+## sides down to the ballast, a lamp every PLATFORM_LAMP m down the middle.
+const PLATFORM_LAMP := 24.0
+
+
+func _build_yard_platforms(st) -> void:
+	_uv2 = Vector2(0.5, -1.0)
+	for pl: Dictionary in _yard.platforms:
+		var pts: PackedVector2Array = pl["p"]
+		var hl: PackedFloat32Array = pl["l"]
+		var hr: PackedFloat32Array = pl["r"]
+		var n := pts.size()
+		var left := PackedVector2Array()
+		var right := PackedVector2Array()
+		var nms := PackedVector2Array()
+		var ys := PackedFloat32Array()
+		for k in n:
+			var d := (pts[mini(k + 1, n - 1)] - pts[maxi(k - 1, 0)]).normalized()
+			var nm := Vector2(-d.y, d.x)
+			nms.append(nm)
+			left.append(pts[k] + nm * hl[k])
+			right.append(pts[k] - nm * hr[k])
+			ys.append(terrain_height(pts[k].x, pts[k].y) + RailYard.HEIGHT)
+		var run := 0.0
+		for k in n - 1:
+			var mid := (pts[k] + pts[k + 1]) * 0.5
+			var seg := pts[k].distance_to(pts[k + 1])
+			if _in_sector and not _sector_rect.has_point(mid):
+				run += seg
+				continue
+			var y0 := ys[k]
+			var y1 := ys[k + 1]
+			_quad(st, Vector3(left[k].x, y0, left[k].y), Vector3(left[k + 1].x, y1, left[k + 1].y),
+					Vector3(right[k + 1].x, y1, right[k + 1].y), Vector3(right[k].x, y0, right[k].y), Vector3.UP, PLATFORM_TILES)
+			for side in 2:
+				var e0 := left[k] if side == 0 else right[k]
+				var e1 := left[k + 1] if side == 0 else right[k + 1]
+				var in0 := -nms[k] if side == 0 else nms[k]
+				var in1 := -nms[k + 1] if side == 0 else nms[k + 1]
+				for band: Array in [[0.0, 0.35, PLATFORM_EDGE], [0.85, 0.99, PLATFORM_LINE], [1.1, 1.5, PLATFORM_TACTILE]]:
+					var a0 := e0 + in0 * float(band[0])
+					var a1 := e1 + in1 * float(band[0])
+					var b0 := e0 + in0 * float(band[1])
+					var b1 := e1 + in1 * float(band[1])
+					_quad(st, Vector3(a0.x, y0 + 0.006, a0.y), Vector3(a1.x, y1 + 0.006, a1.y), Vector3(b1.x, y1 + 0.006, b1.y),
+							Vector3(b0.x, y0 + 0.006, b0.y), Vector3.UP, band[2])
+				var g0 := ys[k] - RailYard.HEIGHT - 0.3
+				var g1 := ys[k + 1] - RailYard.HEIGHT - 0.3
+				var out := Vector3(-in0.x - in1.x, 0.0, -in0.y - in1.y).normalized()
+				_quad(st, Vector3(e0.x, g0, e0.y), Vector3(e1.x, g1, e1.y), Vector3(e1.x, y1, e1.y), Vector3(e0.x, y0, e0.y),
+						out, PLATFORM_TILES.darkened(0.25))
+			# A lamp where a multiple of PLATFORM_LAMP falls on this piece.
+			var next := ceilf((run + 6.0) / PLATFORM_LAMP) * PLATFORM_LAMP - 6.0
+			if next < run + seg and next >= run:
+				var p := pts[k].lerp(pts[k + 1], (next - run) / seg)
+				var y := lerpf(y0, y1, (next - run) / seg)
+				_box_oriented(st, Vector3(p.x, y + 2.7, p.y), Basis.IDENTITY, Vector3(0.14, 5.4, 0.14), MAST_COL)
+				_box_oriented(st, Vector3(p.x, y + 5.45, p.y), Basis(Vector3.UP, atan2(-nms[k].x, -nms[k].y)),
+						Vector3(0.3, 0.16, 1.4), MAST_COL.darkened(0.2))
+			run += seg
+		# The two ends' faces.
+		for k: int in [0, n - 1]:
+			if _in_sector and not _sector_rect.has_point(pts[k]):
+				continue
+			var g := ys[k] - RailYard.HEIGHT - 0.3
+			var d := (pts[mini(k + 1, n - 1)] - pts[maxi(k - 1, 0)]).normalized() * (-1.0 if k == 0 else 1.0)
+			_quad(st, Vector3(left[k].x, g, left[k].y), Vector3(right[k].x, g, right[k].y), Vector3(right[k].x, ys[k], right[k].y),
+					Vector3(left[k].x, ys[k], left[k].y), Vector3(d.x, 0.0, d.y), PLATFORM_TILES.darkened(0.25))
+	for ring: PackedVector2Array in _yard.rings:
+		var c := Vector2.ZERO
+		for q in ring:
+			c += q
+		c /= ring.size()
+		if _in_sector and not _sector_rect.has_point(c):
+			continue
+		_platform_slab(st, ring, RailYard.HEIGHT)
+	_uv2 = Vector2.ZERO
+
+
+## The rail footbridges' (_rail_bridges) glass parapets along their level run, and where one
+## crosses a platform (rail_yard.gd's, a footway ring's, OSM's), a stair down to it along the
+## platform and a glass lift shaft on the other side of the deck (F, 2026-11-06; the 2021
+## street photos of the Główna kładka show concrete stair and lift towers onto each island).
+const BRIDGE_GLASS := Color("#6f8791")
+const BRIDGE_STEEL := Color("#4a4f55")
+const STAIR_COL := Color("#9a9893")
+
+
+func _build_footbridge_stairs(st) -> void:
+	if _rail_bridges.is_empty():
+		return
+	_uv2 = Vector2(0.5, -1.0)
+	# Each platform: [axis segments (pairs), top height].
+	var plats: Array = []
+	for pl: Dictionary in _yard.platforms:
+		var pp: PackedVector2Array = pl["p"]
+		plats.append([pp, false, -1.0])
+	for ring: PackedVector2Array in _yard.rings:
+		plats.append([ring, true, _min_ground(ring) + RailYard.HEIGHT])
+	for a in data.get("platforms", []):
+		if float(a["h"]) >= 0.7:
+			var poly := _pts(a["p"])
+			if poly.size() >= 3:
+				plats.append([poly, true, _min_ground(poly) + float(a["h"]) + 0.1])
+	for br: Dictionary in _rail_bridges:
+		var pts: PackedVector2Array = br["pts"]
+		var cum: PackedFloat32Array = br["cum"]
+		var hs: PackedFloat32Array = br["h"]
+		var a0: float = br["a"]
+		var b0: float = br["b"]
+		var box := Rect2(pts[0], Vector2.ZERO)
+		for q in pts:
+			box = box.expand(q)
+		# The parapets: a glass pane 1.15 m high on a steel kerb, a steel handrail on top.
+		for k in pts.size() - 1:
+			if cum[k + 1] < a0 or cum[k] > b0:
+				continue
+			var mid := (pts[k] + pts[k + 1]) * 0.5
+			if _in_sector and not _sector_rect.has_point(mid):
+				continue
+			var d := pts[k + 1] - pts[k]
+			if d.length() < 0.05:
+				continue
+			d = d.normalized()
+			var nm := Vector2(-d.y, d.x)
+			for side: float in [-1.0, 1.0]:
+				var o := nm * side * 1.45
+				var p0 := pts[k] + o
+				var p1 := pts[k + 1] + o
+				var y0 := hs[k]
+				var y1 := hs[k + 1]
+				var out := Vector3(nm.x * side, 0.0, nm.y * side)
+				for nn: Vector3 in [out, -out]:
+					_quad(st, Vector3(p0.x, y0 + 0.2, p0.y), Vector3(p1.x, y1 + 0.2, p1.y), Vector3(p1.x, y1 + 1.15, p1.y),
+							Vector3(p0.x, y0 + 1.15, p0.y), nn, BRIDGE_GLASS)
+					_quad(st, Vector3(p0.x, y0 - 0.45, p0.y), Vector3(p1.x, y1 - 0.45, p1.y), Vector3(p1.x, y1 + 0.2, p1.y),
+							Vector3(p0.x, y0 + 0.2, p0.y), nn, BRIDGE_STEEL)
+				var c := (p0 + p1) * 0.5
+				_box_oriented(st, Vector3(c.x, (y0 + y1) * 0.5 + 1.2, c.y), Basis(Vector3.UP, atan2(d.x, d.y)),
+						Vector3(0.08, 0.1, p0.distance_to(p1) + 0.05), BRIDGE_STEEL)
+		# Stairs and lifts onto the platforms it crosses.
+		for plat: Array in plats:
+			var poly: PackedVector2Array = plat[0]
+			var closed: bool = plat[1]
+			var pb := Rect2(poly[0], Vector2.ZERO)
+			for q in poly:
+				pb = pb.expand(q)
+			if not pb.grow(2.0).intersects(box):
+				continue
+			var hits: Array = []  # [point, edge direction, along the bridge]
+			var m := poly.size() if closed else poly.size() - 1
+			for e in m:
+				var e0 := poly[e]
+				var e1 := poly[(e + 1) % poly.size()]
+				for k in pts.size() - 1:
+					var x: Variant = Geometry2D.segment_intersects_segment(pts[k], pts[k + 1], e0, e1)
+					if x != null:
+						hits.append([x, (e1 - e0).normalized(), cum[k] + pts[k].distance_to(x)])
+			if hits.is_empty():
+				continue
+			var at := Vector2.ZERO
+			var along := 0.0
+			for hh: Array in hits:
+				at += hh[0]
+				along += float(hh[2])
+			at /= hits.size()
+			along /= hits.size()
+			if along < a0 or along > b0:
+				continue
+			if _in_sector and not _sector_rect.has_point(at):
+				continue
+			var axis: Vector2 = hits[0][1]
+			var top := float(plat[2]) if float(plat[2]) >= 0.0 else terrain_height(at.x, at.y) + RailYard.HEIGHT
+			var k := cum.bsearch(along) - 1
+			k = clampi(k, 0, pts.size() - 2)
+			var level := lerpf(hs[k], hs[k + 1], clampf((along - cum[k]) / maxf(cum[k + 1] - cum[k], 0.01), 0.0, 1.0))
+			_platform_stair(st, at, axis, top, level)
+			_lift_shaft(st, at - axis * 3.2, axis, top, level)
+	_uv2 = Vector2.ZERO
+
+
+func _min_ground(poly: PackedVector2Array) -> float:
+	var g := INF
+	for q in poly:
+		g = minf(g, terrain_height(q.x, q.y))
+	return g
+
+
+## A stair from the deck (level `level` at `at`) down along `axis` onto the platform top `top`:
+## treads 0.17 m by 0.3 m, 2.4 m wide, glass side panes, a steel stringer.
+func _platform_stair(st, at: Vector2, axis: Vector2, top: float, level: float) -> void:
+	var rise := level - top
+	if rise < 1.0:
+		return
+	var n := ceili(rise / 0.17)
+	var tread := 0.3
+	var start := at + axis * 1.6
+	var basis := Basis(Vector3.UP, atan2(axis.x, axis.y))
+	var side := Vector2(-axis.y, axis.x)
+	for j in n:
+		var y := level - (j + 1) * rise / n
+		var c := start + axis * (tread * (j + 0.5))
+		_box_oriented(st, Vector3(c.x, y - 0.2 + rise / n * 0.5, c.y), basis, Vector3(2.4, 0.4 + rise / n, tread + 0.02), STAIR_COL)
+	var end := start + axis * tread * n
+	for sd: float in [-1.0, 1.0]:
+		var o := side * sd * 1.22
+		var p0 := start + o
+		var p1 := end + o
+		var nn := Vector3(side.x * sd, 0.0, side.y * sd)
+		for nf: Vector3 in [nn, -nn]:
+			_quad(st, Vector3(p0.x, level - 0.5, p0.y), Vector3(p1.x, top - 0.5, p1.y), Vector3(p1.x, top + 1.0, p1.y),
+					Vector3(p0.x, level + 1.0, p0.y), nf, BRIDGE_GLASS)
+	# The landing under the deck's edge.
+	_box_oriented(st, Vector3(at.x + axis.x * 0.8, level - 0.2, at.y + axis.y * 0.8), basis, Vector3(2.6, 0.4, 1.8), STAIR_COL)
+
+
+## A lift shaft by the deck: a glass box on steel corners from the platform `top` to over the
+## deck, its machine room a dark cap.
+func _lift_shaft(st, c: Vector2, axis: Vector2, top: float, level: float) -> void:
+	var basis := Basis(Vector3.UP, atan2(axis.x, axis.y))
+	var h := level + 3.0 - top
+	_box_oriented(st, Vector3(c.x, top + h * 0.5, c.y), basis, Vector3(2.3, h, 2.3), BRIDGE_GLASS.darkened(0.15))
+	for cx: float in [-1.15, 1.15]:
+		for cz: float in [-1.15, 1.15]:
+			var q := c + Vector2(-axis.y, axis.x) * cx + axis * cz
+			_box_oriented(st, Vector3(q.x, top + h * 0.5, q.y), basis, Vector3(0.16, h + 0.02, 0.16), BRIDGE_STEEL)
+	_box_oriented(st, Vector3(c.x, level + 3.1, c.y), basis, Vector3(2.5, 0.4, 2.5), BRIDGE_STEEL.darkened(0.2))
+	# The bridge from the deck's edge to the lift's door.
+	var d := c + axis * 1.6
+	_box_oriented(st, Vector3(d.x, level - 0.2, d.y), basis, Vector3(2.0, 0.4, 1.4), STAIR_COL)
+
+
+## A railway platform's slab on polygon `poly`, `h` over its lowest ground: tiles, the white
+## edge band, the yellow line 0.9 m in and the tactile strip, its sides down to the ballast.
+func _platform_slab(st, poly: PackedVector2Array, h: float) -> void:
+	var ground := INF
+	for q in poly:
+		ground = minf(ground, terrain_height(q.x, q.y))
+	var top := ground + h
+	_fill(st, poly, top, PLATFORM_TILES)
+	var ring := poly.duplicate()
+	ring.append(poly[0])
+	_strip(st, ring, 0.35, top + 0.006, PLATFORM_EDGE, false)
+	for inset: Array in [[-0.9, 0.14, PLATFORM_LINE], [-1.25, 0.4, PLATFORM_TACTILE]]:
+		for inner: PackedVector2Array in Geometry2D.offset_polygon(poly, float(inset[0]), Geometry2D.JOIN_MITER):
+			if Geometry2D.is_polygon_clockwise(inner):
+				continue
+			var loop := inner.duplicate()
+			loop.append(inner[0])
+			_strip(st, loop, float(inset[1]), top + 0.01, inset[2], false)
+	for i in poly.size():
+		var p0 := poly[i]
+		var p1 := poly[(i + 1) % poly.size()]
+		var e := p1 - p0
+		if e.length() < 0.05:
+			continue
+		var n := Vector3(e.y, 0.0, -e.x).normalized()
+		_quad(st, Vector3(p0.x, ground - 0.3, p0.y), Vector3(p1.x, ground - 0.3, p1.y), Vector3(p1.x, top, p1.y),
+				Vector3(p0.x, top, p0.y), n, PLATFORM_TILES.darkened(0.25))
+
+
 ## The railway's tunnel mouths (L3 of docs/design/railway.md): where the cross-city tunnel's
 ## tracks end in the map (west of Ochota's cutting, under Powiśle's upper pavilion, trains.gd
 ## PORTALS), a concrete headwall over a dark mouth 6.4 m high (the catenary's height), two
@@ -1613,7 +2487,7 @@ func _build_rail_portals(st) -> void:
 		var ends := PackedVector2Array()
 		var dir := Vector2.ZERO
 		var y := INF
-		for r in data.get("rails", []):
+		for r in Trains.trim_rails(data.get("rails", [])):
 			var poly := _pts(r["p"])
 			if poly.size() < 2:
 				continue
@@ -1683,10 +2557,11 @@ const WIRE_COL := Color("#2a2c2f")
 
 
 func _build_catenary(st) -> void:
-	var rails: Array = data.get("rails", [])
+	var rails: Array = Trains.trim_rails(data.get("rails", []))
 	if rails.is_empty():
 		return
 	_uv2 = Vector2(0.5, -1.0)
+	var crossings := {}
 	# Every track's segments in 8 m cells, to find a neighbouring track beside a mast.
 	var grid := {}
 	for r in rails:
@@ -1729,14 +2604,84 @@ func _build_catenary(st) -> void:
 			for g in range(g0, g1 + 1):
 				var t := (g * CATENARY_STEP - u0) / (u1 - u0) if absf(u1 - u0) > 0.001 else 0.0
 				var p := a.lerp(b, clampf(t, 0.0, 1.0))
-				if _in_sector and not _sector_rect.has_point(p):
-					continue
-				var free := [not _track_near(grid, p + n * 4.5, 2.5), not _track_near(grid, p - n * 4.5, 2.5)]
-				if not free[0] and not free[1]:
-					continue
-				var sgn := 1.0 if free[0] else -1.0
-				_mast(st, p, n * sgn, d, deck_height(dk, p.x, p.y))
+				var key := Vector3i(axis, g, dk)
+				var list: Array = crossings.get(key, [])
+				list.append([p, n, d, deck_height(dk, p.x, p.y)])
+				crossings[key] = list
+	# Each grid line's crossings in rows across the tracks: two or more tracks side by side get a
+	# portal (a mast beyond each outer track and a lattice beam over them all, F 2026-11-06: the
+	# masts stood only beside the outer tracks and the wires over the inner ones hung from
+	# nothing), a lone track its mast on its free side.
+	for key: Vector3i in crossings:
+		var list: Array = crossings[key]
+		var along := 1 - key.x  # the grid line runs along the other axis
+		list.sort_custom(func(l: Array, r: Array) -> bool: return (l[0] as Vector2)[along] < (r[0] as Vector2)[along])
+		var row: Array = []
+		for k in list.size() + 1:
+			if k < list.size() and (row.is_empty() or (list[k][0] as Vector2).distance_to(row[row.size() - 1][0]) < GANTRY_GAP):
+				row.append(list[k])
+				continue
+			if row.size() >= 2:
+				_gantry(st, row)
+			elif row.size() == 1:
+				var p: Vector2 = row[0][0]
+				var n: Vector2 = row[0][1]
+				if not _in_sector or _sector_rect.has_point(p):
+					var free := [not _track_near(grid, p + n * 4.5, 2.5), not _track_near(grid, p - n * 4.5, 2.5)]
+					if free[0] or free[1]:
+						_mast(st, p, n * (1.0 if free[0] else -1.0), row[0][2], row[0][3])
+			row = [] if k >= list.size() else [list[k]]
 	_uv2 = Vector2.ZERO
+
+
+## Tracks this close where they cross a grid line share a portal.
+const GANTRY_GAP := 9.0
+
+
+## A portal over a row of tracks ([point, normal, dir, rails' height] each, in order across): a
+## lattice mast MAST_OUT beyond each outer track, two chords between them over the wires with
+## verticals and diagonals, and a dropper down to each track's wire.
+func _gantry(st, row: Array) -> void:
+	var first: Vector2 = row[0][0]
+	var last: Vector2 = row[row.size() - 1][0]
+	var mid := (first + last) * 0.5
+	if _in_sector and not _sector_rect.has_point(mid):
+		return
+	var across := (last - first).normalized()
+	var y := -INF
+	for r: Array in row:
+		y = maxf(y, float(r[3]))
+	var a := first - across * MAST_OUT
+	var b := last + across * MAST_OUT
+	var span := a.distance_to(b)
+	var d: Vector2 = row[0][2]
+	var basis := Basis(Vector3.UP, atan2(-d.x, -d.y))
+	var beam_basis := Basis(Vector3.UP, atan2(-across.x, -across.y))
+	var lo := y + CATENARY_H + 0.9
+	var hi := y + CATENARY_H + 1.7
+	for p: Vector2 in [a, b]:
+		var foot := minf(terrain_height(p.x, p.y), y)
+		_box_oriented(st, Vector3(p.x, (foot - 0.3 + hi + 0.2) * 0.5, p.y), basis, Vector3(0.45, hi + 0.5 - foot, 0.45), MAST_COL)
+		_box_oriented(st, Vector3(p.x, foot + 0.15, p.y), basis, Vector3(0.9, 0.5, 0.9), PORTAL_CONCRETE)
+	var c := (a + b) * 0.5
+	for h: float in [lo, hi]:
+		_box_oriented(st, Vector3(c.x, h, c.y), beam_basis, Vector3(0.14, 0.14, span), MAST_COL.darkened(0.1))
+	# The lattice: a vertical every ~1.6 m, a diagonal in every other bay.
+	var bays := maxi(2, roundi(span / 1.6))
+	for k in bays + 1:
+		var p := a.lerp(b, float(k) / bays)
+		_box_oriented(st, Vector3(p.x, (lo + hi) * 0.5, p.y), beam_basis, Vector3(0.07, hi - lo, 0.07), MAST_COL.darkened(0.1))
+		if k < bays and k % 2 == 0:
+			var q := a.lerp(b, float(k + 1) / bays)
+			var m := (p + q) * 0.5
+			var len := sqrt(p.distance_squared_to(q) + (hi - lo) * (hi - lo))
+			var tilt := Basis(Vector3.UP, atan2(-across.x, -across.y)) * Basis(Vector3.RIGHT, atan2(hi - lo, p.distance_to(q)))
+			_box_oriented(st, Vector3(m.x, (lo + hi) * 0.5, m.y), tilt, Vector3(0.06, 0.06, len), MAST_COL.darkened(0.1))
+	for r: Array in row:
+		var p: Vector2 = r[0]
+		var wy := float(r[3]) + CATENARY_H
+		_box_oriented(st, Vector3(p.x, (wy + lo) * 0.5, p.y), basis, Vector3(0.05, lo - wy, 0.05), WIRE_COL)
+		_box_oriented(st, Vector3(p.x, wy + 0.15, p.y), basis, Vector3(0.06, 0.06, 1.4), WIRE_COL)
 
 
 func _track_near(grid: Dictionary, p: Vector2, reach: float) -> bool:
@@ -3431,6 +4376,17 @@ func _fine_index() -> void:
 			for j in range(clampi(floori((lo.y - gz) / step), 0, nz - 2), clampi(floori((hi.y - gz) / step), 0, nz - 2) + 1):
 				for i in range(clampi(floori((lo.x - gx) / step), 0, nx - 2), clampi(floori((hi.x - gx) / step), 0, nx - 2) + 1):
 					_fine_cells[Vector2i(i, j)] = maxi(int(_fine_cells.get(Vector2i(i, j), 0)), SET_SUB)
+	# The railway cutting: every cell its floor, banks and shoulders reach (rail_cut.gd SUB).
+	var cut_cells: Dictionary = _cut.cells(gx, gz, step)
+	for c: Vector2i in cut_cells:
+		if c.x >= 0 and c.y >= 0 and c.x <= nx - 2 and c.y <= nz - 2:
+			_fine_cells[c] = maxi(int(_fine_cells.get(c, 0)), int(cut_cells[c]))
+	# Sunken places: every cell their grown ring reaches, in their own sub-cells.
+	for sk: Dictionary in _sunk:
+		var r: Rect2 = (sk["box"] as Rect2).grow(SINK_MARGIN)
+		for j in range(clampi(floori((r.position.y - gz) / step), 0, nz - 2), clampi(floori((r.end.y - gz) / step), 0, nz - 2) + 1):
+			for i in range(clampi(floori((r.position.x - gx) / step), 0, nx - 2), clampi(floori((r.end.x - gx) / step), 0, nx - 2) + 1):
+				_fine_cells[Vector2i(i, j)] = maxi(int(_fine_cells.get(Vector2i(i, j), 0)), int(sk["sub"]))
 	for a in _aprons:
 		var o := Vector2(a[0], a[1])
 		var u := Vector2(a[2], a[3])
@@ -3467,6 +4423,17 @@ func _drawn_corner(x: float, z: float) -> float:
 	# sub-cells between two profiles' levels or across a corridor's edge stay under the road).
 	if _set_hit and t < g - 0.001:
 		t -= SET_SINK
+	# Over a sunken place grown by its sub-cell's diagonal: its floor (no sub-cell's slope inside).
+	if _sunk_box.has_point(Vector2(x, z)):
+		t = minf(t, sunk_floor(x, z, true))
+	# The railway cutting's banks and shoulders may stand over the grid (its blurred slope).
+	# Not where an approach's fill holds the ground up (the grid's own drawing stays under it).
+	if _cut.box.has_point(Vector2(x, z)) and _cut.at(x, z, g).y > 1.5:
+		var hit := _set_hit
+		var held := _fill_height_base(x, z) > g + 0.05
+		_set_hit = hit
+		if not held:
+			return t
 	return minf(g, t)
 
 
@@ -3543,12 +4510,12 @@ func _ground_fine_cell(st, i: int, j: int, normals: PackedVector3Array, colour: 
 			var h := _drawn_corner(x, z)
 			var k := b * side + a
 			pos[k] = Vector3(x, h, z)
-			low[k] = 1 if g - h > 0.001 or not ground_lean else 0
+			low[k] = 1 if absf(g - h) > 0.001 or not ground_lean else 0
 			var fu := float(a) / sub
 			var fv := float(b) / sub
 			var n := (n00.lerp(n10, fu)).lerp(n01.lerp(n11, fu), fv).normalized()
-			if g - h > 0.01:
-				# Lowered: the slope of the drawn ground itself.
+			if absf(g - h) > 0.01:
+				# Lowered (or a cutting's bank raised): the slope of the drawn ground itself.
 				n = Vector3(_drawn_corner(x - s, z) - _drawn_corner(x + s, z), 2.0 * s,
 						_drawn_corner(x, z - s) - _drawn_corner(x, z + s)).normalized()
 			nrm[k] = n
@@ -4098,19 +5065,70 @@ func _build_paths(st) -> void:
 	_layer = L_GROUND
 
 
+## Smooth roads loop 2: the depth bias of service roads and living streets (the streets' 0.3).
+const MINOR_ROAD_BIAS := 0.25
+
+
 ## Roads as strips `w` wide around their centreline shifted `c` to the right, except
 ## where a mapped carriageway area already covers them ("hide": metres along the road).
 func _build_roads(st) -> void:
 	_layer = L_ROAD
+	var keep := _drape_bias
 	for r in data["roads"]:
 		var minor: bool = r["k"] in ["service", "living_street"]
 		var col: Color = COL["road_minor"] if minor else COL["road"]
 		var w := float(r["w"])
 		var y := Y_ROAD - (0.005 if minor else 0.0)
+		# Smooth roads loop 2 (F's crop by the PKiN driveway): a service road's 10 m pieces sag
+		# over the grid's folds unlike the street's they run into, so 5 mm under it was not enough
+		# and its paler asphalt poked up through the street in flags cut along the grid lines.
+		# A lower depth bias (between the rail beds' and the roads') keeps it under every street.
+		_drape_bias = MINOR_ROAD_BIAS if minor and keep >= 0.0 else keep
 		_dk = int(r.get("dk", -1))
 		var full := _pts(r["p"])
+		var tapered: bool = r.has("wv")
 		for run in _visible_runs(full, r.get("hide", [])):
+			if tapered:
+				# Smooth roads (tools/road_smooth.py): a join's width step tapered over 20-30 m,
+				# one mitred band whose ends are as wide as the next way's, so the round patches
+				# at its ends and bends no longer bulge past the narrower way.
+				var prof := _profile(r, full, run[3])
+				var rp: PackedVector2Array = run[0]
+				# Smooth roads loop 3: where the band goes under a mapped carriageway area, it runs
+				# on half its width under the area (as a plain strip's square cap does), so an
+				# area whose outline starts at a slant leaves no bare triangle by the kerb.
+				var ws: PackedFloat32Array = prof[0]
+				var cs: PackedFloat32Array = prof[1]
+				if run[1] and rp.size() >= 2:
+					rp.insert(0, rp[0] - (rp[1] - rp[0]).normalized() * ws[0] * 0.5)
+					ws.insert(0, ws[0])
+					cs.insert(0, cs[0])
+				if run[2] and rp.size() >= 2:
+					var e := rp.size() - 1
+					rp.append(rp[e] + (rp[e] - rp[e - 1]).normalized() * ws[e] * 0.5)
+					ws.append(ws[e])
+					cs.append(cs[e])
+				prof = [ws, cs]
+				_band_var(st, rp, prof[0], prof[1], y, col)
+				var mid := _offset_var(rp, prof[1])
+				for i in rp.size():
+					if i > 0 and i < rp.size() - 1:
+						if absf((rp[i] - rp[i - 1]).angle_to(rp[i + 1] - rp[i])) <= 0.12:
+							continue
+					elif (i == 0 and run[1]) or (i == rp.size() - 1 and run[2]):
+						continue
+					# At a tapered join both ways are this wide: the patch only rounds the joint.
+					_disc(st, mid[i], prof[0][i] * 0.5, y, col)
+				continue
 			var poly := _offset(run[0], float(r.get("c", 0.0)))
+			# Smooth roads loop 6 (F's crop at Marszałkowska by Złota): the same half-width run
+			# under a mapped carriageway area for a plain strip too, or an area outline that starts
+			# at a slant leaves a bare triangle of pavement between the street and the tram bed.
+			if run[1] and poly.size() >= 2:
+				poly.insert(0, poly[0] - (poly[1] - poly[0]).normalized() * w * 0.5)
+			if run[2] and poly.size() >= 2:
+				var pe := poly.size() - 1
+				poly.append(poly[pe] + (poly[pe] - poly[pe - 1]).normalized() * w * 0.5)
 			_strip(st, poly, w, y, col, false)
 			# Round patches fill the gaps at the ends and wherever the road bends; not
 			# where an area takes over (the area has the exact shape there).
@@ -4122,6 +5140,7 @@ func _build_roads(st) -> void:
 					continue
 				if bend > 0.12:
 					_disc(st, poly[i], w * 0.5, y, col)
+	_drape_bias = keep
 	_dk = -1
 	_layer = L_GROUND
 
@@ -4147,9 +5166,13 @@ func _build_tunnel_roads(st) -> void:
 ## the start, cut at the end] each.
 func _visible_runs(poly: PackedVector2Array, hide: Array) -> Array:
 	if hide.is_empty():
-		return [[poly, false, false]]
+		var all_s := PackedFloat32Array([0.0])
+		for i in range(1, poly.size()):
+			all_s.append(all_s[i - 1] + poly[i].distance_to(poly[i - 1]))
+		return [[poly, false, false, all_s]]
 	var runs := []
 	var cur := PackedVector2Array()
+	var cur_s := PackedFloat32Array()
 	var cut_start := false
 	var s := 0.0
 	for i in poly.size() - 1:
@@ -4176,17 +5199,89 @@ func _visible_runs(poly: PackedVector2Array, hide: Array) -> Array:
 			var p1 := a.lerp(b, c1 / length) if length > 0.0 else b
 			if hidden:
 				if cur.size() >= 2:
-					runs.append([cur, cut_start, true])
+					runs.append([cur, cut_start, true, cur_s])
 				cur = PackedVector2Array()
+				cur_s = PackedFloat32Array()
 				cut_start = true
 			else:
 				if cur.is_empty():
 					cur.append(p0)
+					cur_s.append(s + c0)
 				cur.append(p1)
+				cur_s.append(s + c1)
 		s += length
 	if cur.size() >= 2:
-		runs.append([cur, cut_start, false])
+		runs.append([cur, cut_start, false, cur_s])
 	return runs
+
+
+## Smooth roads: a tapered road's (`wv`, `cv`: width and centre offset per point of `p`) width
+## and offset at each distance in `along` (metres from its first point), by its cumulative length.
+func _profile(r: Dictionary, full: PackedVector2Array, along: PackedFloat32Array) -> Array:
+	var wv: Array = r["wv"]
+	var cv: Array = r["cv"]
+	var ws := PackedFloat32Array()
+	var cs := PackedFloat32Array()
+	var k := 0
+	var s0 := 0.0
+	for s in along:
+		while k < full.size() - 2 and s0 + full[k].distance_to(full[k + 1]) < s:
+			s0 += full[k].distance_to(full[k + 1])
+			k += 1
+		var ln := full[k].distance_to(full[k + 1]) if k < full.size() - 1 else 0.0
+		var t := clampf((s - s0) / ln, 0.0, 1.0) if ln > 0.0 else 0.0
+		var k1 := mini(k + 1, wv.size() - 1)
+		ws.append(lerpf(float(wv[k]), float(wv[k1]), t))
+		cs.append(lerpf(float(cv[k]), float(cv[k1]), t))
+	return [ws, cs]
+
+
+## A polyline moved off[i] metres to its right at point i, mitred at the corners.
+static func _offset_var(poly: PackedVector2Array, off: PackedFloat32Array) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	var n := poly.size()
+	for i in n:
+		var back := (poly[i] - poly[i - 1]).normalized() if i > 0 else Vector2.ZERO
+		var ahead := (poly[i + 1] - poly[i]).normalized() if i < n - 1 else Vector2.ZERO
+		if back == Vector2.ZERO:
+			back = ahead
+		if ahead == Vector2.ZERO:
+			ahead = back
+		var r0 := Vector2(-back.y, back.x)
+		var r1 := Vector2(-ahead.y, ahead.x)
+		var m := (r0 + r1).normalized()
+		if m == Vector2.ZERO:
+			m = r1
+		out.append(poly[i] + m * off[i] / maxf(m.dot(r1), 0.5))
+	return out
+
+
+## A band between two offset lines of `poly` (widths and centre offsets per point): one quad per
+## piece, shared edges, so its width can change smoothly along it (cut into the 10 m pieces the
+## draped strips use).
+func _band_var(st, poly: PackedVector2Array, ws: PackedFloat32Array, cs: PackedFloat32Array, y: float, col: Color) -> void:
+	var lo := PackedFloat32Array()
+	var hi := PackedFloat32Array()
+	for i in poly.size():
+		lo.append(cs[i] - ws[i] * 0.5)
+		hi.append(cs[i] + ws[i] * 0.5)
+	var left := _offset_var(poly, lo)
+	var right := _offset_var(poly, hi)  # + is to the right, as _strip's `side`
+	for i in poly.size() - 1:
+		var d := poly[i + 1] - poly[i]
+		if d.length() < 0.01:
+			continue
+		_axis = d.normalized()
+		var pieces := maxi(1, ceili(d.length() / 10.0)) if _drape_bias >= 0.0 else 1
+		for k in pieces:
+			var t0 := float(k) / pieces
+			var t1 := float(k + 1) / pieces
+			var a := right[i].lerp(right[i + 1], t0)
+			var b := right[i].lerp(right[i + 1], t1)
+			var c := left[i].lerp(left[i + 1], t1)
+			var e := left[i].lerp(left[i + 1], t0)
+			_quad(st, Vector3(a.x, y, a.y), Vector3(b.x, y, b.y), Vector3(c.x, y, c.y), Vector3(e.x, y, e.y), Vector3.UP, col)
+	_axis = Vector2.ZERO
 
 
 ## A polyline moved `off` metres to its right, mitred at the corners.
@@ -4215,10 +5310,18 @@ static func _offset(poly: PackedVector2Array, off: float) -> PackedVector2Array:
 ## and bus bays included; hatched areas are asphalt too (the hatching comes later).
 func _build_carriageways(st) -> void:
 	_layer = L_ROAD
+	var keep := _drape_bias
 	for c in data.get("carriage", []):
 		_dk = int(c.get("dk", -1))
 		var minor: bool = c["k"] in ["service", "living_street"]
+		_drape_bias = MINOR_ROAD_BIAS if minor and keep >= 0.0 else keep
 		_fill(st, _pts(c["p"]), Y_ROAD - (0.005 if minor else 0.0), COL["road_minor"] if minor else COL["road"])
+	# Round 3 (F: "one clean asphalt surface"): the bare pockets walled in by roads where a
+	# driveway leaves a street (`asphalt_fills`, tools/road_smooth.py fill_pockets).
+	_drape_bias = MINOR_ROAD_BIAS if keep >= 0.0 else keep
+	for f in data.get("asphalt_fills", []):
+		_fill(st, _pts(f["p"]), Y_ROAD - 0.005, COL["road"])
+	_drape_bias = keep
 	_dk = -1
 	_layer = L_GROUND
 
@@ -4277,8 +5380,26 @@ func _build_surfaces(st) -> void:
 
 func _build_steps(st) -> void:
 	_layer = L_STEPS
+	# Smooth roads loop 7 (F's ChatGPT target, 2026-11-05): a flight that ends at a metro
+	# entrance (`down`, tools/road_smooth.py metro_steps) goes down into it: its treads darken
+	# towards the entrance's deep end.
 	for p in data.get("steps", []):
-		_strip(st, _pts(p["p"]), 2.4, Y_PATH + 0.01, Color("#d2cabb"))
+		var poly := _pts(p["p"])
+		var deep := int(p.get("down", -1))
+		if deep < 0 or poly.size() != 2:
+			_strip(st, poly, 2.4, Y_PATH + 0.01, Color("#d2cabb"))
+			continue
+		var top := poly[1 - deep]
+		var bottom := poly[deep]
+		var length := top.distance_to(bottom)
+		var n := maxi(2, int(length / 0.34))
+		var dir := (bottom - top) / length
+		for i in n:
+			var k := float(i) / float(n - 1)
+			var tone := Color("#d2cabb").lerp(Color("#34363b"), k * k * 0.85 + k * 0.15)
+			var a := top + dir * (length * float(i) / float(n))
+			var b := top + dir * (length * float(i + 1) / float(n))
+			_strip(st, PackedVector2Array([a, b]), 2.4, Y_PATH + 0.01, tone, false)
 	_layer = L_GROUND
 
 
@@ -4302,9 +5423,12 @@ func _build_islands(st) -> void:
 ## Loop 3b-2: the tram bed (a median with trams) a concrete track slab, darker than the
 ## pavements (its pale grey read as pavement, and with dark rails on it as a barcode), and the
 ## tram rails thinner and closer to it in tone.
-const TRAM_BED := Color("#8c887f")
+const TRAM_BED := Color("#8f887d")
 const TRAM_RAIL := Color("#6a6761")
 const TRAM_RAIL_W := 0.16
+const TRAM_SLEEPER_W := 2.4
+const TRAM_GRAVEL := Color("#958e83")
+const TRAM_XING := Color("#a9a69f")
 
 
 ## Dual-carriageway medians: raised grass, or the tram bed at road level where trams run.
@@ -4312,7 +5436,8 @@ func _build_medians(st) -> void:
 	for m in data.get("medians", []):
 		_dk = int(m.get("dk", -1))
 		var grass: bool = m["k"] == "grass"
-		_layer = L_GREEN if grass else L_TRAMBED
+		# Smooth roads loop 7 (F's ChatGPT target): the bed is gravel, as the ballast round it.
+		_layer = L_GREEN if grass else L_GRAVEL
 		var col: Color = COL["grass"] if grass else TRAM_BED
 		var y := KERB_UP if grass else Y_ROAD + 0.005
 		var s4: Array = m["s"]
@@ -4418,7 +5543,7 @@ func _draped_wall(st, a: Vector2, b: Vector2, y0: float, y1: float, facing: Vect
 ## sleepers every 0.65 m. Same mesh and material as before: no new draw call.
 func _build_rail_beds(st) -> void:
 	var bias := _drape_bias
-	for r in data.get("rails", []):
+	for r in Trains.trim_rails(data.get("rails", [])):
 		_dk = int(r.get("dk", -1))
 		var poly := _pts(r["p"])
 		_layer = L_GRAVEL
@@ -4434,7 +5559,7 @@ func _build_rail_beds(st) -> void:
 
 func _build_rails(st) -> void:
 	_layer = L_RAIL
-	for r in data.get("rails", []):
+	for r in Trains.trim_rails(data.get("rails", [])):
 		_dk = int(r.get("dk", -1))
 		var poly := _pts(r["p"])
 		for side in [-0.72, 0.72]:
@@ -4488,7 +5613,87 @@ const BARRIER_STYLE := {
 	"fence": ["#7d838a", 0.12, 1.6],
 	"wall": ["#a49d92", 0.35, 1.9],
 	"platform": ["#d2cdc3", 2.4, 0.25],
+	# Operation Unslop (2026-11-05, docs/streets/marszalkowska-centrum-audit.md "Wanted models"):
+	# styles a street pass gives single barriers by id (OBJECT_OVERRIDES). The tram railing is the
+	# black steel railing along tram beds and platform edges (1.1 m); the balustrades go round stairs
+	# instead of the 1.9 m grey wall: granite at metro entrances, a concrete upstand with a rail
+	# at platform and underpass stairs.
+	# A 4th entry makes the style an open railing (F, 2026-11-05: the solid 1.1 m black strip read
+	# as a black wall): [upstand height, rail colour]; posts every 2 m and two rails, see-through.
+	"tram_railing": ["#22262a", 0.06, 1.1, [0.0, "#22262a"]],
+	"balustrade": ["#8f8f8a", 0.3, 1.0],
+	"balustrade_rail": ["#a9a59d", 0.2, 1.0, [0.45, "#2a2e33"]],
 }
+
+
+## An open railing along `poly`: an optional concrete upstand, then round-ish posts every 2 m and a
+## top and a middle rail you can see through (Operation Unslop's tram railing and stair balustrade).
+## It collides like a wall of the same height, so driving stays as it was.
+func _railing_along(st, poly: PackedVector2Array, height: float, upstand: float, up_col: Color, rail_col: Color, collide: bool) -> void:
+	if upstand > 0.0:
+		_wall_along(st, poly, 0.2, upstand, up_col, false)
+	var run := 0.0
+	var next_post := 0.0
+	var low := maxf(upstand, 0.0) + (0.1 if upstand > 0.0 else 0.35)
+	for i in poly.size() - 1:
+		var a := poly[i]
+		var b := poly[i + 1]
+		var length := a.distance_to(b)
+		if length < 0.05:
+			continue
+		var dir := (b - a) / length
+		var side := Vector2(-dir.y, dir.x) * 0.03
+		var ga := terrain_height(a.x, a.y)
+		var gb := terrain_height(b.x, b.y)
+		var n := Vector3(side.x, 0, side.y).normalized()
+		for h in [low, height - 0.05]:
+			for sgn in [1.0, -1.0]:
+				var o: Vector2 = side * sgn
+				_quad(st, Vector3(a.x + o.x, ga + h, a.y + o.y), Vector3(b.x + o.x, gb + h, b.y + o.y),
+						Vector3(b.x + o.x, gb + h + 0.05, b.y + o.y), Vector3(a.x + o.x, ga + h + 0.05, a.y + o.y), n * sgn, rail_col)
+			_quad(st, Vector3(a.x + side.x, ga + h + 0.05, a.y + side.y), Vector3(b.x + side.x, gb + h + 0.05, b.y + side.y),
+					Vector3(b.x - side.x, gb + h + 0.05, b.y - side.y), Vector3(a.x - side.x, ga + h + 0.05, a.y - side.y), Vector3.UP, rail_col.lightened(0.12))
+		while next_post <= run + length:
+			var p := a + dir * (next_post - run)
+			var y := lerpf(ga, gb, (next_post - run) / length)
+			var bottom := maxf(upstand, 0.0)
+			_box_oriented(st, Vector3(p.x, y + (bottom + height) * 0.5, p.y), Basis(Vector3.UP, atan2(-dir.x, -dir.y)),
+					Vector3(0.06, height - bottom, 0.06), rail_col)
+			next_post += 2.0
+		run += length
+		if collide:
+			_wall_faces.append_array([Vector3(a.x, ga - 0.3, a.y), Vector3(b.x, gb - 0.3, b.y), Vector3(b.x, gb + height + 1.5, b.y),
+					Vector3(a.x, ga - 0.3, a.y), Vector3(b.x, gb + height + 1.5, b.y), Vector3(a.x, ga + height + 1.5, a.y)])
+
+## Operation Unslop's per-object decisions (tools/street_pass.py --apply writes them from the street
+## records): {"items": {id: [verdict, style]}}. The id is road-objects.md's stable id: class, kind
+## and the outline's mean rounded to a 2 m cell ("barrier:fence:-870:392"), so a re-bake keeps it.
+## REMOVE leaves the barrier out; RETEXTURE / REPLACE draw it in the named BARRIER_STYLE.
+const OBJECT_OVERRIDES := "res://data/road_objects.json"
+var _object_overrides := {}
+
+
+func _load_object_overrides() -> void:
+	_object_overrides = {}
+	if not FileAccess.file_exists(OBJECT_OVERRIDES):
+		return
+	var j: Variant = JSON.parse_string(FileAccess.get_file_as_string(OBJECT_OVERRIDES))
+	if j is Dictionary and (j as Dictionary).get("items") is Dictionary:
+		_object_overrides = j["items"]
+
+
+## The stable id of a barrier line (tools/street_pass.py stable_id: the mean of its points, each
+## coordinate floor(c / 2 + 0.5) * 2).
+static func barrier_id(kind: String, flat: Array) -> String:
+	var n := flat.size() / 2
+	var cx := 0.0
+	var cz := 0.0
+	for i in n:
+		cx += float(flat[i * 2])
+		cz += float(flat[i * 2 + 1])
+	cx /= maxf(n, 1)
+	cz /= maxf(n, 1)
+	return "barrier:%s:%d:%d" % [kind, int(floor(cx / 2.0 + 0.5)) * 2, int(floor(cz / 2.0 + 0.5)) * 2]
 
 
 ## The Royal Castle's gardens map their fountain basins, the vases' round beds and the round
@@ -4515,16 +5720,110 @@ func _garden_ring(flat: Array) -> bool:
 	return true
 
 
+## Walls OpenStreetMap maps that stand low, not 1.9 m (F's screenshots, 2026-11-05): the 25 m
+## planter edge along Wars's south front on Widok (it stood as a grey slab before the shop
+## windows), and the planters round the Rotunda's stair down to the underpass (with the stair
+## sunk, SUNKEN, a 1.9 m loop of wall round it read as a walled pit). Each is the line's first
+## point.
+const LOW_WALLS := [Vector2(-820.1, 345.4), Vector2(-807.1, 378.0)]
+const LOW_WALL := ["#b3ada3", 0.4, 0.55]
+
+
+func _low_wall(flat: Array) -> bool:
+	if flat.size() < 4:
+		return false
+	var first := Vector2(flat[0], flat[1])
+	for at: Vector2 in LOW_WALLS:
+		if first.distance_to(at) < 0.5:
+			return true
+	return false
+
+
+## Operation Unslop, Świętokrzyska (2026-11-06): OSM maps the planter edges inside traffic islands (Emilii Plater's median by the Palace: two wavy walls 95 m long) as `wall`; drawn 1.9 m high they read as a twisting beige ribbon across the junction. A wall lying inside a traffic island is a low planter edge (13 on the map), like the garden rings. They are a planting bed's granite kerb (Mapillary 2995066364107910, 2020-07), 0.2 m.
+const ISLAND_EDGE := ["#8e8b84", 0.25, 0.2]
+var _island_boxes: Array = []
+var _island_src: Array = []
+
+
+func _in_island(flat: Array) -> bool:
+	# `data` is swapped for every sector the builder makes: rebuild the boxes when it changes
+	# (a cache from the first sector left every later sector's median walls at 1.9 m).
+	var src: Array = data.get("islands", [])
+	if not is_same(src, _island_src):
+		_island_src = src
+		_island_boxes.clear()
+		for isl in src:
+			var poly := PackedVector2Array()
+			var fp: Array = isl["p"]
+			for i in fp.size() / 2:
+				poly.append(Vector2(fp[i * 2], fp[i * 2 + 1]))
+			var box := Rect2(poly[0], Vector2.ZERO)
+			for q in poly:
+				box = box.expand(q)
+			_island_boxes.append([box, poly])
+	var n := flat.size() / 2
+	if n < 2:
+		return false
+	for e in _island_boxes:
+		var box: Rect2 = e[0]
+		if not box.has_point(Vector2(flat[0], flat[1])):
+			continue
+		var inside := 0
+		for i in n:
+			if Geometry2D.is_point_in_polygon(Vector2(flat[i * 2], flat[i * 2 + 1]), e[1]):
+				inside += 1
+		if inside * 5 >= n * 4:
+			return true
+	return false
+
+
 func _build_barriers(st) -> void:
 	_uv2 = Vector2(0.5, -1.0)
+	_load_object_overrides()
 	for l in data.get("lines", []):
 		var style: Array = BARRIER_STYLE.get(l["k"], ["#999999", 0.3, 1.0])
-		if l["k"] == "wall" and _garden_ring(l["p"]):
-			style = GARDEN_RING
+		if l["k"] == "wall":
+			if _garden_ring(l["p"]):
+				style = GARDEN_RING
+			elif _low_wall(l["p"]):
+				style = LOW_WALL
+			elif _in_island(l["p"]):
+				style = ISLAND_EDGE
+		if not _object_overrides.is_empty() and l["k"] != "platform":
+			var o: Variant = _object_overrides.get(barrier_id(l["k"], l["p"]))
+			if o is Array:
+				if str(o[0]) == "REMOVE":
+					continue
+				if (o as Array).size() > 1 and BARRIER_STYLE.has(str(o[1])):
+					style = BARRIER_STYLE[str(o[1])]
+		var pts := _pts(l["p"])
+		if style.size() > 3:
+			var open: Array = style[3]
+			_railing_along(st, pts, float(style[2]), float(open[0]), Color(style[0]), Color(str(open[1])), true)
+			continue
 		# Loop 3b: a stop's platform is kerb height (0.25 m), not a wall: like the kerbs and
 		# islands, the car drives over it (check_drive.gd found buses brushing them).
-		_wall_along(st, _pts(l["p"]), float(style[1]), float(style[2]), Color(style[0]), l["k"] != "platform")
+		if l["k"] == "wall" and not _sunk.is_empty() and _sunk_box.grow(2.0).intersects(_box_of_pts(pts)):
+			# The pieces off a sunken ring's edge (the site builds the walls on it).
+			var piece := PackedVector2Array()
+			for i in pts.size():
+				if i > 0 and _on_sunk_edge(pts[i - 1], pts[i]):
+					if piece.size() >= 2:
+						_wall_along(st, piece, float(style[1]), float(style[2]), Color(style[0]), true)
+					piece = PackedVector2Array()
+				piece.append(pts[i])
+			if piece.size() >= 2:
+				_wall_along(st, piece, float(style[1]), float(style[2]), Color(style[0]), true)
+			continue
+		_wall_along(st, pts, float(style[1]), float(style[2]), Color(style[0]), l["k"] != "platform")
 	_uv2 = Vector2.ZERO
+
+
+static func _box_of_pts(pts: PackedVector2Array) -> Rect2:
+	var r := Rect2(pts[0], Vector2.ZERO) if not pts.is_empty() else Rect2()
+	for q in pts:
+		r = r.expand(q)
+	return r
 
 
 ## Under every deck piece: its slab (concrete top, underside) and a parapet girder on the
@@ -5149,6 +6448,12 @@ func _by_road(p0: Vector2, p1: Vector2, roads: Array) -> bool:
 	return false
 
 
+const PLATFORM_TILES := Color("#b9b8b3")
+const PLATFORM_EDGE := Color("#e4e2dc")
+const PLATFORM_LINE := Color("#f0c419")
+const PLATFORM_TACTILE := Color("#d2cfc6")
+
+
 func _build_platforms(st) -> void:
 	_uv2 = Vector2(0.5, -1.0)
 	var roads := _platform_roads()
@@ -5161,7 +6466,24 @@ func _build_platforms(st) -> void:
 		for q in poly:
 			ground = minf(ground, terrain_height(q.x, q.y))
 		var col := Color("#d4cfc5")
+		var rail := h >= 0.7  # a railway platform (OSM 0.9 m), not a tram or bus island
+		if rail:
+			col = PLATFORM_TILES
 		_fill(st, poly, ground + h + 0.1, col)
+		if rail:
+			# F 2026-11-06 (photos of Warszawa Główna's new platforms): a white edge band and the
+			# yellow safety line 0.9 m in, the tactile strip inside it.
+			var top := ground + h + 0.1
+			var ring := poly.duplicate()
+			ring.append(poly[0])
+			_strip(st, ring, 0.35, top + 0.006, PLATFORM_EDGE, false)
+			for inset: Array in [[-0.9, 0.14, PLATFORM_LINE], [-1.25, 0.4, PLATFORM_TACTILE]]:
+				for inner: PackedVector2Array in Geometry2D.offset_polygon(poly, float(inset[0]), Geometry2D.JOIN_MITER):
+					if Geometry2D.is_polygon_clockwise(inner):
+						continue  # a hole
+					var loop := inner.duplicate()
+					loop.append(inner[0])
+					_strip(st, loop, float(inset[1]), top + 0.01, inset[2], false)
 		for i in poly.size():
 			var p0 := poly[i]
 			var p1 := poly[(i + 1) % poly.size()]
@@ -5371,6 +6693,15 @@ const ARROW_LTR := [
 	"....#....", "...###...", "..#####..", "....#....", ".#..#..#.", "##..#..##", "#########",
 	"##..#..##", ".#..#..#.", "....#....", "....#....",
 ]
+## Round 4 (F): the U-turn (left and back, through a median's opening) and straight on with it.
+const ARROW_U := [
+	"...####..", "..#...#..", "..#...#..", "..#...#..", "#####.#..", ".###..#..", "..#...#..", "......#..",
+	"......#..", "......#..",
+]
+const ARROW_TU := [
+	"......#..", ".....###.", "....#####", "......#..", "...####..", "..#...#..", "#####.#..", ".###..#..",
+	"..#...#..", "......#..",
+]
 const BIKE := [
 	"....##..", "...#..#.", ".###....", "#..#.##.", "#..##..#", "#.#.#..#", ".#...##.",
 ]
@@ -5409,6 +6740,10 @@ func _build_symbols(st) -> void:
 						rows = ARROW_LR
 					"LTR":
 						rows = ARROW_LTR
+					"U":
+						rows = ARROW_U
+					"TU":
+						rows = ARROW_TU
 				# Loop 3b-2: cells up to 0.3 m across, the arrow up to 2.7 m wide (a lane is 3+ m),
 				# so a 9-cell arrow keeps whole 0.3 m strokes and gaps (2.4 m made them 0.27).
 				_pixel_shape(st, rows, at, fwd, minf(0.3, 2.7 / String(rows[0]).length()), 0.5, mirror)
@@ -5481,6 +6816,118 @@ func _dashes(st, poly: PackedVector2Array, offset: float, on: float, off: float,
 				_strip(st, dash, width, Y_MARK, COL["mark"], false)
 			t += on + off
 		phase = fposmod(phase + length, on + off)
+
+
+## Smooth roads loop 7 (F's ChatGPT target): where a tram track runs on its own bed
+## (`trams[].bed`, metres along it, tools/road_smooth.py tram_beds) a 2.4 m band of gravel under
+## it that the shader (ground.gdshader, layer 21) cuts into sleepers every 0.6 m. Same mesh and
+## material: no new draw call.
+func _build_tram_sleepers(st) -> void:
+	_layer = L_SLEEPERS
+	for t in data["trams"]:
+		if not t.has("bed"):
+			continue
+		var poly := _pts(t["p"])
+		_dk = int(t.get("dk", -1))
+		for b in t["bed"]:
+			var run := _sub_poly(poly, float(b[0]), float(b[1]))
+			if run.size() >= 2:
+				_strip(st, run, TRAM_SLEEPER_W, Y_ROAD + 0.008, TRAM_GRAVEL, false)
+	_dk = -1
+	_layer = L_GROUND
+
+
+## Smooth roads loop 7: a road or a footway across a tram bed (`tram_xings`,
+## tools/road_smooth.py tram_crossings): one mitred band over the bed and its sleepers, under the
+## rails: the road's asphalt, or a footway's pale concrete panels (the road under the bed showed
+## only its lines and kerbs, curving across the tracks).
+func _build_tram_crossings(st) -> void:
+	for x in data.get("tram_xings", []):
+		# Round 4 (F): a road's opening through a median is one paved footprint (`foot`), flush,
+		# its noses rounded over it (_build_tram_noses).
+		# Asphalt like the carriageways it joins, so the opening reads as one flush road.
+		if x.has("foot"):
+			_layer = L_ROAD
+			_fill_quad_fine(st, _pts(x["foot"]), Y_ROAD + 0.01, COL["road"])
+			continue
+		# A road keeps its asphalt across the tracks; a footway gets the pale panels.
+		var road: bool = x.get("k", "") == "road"
+		_layer = L_ROAD if road else L_TRAMBED
+		var poly := _pts(x["p"])
+		var ws := PackedFloat32Array()
+		var cs := PackedFloat32Array()
+		for i in poly.size():
+			ws.append(float(x["w"]))
+			cs.append(0.0)
+		_band_var(st, poly, ws, cs, Y_ROAD + 0.01, COL["road"] if road else TRAM_XING)
+	_axis = Vector2.ZERO
+	_layer = L_GROUND
+
+
+## Round 4: a four-cornered polygon in cells of about a metre, so it follows the ground like
+## the bed's sleeper strips under it (one flat 12 m triangle sank under them mid-span).
+func _fill_quad_fine(st, q: PackedVector2Array, y: float, col: Color) -> void:
+	if q.size() != 4:
+		_fill(st, q, y, col)
+		return
+	var nu := maxi(1, ceili(q[0].distance_to(q[1])))
+	var nv := maxi(1, ceili(q[1].distance_to(q[2])))
+	for i in nu:
+		for j in nv:
+			var u0 := float(i) / nu
+			var u1 := float(i + 1) / nu
+			var v0 := float(j) / nv
+			var v1 := float(j + 1) / nv
+			var a := _bilerp(q, u0, v0)
+			var b := _bilerp(q, u1, v0)
+			var c := _bilerp(q, u1, v1)
+			var d := _bilerp(q, u0, v1)
+			_fill(st, PackedVector2Array([a, b, c, d]), y, col)
+
+
+func _bilerp(q: PackedVector2Array, u: float, v: float) -> Vector2:
+	return q[0].lerp(q[1], u).lerp(q[3].lerp(q[2], u), v)
+
+
+## Round 4 (F): the rounded ends of a tram median at a road's opening (`tram_noses`,
+## tools/road_smooth.py shape_openings): gravel like the bed, over the opening's paving; their
+## kerbs come with the kerbs.
+func _build_tram_noses(st) -> void:
+	_layer = L_GRAVEL
+	for n in data.get("tram_noses", []):
+		# in rings round the middle, so it follows the ground over the opening's paving
+		var ring := _pts(n["p"])
+		var mid := Vector2.ZERO
+		for q in ring:
+			mid += q
+		mid /= maxf(1.0, ring.size())
+		for i in ring.size():
+			var a := ring[i]
+			var b := ring[(i + 1) % ring.size()]
+			for k in 4:
+				var t0 := k / 4.0
+				var t1 := (k + 1) / 4.0
+				_fill(st, PackedVector2Array([mid.lerp(a, t0), mid.lerp(a, t1), mid.lerp(b, t1), mid.lerp(b, t0)]),
+					Y_ROAD + 0.03, TRAM_BED)
+	_layer = L_GROUND
+
+
+## The part of a polyline from s0 to s1 metres along it.
+func _sub_poly(poly: PackedVector2Array, s0: float, s1: float) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	var s := 0.0
+	for i in poly.size() - 1:
+		var a := poly[i]
+		var b := poly[i + 1]
+		var length := a.distance_to(b)
+		if length > 0.0 and s + length >= s0 and s <= s1:
+			var f0 := clampf((s0 - s) / length, 0.0, 1.0)
+			var f1 := clampf((s1 - s) / length, 0.0, 1.0)
+			if out.is_empty():
+				out.append(a.lerp(b, f0))
+			out.append(a.lerp(b, f1))
+		s += length
+	return out
 
 
 func _build_trams(st) -> void:
@@ -6266,6 +7713,11 @@ func _osm_colour(value, fallback: Color) -> Color:
 
 ## A landmark keeps this spot clear of trees (landmarks.gd tree_free: Powiśle's saucer).
 func _tree_blocked(x: float, z: float) -> bool:
+	# Not on the railway cutting's floor or at its banks' feet (rail_cut.gd).
+	if _cut.box.has_point(Vector2(x, z)):
+		var c: Vector3 = _cut.at(x, z, _grid_height(x, z))
+		if c.y > 0.5 and c.y < 1.5 or (c.y > 1.5 and c.y < 2.5 and c.z < 2.0):
+			return true
 	if _marks == null:
 		return false
 	for c: Array in _marks.tree_free:

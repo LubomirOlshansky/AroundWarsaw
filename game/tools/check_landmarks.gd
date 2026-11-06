@@ -12,9 +12,10 @@ extends SceneTree
 ## fly over them, not to be stopped. bulwary_basen (K7, 2026-11-02): the splash pool, its 0.3 m
 ## rim and fish on 0.55 m plinths, under 2 m in all.
 ## bazar (2026-11-02): Bazar Różyckiego's stalls and kiosks stand 2.5-3.4 m, under the 6 m floor the heli flies at.
+## plac_centralny and its lamps (2026-11-05): the seat-wall, steps and lamp posts stand 1-5 m, under the heli's 6 m floor.
 ## Towarowa 22 is a quarter: its box's middle is the printing hall's open frame and the 28 m tanks
 ## block, under the heli's 45 m; its towers stand at the box's west edge and stop it there.
-const FLY_OVER := ["bulwary_basen", "bazar", "towarowa22"]
+const FLY_OVER := ["bulwary_basen", "bazar", "towarowa22", "plac_centralny", "plac_centralny_lamps", "sunken", "underpass"]
 ## Monuments lower than the heli's 6 m floor (the monuments pass, part 2): it flies at this height
 ## instead, so their bronze and stone have to stop it.
 const LOW_MONUMENTS := {"maly_powstaniec": 1.5, "starzynski": 2.5, "umschlagplatz": 2.5, "pomnik_wschod": 3.0}
@@ -208,6 +209,8 @@ func _fly_checks() -> int:
 			alt = 10.0  # the 17.5 m stores share roof cells with the Eastern Wall's 70 m slabs behind them
 		elif info["key"] == "syrenka_powisle" or info["key"] == "dworzec_wodny":
 			alt = 3.0  # the statue stands 5 m, the water station's roof 4 m: a 6 m heli flies over them
+		elif info["key"] == "underpass":
+			alt = 35.0  # ground-level stairs; the way in from the east crosses Jerozolimskie's 25 m tenements
 		elif info["key"] == "tarasy":
 			alt = 15.0  # the wave stands 30 m; the towers in its box (110 m) would lift the heli over it
 		elif LOW_MONUMENTS.has(info["key"]):

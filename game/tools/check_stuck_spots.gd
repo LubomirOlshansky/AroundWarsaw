@@ -91,6 +91,10 @@ const SPOTS := [
 	[1311.0, 985.0, 342.0, 10.0, 4.0, 0.5, "PT-18 Solec north under the ramp, the kerb lane drifting 5° west past its pier"],
 	[1312.5, 985.0, 338.0, 10.0, 4.0, 0.5, "PT-18 Solec north under the ramp, drifting 9° west"],
 	[1305.0, 985.0, 342.0, 10.0, 4.0, 0.5, "PT-18 Solec's west verge north, west of the pier"],
+	# Smooth roads round 4 (F, 2026-11-05): through the U-turn's opening in the Marszałkowska tram
+	# median at Złota, from the southbound mouth onto the northbound carriageway, the stick to the
+	# north-north-east: no kerb, nose or rail end on the way (the car speeds up all the way).
+	[-962.0, 139.3, 100.0, 6.0, 2.5, 1.0, "Smooth roads 4: the U-turn through Marszałkowska's tram median at Złota", 30.0],
 ]
 ## Sectors within this of a spot are loaded.
 const REACH := 300.0

@@ -38,6 +38,7 @@ const Access := preload("res://scripts/access.gd")
 const Haptics := preload("res://scripts/haptics.gd")
 const StopAssist := preload("res://scripts/stop_assist.gd")
 const Models := preload("res://scripts/models.gd")
+const LaneAssist := preload("res://scripts/lane_assist.gd")
 
 ## Hit something hard enough to notice, at `speed` m/s closing speed (traffic stops
 ## the car it was hit by; the słoiki run breaks jars).
@@ -165,8 +166,11 @@ const JAM_RADIUS := 4.0
 ## wall nothing pins it against, a gap inside a building, a ledge): `stalled` reaches STALL_TIME
 ## and the game offers the tow on the context button. Time off the controls neither counts nor
 ## resets it; leaving the spot does. Parked, held by the stop assist or in the water: never.
+## PT-24 (2026-11-06): the spot was 4 m, so backing off a wall to take another run at it (5-8 m
+## back) started the count again every try; 10 m holds a ram-and-reverse in one spot, and a car
+## that drives on still leaves it in a couple of seconds.
 const STALL_TIME := 8.0
-const STALL_RADIUS := 4.0
+const STALL_RADIUS := 10.0
 ## The driving-feel loop (the ram test): the share of the speed going into a car or a tram that
 ## is kept for the next frame (it was none: a rear-ended car stopped the player dead).
 const CAR_KEEP := 0.5
@@ -211,6 +215,13 @@ var _assist_held := 0.0
 var _assist_spent := false
 ## Point-to-steer: when not zero, the car turns towards this world direction.
 var target_dir := Vector3.ZERO
+## Beta values (2026-11-04): the lane assist ("Asysta pasa", lane_assist.gd), on from Settings →
+## Jazda (off by default), and the direction of the lane the car drives in (main.gd sets it 10 times
+## a second; ZERO: none). Classic only: with a target_dir (Point, Fixed) it does nothing.
+var lane_assist := false
+var lane_dir := Vector3.ZERO
+## The assist's yaw rate this step (rad/s), for the checks.
+var lane_pull := 0.0
 ## What the car does this step (loop 2a): the brakes are on (the button, or pointing well
 ## behind at speed: skids and the tyres' squeal read this), the smoothed steering, and
 ## the yaw rate (rad/s, + is left).
@@ -548,6 +559,10 @@ func _step(dt: float) -> void:
 			top = minf(top, maxf(speed, TURN_CRAWL))
 	steer_now = lerpf(steer_now, clampf(s, -1.0, 1.0), 1.0 - exp(-dt / (steer_time / steer_gain)))
 	var yaw := steer_now * max_turn(absf(speed), maxf(gas, throttle)) * backwards
+	lane_pull = _lane_pull(fwd, speed)
+	if lane_pull != 0.0:
+		var most := max_turn(absf(speed), maxf(gas, throttle))
+		yaw = clampf(yaw + lane_pull, -most, most)
 	rotate_y(yaw * dt)
 	yaw_rate = yaw
 
@@ -914,6 +929,15 @@ func _nitro_tick(dt: float) -> void:
 
 ## The most the car turns (rad/s) at `v` m/s: turn_cap when slow, turn_pull / v + turn_floor
 ## at speed; under 2 m/s it fades out, except for a little pivot with the gas on.
+## The lane assist's yaw rate (lane_assist.gd yaw_pull): Classic, going forward, not braking, not
+## touching anything (the wall follow and the slips have the steering then), on a lane.
+func _lane_pull(fwd: Vector3, speed: float) -> float:
+	if not lane_assist or lane_dir == Vector3.ZERO or target_dir != Vector3.ZERO or braking or parked \
+			or speed < 0.0 or _contact > 0.0:
+		return 0.0
+	return LaneAssist.yaw_pull(fwd.signed_angle_to(lane_dir, Vector3.UP), steer, speed)
+
+
 func max_turn(v: float, gas := 0.0) -> float:
 	var w := minf(turn_cap, turn_pull / maxf(v, 0.1) + turn_floor)
 	var roll := clampf(v / 2.0, 0.0, 1.0)

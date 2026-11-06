@@ -179,3 +179,10 @@ device pass makes TestFlight. Open-source publication can happen any time after 
 
 Further reading: code.claude.com/docs (subagents, skills, memory, best practices);
 docs.godotengine.org (performance, GDScript style guide, static typing).
+
+## Developer console (F, 2026-11-04)
+
+`python3 -I tools/console.py [--watch] [--renders DIR]` writes `build/console/index.html`: the status page's map grown into a
+console (overview, city map with layers, area picker and counts, content tables, approvals queue, renders). Details:
+`console/README.md`. It reads the same sources as the status page and the wiki, so a PR that changes CITY_INVENTORY,
+QUESTIONS, ROADMAP or `game/data` needs nothing extra for the console to follow.

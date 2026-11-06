@@ -77,7 +77,7 @@ SECTOR_LISTS = {
     "roads": "p", "paths": "p", "trams": "p", "areas": "p", "buildings": "p", "markings": "p",
     "carriage": "p", "kerbs": "p", "medians": "s", "guards": "p", "symbols": "xz", "sand": "p",
     "sandbars": "p", "rails": "p", "platforms": "p", "islands": "p", "lines": "p", "surfaces": "p",
-    "steps": "p", "walls": "p", "garage_doors": "c",
+    "steps": "p", "walls": "p", "garage_doors": "c", "tram_xings": "p", "asphalt_fills": "p", "tram_noses": "p",
 }
 # Flat point lists: values per thing.
 SECTOR_POINTS = {"trees": 4, "lamps": 2, "signals": 3, "parked": 4, "benches": 3, "bins": 3,
@@ -88,7 +88,7 @@ SECTOR_WHOLE = ["lod2_cuts", "lod2_open"]
 # index too: trains.gd runs on the whole network (docs/design/railway.md T1).
 SECTOR_ONLY = {"buildings", "markings", "carriage", "symbols", "sand", "sandbars", "surfaces",
                "steps", "lines", "walls", "garage_doors", "lamps", "benches", "bins",
-               "bikes", "shelters", "trees", "trees3d_crown"}
+               "bikes", "shelters", "trees", "trees3d_crown", "tram_xings", "asphalt_fills", "tram_noses"}
 
 # Where landmarks.gd looks for the building parts its sites are made of (it reads every
 # building whose centre lies inside one of these): the outlines it finds by name and the
@@ -123,11 +123,15 @@ SITE_NAMES = ["Pałac Kultury i Nauki", "Złote Tarasy", "Lumen", "Skylight", "R
               "Atlas Tower",
               # Hortus (2026-11-02): its tenement-style flats on Drewniana, unnamed in OSM, found
               # by landmarks.gd HORTUS_FLATS_AT next to the outline
-              "Hortus"]
+              "Hortus",
+              # Plac Bankowy (2026-11-02): the Ratusz's colonnades stand on its mapped columns
+              # (landmarks.gd _build_ratusz reads the building=column parts by the outline)
+              "Urząd Miasta Stołecznego Warszawy"]
 SITE_PAD = 12.0
 # Building kinds landmarks.gd finds wherever they lie (the barges, 2026-11-01: _find_barges).
 SITE_KINDS = ("boat", "houseboat")
 SITE_AREAS = [
+    (-1345.0, -1790.0, -1200.0, -1690.0),   # Sąd Najwyższy's colonnade (landmarks.gd SN_BOX: unnamed OSM columns)
     (-270.0, -1510.0, -20.0, -1260.0),      # the boulevards' bar pavilions (landmarks.gd BULWAR_PAW_BOX)
     (25.0, -1110.0, 65.0, -1065.0),         # and their containers and kiosks (BULWAR_BAR_BOXES)
     (195.0, -1068.0, 245.0, -1025.0),
@@ -144,10 +148,17 @@ SITE_AREAS = [
     (-2700.0, 560.0, -2655.0, 650.0),       # The Warsaw HUB's towers (landmarks.gd TOWERS "at")
     (-2723.0, 487.0, -2689.0, 538.0),       # and its round-ended hotel tower (TOWERS crowne "at")
     (-260.0, 325.0, -240.0, 345.0),         # the BGK building, Al. Jerozolimskie 7 (unnamed in OSM; landmarks.gd BGK_AT)
+    (-165.0, 55.0, -155.0, 65.0),           # Foksal 13 (unnamed in OSM; landmarks.gd _find_foksal, its address point)
+    (-193.0, 46.0, -183.0, 56.0),           # and Foksal 15
+    (70.0, 20.0, 100.0, 45.0),              # Młotek, Smolna 8 (landmarks.gd ML_AT)
+    (-820.0, -1185.0, -790.0, -1160.0),     # Kozia 9 (unnamed in OSM; landmarks.gd KZ_AT)
+    (-475.0, -960.0, -450.0, -940.0),       # Karowa 18a (unnamed in OSM; landmarks.gd KR_AT)
     (-650.0, -790.0, -630.0, -765.0),       # Plac Piłsudskiego's south-east block (landmarks.gd KROLEWSKA_BLOCK)
     (-3105.0, -2455.0, -2920.0, -2335.0),   # map north: the Forest tower's office block (unnamed in OSM; docs/DEMO.md 2.2)
     (-2175.0, -2520.0, -1945.0, -2335.0),   # Gdański Business Center (unnamed in OSM; landmarks.gd GBC_BOX)
     (-445.0, 1605.0, -395.0, 1680.0),       # Kościół Najświętszego Zbawiciela (landmarks.gd ZB_NAVE_AT, ZB_TOWER_AT)
+    (-2290.0, 185.0, -2165.0, 235.0),       # Norblin's old works (landmarks.gd NORBLIN_OLD, F's look check 2026-11-03)
+    (-2254.0, 232.0, -2234.0, 252.0),       # and its glazed hall on Prosta ("Verit", NORBLIN_HALL_AT)
     # behind the Eastern Wall (landmarks.gd _find_behind): the 75 m tower and the four 1960s
     # slabs, unnamed in OSM, found by the outline under TOWER75_AT and SLAB_AT (their bboxes)
     (-837.0, 245.0, -804.0, 270.0),

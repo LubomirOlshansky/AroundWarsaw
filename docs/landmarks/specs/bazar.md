@@ -75,3 +75,5 @@ L2, triangle budget 2210 (1839 measured; `check_mesh_quality.gd`, `bazar`). Shot
 | awning | sloped quad | stall width x 1.3 m | one long side | M_STONE | 1 stalls |
 | stall front | panel | stall width - 0.8 m | under the awning | M_STONE | 1 stalls |
 | crates | box | 0.7 x 0.56 x 0.55 m | before open stalls | M_STONE | 6 ground |
+
+F's look check (2026-11-03): three units a side kept as the working count; old stall roofs patched for contrast with the kiosks.

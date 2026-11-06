@@ -56,3 +56,5 @@ L2, triangle budget 3800 (an exception to the L2 limit: six buildings in one sit
 | roof garden | gravel walk + 2 houses | 1.6 m, 3 x 3 x 2.6 m | north slab | M_STONE | 4 roof |
 | garden path | gravel caps | 2.4 m wide | BROWARY_PATH | M_STONE | 6 ground |
 | café clearings | 2 x (2 tables, 4 chairs, parasol) | r 3.6 m | BROWARY_CLEARINGS | M_STONE | 6 ground |
+
+F's look check (2026-11-03): trees grouped (four clumps, tools/planted_trees.py groups), the path edged, the clearings paved in pale stone (BROWARY_CLEARING_R 4.2).

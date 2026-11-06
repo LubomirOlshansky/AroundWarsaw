@@ -33,6 +33,7 @@ extends Node3D
 ## the street props (metro entrances, zones), children of the sector's root (gone with it); no sun
 ## shadow. Nothing runs per frame but a 2 Hz tick (stamps) and the car's 16 m cell of scooters.
 
+const MapBuilderStatic := preload("res://scripts/map_builder.gd")
 const Lang := preload("res://scripts/lang.gd")
 const Models := preload("res://scripts/models.gd")
 const Props := preload("res://scripts/props.gd")
@@ -1453,9 +1454,25 @@ func _load_metros(pois: Array) -> void:
 			continue
 		var x := float(p["x"])
 		var z := float(p["z"])
+		var form := metro_form(str(p.get("st", "")), str(p.get("f", "canopy")))
+		# On a sunken square (the Patelnia, map_builder SUNKEN) the landmark site's glass barrels are
+		# the entrances: no canopy of our own.
+		if MapBuilderStatic.in_sunken(x, z):
+			form = "none"
 		metros.append({"at": Vector3(x, map.ground_height(x, z), z), "yaw": float(p["yaw"]), "station": str(p.get("st", "")),
-				"ref": str(p.get("ref", "")), "key": key_of(Vector2(x, z)), "form": "tube" if str(p.get("st", "")) == "Centrum" else str(p.get("f", "canopy")),
+				"ref": str(p.get("ref", "")), "key": key_of(Vector2(x, z)), "form": form,
 				"lift": (int(absf(x * 7.0 + z * 13.0)) % 5) < 3})
+
+
+## The entrance's look by station: Centrum's 1990s tubes (F, 2026-11-02); Świętokrzyska's mapped
+## canopies are M2's steel-and-glass triangle tents (F's photo, Feb 2026), its plain stairs stay
+## stairs; elsewhere the bake's `f`.
+static func metro_form(station: String, f: String) -> String:
+	if station == "Centrum":
+		return "tube"
+	if station == "Świętokrzyska" and f == "canopy":
+		return "tent"
+	return f
 
 
 ## The Rowerilo docks from the bake's `bicycle_rental` pois (`yaw` along the rack row, `l` its length
@@ -1539,6 +1556,8 @@ func _build_props(key: Vector2i, root: Node3D) -> void:
 	var first := true
 	for i: int in b["metros"]:
 		var m := metros[i]
+		if m["form"] == "none":
+			continue
 		Props.add_metro_entrance(st, Transform3D(Basis(Vector3.UP, float(m["yaw"])), m["at"]), m["form"], m["lift"])
 		box = AABB(m["at"], Vector3.ZERO) if first else box.expand(m["at"])
 		first = false

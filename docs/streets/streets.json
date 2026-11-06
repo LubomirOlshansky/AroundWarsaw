@@ -1,0 +1,576 @@
+{
+ "note": "Operation Unslop street passes (docs/design/operation-unslop.md). Frame: s metres along the street from o, t metres across (east of Marszałkowska is +t). Boxes are [min, max]. owned: areas another thread owns (findings listed, never scored). changed: places that changed after the map data or older photos were made (findings there need fresh evidence). fresh_since: street photos older than this are history, not evidence.",
+ "streets": [
+  {
+   "slug": "marszalkowska-centrum",
+   "title": "Marszałkowska: Rondo Dmowskiego to Świętokrzyska",
+   "names": [
+    "Marszałkowska"
+   ],
+   "frame": {
+    "o": [
+     -937.0,
+     210.1
+    ],
+    "s": [
+     -0.34917,
+     -0.93706
+    ],
+    "t": [
+     0.93706,
+     -0.34917
+    ]
+   },
+   "s": [
+    -235,
+    372
+   ],
+   "t": [
+    -30,
+    48
+   ],
+   "street_t": [
+    -8,
+    26
+   ],
+   "fresh_since": "2025-09",
+   "stage": "evidence",
+   "cameras": [
+    {
+     "name": "A",
+     "x": -893.8,
+     "z": 300.2
+    },
+    {
+     "name": "B",
+     "x": -964.9,
+     "z": 109.5
+    },
+    {
+     "name": "C",
+     "x": -1023.5,
+     "z": -47.9
+    },
+    {
+     "name": "zlota-uturn",
+     "x": -922.0,
+     "z": 170.0,
+     "why": "Złota U-turn and crossing (smooth-roads rounds 2-4, F-06)"
+    },
+    {
+     "name": "pkin-driveway",
+     "x": -845.0,
+     "z": 385.0,
+     "why": "PKiN driveway and tram bed (F's crops, F-05)"
+    }
+   ],
+   "blocks": [
+    {
+     "id": "A",
+     "title": "Rondo Dmowskiego to Złota",
+     "s": [
+      -235,
+      36
+     ]
+    },
+    {
+     "id": "B",
+     "title": "Złota to Sienkiewicza",
+     "s": [
+      36,
+      172
+     ]
+    },
+    {
+     "id": "C",
+     "title": "Sienkiewicza to Świętokrzyska",
+     "s": [
+      172,
+      372
+     ]
+    }
+   ],
+   "owned": [
+    {
+     "by": "Plac Centralny thread (tools/plac_centralny.py, site plac_centralny)",
+     "s": [
+      -45,
+      92
+     ],
+     "t": [
+      -245,
+      -25
+     ]
+    }
+   ],
+   "changed": [
+    {
+     "what": "Skwer Linearny na Złotej (car-free since 2026-08) and its crossing to Plac Centralny",
+     "since": "2026-08",
+     "s": [
+      20,
+      80
+     ],
+     "t": [
+      -30,
+      48
+     ]
+    },
+    {
+     "what": "Plac Centralny and the west pavement rebuilt 2024-2026 (OSM and the 2023 orthophoto can be older)",
+     "since": "2024-06",
+     "s": [
+      -45,
+      92
+     ],
+     "t": [
+      -25,
+      -8
+     ]
+    }
+   ],
+   "decisions": {
+    "barrier:wall:-886:402": [
+     "RETEXTURE",
+     "tram_railing",
+     "a continuous black pedestrian railing about 1.1 m along the west kerb, not a wall (Mapillary 1786758819186175, 2505406509980804, 2026-08-30)"
+    ],
+    "barrier:wall:-922:174": [
+     "REPLACE",
+     "balustrade",
+     "metro Centrum entrance 7: granite parapet about 1 m with a flat coping (Mapillary 1200822230992201, 2024-09-07; the stair predates the skwer)"
+    ],
+    "barrier:wall:-862:416": [
+     "REPLACE",
+     "balustrade_rail",
+     "stair at the tram platform tip: concrete upstand with a black rail (Mapillary 1023049187379291, 2026-08-30)"
+    ]
+   },
+   "flags": [
+    {
+     "id": "F-01",
+     "x": -887,
+     "z": 402,
+     "by": "F 2026-11-05 (phone)",
+     "what": "black strip along the Patelnia edge by the road (the tram_railing style drawn as a solid 1.1 m slab)",
+     "should": "an open black railing you see through",
+     "done": "2026-11-05 open railing style"
+    },
+    {
+     "id": "F-02",
+     "x": -815,
+     "z": 414,
+     "by": "F 2026-11-05 (phone)",
+     "what": "the metro stair entrance by the Rotunda reads as a walled pit",
+     "should": "a stair entrance: steps down, low parapet or open rail, the Centrum tube roof"
+    },
+    {
+     "id": "F-03",
+     "x": -828,
+     "z": 348,
+     "by": "F 2026-11-05 (phone)",
+     "what": "a long grey wall slab on the Rotunda plaza",
+     "should": "CHECK what stands there today; remove it if nothing does"
+    },
+    {
+     "id": "F-04",
+     "x": -925,
+     "z": 410,
+     "by": "F 2026-11-05 (phone + aerial)",
+     "what": "Patelnia is flat",
+     "should": "a sunken plaza with steps down, two glass-roofed stair entrances, the kiosk, the red hoarding by the road"
+    },
+    {
+     "id": "F-05",
+     "x": -845,
+     "z": 385,
+     "by": "F 2026-11-05 (phone)",
+     "approx": true,
+     "what": "an asphalt wedge ending in the grass by the cycle path near the Rotunda",
+     "should": "no stub: grass or pavement, or the real slip road"
+    },
+    {
+     "id": "F-06",
+     "x": -922,
+     "z": 170,
+     "by": "F 2026-11-05 (phone)",
+     "approx": true,
+     "what": "east carriageway steps from 3 to 2 lanes with ragged asphalt edges by Złota",
+     "should": "one smooth carriageway, the extra lane opening on a 20-30 m taper"
+    },
+    {
+     "id": "F-07",
+     "x": -940,
+     "z": 130,
+     "by": "F 2026-11-05 (phone)",
+     "approx": true,
+     "what": "ragged lane edge and a jagged bus pocket on the east carriageway",
+     "should": "a clean kerb line and a drawn bus bay"
+    },
+    {
+     "id": "F-08",
+     "x": -990,
+     "z": 40,
+     "by": "F 2026-11-05 (phone)",
+     "approx": true,
+     "what": "cyclists ride on the car road next to the red cycle path",
+     "should": "cyclists on the cycle path"
+    }
+   ]
+  },
+  {
+   "slug": "swietokrzyska-east",
+   "title": "Świętokrzyska: Metro Świętokrzyska to Emilii Plater",
+   "names": [
+    "Świętokrzyska"
+   ],
+   "frame": {
+    "o": [
+     -1064.4,
+     -131.8
+    ],
+    "s": [
+     -0.94572,
+     0.32497
+    ],
+    "t": [
+     -0.32497,
+     -0.94572
+    ]
+   },
+   "s": [
+    -10,
+    452
+   ],
+   "t": [
+    -40,
+    40
+   ],
+   "street_t": [
+    -6,
+    10
+   ],
+   "fresh_since": "2025-09",
+   "stage": "baseline",
+   "cameras": [
+    {
+     "name": "A1",
+     "x": -1083.3,
+     "z": -125.3,
+     "why": "start: Metro Świętokrzyska junction"
+    },
+    {
+     "name": "A2",
+     "x": -1206.3,
+     "z": -83.1
+    },
+    {
+     "name": "B1",
+     "x": -1376.5,
+     "z": -24.6
+    },
+    {
+     "name": "B2",
+     "x": -1471.1,
+     "z": 7.9,
+     "why": "Emilii Plater crossing"
+    }
+   ],
+   "blocks": [
+    {
+     "id": "A",
+     "title": "Marszałkowska to Wallenberga",
+     "s": [
+      0,
+      277
+     ]
+    },
+    {
+     "id": "B",
+     "title": "Wallenberga to Emilii Plater",
+     "s": [
+      277,
+      442
+     ]
+    }
+   ],
+   "owned": []
+  },
+  {
+   "slug": "swietokrzyska-west",
+   "title": "Świętokrzyska: Emilii Plater to Rondo ONZ",
+   "names": [
+    "Świętokrzyska"
+   ],
+   "frame": {
+    "o": [
+     -1482.3,
+     11.8
+    ],
+    "s": [
+     -0.9784,
+     0.20674
+    ],
+    "t": [
+     -0.20674,
+     -0.9784
+    ]
+   },
+   "s": [
+    -10,
+    150
+   ],
+   "t": [
+    -40,
+    40
+   ],
+   "street_t": [
+    -8,
+    10
+   ],
+   "fresh_since": "2025-09",
+   "stage": "baseline",
+   "cameras": [
+    {
+     "name": "C1",
+     "x": -1511.7,
+     "z": 18.0
+    },
+    {
+     "name": "C2",
+     "x": -1580.1,
+     "z": 32.5
+    },
+    {
+     "name": "C3",
+     "x": -1614.4,
+     "z": 39.7,
+     "why": "Rondo ONZ entry"
+    }
+   ],
+   "blocks": [
+    {
+     "id": "C",
+     "title": "Emilii Plater to Rondo ONZ",
+     "s": [
+      0,
+      139
+     ]
+    }
+   ],
+   "owned": [
+    {
+     "by": "Rondo ONZ (ring and towers: own landmark pass)",
+     "s": [
+      139,
+      262
+     ],
+     "t": [
+      -60,
+      40
+     ]
+    }
+   ]
+  },
+  {
+   "slug": "emilii-plater",
+   "title": "Emilii Plater: Świętokrzyska to Aleje Jerozolimskie",
+   "names": [
+    "Emilii Plater"
+   ],
+   "frame": {
+    "o": [
+     -1482.3,
+     11.8
+    ],
+    "s": [
+     0.33269,
+     0.94303
+    ],
+    "t": [
+     -0.94303,
+     0.33269
+    ]
+   },
+   "s": [
+    -10,
+    633
+   ],
+   "t": [
+    -45,
+    45
+   ],
+   "street_t": [
+    -24,
+    6
+   ],
+   "fresh_since": "2025-09",
+   "stage": "baseline",
+   "cameras": [
+    {
+     "name": "J1",
+     "x": -1475.6,
+     "z": 25.7,
+     "why": "Świętokrzyska junction"
+    },
+    {
+     "name": "A",
+     "x": -1439.4,
+     "z": 75.3
+    },
+    {
+     "name": "B",
+     "x": -1405.8,
+     "z": 224.2
+    },
+    {
+     "name": "C",
+     "x": -1307.4,
+     "z": 448.7
+    },
+    {
+     "name": "J2",
+     "x": -1279.9,
+     "z": 580.0,
+     "why": "Jerozolimskie junction (Złote Tarasy and Centralna side)"
+    }
+   ],
+   "blocks": [
+    {
+     "id": "A",
+     "title": "Świętokrzyska to Śliska",
+     "s": [
+      0,
+      136
+     ]
+    },
+    {
+     "id": "B",
+     "title": "Śliska to Złota",
+     "s": [
+      136,
+      320
+     ]
+    },
+    {
+     "id": "C",
+     "title": "Złota to Aleje Jerozolimskie",
+     "s": [
+      320,
+      623
+     ]
+    }
+   ],
+   "owned": []
+  },
+  {
+   "slug": "jerozolimskie-centrum",
+   "title": "Aleje Jerozolimskie: Emilii Plater to Rondo Dmowskiego",
+   "names": [
+    "Aleje Jerozolimskie"
+   ],
+   "frame": {
+    "o": [
+     -1262.0,
+     596.0
+    ],
+    "s": [
+     0.94967,
+     -0.31324
+    ],
+    "t": [
+     0.31324,
+     0.94967
+    ]
+   },
+   "s": [
+    -10,
+    412
+   ],
+   "t": [
+    -45,
+    45
+   ],
+   "street_t": [
+    -15,
+    28
+   ],
+   "fresh_since": "2025-09",
+   "stage": "baseline",
+   "cameras": [
+    {
+     "name": "J1",
+     "x": -1256.3,
+     "z": 593.6,
+     "why": "Emilii Plater junction"
+    },
+    {
+     "name": "A",
+     "x": -1180.3,
+     "z": 568.9,
+     "yaw": 135,
+     "why": "shoot with --yaw=135 (the south-side roofs hide the street at the default angle)"
+    },
+    {
+     "name": "B",
+     "x": -1112.8,
+     "z": 548.2,
+     "yaw": 135,
+     "why": "shoot with --yaw=135 (the south-side roofs hide the street at the default angle)"
+    },
+    {
+     "name": "C",
+     "x": -978.7,
+     "z": 499.7,
+     "yaw": 135,
+     "why": "shoot with --yaw=135 (the south-side roofs hide the street at the default angle)"
+    },
+    {
+     "name": "R",
+     "x": -894.5,
+     "z": 462.9,
+     "why": "Rondo Dmowskiego hotspot (not owned)"
+    }
+   ],
+   "blocks": [
+    {
+     "id": "A",
+     "title": "Emilii Plater to Centralna",
+     "s": [
+      0,
+      140
+     ]
+    },
+    {
+     "id": "B",
+     "title": "Centralna to Chmielna side",
+     "s": [
+      140,
+      290
+     ]
+    },
+    {
+     "id": "C",
+     "title": "to Rondo Dmowskiego",
+     "s": [
+      290,
+      402
+     ]
+    }
+   ],
+   "owned": [
+    {
+     "by": "Centralna station and Złote Tarasy buildings, sunken metro and underpass entrances (north side; sunken-places thread)",
+     "s": [
+      0,
+      230
+     ],
+     "t": [
+      -45,
+      -16
+     ]
+    }
+   ]
+  }
+ ]
+}

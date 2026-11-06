@@ -5600,6 +5600,7 @@ Command-line options (after `--`):
 | --- | --- |
 | `--demo` | the car drives by itself; with `--heli` the helicopter flies a slow circle |
 | `--shots=60,240` / `--out=DIR` | save screenshots at those frames (counted from when the city is built), then quit (sweep 2: the sounds are stopped 0.15 s before, so a windowed run no longer ends with leaked audio streams). The window never takes the keyboard focus, as with `--no-input`, and a run that ends before a shot prints `shots: missing [frames]` with the game and engine frame and the pause state (2026-10-30) |
+| `--spots=NAME:X,Z[,HEADING];...` | with `--shots`: shoots every spot in one run (the city is built once; the car and camera jump to the next spot after each spot's last shot frame, the frames shift by the frames spent), files `NAME_FFFF.png`. `--out` is made when missing, and a PNG that can't be written ends the run with exit 1 (it used to exit 0 with no file) (Operation Unslop, 2026-11-05) |
 | `--style=N` / `--lines=N` | visual style 0–3 (loop 2e: wins over the saved style for this run) / override the pixel image's line count |
 | `--size=M` / `--yaw=deg` / `--fixed` | view height in metres (default 80) / camera turn / fixed camera (in Point: the Fixed camera scheme) |
 | `--at=x,z` | start at map coordinates (metres, +x east, +z south), on top of a bridge deck if there is one |
@@ -5630,6 +5631,7 @@ Command-line options (after `--`):
 | `--mission=N` | start rescue call N at once (N = 1, 5, 9… streets, 2, 6… roofs, 3, 7… river, 4, 8… parks) |
 | `--autopilot` | testing aid: fly (or, ghosting through walls, drive) to each mission target; in a race or a side job, drive the route; with `--rival`, tail the rival |
 | `--ghost-pace=X` | testing aid (street races, 2026-11-04): the autopilot's speed factor in a race (default 1.8, an average player; 2.4 a quick one; `racer`: a skilled player in traffic.gd's racer mode at the car's top), for the race-AI runs (`tools/race_ai.sh`) |
+| `--lane-assist=on\|off` | beta values (2026-11-04): the lane assist "Asysta pasa" (`lane_assist.gd`, Classic only) for this run, whatever Settings → Jazda says (off by default) |
 | `--race-debug` | testing aid (street races, 2026-11-04): once a second while a racing rival or a chaser stands still, traffic.gd prints what holds it (the car ahead, the player, a crossing car, a red, the lane) |
 | `--no-traffic` | no traffic, trams, pedestrians or rivals |
 | `--lineup` | loop 2c: every vehicle model standing round the car, all facing its way (beside it the taxi, Podwózka, the police and guard cars and the two vans; a row ahead the cars' four shapes; behind, the six rivals, then the bus and a tram cab car), no traffic, and each model's triangles printed (`lineup:` lines). Close-ups: `--at=-1113.2,-263.4 --heading=160 --size=14 --nohud` (Marszałkowska) |
@@ -5727,9 +5729,9 @@ Command-line options (after `--`):
 | `--life-log` | loop MW-4: print `life:` lines: the index, the minute's summary (riders, runners, Kolka, Hyrax, bells, the Zając), the bell, E28's follow, the Zając |
 | `--zajac` | loop MW-4: Live on Wednesday 2026-10-28 at 19:00 (`--clock=` and a Wednesday `--date=` change them), the car by Kolka's start (free roam, no title); with `--autopilot` the car paces the club 10 m to its side from 19:00 (the Zając: `life: zajac paid +40 respect (E29)`) |
 | `--trend-day=N` | loop MW-4: the Wiralek cycle's day number (0 = slot 1 on day 1, slot 2 on day 3, slot 3 on day 5; 88 = all three on day 1) instead of Live's date or the session's |
-| `--trend-job[=1\|2\|3\|4\|5\|6]` | loop MW-4: start by that Wiralek slot (1 Plac Zbawiciela, 2 Chmielna, 3 Tamka; 4: PISTACJA's "Limitka" drop job, whatever the clock; 5: PADELNIA's "Czwarty"; 6: Cringulo's van parked by the car near KUKŁA on Nowy Świat with his "Mlask" request, docs/design/gaulle-and-food-hype.md G5) with its request offered; with `--autopilot` accepted and driven (Mlask: the review card closes by itself); implies `--trend-log` |
+| `--trend-job[=1\|2\|3\|4\|5\|6]` | loop MW-4: start by that Wiralek slot (1 Plac Zbawiciela, 2 Chmielna, 3 Tamka; 4: PISTACJA's "Limitka" drop job, whatever the clock; 5: PADELNIA's "Czwarty"; 6: Mrożulo's van parked by the car near KUKŁA on Nowy Świat with his "Mlask" request, docs/design/gaulle-and-food-hype.md G5) with its request offered; with `--autopilot` accepted and driven (Mlask: the review card closes by itself); implies `--trend-log` |
 | `--night-hub` | night-buses loop: a gathering of night buses at Dworzec Centralny now, whatever the time (with `--time=night`, the N signs too); its buses park at their bays at once |
-| `--train=X,Z` | railway T1 (docs/design/railway.md): a train put on the track nearest that point at the start, rolling on (shots) |
+| `--train=X,Z[,K]` | railway T1 (docs/design/railway.md): a train put on the track nearest that point at the start, rolling on (shots); K picks its kind (trains.gd KINDS: 0 Koleje Mazowe, 1 SKiM, 2 the long-distance one) |
 | `--old-tram` / `--old-tram=follow` | vintage-tram loop: the old two-car set now, on the track nearest the car, whatever the time (it stays); `=follow`: and the car (no collisions) kept 22 m behind its tail, so the view goes with it and E39's 300 m count runs |
 | `--packs=0` | packs (docs/design/packs.md): no running clubs, cycling packs or coffee raves (`--crowd=0` drops them too) |
 | `--packs-now` | packs: every club and every COFFEECHAIR café's rave on whatever the clock says; each pack whose loop passes within 300 m of the car's start is timed to stream past it a few seconds in (shots) |
@@ -5746,7 +5748,11 @@ Command-line options (after `--`):
 | `--bus-log` | night-buses loop: print `buses:` lines: the hub's bays and stops, each gathering and ring bus, the car at the ring, the race to the Palm, each honk and called bus, the stop lines, a summary every 20 s |
 | `--crash=now` / `--crash=X,Z` / `--crash=on` / `--crash=0` | crash scenes (`crash_scenes.gd`): a scene now 45-130 m ahead of the car (shots; it may be in view), or on the fitting road nearest X,Z; `on`: the 3-5 minute timer in a test run too (it runs in a normal launch only); `0`: none |
 | `--crash-log` | crash scenes: print `crash:` lines: the first scene's wait, each scene (where, street, lane, vehicles, distance, life), the radio line, every bubble line, each clear and the next wait |
+| `--ev-call` / `--ev-tow` / `--ev-tow=carry` / `--ev-stranded` / `--ev=0` | dead electric cars (`ev_tow.gd`): Bartek's call rings a second in; `--ev-tow`: accepted, the helicopter over his car; `=carry`: his car already on the sling, the helicopter climbing to 22 m; `--ev-stranded`: a stranded TESŁO about 30 m ahead now; `0`: none (the call and the stranded cars run on their timers in a normal launch only) |
+| `--ev-log` | dead electric cars: print `ev:` lines: the chargers found, the timers, the call, the car's street and charger, the hook, Bartek's lines, the set-down and pay, each stranded car |
 | `--loud=N` | loud cars (`loud_cars.gd`, city-life satire #1): at most N loud supercars in traffic at once (default 3, up to 16 for shots); `0`: none, and no car meet at Browary nor its crowd |
+| `--crazy=N` | crazy drivers (`crazy_drivers.gd`, traffic.gd `CRAZY_*`, docs/design/crazy-drivers.md): at most N Szkoda Oktawia taxis, Szprynter couriers and the one Pasatini in racer mode in traffic at once (default 3, up to 12); `0`: none |
+| `--crazy-log` | crazy drivers: print each cut-in or block near the player and KEBAB FM's Pasatini sightings |
 | `--loud-log` | loud cars: print `loud:` lines: each rev (where), the meet's revs, KEBAB FM's line |
 | `--honk=F1,F2,...` | night-buses loop: the player honks on those frames (as the horn button; rate-limited) |
 | `--life-soak` | loop MW-4: a Friday dusk; the car is driven at the nearest dog walker or rider at 7 m/s, every frame counts a dog, walker or rider inside the car's footprint (`life: soak done … overlaps 0`); verify step `life-soak` |
@@ -5785,7 +5791,7 @@ Command-line options (after `--`):
 | `--police=1\|2\|3` | loop 3g-1: a chase at that level at frame 60, the chaser 40 m behind on your lane (and the blocker / the roadblock for 2 / 3) |
 | `--trap=N` | loop 3g-1: start 150 m before speed trap N (1-4 in today's map), heading into it, and make it one of the day's; with `--pedal=gas` the car drives flat out along the road into the radar (through the traffic) |
 | `--pullover=routine\|trap\|kebab\|sloik\|generic` | loop 3g-1: open that conversation at frame 60 with a patrol car stopped behind (screenshots; `--clicks` for the replies) |
-| `--police-auto=escape\|stop\|hold\|still` | loop 3g-1: in a chase the car drives away flat out on the lane graph / stops at once (with a lizak waving: stops by the officer) / creeps along without escaping (cap tests) / stands without being pulled over (probes) |
+| `--police-auto=escape\|stop\|hold\|still` | loop 3g-1: in a chase the car drives away flat out on the lane graph (since 2026-11-04 in traffic.gd's racer mode, as a skilled player) / stops at once (with a lizak waving: stops by the officer) / creeps along without escaping (cap tests) / stands without being pulled over (probes) |
 | `--police-now` | loop 3g-1: no start grace, no cooldown (tests; with `--autopilot` the car roams at twice the limit: the soak) |
 | `--police-log` | loop 3g-1: print every police state change with its frame (`police: …` lines; in a chase the car's place on screen each second, `police: b4 x … y …`) |
 | `--police-offence=F:kind,…` | loop 3g-1: an offence at frame F (`speed`, `red`, `oneway`, `bump`, `ram`), seen by the nearest unit (the cooldown test P7) |

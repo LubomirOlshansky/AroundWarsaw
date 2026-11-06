@@ -20,6 +20,7 @@ extends SceneTree
 ## Prints a line per site, then `check_mesh_quality: OK` (exit 0) or the problems (exit 1).
 ##   godot --headless --path game --script res://tools/check_mesh_quality.gd
 
+const MapBuilderRef := preload("res://scripts/map_builder.gd")
 const Landmarks := preload("res://scripts/landmarks.gd")
 ## Triangles a site may hold: measured on 2026-10-31 plus about 20 % (raise on purpose only).
 const BUDGET := {
@@ -54,6 +55,7 @@ const BUDGET := {
 	"moderna": 90,
 	"pomnik_powstania": 1820,
 	"krasinski": 1810,
+	"sad_najwyzszy": 8000,
 	"ostrogski": 870,
 	"brama_uw": 950,
 	"bristol": 2450,
@@ -64,12 +66,16 @@ const BUDGET := {
 	"jablkowscy": 1450,
 	"sheraton": 2400,
 	"bgk": 2700,
+	"foksal": 3000,
+	"mlotek": 2400,
+	"kozia9": 7000,
+	"karowa18a": 1500,
 	"hotel_kasztel": 330,
 	"hotel_canaletto": 330,
 	"hotel_starowka": 330,
 	"karmelici": 1300,
 	"kordegarda": 950,
-	"mdm": 2400,
+	"mdm": 4100,
 	"mickiewicz": 1150,
 	"potocki": 760,
 	"prus": 250,
@@ -89,13 +95,15 @@ const BUDGET := {
 	"syrenka_powisle": 260,
 	"dworzec_wodny": 310,
 	"kaskada": 260,
-	"dtc": 1730,
+	"dtc": 1950,
 	"europejski": 8000,
 	"flaga": 170,
 	"forest": 4900,
 	"gpy": 250,
 	"gaulle": 880,
 	"rondo": 7000,
+	"sunken": 5600,  # 2026-11-05: the Patelnia and the Rotunda's stair: walls, railings, treads, two barrels
+	"underpass": 3000,  # 2026-11-06: the Emilii Plater underpass: five entrances, parapets, treads, two canopies
 	"gbc": 750,
 	"grob": 340,
 	"grzybowska63": 500,
@@ -120,9 +128,11 @@ const BUDGET := {
 	"msn": 500,
 	# Norblin on its real block (2026-11-02, photo report): two blocks, Plater and Galwan, about
 	# three times the first footprint, arched windows round their courts, green roofs and terraces.
-	"norblin": 4500,
+	# 2026-11-03 look check: the copper base, finned storeys, set-back tops, the passage roof and
+	# the old white workshops under zinc (the Mac's spec).
+	"norblin": 5700,
 	# Browary + the Central Garden's gravel path, café clearings and the sedum roofs (2026-11-02).
-	"browary": 3800,
+	"browary": 3900,   # 2026-11-03: paved main path and clearing edges (look check)
 	"koszyki": 1370,
 	"elektrownia": 1950,
 	"mpw": 3200,
@@ -140,7 +150,7 @@ const BUDGET := {
 	"rotunda": 1380,
 	"skyliner": 400,
 	"skysawa": 170,
-	"slabs": 270,
+	"slabs": 1100,   # 2026-11-03: balcony bands, a ledge every storey on the long faces (look check)
 	"zelazna": 1030,
 	"pokorna2": 1500,
 	"spektrum": 990,
@@ -161,6 +171,8 @@ const BUDGET := {
 	"pilsudski": 160,
 	"kaczynski": 100,
 	"plac_maszty": 520,
+	"plac_centralny": 1400,
+	"plac_centralny_lamps": 700,
 	"getto": 650,
 	"nike": 200,
 	"slowacki": 320,
@@ -189,6 +201,11 @@ const BUDGET := {
 	"stadium": 4750,
 	"swieto": 240,
 	"teatr": 600,
+	# Plac Bankowy, Filharmonia, Teatr Polski (the Mac photo reports, 2026-11-02): fronts on kept skins.
+	"ratusz": 2500,
+	"gielda": 1050,
+	"filharmonia": 1450,
+	"teatr_polski": 760,
 	"teresy": 280,
 	"florian": 2480,
 	"bazar": 2210,
@@ -252,6 +269,28 @@ class StubMap:
 	var _roof_nx := 0
 	var _roof_nz := 0
 	var _wall_faces := PackedVector3Array()
+
+	## The sunken places (map_builder SUNKEN) on the flat ground: tops at 0, floors 3.4 m under it.
+	var _sunk: Array[Dictionary] = []
+
+	func _init() -> void:
+		for e: Dictionary in MapBuilderRef.SUNKEN:
+			var f := e.duplicate()
+			if not is_nan(float(f["hb"])):
+				f["hb"] = -3.4
+			_sunk.append(MapBuilderRef.sunk_entry(f, 0.0, 10.0))
+
+	func _grid_height(_x: float, _z: float) -> float:
+		return 0.0
+
+	func sunk_floor(x: float, z: float, _grown := false) -> float:
+		for sk: Dictionary in _sunk:
+			if Geometry2D.is_point_in_polygon(Vector2(x, z), sk["ring"]):
+				return MapBuilderRef.sunk_level(sk, Vector2(x, z))
+		return INF
+
+	func sunk_level(sk: Dictionary, p: Vector2) -> float:
+		return MapBuilderRef.sunk_level(sk, p)
 
 	func terrain_height(_x: float, _z: float) -> float:
 		return 0.0

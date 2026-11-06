@@ -11,6 +11,8 @@ extends Node3D
 ## bounces off them, as off the trams); cars far from the view are hidden.
 
 const Models := preload("res://scripts/models.gd")
+const RailYard := preload("res://scripts/rail_yard.gd")
+const InstanceBuffers := preload("res://scripts/instance_buffers.gd")
 
 ## Cars are CAR m long with GAP m between them.
 const CAR := 20.0
@@ -29,8 +31,14 @@ const MAX_TURN := 0.55
 ## An end of the track this near the map's bounds is a way in and out; so is one near a tunnel
 ## mouth (the cross-city tunnel west of Ochota's cutting and under Powiśle's upper pavilion).
 const EDGE := 45.0
-const PORTALS := [Vector2(-1924.0, 800.0), Vector2(176.0, 80.0)]
+const PORTALS := [Vector2(-1964.0, 812.0), Vector2(176.0, 80.0)]
 const PORTAL_R := 40.0
+## The cross-city tunnel under Plac Zawiszy: the 10 m terrain grid has the cutting's floor (7.5 m)
+## up to its mouth, then the street (14.2 m) over the tunnel, but OSM keeps the tracks on to
+## (-1923, 798), so beds, rails, wires and trains ran over the road. Rails are cut by this polygon
+## (`trim_rails`); the mouth stands where the cutting ends (PORTALS[0]).
+const TUNNEL_ZAWISZY := [Vector2(-2018.0, 850.0), Vector2(-1992.0, 834.0), Vector2(-1966.0, 825.0),
+		Vector2(-1962.0, 806.0), Vector2(-1962.0, 760.0), Vector2(-1890.0, 760.0), Vector2(-1890.0, 860.0)]
 ## A platform within this distance of a track (its centre from the track's line) is a stop.
 const PLATFORM_NEAR := 9.0
 ## A train this close to the end of its piece holds the next one.
@@ -41,9 +49,9 @@ const GIVE_UP := 45.0
 ## The kinds, all our own liveries (parody names in docs/design/railway.md section 4; the names on
 ## the sides are left for a later pass).
 const KINDS := [
-	{"name": "KOLEJE MAZOWE", "cars": 4, "body": "#f1f0ea", "band": "#2f8a45", "door": "#f0c22c", "roof": "#9a9d9f", "stops": true, "share": 0.5},
-	{"name": "SKiM", "cars": 3, "body": "#d3262c", "band": "#f0c22c", "door": "#f0c22c", "roof": "#8a8d90", "stops": true, "share": 0.3},
-	{"name": "INTERSZYBKO", "cars": 6, "body": "#b9c0c7", "band": "#1f3e78", "door": "#4a5058", "roof": "#6f7377", "stops": false, "share": 0.2},
+	{"name": "KOLEJE MAZOWE", "cars": 4, "body": "#f1f0ea", "band": "#2f8a45", "door": "#f0c22c", "roof": "#9a9d9f", "stops": true, "share": 0.5, "shape": "unit"},
+	{"name": "SKiM", "cars": 3, "body": "#d3262c", "band": "#3a3d42", "door": "#f0c22c", "roof": "#8a8d90", "stops": true, "share": 0.3, "shape": "unit"},
+	{"name": "INTERSZYBKO", "cars": 6, "body": "#d9dcdf", "band": "#1f3e78", "door": "#4a5058", "roof": "#6f7377", "stops": false, "share": 0.2, "shape": "ic", "loco": "#2f4f86"},
 ]
 
 
@@ -92,10 +100,49 @@ var _sink := PackedByteArray()
 var _sources := PackedInt32Array()
 ## Per directed piece, flat [s, platform index] of its stops, by s.
 var _halts: Array[PackedFloat32Array] = []
+## 1 where a directed piece has a stop on it or within TO_HALT pieces on (_straightest).
+var _to_halt := PackedByteArray()
+## 1 where a directed piece ends at buffers past a stop: a terminus (_link, _turn_back).
+var _term := PackedByteArray()
+## Turns made at a terminus (check_trains reads them).
+var turns := 0
+const TO_HALT := 3
 var _heights: Array[PackedFloat32Array] = []
 var _platforms: Array[Vector2] = []
 var _bounds := Rect2()
 var _rng := RandomNumberGenerator.new()
+
+
+## The rails with the stretch under Plac Zawiszy (TUNNEL_ZAWISZY) cut away: each polyline that
+## touches it comes back as its pieces outside. Others are returned as they are.
+static func trim_rails(rails: Array) -> Array:
+	var poly := PackedVector2Array(TUNNEL_ZAWISZY)
+	var box := Rect2(poly[0], Vector2.ZERO)
+	for q in poly:
+		box = box.expand(q)
+	var out: Array = []
+	for r in rails:
+		var flat: Array = r["p"]
+		var pts := PackedVector2Array()
+		var touches := false
+		for i in range(0, flat.size() - 1, 2):
+			var q := Vector2(flat[i], flat[i + 1])
+			pts.append(q)
+			touches = touches or box.has_point(q)
+		if not touches:
+			out.append(r)
+			continue
+		for piece: PackedVector2Array in Geometry2D.clip_polyline_with_polygon(pts, poly):
+			if piece.size() < 2 or piece[0].distance_to(piece[piece.size() - 1]) < 0.5:
+				continue
+			var np: Dictionary = r.duplicate()
+			var f: Array = []
+			for q in piece:
+				f.append(q.x)
+				f.append(q.y)
+			np["p"] = f
+			out.append(np)
+	return out
 
 
 func setup(map_node: Node3D, data: Dictionary) -> void:
@@ -103,7 +150,9 @@ func setup(map_node: Node3D, data: Dictionary) -> void:
 	_rng.seed = 1955
 	var b: Array = data.get("bounds", [-1e6, -1e6, 1e6, 1e6])
 	_bounds = Rect2(float(b[0]), float(b[1]), float(b[2]) - float(b[0]), float(b[3]) - float(b[1]))
-	for r in data.get("rails", []):
+	var lines: Array[PackedVector2Array] = []
+	var decks := PackedInt32Array()
+	for r in trim_rails(data.get("rails", [])):
 		var flat: Array = r["p"]
 		var p := PackedVector2Array()
 		for i in range(0, flat.size() - 1, 2):
@@ -112,19 +161,75 @@ func setup(map_node: Node3D, data: Dictionary) -> void:
 				p.append(q)
 		if p.size() < 2:
 			continue
-		var back := p.duplicate()
-		back.reverse()
-		for way: PackedVector2Array in [p, back]:
-			_add_piece(way, int(r.get("dk", -1)))
-	_link()
+		lines.append(p)
+		decks.append(int(r.get("dk", -1)))
+	# A track that branches off another starts at one of the other's middle points (OSM ties a
+	# switch so): the other is cut there, so the branch joins it end to end (_link). Warszawa
+	# Główna's platform tracks were never reached without this.
+	var ends := {}
+	for p in lines:
+		for q: Vector2 in [p[0], p[p.size() - 1]]:
+			var key := _cell(q)
+			var list: PackedVector2Array = ends.get(key, PackedVector2Array())
+			list.append(q)
+			ends[key] = list
+	for li in lines.size():
+		var p := lines[li]
+		var cut := 0
+		for i in range(1, p.size() - 1):
+			if not _touches(ends, p[i]):
+				continue
+			if i - cut >= 1:
+				_add_both(p.slice(cut, i + 1), decks[li])
+			cut = i
+		_add_both(p.slice(cut), decks[li])
 	for plat in data.get("platforms", []):
 		var flat: Array = plat["p"]
 		var c := Vector2.ZERO
 		for k in range(0, flat.size() - 1, 2):
 			c += Vector2(flat[k], flat[k + 1])
 		_platforms.append(c / (flat.size() / 2.0))
+	# The island platforms OSM draws only as footways (Warszawa Główna): their middles.
+	var yard := RailYard.new()
+	yard.setup(data.get("paths", []), trim_rails(data.get("rails", [])), data.get("platforms", []))
+	# Each island's two edges at its middle: a mark beside each of its tracks (the footway it
+	# was found from often runs off its centre, past PLATFORM_NEAR from the far track).
+	for pl: Dictionary in yard.platforms:
+		var pp: PackedVector2Array = pl["p"]
+		var m := pp.size() / 2
+		var nm := RailYard._normal(pp, m)
+		_platforms.append(pp[m] + nm * (pl["l"] as PackedFloat32Array)[m])
+		_platforms.append(pp[m] - nm * (pl["r"] as PackedFloat32Array)[m])
+	for ring: PackedVector2Array in yard.rings:
+		var c := Vector2.ZERO
+		for q in ring:
+			c += q
+		_platforms.append(c / ring.size())
 	_find_halts()
+	_link()
+	_mark_to_halt()
+	if map != null:
+		_make_pax()
 	_make_trains()
+
+
+func _add_both(p: PackedVector2Array, deck: int) -> void:
+	if p.size() < 2:
+		return
+	var back := p.duplicate()
+	back.reverse()
+	for way: PackedVector2Array in [p, back]:
+		_add_piece(way, deck)
+
+
+func _touches(ends: Dictionary, q: Vector2) -> bool:
+	var c := _cell(q)
+	for dx in range(-1, 2):
+		for dz in range(-1, 2):
+			for e: Vector2 in ends.get(c + Vector2i(dx, dz), PackedVector2Array()):
+				if e.distance_to(q) < LINK:
+					return true
+	return false
 
 
 func _add_piece(p: PackedVector2Array, deck: int) -> void:
@@ -168,18 +273,27 @@ func _link() -> void:
 	_sink.resize(n)
 	for i in n:
 		_sink[i] = 1 if _succ[i].is_empty() and _is_way_out(_pts[i][_pts[i].size() - 1]) else 0
-	# Which pieces lead to a way out (repeat until nothing changes).
+	# Which pieces lead to a way out (repeat until nothing changes). A track ending at buffers
+	# with a stop on it (Warszawa Główna's platform tracks) is a terminus: the train turns back
+	# there (_turn_back), so it leads out where its way back does.
 	var good := _sink.duplicate()
-	var changed := true
-	while changed:
-		changed = false
+	_term.resize(n)
+	_term.fill(0)
+	for round_ in 2:
+		var changed := true
+		while changed:
+			changed = false
+			for i in n:
+				if good[i] == 0:
+					for j in _succ[i]:
+						if good[j] == 1:
+							good[i] = 1
+							changed = true
+							break
 		for i in n:
-			if good[i] == 0:
-				for j in _succ[i]:
-					if good[j] == 1:
-						good[i] = 1
-						changed = true
-						break
+			if good[i] == 0 and _succ[i].is_empty() and _sink[i] == 0 and not _halts[i].is_empty() and good[i ^ 1] == 1:
+				good[i] = 1
+				_term[i] = 1
 	for i in n:
 		var keep := PackedInt32Array()
 		for j in _succ[i]:
@@ -298,12 +412,34 @@ func _find_halts() -> void:
 		_halts[i] = out
 
 
+func _mark_to_halt() -> void:
+	_to_halt.resize(_pts.size())
+	_to_halt.fill(0)
+	for i in _pts.size():
+		var front := PackedInt32Array([i])
+		for depth in TO_HALT + 1:
+			var nxt := PackedInt32Array()
+			for j in front:
+				if not _halts[j].is_empty():
+					_to_halt[i] = 1
+				nxt.append_array(_succ[j])
+			if _to_halt[i] == 1:
+				break
+			front = nxt
+
+
 func _make_trains() -> void:
 	if _sources.is_empty():
 		return
 	var meshes := []
 	for kind: Dictionary in KINDS:
-		meshes.append([car_mesh(kind, true), car_mesh(kind, false)])
+		var front := car_mesh(kind, 0)
+		if kind.has("loco"):
+			var loco: Dictionary = kind.duplicate()
+			loco["body"] = kind["loco"]
+			loco["band"] = "#d9dcdf"
+			front = car_mesh(loco, 2)
+		meshes.append([front, car_mesh(kind, 1)])
 	var most := 0
 	for kind: Dictionary in KINDS:
 		most = maxi(most, int(kind["cars"]))
@@ -350,9 +486,11 @@ func _dress(t: Train, meshes: Array) -> void:
 	t.n_cars = int(KINDS[t.kind]["cars"])
 	for k in t.cars.size():
 		var mi := t.cars[k].get_child(0) as MeshInstance3D
-		var end := k == 0 or k == t.n_cars - 1
+		# A unit has a cab at each end; a long-distance train its locomotive at the front.
+		var loco: bool = (KINDS[t.kind] as Dictionary).has("loco")
+		var end := k == 0 or (k == t.n_cars - 1 and not loco)
 		mi.mesh = meshes[t.kind][0 if end else 1]
-		mi.rotation.y = PI if k == t.n_cars - 1 and k > 0 else 0.0
+		mi.rotation.y = PI if k == t.n_cars - 1 and k > 0 and not loco else 0.0
 
 
 ## Brings train t in on a way in whose first stretch is free; false if none is.
@@ -367,7 +505,7 @@ func _enter(t: Train, meshes: Array) -> bool:
 		t.trail = PackedInt32Array([i])
 		t.s = 0.0
 		t.v = CRUISE * 0.8
-		t.next = _straightest(i, true)
+		t.next = _straightest(i, true, bool(KINDS[t.kind]["stops"]))
 		t.served = -1
 		t.dwell = 0.0
 		t.wait = 0.0
@@ -394,10 +532,19 @@ func _held(i: int, by: Train) -> bool:
 
 ## The next piece after i: the straightest way on (a little variety where two are nearly as
 ## straight), or -1 at a way out.
-func _straightest(i: int, vary: bool) -> int:
+func _straightest(i: int, vary: bool, stops := false) -> int:
 	var options := _succ[i]
 	if options.is_empty():
 		return -1
+	# A stopping train takes the way to a platform where one branches off (Warszawa Główna's
+	# islands lie on the yard's side tracks) most times.
+	if stops and options.size() > 1 and _rng.randf() < 0.75:
+		var to_halt := PackedInt32Array()
+		for j in options:
+			if _to_halt[j] == 1:
+				to_halt.append(j)
+		if not to_halt.is_empty() and to_halt.size() < options.size():
+			options = to_halt
 	var out := _dir(i, _len[i])
 	var best := -1
 	var best_turn := INF
@@ -412,12 +559,12 @@ func _straightest(i: int, vary: bool) -> int:
 
 
 ## --train=X,Z: an idle train onto the track nearest p, its middle there, rolling on.
-func place_near(p: Vector2) -> bool:
+func place_near(p: Vector2, kind := -1) -> bool:
 	var best := -1
 	var best_s := 0.0
 	var best_d := INF
 	for i in _pts.size():
-		if _len[i] < 60.0 or _succ[i].is_empty() and _sink[i] == 0:
+		if _len[i] < 60.0 or _succ[i].is_empty() and _sink[i] == 0 and _term[i] == 0:
 			continue
 		var near := _project(i, p)
 		if near.y < best_d:
@@ -429,6 +576,9 @@ func place_near(p: Vector2) -> bool:
 	for t in trains:
 		if t.active:
 			continue
+		if kind >= 0 and kind < KINDS.size():
+			t.kind = kind
+			_dress(t, get_meta("meshes", []))
 		var s := clampf(best_s + length_of(t) * 0.5, 1.0, _len[best] - 1.0)
 		t.trail = PackedInt32Array([best])
 		var back := s
@@ -438,7 +588,7 @@ func place_near(p: Vector2) -> bool:
 			back += _len[prev]
 		t.s = s
 		t.v = CRUISE * 0.5
-		t.next = _straightest(best, true)
+		t.next = _straightest(best, true, bool(KINDS[t.kind]["stops"]))
 		t.served = -1
 		t.active = true
 		return true
@@ -493,7 +643,153 @@ func step(dt: float) -> void:
 		else:
 			t.pos = Vector3(head.x, t.pos.y, head.y)
 			_hide(t)
+	if _pax_mm != null:
+		_step_pax(dt)
 	last_usec = Time.get_ticks_usec() - t0
+
+
+## People getting off and on at a stop (F, 2026-11-06): when a train in view comes to rest at a
+## platform, a few step out of each door onto the platform and walk off along it, and a few who
+## waited walk up to the doors and in. Their own MultiMesh of the pedestrians' figure (+1 draw
+## call, hidden while nobody is about).
+const PAX := 40
+const PAX_SPEED := 1.35
+const PAX_SHIRTS := ["#d8432f", "#2f6fb5", "#e0b23a", "#3b8f5a", "#f2efe8", "#7a4fa8", "#2b2c2f", "#c96b2c", "#5aa9c9", "#9c2f3a"]
+## How far from the track's centre a door's step lies (the car's half width and the gap).
+const DOOR_OUT := 1.75
+## The platform's top over the rails' bed (OSM 0.9 m, Warszawa Główna's 0.76 m).
+const PAX_UP := 0.8
+
+var _pax_mm: MultiMesh
+var _pax_mi: MultiMeshInstance3D
+var _pax_buf := PackedFloat32Array()
+## Per person: from, to (x, y, z), the delay before they set off, how far along (m), alive.
+var _pax_from := PackedVector3Array()
+var _pax_to := PackedVector3Array()
+var _pax_delay := PackedFloat32Array()
+var _pax_s := PackedFloat32Array()
+var _pax_alive := PackedByteArray()
+var _pax_count := 0
+## Boardings and alightings so far (check_trains reads them).
+var pax_moved := 0
+
+
+func _make_pax() -> void:
+	_pax_mm = MultiMesh.new()
+	_pax_mm.transform_format = MultiMesh.TRANSFORM_3D
+	_pax_mm.use_custom_data = true
+	InstanceBuffers.prepare(_pax_mm)
+	_pax_mm.mesh = Models.person_mesh()
+	_pax_mm.instance_count = PAX
+	_pax_mm.custom_aabb = AABB(Vector3(-6000, -300, -6000), Vector3(12000, 900, 12000))
+	_pax_buf.resize(PAX * 16)
+	_pax_buf.fill(0.0)
+	_pax_from.resize(PAX)
+	_pax_to.resize(PAX)
+	_pax_delay.resize(PAX)
+	_pax_s.resize(PAX)
+	_pax_alive.resize(PAX)
+	_pax_alive.fill(0)
+	var mat := Models.material().duplicate() as ShaderMaterial
+	mat.set_shader_parameter("walk", 0.16)
+	_pax_mi = MultiMeshInstance3D.new()
+	_pax_mi.multimesh = _pax_mm
+	_pax_mi.material_override = mat
+	_pax_mi.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
+	_pax_mi.visible = false
+	add_child(_pax_mi)
+
+
+## Train t has come to rest at platform k: people off and on at each door on its side.
+func _board(t: Train, k: int) -> void:
+	if _pax_mm == null or not _in_sight(t):
+		return
+	var head := _back_point(t, 0.0)
+	var side := signf(t.dir.cross(_platforms[k] - head))
+	if side == 0.0:
+		side = 1.0
+	var nm := Vector2(-t.dir.y, t.dir.x) * side
+	# Which way along the platform its middle lies, so people walk towards it, not off its end.
+	for c in t.n_cars:
+		for door: float in [0.25, 0.75]:
+			var back := c * (CAR + GAP) + CAR * door
+			var at := _back_point(t, back)
+			var y := _back_height(t, back) + PAX_UP
+			var step := at + nm * DOOR_OUT
+			var mid := _platforms[k]
+			var toward := signf((mid - step).dot(t.dir))
+			for n in _rng.randi_range(0, 2):
+				var off := step + nm * _rng.randf_range(1.5, 3.2) + t.dir * toward * _rng.randf_range(3.0, 12.0)
+				_pax_spawn(Vector3(step.x, y, step.y), Vector3(off.x, y, off.y), _rng.randf_range(0.3, 2.5))
+			for n in _rng.randi_range(0, 2):
+				var from := step + nm * _rng.randf_range(1.5, 3.5) + t.dir * _rng.randf_range(-5.0, 5.0)
+				_pax_spawn(Vector3(from.x, y, from.y), Vector3(step.x, y, step.y) - Vector3(nm.x, 0.0, nm.y) * 0.9,
+						_rng.randf_range(4.0, 10.0))
+
+
+func _pax_spawn(from: Vector3, to: Vector3, delay: float) -> void:
+	for n in PAX:
+		if _pax_alive[n] == 1:
+			continue
+		_pax_from[n] = from
+		_pax_to[n] = to
+		_pax_delay[n] = delay
+		_pax_s[n] = 0.0
+		_pax_alive[n] = 1
+		_pax_count += 1
+		pax_moved += 1
+		var shirt := Color(PAX_SHIRTS[_rng.randi() % PAX_SHIRTS.size()])
+		var b := n * 16
+		_pax_buf[b + 12] = shirt.r
+		_pax_buf[b + 13] = shirt.g
+		_pax_buf[b + 14] = shirt.b
+		_pax_buf[b + 15] = _rng.randf()
+		return
+
+
+func _step_pax(dt: float) -> void:
+	if _pax_count == 0:
+		if _pax_mi.visible:
+			_pax_mi.visible = false
+		return
+	_pax_mi.visible = true
+	for n in PAX:
+		var b := n * 16
+		if _pax_alive[n] == 0:
+			_pax_buf[b + 5] = 0.0  # a collapsed instance draws nothing
+			continue
+		var from := _pax_from[n]
+		var to := _pax_to[n]
+		var run := Vector2(to.x - from.x, to.z - from.z)
+		var length := run.length()
+		if _pax_delay[n] > 0.0:
+			_pax_delay[n] -= dt
+		else:
+			_pax_s[n] += PAX_SPEED * dt
+		if _pax_s[n] >= length:
+			_pax_alive[n] = 0
+			_pax_count -= 1
+			_pax_buf[b + 5] = 0.0
+			for k in 12:
+				_pax_buf[b + k] = 0.0
+			continue
+		var q := from.lerp(to, _pax_s[n] / maxf(length, 0.01))
+		var yaw := atan2(-run.x, -run.y) if length > 0.01 else 0.0
+		var c := cos(yaw)
+		var sn := sin(yaw)
+		_pax_buf[b] = c
+		_pax_buf[b + 1] = 0.0
+		_pax_buf[b + 2] = sn
+		_pax_buf[b + 3] = q.x
+		_pax_buf[b + 4] = 0.0
+		_pax_buf[b + 5] = 1.0
+		_pax_buf[b + 6] = 0.0
+		_pax_buf[b + 7] = q.y
+		_pax_buf[b + 8] = -sn
+		_pax_buf[b + 9] = 0.0
+		_pax_buf[b + 10] = c
+		_pax_buf[b + 11] = q.z
+	InstanceBuffers.send(_pax_mm.get_rid(), _pax_buf)
 
 
 func _head(t: Train) -> int:
@@ -519,13 +815,21 @@ func _move(t: Train, dt: float) -> void:
 					continue
 				gap = ahead
 				if ahead < 0.8 and t.v < 0.3:
+					if t.dwell == 0.0 and map != null:
+						_board(t, int(halts[k + 1]))
 					t.dwell += dt
 					if t.dwell > DWELL:
 						t.served = int(halts[k + 1])
 						t.dwell = 0.0
 						t.stops_made += 1
 						stop_log.append(Vector2i(t.served, t.kind))
+						if pass_ == 0 and _term[head] == 1:
+							_turn_back(t)
+							return
 				break
+	# Buffers ahead: never past them.
+	if _term[head] == 1:
+		gap = minf(gap, _len[head] - t.s - 1.0)
 	# The way on: wait at the end of this piece while another train holds the next one.
 	if t.next >= 0 and _held(t.next, t):
 		gap = minf(gap, _len[head] - t.s - 2.0)
@@ -555,7 +859,7 @@ func _move(t: Train, dt: float) -> void:
 		if t.next >= 0 and not _held(t.next, t):
 			t.s -= _len[head]
 			t.trail.append(t.next)
-			t.next = _straightest(t.next, true)
+			t.next = _straightest(t.next, true, bool(KINDS[t.kind]["stops"]))
 			var behind := 0.0
 			for k in t.trail.size() - 1:
 				behind += _len[t.trail[k]]
@@ -567,6 +871,32 @@ func _move(t: Train, dt: float) -> void:
 		elif t.next >= 0:
 			t.s = _len[head]
 			t.v = 0.0
+
+
+## At a terminus, after its stop: the train's tail becomes its head, and it runs back out the
+## way it came (the units have a cab at each end; the long-distance kind never stops).
+func _turn_back(t: Train) -> void:
+	var k := t.trail.size() - 1
+	var s := t.s - length_of(t)
+	while s < 0.0 and k > 0:
+		k -= 1
+		s += _len[t.trail[k]]
+	var back := PackedInt32Array()
+	for j in range(t.trail.size() - 1, k - 1, -1):
+		back.append(t.trail[j] ^ 1)
+	t.trail = back
+	t.s = _len[back[back.size() - 1]] - maxf(s, 0.0)
+	t.v = 0.0
+	t.next = _straightest(back[back.size() - 1], true, true)
+	turns += 1
+	# The cars in the new order: the old last car leads.
+	for c in t.n_cars / 2:
+		var a := t.cars[c]
+		t.cars[c] = t.cars[t.n_cars - 1 - c]
+		t.cars[t.n_cars - 1 - c] = a
+	for c in t.n_cars:
+		var mi := t.cars[c].get_child(0) as MeshInstance3D
+		mi.rotation.y = PI if c == t.n_cars - 1 and c > 0 else 0.0
 
 
 ## Off the map or into the tunnel: gone, and back in a while somewhere.
@@ -646,41 +976,127 @@ func _pose(t: Train) -> void:
 			t.pos = Vector3(front.x, y, front.y)
 
 
-## One car of a kind (front at -Z): bogies, a dark skirt, the body in its colour with a band
-## under the windows, a lit window band and the doors on both sides, a grey roof; a cab car has
-## the driver's windscreen and lamps at its front and a pantograph.
-static func car_mesh(kind: Dictionary, cab: bool) -> ArrayMesh:
-	var st := Models._begin()
-	var body := Color(kind["body"])
-	var band := Color(kind["band"])
-	var door := Color(kind["door"])
-	var roof := Color(kind["roof"])
-	var dark := Color("#232528")
+## One car of a kind (front at -Z), built from the vehicles' shapes (models.gd Shape), F
+## 2026-11-06 (a photo of a red suburban unit at a platform): `role` 0 a cab car, 1 a car between, 2 a
+## locomotive. The suburban kinds ("shape" unit) are low-floor units: a sloped nose with a big
+## black windscreen running up into the roof, wide windows in a dark band, two sliding doors a
+## side in the door colour, a grey skirt, air-conditioning boxes on the roof and the pantograph
+## over the cab car. The long-distance kind ("shape" ic) is a locomotive with a blunt sloped cab
+## at each end (grilles down its sides, two pantographs) and coaches with a dark window band
+## over a navy stripe and a door near each end.
+static func car_mesh(kind: Dictionary, role: int) -> ArrayMesh:
+	var s := Models.Shape.new()
+	var body := Models.fin(Color(kind["body"]))
+	var band := Models.fin(Color(kind["band"]))
+	var door := Models.fin(Color(kind["door"]))
+	var roof := Models.fin(Color(kind["roof"]))
+	var dark := Models.fin(Color("#232528"))
+	var skirt := Models.fin(Color("#55595e"))
+	var glass := Models.fin(Models.GLASS)
+	var lit := Models.fin(Models.GLASS, Models.LIT_WINDOW)
+	var lamp := Models.fin(Models.HEADLIGHT, Models.HEAD_LAMP)
+	var unit := String(kind.get("shape", "unit")) == "unit"
 	var hl := CAR * 0.5
-	var w := 2.9
-	# Bogies and the skirt.
-	for z in [-hl + 3.2, hl - 3.2]:
-		Models.box(st, Vector3(0.0, 0.55, z), Vector3(2.4, 0.7, 2.8), dark)
-	Models.box(st, Vector3(0.0, 1.1, 0.0), Vector3(w - 0.1, 0.5, CAR - 0.4), dark)
-	# The body, the band, the roof.
-	var nose := 1.2 if cab else 0.0
-	Models.box(st, Vector3(0.0, 2.6, nose * 0.5), Vector3(w, 2.5, CAR - nose), body)
-	Models.box(st, Vector3(0.0, 1.95, nose * 0.5), Vector3(w + 0.04, 0.35, CAR - nose - 0.2), band)
-	Models.box(st, Vector3(0.0, 2.98, nose * 0.5), Vector3(w + 0.03, 0.85, CAR - nose - 1.0), Models.GLASS, Models.LIT_WINDOW)
-	Models.box(st, Vector3(0.0, 3.98, nose * 0.5), Vector3(w - 0.3, 0.3, CAR - nose - 0.4), roof)
-	# Two doors a side.
-	for z in [-hl * 0.5 + nose * 0.5, hl * 0.5]:
-		Models.box(st, Vector3(0.0, 2.45, z), Vector3(w + 0.06, 2.3, 1.4), door)
-	if cab:
-		# The nose: a lower, sloped-looking front in two steps, the windscreen, the lamps.
-		Models.box(st, Vector3(0.0, 2.2, -hl + nose * 0.5), Vector3(w - 0.1, 1.7, nose), body)
-		Models.box(st, Vector3(0.0, 1.95, -hl + nose * 0.5), Vector3(w - 0.06, 0.35, nose - 0.1), band)
-		Models.box(st, Vector3(0.0, 3.35, -hl + nose + 0.05), Vector3(w - 0.3, 0.9, 0.12), Models.GLASS)
-		Models.box(st, Vector3(0.0, 3.12, -hl + nose * 0.75), Vector3(w - 0.3, 0.12, nose * 0.5), body.darkened(0.1))
-		for x in [-0.95, 0.95]:
-			Models.box(st, Vector3(x, 1.6, -hl - 0.02), Vector3(0.35, 0.2, 0.06), Models.HEADLIGHT, Models.HEAD_LAMP)
-		# The pantograph, folded down over the cab end.
-		Models.box(st, Vector3(0.0, 4.2, -hl + 5.0), Vector3(1.6, 0.1, 0.5), dark)
-		Models.box(st, Vector3(0.0, 4.45, -hl + 5.6), Vector3(0.1, 0.5, 1.4), dark)
-		Models.box(st, Vector3(0.0, 4.72, -hl + 6.2), Vector3(1.4, 0.06, 0.15), dark)
-	return st.commit()
+	var W := 1.45
+	var top := 4.0 if unit else 4.05
+	var floor_y := 1.0
+	# The noses: a cab at -Z (cab car, locomotive) and at +Z (the locomotive's other end).
+	var ends: Array[float] = []
+	if role == 0 or role == 2:
+		ends.append(-1.0)
+	if role == 2:
+		ends.append(1.0)
+	var nose := 3.0 if unit else 1.8
+	var z0 := -hl + (nose if ends.has(-1.0) else 0.0)
+	var z1 := hl - (nose if ends.has(1.0) else 0.0)
+	# The body between the noses.
+	var house := PackedVector2Array([Vector2(z0, floor_y), Vector2(z0, top), Vector2(z1, top), Vector2(z1, floor_y)])
+	var hw := PackedFloat32Array([W, W, W, W])
+	s.loft(house, hw, [null if ends.has(-1.0) else dark, roof, null if ends.has(1.0) else dark, null], body)
+	for e: float in ends:
+		# Side view from the body's join out to the bumper and back up over the windscreen.
+		var zj := z0 if e < 0.0 else z1
+		var zf := -hl if e < 0.0 else hl
+		var sl := (zf - zj)  # signed nose length, outwards
+		var prof := PackedVector2Array()
+		var half := PackedFloat32Array()
+		if unit:
+			prof = PackedVector2Array([Vector2(zj, floor_y), Vector2(zj + sl * 0.93, floor_y), Vector2(zf, 1.75),
+					Vector2(zj + sl * 0.72, 2.75), Vector2(zj + sl * 0.22, top), Vector2(zj, top)])
+			half = PackedFloat32Array([W, W - 0.08, W - 0.18, W - 0.22, W - 0.08, W])
+		else:
+			prof = PackedVector2Array([Vector2(zj, floor_y), Vector2(zf, floor_y), Vector2(zf, 2.55),
+					Vector2(zj + sl * 0.45, 3.75), Vector2(zj + sl * 0.15, top), Vector2(zj, top)])
+			half = PackedFloat32Array([W, W - 0.05, W - 0.1, W - 0.12, W - 0.05, W])
+		# (loft takes each face's outside from the outline's middle: either end's order works.)
+		var skin := [null, body, body, glass, roof, null] if unit else [null, body, glass, body, roof, null]
+		s.loft(prof, half, skin, body)
+		# Lamps low on the nose, a dark coupler under it, the skirt's front.
+		for x: float in [-0.9, 0.9]:
+			s.box(Vector3(x, 1.45, zf + e * 0.03), Vector3(0.36, 0.18, 0.08), lamp)
+		s.box(Vector3(0.0, 0.85, zf + e * 0.15), Vector3(0.5, 0.3, 0.5), dark)
+		if unit:
+			# The black mask round the windscreen down the nose's sides.
+			for sgn: float in [-1.0, 1.0]:
+				s.side_rect(sgn * (W + 0.012), sgn, 2.55, 3.55, minf(zj, zj + sl * 0.5), maxf(zj, zj + sl * 0.5), glass)
+		else:
+			# The cab's side windows.
+			for sgn: float in [-1.0, 1.0]:
+				s.side_rect(sgn * (W - 0.05 + 0.012), sgn, 2.6, 3.4, minf(zj, zj + sl * 0.6), maxf(zj, zj + sl * 0.6), glass)
+	# Sides: windows, doors, the stripe.
+	for sgn: float in [-1.0, 1.0]:
+		var x := sgn * (W + 0.012)
+		var doors: Array[float] = []
+		if role == 2:
+			# The locomotive: grilles along the machine room, a stripe.
+			for g in 4:
+				var gz := lerpf(z0 + 1.6, z1 - 1.6, (g + 0.5) / 4.0)
+				s.side_rect(x, sgn, 2.3, 3.4, gz - 1.2, gz + 1.2, dark)
+			s.side_rect(x, sgn, 1.25, 1.65, z0, z1, band)
+			continue
+		if unit:
+			doors = [lerpf(z0, z1, 0.22), lerpf(z0, z1, 0.78)]
+		else:
+			doors = [z0 + 1.6, z1 - 1.6]
+		s.side_rect(x, sgn, 1.2, 1.45, z0, z1, band)
+		var y0 := 2.15 if unit else 2.3
+		var y1 := 3.45 if unit else 3.3
+		var stops: Array[float] = [z0 + 0.3]
+		for d: float in doors:
+			stops.append(d - 0.85)
+			stops.append(d + 0.85)
+		stops.append(z1 - 0.3)
+		for k in range(0, stops.size(), 2):
+			var a := stops[k]
+			var b := stops[k + 1]
+			if b - a < 0.8:
+				continue
+			# A dark band behind the panes, the panes in it with thin pillars.
+			s.side_rect(x, sgn, y0 - 0.1, y1 + 0.1, a, b, dark)
+			var panes := maxi(1, roundi((b - a) / 2.3))
+			for q in panes:
+				var pa := lerpf(a, b, float(q) / panes) + 0.08
+				var pb := lerpf(a, b, float(q + 1) / panes) - 0.08
+				s.side_rect(x + sgn * 0.006, sgn, y0, y1, pa, pb, lit)
+		for d: float in doors:
+			s.side_rect(x + sgn * 0.004, sgn, floor_y + 0.15, 3.35, d - 0.7, d + 0.7, door)
+			s.side_rect(x + sgn * 0.01, sgn, 2.0, 3.15, d - 0.6, d - 0.06, glass)
+			s.side_rect(x + sgn * 0.01, sgn, 2.0, 3.15, d + 0.06, d + 0.6, glass)
+	# Under the floor: the skirt and two bogies.
+	s.box(Vector3(0.0, 0.75, 0.0), Vector3(2.0 * W - 0.1, 0.5, CAR - 0.6), skirt)
+	for z: float in [-hl + 3.0, hl - 3.0]:
+		s.box(Vector3(0.0, 0.5, z), Vector3(2.4, 0.6, 2.8), dark)
+	# The roof: air-conditioning boxes, the pantograph (over the cab, or two on a locomotive).
+	if role != 2:
+		for z: float in ([-hl * 0.45, hl * 0.45] if role == 1 else [hl * 0.35]):
+			s.box(Vector3(0.0, top + 0.18, z), Vector3(1.8, 0.36, 3.2), roof)
+	var pans: Array[float] = []
+	if role == 0:
+		pans = [-hl + nose + 2.4]
+	elif role == 2:
+		pans = [-hl * 0.45, hl * 0.45]
+	for z: float in pans:
+		s.box(Vector3(0.0, top + 0.12, z), Vector3(1.6, 0.12, 0.5), dark)
+		s.box(Vector3(0.0, top + 0.45, z + 0.6), Vector3(0.1, 0.6, 1.4), dark)
+		s.box(Vector3(0.0, top + 0.78, z + 1.2), Vector3(1.4, 0.06, 0.15), dark)
+	return s.mesh()

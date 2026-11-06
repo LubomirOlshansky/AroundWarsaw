@@ -225,14 +225,14 @@ func _check_trends() -> void:
 	_expect(TrendJob.grade_words(7.5) == ["7,5 MLASKA", "7.5 SMACKS"] and TrendJob.grade_words(3.0)[0] == "3 MLASKI"
 			and TrendJob.grade_words(9.0)[0] == "9 MLASKÓW" and TrendJob.grade_words(1.0) == ["1 MLASK", "1 SMACK"],
 			"mlask grades: %s %s %s" % [TrendJob.grade_words(7.5), TrendJob.grade_words(3.0), TrendJob.grade_words(9.0)])
-	_expect(TrendJob.van_out(12.0) and not TrendJob.van_out(10.5) and not TrendJob.van_out(21.0), "Cringulo's van hours")
+	_expect(TrendJob.van_out(12.0) and not TrendJob.van_out(10.5) and not TrendJob.van_out(21.0), "Mrożulo's van hours")
 	var spots := {}
 	for wd in range(1, 8):
 		spots[TrendJob.van_spot(wd)] = true
-	_expect(spots.size() == TrendJob.ML_SPOTS.size(), "Cringulo's van: %d spots over the week" % spots.size())
+	_expect(spots.size() == TrendJob.ML_SPOTS.size(), "Mrożulo's van: %d spots over the week" % spots.size())
 	var vm := TrendJob.van_mesh()
 	var vtris := (vm.surface_get_array_len(0) + vm.surface_get_array_len(1)) / 3
-	_expect(vtris <= 800, "Cringulo's van: %d triangles (budget 800, with the CRINGULO TV lettering)" % vtris)
+	_expect(vtris <= 800, "Mrożulo's van: %d triangles (budget 800, with the MROŻULO TV lettering)" % vtris)
 	_summary["mlask"] = "%d zł warm, %d cold, van %d tris" % [int(mp["zl"]), int(mc["zl"]), vtris]
 	# Each slot runs days 1-8 in turn, the queue by day, the word until WKRÓTCE.
 	for slot in 3:
@@ -613,6 +613,13 @@ func _check_city(nb: Notebook, data: Dictionary) -> void:
 		life.tick(0.5)
 	_expect(not bool(life.get("_active")), "city life active far from everything")
 	_expect(not (life.get("_chair") as MeshInstance3D).visible, "the chair shown far from the view")
+	# F, 2026-11-05: no kerb rider on a road with a cycle path beside it: a path 5 m off and parallel
+	# counts, one crossing at right angles or 30 m off does not.
+	var idx := CityLife.build_index([{"k": "cycle", "dk": -1, "w": 2.0, "p": [0.0, 5.0, 100.0, 5.0]}], [], Vector2.INF, Vector2.INF)
+	_expect(CityLife.cycle_path_near(idx["cyc"], idx["cyc_grid"], Vector2(50.0, 0.0), Vector2.RIGHT, 9.0), "a parallel cycle path 5 m off not found")
+	_expect(CityLife.cycle_path_near(idx["cyc"], idx["cyc_grid"], Vector2(50.0, 0.0), Vector2.LEFT, 9.0), "the path beside is direction-blind")
+	_expect(not CityLife.cycle_path_near(idx["cyc"], idx["cyc_grid"], Vector2(50.0, 0.0), Vector2.DOWN, 9.0), "a crossing road counted as beside")
+	_expect(not CityLife.cycle_path_near(idx["cyc"], idx["cyc_grid"], Vector2(50.0, 30.0), Vector2.RIGHT, 9.0), "a path 25 m off counted as beside")
 	_summary["city"] = "%d walkers at Plac Zbawiciela 07:30, Kolka %.0f m, dock %d bikes, %.0f µs per game second" % [
 			n_dogs, float(kolka.get("len", 0.0)), int((life.get("_docks") as Array)[0]["n"]) if not (life.get("_docks") as Array).is_empty() else 0, per_s]
 	life.queue_free()

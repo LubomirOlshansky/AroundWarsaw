@@ -4,7 +4,8 @@ extends Node
 ##
 ## Command-line options (after `--`): --demo drives the car (or circles the
 ## helicopter) by itself, --shots=60,240 saves screenshots at those frames and
-## quits, --out=DIR sets where they go, --style=N picks a style, --yaw=N rotates
+## quits, --out=DIR sets where they go (made if missing), --spots=NAME:X,Z[,HEADING];...
+## shoots each spot in one run (files NAME_FFFF.png), --style=N picks a style, --yaw=N rotates
 ## the camera, --heli starts in the helicopter, --mission=N starts rescue call N
 ## at once, --autopilot flies or drives to the mission targets (for testing; the
 ## car ghosts through buildings) or drives the race route, --no-traffic leaves the
@@ -50,6 +51,7 @@ const Car := preload("res://scripts/car.gd")
 const TunnelXray := preload("res://scripts/tunnel_xray.gd")
 const PedZones := preload("res://scripts/ped_zones.gd")
 const ScooterZones := preload("res://scripts/scooter_zones.gd")
+const LaneAssist := preload("res://scripts/lane_assist.gd")
 const Heli := preload("res://scripts/heli.gd")
 const Hud := preload("res://scripts/hud.gd")
 const Missions := preload("res://scripts/missions.gd")
@@ -127,11 +129,13 @@ const Police := preload("res://scripts/police.gd")
 const Buses := preload("res://scripts/buses.gd")
 const OldTram := preload("res://scripts/old_tram.gd")
 const CrashScenes := preload("res://scripts/crash_scenes.gd")
+const EvTow := preload("res://scripts/ev_tow.gd")
 ## Packs (docs/design/packs.md): running clubs, cycling packs and coffee raves.
 const Packs := preload("res://scripts/packs.gd")
 ## Kibice (docs/design/city-life-satire.md 7): friendly fans by Stadion Leguminy on match evenings.
 const Fans := preload("res://scripts/fans.gd")
 const LoudCars := preload("res://scripts/loud_cars.gd")
+const CrazyDrivers := preload("res://scripts/crazy_drivers.gd")
 ## Wellness circles (docs/design/city-life-satire.md): sound healing, techno yoga, the 40+ club, park kung-fu.
 const Wellness := preload("res://scripts/wellness.gd")
 ## The garage loop: Warsztat u Mirka and its paint jobs (garage.gd, its card garage_card.gd).
@@ -195,6 +199,9 @@ var trams: Trams
 var trains: Trains
 ## --train=X,Z: a train put on the track nearest that point at the start (shots).
 var train_at := Vector2.INF
+## --train=X,Z,K: that train of kind K (trains.gd KINDS: 0 Koleje Mazowe, 1 SKiM, 2 the
+## long-distance one).
+var train_kind := -1
 var walkers: Pedestrians
 var rivals: Rivals
 ## Loop 3g-1: the police (null with --no-police or no traffic) and their flags.
@@ -294,6 +301,10 @@ var shots: Array[int] = []
 ## without one says so in _exit_tree).
 var _shots_saved: Array[int] = []
 var out_dir := "user://"
+## --spots: [name, Vector2 x/z, heading or INF] per camera; one run shoots them all, the city
+## built once (a street pass needs 6-10 cameras; a launch per camera cost ~70 s each).
+var shot_spots: Array = []
+var _spot_i := 0
 var frame := 0
 var start_at := Vector3.INF
 ## --heading=deg: the car's heading at the start (0 = north, 90 = east), for testing.
@@ -483,6 +494,14 @@ var old_tram: OldTram
 var crash_scenes: CrashScenes
 var crash_flag := ""
 var crash_log := false
+## Dead electric cars (ev_tow.gd, F's ask 2026-11-06): Bartek's call to carry his TESŁO to a charger
+## under the helicopter, and stranded ones in the kerb lane. Flags --ev-call (the call rings now),
+## --ev-tow (accepted, the helicopter over his car), --ev-tow=carry (his car already on the rope),
+## --ev-stranded (one about 30 m ahead now), --ev=0 (none), --ev-log.
+var ev_tow: EvTow
+var ev_flag := ""
+var ev_log := false
+var _ev_auto := false
 var _crash_auto := false
 var old_tram_flag := ""
 var tram_log := false
@@ -495,6 +514,12 @@ var packs: Packs
 var loud_cars: LoudCars
 var loud_flag := 3
 var loud_log := false
+## Crazy drivers (crazy_drivers.gd, traffic.gd CRAZY_*): Szkoda Oktawia taxis, Szprynter couriers
+## and the Pasatini in traffic. --crazy=N: at most N at once (default 3; 0: none); --crazy-log
+## prints their cut-ins and KEBAB FM's sightings.
+var crazy_drivers: CrazyDrivers
+var crazy_flag := 3
+var crazy_log := false
 var packs_flag := 1
 var packs_now := false
 var packs_log := false
@@ -665,6 +690,11 @@ var traffic_level := Settings.DEFAULT_TRAFFIC
 ## -2: no --quality= (Tiers.AUTO is -1).
 var _flag_quality := -2
 var _flag_controls := -1
+## Beta values: --lane-assist=on|off overrides Settings → Jazda → Asysta pasa for the run; the
+## lane's direction is looked up every LANE_EVERY s (lane_assist.gd).
+var _flag_lane := -1
+var _lane_t := 0.0
+const LANE_EVERY := 0.1
 var _flag_traffic := -1
 var _flag_fixed := false
 var _flag_perf := false
@@ -803,6 +833,8 @@ func _ready() -> void:
 		title = Title.new()
 		title.touch_off = no_touch  # desktop: --no-touch
 		title.language_chosen.connect(_on_language_chosen)
+		# The loading bar: the title runs while the tree is paused for the build (_load_step).
+		title.process_mode = Node.PROCESS_MODE_ALWAYS
 		add_child(title)
 	else:
 		loading = _loading_card()
@@ -832,9 +864,11 @@ func _ready() -> void:
 	radio.tune(start_index, true)
 	print("save: %s (%s)" % [wallet.summary(), ProjectSettings.globalize_path(Wallet.PATH) if not no_save else "not saved"])
 	_resume_start()  # save and resume: the car where the last session left it
+	_start_preloads()  # the loading bar: the big map files load on threads under the title
 	await get_tree().process_frame
 	await get_tree().process_frame
 	var t0 := Time.get_ticks_msec()
+	await _wait_preloads()
 	_place_start()  # loop MW-1: --place=<id>, the sectors round the place
 	_syrenka_start()  # loop 3h slice 2: --syrenka=<id|n>
 	if trzy_mosty_flag:
@@ -852,7 +886,13 @@ func _ready() -> void:
 		push_error(no_map)
 		get_tree().quit(1)
 		return
-	_build_world()
+	if title != null:
+		get_tree().paused = true  # the loading bar: nothing half-built moves between the build's steps
+	await _build_world()
+	if title != null:
+		get_tree().paused = false
+	view.visible = true
+	_preloaded.clear()
 	_put_at_resume()
 	print("city built in %d ms, %s" % [Time.get_ticks_msec() - t0, _scene_stats()])
 	if loading != null:
@@ -868,6 +908,7 @@ func _ready() -> void:
 		_new_game_pending = false
 		# The loading fix: "tap to drive" once the sectors round the start are in (_title_frame).
 		_title_wait_t = Time.get_ticks_msec()
+		_title_pending = streamer.pending() if streamer != null else 0
 	else:
 		radio.now_playing()
 		_fallback_toast()
@@ -898,6 +939,80 @@ func _exit_tree() -> void:
 ## show no proxies. -1: the prompt is up.
 const TITLE_WAIT_MS := 8000
 var _title_wait_t := -1
+## The loading bar: the most sectors the title has waited for at once.
+var _title_pending := 0
+
+
+## The loading bar (F, 2026-11-05: "it freezes, later I see the road"): the title screen showed a
+## still "building the city…" for the second or two the build blocked the main thread, then the
+## city. Now the title shows a bar that moves: the big map files (the prebuilt index and the
+## proxies) load on threads first (ResourceLoader's threaded requests, LOAD_FILES of the bar),
+## the build yields a frame between its steps with the tree paused (up to LOAD_BUILT), and the
+## start's sectors fill the rest (_title_frame). Test runs (no title) build in one go, as before.
+const LOAD_FILES := 0.12
+const LOAD_BUILT := 0.6
+## The threaded requests' paths, and what they loaded (held until the build has used them, so the
+## streamer's own `load` takes them from the cache).
+var _preload_paths: PackedStringArray = []
+var _preloaded: Array[Resource] = []
+
+
+func _start_preloads() -> void:
+	if title == null or monolithic or not ((prebuilt or not OS.has_feature("editor")) and solo_site == ""):
+		return
+	for path in [SectorStreamer.INDEX_SCENE, SectorStreamer.PROXY_SCENE]:
+		if ResourceLoader.exists(path) and ResourceLoader.load_threaded_request(path, "", true) == OK:
+			_preload_paths.append(path)
+
+
+func _wait_preloads() -> void:
+	var t0 := Time.get_ticks_msec()
+	var frames := 0
+	while not _preload_paths.is_empty():
+		var sum := 0.0
+		var busy := false
+		for path in _preload_paths:
+			var at := []
+			if ResourceLoader.load_threaded_get_status(path, at) == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+				busy = true
+				sum += float(at[0]) if not at.is_empty() else 0.0
+			else:
+				sum += 1.0
+		if title != null:
+			title.progress = maxf(title.progress, LOAD_FILES * sum / float(_preload_paths.size()))
+		if not busy:
+			break
+		frames += 1
+		await get_tree().process_frame
+	if not _preload_paths.is_empty():
+		print("loading bar: %s on threads in %d ms (%d frames)" % [", ".join(_preload_paths), Time.get_ticks_msec() - t0, frames])
+	for path in _preload_paths:
+		var r := ResourceLoader.load_threaded_get(path)
+		if r != null:
+			_preloaded.append(r)
+	_preload_paths = []
+
+
+## The loading bar: the build's start (ticks, moved on by the frames shown), then each step's ms,
+## printed under the title as "loading bar: the build's steps".
+var _load_ms: Array[int] = []
+
+
+## A build step done: its ms noted, the bar moved and a frame shown (under the title only).
+func _load_mark(share: float) -> void:
+	var now := Time.get_ticks_msec()
+	_load_ms.append(now - _load_ms[0] - _load_ms.slice(1).reduce(func(a: int, b: int) -> int: return a + b, 0))
+	await _load_step(share)
+	_load_ms[0] += Time.get_ticks_msec() - now  # the frames shown don't count in the next step
+
+
+## The loading bar: the build's share so far (LOAD_FILES..LOAD_BUILT) and a frame to show it, under
+## the title only (test runs build in one go).
+func _load_step(share: float) -> void:
+	if title == null:
+		return
+	title.progress = maxf(title.progress, lerpf(LOAD_FILES, LOAD_BUILT, share))
+	await get_tree().process_frame
 
 
 func _title_frame() -> void:
@@ -905,6 +1020,10 @@ func _title_frame() -> void:
 		streamer.hurry = title != null
 	if title == null or _title_wait_t < 0:
 		return
+	if streamer != null and _title_pending > 0:
+		# The loading bar's last stretch: the start's sectors still to come.
+		_title_pending = maxi(_title_pending, streamer.pending())
+		title.progress = maxf(title.progress, LOAD_BUILT + (1.0 - LOAD_BUILT) * (1.0 - float(streamer.pending()) / float(_title_pending)))
 	if streamer == null or streamer.idle() or Time.get_ticks_msec() - _title_wait_t > TITLE_WAIT_MS:
 		print("title: the start's sectors in after %d ms%s" % [Time.get_ticks_msec() - _title_wait_t,
 				"" if streamer == null or streamer.idle() else " (not all: the wait's limit)"])
@@ -1129,6 +1248,9 @@ func _build_world() -> void:
 	view.stretch = true
 	view.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	view.set_anchors_preset(Control.PRESET_FULL_RECT)
+	# The loading bar: the 3D view isn't drawn under the title until the build is done (the frames
+	# the build yields then cost only the title's draw).
+	view.visible = title == null
 	add_child(view)
 	sv = SubViewport.new()
 	sv.msaa_3d = Viewport.MSAA_DISABLED
@@ -1157,6 +1279,7 @@ func _build_world() -> void:
 	# exported game (and --prebuilt) loads the sectors tools/bake_city.gd built on the Mac, the
 	# editor builds them from their files. --monolithic builds the whole city at once from
 	# centrum.json, as before loop 3c (the pixel diff's reference; city.scn is gone).
+	_load_ms = [Time.get_ticks_msec()]
 	if not monolithic:
 		data = _open_streamed_city(world, flat_mat)
 		flat_mat = map.flat_material
@@ -1173,6 +1296,7 @@ func _build_world() -> void:
 		world.add_child(map)
 		data = map.build(MAP_PATH, building_mat, flat_mat)
 		map.open_maps_whole()  # loop 3d-2b: every sector's map slices on the GPU at once
+	await _load_mark(0.1)
 
 	for a in data["areas"]:
 		if a["k"] == "water":
@@ -1187,6 +1311,7 @@ func _build_world() -> void:
 	car.ground_height = map.drive_height
 	car.set_sensitivity(settings.sensitivity)
 	car.set_handling(settings.handling)  # G4: Cruise by default, Sport from Settings → Jazda
+	car.lane_assist = settings.lane_assist if _flag_lane < 0 else _flag_lane == 1
 	world.add_child(car)
 	_xray = TunnelXray.new()
 	world.add_child(_xray)
@@ -1285,7 +1410,7 @@ func _build_world() -> void:
 	_on_station_changed(radio.station, radio.stations[radio.station] if radio.station >= 0 else {})
 	radio.ticker.connect(hud.ticker)
 	hud.set_radio_name(radio.label())
-	hud.visible = not hide_hud
+	hud.visible = not hide_hud and title == null  # the loading bar: not over the title between the build's steps
 	hud.rotate_pressed.connect(func(d: int):
 		if not follow:
 			_rotate_camera(d))
@@ -1335,6 +1460,7 @@ func _build_world() -> void:
 				sfx.coin())
 	if pop_flag > 0:
 		get_tree().create_timer(2.0).timeout.connect(func() -> void: wallet.pay(pop_flag))
+	await _load_mark(0.26)
 	if data.has("graph"):
 		graph = LaneGraph.new(data["graph"], map)
 	if debug_roads:
@@ -1343,6 +1469,7 @@ func _build_world() -> void:
 		dr.setup(map, graph, _vehicle_position, data)
 	if not no_traffic and graph != null:
 		_build_life(data, world)
+	await _load_mark(0.53)
 	if graph != null:
 		_build_side_jobs(data, world)
 	_build_notebook(data)
@@ -1355,6 +1482,7 @@ func _build_world() -> void:
 	_build_street_details(world)
 	_build_park_details(world)
 	_build_garage(world)
+	await _load_mark(0.66)
 	# Loop MW-5: a PÓŁNOC FM track opened (a chapter, an egg, --unlock=N): a toast.
 	radio.track_unlocked.connect(func(_n: int, track: Dictionary, _why: String) -> void:
 		var t := Radio.unlock_toast(String(track["title"]))
@@ -1407,20 +1535,25 @@ func _build_world() -> void:
 	if cam_test != "":
 		_start_cam_test()
 	_build_sound(data, world)
+	await _load_mark(0.67)
 	# Loop 3g-1: the police, on the traffic's lane graph (none with --no-police).
 	if traffic != null and not police_opts.get("off", false):
 		_build_police(data, world)
 	_build_crowds(data, world)
 	_build_city_life(data, world)
+	await _load_mark(0.85)
 	_build_buses(data, world)
 	_build_old_tram(world)
 	_build_crash_scenes()
+	_build_ev_tow(world)
 	_build_storefronts(data, world)
 	_build_packs(data, world)
 	_build_fans(data, world)
 	_build_loud_cars(world)
+	_build_crazy_drivers(world)
 	_build_wellness(world)
 	_build_first10()
+	await _load_mark(0.99)
 	_set_quality(quality_choice)
 	get_tree().root.size_changed.connect(_apply_style)
 	_apply_style()
@@ -1492,6 +1625,9 @@ func _build_world() -> void:
 		RenderingServer.frame_pre_draw.connect(_stress_wait)
 	_apply_experiments()
 	_apply_fps()
+	await _load_mark(1.0)
+	if title != null:
+		print("loading bar: the build's steps %s ms" % [_load_ms.slice(1)])
 	_bench_t0 = Time.get_ticks_msec()
 	if bench or probe:
 		# The macOS driver may keep vsync on anyway (the frame rate then tops out at
@@ -1525,7 +1661,7 @@ func _build_life(data: Dictionary, world: Node3D) -> void:
 	world.add_child(trains)
 	trains.setup(map, data)
 	if train_at != Vector2.INF:
-		trains.place_near(train_at)
+		trains.place_near(train_at, train_kind)
 	walkers = Pedestrians.new()
 	world.add_child(walkers)
 	walkers.setup(map, cam, traffic, data)
@@ -2340,6 +2476,25 @@ func _build_loud_cars(world: Node3D) -> void:
 	loud_cars.setup()
 
 
+## Crazy drivers (crazy_drivers.gd): wild taxis, couriers and the Pasatini in traffic, their
+## horns and lines (none with --no-traffic or --crazy=0).
+func _build_crazy_drivers(world: Node3D) -> void:
+	if traffic == null:
+		return
+	traffic.crazy_target = crazy_flag
+	if crazy_flag == 0:
+		return
+	crazy_drivers = CrazyDrivers.new()
+	crazy_drivers.name = "CrazyDrivers"
+	crazy_drivers.traffic = traffic
+	crazy_drivers.sfx = sfx
+	crazy_drivers.dialogue = dialogue
+	crazy_drivers.radio = radio
+	crazy_drivers.log_on = crazy_log
+	crazy_drivers.focus = func() -> Vector3: return cam_focus
+	world.add_child(crazy_drivers)
+
+
 ## The wellness circles (wellness.gd): none with --wellness=0 or --crowd=0.
 func _build_wellness(world: Node3D) -> void:
 	if wellness_flag == 0 or crowd_flag == 0:
@@ -2533,6 +2688,78 @@ func _build_crash_scenes() -> void:
 		crash_scenes.place(Vector2(p.x, p.z), Vector2(f.x, f.z).normalized(), true, at)
 
 
+# --- dead electric cars ----------------------------------------------------------------------
+
+## Bartek's call and the stranded TESŁO cars (ev_tow.gd). None with --no-traffic or --ev=0.
+func _build_ev_tow(world: Node3D) -> void:
+	if traffic == null or ev_flag == "0":
+		return
+	ev_tow = EvTow.new()
+	ev_tow.name = "EvTow"
+	ev_tow.hud = hud
+	ev_tow.dialogue = dialogue
+	ev_tow.wallet = wallet
+	ev_tow.missions = missions
+	ev_tow.map = map
+	ev_tow.graph = graph
+	ev_tow.traffic = traffic
+	ev_tow.radio = radio
+	ev_tow.heli = heli
+	ev_tow.log_on = ev_log
+	ev_tow.auto = _ev_auto
+	ev_tow.vehicle = func() -> Array:
+		if flying:
+			return [heli.global_position, heli.speed() * 3.6, true]
+		return [car.global_position, car.vel.length() * 3.6, false]
+	ev_tow.free_now = _ev_free
+	ev_tow.take_off = func() -> void: _take_off(Heli.CRUISE)
+	add_child(ev_tow)
+	ev_tow.setup(world)
+	if ev_flag != "":
+		get_tree().create_timer(1.0).timeout.connect(_ev_start)
+
+
+## Nothing else on: no title, bench, Spacer, guide, card, rescue, ride, job, race or tow.
+func _ev_free() -> bool:
+	if title != null or _phone_bench or _bench_ghost != null or (spacer != null and spacer.on):
+		return false
+	if first10 != null and first10.guide_on():
+		return false
+	if hud.cards_up() or missions.state != Missions.State.CLOSED or missions.has_target():
+		return false
+	if (rides != null and rides.busy()) or (jobs != null and jobs.busy()) or (trend_job != null and trend_job.busy()):
+		return false
+	if rivals != null and rivals.busy():
+		return false
+	return flying or not car.in_water
+
+
+## The --ev-* test flags, a second into the drive.
+func _ev_start() -> void:
+	match ev_flag:
+		"call":
+			ev_tow.ring()
+		"stranded":
+			var p := car.global_position
+			var f := -car.global_transform.basis.z
+			ev_tow.place_stranded(Vector2(p.x, p.z), Vector2(f.x, f.z).normalized(), true)
+		_:
+			ev_tow.ring()
+			ev_tow._on_card(0)
+			ev_tow._on_card(0)
+			if ev_tow.job.is_empty():
+				return
+			var at: Vector3 = ev_tow.job["at"]
+			if not flying:
+				_take_off(Heli.CRUISE)
+			var carry := ev_flag == "tow=carry"
+			# Over the car, low enough to hook; for the carry 22 m up, the rope lifting it.
+			heli.place(at + Vector3(-3.0, 0.0, 2.0), heli.rotation.y, 22.0 if carry else EvTow.ROPE + EvTow.SIZE.y - 0.5)
+			cam_focus = heli.global_position
+			if carry:
+				ev_tow._hook()
+
+
 # --- the vintage-tram loop --------------------------------------------------------------------
 
 ## The old tram (old_tram.gd) on the trams' tracks, after the buses. None with --no-traffic.
@@ -2712,7 +2939,7 @@ func _life_start() -> void:
 	if trend_job_flag > 0 and trend_job != null:
 		var i := trend_job_flag - 1
 		if trend_job_flag == 6:
-			# "Mlask" (G5): Cringulo's van parked by the car, his request at once (KUKŁA by Nowy
+			# "Mlask" (G5): Mrożulo's van parked by the car, his request at once (KUKŁA by Nowy
 			# Świat if no Wiralek slot is new enough).
 			if crowds != null and crowds.by_id.has(Crowds.KUKLA[1]):
 				_put_car_near(crowds.sites[crowds.by_id[Crowds.KUKLA[1]]]["door"], 120.0)
@@ -3639,6 +3866,19 @@ func _parse_args() -> void:
 			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_NO_FOCUS, true)
 		elif arg.begins_with("--out="):
 			out_dir = arg.trim_prefix("--out=")
+		elif arg.begins_with("--spots="):
+			# NAME:X,Z[,HEADING];NAME:X,Z... : one run shoots every spot (street passes, before/after).
+			for item in arg.trim_prefix("--spots=").split(";", false):
+				var nv := item.split(":")
+				var v := nv[1].split(",") if nv.size() > 1 else PackedStringArray()
+				if v.size() < 2:
+					push_error("--spots: '%s' is not NAME:X,Z[,HEADING]" % item)
+					continue
+				shot_spots.append([nv[0], Vector2(float(v[0]), float(v[1])), float(v[2]) if v.size() > 2 else INF])
+			if not shot_spots.is_empty():
+				start_at = Vector3(shot_spots[0][1].x, 0.0, shot_spots[0][1].y)
+				if shot_spots[0][2] != INF:
+					start_heading = shot_spots[0][2]
 		elif arg.begins_with("--style="):
 			_flag_style = posmod(int(arg.trim_prefix("--style=")), STYLES.size())
 		elif arg.begins_with("--at="):
@@ -3867,6 +4107,8 @@ func _parse_args() -> void:
 			_stress_to = maxf(0.0, float(arg.trim_prefix("--stress-to=")))
 		elif arg.begins_with("--controls="):
 			_flag_controls = Controls.parse(arg.trim_prefix("--controls="))
+		elif arg.begins_with("--lane-assist="):
+			_flag_lane = 1 if arg.trim_prefix("--lane-assist=") in ["on", "1", "true"] else 0
 		elif arg.begins_with("--traffic="):
 			_flag_traffic = Settings.parse_traffic(arg.trim_prefix("--traffic="))
 		elif arg == "--settings":
@@ -3906,18 +4148,32 @@ func _parse_args() -> void:
 			bus_log = true
 		elif arg.begins_with("--crash="):
 			crash_flag = arg.trim_prefix("--crash=")
+		elif arg == "--ev-call" or arg == "--ev-tow" or arg == "--ev-stranded":
+			ev_flag = arg.trim_prefix("--ev-")
+		elif arg.begins_with("--ev-tow="):
+			ev_flag = "tow=" + arg.trim_prefix("--ev-tow=")
+		elif arg == "--ev=0":
+			ev_flag = "0"
+		elif arg == "--ev-log":
+			ev_log = true
 		elif arg == "--crash-log":
 			crash_log = true
 		elif arg.begins_with("--loud="):
 			loud_flag = clampi(int(arg.trim_prefix("--loud=")), 0, 16)
 		elif arg == "--loud-log":
 			loud_log = true
+		elif arg.begins_with("--crazy="):
+			crazy_flag = clampi(int(arg.trim_prefix("--crazy=")), 0, 12)
+		elif arg == "--crazy-log":
+			crazy_log = true
 		elif arg == "--old-tram" or arg.begins_with("--old-tram="):
 			old_tram_flag = "follow" if arg == "--old-tram=follow" else "now"
 		elif arg.begins_with("--train="):
 			var xz := arg.trim_prefix("--train=").split(",")
-			if xz.size() == 2:
+			if xz.size() >= 2:
 				train_at = Vector2(float(xz[0]), float(xz[1]))
+			if xz.size() == 3:
+				train_kind = int(xz[2])
 		elif arg == "--tram-log":
 			tram_log = true
 		elif arg.begins_with("--packs="):
@@ -4117,6 +4373,7 @@ func _parse_args() -> void:
 	_governor_on = _flag_governor == 1 if _flag_governor >= 0 else not test_run
 	# The crash scenes' timer: a normal launch only (a test run with --crash=on or =now too).
 	_crash_auto = not test_run
+	_ev_auto = not test_run
 	# Loop G1b: test runs (and --last-session=) never write Auto's image state, even with the
 	# governor on and without --nosave.
 	_image_write = not test_run and _flag_last_session == ""
@@ -4337,7 +4594,7 @@ func _open_full_map() -> void:
 ## the słoiki stations and the Leżak depots (jobs.gd `offer_places`), Warsztat u Mirka, and "ask for
 ## a ride" (Podwózka's rule). HELI: the cassettes on the roofs not taken, and "a rescue call" (one
 ## only the helicopter reaches). Nothing while a race, a job or a rescue is on.
-## G12c: AUTO also lists the open "Na czasie" slots, Cringulo's van (Mlask) and the Friday drop
+## G12c: AUTO also lists the open "Na czasie" slots, Mrożulo's van (Mlask) and the Friday drop
 ## (trend_job.gd `offer_places`), and the ladder's next rival where they cruise now (or Seba's start
 ## for "Trzy mosty" at night); HELI the peacock's roof call while Pan Paw is still up there. While a
 ## race, a job, a ride or a rescue is on, its one row ("Teraz · ...") leads the vehicle's tab.
@@ -4547,6 +4804,7 @@ func _settings_state() -> Dictionary:
 			"weather": weather.state, "time": tod.mode, "wander": int(spacer != null and spacer.on), "zones": int(zone_cap_on), "handling": settings.handling, "chatter": settings.chatter, "sensitivity": settings.sensitivity,
 			"text_large": int(settings.text_large), "calm": int(settings.calm), "color_safe": int(settings.color_safe),
 			"vibration": int(settings.vibration), "stop_assist": int(settings.stop_assist),
+			"lane_assist": int(car.lane_assist if car != null else settings.lane_assist),
 			"left_handed": int(settings.left_handed), "lang": maxi(0, Lang.CODES.find(Lang.code))}
 
 
@@ -4645,6 +4903,10 @@ func _on_setting(key: String, value: Variant) -> void:
 		"handling":
 			settings.handling = clampi(int(value), 0, 1)
 			car.set_handling(settings.handling)
+		"lane_assist":
+			settings.lane_assist = int(value) == 1
+			car.lane_assist = settings.lane_assist
+			car.lane_dir = Vector3.ZERO
 		"chatter":
 			settings.chatter = clampi(int(value), 0, Chatter.GAPS.size() - 1)
 			bubbles.chatter.level = settings.chatter
@@ -4664,6 +4926,21 @@ func _on_setting(key: String, value: Variant) -> void:
 			Sfx.set_levels(settings.master, settings.music, settings.effects)
 	settings.save()
 	_blip_sound()
+
+
+## Beta values: the lane assist's lane direction for the car (lane_assist.gd), every LANE_EVERY s
+## while it is on and the car is in Classic.
+func _lane_tick(dt: float) -> void:
+	if not car.lane_assist or car.target_dir != Vector3.ZERO:
+		car.lane_dir = Vector3.ZERO
+		return
+	_lane_t -= dt
+	if _lane_t > 0.0:
+		return
+	_lane_t = LANE_EVERY
+	var fwd := Vector2(-sin(car.rotation.y), -cos(car.rotation.y))
+	var h := LaneAssist.lane_heading(graph, Vector2(car.global_position.x, car.global_position.z), fwd, car.vel.length())
+	car.lane_dir = Vector3(h.x, 0.0, h.y)
 
 
 ## Loop 2a: the car was pinned against something twice in a few seconds (car.gd): put it on
@@ -4697,7 +4974,7 @@ func _stuck_offer_frame() -> void:
 	var want: bool = not flying and not autopilot and _bench_ghost == null and title == null \
 			and not car.in_water and car.stalled >= Car.STALL_TIME \
 			and not (fotka != null and fotka.is_open())
-	if want and hud.pill_free():
+	if want and not hud.pill_shown("unstuck") and hud.pill_free_for("unstuck"):
 		hud.show_pill("POMOC DROGOWA", "tow truck", "unstuck")
 		if Gamepad.in_use():
 			hud.toast(Gamepad.fmt("Utknąłeś? {a}: pomoc drogowa."), Gamepad.fmt("Stuck? {a}: tow truck."))
@@ -5905,6 +6182,15 @@ func _main_line_tick(dt: float) -> void:
 ## The arrow and minimap dot for the mission target.
 func _show_target() -> void:
 	_free_now = false
+	if ev_tow != null and ev_tow.has_target():
+		var ep: Vector3 = ev_tow.target_position()
+		var at_e := _vehicle_position()
+		var me := roundi(Vector2(ep.x - at_e.x, ep.z - at_e.z).length())
+		var on_e := cam.unproject_position(ep + Vector3(0, 3.5, 0)) * float(view.stretch_shrink)
+		hud.set_target(on_e, "%d m" % me, ev_tow.target_colour(), me > 12)
+		_put_target(Vector2(ep.x, ep.z), ev_tow.target_colour(), false)
+		_new_target("job", ep)
+		return
 	if rivals != null and rivals.has_target():
 		var f: Vector3 = rivals.target_position()
 		var p := _vehicle_position()
@@ -6122,6 +6408,7 @@ func _read_input(dt: float) -> void:
 		stick = pad_stick
 		stick_on = true
 	controls.drive(car, stick, stick_on, keys, hud.gas or Gamepad.gas(), hud.brake or Gamepad.brake(), cam_yaw, dt)
+	_lane_tick(dt)
 	# G13: the nitro (bought at the garage): the disc by the horn, Shift on a keyboard, LB or RB on a
 	# pad. Not N: N switches the time of day, so holding it for the nitro also turned day to dusk.
 	car.nitro_hold = car.nitro_owned and (hud.nitro_held or Input.is_physical_key_pressed(KEY_SHIFT) or Gamepad.nitro())
@@ -6245,6 +6532,9 @@ func _follow(d) -> void:
 ## H or the HELI / CAR button: take off from the car, or land and take the car back.
 func _toggle_vehicle() -> void:
 	if _phone_bench:
+		return
+	if flying and ev_tow != null and ev_tow.carrying():
+		hud.toast("Najpierw odstaw %s pod ładowarkę (albo ✕)" % EvTow.NAME, "Set the %s down at the charger first (or ✕)" % EvTow.NAME)
 		return
 	if rivals != null and rivals.racing():
 		hud.toast("Najpierw dokończ wyścig", "Finish the race first")
@@ -6709,10 +6999,55 @@ func _capture(n: int) -> void:
 	if ghost_debug > 0:
 		print("ghost: frame %d centre %.1f %.1f radii %.1f %.1f (screen px)" % [n, _ghost_px.x, _ghost_px.y, _ghost_px.z, _ghost_px.w])
 	var img := get_viewport().get_texture().get_image()
-	img.save_png(out_dir.path_join("shot_%04d.png" % n))
+	# A missing --out folder used to end the run with code 0 and no PNG: make it, and fail loudly.
+	var dir := ProjectSettings.globalize_path(out_dir)
+	if not DirAccess.dir_exists_absolute(dir):
+		DirAccess.make_dir_recursive_absolute(dir)
+	var name := "shot_%04d.png" % n
+	if not shot_spots.is_empty():
+		name = "%s_%04d.png" % [shot_spots[_spot_i][0], n - _spot_base]
+	var err := img.save_png(out_dir.path_join(name))
+	if err != OK:
+		printerr("shots: could not write %s (error %d)" % [out_dir.path_join(name), err])
+		get_tree().quit(1)
+		return
 	_shots_saved.append(n)
 	if n == shots.max():
+		if _spot_i + 1 < shot_spots.size():
+			_next_spot()
+			return
 		_quit_quietly()  # sweep 2: was get_tree().quit()
+
+
+## --spots: the frame the current spot's shot frames count from.
+var _spot_base := 0
+
+
+## --spots: moves the car (and the camera, with no blend) to the next spot and shifts the shot
+## frames by the frames spent so far, so each spot gets the same settle time as the first.
+func _next_spot() -> void:
+	_spot_i += 1
+	var sp: Array = shot_spots[_spot_i]
+	var p: Vector2 = sp[1]
+	car.global_position = Vector3(p.x, map.ground_height(p.x, p.y), p.y)
+	if sp[2] != INF:
+		car.rotation.y = -deg_to_rad(sp[2])
+	car.vel = Vector3.ZERO
+	car.forward_speed = 0.0
+	car.reset_physics_interpolation()
+	cam_focus = car.global_position
+	# The same view as the first spot (and as a single --at run): keep the camera's yaw, since
+	# _cut_camera turns a following camera behind the car.
+	var yaw := cam_yaw
+	var yaw_target := cam_yaw_target
+	_cut_camera()
+	cam_yaw = yaw
+	cam_yaw_target = yaw_target
+	var shift: int = frame - _spot_base
+	_spot_base = frame
+	for i in shots.size():
+		shots[i] += shift
+	print("shots: spot %s at %.0f, %.0f (frame %d, shots %s)" % [sp[0], p.x, p.y, frame, str(shots)])
 
 
 # --- sweep 2: a shots run quits without leaking its sounds ---------------------------------
