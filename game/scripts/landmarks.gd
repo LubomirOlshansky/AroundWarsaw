@@ -1174,6 +1174,12 @@ func _find_sites() -> void:
 	if not sites.is_empty() and sites[-1]["key"] == "ujazdowskie47":
 		sites[-1]["skin"] = {"mode": M_MONUMENT, "wall": U47_WALL, "roof": Color("#5f6264")}
 		sites[-1]["quiet"] = true
+	# The Tides (F's photos, 2026-11-06): no landmark card, a full model over the mapped outline.
+	_add_site("tides", [_pts(TD_OUTLINE)])
+	if not sites.is_empty() and sites[-1]["key"] == "tides":
+		sites[-1]["raw"] = _pts(TD_OUTLINE)
+		sites[-1]["ring"] = sites[-1]["raw"]
+		sites[-1]["quiet"] = true
 	# Houses with street fronts read from F's photos (2026-11-06): game/data/photo_fronts.json.
 	_find_photo_fronts()
 	# Street blocks with modelled fronts (Nowy Świat, 2026-11-06).
@@ -1728,6 +1734,9 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_karowa18a(s)
 			"filtry":
 				_build_filtry(s)
+			"tides":
+				_id = 0  # not tappable
+				_build_tides(s)
 			"ujazdowskie47":
 				_id = 0  # not tappable
 				_build_ujazdowskie47()
@@ -24224,3 +24233,114 @@ func _pf_front(f: Dictionary, d: Dictionary) -> void:
 		_lbox(mid, 0.62, mid + 0.3, 0.44, g + h - 0.5, g + h, trim)
 	else:
 		_lbox(mid, 0.3, mid, 0.14, g + h - 0.3, g + h, trim)
+
+
+# --- The Tides (F's photos, 2026-11-06): spec docs/landmarks/specs/tides.md ---------------------
+
+const TD_OUTLINE := [1073.6, 101.5, 1069.7, 91.6, 1065.0, 83.1, 1049.8, 55.4, 1046.6, 46.0, 1043.7, 38.6, 1044.9, 37.9, 1043.1, 34.6,
+		1037.5, 23.9, 1028.1, 7.3, 1043.0, -1.1, 1058.4, 25.7, 1068.7, 43.3, 1075.7, 56.9, 1077.8, 60.6, 1092.7, 83.9, 1101.4, 101.8, 1080.7, 113.3]
+## The two long fronts as the street and the river see them, ends included, each with the outside on
+## the frame's +v: the street side from the cantilever south, the river side back north.
+const TD_FACES := [[1028.1, 7.3, 1037.5, 23.9], [1037.5, 23.9, 1043.7, 38.6], [1043.7, 38.6, 1049.8, 55.4], [1049.8, 55.4, 1065.0, 83.1],
+		[1065.0, 83.1, 1073.6, 101.5], [1073.6, 101.5, 1080.7, 113.3], [1080.7, 113.3, 1101.4, 101.8], [1101.4, 101.8, 1092.7, 83.9],
+		[1092.7, 83.9, 1075.7, 56.9], [1075.7, 56.9, 1058.4, 25.7], [1058.4, 25.7, 1043.0, -1.1], [1043.0, -1.1, 1028.1, 7.3]]
+const TD_COPPER := Color("#e09a55")
+const TD_DARK := Color("#26282b")
+const TD_PANE := Color("#2f4048")
+const TD_FLOOR := 4.3  # the slab over the street level
+const TD_EAVE := 19.6
+const TD_STOREY := 3.05
+
+
+## A number in 0..1 that stays put for a spot on the building.
+func _td_hash(a: float, b: float) -> float:
+	return fposmod(sin(a * 12.9898 + b * 78.233) * 43758.5453, 1.0)
+
+
+## One wall of folded copper panels: a grid pushed in and out, so the sun picks out its facets.
+func _td_wall(width: float, g: float) -> void:
+	var cols := maxi(2, ceili(width / 5.5))
+	var rows := 4
+	var at := func(i: int, j: int) -> Vector3:
+		var edge := i == 0 or i == cols or j == 0 or j == rows
+		var v := 0.08 if edge else 0.08 + 0.7 * _td_hash(_o.x + i * 3.1, _o.y + j * 7.7)
+		var q := _w(width * i / cols, v)
+		return Vector3(q.x, g + TD_FLOOR + (TD_EAVE - TD_FLOOR) * j / rows, q.y)
+	for i in cols:
+		for j in rows:
+			var p00: Vector3 = at.call(i, j)
+			var p10: Vector3 = at.call(i + 1, j)
+			var p01: Vector3 = at.call(i, j + 1)
+			var p11: Vector3 = at.call(i + 1, j + 1)
+			var flip := _td_hash(_o.x + i, j) > 0.5
+			var tris := [[p00, p10, p11], [p00, p11, p01]] if flip else [[p00, p10, p01], [p10, p11, p01]]
+			for k in 2:
+				var q: Array = tris[k]
+				var n: Vector3 = (q[1] - q[0]).cross(q[2] - q[0]).normalized()
+				if n.dot(Vector3(_b.x, 0.0, _b.y)) < 0.0:
+					n = -n
+				var col := TD_COPPER.darkened(0.14 * _td_hash(i + k * 5.0, j + _o.x))
+				_mode = M_STONE
+				_tri(q[0], q[1], q[2], n, col, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), 0.0, false)
+
+
+## The windows of one wall: storey by storey an irregular run of wide panes and pairs of slits.
+func _td_windows(width: float, g: float) -> void:
+	for s in 5:
+		var y := g + TD_FLOOR + 0.75 + s * TD_STOREY
+		var u := 1.0 + 1.6 * _td_hash(_o.x, s)
+		while u < width - 1.4:
+			var h := _td_hash(u + _o.y, s * 3.0)
+			if h < 0.34:  # a wide pane
+				_lbox(u + 1.1, 0.86, 1.1, 0.05, y, y + 1.85, TD_PANE, _lit(u, y))
+				u += 2.2
+			else:  # a pair of slits
+				_lbox(u + 0.28, 0.86, 0.28, 0.05, y, y + 1.85, TD_DARK, _lit(u, y))
+				_lbox(u + 1.2, 0.86, 0.28, 0.05, y, y + 1.85, TD_DARK, _lit(u + 1.0, y))
+				u += 1.5
+			u += 0.9 + 1.5 * _td_hash(u, s + 9.0)
+
+
+## The Tides on the Vistula: a long bent slab in folded copper panels on five storeys with an
+## irregular run of windows, a black ribbed roof sloping back from the eaves, the north end carried
+## out over a glass lobby, three big bays on the south end, a dark glazed street level.
+func _build_tides(site: Dictionary) -> void:
+	var ring := _pts(TD_OUTLINE)
+	_g = _ground_under(ring)
+	var g := _g
+	# Street level: a dark glazed core, short of the north end, under the slab.
+	var core := _largest(Geometry2D.offset_polygon(ring, -1.4, Geometry2D.JOIN_MITER))
+	var cut := PackedVector2Array([Vector2(1020, -8), Vector2(1056, -8), Vector2(1056, 12), Vector2(1036, 24), Vector2(1020, 24)])
+	var kept := Geometry2D.clip_polygons(core, cut)
+	if not kept.is_empty():
+		core = kept[0]
+	_prism(core, g - 0.3, g + TD_FLOOR, Color("#28333a"), TD_DARK, M_STONE, M_STONE)
+	_prism(PackedVector2Array([Vector2(1036, 13), Vector2(1045, 8), Vector2(1051, 18), Vector2(1042, 24)]), g - 0.3, g + TD_FLOOR, Color("#5d7a86"), TD_DARK, M_STONE, M_STONE)
+	_prism(ring, g + TD_FLOOR - 0.3, g + TD_FLOOR + 0.1, Color("#d7cdbd"), Color("#d7cdbd"), M_STONE, M_STONE)
+	# The top of the walls, then the black roof going back in steps.
+	_prism(ring, g + TD_EAVE - 0.05, g + TD_EAVE + 0.05, TD_DARK, TD_DARK, M_STONE, M_STONE)
+	for k in 4:
+		var r := _largest(Geometry2D.offset_polygon(ring, -0.9 * (k + 1), Geometry2D.JOIN_MITER))
+		if r.size() >= 3:
+			_prism(r, g + TD_EAVE + k * 0.8, g + TD_EAVE + (k + 1) * 0.8, TD_DARK, TD_DARK.lightened(0.05), M_STONE, M_STONE)
+	for f: Array in TD_FACES:
+		var from := Vector2(f[0], f[1])
+		var to := Vector2(f[2], f[3])
+		_o = from
+		_a = (to - from).normalized()
+		_b = Vector2(-_a.y, _a.x)
+		var width := from.distance_to(to)
+		_td_wall(width, g)
+		_td_windows(width, g)
+		var piers := int(width / 5.0) if from.y > 24.0 and to.y > 24.0 else 0  # none under the cantilever
+		for k in piers:  # copper piers along the street level
+			_lbox((k + 0.5) * width / piers, -0.9, 0.3, 0.4, g, g + TD_FLOOR, TD_COPPER.darkened(0.1))
+	# The south end's three big bays.
+	_o = Vector2(1080.7, 113.3)
+	_a = (Vector2(1101.4, 101.8) - _o).normalized()
+	_b = Vector2(-_a.y, _a.x)
+	for s: int in [0, 2, 4]:
+		var y := g + TD_FLOOR + 0.5 + s * TD_STOREY
+		_lbox(6.0, 1.0, 3.0, 1.0, y - 0.3, y + 2.6, TD_COPPER)
+		_lbox(6.0, 2.04, 2.6, 0.05, y, y + 2.2, TD_PANE, _lit(6.0, y))
+	_collide_raw(site)
