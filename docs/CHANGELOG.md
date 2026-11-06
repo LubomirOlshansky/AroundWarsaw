@@ -13,8 +13,10 @@ someone writes its lines.
 - The Warsaw Spire is rebuilt from photos: the tower now flares out from a slim foot with inward-curving sides to a pointed glass crown, polished steel columns stand round its lobby under a mirrored canopy, an LED sign runs SAMSONG adverts round the top, and Spire B and C have their pale top storeys; the plaza between them has fountains, a pebble water channel, planted islands and trees.
 - The food blogger from the Mlask job is now called Mrożulo (was Cringulo), on his van, the signs, the fans and the news.
 
+- Your mate Bartek calls: his electric TESŁO died at 0 %. Answer, and you take the helicopter, hook his car on a rope and carry it, swinging, to a charger while he jokes about winter range, free parking with green plates and the diesel parked at the charger. Dead TESŁOs with hazard lights now and then block a lane, and you can lift those to a charger too, for a tip.
 - A cobalt-blue motorboat now sits on the roof of the Forest tower, next to the PEPEO ŻUBR crown.
 - The underpass entrances at Emilii Plater and Aleje Jerozolimskie are real stairs going down now instead of walled boxes: granite parapets round the two wells, steel canopies over the pavement stairs (Śródmieście's green ones with posters on the south side), and people walking down into the passage and coming up out of it.
+- The railway from Centralna to Ochota is rebuilt: the cutting has a flat track bed with straight grass banks, concrete walls at the tunnel mouth and fences along the top, steel gantries carry the wires over the tracks, Warszawa Główna has real raised platforms and its footbridge crosses high over the wires with stairs and lifts down to each platform; trains stop there too, people get off and on at every door, the local trains look like modern red or white-and-green units, and the long-distance train has a locomotive pulling its coaches.
 - When your car is stuck, the POMOC DROGOWA tow button now comes up even while the ride app button is on screen, and it also comes when you keep backing off a wall and trying again.
 
 ## 2026-11-05

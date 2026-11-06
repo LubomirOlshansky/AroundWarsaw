@@ -5,15 +5,15 @@ extends SceneTree
 ##      at each mouth), every piece kept leads to a way out;
 ##   2. the cars: one surface each on the one actor material, at most 400 triangles a car;
 ##   3. 40 simulated minutes at 10 updates a second: trains come in, run and leave (at least 6
-##      exits), stop at Ochota, Powiśle and Stadion, the long-distance kind never stops, and no
-##      two trains ever hold one track piece at once.
+##      exits), stop at Warszawa Główna (its islands OSM draws as footways), Ochota, Powiśle and Stadion, the long-distance kind never stops, and no
+##      two trains ever hold one track piece at once; a stopping train turns back at a terminus.
 ## Prints "check_trains: OK (...)" or the problems (exit 1).
 ##   godot --headless --path game --script res://tools/check_trains.gd
 
 const Trains := preload("res://scripts/trains.gd")
 
 ## The stations whose platforms must see a stop (their OSM building's centre).
-const STATIONS := {"Ochota": Vector2(-2313.0, 929.0), "Powiśle": Vector2(290.0, 25.0), "Stadion": Vector2(1391.0, -1328.0)}
+const STATIONS := {"Główna": Vector2(-2680.0, 990.0), "Ochota": Vector2(-2313.0, 929.0), "Powiśle": Vector2(290.0, 25.0), "Stadion": Vector2(1391.0, -1328.0)}
 const MINUTES := 40.0
 const DT := 0.1
 
@@ -58,8 +58,8 @@ func _check_graph(t: Trains, digest: PackedStringArray) -> void:
 func _check_look(digest: PackedStringArray) -> void:
 	var most := 0
 	for kind: Dictionary in Trains.KINDS:
-		for cab in [true, false]:
-			var m := Trains.car_mesh(kind, cab)
+		for role in ([0, 1, 2] if kind.has("loco") else [0, 1]):
+			var m := Trains.car_mesh(kind, role)
 			if m.get_surface_count() != 1:
 				problems.append("%s car has %d surfaces" % [kind["name"], m.get_surface_count()])
 			var tris := m.surface_get_array_len(0) / 3
@@ -103,4 +103,6 @@ func _check_run(t: Trains, data: Dictionary, digest: PackedStringArray) -> void:
 	for name: String in STATIONS:
 		if not seen.has(name):
 			problems.append("no train stopped at %s" % name)
-	digest.append("%d min: %d exits, %.0f km run, stops %s" % [int(MINUTES), exits, moved / 1000.0, str(seen)])
+	if t.turns == 0:
+		problems.append("no train turned back at a terminus (Warszawa Główna's platform tracks end at buffers)")
+	digest.append("%d min: %d exits, %.0f km run, stops %s, %d turned back at a terminus" % [int(MINUTES), exits, moved / 1000.0, str(seen), t.turns])
