@@ -15,14 +15,14 @@ extends Node
 ## queue's ring 5 s ("stoisz w kolejce"); if the drop ends first it is "wyprzedane" and the job
 ## drops. Deliver to a door 500-1800 m away in 5 minutes. Pay 40 zł + 10 zł a km, +12 respect, a
 ## 15 zł tip *guess*; late: half, no tip, no respect.##
-## **"Mlask" · Cringulo's review** (docs/design/gaulle-and-food-hype.md G5): Cringulo, the food
+## **"Mlask" · Mrożulo's review** (docs/design/gaulle-and-food-hype.md G5): Mrożulo, the food
 ## reviewer on wheels (a parody type, never the real man), parks his cream van at one of four
 ## spots by the weekday (ML_SPOTS), 11:00-21:00. Stop by it: he wants a bite of a new place (the
 ## nearest open Wiralek slot on its days 1-3, else KUKŁA's nearest door). Stop 2 s there ("na
 ## wynos dla Cringula"), bring it back while it's warm (5 min), get his review on a card in his
 ## grade, the MLASK, then take his sticker to the place in 4 min: 40 zł + 10 zł a km (both legs),
-## +15 respect, a 15 zł tip *guess*, and the "Cringulo effect": that place's queue stands at its
-## longest for the rest of the game day (crowds.gd `cringulo`). A cold delivery: three MLASKI,
+## +15 respect, a 15 zł tip *guess*, and the "Mrożulo effect": that place's queue stands at its
+## longest for the rest of the game day (crowds.gd `mrozulo`). A cold delivery: three MLASKI,
 ## half the pay, no tip, no respect, the queue grows anyway (any review is a review).
 
 const Beacon := preload("res://scripts/beacon.gd")
@@ -105,11 +105,11 @@ const VAN_CREAM := Color("#efe6cf")
 const VAN_PINK := Color("#d9467f")
 const VAN_DARK := Color("#26262b")
 ## The fans by the van (while it is out): their shirts, a bubble every FAN_GAP seconds when the
-## car is within FAN_TALK_R m (the `viral` "cringulo" lines).
+## car is within FAN_TALK_R m (the `viral` "mrozulo" lines).
 const FAN_SHIRTS := ["#e57aa0", "#2f6fb5", "#e0b23a", "#f2efe8", "#7a4fa8"]
 const FAN_GAP := [14.0, 26.0]
 const FAN_TALK_R := 22.0
-## The egg "In Cringulo's shot" (eggs.json easter_mlask): the car stopped (under 1 m/s) within
+## The egg "In Mrożulo's shot" (eggs.json easter_mlask): the car stopped (under 1 m/s) within
 ## EGG_R m of the van for EGG_SECS seconds while he is out and filming.
 const EGG_ID := "easter_mlask"
 const EGG_R := 9.0
@@ -361,7 +361,7 @@ func _look() -> void:
 
 
 ## G12c: the places for the full map's ZADANIA AUTO list while nothing is on: the open Wiralek
-## slots ("Na czasie", only those not cooling down, so driving there brings the request), Cringulo's
+## slots ("Na czasie", only those not cooling down, so driving there brings the request), Mrożulo's
 ## van while it is out (Mlask) and PISTACJA's door during its Friday drop (Limitka). Each:
 ## {group, at (map x, z), colour, name [pl, en]}, as jobs.gd `offer_places`.
 func offer_places() -> Array:
@@ -379,7 +379,7 @@ func offer_places() -> Array:
 					"name": ["Na czasie · %s" % st["word"], "On trend · %s" % st["word"]]})
 	if not van.is_empty() and van_out(hour) and _session >= float(_cool.get(-3, 0.0)):
 		out.append({"group": "mlask", "at": Vector2(van["ring"].x, van["ring"].z), "colour": ML_COLOUR,
-				"name": ["Mlask · van Cringula", "Smack · Cringulo's van"]})
+				"name": ["Mlask · van Cringula", "Smack · Mrożulo's van"]})
 	if crowds != null and Crowds.pistacja_drop(hour, life.weekday_now()) and crowds.by_id.has(Crowds.PISTACJA_ID) \
 			and _session >= float(_cool.get(-1, 0.0)):
 		var site: Dictionary = crowds.sites[crowds.by_id[Crowds.PISTACJA_ID]]
@@ -512,7 +512,7 @@ func offer_deski_call(force := false) -> bool:
 	return true
 
 
-# --- "Mlask": Cringulo's review (G5) ----------------------------------------------------------
+# --- "Mlask": Mrożulo's review (G5) ----------------------------------------------------------
 
 ## The van's mesh: a cream box van, a pink band, dark windows, the big lens on the roof, in the
 ## models' one material (~150 plus the lettering). Local frame: +Z forward, origin on the ground.
@@ -530,7 +530,7 @@ static func van_mesh() -> ArrayMesh:
 	Models.box(st, Vector3(0, 2.62, -0.4), Vector3(0.62, 0.44, 0.9), VAN_DARK)
 	Models.box(st, Vector3(0, 2.62, 0.12), Vector3(0.5, 0.36, 0.16), VAN_PINK)
 	var mesh := st.commit()
-	var tx := _van_lettering("CRINGULO TV", -0.2, 0.58)
+	var tx := _van_lettering("MROŻULO TV", -0.2, 0.58)
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, tx.surface_get_arrays(0))
 	return mesh
 
@@ -642,7 +642,7 @@ func _fans_tick(_hour: float) -> void:
 		if _fan_t <= 0.0:
 			_fan_t = _rng.randf_range(FAN_GAP[0], FAN_GAP[1])
 			var back := Vector3(at.x, at.y, at.z) + (_van_node.global_transform.basis * Vector3(0, 0, -4.0))
-			dialogue.say_ambient(func() -> Vector3: return back, "", "viral", "cringulo", 4.0, ML_COLOUR, 2.2, true)
+			dialogue.say_ambient(func() -> Vector3: return back, "", "viral", "mrozulo", 4.0, ML_COLOUR, 2.2, true)
 	if d <= EGG_R and not flying and car.velocity.length() < 1.0:
 		_egg_t += 0.5
 		if _egg_t >= EGG_SECS and egg.is_valid():
@@ -675,7 +675,7 @@ func _park_van(spot: String, near := Vector2.INF) -> Dictionary:
 	if _van_node != null:
 		_van_node.global_transform = Transform3D(Basis(Vector3.UP, yaw), v["at"])
 	if log_on:
-		print("trend job: Cringulo's van at %s (%.0f, %.0f)" % [spot, at2.x, at2.y])
+		print("trend job: Mrożulo's van at %s (%.0f, %.0f)" % [spot, at2.x, at2.y])
 	return v
 
 
@@ -717,7 +717,7 @@ func _new_place(from: Vector2, hour: float) -> Dictionary:
 	return best
 
 
-## Cringulo's request by his van (--trend-job=6 too, which first parks the van by the car).
+## Mrożulo's request by his van (--trend-job=6 too, which first parks the van by the car).
 func offer_mlask(force_here := false) -> bool:
 	if force_here:
 		var p := Vector2(car.global_position.x, car.global_position.z)
@@ -731,20 +731,20 @@ func offer_mlask(force_here := false) -> bool:
 	var place := _new_place(Vector2(vr.x, vr.z), life.hour_now())
 	if place.is_empty():
 		if log_on:
-			print("trend job: Cringulo found no new place open")
+			print("trend job: Mrożulo found no new place open")
 		return false
 	var road := Vector2(vr.x, vr.z).distance_to(Vector2(place["ring"].x, place["ring"].z)) * 1.3
 	order = {"kind": "mlask", "stage": "fetch", "slot": int(place["slot"]), "word": str(place["name"]), "day": 0,
-			"ring": place["ring"], "door_ring": vr, "road": road, "name": "Cringulo", "customer": "Cringulo",
+			"ring": place["ring"], "door_ring": vr, "road": road, "name": "Mrożulo", "customer": "Mrożulo",
 			"site": str(place["site"]), "place_ring": place["ring"], "warm": true}
 	state = State.OFFER
 	_t = 0.0
-	hud.show_side_card("MLASK · CRINGULO", "Siema, tu Cringulo! %s, nowe miejsce. Weź mi coś, tylko ma być ciepłe." % order["word"],
-			PackedStringArray(["ACCEPT", "SKIP"]), ML_COLOUR, "Smack · Cringulo",
-			"Hi, Cringulo here! %s, a new place. Grab me something, and keep it warm." % order["word"])
+	hud.show_side_card("MLASK · MROŻULO", "Siema, tu Mrożulo! %s, nowe miejsce. Weź mi coś, tylko ma być ciepłe." % order["word"],
+			PackedStringArray(["ACCEPT", "SKIP"]), ML_COLOUR, "Smack · Mrożulo",
+			"Hi, Mrożulo here! %s, a new place. Grab me something, and keep it warm." % order["word"])
 	hud.ticker_out()
 	if log_on:
-		print("trend job: Cringulo's offer: %s, %.0f m" % [order["word"], road])
+		print("trend job: Mrożulo's offer: %s, %.0f m" % [order["word"], road])
 	return true
 
 
@@ -760,7 +760,7 @@ func _arrive_ml_review() -> void:
 	var g: float = ML_GRADES[_rng.randi() % ML_GRADES.size()] if warm else ML_COLD_GRADE
 	order["grade"] = g
 	var gw := grade_words(g)
-	var l: Array = dialogue.line("cringulo_review", "warm" if warm else "cold", true) if dialogue != null else []
+	var l: Array = dialogue.line("mrozulo_review", "warm" if warm else "cold", true) if dialogue != null else []
 	var line := [str(l[0]), str(l[1])] if not l.is_empty() else ["Je się. Mlaska się.", "One eats. One smacks."]
 	order["stage"] = "review"
 	state = State.RESULT
@@ -769,7 +769,7 @@ func _arrive_ml_review() -> void:
 	_beacon.waving = false
 	hud.show_side_card("RECENZJA · %s" % gw[0], "„%s”\nZawieź naklejkę do %s w 4 min." % [line[0], order["word"]],
 			PackedStringArray(["NAKLEJKA"]), ML_COLOUR, "Review · %s" % gw[1], "\"%s\"\nTake the sticker to %s in 4 min." % [line[1], order["word"]])
-	print("trend job: Cringulo reviewed %s after %.0f s (%s): %s" % [order["word"], _clock, "warm" if warm else "cold", gw[0]])
+	print("trend job: Mrożulo reviewed %s after %.0f s (%s): %s" % [order["word"], _clock, "warm" if warm else "cold", gw[0]])
 
 
 ## The sticker leg: back to the place.
@@ -790,10 +790,10 @@ func _arrive_ml_sticker() -> void:
 	var r := ml_pay(float(order["road"]), bool(order["warm"]), on_time)
 	wallet.pay(int(r["zl"]), int(r["respect"]), "trend")
 	done += 1
-	if crowds != null and crowds.has_method("cringulo_boost") and str(order["site"]) != "":
-		crowds.cringulo_boost(str(order["site"]))
-	var l: Array = dialogue.line("cringulo_owner", "", false) if dialogue != null else []
-	var line := [str(l[0]), str(l[1])] if not l.is_empty() else ["Cringulo nas polecił? Otwieram drugą kasę.", "Cringulo recommends us? Opening a second till."]
+	if crowds != null and crowds.has_method("mrozulo_boost") and str(order["site"]) != "":
+		crowds.mrozulo_boost(str(order["site"]))
+	var l: Array = dialogue.line("mrozulo_owner", "", false) if dialogue != null else []
+	var line := [str(l[0]), str(l[1])] if not l.is_empty() else ["Mrożulo nas polecił? Otwieram drugą kasę.", "Mrożulo recommends us? Opening a second till."]
 	var gw := grade_words(float(order["grade"]))
 	var head := "MLASK · +%d zł" % int(r["zl"])
 	var body := "„%s” · %s\n%s · +%d zł (napiwek %d zł), +%d szacunku" % [line[0], order["word"], gw[0], int(r["zl"]), int(r["tip"]), int(r["respect"])]
@@ -854,7 +854,7 @@ func _accept() -> void:
 	_beacon.waving = false
 	_beacon.place(order["ring"], PICKUP - 0.5, true, false)
 	if _is_ml():
-		hud.toast("Mlask: na wynos dla Cringula", "Smack: a takeaway for Cringulo")
+		hud.toast("Mlask: na wynos dla Cringula", "Smack: a takeaway for Mrożulo")
 	elif _is_drop():
 		hud.toast("Limitka: stań w kolejce po pudełko", "Limited drop: join the queue for a box")
 	elif _is_cz():
@@ -898,7 +898,7 @@ func _pickup_tick(dt: float) -> void:
 			_beacon.waving = true
 			_beacon.place(order["door_ring"], ARRIVE - 0.5)
 			if _is_ml():
-				hud.toast("Kolejka przepuszcza: to dla Cringula! Wieź, póki ciepłe", "The queue lets you through: it's for Cringulo! Bring it warm")
+				hud.toast("Kolejka przepuszcza: to dla Cringula! Wieź, póki ciepłe", "The queue lets you through: it's for Mrożulo! Bring it warm")
 			elif _is_cz():
 				hud.toast("Jest! Na kort, grają bez ciebie", "Got them! To the court, they're starting without you")
 			elif drop:
@@ -957,10 +957,10 @@ func _ml_status(d: float) -> void:
 	var limit := ML_STICKER if sticker else ML_WARM
 	var left := limit - _clock
 	var clock := ("%d:%02d" % [int(left) / 60, int(left) % 60]) if left > 0.0 else "+%d:%02d" % [int(-left) / 60, int(-left) % 60]
-	var hint := ["Stań przy drzwiach", "Stop at the door"] if sticker else ["Do vana Cringula, póki ciepłe", "To Cringulo's van while it's warm"]
+	var hint := ["Stań przy drzwiach", "Stop at the door"] if sticker else ["Do vana Cringula, póki ciepłe", "To Mrożulo's van while it's warm"]
 	if left <= 0.0:
 		hint = ["Spóźnione, ale dowieź", "Late, but deliver it"] if sticker else ["Stygnie… jedź dalej", "It's going cold… keep going"]
-	hud.show_status(("MLASK → %s" % order["word"]) if sticker else "MLASK → CRINGULO", clock, "%d m" % roundi(d), hint[0],
+	hud.show_status(("MLASK → %s" % order["word"]) if sticker else "MLASK → MROŻULO", clock, "%d m" % roundi(d), hint[0],
 			clampf(_clock / limit, 0.0, 1.0), ML_COLOUR if left > 0.0 else FAIL_COLOUR, "", {}, hint[1])
 
 

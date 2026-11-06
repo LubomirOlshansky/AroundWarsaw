@@ -628,6 +628,15 @@ func host_moment(seconds := 10.0) -> bool:
 	return true
 
 
+## A voice on air (LEKTI's break-in, rave.gd): the music drops MOMENT_DB under it for `seconds`,
+## on whatever station is tuned; the host is not asked to speak.
+func voice_moment(seconds: float) -> void:
+	_moment_t = maxf(_moment_t, seconds)
+	_apply_level()
+	if log_on:
+		_log("voice moment: the music down %.0f dB for %.1f s" % [MOMENT_DB, seconds])
+
+
 ## The current position moved onto an unlocked track, if the station has any.
 func _settle() -> void:
 	if station < 0:

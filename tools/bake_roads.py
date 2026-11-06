@@ -79,6 +79,8 @@ DIP_MAX = 2.0        # R3: the most a road under a deck may dip to get its clear
 DIP_GRADE = 0.08     # ...with ramps this steep
 DECK_KEPT = 3.0      # loop 3d-1: the ground at a crossing this much over the way's own ground...
 KEPT_SIDE = (10.0, 40.0)  # ...this far past the deck's edge on both sides: the grid keeps the deck
+ZEBRA_HALF = 1.8     # half the width of a zebra's stripes (map_builder.gd _build_crossings: 3.6 m)
+ZEBRA_GAP = 0.6      # lane lines stop this far short of a zebra's stripes
 PIT_SPAN = 20.0      # a dip in a road's terrain narrower than this is a pit to bridge...
 PIT_MIN = 0.4        # ...when it is at least this deep...
 PIT_PORTAL = 80.0    # ...and not this close to a tunnel's portal (loop 3b: its open ramp's trench)
@@ -2377,6 +2379,7 @@ class Roadbed:
         paving where trams run in it. Mapped grass, islands and hatching stay as they are."""
         out = []
         self._zebras = None
+        self._zebra_caps = None
         self._deck_ends = None
         # Map round 2b (L5): a median piece on the mapped tram bed (`landuse=railway`, the
         # ballast surface) is the tram bed, paved like it, even where the tracks themselves bend
@@ -2572,18 +2575,36 @@ class Roadbed:
 
     # -- lane lines, stop lines, arrows, bus and cycle lanes -----------------------------
 
-    def _crossed(self, r, lv, x, z, d):
+    def _crossed(self, r, lv, x, z, d, kind=None):
         """True where another road crosses (its strip, at an angle) or a junction box."""
         caps = self.allcaps.get(lv)
         if caps is not None:
             for a, b, half, other in caps.grid.at(x, z):
                 if other is r or other.get("_id") == r.get("_id"):
                     continue
+                # Operation Unslop, Emilii Plater (2026-11-06, check L2): a street's lane and
+                # centre lines carry on past a driveway, a service road or a bus bay's mouth
+                # (only the edge line opens there); they broke 4-6 m at every one.
+                if kind in ("lane", "centre") and other["k"] in MINOR and r["k"] not in MINOR:
+                    continue
                 od = _unit(a, b)
                 if od is None or abs(od[0] * d[0] + od[1] * d[1]) > 0.94:
                     continue  # the same street carrying on, or a parallel carriageway
                 if seg_dist(x, z, a, b) < half + 0.3:
                     return True
+        # Operation Unslop (2026-11-05, check L4): lane lines stop at zebras. map_builder paints a
+        # zebra's stripes 3.6 m wide along the crossing path; the line stops ZEBRA_GAP m short of
+        # each side. 643 of 2,177 zebras had a lane or centre line painted through them.
+        if self._zebra_caps is None:
+            self._zebra_caps = Capsules()
+            for w in self.paths:
+                if w["k"] == "zebra":
+                    q = pairs(w["p"])
+                    for a, b in zip(q, q[1:]):
+                        self._zebra_caps.add(a, b, ZEBRA_HALF + ZEBRA_GAP, w.get("dk", -1))
+        for a, b, half, zlv in self._zebra_caps.grid.at(x, z):
+            if zlv == lv and seg_dist(x, z, a, b) <= half:
+                return True
         # Junction boxes stay unpainted, except a roundabout's own ring (its box is the ring).
         polys = self.cpolys.get(lv)
         if polys is not None and r["_t"].get("junction") not in ("roundabout", "circular"):
@@ -2615,7 +2636,7 @@ class Roadbed:
             for k in range(n + 1):
                 x = a[0] + d[0] * ln * k / n
                 z = a[1] + d[1] * ln * k / n
-                if self._crossed(r, lv, x, z, d) or not self.paintable(lv, x, z):
+                if self._crossed(r, lv, x, z, d, kind) or not self.paintable(lv, x, z):
                     flush()
                 else:
                     run.append((x, z))

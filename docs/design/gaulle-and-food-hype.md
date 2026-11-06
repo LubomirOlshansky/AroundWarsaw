@@ -5,7 +5,7 @@ with QUERCUS on top, an aerial of the block with its courtyard and bars): the de
 the roundabout; the Party House with its inner square and bars; the Loreta bar and its hotel as the
 bar where dating-app dates go; a dating-app parody ("Timber") with jokes about dating in Warsaw;
 coffee chains as parodies (Costa, Green Caffè Nero); queues at Manekin and other hyped cafés,
-because Warsaw loves to queue; a food blogger parody, **Cringulo** (for Książulo), whose review
+because Warsaw loves to queue; a food blogger parody, **Mrożulo** (for Książulo), whose review
 makes the queues, with a mission (order at a new place, bring it to him, he reviews it in his way
 and gives you his sticker to hand to the café) and his pizza lore.
 
@@ -39,13 +39,13 @@ Książulo's "muala" becomes our own sound **MLASK** (a lip-smack).
 | Costa Coffee | **KOSZTA COFFEE** | *koszta* = the costs; dark red-brown tube, our own cup mark | Costs Coffee |
 | Green Caffè Nero | **GREEN CAFFE NERWO** | *nerwy* = nerves; the 5×7 font has no È | Green Caffe Nerves |
 | Manekin | **KUKŁA** | a synonym (mannequin → dummy), "naleśniki" under it | the Dummy |
-| Książulo | **Cringulo** (F's pick) | the cringe in the name; a type, never the real man's face, voice, logo or words | — |
+| Książulo | **Mrożulo** (F's pick) | the cringe in the name; a type, never the real man's face, voice, logo or words | — |
 | "muala" | **MLASK** | a lip-smack: his top grade, on his sticker | smack |
-| Muala na grubo · Fat Peppa · Fat Cheese | **CRINGULO PIZZA · TŁUSTA PEPA · SEROWY GRUBAS** | at Frogs (our Żabka) | Fat Pepa, Cheesy Chonk |
+| Muala na grubo · Fat Peppa · Fat Cheese | **MROŻULO PIZZA · TŁUSTA PEPA · SEROWY GRUBAS** | at Frogs (our Żabka) | Fat Pepa, Cheesy Chonk |
 
 The real names go into `brand_denylist.json` in the first PR (`loreta`, `puro`, `manekin`,
 `książulo`, `muala`, `fat peppa`, `costa coffee`, `caffè nero`, `caffe nero`, `tinder`,
-`newonce`, `zamieszanie`, `zagrywki`, `quercus`). `rejected`: `cringulo pizza na grubo`,
+`newonce`, `zamieszanie`, `zagrywki`, `quercus`). `rejected`: `mrozulo pizza na grubo`,
 `muala` spellings, `tinderek`.
 
 ## 3. The items, one PR each
@@ -101,12 +101,12 @@ At about (-171, 273), the lawn's curved cut-out north-west of the Party House's 
 - KOSZTA and NERWO lines (`kawa_sieciowa`): the price of a latte, the name spelled wrong on the
   cup, the laptop office; a notebook card "Kolejki" (chapter trendy).
 
-### G5 · Cringulo, his review and his pizza (gameplay + content, Opus for the job's design)
-- **Cringulo** is a food reviewer on wheels: a cream van with a big lens on the roof ("CRINGULO
+### G5 · Mrożulo, his review and his pizza (gameplay + content, Opus for the job's design)
+- **Mrożulo** is a food reviewer on wheels: a cream van with a big lens on the roof ("MROŻULO
   TV" on its side, our own mark: a smacking mouth), parked at one of four spots by the day
   (Plac Zbawiciela, Hala Koszyki, the Palm, Powiśle's station), 11:00-21:00.
 - **The job "Mlask"** (trend_job.gd, sixth activity, one at a time like every job):
-  1. Stop by his van: "Siema, tu Cringulo! Nowe miejsce, nikt jeszcze nie był. Weź mi coś,
+  1. Stop by his van: "Siema, tu Mrożulo! Nowe miejsce, nikt jeszcze nie był. Weź mi coś,
      tylko szybko, ma być ciepłe." The new place is the nearest open Wiralek slot on its days
      1-3 (or KUKŁA if none).
   2. Stop 2 s at the place ("na wynos dla Cringula": the queue lets you through).
@@ -116,18 +116,18 @@ At about (-171, 273), the lawn's curved cut-out north-west of the Party House's 
      crunches, there's sauce, the cheese stretches like a mortgage. Seven and a half SMACKS.";
      cold food gets "Letnie. Jak moja kariera w TV. Trzy MLASKI." and a smaller sticker.
   5. Bring the **MLASK sticker** to the place within 4 min and stop at the door: the owner's
-     line ("Cringulo nas polecił? Zamawiam drugą kasę."), the pay (40 zł + 10 zł a km, +15
-     respect *guess*), and the **Cringulo effect**: that place's queue jumps to its max for the
-     rest of the game day, with the `cringulo_fani` lines ("Stoję od szóstej. Cringulo dał
-     dziewięć mlasków." / "Been here since six. Cringulo gave it nine smacks.").
-- **Lore**: CRINGULO PIZZA at every Frogs (a poster in the window: TŁUSTA PEPA, SEROWY GRUBAS),
+     line ("Mrożulo nas polecił? Zamawiam drugą kasę."), the pay (40 zł + 10 zł a km, +15
+     respect *guess*), and the **Mrożulo effect**: that place's queue jumps to its max for the
+     rest of the game day, with the `mrozulo_fani` lines ("Stoję od szóstej. Mrożulo dał
+     dziewięć mlasków." / "Been here since six. Mrożulo gave it nine smacks.").
+- **Lore**: MROŻULO PIZZA at every Frogs (a poster in the window: TŁUSTA PEPA, SEROWY GRUBAS),
   "WYPRZEDANE" on most of them (the `rechotka` till lines: "Pepy nie ma od wtorku. Pytają co
-  pięć minut."); the radio host's news (`radio_host`, `only: cringulo`): "Pilne: Cringulo zjadł
-  pierogi na Mokotowie. Kolejka sięga już Puławskiej."; fans (`cringulo_fani`) in his van's
+  pięć minut."); the radio host's news (`radio_host`, `only: mrozulo`): "Pilne: Mrożulo zjadł
+  pierogi na Mokotowie. Kolejka sięga już Puławskiej."; fans (`mrozulo_fani`) in his van's
   queue and at the reviewed place; an egg **E-mlask**: the car parked by the van for 10 s while
   he films: "Dzięki za cameo, kierowco. Dwa mlaski dla twojej fury."
-- Flags: `--cringulo` (the van by the car, the job offered at once), `--cringulo-log`.
-- Check: `check_cringulo.gd` (the steps, the pay, the cooling, the effect's queue, the lines,
+- Flags: `--mrozulo` (the van by the car, the job offered at once), `--mrozulo-log`.
+- Check: `check_mrozulo.gd` (the steps, the pay, the cooling, the effect's queue, the lines,
   the denylist) joins verify and CI.
 
 ## 3b. What was built (2026-11-01)
@@ -152,14 +152,14 @@ G1, G2 (Opus, landmark lane) → G3, G4 (Sonnet-sized content, one PR) → G5 (O
 content). Cost: G1 ≈ 1.5k triangles in the sector's building mesh (+0 draw calls); G2's extras
 ≈ 1k triangles and a fountain (+0, in the building mesh; the jets use the city's fountain
 particles if near); the neons ride the venue MultiMesh (+0); queues and the terrace are still
-figures in the sector's crowd MultiMesh (+0 to +1); Cringulo's van one mesh (+1 when near).
+figures in the sector's crowd MultiMesh (+0 to +1); Mrożulo's van one mesh (+1 when near).
 
 ## 5. Open (parked defaults)
 - Statue spot (-171, 273) and its facing (west) from F's photo and aerial: a Mac look with the
   orthophoto confirms. The plinth's exact size is not published; ours is from the photo.
 - TIMBER: F's pick; an English word, and the real app's look is avoided. A register check
   before TestFlight, like the other parodies (parodies.md 10).
-- Cringulo is a type of food reviewer, not the real man: no face, voice, logo or catchphrase of
+- Mrożulo is a type of food reviewer, not the real man: no face, voice, logo or catchphrase of
   his; if F wants it further from the original, "Mlaskacz" is the fallback name.
 - Real Manekin, Costa and Nero sites are not all mapped in OSM; our spots are on the streets
   where F knows them (Marszałkowska, Nowy Świat, Chmielna), a Mac check can move them.

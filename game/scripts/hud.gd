@@ -216,7 +216,7 @@ var _card_body: Label
 ## Loop 2e: the English under the Polish title and text (smaller, the sub-text colour).
 var _card_title_en: Label
 var _card_body_en: Label
-var _card_buttons: HBoxContainer
+var _card_buttons: BoxContainer
 ## The side jobs' cards sit at the bottom centre, clear of the speech bubbles over the stand
 ## or the door; the others at the top centre under the top row.
 var _card_bottom := false
@@ -1204,6 +1204,23 @@ func pill_free() -> bool:
 	return not _pill.visible
 
 
+## Who may take the context button from whom (PT-23, 2026-11-06): the ride app's PODWÓZKA is up
+## whenever the player could take a ride, so "wait for a free button" meant the stuck offer's
+## POMOC DROGOWA (and KASETA by a tape) never came up while it was. A higher rank takes the button;
+## the one it took comes back on its own once the button is free again. A rescue call ranks top.
+const PILL_RANK := {"ride": 0, "tape": 1, "ride_start": 1, "unstuck": 2, "call": 3}
+
+
+## True when `owner` outranks `held` (an owner not in PILL_RANK ranks with a call).
+static func pill_outranks(owner: String, held: String) -> bool:
+	return int(PILL_RANK.get(owner, 3)) > int(PILL_RANK.get(held, 3))
+
+
+## The context button is free for `owner`: nobody's up, or a lower-ranked owner's (PILL_RANK).
+func pill_free_for(owner: String) -> bool:
+	return not _pill.visible or pill_outranks(owner, pill_owner)
+
+
 func hide_pill() -> void:
 	if _pill.visible:
 		_pill.visible = false
@@ -1507,7 +1524,7 @@ func _build_mission_panels() -> void:
 	_card_body_en = _label(T_SUB, SUB)
 	_wrap(_card_body_en, CARD_W - 20.0)
 	text.add_child(_card_body_en)
-	_card_buttons = HBoxContainer.new()
+	_card_buttons = BoxContainer.new()
 	_card_buttons.add_theme_constant_override("separation", roundi(8.0 * pt))
 	box.add_child(_card_buttons)
 	add_child(_card)
@@ -1584,7 +1601,7 @@ func _build_mission_panels() -> void:
 ## with the Polish word over the English one. `bottom` puts it at the bottom centre. Loop 2e:
 ## the title and text in Polish, `title_en` and `body_en` under them in English.
 func show_card(title: String, body: String, buttons: PackedStringArray, accent: Color, bottom := false,
-		title_en := "", body_en := "") -> void:
+		title_en := "", body_en := "", stacked := false) -> void:
 	accent = Access.tint(accent)  # colour-safe (access.gd)
 	title = Lang.pick(title, title_en)
 	body = Lang.pick(body, body_en)
@@ -1602,6 +1619,8 @@ func show_card(title: String, body: String, buttons: PackedStringArray, accent: 
 	_card_body.text = body
 	_card_body_en.text = body_en
 	_card_body_en.visible = body_en != ""
+	# The rave door's answers (rave.gd): one under another, so three long answers fit a narrow card.
+	_card_buttons.vertical = stacked
 	for b in _card_buttons.get_children():
 		_card_buttons.remove_child(b)
 		b.queue_free()
@@ -1612,7 +1631,9 @@ func show_card(title: String, body: String, buttons: PackedStringArray, accent: 
 			# Loop 3h slice 4: "POLISH|ENGLISH", a button's own two words (the end card's).
 			pl = en.get_slice("|", 0)
 			en = en.get_slice("|", 1)
-		var b := _chip(_card_buttons, pl, "" if pl == en else en.substr(0, 1) + en.substr(1).to_lower())
+		# An all-caps English word reads as a sentence-case gloss; a written answer keeps its case.
+		var gloss := en if en != en.to_upper() else en.substr(0, 1) + en.substr(1).to_lower()
+		var b := _chip(_card_buttons, pl, "" if pl == en else gloss)
 		b.name = "button%d" % i
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		b.pressed.connect(func(): card_pressed.emit(i))
@@ -2275,12 +2296,12 @@ func set_minimap_pois(points: PackedVector2Array, colours: PackedColorArray, sha
 ## spot allows (at most CARD_W points): the car stays in view (Podwózka's request and result).
 ## The same card, recipe and point sizes; the next show_card() puts it back in the middle.
 func show_side_card(title: String, body: String, buttons: PackedStringArray, accent: Color, title_en := "",
-		body_en := "") -> void:
+		body_en := "", stacked := false) -> void:
 	accent = Access.tint(accent)  # colour-safe (access.gd)
 	_card_side = true
 	_set_card_width(side_card_width())
 	_side_call = true
-	show_card(title, body, buttons, accent, false, title_en, body_en)
+	show_card(title, body, buttons, accent, false, title_en, body_en, stacked)
 	_side_call = false
 
 
