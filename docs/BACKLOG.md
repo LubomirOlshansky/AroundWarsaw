@@ -4,6 +4,17 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Warsaw Spire, Spire B and C from F's photos (F, 2026-11-06)
+
+Rebuilt from F's ten photos (spec `docs/landmarks/specs/spire.md`, site `spire`, `spire_motion.gd`):
+the swelling shaft and saddle crown, spines, steel columns, bow canopy, B and C's top storeys, the
+crown's LED ticker (SAMSONG parody adverts), the plaza's pools, channel, islands, jets and trees. Left:
+- Phone look and bench (+2 draw calls in view: the ticker and the jets); the ticker's text size from
+  the follow camera, the jets' bob.
+- The real canopy's double curve and the crown's points are approximations of the photos.
+- The paving half disc north of the lobby is the first rebuild's; the plaza's own paving pattern
+  (pale slabs, curved walks, hedge beds in IMG_7334) is the map's.
+
 ## The Emilii Plater underpass entrances (F, 2026-11-06)
 
 F's screenshots: walled boxes with steps on flat ground. Done 2026-11-06 (spec

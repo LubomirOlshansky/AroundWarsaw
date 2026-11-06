@@ -185,7 +185,7 @@ Checks: `check_landmarks.gd` runs on the full map for EVERY site that has a card
 | Name (real name if parody) | Skin | Special | Open issues |
 |---|---|---|---|
 | Złota 44 | S_SAIL | REBUILT 2026-11-02 from F's photos (L3, spec `zlota44.md`, log `landmarks/zlota44.md`): the SE wing flaring 9 m by the top from a waist at 64 m, the roof cut on one plane from the 192 m tip to 150 m, the dark glazed crown box to 184 m, white cassette bands staggered panel by panel (S_SAIL), the podium roof garden | Mac photo check: crown box height and extent, the wing's lean |
-| Warsaw Spire | S_BANDS | custom `_spire` (spec spire.md): outline lofted from 0.74 at the lobby to 1.0 at 165 m, domed roof, fin, masts to 220 m, canopy on V legs, two crescent wings, plaza, SAMSONG sign (parody) | - |
+| Warsaw Spire | S_MIRROR | custom `_spire` (spec spire.md, F's photos 2026-11-06): outline swelling 0.70 → 1.0 at 118 m → 0.86 at the roof, saddle crown, lit spines, steel Λ columns, bow canopy, masts to 220 m, Spire B and C with stone top storeys, plaza pools, channel and trees; LED ticker with SAMSONG adverts and jets in `spire_motion.gd` | - |
 | Q22 | S_BANDS | - | - |
 | Rondo 1 | S_FINS | crest "frame" (open crown to 192 m) | tenant names / PHN unlit |
 | Emilii Plater 49 (InterContinental, "INTERKONTI" sign) | S_GRID | crown sign | grid cells cold/many vs warm sparse in photos |
