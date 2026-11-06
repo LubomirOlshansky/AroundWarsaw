@@ -9,6 +9,10 @@ that day here, in plain words a player would understand (no file names, no spoil
 rows in the progress log but no section here is listed automatically from the log's labels until
 someone writes its lines.
 
+## 2026-11-06
+
+- When your car is stuck, the POMOC DROGOWA tow button now comes up even while the ride app button is on screen, and it also comes when you keep backing off a wall and trying again.
+
 ## 2026-11-05
 
 - Foksal 13 and 15 look like the real restored tenements: salmon and ochre brick framed in white and cream stone, the arched gate with its two stone figures, crested gables, iron balconies and red window frames.
