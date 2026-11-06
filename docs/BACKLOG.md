@@ -382,6 +382,9 @@ road in F's shots are the drawn strip covering a real median (check T1 looks at 
 - [ ] The other wanted models
 - [ ] More classify rules from the test street's hand calls; then the next streets
 - [x] Lessons from the smooth-roads thread (2026-11-05): `verify.sh --roads` (the road-loop set instead of ~100 steps), fixed cameras per street (`cameras`, `street_pass.py --spots`), target image step (Codex on the Mac, a target never evidence), rounds and one thread per round with a handoff note, guesses tagged template-default
+- [x] The four streets round the Palace of Culture (F, 2026-11-05): Marszałkowska 70 → 83 (#441), Świętokrzyska east 83 → 92 / west 80 → 82 (#461, lines cut at zebras and edge lines seated after the smoothing, island walls as 0.2 m granite kerbs), Emilii Plater 85 → 93 (#462, lane and centre lines carry on past bus-bay and driveway mouths), Jerozolimskie 90 → 91 (#463, zebra reach 5 m, cameras at yaw 135); before/after pairs in project files unslop/palace-before-after
+- [ ] Palace streets, left from the pass: the Świętokrzyska median kerb near (-1495, 11); bus-lane line ends on Jerozolimskie (L2 at s 121, 136, 367); O1 parked cars on Jerozolimskie (15); L1 lines inside junctions; the Rondo Dmowskiego approach apron; Złote Tarasy bus loops and ramps (need a photo)
+- [ ] Underpass and metro entrances at Emilii Plater / Jerozolimskie drawn as walled boxes on flat ground (F, 2026-11-06: sink them, real stairs, people going in and out; every entrance within ~120 m of (-1250, 580)); handed to the metro entrances thread (sunken places)
 - [ ] One road layout per street chain (kerbs, asphalt, lanes as paint, bays from one cross-section) and junction templates (tram-median crossing, U-turn, driveway mouth, T), replacing the road_smooth repair passes; after #447 merges, own map thread (Opus)
 
 ## Road objects and collisions (F, 2026-11-04)

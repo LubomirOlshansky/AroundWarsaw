@@ -561,7 +561,9 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [x] Road loop from the smooth-roads review: `verify.sh --roads`, fixed cameras per street (`street_pass.py --spots`), target image step (Codex), rounds with a handoff note (2026-11-05)
 - [ ] One road layout per street chain plus junction templates, replacing the road_smooth repair passes
 - [ ] Next wanted models, most-asked first (canopy on posts, Jersey barrier, yard gate, park fence)
-- [ ] Next streets with the same pipeline unchanged: Aleje Jerozolimskie, Nowy Świat, Świętokrzyska
+- [x] The four streets round the Palace of Culture (F, 2026-11-05): Marszałkowska 83, Świętokrzyska 92/82, Emilii Plater 93, Jerozolimskie 91, before/after pairs (2026-11-06, #441 #461 #462 #463)
+- [ ] Palace streets round 2: entrances at Emilii Plater / Jerozolimskie sunk with stairs and people (metro entrances thread), median kerb, bus-lane line ends
+- [ ] Next streets with the same pipeline unchanged: Nowy Świat, Krakowskie Przedmieście
 
 ### Left: street races that feel like races (F, 2026-11-04; plan docs/design/street-races.md)
 - [x] Research and race AI audit: why Halina drives slowly and by the rules, R1-R7 (2026-11-04, docs only)

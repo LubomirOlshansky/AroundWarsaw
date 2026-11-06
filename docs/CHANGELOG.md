@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-06
 
+- The four streets round the Palace of Culture look hand-made: lane lines stop at the zebras and carry on past bus bays and driveways, the pale ribbons across the medians on Świętokrzyska and Emilii Plater are now low granite kerbs round planted islands, and the edge lines sit inside the kerbs.
 - When your car is stuck, the POMOC DROGOWA tow button now comes up even while the ride app button is on screen, and it also comes when you keep backing off a wall and trying again.
 
 ## 2026-11-05
