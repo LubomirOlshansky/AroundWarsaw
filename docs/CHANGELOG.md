@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-05
 
+- Foksal 13 and 15 look like the real restored tenements: salmon and ochre brick framed in white and cream stone, the arched gate with its two stone figures, crested gables, iron balconies and red window frames.
 - Three of Warsaw's best modernist blocks are built from photos: Młotek on Smolna with its hammer head jutting over the escarpment, Kozia 9 climbing a storey at a time to its round tower, and Karowa 18a with its columns of hanging boxes.
 - The title screen no longer freezes while the city loads: a loading bar with a percentage fills up until "Tap to drive", and the city is all there when you start.
 - The street where the game starts shows its shops as they are now: UNIKAT, the LUKA bakery, the huge new TAK MAKS on four floors, the two-storey FROGS XXL on the corner with its green seats and parasols, lit shop signs under the stores and new banners on the street side; and the Świętokrzyska metro entrances got their glass-and-steel triangle roofs.
