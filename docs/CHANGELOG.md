@@ -9,8 +9,14 @@ that day here, in plain words a player would understand (no file names, no spoil
 rows in the progress log but no section here is listed automatically from the log's labels until
 someone writes its lines.
 
+## 2026-11-06
+
+- When your car is stuck, the POMOC DROGOWA tow button now comes up even while the ride app button is on screen, and it also comes when you keep backing off a wall and trying again.
+
 ## 2026-11-05
 
+- Foksal 13 and 15 look like the real restored tenements: salmon and ochre brick framed in white and cream stone, the arched gate with its two stone figures, crested gables, iron balconies and red window frames.
+- Three of Warsaw's best modernist blocks are built from photos: Młotek on Smolna with its hammer head jutting over the escarpment, Kozia 9 climbing a storey at a time to its round tower, and Karowa 18a with its columns of hanging boxes.
 - The title screen no longer freezes while the city loads: a loading bar with a percentage fills up until "Tap to drive", and the city is all there when you start.
 - The street where the game starts shows its shops as they are now: UNIKAT, the LUKA bakery, the huge new TAK MAKS on four floors, the two-storey FROGS XXL on the corner with its green seats and parasols, lit shop signs under the stores and new banners on the street side; and the Świętokrzyska metro entrances got their glass-and-steel triangle roofs.
 - Crazy drivers join the traffic: Szkoda Oktawia taxis and Szprynter courier vans speed, tailgate, overtake and cut in right in front of you, and once in a while the legendary Pasatini 1.9 TDJ storms past (black smoke, left lane, no indicator). They honk and shout when they cut you off, and KEBAB FM reports Pasatini sightings.

@@ -56,6 +56,13 @@ Found and left:
 - The Norblin copper glow at night is flat and strong at phone size; a phone look should say if it
   needs toning down.
 
+## Foksal 13 and 15 from F's photos (F, 2026-11-05)
+
+Built (site `foksal`, spec docs/landmarks/specs/foksal.md). Open:
+- Night: the warm uplights on the stone frames and under the balconies, and the glowing ground floor, as in the developer's night render (needs a lamp strip or a floodlit code for small fronts; measure the bench).
+- F's look check on the phone or the Mac: the brick tones in the north front's shade, the gables' height, Foksal 15's dormers (LoD2's as they stand; no ortho was gathered).
+- The pack's model of Foksal 13 (Tiny Warsaw 14556781) had its details on the courtyard side: any port of the pack needs a per-building photo check first (the A/B review).
+
 ## Lessons from Tiny Warsaw (F, 2026-11-04; docs/design/tiny-warsaw-comparison.md)
 
 - **PWSM 1967 point blocks as one kit** (Jerozolimskie 135-141, Niemcewicza 24-25, Spiska 4A/16A, Grójecka 14A): candidate for the modernism lane, needs Mac photos first.
@@ -125,14 +132,20 @@ Built (spec `docs/landmarks/specs/forest.md`): the three-slab tower with crown b
 - **The roof crane and the tower's lobby**: the window-cleaning crane on the crown and the glazed double-height lobby are not modelled.
 - **Older docs still name the real tenant** in a few places (CITY_INVENTORY, LANDMARKS, QUESTIONS, MUSIC, inventory candidates, wiki_build.py): a sweep to the parody is open.
 
+## Ground check holes in the far west
+
+`check_ground` fails with 13 holes around `--at=-2591,905` to `-2861,1015`, and one at `-1711,-2765`, found 2026-11-05 on the modernism branch. They are far from anything that branch touches, so they came from elsewhere; not chased there.
+
 ## Warsaw modernism and brutalism (F, 2026-11-03, high priority)
 
 F loves Warsaw modernism and asked for every modernist and brutalist building as good as photos allow
 (Karowa 18, Kozia 9 and the Hammer building by name), a collect-them-all quest, and high priority.
 Plan, ranking, facts with sources and the quest: docs/design/modernism-collection.md. Docs only so far.
 
-- **Photo builds, in order** (CITY_INVENTORY 147-153, LANDMARKS P1b): M1 Młotek (Smolna 8), M2 Kozia 9,
-  M3 Karowa 18a; then M4 Żyletkowiec, M5 Dom Chłopa, M6 NBP, M7 the Kopernika skyscraper, M8 Osiedle Za
+- **Photo builds, in order** (CITY_INVENTORY 147-153, LANDMARKS P1b): M1 Młotek, M2 Kozia 9 and M3 Karowa 18a
+  built 2026-11-05 (sites `mlotek`, `kozia9`, `karowa18a`); open on them: the Moliera side of Kozia 9 and
+  Młotek's north face want street photos (Mapillary needs `MAPILLARY_TOKEN` on the Mac), Karowa's rear
+  terraces; Kozia 9 did not reach L3 in review (see `docs/landmarks/kozia9.md`). Next: M4 Żyletkowiec, M5 Dom Chłopa, M6 NBP, M7 the Kopernika skyscraper, M8 Osiedle Za
   Żelazną Bramą (one slab kit), M9 Torwar, M10 BGK (built 2026-11-03, site `bgk`), M11 Ministerstwo Komunikacji, M12 Dom Słowa Polskiego.
   Each starts with a Mac gather (`refs/<slug>/`, REPORT with the outline's x, z) and F's "go" for the
   Remote Control session; Opus spec, Sonnet build, art-director against the photos, bench before/after.
@@ -1057,6 +1070,11 @@ Settings → Jazda (the first tab); NOWA GRA asks a second tap within 4 s, then 
 drive (gas, brake or the stick) for 8 s and still within 4 m of one spot, whatever holds the car (a
 wall nothing pins it against, a gap inside a building), POMOC DROGOWA comes up on the context button
 with one toast and a tap tows (car.gd `stalled`, main.gd `_stuck_offer_frame`, `check_stuck_offer`).
+Fixed 2026-11-06 (PT-23/PT-24, Autopilot run 2026-11-05): the offer never came up while the ride
+app's PODWÓZKA held the context button (it waited for a free button, and PODWÓZKA is up whenever a
+ride could be taken); the button now has ranks (hud.gd PILL_RANK: call > POMOC DROGOWA > KASETA,
+START KURS > PODWÓZKA), so KASETA by a tape also shows over PODWÓZKA. And the spot is 10 m, not 4 m:
+backing off a wall for another run reset the count every try.
 Not while parked by the game, held by the stop assist, in the water or flying; the pinned car's own
 turn-out and tow still come first. Left: the phone look. ~~A pad has no button for the context
 button~~ Done (2026-11-03): the pad's A presses it (see "The Mac App Store version and gamepads").
