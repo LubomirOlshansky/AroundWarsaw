@@ -647,20 +647,40 @@ class Design:
         nrm = mul(right_of(d), side)               # pointing out of the street, into the side road
         off = st.outer(s, side)
         edge = add(p, mul(right_of(d), off))
-        ring = []
+        # the side road's own direction out of the street (an angled road gets an angled mouth),
+        # kept within 65 degrees of square so the corners stay buildable
+        v = norm(tuple(op["dir"])) if op.get("dir") else nrm
+        if dot(v, nrm) < 0.42:
+            along = 1.0 if dot(v, d) > 0 else -1.0
+            v = norm(add(mul(nrm, 0.42), mul(d, along * 0.907)))
+        nv = right_of(v)
+        if dot(nv, d) < 0:
+            nv = mul(nv, -1.0)
         kerbs = []
+        span = []
         for sgn in (-1, +1):
-            # the corner between the street's kerb and the side road's kerb, on the sgn side
-            tan_street = add(edge, mul(d, sgn * (w / 2.0 + r)))
-            centre = add(edge, add(mul(d, sgn * (w / 2.0 + r)), mul(nrm, r)))
-            a1 = math.atan2(tan_street[1] - centre[1], tan_street[0] - centre[0])
-            end_side = add(edge, add(mul(d, sgn * w / 2.0), mul(nrm, r)))
-            a2 = math.atan2(end_side[1] - centre[1], end_side[0] - centre[0])
-            pts = arc(centre, r, a1, a2, 0.7) + [add(edge, add(mul(d, sgn * w / 2.0), mul(nrm, depth)))]
+            # where this edge of the side road meets the street's kerb line
+            q = mul(nv, sgn * w / 2.0)
+            det = d[0] * (-v[1]) - d[1] * (-v[0])
+            u = (q[0] * (-v[1]) - q[1] * (-v[0])) / det if abs(det) > 1e-6 else sgn * w / 2.0
+            I = add(edge, mul(d, u))
+            u1 = mul(d, float(sgn))                # along the kerb, away from the mouth
+            phi = math.acos(max(-1.0, min(1.0, dot(u1, v))))
+            T = r / math.tan(phi / 2.0)
+            A = add(I, mul(u1, T))
+            B = add(I, mul(v, T))
+            c = add(I, mul(norm(add(u1, v)), r / math.sin(phi / 2.0)))
+            a1 = math.atan2(A[1] - c[1], A[0] - c[0])
+            a2 = math.atan2(B[1] - c[1], B[0] - c[0])
+            pts = arc(c, r, a1, a2, 0.7) + [add(B, mul(v, 0.5))]
             kerbs.append(pts)
+            span.append(u + sgn * T)
         ring = kerbs[0] + list(reversed(kerbs[1]))
         self.out["carriage"].append({"k": op.get("k", "service"), "p": flat(ring)})
-        for pts, lw in op.get("links", []):
+        links = op.get("links", [])
+        if op.get("merged"):
+            links = [([add(edge, mul(v, 1.0)), add(edge, mul(v, 9.0))], w)]
+        for pts, lw in links:
             band = strip(pts, lw / 2.0)
             if band:
                 self.out["carriage"].append({"k": op.get("k", "service"), "p": flat(band)})
@@ -670,7 +690,7 @@ class Design:
         for sgn, pts in zip((-1, +1), kerbs):
             run = pts if (sgn * side) < 0 else list(reversed(pts))
             self.out["kerbs"].append({"p": flat(run)})
-        return (s - w / 2.0 - r, s + w / 2.0 + r, side)
+        return (s + min(span), s + max(span), side)
 
     def runs_minus(self, s0, s1, holes):
         runs = [(s0, s1)]
@@ -839,15 +859,25 @@ class Design:
                 if ss is not None and math.dist(q, at) < 9.0 and side * (off - st.outer(ss, side)) > -1.0:
                     out_pts.append(q)
             links = [(out_pts, w)] if len(out_pts) >= 2 else []
+            far = max(out_pts, key=lambda q: math.dist(q, at)) if out_pts else None
+            vdir = norm(sub(far, at)) if far is not None and math.dist(far, at) > 1.0 else None
             if found and found[-1]["side"] == side and abs(found[-1]["s"] - s) < (found[-1]["w"] + w) / 2.0 + 4.0:
                 f = found[-1]                       # two ribbons of one mouth (in and out): one wider mouth
+                f.setdefault("sum_w", f["w"] - 0.8)
                 lo, hi = min(f["s"] - f["w"] / 2.0, s - w / 2.0), max(f["s"] + f["w"] / 2.0, s + w / 2.0)
                 f["s"], f["w"] = (lo + hi) / 2.0, hi - lo
-                f["links"] += links
+                # a Y of two one-way ribbons: one mouth as wide as both roads (not the gap between them),
+                # paved straight out along the mean direction to where the ribbons join
+                f["links"] = []
+                f["merged"] = True
+                f["sum_w"] = f.get("sum_w", f["w"] - 0.8) + w
+                f["w"] = min(hi - lo, f["sum_w"] + 0.8)
+                if vdir and f.get("dir"):
+                    f["dir"] = list(norm(add(tuple(f["dir"]), vdir)))
                 continue
             found.append({"s": s, "side": side, "w": max(3.5, w + 0.8),
                           "r": 3.0 if k in ("service", "living_street", "track", "pedestrian") else 5.0, "auto": True,
-                          "links": links})
+                          "links": links, "dir": list(vdir) if vdir else None})
         return found
 
     def build(self):
