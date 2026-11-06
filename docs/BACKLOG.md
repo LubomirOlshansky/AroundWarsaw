@@ -18,6 +18,48 @@ to 185 MB. Left:
 - **Detail worth adding**: the long iron balconies of Nowy Świat 54/56 and 58.
 - **Outside Nowy Świat** the blocks had a look for breakage, not a house-by-house photo check.
 
+## The Emilii Plater underpass entrances (F, 2026-11-06)
+
+F's screenshots: walled boxes with steps on flat ground. Done 2026-11-06 (spec
+`docs/landmarks/specs/underpass-emilii-plater.md`, site `underpass`, SUNKEN `epl_*`): the five
+entrances within ~100 m of the crossing are sunk with stairs and passage mouths, and walkers go in
+and come out (pedestrians.gd `_portals`). Left:
+- **Look check from photos gathered on the Mac**: the parapet heights, the canopies' size and
+  colour (only street photos from Mapillary so far), and whether the north pavement stair's dark
+  glass box is a lift or a canopy.
+- **The NW box's stair** is not mapped (only footway 8754 ends at its open side): built as one
+  flight south. Check that its direction is right.
+- **Further entrances not reworked**: the Śródmieście WKD ones west of Emilii Plater (steps 1665,
+  224, 225, wall 485, about 120 m out), and the points the street pass named at (-1150, 575) and
+  (-975, 545) on Jerozolimskie, which have no stairs mapped. The next SUNKEN entries.
+- **The passages themselves** are not modelled: a walker goes in at one mouth and is gone, with no
+  link to another entrance.
+
+## The Patelnia sunk, the Rotunda's stair, the Wars wall (F, 2026-11-05)
+
+F's screenshots and aerial (Operation Unslop thread): the Patelnia was drawn flat, the Rotunda's
+stair to the underpass stood as a walled box, a grey slab stood before Wars. Done 2026-11-05 (spec
+`docs/landmarks/specs/patelnia.md`, site `sunken`, `map_builder.gd` SUNKEN):
+- **Sunken places in the ground**: a ring's floor wins over the 10 m grid in terrain_height, and the
+  drawn ground is lowered in sub-cells over the ring grown by a sub-cell's diagonal (no slope inside
+  the walls). The Patelnia at 10.0 m (3.4 m under Marszałkowska), its north-east and Kokota stairs,
+  the Rotunda's stair (3.6 m down). Wall lines on a ring are the site's.
+- **The site**: retaining faces, coping, a paving band over the trench outside, dark railings and the
+  car's collision on every dropping edge; treads on the stairs; Metro Centrum's two smoky glass
+  barrels (their OpenStreetMap boxes go) and dark wells; the Rotunda's glazed door at the stair's foot.
+  The Patelnia's three metro canopies (storefronts) go: the barrels are the entrances.
+- **Low walls** (`map_builder.gd` LOW_WALLS): Wars's 25 m planter edge on Widok and the Rotunda stair's
+  planters at 0.55 m instead of 1.9 m.
+Left:
+- Mac/phone look check (QUESTIONS): the floor level, the railing's look, the barrels' glass tone, the
+  Rotunda stair's door and whether the wedge is all stair.
+- The stairs to the underpass by the Patelnia's south-east corner (`steps` by the mural's east end and
+  along the east wall) keep their blue tubes at street level; F's aerial shows the corner one open,
+  with treads. Sinking them needs the underpass level (deeper than the square) and their tubes'
+  ground; parked.
+- The other eleven stairwells round the roundabout are still flat under their tubes (sinking them is
+  the same SUNKEN entry each, with the tube's base kept at the street).
+- `tools/street_pass.py` (PR #441) was not on main when this landed: its `--check` runs once it merges.
 
 ## Autopilot findings on recent work (2026-11-06; docs/PLAYTEST.md)
 
@@ -150,6 +192,7 @@ evidence per street and junction, never coordinates.
 Built (spec `docs/landmarks/specs/forest.md`): the three-slab tower with crown bands, colour fins and PEPEO ŻUBR, the finned wings with black top storeys and roof gardens, the courtyard's amphitheatre, pavilion and 43 young trees. Left:
 
 - **Wing heights** (F, 2026-11-03: estimate from the photos): the low wings are 31 m, eight storeys under the black top storey, against OSM's 20.8 m; the 27.4 m terrace wing keeps OSM's height so its crowd's deck (crowds.gd `forest_terrace`) stays put.
+- **The roof boat** (F, 2026-11-06): a 10 m cobalt-blue bowrider on a cradle on the tallest slab's roof (`_forest_boat`), clear of the sign. Left: a crane or sling to explain it, a night glow.
 - **The roof crane and the tower's lobby**: the window-cleaning crane on the crown and the glazed double-height lobby are not modelled.
 - **Older docs still name the real tenant** in a few places (CITY_INVENTORY, LANDMARKS, QUESTIONS, MUSIC, inventory candidates, wiki_build.py): a sweep to the parody is open.
 
@@ -560,8 +603,8 @@ Left:
   (they are in the building material, like every landmark): the lawn shows through in the ghost's
   circle. A ground-level exemption in `building.gdshader` (by UV2.y, the height above ground) would
   fix it for every site's ground dressing (Dom Partii's court, Plac Defilad).
-- The stairwell walls are the map's 1.9 m walls (`lines` k wall): real balustrades are about 1 m.
-  Lowering them is a map-builder change for every mapped wall, not done here.
+- ~~The stairwell walls are the map's 1.9 m walls~~: the Patelnia's and the Rotunda stair's are now
+  retaining walls with railings (site `sunken`, 2026-11-05); the wells under the tubes keep theirs.
 ## Map checks in GitHub CI (2026-11-02)
 
 - Done: the `map` job in `.github/workflows/verify.yml`. The GUGiK-derived files (lod2.bin, lod2.json,
