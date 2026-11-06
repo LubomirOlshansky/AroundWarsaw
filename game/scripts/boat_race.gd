@@ -402,6 +402,7 @@ func _start_grid() -> void:
 func _countdown_tick(dt: float) -> void:
 	_count -= dt
 	_hold_boats(dt)
+	_status()
 	var n := ceili(_count - 0.6)
 	if n >= 1:
 		hud.show_banner(str(n), COLOUR)
