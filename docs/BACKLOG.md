@@ -132,14 +132,20 @@ Built (spec `docs/landmarks/specs/forest.md`): the three-slab tower with crown b
 - **The roof crane and the tower's lobby**: the window-cleaning crane on the crown and the glazed double-height lobby are not modelled.
 - **Older docs still name the real tenant** in a few places (CITY_INVENTORY, LANDMARKS, QUESTIONS, MUSIC, inventory candidates, wiki_build.py): a sweep to the parody is open.
 
+## Ground check holes in the far west
+
+`check_ground` fails with 13 holes around `--at=-2591,905` to `-2861,1015`, and one at `-1711,-2765`, found 2026-11-05 on the modernism branch. They are far from anything that branch touches, so they came from elsewhere; not chased there.
+
 ## Warsaw modernism and brutalism (F, 2026-11-03, high priority)
 
 F loves Warsaw modernism and asked for every modernist and brutalist building as good as photos allow
 (Karowa 18, Kozia 9 and the Hammer building by name), a collect-them-all quest, and high priority.
 Plan, ranking, facts with sources and the quest: docs/design/modernism-collection.md. Docs only so far.
 
-- **Photo builds, in order** (CITY_INVENTORY 147-153, LANDMARKS P1b): M1 Młotek (Smolna 8), M2 Kozia 9,
-  M3 Karowa 18a; then M4 Żyletkowiec, M5 Dom Chłopa, M6 NBP, M7 the Kopernika skyscraper, M8 Osiedle Za
+- **Photo builds, in order** (CITY_INVENTORY 147-153, LANDMARKS P1b): M1 Młotek, M2 Kozia 9 and M3 Karowa 18a
+  built 2026-11-05 (sites `mlotek`, `kozia9`, `karowa18a`); open on them: the Moliera side of Kozia 9 and
+  Młotek's north face want street photos (Mapillary needs `MAPILLARY_TOKEN` on the Mac), Karowa's rear
+  terraces; Kozia 9 did not reach L3 in review (see `docs/landmarks/kozia9.md`). Next: M4 Żyletkowiec, M5 Dom Chłopa, M6 NBP, M7 the Kopernika skyscraper, M8 Osiedle Za
   Żelazną Bramą (one slab kit), M9 Torwar, M10 BGK (built 2026-11-03, site `bgk`), M11 Ministerstwo Komunikacji, M12 Dom Słowa Polskiego.
   Each starts with a Mac gather (`refs/<slug>/`, REPORT with the outline's x, z) and F's "go" for the
   Remote Control session; Opus spec, Sonnet build, art-director against the photos, bench before/after.
