@@ -4,6 +4,17 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Nowy Świat ports from the model pack (trial branch, F 2026-11-05)
+
+Licence open: nothing here merges, and the ported geometry stays off the remote (game/data/tw_port
+is gitignored; tools/tw/ rebuilds it from the pack). 50 of 51 candidates ported, joined to the city
+mesh. Bench at Nowy Świat, runtime and prebuilt: draw calls 131 to 131, triangles 0.57 M to 0.88 M,
+video memory +17 MB, sector scenes +2.8 MB; phone not measured. Left:
+- **F's picks**: the A/B page's `picks` collection; each "remake" becomes a photo build here.
+- **#29**: its LoD2 block is one mesh with the wing behind, so the port needs a LoD2 cut first.
+- **Before batches**: an M_PANE shader mode was added; check the triangle total on the phone.
+
+
 ## Loading bar on the title screen (F, 2026-11-05)
 
 Built: `main.gd` loads `index.res` and `proxies.scn` with threaded requests under the title, the

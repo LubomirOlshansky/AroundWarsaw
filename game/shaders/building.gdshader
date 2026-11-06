@@ -324,6 +324,7 @@ const int M_MEMBRANE = 11;
 const int M_GLASS = 12;
 const int M_SKIN = 13;
 const int M_GOTHIC = 14;
+const int M_PANE = 15;
 
 // The towers' own skins (landmarks.gd TOWERS, the landmarks loop): M_SKIN's fraction picks the
 // pattern (style / 16), the vertex colour is the glass. Each reads as its tower from the
@@ -794,6 +795,9 @@ vec3 landmark(int mode, float param, vec3 col, vec2 uv, float top, bool wall, ve
 			c *= 0.4;
 		}
 		return c;
+	} else if (mode == M_PANE) {
+		// One pane of a ported block: param is the pane's own number, so a pane is lit whole.
+		return typed_pane(col, vec2(floor(param * 97.0), floor(param * 311.0)), param, false, glow);
 	} else if (mode == M_GLASS) {
 		return wall ? glass_wall(col, uv.x, uv.y, top, 1.5, 4.0, 0.34, glow) : col;
 	} else if (mode == M_GOTHIC) {

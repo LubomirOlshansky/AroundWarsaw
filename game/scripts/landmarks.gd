@@ -35,6 +35,7 @@ const M_MEMBRANE := 11.0  # the stadium's roof membrane
 const M_GLASS := 12.0     # curtain wall with mullions (Varso)
 const M_SKIN := 13.0      # a tower's own skin; fraction = style / 16 (S_*, building.gdshader skin())
 const M_GOTHIC := 14.0    # brick Gothic: buttresses and pointed lancets (the Cathedral, the Barbican)
+const M_PANE := 15.0      # a real pane in a ported block: fraction = seed; lit by chance at night
 
 ## The skins (building.gdshader S_*): Złota 44's white banded cladding, Warsaw Spire's diamonds,
 ## silver floor bands, vertical fins, a white grid, balcony slabs, dark glass, gold glass,
@@ -1088,6 +1089,8 @@ func _find_sites() -> void:
 	# Praga (2026-11-02, the Mac's photo reports): St Florian's cathedral and Bazar Różyckiego.
 	_find_florian()
 	_find_bazar()
+	# Trial (not for main): ported blocks, last, so a dressed site on the same outline gives way.
+	_find_tw_ports()
 
 
 ## Warszawa Centralna (spec docs/landmarks/specs/centralna.md, 2026-10-31): OpenStreetMap maps
@@ -1632,6 +1635,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 			_:
 				if key.begins_with("church_"):
 					_build_church(s)
+				elif key.begins_with("tw_"):
+					_build_tw(s)
 				elif s.has("tower"):
 					_build_tower(s)
 				elif s.has("skin"):
@@ -22630,4 +22635,78 @@ func _build_bgk(site: Dictionary) -> void:
 	_mode = M_STONE
 	var mono := _w(mu, 0.1)
 	_disc(Vector3(mono.x, g + 11.2, mono.y), Vector3(_b.x, 0.0, _b.y), 1.0, 10, BGK_GILT)
+	_collide_raw(site)
+
+
+# --- ported plain blocks (trial, 2026-11-05) -------------------------------------------------
+
+const TW_DIR := "res://data/tw_port"
+
+## game/data/tw_port/index.json (scratch tw_port2.py) lists each ported block's id and our outline:
+## a site "tw_<id>" over it. A dressed site (a skin) on the same outline gives way to the port.
+func _find_tw_ports() -> void:
+	if not FileAccess.file_exists(TW_DIR + "/index.json"):
+		return
+	var list = JSON.parse_string(FileAccess.get_file_as_string(TW_DIR + "/index.json"))
+	if not list is Array:
+		return
+	for d: Dictionary in list:
+		var q := _pts(d["outline"])
+		if q.size() < 3:
+			continue
+		var mid := _centre(q)
+		for i in range(sites.size() - 1, -1, -1):
+			if sites[i].has("skin") and Geometry2D.is_point_in_polygon(mid, sites[i]["zone"][0]):
+				sites.remove_at(i)
+		var key := "tw_" + str(d["id"])
+		var zone: Array = [_largest(Geometry2D.offset_polygon(q, 1.0, Geometry2D.JOIN_MITER))]
+		# An L-shaped LoD2 block's box centre falls outside the outline: claim it too.
+		for e: Array in d.get("extra", []):
+			var c := Vector2(e[0], e[1])
+			zone.append(PackedVector2Array([c + Vector2(-2, -2), c + Vector2(2, -2), c + Vector2(2, 2), c + Vector2(-2, 2)]))
+		_add_site(key, zone)
+		if not sites.is_empty() and sites[-1]["key"] == key:
+			sites[-1]["ring"] = q
+			sites[-1]["raw"] = q
+			sites[-1]["tw"] = str(d["id"])
+
+
+## A ported block: its triangles as they are, on our ground. Walls and trim are plain stone with
+## their own colour, the model's real panes take the tenement's pane look (lit at night by
+## building.gdshader's M_PANE), roofs take the ordinary roof material.
+func _build_tw(site: Dictionary) -> void:
+	var path: String = TW_DIR + "/" + site["tw"] + ".json"
+	var d = JSON.parse_string(FileAccess.get_file_as_string(path))
+	if not d is Dictionary:
+		return
+	_g = _ground_under(site["raw"])
+	var seed := fposmod(float(str(d["id"]).hash() % 1000) / 1000.0, 1.0) * 0.98 + 0.01
+	var keep := _mode
+	for grp: Dictionary in d["groups"]:
+		var v: Array = grp["v"]
+		var col := Color(grp["color"])
+		var role: String = grp["role"]
+		for i in range(0, v.size() - 8, 9):
+			var a := Vector3(v[i], float(v[i + 1]) + _g, v[i + 2])
+			var b := Vector3(v[i + 3], float(v[i + 4]) + _g, v[i + 5])
+			var c := Vector3(v[i + 6], float(v[i + 7]) + _g, v[i + 8])
+			var n := (b - a).cross(c - a)
+			if n.length_squared() < 1e-8:
+				continue
+			n = n.normalized()
+			if n.y < -0.01:
+				n = -n if absf(n.y) >= 0.3 else n
+			if role == "roof":
+				_mode = seed
+				_tri(a, b, c, n, col, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), 0.0)
+				continue
+			if absf(n.y) >= 0.3:
+				_mode = M_STONE
+				_tri(a, b, c, n, col, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), 0.0)
+				continue
+			_mode = M_PANE + float(grp["pane"][i / 9]) if role == "glass" else M_STONE
+			var t := Vector2(-n.z, n.x).normalized()
+			_tri(a, b, c, n, col, Vector2(Vector2(a.x, a.z).dot(t), a.y - _g), Vector2(Vector2(b.x, b.z).dot(t), b.y - _g),
+					Vector2(Vector2(c.x, c.z).dot(t), c.y - _g), 0.0, false)
+	_mode = keep
 	_collide_raw(site)

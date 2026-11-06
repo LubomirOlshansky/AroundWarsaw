@@ -3778,6 +3778,8 @@ func _parse_args() -> void:
 			out_dir = arg.trim_prefix("--out=")
 		elif arg.begins_with("--style="):
 			_flag_style = posmod(int(arg.trim_prefix("--style=")), STYLES.size())
+		elif arg.begins_with("--tw-tour="):
+			tw_tour = JSON.parse_string(FileAccess.get_file_as_string(arg.trim_prefix("--tw-tour=")))
 		elif arg.begins_with("--at="):
 			var xz := arg.trim_prefix("--at=").split(",")
 			start_at = Vector3(float(xz[0]), 0.0, float(xz[1]))
@@ -5607,6 +5609,7 @@ func _process(dt: float) -> void:
 	hud.set_car_marker(marker, cam.size > 55.0)
 
 	frame += 1
+	_tw_step()
 	_inject_clicks()
 	if frame == 60 and tap_at != Vector2.INF:
 		_on_tap(tap_at)
@@ -6866,6 +6869,37 @@ func _camera_far(distance: float, size: float) -> float:
 	var need: float = distance + 0.5 * cam.size * t + low
 	var depth := sqrt(maxf(diagonal - cam.size * cam.size * (aspect * aspect + 1.0), need * need))
 	return cam.near + depth
+
+
+## Trial (not for main): --tw-tour=FILE stops the camera at each [x, z, yaw, pitch, size, name] of
+## the list and saves <name>.png in --out, so one run shoots a whole street.
+var tw_tour: Array = []
+var _tw_at := 0
+
+
+func _tw_step() -> void:
+	const WAIT := 40
+	const SETTLE := 28
+	if tw_tour.is_empty() or frame < 120:
+		return
+	var k := frame - 120
+	if k % WAIT == 0 and _tw_at < tw_tour.size():
+		var s: Array = tw_tour[_tw_at]
+		car.global_position = Vector3(s[0], map.ground_height(s[0], s[1]), s[1])
+		car.vel = Vector3.ZERO
+		cam_yaw = s[2]
+		cam_yaw_target = s[2]
+		camera_pitch = s[3]
+		base_size = s[4]
+		_view_size = s[4]
+		cam.size = s[4]
+	elif k % WAIT == SETTLE and _tw_at < tw_tour.size():
+		await RenderingServer.frame_post_draw
+		get_viewport().get_texture().get_image().save_png(out_dir.path_join("%s.png" % tw_tour[_tw_at][5]))
+		_tw_at += 1
+		print("tw-tour: %d / %d" % [_tw_at, tw_tour.size()])
+		if _tw_at >= tw_tour.size():
+			_quit_quietly()
 
 
 func _capture(n: int) -> void:
