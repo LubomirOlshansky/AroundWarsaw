@@ -131,16 +131,16 @@
       "A listener asks if GREEN CAFFE NERWO spells names right. No."
     ],
     [
-      "Pilne: Cringulo zjadł pierogi na Mokotowie. Kolejka już na Puławskiej.",
-      "Breaking: Cringulo ate pierogi in Mokotów. The queue's on Puławska."
+      "Pilne: Mrożulo zjadł pierogi na Mokotowie. Kolejka już na Puławskiej.",
+      "Breaking: Mrożulo ate pierogi in Mokotów. The queue's on Puławska."
     ],
     [
       "Pizza Cringula znowu wyprzedana. Frogsy proszą: nie stójcie w drzwiach.",
-      "Cringulo's pizza is sold out again. Frogs asks: don't block the door."
+      "Mrożulo's pizza is sold out again. Frogs asks: don't block the door."
     ],
     [
-      "Cringulo dał trzy mlaski. Lokal zamknięty z powodu remontu. Duszy.",
-      "Cringulo gave three smacks. The place is closed for repairs. Of the soul."
+      "Mrożulo dał trzy mlaski. Lokal zamknięty z powodu remontu. Duszy.",
+      "Mrożulo gave three smacks. The place is closed for repairs. Of the soul."
     ],
     [
       "Kino Muranów wyświetla film o gołębiu. Trzy godziny, bez dialogów, sala pełna.",
@@ -258,6 +258,27 @@
       "A listener asks if you can overtake a Pasatini. You can. Once.",
       {
         "only": "pasatini"
+      }
+    ],
+    [
+      "{street}: elektryk stoi z zerem na baterii. Kierowcy diesli pozdrawiają i trąbią.",
+      "{street}: an electric car stands with a flat battery. Diesel drivers wave and honk.",
+      {
+        "only": "ev"
+      }
+    ],
+    [
+      "Uwaga, {street}: prawy pas zajęty, auto bez prądu. Objazd obok, memy w drodze.",
+      "Heads up, {street}: right lane blocked by a car out of charge. Go round it; the memes are on their way.",
+      {
+        "only": "ev"
+      }
+    ],
+    [
+      "Słuchacze donoszą: {street}, rozładowany elektryk. Kierowca czeka na cud albo na helikopter.",
+      "Listeners report: {street}, a dead electric car. The driver awaits a miracle or a helicopter.",
+      {
+        "only": "ev"
       }
     ]
   ],
@@ -1628,11 +1649,11 @@
       }
     ],
     [
-      "CRINGULO PIZZA · TŁUSTA PEPA · TYLKO WE FROGS",
-      "Cringulo pizza · Fat Pepa · only at Frogs",
+      "MROŻULO PIZZA · TŁUSTA PEPA · TYLKO WE FROGS",
+      "Mrożulo pizza · Fat Pepa · only at Frogs",
       {
         "poster": [
-          "CRINGULO",
+          "MROŻULO",
           "PIZZA",
           "TŁUSTA",
           "PEPA"
@@ -2412,45 +2433,45 @@
       }
     ],
     [
-      "Stoję od szóstej. Cringulo dał tu dziewięć mlasków.",
-      "Been here since six. Cringulo gave it nine smacks.",
+      "Stoję od szóstej. Mrożulo dał tu dziewięć mlasków.",
+      "Been here since six. Mrożulo gave it nine smacks.",
       {
-        "only": "cringulo"
+        "only": "mrozulo"
       }
     ],
     [
       "Nie jestem głodny. Jestem fanem.",
       "I'm not hungry. I'm a fan.",
       {
-        "only": "cringulo"
+        "only": "mrozulo"
       }
     ],
     [
-      "Zamówię to samo co Cringulo. Nie wiem co, ale to samo.",
-      "I'll have what Cringulo had. Don't know what. The same.",
+      "Zamówię to samo co Mrożulo. Nie wiem co, ale to samo.",
+      "I'll have what Mrożulo had. Don't know what. The same.",
       {
-        "only": "cringulo"
+        "only": "mrozulo"
       }
     ],
     [
       "Mlask, mlask. Tak się mówi. Wiem z filmiku.",
       "Smack, smack. That's how you say it. I saw the video.",
       {
-        "only": "cringulo"
+        "only": "mrozulo"
       }
     ],
     [
       "Była tu wczoraj cisza. Potem wyszedł odcinek.",
       "It was dead quiet yesterday. Then the episode came out.",
       {
-        "only": "cringulo"
+        "only": "mrozulo"
       }
     ],
     [
       "Mam koszulkę z jego twarzą. Z tyłu: „na grubaska”.",
       "I've got the shirt with his face. On the back: \"go chunky\".",
       {
-        "only": "cringulo"
+        "only": "mrozulo"
       }
     ],
     [
@@ -2931,7 +2952,7 @@
     ],
     [
       "Pizzy Cringula nie ma od wtorku. Pytają co pięć minut.",
-      "No Cringulo pizza since Tuesday. They ask every five minutes."
+      "No Mrożulo pizza since Tuesday. They ask every five minutes."
     ],
     [
       "TŁUSTA PEPA wyprzedana. SEROWY GRUBAS też. Został hot dog.",
@@ -3681,7 +3702,7 @@
       }
     ]
   ],
-  "cringulo_review": [
+  "mrozulo_review": [
     [
       "Ciasto chrupie, sos jest, ser ciągnie się jak kredyt.",
       "The crust crunches, there's sauce, the cheese stretches like a mortgage.",
@@ -3746,10 +3767,10 @@
       }
     ]
   ],
-  "cringulo_owner": [
+  "mrozulo_owner": [
     [
-      "Cringulo nas polecił? Otwieram drugą kasę.",
-      "Cringulo recommends us? Opening a second till."
+      "Mrożulo nas polecił? Otwieram drugą kasę.",
+      "Mrożulo recommends us? Opening a second till."
     ],
     [
       "Przyklejam na szybie. Jutro kolejka do Pałacu.",
@@ -3757,7 +3778,7 @@
     ],
     [
       "Mlask od Cringula? Mama będzie dumna. Kucharz płacze.",
-      "A smack from Cringulo? Mum will be proud. The chef is crying."
+      "A smack from Mrożulo? Mum will be proud. The chef is crying."
     ],
     [
       "Dziękuję! Podnoszę ceny, zanim fani dojadą.",
@@ -5079,6 +5100,914 @@
     [
       "Kierunkowskaz? Nie było w wyposażeniu.",
       "Indicators? Weren't in the spec."
+    ]
+  ],
+  "ev_tow": [
+    [
+      "Tu jestem! Ten biały, co nie dymi i nie jedzie.",
+      "Over here! The white one that doesn't smoke and doesn't move.",
+      {
+        "only": "hello"
+      }
+    ],
+    [
+      "Machamy! To ja! Zero procent, sto procent nadziei.",
+      "Waving! It's me! Zero percent battery, a hundred percent hope.",
+      {
+        "only": "hello"
+      }
+    ],
+    [
+      "Zaczepione! Wskakuję do ciebie. Lina trzyma? Lina trzyma.",
+      "Hooked! I'm climbing in. Is the rope holding? It's holding.",
+      {
+        "only": "hook"
+      }
+    ],
+    [
+      "Jest! Pierwszy raz od tygodnia jedzie szybciej niż ja idę.",
+      "Got it! First time in a week it's faster than me walking.",
+      {
+        "only": "hook"
+      }
+    ],
+    [
+      "Tylko delikatnie. Sama szyba w dachu kosztuje jak twój samochód.",
+      "Gently. The glass roof alone costs as much as your car.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "Wiesz, że on robi setkę w 2,1 sekundy? No, robił. Rano.",
+      "You know it does 0 to 100 in 2.1 seconds? Well, it did. This morning.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "Ironia, co? Palisz naftę, żeby ratować moją planetę.",
+      "Ironic, huh? Burning kerosene to save my planet.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "Szwagier ma Pasatini 1.9 TDJ. Tankuje 3 minuty i jedzie do Chorwacji.",
+      "My brother-in-law has a Pasatini 1.9 TDJ. Fills up in 3 minutes, drives to Croatia.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "W katalogu 600 km zasięgu. W listopadzie: Mokotów i może z powrotem.",
+      "600 km of range in the brochure. In November: Mokotów, and maybe back.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "Ale za to parkuję za darmo w strefie. Zielone tablice, mordo.",
+      "But I park for free in the paid zone. Green plates, bro.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "Parkuję za darmo. Głównie dlatego, że nie mogę odjechać.",
+      "I park for free. Mostly because I can't drive off.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "Pan Piżmo obiecał, że w tym roku pojedzie sam. No to sam stanął.",
+      "Mr Piżmo promised it would drive itself this year. So it stopped itself.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "Klamki się chowają. Bez prądu siedziałem w środku czterdzieści minut.",
+      "The door handles hide away. With no power I sat inside for forty minutes.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "W nocy była aktualizacja. Zaktualizował mi się do zera.",
+      "There was an update overnight. It updated itself down to zero.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "Na jedynej ładowarce stał diesel. Kierowca patrzył mi prosto w oczy.",
+      "A diesel was parked at the only charger. The driver looked me dead in the eye.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "Wycieraczki włączam z ekranu. W ulewie to jest gra zręcznościowa.",
+      "I turn the wipers on from the screen. In a downpour it's an arcade game.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "Rano podgrzałem baterię. Potem nie było już czym jechać.",
+      "This morning I pre-heated the battery. Then there was nothing left to drive on.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "Benzyniarze mówią 'lęk przed zasięgiem'. Ja mówię 'planowanie'.",
+      "Petrolheads call it range anxiety. I call it planning.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "Koledzy z grupy diesli wyślą mi memy. Ten będzie najlepszy.",
+      "My mates in the diesel group will send me memes. This one's the best yet.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "Hulajnoga córki ma większy zasięg. I ładuje się z gniazdka w kuchni.",
+      "My daughter's scooter has more range. And it charges from the kitchen socket.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "Do 80 procent pół godziny. Do 100 procent: do emerytury.",
+      "Half an hour to 80 percent. To 100 percent: until retirement.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "Aplikacja mówi, że ładowarka działa. Aplikacja mówi wiele rzeczy.",
+      "The app says the charger works. The app says a lot of things.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "Nie zaczynaj o pożarach baterii. Mam dziś wolne od forum.",
+      "Don't start on battery fires. I'm taking the day off the forum.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "Zaczepione! Ładowarka przy Elektrowni Powiśle. No co, nazwa się zgadza.",
+      "Hooked! The charger's by Elektrownia Powiśle. What, the name fits.",
+      {
+        "only": "elektrownia"
+      }
+    ],
+    [
+      "Nie bujaj! Dwie tony baterii i rata na osiem lat!",
+      "Don't swing it! Two tonnes of battery and an eight-year loan!",
+      {
+        "only": "swing"
+      }
+    ],
+    [
+      "Aaa, lusterko! Ono się samo składa, ale nie tak!",
+      "Aaah, the mirror! It folds by itself, but not like that!",
+      {
+        "only": "swing"
+      }
+    ],
+    [
+      "Wolniej! Tryb psa się włączył, a psa nawet nie ma!",
+      "Slower! Dog mode switched on and there isn't even a dog!",
+      {
+        "only": "swing"
+      }
+    ],
+    [
+      "Dobra, zostaw go tu. Może ktoś ma przedłużacz na sto metrów.",
+      "Fine, leave it here. Maybe someone has a hundred-metre extension cord.",
+      {
+        "only": "drop"
+      }
+    ],
+    [
+      "Pan z nieba! Pół roku mówiłem żonie, że elektryk to przyszłość.",
+      "A man from the sky! I've told my wife for six months that electric is the future.",
+      {
+        "only": "stranger"
+      }
+    ],
+    [
+      "Zawiśnięcie nad Warszawą. Tego w salonie nie obiecywali.",
+      "Hanging over Warsaw. They didn't promise that at the showroom.",
+      {
+        "only": "stranger"
+      }
+    ],
+    [
+      "Tylko nie mów nikomu z pracy. Oni wszyscy jeżdżą dieslem.",
+      "Just don't tell anyone at work. They all drive diesels.",
+      {
+        "only": "stranger"
+      }
+    ]
+  ],
+  "ev_stranded": [
+    [
+      "Zero procent. A rano było osiemdziesiąt.",
+      "Zero percent. It was eighty this morning."
+    ],
+    [
+      "Ktoś ma powerbank na 75 kilowatogodzin?",
+      "Anyone got a 75 kWh power bank?"
+    ],
+    [
+      "Infolinia mówi: proszę zachować spokój i zasięg.",
+      "The helpline says: please keep calm and keep your range."
+    ],
+    [
+      "Czekam na lawetę. Laweta jest na diesla.",
+      "Waiting for the tow truck. The tow truck runs on diesel."
+    ],
+    [
+      "Nie przepchniemy go. Ma dwie tony i obrażoną minę.",
+      "We can't push it. Two tonnes and a sulk."
+    ],
+    [
+      "Zielone tablice, a stoję jak wszyscy.",
+      "Green plates, and I'm stuck like everybody else."
+    ],
+    [
+      "Włączyłem tylko podgrzewanie fotela. Tylko!",
+      "All I turned on was the seat heater. That's all!"
+    ],
+    [
+      "Mapa pokazała ładowarkę. Ładowarka pokazała 'awaria'.",
+      "The map showed a charger. The charger showed 'out of order'."
+    ],
+    [
+      "Proszę nie trąbić, on się wtedy stresuje.",
+      "Please don't honk, it stresses him out."
+    ],
+    [
+      "To nie jest awaria. To jest postój strategiczny.",
+      "This isn't a breakdown. It's a strategic stop."
+    ],
+    [
+      "Panie z Pasatini, nie śmiej się pan. Pana też dopadnie.",
+      "You in the Pasatini, don't laugh. Your turn's coming."
+    ]
+  ],
+  "rave_lekti": [
+    [
+      "Tu Lekti, przejmuję wasze fale. Dziś sekretny rave. Gdzie? Kto wie, ten wie. Hasło: {pw}.",
+      "Lekti here, taking over your airwaves. Secret rave tonight. Where? Those who know, know. Password: {pw}."
+    ],
+    [
+      "Lekti zaprasza na sekretny rave. Lokalizacja dwie godziny przed, lineup: TBA. Hasło na bramce: {pw}.",
+      "Lekti invites you to a secret rave. Location two hours before, lineup: TBA. Password at the door: {pw}."
+    ],
+    [
+      "Przepraszamy za zakłócenia. Albo nie. Lekti, sekretny rave, dziś w nocy. Telefon w kieszeni. Hasło: {pw}.",
+      "Sorry for the interference. Or not. Lekti, secret rave, tonight. Phone in your pocket. Password: {pw}."
+    ],
+    [
+      "Mordor śpi, Lekti nie. Sekretny rave, sto trzydzieści bitów na minutę. Nie mów mamie. Hasło: {pw}.",
+      "Mordor sleeps, Lekti doesn't. Secret rave, 130 beats a minute. Don't tell your mum. Password: {pw}."
+    ],
+    [
+      "Szum, trzask i jesteśmy. Lekti zaprasza tam, gdzie nie ma szyldu. Naklejka na aparat obowiązkowa. Hasło: {pw}.",
+      "Static, crackle, and we're on. Lekti invites you where there's no sign. A sticker on your camera is a must. Password: {pw}."
+    ]
+  ],
+  "rave_rumour": [
+    [
+      "Ktoś znowu podpina się pod nasz sygnał na Mordorze. Podobno chodzi o jakiś rave. My nic nie wiemy.",
+      "Someone's hijacking the signal on Mordor again. Something about a rave, apparently. We know nothing."
+    ],
+    [
+      "Słuchacze piszą o sekretnym rave'ie dziś w nocy. Gdzie? Podobno trzeba słuchać MORDOR FM.",
+      "Listeners write about a secret rave tonight. Where? Apparently you have to listen to MORDOR FM."
+    ],
+    [
+      "Plotka dnia: sekretny rave, hasło tylko na falach MORDOR FM. Plotek nie potwierdzamy, tylko puszczamy dalej.",
+      "Rumour of the day: a secret rave, the password only on MORDOR FM. We don't confirm rumours, we pass them on."
+    ]
+  ],
+  "rave_ziomek": [
+    [
+      "Siema! Czarna koszulka, czarne spodnie, zero uśmiechu. Jestem gotowy.",
+      "Hey! Black T-shirt, black trousers, zero smiling. I'm ready.",
+      {
+        "only": "board"
+      }
+    ],
+    [
+      "Daj Mordor. Głośniej. Jeszcze. Dobra, teraz jedziemy.",
+      "Put Mordor on. Louder. More. Right, now we go.",
+      {
+        "only": "board"
+      }
+    ],
+    [
+      "Naklejka na aparacie jest? Jest. Woda jest? Jest. Jedziemy.",
+      "Sticker on the camera? Check. Water? Check. Let's go.",
+      {
+        "only": "board"
+      }
+    ],
+    [
+      "Siema! Na Smołę. Pamiętaj: na bramce mów mało i patrz w dal.",
+      "Hey! To Smoła. Remember: at the door, say little and stare into the distance.",
+      {
+        "only": "board_smola"
+      }
+    ],
+    [
+      "Wyglądam jak ktoś z Berlina? Nie odpowiadaj. Jedziemy.",
+      "Do I look like someone from Berlin? Don't answer. Let's go.",
+      {
+        "only": "board_smola"
+      }
+    ],
+    [
+      "Nie, nie mam adresu. Adres to dla turystów. Mamy punkt zborny.",
+      "No, I don't have an address. Addresses are for tourists. We have a meeting point.",
+      {
+        "only": "ride"
+      }
+    ],
+    [
+      "Jak ktoś zapyta, jesteśmy z Berlina. Nic nie mów. Patrz w dal.",
+      "If anyone asks, we're from Berlin. Say nothing. Stare into the distance.",
+      {
+        "only": "ride"
+      }
+    ],
+    [
+      "Moja była słucha tylko deep house'u. Nie rozmawiajmy o tym.",
+      "My ex only listens to deep house. Let's not talk about it.",
+      {
+        "only": "ride"
+      }
+    ],
+    [
+      "Sto trzydzieści to rozgrzewka. Prawdziwe techno zaczyna się od stu czterdziestu.",
+      "130 is a warm-up. Real techno starts at 140.",
+      {
+        "only": "ride"
+      }
+    ],
+    [
+      "Mój tata chodził na rave'y w latach dziewięćdziesiątych. Mówi, że teraz to nie to samo.",
+      "My dad went to raves in the nineties. He says it's not the same now.",
+      {
+        "only": "ride"
+      }
+    ],
+    [
+      "Zatyczki do uszu mam. Ochrona słuchu to nie obciach, to plan na emeryturę.",
+      "I've got earplugs. Protecting your hearing isn't lame, it's a pension plan.",
+      {
+        "only": "ride"
+      }
+    ],
+    [
+      "W środku zero zdjęć. Dlatego robię selfie teraz, w aucie.",
+      "No photos inside. That's why I'm taking a selfie now, in the car.",
+      {
+        "only": "ride"
+      }
+    ],
+    [
+      "Taksówka w nocy kosztuje tyle co bilet. Ty jesteś moim nocnym tramwajem.",
+      "A taxi at night costs as much as the ticket. You're my night tram.",
+      {
+        "only": "ride"
+      }
+    ],
+    [
+      "Nie jedź tak szybko, bo dojedziemy przed DJ-em. To obciach.",
+      "Don't go so fast, we'll get there before the DJ. Embarrassing.",
+      {
+        "only": "ride"
+      }
+    ],
+    [
+      "Mam wodę, gumę i gotówkę. Rave'y nie wierzą w terminale.",
+      "Water, gum and cash. Raves don't believe in card terminals.",
+      {
+        "only": "ride"
+      }
+    ],
+    [
+      "Techno to nie muzyka. To sposób na poniedziałek.",
+      "Techno isn't music. It's a way of coping with Monday.",
+      {
+        "only": "ride"
+      }
+    ],
+    [
+      "Jak nie wejdziemy, to kebab i do domu. Plan C. Ale wejdziemy.",
+      "If we don't get in, it's a kebab and home. Plan C. But we'll get in.",
+      {
+        "only": "ride"
+      }
+    ],
+    [
+      "To on. Kaptur, telefon, zero emocji. Profesjonalista.",
+      "That's him. Hood, phone, zero emotion. A professional.",
+      {
+        "only": "meet"
+      }
+    ],
+    [
+      "Widzisz te światła na niebie? To nie samolot. To my.",
+      "See those lights in the sky? That's not a plane. That's us.",
+      {
+        "only": "go"
+      }
+    ],
+    [
+      "Czujesz bas w fotelu? To znaczy, że jesteśmy blisko.",
+      "Feel the bass in your seat? That means we're close.",
+      {
+        "only": "go"
+      }
+    ],
+    [
+      "Pamiętasz hasło? Bo ja nie. Żartuję. Chyba.",
+      "Remember the password? Because I don't. Joking. I think.",
+      {
+        "only": "go"
+      }
+    ],
+    [
+      "Tu skręć. Albo nie. Dobra, jedź na bas.",
+      "Turn here. Or not. OK, just follow the bass.",
+      {
+        "only": "go"
+      }
+    ],
+    [
+      "Ludzie w okularach o drugiej w nocy? Jesteśmy na miejscu.",
+      "People in sunglasses at two a.m.? We're there.",
+      {
+        "only": "go"
+      }
+    ],
+    [
+      "Na bramce się nie uśmiechaj. Kiwnij głową, jakbyś znał DJ-a.",
+      "Don't smile at the door. Nod like you know the DJ.",
+      {
+        "only": "go"
+      }
+    ],
+    [
+      "Na pytanie, kto gra, nigdy nie zgaduj. Nikt nie wie. O to chodzi.",
+      "When they ask who's playing, never guess. Nobody knows. That's the point.",
+      {
+        "only": "go_smola"
+      }
+    ],
+    [
+      "Kolejka do Smoły to też impreza. Tylko wolniejsza.",
+      "The queue for Smoła is a party too. Just slower.",
+      {
+        "only": "go_smola"
+      }
+    ],
+    [
+      "Bramkarz pyta po co? Tańczyć. Nie zdjęcia, nie znajomi. Tańczyć.",
+      "Bouncer asks what for? To dance. Not photos, not friends. To dance.",
+      {
+        "only": "go_smola"
+      }
+    ],
+    [
+      "Mówią, że selekcja jest jak w Berlinie. Ja mówię, że w Berlinie jest jak u nas.",
+      "They say the door's like Berlin. I say Berlin's door is like ours.",
+      {
+        "only": "go_smola"
+      }
+    ],
+    [
+      "Buty wygodne? Bo będziemy tańczyć do rana, nie stać.",
+      "Comfy shoes? We'll be dancing till morning, not standing.",
+      {
+        "only": "go_smola"
+      }
+    ],
+    [
+      "Wiedziałem, że dasz radę. Jesteś jednym z nas.",
+      "Knew you'd make it. You're one of us.",
+      {
+        "only": "door_ok"
+      }
+    ],
+    [
+      "Weszliśmy! Ja idę na przód. Widzimy się o świcie.",
+      "We're in! I'm heading to the front. See you at sunrise.",
+      {
+        "only": "door_ok"
+      }
+    ],
+    [
+      "Nie dziś. Ale buty miałeś ładne. To już coś.",
+      "Not tonight. But your shoes were nice. That's something.",
+      {
+        "only": "door_out"
+      }
+    ],
+    [
+      "Kebab i do domu. Plan C. Też jest piękny.",
+      "A kebab and home. Plan C. It's beautiful too.",
+      {
+        "only": "door_out"
+      }
+    ],
+    [
+      "Dobra, rozumiem. Pojadę nocnym autobusem. W czarnym. Super.",
+      "Fine. I'll take the night bus. In black. Great.",
+      {
+        "only": "abort"
+      }
+    ],
+    [
+      "Nie tym razem. Dobra. Następnym razem mów mniej.",
+      "Not this time. Fine. Next time, say less.",
+      {
+        "only": "door_out"
+      }
+    ]
+  ],
+  "rave_meet": [
+    [
+      "Ćśś. Dziś gramy {where}. Wiecie którędy.",
+      "Shh. Tonight we play {where}. You know the way."
+    ],
+    [
+      "Lokalizacja: {where}. Za godzinę już jej nie będzie.",
+      "Location: {where}. In an hour it won't exist."
+    ],
+    [
+      "Hasło znacie? Dobra. {where}. I telefon do kieszeni.",
+      "You know the password? Fine. {where}. And phone in your pocket."
+    ]
+  ],
+  "rave_crowd": [
+    [
+      "Nie wiem, która godzina. I bardzo dobrze.",
+      "I don't know what time it is. And that's fine.",
+      {
+        "only": "night"
+      }
+    ],
+    [
+      "Bas mi przestawił kręgosłup. Na lepsze.",
+      "The bass rearranged my spine. For the better.",
+      {
+        "only": "night"
+      }
+    ],
+    [
+      "W latach dziewięćdziesiątych tańczyliśmy tak w hali przy rondzie. Na winylach.",
+      "In the nineties we danced like this in a hall by a roundabout. On vinyl.",
+      {
+        "only": "night"
+      }
+    ],
+    [
+      "Kto gra? Nikt nie wie. I o to chodzi.",
+      "Who's playing? Nobody knows. That's the point.",
+      {
+        "only": "night"
+      }
+    ],
+    [
+      "Przyszedłem na godzinę. Jest czwarta.",
+      "I came for an hour. It's four.",
+      {
+        "only": "night"
+      }
+    ],
+    [
+      "Mam zatyczki. Słyszę wszystko, tylko ciszej.",
+      "I've got earplugs. I hear everything, just quieter.",
+      {
+        "only": "night"
+      }
+    ],
+    [
+      "Nie robię zdjęć. Zapamiętuję.",
+      "I'm not taking photos. I'm remembering.",
+      {
+        "only": "night"
+      }
+    ],
+    [
+      "Sto czterdzieści bitów na minutę i serce nadąża.",
+      "140 beats a minute and my heart keeps up.",
+      {
+        "only": "night"
+      }
+    ],
+    [
+      "Po wszystkim kebab, pierwszy tramwaj i spać. Rytuał.",
+      "Afterwards a kebab, the first tram and bed. A ritual.",
+      {
+        "only": "night"
+      }
+    ],
+    [
+      "W poniedziałek jestem księgowym. Dziś jestem światłem.",
+      "On Monday I'm an accountant. Tonight I'm light.",
+      {
+        "only": "night"
+      }
+    ],
+    [
+      "Rave w dzień. Krem z filtrem pięćdziesiąt i bas sto dwadzieścia osiem.",
+      "A day rave. SPF fifty and bass at 128.",
+      {
+        "only": "day"
+      }
+    ],
+    [
+      "Okulary przeciwsłoneczne w końcu mają sens.",
+      "Sunglasses finally make sense.",
+      {
+        "only": "day"
+      }
+    ],
+    [
+      "Wisła, piasek, techno. Miami może się schować.",
+      "The Vistula, sand, techno. Miami can hide.",
+      {
+        "only": "day"
+      }
+    ],
+    [
+      "Przyszłam z psem. Pies też czuje bit.",
+      "I came with my dog. The dog feels the beat too.",
+      {
+        "only": "day"
+      }
+    ],
+    [
+      "Popołudnie, a ja dopiero się rozkręcam.",
+      "Afternoon, and I'm only warming up.",
+      {
+        "only": "day"
+      }
+    ],
+    [
+      "Nocą rave jest sekretny. W dzień po prostu nikt nie pyta.",
+      "At night a rave is secret. By day nobody asks.",
+      {
+        "only": "day"
+      }
+    ]
+  ],
+  "club_dj": [
+    [
+      "Nie pytaj, co gram. Sam nie wiem. Dlatego jest dobrze.",
+      "Don't ask what I'm playing. I don't know either. That's why it's good."
+    ],
+    [
+      "Następny utwór ma sto czterdzieści bitów. Wasze kolana też.",
+      "The next track is 140 bpm. So are your knees."
+    ],
+    [
+      "Zamówień nie przyjmuję. Chyba że to jest techno. Wtedy też nie.",
+      "No requests. Unless it's techno. Then still no."
+    ],
+    [
+      "Gram do rana. Potem jadę do Lusterka i gram dalej, tylko z kawą.",
+      "I play till morning. Then I go to Lusterko and play on, with coffee."
+    ],
+    [
+      "Pozdrawiam kolejkę na zewnątrz. Słyszycie bas przez ścianę? To dla was.",
+      "Hi to the queue outside. Hear the bass through the wall? That's for you."
+    ],
+    [
+      "Mordor FM gra w samochodach. Ja gram w kręgosłupach.",
+      "Mordor FM plays in cars. I play in spines."
+    ]
+  ],
+  "club_red": [
+    [
+      "Spokojnie, to tylko czerwone światło. Zraszacze naprawiamy od lat.",
+      "Relax, it's just red light. We've been fixing the sprinklers for years."
+    ],
+    [
+      "Czerwone światło! Kto wie, z jakiego filmu, ten stawia wodę.",
+      "Red light! Whoever knows which film it's from buys the water."
+    ],
+    [
+      "Nie, z sufitu nic nie leci. To efekt. Drogi efekt.",
+      "No, nothing's dripping from the ceiling. It's an effect. An expensive one."
+    ]
+  ],
+  "club_ziomek": [
+    [
+      "Mówiłem! Weszliśmy! W poniedziałek nikt mi nie uwierzy.",
+      "Told you! We're in! Nobody'll believe me on Monday."
+    ],
+    [
+      "Widzisz tego w płaszczu? Stoi tam od piątku. Nikt nie wie, kto to.",
+      "See the guy in the coat? He's been standing there since Friday. Nobody knows who he is."
+    ],
+    [
+      "Zostaję do świtu. Ty jedź, tylko nie zapomnij po mnie wrócić.",
+      "I'm staying till dawn. You go, just don't forget to come back for me."
+    ],
+    [
+      "Tańcz na raz, nie na dwa. Na dwa tańczą w Lusterku o dziewiątej rano.",
+      "Dance on the one, not the two. On the two they dance at Lusterko at nine a.m."
+    ]
+  ],
+  "club_bar": [
+    [
+      "Woda dwanaście złotych. Woda z lodem piętnaście. Lód jest lokalny.",
+      "Water's twelve złoty. Water with ice is fifteen. The ice is local."
+    ],
+    [
+      "Nie, nie mamy menu. Mamy wodę, mate i spojrzenie.",
+      "No, there's no menu. We have water, mate and a look."
+    ],
+    [
+      "Kierowca? Szanuję. Woda na koszt firmy.",
+      "Driving? Respect. Water's on the house."
+    ]
+  ],
+  "club_kolek": [
+    [
+      "Jestem tu tylko dla muzyki. Kołki w kieszeni są… do butów.",
+      "I'm only here for the music. The stakes in my pocket are… for my shoes."
+    ],
+    [
+      "Okulary? Nie dla stylu. Tu jest za jasno dla pewnych gości.",
+      "Sunglasses? Not for style. It's too bright in here for certain guests."
+    ],
+    [
+      "Wampiry? Tu? Nie. Tu są tylko ludzie, którzy nie spali od piątku.",
+      "Vampires? Here? No. Just people who haven't slept since Friday."
+    ],
+    [
+      "Czekam na czerwone światło. Zawsze wtedy robi się ciekawie.",
+      "I'm waiting for the red light. That's always when it gets interesting."
+    ],
+    [
+      "Pan Kołek. Bez imienia. Bramkarz też nie pytał.",
+      "Pan Kołek. No first name. The bouncer didn't ask either."
+    ]
+  ],
+  "club_crowd": [
+    [
+      "Mówią, że selekcja jak w Berlinie. W Berlinie mówią, że jak w Warszawie.",
+      "They say the door's like Berlin. In Berlin they say it's like Warsaw."
+    ],
+    [
+      "O szóstej idziemy do Lusterka. O dziewiątej do Lusterka po raz drugi.",
+      "At six we go to Lusterko. At nine, to Lusterko again."
+    ],
+    [
+      "Nie znam nikogo i wszystkich kocham. Tak działa sto trzydzieści bitów.",
+      "I don't know anyone and I love everyone. That's 130 bpm for you."
+    ],
+    [
+      "Telefon mam pod naklejką. Moje zdjęcia są w głowie. Rozmazane.",
+      "My phone's under a sticker. My photos are in my head. Blurry."
+    ],
+    [
+      "Na bramce zapytali mnie, kto gra. Powiedziałem, że nie wiem. Wpuścili.",
+      "At the door they asked who's playing. I said I didn't know. They let me in."
+    ],
+    [
+      "Jestem tu od wczoraj. Albo od jutra. Techno nie ma kalendarza.",
+      "I've been here since yesterday. Or since tomorrow. Techno has no calendar."
+    ],
+    [
+      "Szatnia pięć złotych. Kurtka wróci w poniedziałek, ja może też.",
+      "Cloakroom's five złoty. The jacket comes back Monday, maybe me too."
+    ],
+    [
+      "Kolejka do łazienki to najlepsze miejsce na rozmowy o życiu.",
+      "The toilet queue is the best place for talking about life."
+    ],
+    [
+      "Mój tata był na rave'ie w hali w dziewięćdziesiątym siódmym. Mówi, że było głośniej.",
+      "My dad went to a rave in a hall in '97. He says it was louder."
+    ],
+    [
+      "Ubrałem się na kolorowo. Bramkarz patrzył na mnie trzy minuty. Wszedłem. Nie wiem jak.",
+      "I wore colours. The bouncer stared for three minutes. I got in. No idea how."
+    ],
+    [
+      "Kto podlewa tę dżunglę? Bo ja tylko patrzę.",
+      "Who waters this jungle? I only look at it."
+    ],
+    [
+      "Palma przy głośniku ma lepszy rytm niż mój chłopak.",
+      "The palm by the speaker has better rhythm than my boyfriend."
+    ],
+    [
+      "Wyszłam z bloku, weszłam do dżungli. Warszawa.",
+      "I left a block of flats, walked into a jungle. Warsaw."
+    ]
+  ],
+  "club_dance": [
+    [
+      "Dobra, umiesz! Nawet Pan Kołek kiwnął głową.",
+      "OK, you can dance! Even Pan Kołek nodded."
+    ],
+    [
+      "Równo na bit! Jak tramwaj na Marszałkowskiej. Prawie.",
+      "Right on the beat! Like a tram on Marszałkowska. Almost."
+    ],
+    [
+      "Wystarczy, mistrzu. Zostaw coś dla Lusterka.",
+      "That's enough, champ. Save some for Lusterko."
+    ]
+  ],
+  "club_patio": [
+    [
+      "Tu przynajmniej słychać, co mówisz. Szkoda, bo mówisz o kryptowalutach.",
+      "Out here you can hear what you say. Shame, it's about crypto."
+    ],
+    [
+      "Patio to dział zwierzeń. W środku tylko bas.",
+      "The patio is for confessions. Inside it's only bass."
+    ],
+    [
+      "Leżak, lampki, kula. Jak działka u babci, tylko o trzeciej w nocy.",
+      "Deck chair, fairy lights, a mirror ball. Gran's allotment, at 3 a.m."
+    ],
+    [
+      "Sąsiedzi z trzeciego piętra machają. Albo grożą. Z dołu nie widać.",
+      "The neighbours on the third floor wave. Or threaten. Hard to tell from here."
+    ],
+    [
+      "Wyszedłem na pięć minut. To było dwie godziny temu.",
+      "I came out for five minutes. That was two hours ago."
+    ],
+    [
+      "Tu się poznaje ludzi. W środku tylko ich łokcie.",
+      "Out here you meet people. Inside, only their elbows."
+    ],
+    [
+      "Ta kula disco widziała więcej niż całe Śródmieście.",
+      "That mirror ball has seen more than all of Śródmieście."
+    ],
+    [
+      "Wracam do środka za jeden kawałek. Mówię to od czwartego.",
+      "Back inside after one more track. I've said that since the fourth."
+    ]
+  ],
+  "club_patio_bar": [
+    [
+      "Lemoniada, woda, tonik. Tak, tonik to też napój.",
+      "Lemonade, water, tonic. Yes, tonic counts as a drink."
+    ],
+    [
+      "Gotówka czy gotówka? Terminal śpi od wiosny.",
+      "Cash or cash? The card machine has slept since spring."
+    ],
+    [
+      "Najwięcej zamawia się wody o czwartej. Ludzie mądrzeją nad ranem.",
+      "Most water goes at four. People get wise near dawn."
+    ],
+    [
+      "Lód się skończył, ale entuzjazm zostaje.",
+      "We're out of ice, but not out of enthusiasm."
+    ]
+  ],
+  "club_patio_dj": [
+    [
+      "Tu gram lżej. Ludzie muszą pogadać, zanim wrócą do betonu.",
+      "I play lighter out here. People need to talk before they go back to the concrete."
+    ],
+    [
+      "Sto dwanaście bitów. Dla serca, nie dla płuc.",
+      "A hundred and twelve beats. For the heart, not the lungs."
+    ],
+    [
+      "Pani z trzeciego piętra prosi o coś spokojniejszego. Gram dla niej.",
+      "The lady on the third floor wants something calmer. This one's for her."
+    ],
+    [
+      "O świcie puszczam ptaki. Prawdziwe przylatują same.",
+      "At dawn I play birdsong. The real ones turn up on their own."
     ]
   ]
 }
