@@ -61,6 +61,8 @@ Left:
 
 ## Autopilot findings on recent work (2026-11-06; docs/PLAYTEST.md)
 
+- [ ] Bump the Autopilot add-on again once upstream releases past v1.0.0-753232a (HEAD has unreleased fixes #36 and #31).
+
 - PT-23 (S2): the tow offer never comes while the ride button is up; a pinned car gets no help.
 - PT-24 (suspect): backing off a wall resets the stall timer, so the offer may never come.
 - PT-25 (suspect): crazy drivers honk but said no line in 5 cut-ins.
