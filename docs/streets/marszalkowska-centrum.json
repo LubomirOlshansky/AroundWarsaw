@@ -3,11 +3,11 @@
  "title": "Marszałkowska: Rondo Dmowskiego to Świętokrzyska",
  "updated": "2026-11-06",
  "stage": "evidence",
- "score": 79,
+ "score": 81,
  "counts": {
   "F1": 7,
   "L1": 3,
-  "L2": 21,
+  "L2": 15,
   "L3": 1,
   "O1": 8,
   "P1": 1
@@ -19,10 +19,10 @@
    "counts": {
     "F1": 5,
     "L1": 1,
-    "L2": 7,
+    "L2": 4,
     "O1": 7
    },
-   "score": 68
+   "score": 71
   },
   {
    "id": "B",
@@ -30,11 +30,11 @@
    "counts": {
     "F1": 1,
     "L1": 1,
-    "L2": 4,
+    "L2": 3,
     "L3": 1,
     "P1": 1
    },
-   "score": 86
+   "score": 87
   },
   {
    "id": "C",
@@ -42,10 +42,10 @@
    "counts": {
     "F1": 1,
     "L1": 1,
-    "L2": 10,
+    "L2": 8,
     "O1": 1
    },
-   "score": 83
+   "score": 85
   }
  ],
  "history": [
@@ -283,6 +283,23 @@
     "B": 86,
     "C": 83
    }
+  },
+  {
+   "date": "2026-11-06",
+   "score": 81,
+   "counts": {
+    "F1": 7,
+    "L1": 3,
+    "L2": 15,
+    "L3": 1,
+    "O1": 8,
+    "P1": 1
+   },
+   "blocks": {
+    "A": 71,
+    "B": 87,
+    "C": 85
+   }
   }
  ],
  "baseline": {
@@ -467,36 +484,6 @@
    "status": "open"
   },
   {
-   "check": "L2",
-   "x": -939.5,
-   "z": 205.9,
-   "s": 4.8,
-   "t": -0.9,
-   "note": "lane line ends mid-block",
-   "block": "A",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -941.5,
-   "z": 200.5,
-   "s": 10.6,
-   "t": -0.9,
-   "note": "lane line ends mid-block",
-   "block": "A",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -947.6,
-   "z": 184.7,
-   "s": 27.6,
-   "t": -1.1,
-   "note": "lane line ends mid-block [changed since the data: Skwer Linearny na Złotej (car-free since 2026-08) and its crossing to Plac Centralny]",
-   "block": "A",
-   "status": "changed"
-  },
-  {
    "check": "O1",
    "x": -877.7,
    "z": 437.8,
@@ -588,16 +575,6 @@
   },
   {
    "check": "L2",
-   "x": -951.9,
-   "z": 175.8,
-   "s": 37.3,
-   "t": -2.0,
-   "note": "lane line ends mid-block [changed since the data: Skwer Linearny na Złotej (car-free since 2026-08) and its crossing to Plac Centralny]",
-   "block": "B",
-   "status": "changed"
-  },
-  {
-   "check": "L2",
    "x": -957.0,
    "z": 162.6,
    "s": 51.6,
@@ -679,29 +656,9 @@
   {
    "check": "L2",
    "x": -1008.7,
-   "z": 15.6,
+   "z": 15.7,
    "s": 207.3,
    "t": 0.7,
-   "note": "lane line ends mid-block",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -1013.4,
-   "z": 3.0,
-   "s": 220.7,
-   "t": 0.7,
-   "note": "lane line ends mid-block",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -1015.8,
-   "z": -3.6,
-   "s": 227.7,
-   "t": 0.8,
    "note": "lane line ends mid-block",
    "block": "C",
    "status": "open"

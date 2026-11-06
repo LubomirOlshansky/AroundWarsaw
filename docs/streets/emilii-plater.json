@@ -3,10 +3,10 @@
  "title": "Emilii Plater: Świętokrzyska to Aleje Jerozolimskie",
  "updated": "2026-11-06",
  "stage": "baseline",
- "score": 85,
+ "score": 92,
  "counts": {
   "L1": 5,
-  "L2": 38,
+  "L2": 16,
   "L3": 1,
   "P1": 2
  },
@@ -24,19 +24,19 @@
    "id": "B",
    "title": "Śliska to Złota",
    "counts": {
-    "L2": 10
+    "L2": 4
    },
-   "score": 90
+   "score": 96
   },
   {
    "id": "C",
    "title": "Złota to Aleje Jerozolimskie",
    "counts": {
     "L1": 1,
-    "L2": 25,
+    "L2": 9,
     "P1": 2
    },
-   "score": 68
+   "score": 84
   }
  ],
  "history": [
@@ -53,6 +53,21 @@
     "A": 96,
     "B": 90,
     "C": 68
+   }
+  },
+  {
+   "date": "2026-11-06",
+   "score": 92,
+   "counts": {
+    "L1": 5,
+    "L2": 16,
+    "L3": 1,
+    "P1": 2
+   },
+   "blocks": {
+    "A": 96,
+    "B": 96,
+    "C": 84
    }
   }
  ],
@@ -160,26 +175,6 @@
   },
   {
    "check": "L2",
-   "x": -1410.5,
-   "z": 156.1,
-   "s": 160.0,
-   "t": -19.7,
-   "note": "lane line ends mid-block",
-   "block": "B",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -1408.6,
-   "z": 161.6,
-   "s": 165.8,
-   "t": -19.7,
-   "note": "lane line ends mid-block",
-   "block": "B",
-   "status": "open"
-  },
-  {
-   "check": "L2",
    "x": -1404.2,
    "z": 222.0,
    "s": 224.2,
@@ -200,48 +195,8 @@
   },
   {
    "check": "L2",
-   "x": -1394.8,
-   "z": 248.8,
-   "s": 252.6,
-   "t": -3.7,
-   "note": "lane line ends mid-block",
-   "block": "B",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -1393.5,
-   "z": 252.5,
-   "s": 256.5,
-   "t": -3.7,
-   "note": "lane line ends mid-block",
-   "block": "B",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -1394.7,
-   "z": 258.2,
-   "s": 261.5,
-   "t": -0.6,
-   "note": "lane line ends mid-block",
-   "block": "B",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -1391.5,
-   "z": 258.1,
-   "s": 262.5,
-   "t": -3.7,
-   "note": "lane line ends mid-block",
-   "block": "B",
-   "status": "open"
-  },
-  {
-   "check": "L2",
    "x": -1377.8,
-   "z": 255.8,
+   "z": 255.9,
    "s": 264.9,
    "t": -17.4,
    "note": "lane line ends mid-block",
@@ -250,8 +205,8 @@
   },
   {
    "check": "L2",
-   "x": -1374.9,
-   "z": 254.8,
+   "x": -1375.0,
+   "z": 254.9,
    "s": 264.9,
    "t": -20.4,
    "note": "lane line ends mid-block",
@@ -290,36 +245,6 @@
   },
   {
    "check": "L2",
-   "x": -1342.2,
-   "z": 346.9,
-   "s": 362.6,
-   "t": -20.6,
-   "note": "lane line ends mid-block",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -1340.8,
-   "z": 350.6,
-   "s": 366.6,
-   "t": -20.7,
-   "note": "lane line ends mid-block",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -1356.8,
-   "z": 365.8,
-   "s": 375.6,
-   "t": -0.6,
-   "note": "lane line ends mid-block",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L2",
    "x": -1332.8,
    "z": 382.3,
    "s": 399.1,
@@ -334,46 +259,6 @@
    "z": 381.3,
    "s": 399.1,
    "t": -20.7,
-   "note": "lane line ends mid-block",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -1348.9,
-   "z": 388.2,
-   "s": 399.3,
-   "t": -0.6,
-   "note": "lane line ends mid-block",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -1346.2,
-   "z": 395.6,
-   "s": 407.2,
-   "t": -0.7,
-   "note": "lane line ends mid-block",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -1339.2,
-   "z": 415.2,
-   "s": 428.0,
-   "t": -0.7,
-   "note": "lane line ends mid-block",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -1337.6,
-   "z": 419.8,
-   "s": 432.9,
-   "t": -0.7,
    "note": "lane line ends mid-block",
    "block": "C",
    "status": "open"
@@ -410,96 +295,6 @@
   },
   {
    "check": "L2",
-   "x": -1300.7,
-   "z": 468.9,
-   "s": 491.5,
-   "t": -19.2,
-   "note": "lane line ends mid-block",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -1312.4,
-   "z": 487.1,
-   "s": 504.7,
-   "t": -2.1,
-   "note": "lane line ends mid-block",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -1314.7,
-   "z": 489.9,
-   "s": 506.6,
-   "t": 1.0,
-   "note": "lane line ends mid-block",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -1310.5,
-   "z": 492.6,
-   "s": 510.6,
-   "t": -2.1,
-   "note": "lane line ends mid-block",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -1312.7,
-   "z": 495.5,
-   "s": 512.6,
-   "t": 1.0,
-   "note": "lane line ends mid-block",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -1311.0,
-   "z": 500.1,
-   "s": 517.5,
-   "t": 0.9,
-   "note": "lane line ends mid-block",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -1306.2,
-   "z": 504.6,
-   "s": 523.3,
-   "t": -2.1,
-   "note": "lane line ends mid-block",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -1304.9,
-   "z": 508.2,
-   "s": 527.1,
-   "t": -2.1,
-   "note": "lane line ends mid-block",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -1307.7,
-   "z": 509.3,
-   "s": 527.2,
-   "t": 0.9,
-   "note": "lane line ends mid-block",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L2",
    "x": -1264.8,
    "z": 571.6,
    "s": 600.3,
@@ -510,10 +305,10 @@
   },
   {
    "check": "L2",
-   "x": -1299.4,
-   "z": 605.6,
-   "s": 620.8,
-   "t": 25.1,
+   "x": -1295.8,
+   "z": 604.4,
+   "s": 620.9,
+   "t": 21.3,
    "note": "lane line ends mid-block",
    "block": "C",
    "status": "open"

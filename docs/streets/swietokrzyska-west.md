@@ -28,7 +28,7 @@ Verdicts: . The override file applies them by id (stage S8).
 | L1 | C | 2 | 9 | open | 3 -> 2 lanes, 9.0 -> 6.0 m wide where two ways meet | `--at=-1486,3` |
 | L1 | C | 114 | -13 | open | 3 -> 2 lanes, 9.0 -> 6.0 m wide where two ways meet | `--at=-1591,48` |
 | L2 | C | 21 | 7 | open | lane line ends mid-block | `--at=-1504,9` |
-| L2 | C | 106 | 39 | open | lane line ends mid-block | `--at=-1594,-5` |
+| L2 | C | 106 | 37 | open | lane line ends mid-block | `--at=-1594,-3` |
 | L3 | C | 20 | 2 | open | edge line crosses a kerb | `--at=-1502,14` |
 | L3 | C | 73 | -4 | open | edge line crosses a kerb | `--at=-1553,31` |
 | L3 | C | 93 | -40 | open | edge line crosses a kerb | `--at=-1565,70` |
