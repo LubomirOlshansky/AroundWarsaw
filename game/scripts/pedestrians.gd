@@ -42,6 +42,8 @@ var _len := PackedFloat32Array()
 var _width := PackedFloat32Array()
 ## The bridge deck a footway is on (-1: the ground).
 var _deck := PackedInt32Array()
+## Over the ground: a footway that is an island platform's (map_builder footway_lift), else 0.
+var _lift := PackedFloat32Array()
 ## Loop 2b: a deck footway's height every DECK_STEP metres along it (filled on first use):
 ## asking the deck solver per walker per frame cost ~1 ms on a bridge.
 var _deck_h: Array[PackedFloat32Array] = []
@@ -143,6 +145,8 @@ func setup(map_node: Node3D, camera: Camera3D, traffic_node: Node3D, data: Dicti
 		_len.append(run)
 		_width.append(float(p["w"]))
 		_deck.append(dk)
+		# An island platform OSM maps as this footway (map_builder rail_yard.gd): people on its top.
+		_lift.append(float(map.call("footway_lift", line)) if dk < 0 and map != null and map.has_method("footway_lift") else 0.0)
 		_deck_h.append(PackedFloat32Array())
 		_joins_start.append(PackedInt32Array())
 		_joins_end.append(PackedInt32Array())
@@ -536,7 +540,7 @@ func _process(dt: float) -> void:
 ## height from samples along the footway (bridge decks rise and fall slowly).
 func _height(i: int, s: float, q: Vector2) -> float:
 	if _deck[i] == -1:
-		return map.deck_height(-1, q.x, q.y)
+		return map.deck_height(-1, q.x, q.y) + _lift[i]
 	var h := _deck_h[i]
 	if h.is_empty() and _deck[i] == PORTAL:
 		# A way in: the ground (the sunken floor) every metre while in a sunken ring, then that
