@@ -20,7 +20,7 @@ verify step `coffee` (`--trend-job=8 --autopilot`).
    game's Veturilo parody, city_life.gd). Drive there and stop: the car stays parked at the dock
    (a still copy) and you ride a cream ROWERILO bike with a paper cup in the basket (car.gd model
    `bike`: 8.5 m/s top, gentler pull, no NITRO, the car's collision box; the rider's shirt is the
-   car's paint, the helmet its stripes, drawn at 1.6x so it reads at the 80 m view).
+   car's paint, the helmet its stripes, drawn at 1.6x, and the follow camera closes in to 0.55 of its view while you ride: the first Autopilot playtest found the bike too small at the car's view).
 3. **Four cafés, 5:00 on the clock** from the dock, about 1.2 km of loop. At each door stop 1.5 s
    for the stamp; the wallet pays the coffee (if it can't, "na koszt Zuzi"). While you ride, Zuzia's
    third-wave lines take the status bar's hint every 22 s.

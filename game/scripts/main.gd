@@ -6813,9 +6813,14 @@ func _update_camera(dt: float) -> void:
 		_view_size = fcam.zoom_step(_view_size, heli_view, heli_zoom, dt)
 		focus_rate = 3.5
 	else:
-		var zoom := base_size * FollowCamera.SPEED_ZOOM * clampf(speed / (car.max_speed * car.top_mult), 0.0, 1.0)
-		size = base_size + zoom
-		_view_size = fcam.zoom_step(_view_size, base_size, zoom, dt)
+		# The coffee run's bike (car.gd model "bike", Autopilot playtest 2026-11-06: at the car's view
+		# it could not be told from a car): the view closes in to BIKE_VIEW of the player's, eased
+		# by zoom_step like the speed zoom, and back out when the car returns.
+		var bike: bool = car.model == "bike"
+		var view := base_size * (CoffeeRun.BIKE_VIEW if bike else 1.0)
+		var zoom := view * FollowCamera.SPEED_ZOOM * clampf(speed / (car.top_speed() if bike else car.max_speed * car.top_mult), 0.0, 1.0)
+		size = view + zoom
+		_view_size = fcam.zoom_step(_view_size, view, zoom, dt)
 	# The look-ahead along the way it goes, and the dead zone's window (follow_camera.gd).
 	var forward := Vector3(-basis.z.x, 0.0, -basis.z.z).normalized() \
 			if follow and not flying and controls.scheme == Controls.CLASSIC else Vector3.ZERO

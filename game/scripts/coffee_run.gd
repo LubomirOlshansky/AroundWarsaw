@@ -20,6 +20,9 @@ const DOCK := Vector2(284.7, -805.8)
 ## Seconds for the four stamps, from the bike leaving the dock (about 1.6 km by road at
 ## BIKE_TOP 8.5 m/s is ~190 s, plus the stamps and the corners) *guess*.
 const COFFEE_LIMIT := 300.0
+## The camera's view on the bike, a share of the player's own (main.gd's follow camera): the bike
+## is a small thing at the car's 80 m view.
+const BIKE_VIEW := 0.55
 ## Stand this long in a café's ring for the stamp (the car's stop rules).
 const STAMP_HOLD := 1.5
 ## The call: 8:00-19:00 (cafés close early, the third wave sleeps in), after FIRST s of play, then
