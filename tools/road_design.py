@@ -1123,6 +1123,7 @@ VERSION = 1
 OBJECT_LAYERS = {"lamps": 2, "signals": 3, "shelters": 3, "benches": 3, "bins": 3, "bikes": 3, "columns": 3,
                  "trees3d": 6}
 KERB_SET = 0.8        # m behind the kerb where a moved object stands
+SLIDE_STEPS = (0.0, -2.0, 2.0, -4.0, 4.0, -6.0, 6.0)   # m along the kerb to get out of a mouth
 
 
 def reseat_objects(out, d):
@@ -1150,9 +1151,16 @@ def reseat_objects(out, d):
             if best is None:
                 continue                 # in a junction box or a mouth: left as it is
             st, s, side, _ = best
-            q = st.point(s, st.outer(s, side) + side * KERB_SET)
-            if asphalt.has(q[0], q[1]):
-                continue                 # by a mouth or a corner: no pavement there to move to
+            # Behind the kerb, or slid along it out of a driveway's mouth (Krucza's lamp by the
+            # one at s 374, 2026-11-06), up to SLIDE m either way.
+            q = None
+            for ds in SLIDE_STEPS:
+                c = st.point(s + ds, st.outer(s + ds, side) + side * KERB_SET)
+                if st.s0 <= s + ds <= st.s1 and not asphalt.has(c[0], c[1]):
+                    q = c
+                    break
+            if q is None:
+                continue                 # by a junction or a corner: no pavement there to move to
             v[i], v[i + 1] = round(q[0], 2), round(q[1], 2)
             moved += 1
     return moved
@@ -1161,7 +1169,23 @@ def reseat_objects(out, d):
 PARK_EVERY = 5.8     # m between parked cars' middles in a parking lane (a 4.6 m car and its gap)
 PARK_FILL = 0.72     # of the spaces taken (deterministic by place), as on the street photos
 PARK_CLEAR = 6.0     # m kept free each side of a crossing's middle and beyond a mouth's half width
+PARK_LANE_GAP = 2.7  # m at least from a parked car's middle to any traffic lane's middle (half a
+                     # bus, 1.3, and a car, 0.9, with room): where the lanes swing out (a taper, a
+                     # free end blending back), the space stays empty
+PARK_END = 20.0      # m from either end of a street with no parked car: past a free end the
+                     # lanes blend back to the old ones (BLEND) and a bus's 12 m box cuts the bend
 CAR_COLOURS = 10     # tools/bake_osm.py's parked-car palette
+
+
+def offset_line(p, off):
+    """Polyline p moved `off` metres to its right (the lane graph's lane offsets: +x east, +z
+    south, so the right of heading (dx, dz) is (-dz, dx))."""
+    q = []
+    for i in range(len(p)):
+        a, b = p[max(0, i - 1)], p[min(len(p) - 1, i + 1)]
+        h = norm(sub(b, a))
+        q.append((p[i][0] - h[1] * off, p[i][1] + h[0] * off))
+    return q
 
 
 def park_cars(out, d):
@@ -1179,6 +1203,23 @@ def park_cars(out, d):
             gone += 1
         else:
             keep += v[i:i + 4]
+    # every traffic lane's middle line near the designed streets (retarget_graph has run)
+    lane_cells = {}
+    near = Footprint([pts_of(c["p"]) for c in d.out["carriage"]], 8.0)
+    for e in out.get("graph", {}).get("edges", []):
+        p = pts_of(e["p"])
+        if not any(near.has(*q) for q in p[::4] + p[-1:]):
+            continue
+        for k in range(int(e.get("n", 1))):
+            off = float(e.get("o", 0.0)) + float(e.get("lw", 3.0)) * k
+            for q in dense(offset_line(p, off), 1.0):
+                lane_cells.setdefault((int(q[0] // 4), int(q[1] // 4)), []).append(q)
+
+    def in_lane(q):
+        gx, gz = int(q[0] // 4), int(q[1] // 4)
+        return any(math.dist(q, r) < PARK_LANE_GAP for i in (-1, 0, 1) for j in (-1, 0, 1)
+                   for r in lane_cells.get((gx + i, gz + j), []))
+
     added = 0
     for st in d.streets.values():
         stops = [(float(c["s"]), PARK_CLEAR) for c in st.spec.get("crossings", [])]
@@ -1186,7 +1227,7 @@ def park_cars(out, d):
                   for o in d.openings_of(st)]
         s = st.s0 + PARK_EVERY
         while s < st.s1 - PARK_EVERY:
-            if any(abs(s - c) < r for c, r in stops):
+            if s < st.s0 + PARK_END or s > st.s1 - PARK_END or any(abs(s - c) < r for c, r in stops):
                 s += PARK_EVERY
                 continue
             p, t = st.at(s)
@@ -1196,7 +1237,7 @@ def park_cars(out, d):
                         continue
                     q = st.point(s, (l + r) / 2.0)
                     h = (math.sin(q[0] * 3.1 + q[1] * 1.7) * 43758.5453) % 1.0
-                    if h >= PARK_FILL:
+                    if h >= PARK_FILL or in_lane(q):
                         continue
                     f = mul(t, float(lane.get("d", 1)))
                     keep += [round(q[0], 1), round(q[1], 1), round(math.atan2(-f[0], -f[1]), 2),
