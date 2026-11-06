@@ -198,6 +198,9 @@ var trams: Trams
 var trains: Trains
 ## --train=X,Z: a train put on the track nearest that point at the start (shots).
 var train_at := Vector2.INF
+## --train=X,Z,K: that train of kind K (trains.gd KINDS: 0 Koleje Mazowe, 1 SKiM, 2 the
+## long-distance one).
+var train_kind := -1
 var walkers: Pedestrians
 var rivals: Rivals
 ## Loop 3g-1: the police (null with --no-police or no traffic) and their flags.
@@ -1648,7 +1651,7 @@ func _build_life(data: Dictionary, world: Node3D) -> void:
 	world.add_child(trains)
 	trains.setup(map, data)
 	if train_at != Vector2.INF:
-		trains.place_near(train_at)
+		trains.place_near(train_at, train_kind)
 	walkers = Pedestrians.new()
 	world.add_child(walkers)
 	walkers.setup(map, cam, traffic, data)
@@ -4077,8 +4080,10 @@ func _parse_args() -> void:
 			old_tram_flag = "follow" if arg == "--old-tram=follow" else "now"
 		elif arg.begins_with("--train="):
 			var xz := arg.trim_prefix("--train=").split(",")
-			if xz.size() == 2:
+			if xz.size() >= 2:
 				train_at = Vector2(float(xz[0]), float(xz[1]))
+			if xz.size() == 3:
+				train_kind = int(xz[2])
 		elif arg == "--tram-log":
 			tram_log = true
 		elif arg.begins_with("--packs="):

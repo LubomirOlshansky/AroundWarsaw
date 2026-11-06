@@ -141,3 +141,45 @@ three stations, never two on one track piece, leave and re-enter) joins `verify.
 - Can the player drive onto the tracks? Default no: the cutting's walls and the embankment keep
   the car out where they already do; trains push the car like trams elsewhere.
 - Photo checks on the Mac for every station (shapes come from texts, not photos).
+
+## 7. Centralna to Ochota, reworked (F, 2026-11-06)
+
+F: "rework all the rails from Dworzec Centralny to Ochota with the tunnel, it looks too bad; make
+the trains stop at the stations and people get in and out; the kładka from Kolejowa to the office
+towers; check the infrastructure elsewhere; improve the trains, like InterCity". Built:
+
+- **The cutting** (`rail_cut.gd`, map_builder `_fill_height` / `_build_cut_*` / `_build_cutting`):
+  the 10 m grid drew it as a soft valley with tan ballast climbing the slopes. The tracks inside
+  `RailCut.BOX` are resampled every 4 m; each sample's floor is the lowest grid level within 9 m
+  either side (filtered along the track); where the rims stand over 1.8 m above it the sample is
+  in the cut. The ground there is the floor out to 3.6 m from the outer track, then a straight
+  bank to the rim (or a 3 m concrete top band behind a retaining wall where the cut is narrow and
+  deep, and within 150 m of the tunnel mouth). Drawn: gravel floor, grass banks, walls with a
+  plinth, pilasters every 6 m, coping and a parapet, a mesh fence on the bank tops (gaps where
+  streets and paths cross). Both city paths (the ground and the sectors read `terrain_height`).
+- **Gantries**: where 2+ tracks cross one catenary row within 9 m, one lattice gantry spans them
+  on two masts (`_gantry`), instead of a mast per track.
+- **Warszawa Główna** (`rail_yard.gd`): OSM draws its new island platforms as footways (two per
+  island, off its centre) and closed footway loops. A footway with a parallel track either side
+  over 70 % of its length, under 11 m wide, and not already on an OSM platform, is an island: its
+  edges 1.7 m from each track, 0.76 m over the tracks' bed (the ground under it is held at the bed:
+  the grid keeps the old platforms as a 0.5-0.8 m blur). Walkers on those footways walk on top
+  (`footway_lift`). The trains stop at each island's edges (`trains.gd` marks).
+- **The footbridge** (deck over Główna, `_lift_rail_footbridge`): the bake brought it down to the
+  ballast where OSM ties stairs to it; a path deck crossing 4+ tracks now holds 7.4 m over the
+  highest track between its first and last, ramping to its ends. Glass parapets on a steel kerb,
+  a handrail; over each platform it crosses a stair down along the platform and a glass lift shaft
+  on the other side (`_build_footbridge_stairs`).
+- **Trains**: tracks that branch off another's middle node (OSM switches) now join it (the other
+  is cut there); a stopping train prefers the branch towards a platform (75 %); a track ending at
+  buffers past a stop is a terminus: the train stops and runs back out (`_turn_back`). Passengers:
+  when a train in view comes to rest, 0-2 people step off each door and walk away along the
+  platform, and 0-2 who waited walk to each door and in (own MultiMesh of the pedestrians' figure,
+  40 instances, +1 draw call only while any are about). Cars: the suburban kinds are Elf-like
+  units (sloped nose, black windscreen up into the roof, wide windows in a dark band, two door
+  pairs, skirt, roof boxes); the long-distance kind is a locomotive (blunt cab both ends, grilles,
+  two pantographs) with coaches (window band over a navy stripe, a door near each end).
+  `check_trains` requires stops at Główna and at least one turn back.
+- **Left** (BACKLOG "Railway look"): the Python mirror in `check_roads.py`, a Główna station
+  building, the footbridge's real towers (Mac photo pass), single-track masts, the night overpass.
+
