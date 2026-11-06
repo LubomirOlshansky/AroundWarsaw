@@ -4,7 +4,7 @@ Site key `spire` in `game/scripts/landmarks.gd` (TOWERS row `spire` with its `wi
 `_build_tower`, `_spire`, `_spire_spines`, `_spire_crown`, `_spire_columns`, `_spire_canopy`,
 `_spire_wing`, `_spire_plaza`, `_spire_water`) and the moving parts in `game/scripts/spire_motion.gd`
 (the crown's LED ticker, the plaza's jets; shaders `spire_ticker.gdshader`, `spire_jets.gdshader`).
-Rebuilt 2026-11-06 from F's ten photos (IMG_7328 to 7337: the tower from the plaza, the street,
+Rebuilt 2026-11-06 from F's ten photos (IMG_7328 to 7337 and the four of the second round, IMG_7349 to 7352: the tower from the plaza, the street,
 the night plaza, the aerial at dusk, the canopy from below, the steel columns, Spire B and C, the
 pebble channel, a design render) and the OpenStreetMap plan, parts, pools and planters in
 `centrum.json`. The first rebuild (2026-11-02, three photos) gave the flaring shaft, the fin and the
@@ -16,8 +16,8 @@ The Warsaw Spire (Plac Europejski, 2016): a 180 m glass tower (220 m with its ma
 55 m crescents, Spire B (east) and Spire C (north-west), round a plaza of pools and trees. What
 makes a passer-by say its name:
 
-1. **The swelling shaft**: slim at the lobby, widest two thirds up, drawn in to the roof (IMG_7329, 7333).
-2. **The saddle crown**: the glass runs past the roof, rising to points at the narrow ends.
+1. **The flaring shaft**: slim at the lobby, its sides concave as it flares out to its widest at about 150 m, drawn in a little to the roof (IMG_7329, 7333; F: concave, not convex).
+2. **The crown**: an open steel ring round a pale ribbed drum on the roof, rising to horns at the narrow ends (IMG_7351, 7352).
 3. **The brand's moving sign** on the crown: here an LED ticker with the parody SAMSONG adverts.
 4. **The polished steel columns** in Λ pairs round the set-back lobby (IMG_7337).
 5. **The mirrored canopy** over the entrance, a wide bow with upswept tips (IMG_7336, 7337).
@@ -34,8 +34,8 @@ z 171..232, an egg 45 x 61 m, the long axis north-south; the entrance and canopy
 | Volume | Plan | Heights | Source |
 | --- | --- | --- | --- |
 | Lobby | ring(10 m) x 0.9, set back | 0 to 10 m, lit glass | IMG_7337 |
-| Shaft | outline x k(h): 0.70 at 0, 1.0 at 118 m, 0.86 at 180 m (`SpireMotion.k_at`) | 10 to 180 m, 13 rings | IMG_7329, 7333 |
-| Crown | the roof ring carried up as a two-sided screen | 182 m over the wide faces, 191 m at the ends | IMG_7329, 7333 |
+| Shaft | outline x k(h): 0.66 + 0.34 (h/150)^1.9 (concave) to 1.0 at 150 m, 0.93 at 180 m (`SpireMotion.k_at`) | 10 to 180 m, 14 rings | IMG_7329, 7333 |
+| Crown | an open steel ring on the roof rim (S_FRAME), a pale ribbed drum in two tiers inside | ring 186 m over the wide faces, horns to 198 m at the ends; drum 187 and 191 m | IMG_7349-7352 |
 | Spines | 2 m strips 0.15 m proud on each narrow end | 10 m to the crown's tips | IMG_7332 |
 | Ticker | a band on the shaft's ring, 0.25 m proud | 165.5 to 171.1 m | F's ask, IMG_7336 |
 | Columns | about 18 Λ pairs, 0.75 m, heads under the shaft's edge | ground to 10 m | IMG_7337 |
@@ -92,7 +92,7 @@ brightens past the bloom threshold; the jets glow cool blue.
 
 ## 7. Detail level and budget
 
-L3. Mesh budget 6200 triangles (check_mesh_quality; 5763 built), up from 2700: 13 shaft rings of ~60 sides,
+L3. Mesh budget 6600 triangles (check_mesh_quality; 6151 built), up from 2700: 13 shaft rings of ~60 sides,
 the crown screen and coping, ~36 columns, the canopy bow (two skins of 24 quads and a rim), the wings'
 extra storey and eaves, the kerbs, islands, channel and 26 trees. No new building materials (+0
 draw calls in the city mesh). The ticker and the jets are two small meshes with their own shaders:
@@ -103,7 +103,7 @@ draw calls in the city mesh). The ticker and the jets are two small meshes with 
 | id | shape | size | position | material | feature |
 | --- | --- | --- | --- | --- | --- |
 | lobby | prism, ring(10 m) x 0.9 | 29 x 40 x 10 | outline centre | M_PAVILION + 0.5 | the set-back lit lobby |
-| shaft | 13 lofted rings | 45 x 61 x 170 | outline centre | M_SKIN S_MIRROR | the swelling glass tower |
+| shaft | 14 lofted rings | 45 x 61 x 170 | outline centre | M_SKIN S_MIRROR | the flaring glass tower |
 | crown | two-sided screen and coping | 39 x 52 x 2-11 | roof rim | M_SKIN S_MIRROR, M_STONE, steel | the saddle crown |
 | spines | lofted strips | 2 x 0.15 x 190 | both narrow ends | M_PAVILION + 0.5 | the lit spines |
 | columns | ~36 beams in Λ pairs | 0.75 x 0.75 x 10 | round the lobby | M_GOLD + 0.5 | the steel columns |

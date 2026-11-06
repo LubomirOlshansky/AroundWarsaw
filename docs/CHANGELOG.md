@@ -10,7 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-06
-- The Warsaw Spire is rebuilt from photos: the tower now swells in the middle and narrows to a pointed glass crown, polished steel columns stand round its lobby under a mirrored canopy, an LED sign runs SAMSONG adverts round the top, and Spire B and C have their pale top storeys; the plaza between them has fountains, a pebble water channel, planted islands and trees.
+- The Warsaw Spire is rebuilt from photos: the tower now flares out from a slim foot with inward-curving sides to a pointed glass crown, polished steel columns stand round its lobby under a mirrored canopy, an LED sign runs SAMSONG adverts round the top, and Spire B and C have their pale top storeys; the plaza between them has fountains, a pebble water channel, planted islands and trees.
 - The food blogger from the Mlask job is now called Mrożulo (was Cringulo), on his van, the signs, the fans and the news.
 
 - A cobalt-blue motorboat now sits on the roof of the Forest tower, next to the PEPEO ŻUBR crown.

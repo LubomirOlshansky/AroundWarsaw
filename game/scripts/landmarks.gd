@@ -3723,8 +3723,8 @@ func _zlota_garden(parts: Array, g: float) -> void:
 
 ## Warsaw Spire (rebuilt 2026-11-06 from F's ten photos; spec docs/landmarks/specs/spire.md).
 ## OpenStreetMap maps the 180 m tower only as its outline (its widest plan) with the crown and
-## masts as floating parts. The real tower is slim at its lobby, swells to the full plan about
-## two thirds up and draws in again to the roof, where the glass runs on past the roof into a
+## masts as floating parts. The real tower is a vase (F's photos IMG_7349-7352): a waist low down,
+## then sides curving in as they flare out to the full plan at the roof (concave, not convex), where the glass runs on past the roof into a
 ## saddle crown, high at the two narrow ends (photos IMG_7329, 7333). So the outline is lofted
 ## through SPIRE_RINGS with SpireMotion.k_at (spire_motion.gd: the same rings carry the crown's LED
 ## ticker); the shaft is blue mirror glass with a fine silver line at each floor and a lit spine
@@ -3736,13 +3736,14 @@ const SpireMotion := preload("res://scripts/spire_motion.gd")
 const SPIRE_TOP := SpireMotion.ROOF
 const SPIRE_LOBBY := 10.0
 ## Ring heights: 165.5 and 171.1 are the ticker band's (spire_motion.gd), so it lies flat on the glass.
-const SPIRE_RINGS := [10.0, 22.0, 40.0, 62.0, 86.0, 104.0, 118.0, 134.0, 148.0, 160.0, 165.5, 171.1, 176.0, 180.0]
-const SPIRE_CROWN := Vector2(2.0, 9.0)  # the saddle crown over the roof: at the wide faces, extra at the ends
+const SPIRE_RINGS := [10.0, 25.0, 45.0, 65.0, 85.0, 103.0, 120.0, 135.0, 148.0, 158.0, 165.5, 171.1, 176.0, 180.0]
+const SPIRE_CROWN := Vector2(6.0, 12.0)  # the crown's open steel ring over the roof: at the wide faces, extra up the horns
 const SPIRE_LOBBY_GLASS := Color("#2c4656")
 const SPIRE_STEEL := Color("#c3ccd3")      # polished steel (M_GOLD + 0.5: no warm glow)
 const SPIRE_MIRROR := Color("#d3dde4")     # the canopy's top
 const SPIRE_MIRROR_UNDER := Color("#8e9aa3")  # its underside, mirroring the plaza
-const SPIRE_SPINE := Color("#86acd0")      # the lit strip up each narrow end
+const SPIRE_SPINE := Color("#86acd0")
+const SPIRE_DRUM := Color("#d9dcdc")       # the roof drum's pale ribbed cladding (IMG_7351)      # the lit strip up each narrow end
 const SPIRE_WING_GLASS := Color("#4778b0")
 const SPIRE_WING_LOBBY := Color("#28404e")
 const SPIRE_WING_CROWN := Color("#c4b69c")  # the top storey's pale stone panels (IMG_7331)
@@ -3800,13 +3801,23 @@ func _spire(outline: PackedVector2Array, g: float, glass: Color, roof: Color, sk
 	_spire_spines(base, c, axis, g)
 	_spire_crown(base, c, axis, g, glass, skin)
 	var top := SpireMotion.ring(base, SPIRE_TOP)
-	# The roof inside the crown: flat, pale, a plant box in the middle.
+	# The roof inside the ring (IMG_7351): a gravel walk, then a pale ribbed drum in two tiers with
+	# the plant on top, the masts rising from it.
 	_cap(top, g + SPIRE_TOP, roof)
-	_prism(_square(c, 5.0), g + SPIRE_TOP, g + SPIRE_TOP + 3.0, roof.darkened(0.08), roof.lightened(0.1), M_STONE, M_STONE)
+	var drum := PackedVector2Array()
+	var drum2 := PackedVector2Array()
+	for q in top:
+		drum.append(c + (q - c) * 0.74)
+		drum2.append(c + (q - c) * 0.5)
+	var ribs := M_SKIN + float(S_FINS) / 16.0
+	_prism(drum, g + SPIRE_TOP, g + SPIRE_TOP + 7.0, SPIRE_DRUM, Color("#b4ab98"), ribs, M_STONE)
+	_prism(drum2, g + SPIRE_TOP + 7.0, g + SPIRE_TOP + 11.0, SPIRE_DRUM, roof, ribs, M_STONE)
+	_prism(_square(c + axis * 3.0, 3.5), g + SPIRE_TOP + 11.0, g + SPIRE_TOP + 13.0, Color("#c9cdd0"), Color("#dfe2e4"), M_STONE, M_STONE)
+	_prism(_square(c - axis * 4.0, 3.0), g + SPIRE_TOP + 11.0, g + SPIRE_TOP + 12.6, Color("#c9cdd0"), Color("#dfe2e4"), M_STONE, M_STONE)
 	# The masts (the two OSM parts' spots), the beacons' posts.
 	for m: Vector2 in masts:
 		var post := PackedVector2Array([m + Vector2(-0.5, -0.5), m + Vector2(0.5, -0.5), m + Vector2(0.5, 0.5), m + Vector2(-0.5, 0.5)])
-		_prism(post, g + SPIRE_TOP, g + 220.0, Color("#d5dade"), Color("#e8ecef"), M_STONE, M_STONE)
+		_prism(post, g + SPIRE_TOP + 11.0, g + 220.0, Color("#d5dade"), Color("#e8ecef"), M_STONE, M_STONE)
 	_collide(foot)
 	_aviation(top, func(_q: Vector2) -> float: return g + SPIRE_TOP + SPIRE_CROWN.x)  # the dusk loop
 	_spire_columns(foot, c, g)
@@ -3845,14 +3856,14 @@ func _spire_spines(base: PackedVector2Array, c: Vector2, axis: Vector2, g: float
 	_mode = keep
 
 
-## The saddle crown: the glass runs on past the roof as a screen, low over the wide faces and
-## rising to a point at each narrow end (IMG_7329, 7333), seen from both sides.
+## The crown: an open steel ring standing on the roof's rim (IMG_7351), low over the wide faces and
+## rising to a horn at each narrow end (IMG_7349, 7352), seen from both sides.
 func _spire_crown(base: PackedVector2Array, c: Vector2, axis: Vector2, g: float, glass: Color, skin: float) -> void:
 	var top := SpireMotion.ring(base, SPIRE_TOP)
 	var y0 := g + SPIRE_TOP
 	var hi := func(q: Vector2) -> float:
 		var w := absf((q - c).normalized().dot(axis))
-		return y0 + SPIRE_CROWN.x + SPIRE_CROWN.y * pow(w, 6.0)
+		return y0 + SPIRE_CROWN.x + SPIRE_CROWN.y * pow(w, 10.0)
 	var keep := _mode
 	var cw := Geometry2D.is_polygon_clockwise(base)
 	var run := 0.0
@@ -3865,11 +3876,12 @@ func _spire_crown(base: PackedVector2Array, c: Vector2, axis: Vector2, g: float,
 		var ya: float = hi.call(a)
 		var yb: float = hi.call(b)
 		var length := a.distance_to(b)
-		_mode = skin
-		_quad(Vector3(a.x, y0, a.y), Vector3(b.x, y0, b.y), Vector3(b.x, yb, b.y), Vector3(a.x, ya, a.y), Vector3(o.x, 0.0, o.y), glass,
+		_mode = M_SKIN + float(S_FRAME) / 16.0
+		_quad(Vector3(a.x, y0, a.y), Vector3(b.x, y0, b.y), Vector3(b.x, yb, b.y), Vector3(a.x, ya, a.y), Vector3(o.x, 0.0, o.y), SPIRE_STEEL,
+				Vector2(run, SPIRE_TOP), Vector2(run + length, SPIRE_TOP), Vector2(run + length, yb - g), Vector2(run, ya - g), SPIRE_TOP + SPIRE_CROWN.y)
+		_quad(Vector3(a.x, y0, a.y), Vector3(b.x, y0, b.y), Vector3(b.x, yb, b.y), Vector3(a.x, ya, a.y), Vector3(-o.x, 0.0, -o.y), SPIRE_STEEL.darkened(0.15),
 				Vector2(run, SPIRE_TOP), Vector2(run + length, SPIRE_TOP), Vector2(run + length, yb - g), Vector2(run, ya - g), SPIRE_TOP + SPIRE_CROWN.y)
 		_mode = M_STONE
-		_quad(Vector3(a.x, y0, a.y), Vector3(b.x, y0, b.y), Vector3(b.x, yb, b.y), Vector3(a.x, ya, a.y), Vector3(-o.x, 0.0, -o.y), Color("#8ea4b5"))
 		# the top edge: a steel coping
 		var ca := Vector3(a.x, ya, a.y)
 		var cb := Vector3(b.x, yb, b.y)

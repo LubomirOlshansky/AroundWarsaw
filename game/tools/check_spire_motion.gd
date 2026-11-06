@@ -1,6 +1,6 @@
 extends SceneTree
-## The Warsaw Spire's moving parts (spire_motion.gd): the tower's flare (slim lobby, widest at
-## H_WIDE, drawn in at the roof), the crown's LED ticker (one surface, a band of the right height
+## The Warsaw Spire's moving parts (spire_motion.gd): the tower's vase shape (a waist, then a concave
+## flare to the widest plan at the roof), the crown's LED ticker (one surface, a band of the right height
 ## wrapped round the crown just proud of the glass, a whole number of text laps so it has no seam)
 ## and the plaza jets (one surface, each jet in the fountain's basin, a small pool or the channel);
 ## both shaders load. No map needed: a stand-in map with an oval like the tower's mapped outline.
@@ -26,14 +26,18 @@ func _expect(ok: bool, what: String) -> void:
 
 
 func _init() -> void:
-	# The flare.
+	# The vase: a waist, then a concave flare to the widest plan at the roof.
 	_expect(is_equal_approx(SpireMotion.k_at(0.0), SpireMotion.K_FOOT), "k at the lobby")
-	_expect(is_equal_approx(SpireMotion.k_at(SpireMotion.H_WIDE), 1.0), "k at its widest")
-	_expect(is_equal_approx(SpireMotion.k_at(SpireMotion.ROOF), SpireMotion.K_TOP), "k at the roof")
+	_expect(is_equal_approx(SpireMotion.k_at(SpireMotion.H_WAIST), SpireMotion.K_WAIST), "k at the waist")
+	_expect(is_equal_approx(SpireMotion.k_at(SpireMotion.ROOF), 1.0), "k at the roof")
 	var last := 0.0
-	for h in range(0, int(SpireMotion.H_WIDE) + 1, 2):
-		_expect(SpireMotion.k_at(h) >= last, "k falls at %d m on the way up" % h)
-		last = SpireMotion.k_at(h)
+	for h in range(int(SpireMotion.H_WAIST), int(SpireMotion.ROOF) + 1, 5):
+		var k := SpireMotion.k_at(h)
+		_expect(k >= last, "k falls at %d m above the waist" % h)
+		# concave: the flare grows faster the higher it goes
+		if h >= int(SpireMotion.H_WAIST) + 10:
+			_expect(k - SpireMotion.k_at(h - 5) >= SpireMotion.k_at(h - 5) - SpireMotion.k_at(h - 10) - 1e-6, "convex at %d m" % h)
+		last = k
 	# A stand-in outline: the tower's oval, 45 x 61 m.
 	var c := Vector2(-2720.5, 201.6)
 	var pts: Array = []

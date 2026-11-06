@@ -13,12 +13,16 @@ extends Node3D
 const Pixel := preload("res://scripts/pixel_font.gd")
 
 const TOWER := "Warsaw Spire"
-## The tower's shape (photos IMG_7329, 7333): slim at the lobby, swelling to the mapped plan (the
-## widest, about 118 m up), drawing in again to the roof at 180 m. `k` scales the plan about its
-## centre.
-const K_FOOT := 0.70
-const K_TOP := 0.86
-const H_WIDE := 118.0
+## The tower's shape (F's photos IMG_7349 to 7352, 2026-11-06: "concave, not convex"): a vase. A
+## little narrower from the lobby to a waist about 45 m up, then the sides curve in as they flare out
+## ever faster to the widest plan (the mapped outline) at the roof, 180 m. `k` scales the plan about
+## its centre.
+const K_FOOT := 0.80
+const K_WAIST := 0.72
+const H_WAIST := 45.0
+const FLARE := 1.8         # the flare's exponent: over 1 makes the sides concave
+const K_TOP := 1.0
+const H_WIDE := 180.0
 const ROOF := 180.0
 ## The ticker: a band of LEDs round the crown, under the roof's rim (where the real tower carries its
 ## brand), metres above the ground.
@@ -89,11 +93,11 @@ var tick_length := 0.0
 
 ## The plan's share of the mapped (widest) outline at height h.
 static func k_at(h: float) -> float:
-	if h <= H_WIDE:
-		var t := clampf(h / H_WIDE, 0.0, 1.0)
-		return K_FOOT + (1.0 - K_FOOT) * (1.0 - (1.0 - t) * (1.0 - t))
-	var u := clampf((h - H_WIDE) / (ROOF - H_WIDE), 0.0, 1.0)
-	return 1.0 - (1.0 - K_TOP) * u * u
+	if h <= H_WAIST:
+		var t := clampf(h / H_WAIST, 0.0, 1.0)
+		return lerpf(K_FOOT, K_WAIST, 0.5 - 0.5 * cos(PI * t))
+	var u := clampf((h - H_WAIST) / (ROOF - H_WAIST), 0.0, 1.0)
+	return K_WAIST + (K_TOP - K_WAIST) * pow(u, FLARE)
 
 
 ## The mapped outline with its doubled points dropped (OpenStreetMap draws the entrance's notch in

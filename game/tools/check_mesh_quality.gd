@@ -154,7 +154,7 @@ const BUDGET := {
 	"zelazna": 1030,
 	"pokorna2": 1500,
 	"spektrum": 990,
-	"spire": 6200,  # 2026-11-06 photo rebuild (F), 5763 tris: steel columns, saddle crown, canopy bow, Spire B/C crowns and eaves, plaza kerbs, channel, 26 trees; +0 draw calls
+	"spire": 6600,  # 2026-11-06 photo rebuild (F), 6151 tris (vase, steel crown ring, drum): steel columns, canopy bow, Spire B/C crowns and eaves, plaza kerbs, channel, 26 trees; +0 draw calls
 	"tr": 500,
 	"tower75": 220,
 	"cepelia": 900,
