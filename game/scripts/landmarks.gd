@@ -23801,10 +23801,10 @@ func _wd_window(u: float, y: float, h: float, arched: bool) -> void:
 
 ## A dormer standing on the mansard at bay centre u: a window in a white frame under a zinc cap.
 func _wd_dormer(u: float, g: float) -> void:
-	_lbox(u, -1.0, 0.82, 0.55, g + WD_EAVE + 0.3, g + WD_EAVE + 2.6, WD_WHITE)
-	_lbox(u, -0.42, 0.52, 0.03, g + WD_EAVE + 0.7, g + WD_EAVE + 2.2, WD_GLASS)
-	_lbox(u, -1.0, 1.0, 0.72, g + WD_EAVE + 2.6, g + WD_EAVE + 2.85, WD_WHITE)
-	_lbox(u, -1.0, 0.6, 0.5, g + WD_EAVE + 2.85, g + WD_EAVE + 3.1, WD_ZINC)
+	_lbox(u, -0.6, 0.82, 0.7, g + WD_EAVE - 0.1, g + WD_EAVE + 2.6, WD_WHITE)
+	_lbox(u, 0.13, 0.52, 0.03, g + WD_EAVE + 0.7, g + WD_EAVE + 2.2, WD_GLASS)
+	_lbox(u, -0.6, 1.0, 0.82, g + WD_EAVE + 2.6, g + WD_EAVE + 2.85, WD_WHITE)
+	_lbox(u, -0.6, 0.6, 0.6, g + WD_EAVE + 2.85, g + WD_EAVE + 3.1, WD_ZINC)
 
 
 ## One street front from `from` to `to` in `bays` bays: dark banded piers and burgundy awnings at
