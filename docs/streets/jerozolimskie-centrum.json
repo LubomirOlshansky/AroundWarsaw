@@ -3,10 +3,10 @@
  "title": "Aleje Jerozolimskie: Emilii Plater to Rondo Dmowskiego",
  "updated": "2026-11-06",
  "stage": "baseline",
- "score": 90,
+ "score": 91,
  "counts": {
   "L1": 2,
-  "L2": 10,
+  "L2": 8,
   "O1": 15
  },
  "blocks": [
@@ -32,10 +32,10 @@
    "id": "C",
    "title": "to Rondo Dmowskiego",
    "counts": {
-    "L2": 5,
+    "L2": 3,
     "O1": 2
    },
-   "score": 93
+   "score": 95
   }
  ],
  "history": [
@@ -51,6 +51,20 @@
     "A": 87,
     "B": 91,
     "C": 93
+   }
+  },
+  {
+   "date": "2026-11-06",
+   "score": 91,
+   "counts": {
+    "L1": 2,
+    "L2": 8,
+    "O1": 15
+   },
+   "blocks": {
+    "A": 87,
+    "B": 91,
+    "C": 95
    }
   }
  ],
@@ -297,26 +311,6 @@
    "t": 20.9,
    "note": "parked_car/car 0.6 m from a lane's edge",
    "block": "B",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -970.8,
-   "z": 498.1,
-   "s": 307.2,
-   "t": -1.8,
-   "note": "lane line ends mid-block",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -971.8,
-   "z": 495.2,
-   "s": 307.2,
-   "t": -4.8,
-   "note": "lane line ends mid-block",
-   "block": "C",
    "status": "open"
   },
   {

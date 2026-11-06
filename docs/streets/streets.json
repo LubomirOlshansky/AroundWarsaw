@@ -507,17 +507,23 @@
     {
      "name": "A",
      "x": -1180.3,
-     "z": 568.9
+     "z": 568.9,
+     "yaw": 135,
+     "why": "shoot with --yaw=135 (the south-side roofs hide the street at the default angle)"
     },
     {
      "name": "B",
      "x": -1112.8,
-     "z": 548.2
+     "z": 548.2,
+     "yaw": 135,
+     "why": "shoot with --yaw=135 (the south-side roofs hide the street at the default angle)"
     },
     {
      "name": "C",
      "x": -978.7,
-     "z": 499.7
+     "z": 499.7,
+     "yaw": 135,
+     "why": "shoot with --yaw=135 (the south-side roofs hide the street at the default angle)"
     },
     {
      "name": "R",
