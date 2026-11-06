@@ -16,6 +16,22 @@ strict three-question door, Smoła's cutaway room (option A). Left:
 - [ ] Opaski (wristbands) collected per spot, a card in the notebook
 - [ ] Option B: a walk-around room (a person controller inside), only if A plays well
 
+## Boat race "Wiślana Szprotka" (F, 2026-11-06; docs/design/boat-race.md)
+
+Built: Szymek's call, the start pontoon at the mouth of Port Czerniakowski, the 3.2 km course of 25
+rings under four bridges, three misses and you're out (JESZCZE RAZ / WYJDŹ), the rhythm and gold
+rings, the planing physics with wakes and jumps, three rivals with their own temperaments, the sand
+barge and its wake. Left:
+- [ ] Phone feel (F): the turn and slide on the plane, the jump off the barge's wake, whether 16 m rings are too easy or too hard at the iso scale, the rings' readability at night
+- [ ] Autopilot run on the Mac (F asked 2026-11-06): the call, the pontoon stop, a full race, a fail and a restart
+- [ ] A boat engine sound (the car's engine plays now) and a splash on landing; a rooster tail of spray behind the jet ski
+- [ ] The ring's light at night (now bright unshaded colour, no glow); the rivals' boats are dark at night apart from their hulls
+- [ ] Bench on the phone during a race (expected about +10 draw calls)
+- [ ] A best-time record and a leaderboard line ("Ranking ulicy" has a place for it)
+- [ ] More courses: upstream to Łazienkowski and back, a night course with lit buoys, the Port Czerniakowski channel as a slow slalom
+- [ ] The marina (PR #251) as the start once the harbour's 8 m entrance can be widened or raced in single file
+- [ ] Pan Zdzisiek fishing from the Złota Rybka after the race; Kamil's "relacja" as a ticker joke
+
 ## The Emilii Plater underpass entrances (F, 2026-11-06)
 
 F's screenshots: walled boxes with steps on flat ground. Done 2026-11-06 (spec
