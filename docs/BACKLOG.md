@@ -54,6 +54,22 @@ Left:
 - PT-25 (suspect): crazy drivers honk but said no line in 5 cut-ins.
 - PT-26, PT-27 (S3): a bubble over the steering hint; the KEBAB label over BRAKE.
 
+## Road design rollout: every street on the map (F, 2026-11-06; docs/design/road-design-rollout.md)
+
+Areas and progress: docs/plan/road-areas.json, `python3 -I tools/road_progress.py` (main streets 3.4%,
+all streets 1.9% after areas 1-2).
+
+- Tier A core, next: 3 Marszałkowska north, 4 Świętokrzyska east, 5 Jerozolimskie east, 6 Rondo
+  Dmowskiego, 7 Marszałkowska south, 8 Emilii Plater south + Chałubińskiego, 9 Rondo ONZ +
+  Świętokrzyska west, 10 Królewska + Plac Małachowskiego, 11 Jerozolimskie west, 12 Plac Trzech
+  Krzyży + Ujazdowskie. Each with an in-game before/after page for F.
+- Ortho tiles for areas 3-12 and tier B (Mac, GUGiK WMS, refs/road_design2/): the cloud cannot reach
+  GUGiK.
+- Tier B arterials B1-B10 after the core; tier C 500 m grid after that, nearest the Palace first.
+- Apply the designs to the shipped map once area 6 closes the core with no free ends; phone bench
+  first.
+- Traffic lane graph from the spec's lanes (today the OSM edges are moved onto the designed lanes).
+
 ## Road design system: round 2 (F, 2026-11-06; docs/design/road-design-palace-results.md)
 
 - Seams where a designed street ends in the middle of a block: the old lane lines carry on up to 2.4 m
