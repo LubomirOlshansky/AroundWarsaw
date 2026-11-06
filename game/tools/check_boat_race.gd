@@ -199,6 +199,14 @@ func _boat(map: WaterMap) -> void:
 		worst = minf(worst, map.shore_distance(b.pos.x, b.pos.y))
 	if worst < 1.0:
 		_fail("the runabout got %.1f m from the shore line (through the bank)" % worst)
+	# Pinned nose-first against that bank at full throttle: it must still turn off it (the
+	# rudder's contact bite), not sit there until the player reverses.
+	var yaw1: float = b.yaw
+	b.steer = 1.0
+	for i in 60 * 3:
+		b.step(STEP)
+	if absf(wrapf(b.yaw - yaw1, -PI, PI)) < 0.8:
+		_fail("the runabout pinned on a bank turns only %.2f rad in 3 s" % absf(wrapf(b.yaw - yaw1, -PI, PI)))
 	b.queue_free()
 
 

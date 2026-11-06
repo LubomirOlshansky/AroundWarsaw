@@ -44,6 +44,11 @@ const HARD_LANDING := 4.0    # m/s down: a landing harder than this costs speed
 const BOW_UP := 0.07         # rad: the bow up while it climbs onto the plane
 const ROLL := 0.22           # rad of lean per rad/s of turn
 const PUSH := 0.35           # share of the speed into a wall that bounces back
+## A boat nosed into a bank at full throttle barely moves, so its rudder has no flow: for
+## CONTACT_HOLD s after a touch, with the throttle on, the rudder keeps this much bite (the
+## prop wash over it), so the player can turn off the bank instead of having to reverse.
+const CONTACT_BITE := 0.55
+const CONTACT_HOLD := 0.8
 
 ## The kind's spec, and the boost the race grants (rhythm, gold rings): top speed × `boost`.
 var kind := Kind.RUNABOUT
@@ -82,6 +87,7 @@ var solid: Callable = Callable()
 ## Events of the last step, for the race (sound, haptics, lines): a bump's strength (m/s into
 ## the wall or boat), a landing's strength.
 var bumped := 0.0
+var _contact := 0.0
 var landed := 0.0
 ## The race's boats on the same water (for the boat-to-boat bumps).
 var others: Array = []
@@ -107,6 +113,7 @@ func place(at: Vector2, heading: float) -> void:
 	yaw = heading
 	vel = Vector2.ZERO
 	yaw_rate = 0.0
+	_contact = 0.0
 	y = 0.0
 	vy = 0.0
 	air = false
@@ -182,6 +189,9 @@ func step(dt: float) -> void:
 	rel = f * vf + right * vr
 	# The rudder.
 	var authority := clampf(absf(vf) / 5.0, 0.0, 1.0) * (1.0 - 0.3 * clampf((absf(vf) - 12.0) / 10.0, 0.0, 1.0))
+	_contact = maxf(0.0, _contact - dt)
+	if _contact > 0.0 and throttle > 0.1 and on_water:
+		authority = maxf(authority, CONTACT_BITE)
 	if not on_water:
 		authority *= 0.25
 	var want_rate := float(spec["turn"]) * clampf(steer, -1.0, 1.0) * authority * (1.0 if vf >= -0.5 else -1.0)
@@ -280,6 +290,7 @@ func _boats() -> void:
 
 
 func _hit(n: Vector2) -> void:
+	_contact = CONTACT_HOLD
 	var into := vel.dot(n)
 	if into < 0.0:
 		vel -= n * into * (1.0 + PUSH)
