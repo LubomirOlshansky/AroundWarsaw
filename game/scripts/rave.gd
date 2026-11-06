@@ -118,6 +118,8 @@ const PAY := 150
 const RESPECT := 40
 ## The ticket inside (F, 2026-11-06: "to enter you have to pay cash"): cash only, at the door.
 const ENTRY := 50
+## The door waits this long for an answer, then turns you away (never a quest stuck at the door).
+const DOOR_LIFE := 90.0
 const RESULT_LIFE := 12.0
 
 ## The rig: drawn within RIG_FAR m of the view's focus (the beams show over the skyline), the
@@ -208,6 +210,7 @@ var _hold_t := 0.0
 var _ring_t := 0.0
 var _talk_t := 0.0
 var _result_t := 0.0
+var _door_t := 0.0
 var _crowd_t := 0.0
 var _dance_t := 0.0
 var _noticed := false
@@ -651,6 +654,13 @@ func step(dt: float) -> void:
 			_status("%s · %s" % [String(dest["name"]).to_upper(), what], "Zatrzymaj się przy bramce", "Stop at the door", at, dest["door"]["at"], COLOUR)
 			if _arrived(dt, at, kmh, dest["door"]["at"], DOOR_R):
 				_door()
+		State.DOOR:
+			# No answer for DOOR_LIFE s (or a card that never got a place): the bouncer gives up on you.
+			_door_t += dt
+			if _door_t > DOOR_LIFE:
+				hud.hide_card()
+				_log("door: no answer in %.0f s" % DOOR_LIFE)
+				_enter("out")
 		State.RESULT:
 			_result_t += dt
 			if _result_t > RESULT_LIFE:
@@ -1031,10 +1041,12 @@ func _ask() -> void:
 	var buttons := PackedStringArray()
 	for a: Array in q[1]:
 		buttons.append("%s|%s" % [a[0], a[1]])
-	var intro := "Bramkarz w czarnym pochyla się do okna. Za nim dudni bas." if quiz_i == 0 else "Bramkarz nawet nie mruga."
-	var intro_en := "A bouncer in black leans to the window. Behind him the bass is pounding." if quiz_i == 0 else "The bouncer doesn't even blink."
-	hud.show_card("SELEKCJA %d/%d" % [quiz_i + 1, quiz.size()], "%s „%s”" % [intro, q[0][0]], buttons, COLOUR, false,
-			"THE DOOR %d/%d" % [quiz_i + 1, quiz.size()], "%s \"%s\"" % [intro_en, q[0][1]])
+	# The answers stacked (Autopilot 2026-11-06: three answers in one row made the card too wide
+	# to place on a 16:9 screen, and the door waited for ever).
+	# Only the question on the card: short enough for a 16:9 screen too.
+	hud.show_card("SELEKCJA %d/%d" % [quiz_i + 1, quiz.size()], "„%s”" % q[0][0], buttons, COLOUR, false,
+			"THE DOOR %d/%d" % [quiz_i + 1, quiz.size()], "\"%s\"" % q[0][1], true)
+	_door_t = 0.0
 	_log("door %d: %s" % [quiz_i + 1, q[0][1]])
 
 
