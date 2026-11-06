@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-06
+- Three towers on Prosta are built from F's photos: Prosta 32 in its white lace of concrete diamonds over blue glass, the new green Prosta 28 on steel X braces with trees on its stepped top, and the white Łucka City behind them with its dark top and a blue roof board.
 - The food blogger from the Mlask job is now called Mrożulo (was Cringulo), on his van, the signs, the fans and the news.
 
 - A cobalt-blue motorboat now sits on the roof of the Forest tower, next to the PEPEO ŻUBR crown.

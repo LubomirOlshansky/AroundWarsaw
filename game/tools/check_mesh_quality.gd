@@ -116,7 +116,9 @@ const BUDGET := {
 	"legia": 700,
 	"lim": 300,
 	"loretka": 1120,
-	"lucka": 470,
+	"lucka": 850,  # 2026-11-06: rebuilt from F's photos (white stepped block, INTERBRUK board, masts)
+	"prosta28": 1400,  # 2026-11-06: X-braced base, stepped tree terraces, stone stack, annex
+	"prosta32": 3300,  # 2026-11-06: the diamond lattice, ~480 members of six triangles
 	"marszalkowska94": 490,
 	"mariensztat": 660,
 	"mennica": 650,

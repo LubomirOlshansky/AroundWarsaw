@@ -120,7 +120,6 @@ const TOWERS := [
 	{"key": "ilmet", "osm": "Ilmet", "style": S_BANDS, "glass": "#7d5a48", "roof": "#8c8278"},
 	{"key": "platinum_a", "osm": "Platinum Tower A", "style": S_RIBBON, "glass": "#6b7f8e", "roof": "#c4c8c8"},
 	{"key": "platinum_b", "osm": "Platinum Tower B", "style": S_RIBBON, "glass": "#6b7f8e", "roof": "#c4c8c8"},
-	{"key": "lucka", "osm": "Łucka City", "style": S_RIBBON, "glass": "#7c8c98", "roof": "#bfc3c3"},
 	{"key": "widok", "osm": "Widok Towers", "style": S_GRID, "glass": "#5d8478", "roof": "#8d969c"},
 	# The PZU Tower's two stepped glass volumes (92 and 97 m, one round-topped) in pale
 	# green-blue glass with ribbon bands, and its slim white mast (106 m). JM Tower's grey fins
@@ -230,7 +229,14 @@ const INFO := {
 	"ilmet": ["Ilmet", "103 m.", "103 m."],
 	"platinum_a": ["Platinum Tower A", "83 m.", "83 m."],
 	"platinum_b": ["Platinum Tower B", "83 m.", "83 m."],
-	"lucka": ["Łucka City", "103 m przy Łuckiej.", "103 m on Łucka."],
+	"lucka": ["Łucka City", "Biały wieżowiec mieszkalny przy Łuckiej 15, 100 m, schodkami w dół do Łuckiej i do Prostej. Na dachu INTERBRUK.",
+			"A white residential tower at Łucka 15, 100 m, stepping down to Łucka and to Prosta. INTERBRUK on the roof."],
+	"prosta32": ["Prosta 32",
+			"Biurowiec w białej betonowej koronce z rombów na niebieskim szkle. Na dachu czerwony MARZYPOL.",
+			"An office tower in a white concrete lace of diamonds over blue glass. MARZYPOL in red on the roof."],
+	"prosta28": ["Prosta 28",
+			"Zielona szklana wieża na stalowych iksach, z tarasami pełnymi drzew na szczycie.",
+			"A green glass tower on steel X braces, with terraces full of trees at the top."],
 	"widok": ["Widok Towers", "95 m przy Alejach Jerozolimskich.", "95 m on Al. Jerozolimskie."],
 	"pzu": ["Wieża PZU", "Biurowiec przy Alejach Jana Pawła II: dwie szklane bryły, jedna z okrągłym szczytem.",
 			"An office tower on Al. Jana Pawła II: two glass volumes, one with a round top."],
@@ -778,6 +784,12 @@ static func tower_colour(key: String, fallback: Color) -> Color:
 		return Color(MALACHOWSKI_WALLS[key])
 	if key == "gbc":
 		return GBC_GLASS
+	if key == "prosta32":
+		return P32_GLASS
+	if key == "prosta28":
+		return P28_GLASS
+	if key == "lucka":
+		return LUCKA_WHITE
 	if key == "buw":
 		return BUW_GLASS
 	if key == "kopernik":
@@ -985,6 +997,9 @@ func _find_sites() -> void:
 	_find_rynek()
 	_find_arkadia()
 	_find_forest()
+	_find_prosta32()
+	_find_prosta28()
+	_find_lucka()
 	_find_towarowa22()
 	_find_gbc()
 	_find_flag()
@@ -1391,6 +1406,12 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_arkadia(s)
 			"forest":
 				_build_forest(s)
+			"prosta32":
+				_build_prosta32(s)
+			"prosta28":
+				_build_prosta28(s)
+			"lucka":
+				_build_lucka(s)
 			"towarowa22":
 				_build_towarowa22(s)
 			"gbc":
@@ -6141,6 +6162,483 @@ func _arkadia_cores(poly: PackedVector2Array, g: float, c: Vector2) -> void:
 						y + 6.5, y + 6.8, Color("#fff4d6"), Color("#fff4d6"), M_LAMP, M_LAMP)
 				n += 1
 	_no_roof = false
+
+
+# --- Prosta 32, Prosta 28 and Łucka City (F's photos, 2026-11-06) ---------------------------
+
+## Prosta 32 (2012; spec docs/landmarks/specs/prosta32.md), from F's photos: a 74 m office tower
+## of deep blue glass whose Prosta front wears a white concrete diamond lattice. The lattice's
+## members swell out from the glass and back again up the height, so the face's edge waves in
+## profile; its lowest diamonds open as arches onto the pavement. MARZYPOL (the developer's red
+## roof letters as a parody) stands on the roof edge over the lattice and over the east face; a
+## four-storey glass podium joins it on the east. The lattice is triangles in the one landmark
+## mesh: three faces a member (front and two sides), no new draw call.
+const P32_H := 74.0
+const P32_GLASS := Color("#3d6c9c")
+const P32_ROOF := Color("#8e979e")
+const P32_LATTICE := Color("#e9e7e1")
+const P32_PODIUM := Color("#6f8ea6")
+const P32_RED := Color(0.92, 0.12, 0.12)
+const P32_DIAMONDS := 7     # whole diamonds across the front (photos: seven, half ones at the ends)
+const P32_ROW := 4.6        # one diamond's height (sixteen up the 74 m)
+const P32_MEMBER := 1.0     # a member's width on the face (white about half the front, as the photos)
+const P32_WAVE := 26.0      # the lattice swells out and back every 26 m of height
+
+
+func _find_prosta32() -> void:
+	var outline := _landmark("Prosta Tower")
+	if outline.size() < 3:
+		return
+	var parts := _parts_in(outline, func(b: Dictionary) -> bool: return float(b["h"]) >= 10.0)
+	_add_site("prosta32", [outline])
+	if not sites.is_empty() and sites[-1]["key"] == "prosta32":
+		sites[-1]["parts"] = parts
+		sites[-1]["ring"] = outline
+
+
+func _build_prosta32(site: Dictionary) -> void:
+	var tower := PackedVector2Array()
+	var low: Array[PackedVector2Array] = []
+	for bld: Dictionary in site["parts"]:
+		var q := _pts(bld["p"])
+		if float(bld["h"]) >= 40.0:
+			tower = q
+		else:
+			low.append(q)
+	if tower.size() < 3:
+		return
+	_g = _ground_under(site["ring"])
+	var g := _g
+	# The podium: four storeys of glass in floor bands, a plain grey roof.
+	for q in low:
+		_prism(q, g - 0.5, g + 14.2, P32_PODIUM, P32_ROOF, M_SKIN + float(S_BANDS) / 16.0, M_STONE)
+		_parapet(q, g + 14.2, 0.8, P32_ROOF.lightened(0.2))
+	# The tower: blue mirror glass all round, a grey roof with a parapet and a plant box.
+	_prism(tower, g - 0.5, g + P32_H, P32_GLASS, P32_ROOF, M_SKIN + float(S_MIRROR) / 16.0, M_STONE)
+	_parapet(tower, g + P32_H, 1.1, P32_ROOF.lightened(0.25))
+	_no_roof = true
+	var c := _centre(tower)
+	_prism(_square(c + Vector2(-2.0, -1.5), 3.0), g + P32_H, g + P32_H + 2.6, Color("#6c7277"), Color("#7a8085"), M_STONE, M_STONE)
+	_no_roof = false
+	# The front: the tower's edge that faces Prosta (south, +z) the most, by its length.
+	var fa := Vector2.ZERO
+	var fb := Vector2.ZERO
+	var best := -INF
+	for i in tower.size():
+		var a := tower[i]
+		var b := tower[(i + 1) % tower.size()]
+		var score := _out(tower, a, b).y * a.distance_to(b)
+		if score > best:
+			best = score
+			fa = a
+			fb = b
+	var out := _out(tower, fa, fb)
+	_p32_lattice(fa, fb, out, g, g + P32_H)
+	# MARZYPOL on the roof edge: over the lattice (south), and over the east face.
+	var mid := (fa + fb) * 0.5 + out * 0.4
+	signs.append(["MARZYPOL", Vector3(mid.x, g + P32_H + 0.6, mid.y), Vector3(out.x, 0.0, out.y), 1.4, P32_RED])
+	var ea := Vector2.ZERO
+	var eb := Vector2.ZERO
+	best = -INF
+	for i in tower.size():
+		var a := tower[i]
+		var b := tower[(i + 1) % tower.size()]
+		var score := _out(tower, a, b).x * a.distance_to(b)
+		if score > best:
+			best = score
+			ea = a
+			eb = b
+	var eo := _out(tower, ea, eb)
+	var em := (ea + eb) * 0.5 + eo * 0.4
+	signs.append(["MARZYPOL", Vector3(em.x, g + P32_H + 0.6, em.y), Vector3(eo.x, 0.0, eo.y), 0.95, P32_RED])
+	for q in low:
+		_collide(q)
+		pocket_rings.append(q)
+	_collide(tower)
+	pocket_rings.append(tower)
+
+
+## How far the lattice stands out of the glass at height h over the ground (0.45 to 1.3 m).
+func _p32_proud(h: float) -> float:
+	return 0.45 + 0.85 * (0.5 + 0.5 * sin(TAU * h / P32_WAVE + 0.6))
+
+
+## The diamond lattice over the front a→b: nodes every half-diamond across and up, two families
+## of diagonal members between them (the "\" family 6 cm proud of the "/", so their crossings
+## don't z-fight), a white band along the top.
+func _p32_lattice(a: Vector2, b: Vector2, out: Vector2, y0: float, y1: float) -> void:
+	var length := a.distance_to(b)
+	if length < 4.0:
+		return
+	var e := (b - a) / length
+	var cols := 2 * P32_DIAMONDS
+	var hw := length / float(cols)
+	var hh := P32_ROW * 0.5
+	var rows := floori((y1 - y0 - 0.8) / hh)
+	var keep := _mode
+	_mode = M_STONE
+	for j in rows:
+		for i in range(0, cols + 1):
+			if (i + j) % 2 != 0:
+				continue
+			for s: int in [-1, 1]:
+				var k := i + s
+				if k < 0 or k > cols:
+					continue
+				var lift := 0.06 if s < 0 else 0.0
+				_p32_member(a + e * (i * hw), j * hh, a + e * (k * hw), (j + 1) * hh, e, out, y0, lift)
+	# The top band: the lattice's head, over its last row of nodes.
+	var top_h := rows * hh
+	var p := _p32_proud(top_h) + 0.06
+	var ta := a + out * p
+	var tb := b + out * p
+	_wall(ta, tb, y0 + top_h - 0.5, y1, out, P32_LATTICE)
+	_mode = keep
+
+
+## One member from (p, h0) to (q, h1) on the face (plan points on the glass, heights over y0):
+## its front `lift` metres further out, its two sides back to the glass.
+func _p32_member(p: Vector2, h0: float, q: Vector2, h1: float, e: Vector2, out: Vector2, y0: float, lift: float) -> void:
+	var o3 := Vector3(out.x, 0.0, out.y)
+	var e3 := Vector3(e.x, 0.0, e.y)
+	var d2 := Vector2((q - p).dot(e), h1 - h0).normalized()
+	var w3 := (e3 * -d2.y + Vector3.UP * d2.x) * (P32_MEMBER * 0.5)
+	var pp := _p32_proud(h0) + lift
+	var pq := _p32_proud(h1) + lift
+	var fp := Vector3(p.x, y0 + h0, p.y) + o3 * pp
+	var fq := Vector3(q.x, y0 + h1, q.y) + o3 * pq
+	var bp := Vector3(p.x, y0 + h0, p.y) + o3 * 0.05
+	var bq := Vector3(q.x, y0 + h1, q.y) + o3 * 0.05
+	if h0 <= 0.0:
+		# A foot on the pavement: no arm under the ground.
+		fp.y = y0 - 0.3
+		bp.y = y0 - 0.3
+	var front := (fq - fp).cross(w3).normalized()
+	if front.dot(o3) < 0.0:
+		front = -front
+	_quad(fp - w3, fq - w3, fq + w3, fp + w3, front, P32_LATTICE)
+	for sd: float in [-1.0, 1.0]:
+		var n := w3.normalized() * sd
+		_quad(fp + w3 * sd, fq + w3 * sd, bq + w3 * sd, bp + w3 * sd, n, P32_LATTICE.darkened(0.08))
+
+
+## Łucka City (Łucka 15; spec docs/landmarks/specs/lucka.md), from F's photos: a white residential
+## block stepping up from Łucka and from Prosta to its 100 m tower, whose top five storeys are clad
+## dark grey; white cladding with punched windows in bands all over; on the roof a
+## blue board with INTERBRUK (the printer's sign as a parody: paving setts instead of print)
+## between two red lattice masts.
+const LUCKA_WHITE := Color("#e7e7e3")
+const LUCKA_GREY := Color("#62676b")
+const LUCKA_ROOF := Color("#c4c6c6")
+const LUCKA_BLUE := Color("#1d4b96")
+const LUCKA_TOWER_H := 100.0   # the tower's roof (LoD2 97.6 m, OSM 103.3 with the sign)
+const LUCKA_GREY_FROM := 83.0  # the dark top storeys (photos: about the top sixth)
+
+
+func _find_lucka() -> void:
+	var outline := _landmark("Łucka City")
+	if outline.size() < 3:
+		return
+	var parts := _parts_in(outline, func(b: Dictionary) -> bool: return float(b["h"]) >= 20.0)
+	_add_site("lucka", [outline])
+	if not sites.is_empty() and sites[-1]["key"] == "lucka":
+		sites[-1]["parts"] = parts
+		sites[-1]["ring"] = outline
+
+
+func _build_lucka(site: Dictionary) -> void:
+	_g = _ground_under(site["ring"])
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	for bld: Dictionary in site["parts"]:
+		var q := _pts(bld["p"])
+		var h := float(bld["h"])
+		if h >= 95.0:
+			_prism(q, g - 0.5, g + LUCKA_GREY_FROM, LUCKA_WHITE, none, M_SKIN + float(S_PUNCHED) / 16.0)
+			_prism(q, g + LUCKA_GREY_FROM, g + LUCKA_TOWER_H, LUCKA_GREY, LUCKA_ROOF, M_SKIN + float(S_PUNCHED) / 16.0, M_STONE)
+			_parapet(q, g + LUCKA_TOWER_H, 1.0, LUCKA_GREY.lightened(0.15))
+			_lucka_sign(q, g + LUCKA_TOWER_H)
+		else:
+			_prism(q, g - 0.5, g + h, LUCKA_WHITE, LUCKA_ROOF, M_SKIN + float(S_PUNCHED) / 16.0, M_STONE)
+			_parapet(q, g + h, 1.0, LUCKA_WHITE)
+		_collide(q)
+		pocket_rings.append(q)
+
+
+## The roof sign: the tower's long axis by its outline's spread; the board stands across it on
+## steel legs, INTERBRUK on both faces (south to Prosta, north to Łucka), a red-and-white lattice
+## mast at each end.
+func _lucka_sign(q: PackedVector2Array, top: float) -> void:
+	var c := _centre(q)
+	var sxx := 0.0
+	var szz := 0.0
+	var sxz := 0.0
+	for p in q:
+		var d := p - c
+		sxx += d.x * d.x
+		szz += d.y * d.y
+		sxz += d.x * d.y
+	var ang := 0.5 * atan2(2.0 * sxz, sxx - szz)
+	var long := Vector2(cos(ang), sin(ang))
+	var across := Vector2(-long.y, long.x)
+	_no_roof = true
+	var half := 7.0
+	for s: float in [-1.0, 1.0]:
+		var leg := c + across * (half - 1.0) * s
+		_prism(_square(leg, 0.2), top, top + 1.2, Color("#4a4f54"), Color("#4a4f54"), M_STONE, M_STONE)
+	var board := PackedVector2Array([c - across * half - long * 0.3, c + across * half - long * 0.3,
+			c + across * half + long * 0.3, c - across * half + long * 0.3])
+	_prism(board, top + 1.2, top + 4.4, LUCKA_BLUE, LUCKA_BLUE.lightened(0.1), M_STONE, M_STONE)
+	for s: float in [-1.0, 1.0]:
+		var face := c + long * (0.3 * s)
+		signs.append(["INTERBRUK", Vector3(face.x, top + 1.7, face.y), Vector3(long.x * s, 0.0, long.y * s), 0.95, Color(1.0, 1.0, 1.0)])
+		# The masts: red with white bands, as the photos' two lattice masts either side.
+		var m := c + across * (half + 2.5) * s
+		for k in 4:
+			var col := Color("#c8312b") if k % 2 == 0 else Color("#eeeeea")
+			_beam(Vector3(m.x, top + k * 3.0, m.y), Vector3(m.x, top + (k + 1) * 3.0, m.y), 0.5, col, false)
+	_no_roof = false
+
+
+## Prosta 28 (finished 2025; spec docs/landmarks/specs/prosta28.md), from F's photos: a green
+## glass office tower on Prosta, about 92 m to its crown (OSM still has it at 80 m), standing on a
+## double-height base of dark steel columns with silver X braces; a grey stone-clad stack on its
+## west end; its top stepping down to the north in terraces planted with trees, under a pale stone
+## crown; PROSTO (a tenant's small red logo as a parody) high on the east face; a 41 m green glass
+## annex towards Łucka with stepped planted terraces, and 24 m wings.
+const P28_BOX := Rect2(-2410.0, 160.0, 65.0, 105.0)
+const P28_GLASS := Color("#5b8a82")
+const P28_ANNEX := Color("#4f7c78")
+const P28_STONE := Color("#8f8a84")
+const P28_CROWN := Color("#c9bca5")
+const P28_STEEL := Color("#2c3034")
+const P28_BRACE := Color("#c4c8cc")
+const P28_LOBBY := Color("#33424a")
+const P28_ROOF := Color("#8c9294")
+const P28_GREEN := Color("#5f8f45")
+const P28_LEAF: Array[Color] = [Color("#6f9a45"), Color("#5f8a3c"), Color("#86a94e")]
+const P28_BASE := 13.2       # the X-braced base (OSM's tower part starts there)
+const P28_LOW := 82.0        # the north terrace's level (OSM 73.6, scaled to the photos)
+const P28_HIGH := 89.0       # the main glass top (OSM 80.2)
+const P28_TOP := 93.5        # the stone crown
+const P28_STACK := [76.0, 72.0]  # the stone stack's inner and outer steps
+const P28_ANNEX_H := 40.6
+
+
+func _find_prosta28() -> void:
+	var zone: Array = []
+	var parts: Array = []
+	for bld in data["buildings"]:
+		var q := _pts(bld["p"])
+		if q.size() >= 3 and P28_BOX.has_point(_centre(q)) and float(bld["h"]) >= 3.0:
+			zone.append(q)
+			parts.append(bld)
+	_add_site("prosta28", zone)
+	if not sites.is_empty() and sites[-1]["key"] == "prosta28":
+		sites[-1]["parts"] = parts
+
+
+func _p28_area(q: PackedVector2Array) -> float:
+	var s := 0.0
+	for i in q.size():
+		s += q[i].cross(q[(i + 1) % q.size()])
+	return absf(s) * 0.5
+
+
+func _build_prosta28(site: Dictionary) -> void:
+	var tower := PackedVector2Array()
+	var upper := PackedVector2Array()
+	var annex := PackedVector2Array()
+	var wings: Array[PackedVector2Array] = []
+	for bld: Dictionary in site["parts"]:
+		var q := _pts(bld["p"])
+		var h := float(bld["h"])
+		var area := _p28_area(q)
+		if h >= 70.0 and h < 76.0 and area > 800.0:
+			tower = q
+		elif h >= 78.0 and float(bld["mh"]) < 75.0 and area > 400.0:
+			upper = q
+		elif h >= 38.0 and h < 45.0 and area > 800.0:
+			annex = q
+		elif h >= 20.0 and h < 30.0 and area > 300.0 and bld.get("kind", "") != "roof":
+			wings.append(q)
+	if tower.size() < 3:
+		return
+	var g := INF
+	for bld: Dictionary in site["parts"]:
+		g = minf(g, _ground_under(_pts(bld["p"])))
+	_g = g
+	var none := Color(0, 0, 0, 0)
+	# The tower's frame: u along the Prosta face (its southmost long edge), v into the block.
+	var fa := Vector2.ZERO
+	var fb := Vector2.ZERO
+	var best := -INF
+	for i in tower.size():
+		var a := tower[i]
+		var b := tower[(i + 1) % tower.size()]
+		var score := _out(tower, a, b).y * a.distance_to(b)
+		if score > best:
+			best = score
+			fa = a
+			fb = b
+	var u := (fb - fa).normalized()
+	if u.x < 0.0:
+		u = -u
+		var t := fa
+		fa = fb
+		fb = t
+	# fa is the face's west end: the stone stack lies west of it.
+	var north := -_out(tower, fa, fb)
+	var far := 200.0
+	var west_half := PackedVector2Array([fa - u * far - north * far, fa - north * far, fa + north * far, fa - u * far + north * far])
+	var stack := _largest(Geometry2D.intersect_polygons(tower, west_half))
+	var glass := _largest(Geometry2D.clip_polygons(tower, west_half))
+	if glass.size() < 3:
+		glass = tower
+		stack = PackedVector2Array()
+	# The base: the lobby's dark glass 1.2 m in, the columns and X braces on the line of the glass above.
+	var lobby := _largest(Geometry2D.offset_polygon(tower, -1.2, Geometry2D.JOIN_MITER))
+	_prism(lobby, g - 0.5, g + P28_BASE, P28_LOBBY, none, M_SKIN + float(S_DARK) / 16.0)
+	_p28_base(glass, g)
+	# The glass shaft: to the north terrace's level all round, the upper part (OSM's) on to the top.
+	var u_ring := _largest(Geometry2D.intersect_polygons(upper, glass)) if upper.size() >= 3 else PackedVector2Array()
+	_prism(glass, g + P28_BASE, g + P28_LOW, P28_GLASS, P28_ROOF, M_SKIN + float(S_FINS) / 16.0, M_STONE)
+	if u_ring.size() >= 3:
+		_prism(u_ring, g + P28_LOW, g + P28_HIGH, P28_GLASS, P28_ROOF, M_SKIN + float(S_FINS) / 16.0, M_STONE)
+		_p28_terrace(glass, u_ring, g + P28_LOW)
+		# The stone crown, set back 3 m on the north (a second planted step) and 1.5 m elsewhere.
+		var crown := _largest(Geometry2D.offset_polygon(u_ring, -1.5, Geometry2D.JOIN_MITER))
+		var keep_south := PackedVector2Array([fa - u * far - north * far, fb + u * far - north * far, fb + u * far + north * 24.0,
+				fa - u * far + north * 24.0])
+		crown = _largest(Geometry2D.intersect_polygons(crown, keep_south))
+		if crown.size() >= 3:
+			_prism(crown, g + P28_HIGH, g + P28_TOP, P28_CROWN, P28_ROOF.lightened(0.1), M_STONE, M_STONE)
+			_p28_terrace(u_ring, crown, g + P28_HIGH)
+	else:
+		_prism(glass, g + P28_LOW, g + P28_HIGH, P28_GLASS, P28_ROOF, M_SKIN + float(S_FINS) / 16.0, M_STONE)
+	_parapet(glass, g + P28_LOW, 1.1, Color("#c9dcdc"))
+	# The stone stack on the west end, in two steps (the outer one lower).
+	if stack.size() >= 3:
+		_prism(stack, g + P28_BASE, g + float(P28_STACK[1]), P28_STONE, P28_ROOF, M_SKIN + float(S_PUNCHED) / 16.0, M_STONE)
+		var inner := _largest(Geometry2D.intersect_polygons(stack, PackedVector2Array([fa - u * 4.5 - north * far,
+				fa - north * far, fa + north * far, fa - u * 4.5 + north * far])))
+		if inner.size() >= 3:
+			_prism(inner, g + float(P28_STACK[1]), g + float(P28_STACK[0]), P28_STONE, P28_ROOF, M_SKIN + float(S_PUNCHED) / 16.0, M_STONE)
+	# PROSTO, small and red, high on the east face.
+	var ea := Vector2.ZERO
+	var eb := Vector2.ZERO
+	best = -INF
+	for i in glass.size():
+		var a := glass[i]
+		var b := glass[(i + 1) % glass.size()]
+		var score := _out(glass, a, b).x * a.distance_to(b)
+		if score > best:
+			best = score
+			ea = a
+			eb = b
+	var eo := _out(glass, ea, eb)
+	var em := ea.lerp(eb, 0.3)
+	signs.append(["PROSTO", Vector3(em.x, g + P28_LOW - 4.0, em.y), Vector3(eo.x, 0.0, eo.y), 0.6, Color(0.92, 0.12, 0.14)])
+	# The annex towards Łucka: green glass to 34 m, then two planted steps.
+	if annex.size() >= 3:
+		var body := _largest(Geometry2D.clip_polygons(annex, tower))
+		if body.size() >= 3:
+			_prism(body, g - 0.5, g + P28_ANNEX_H - 6.6, P28_ANNEX, P28_GREEN, M_SKIN + float(S_BANDS) / 16.0, M_STONE)
+			var step1 := _largest(Geometry2D.offset_polygon(body, -3.5, Geometry2D.JOIN_MITER))
+			if step1.size() >= 3:
+				_prism(step1, g + P28_ANNEX_H - 6.6, g + P28_ANNEX_H - 3.3, P28_ANNEX, P28_GREEN, M_SKIN + float(S_BANDS) / 16.0, M_STONE)
+				_p28_hedge(body, g + P28_ANNEX_H - 6.6)
+				var step2 := _largest(Geometry2D.offset_polygon(step1, -3.5, Geometry2D.JOIN_MITER))
+				if step2.size() >= 3:
+					_prism(step2, g + P28_ANNEX_H - 3.3, g + P28_ANNEX_H, P28_ANNEX, P28_ROOF, M_SKIN + float(S_BANDS) / 16.0, M_STONE)
+					_p28_hedge(step1, g + P28_ANNEX_H - 3.3)
+					_no_roof = true
+					var c := _centre(step2)
+					_prism(_square(c, 2.5), g + P28_ANNEX_H, g + P28_ANNEX_H + 2.2, Color("#7a8085"), Color("#868c90"), M_STONE, M_STONE)
+					_no_roof = false
+			_collide(body)
+			pocket_rings.append(body)
+	# The 24 m wings: what of them the tower and the annex don't already stand on.
+	for w in wings:
+		var rest := _largest(Geometry2D.clip_polygons(w, tower))
+		if annex.size() >= 3 and rest.size() >= 3:
+			rest = _largest(Geometry2D.clip_polygons(rest, annex))
+		if rest.size() < 3 or _p28_area(rest) < 60.0:
+			continue
+		_prism(rest, g - 0.5, g + 24.1, P28_ANNEX.lightened(0.08), P28_GREEN.darkened(0.05), M_SKIN + float(S_BANDS) / 16.0, M_STONE)
+		_parapet(rest, g + 24.1, 1.0, Color("#c9dcdc"))
+		_collide(rest)
+		pocket_rings.append(rest)
+	_collide(tower)
+	pocket_rings.append(tower)
+
+
+## The base's frame on the glass shaft's line: dark steel columns about every 4.8 m on the faces
+## to the street (south and east), a silver X brace in each bay, a dark beam over them.
+func _p28_base(ring: PackedVector2Array, g: float) -> void:
+	for i in ring.size():
+		var a := ring[i]
+		var b := ring[(i + 1) % ring.size()]
+		var o := _out(ring, a, b)
+		var length := a.distance_to(b)
+		if length < 6.0 or (o.y < 0.5 and o.x < 0.5):
+			continue
+		var n := maxi(1, roundi(length / 4.8))
+		var e := (b - a) / length
+		for k in n + 1:
+			var p := a + e * (length * k / n) + o * 0.05
+			_prism(_square(p - o * 0.35, 0.4), g - 0.3, g + P28_BASE, P28_STEEL, Color(0, 0, 0, 0), M_STONE)
+			if k == n:
+				break
+			var p1 := a + e * (length * (k + 1) / n) + o * 0.05
+			var lo := g + 0.4
+			var hi := g + P28_BASE - 0.8
+			_beam(Vector3(p.x, lo, p.y), Vector3(p1.x, hi, p1.y), 0.3, P28_BRACE, false)
+			var q0 := p + o * 0.12
+			var q1 := p1 + o * 0.12
+			_beam(Vector3(q1.x, lo, q1.y), Vector3(q0.x, hi, q0.y), 0.3, P28_BRACE, false)
+		_wall(a + o * 0.1, b + o * 0.1, g + P28_BASE - 0.8, g + P28_BASE, o, P28_STEEL)
+
+
+## A planted terrace on `lower` round the foot of `upper` at y: a glass balustrade on its edge,
+## a hedge of planters and a small tree every ~6 m along the open edge.
+func _p28_terrace(lower: PackedVector2Array, upper: PackedVector2Array, y: float) -> void:
+	_no_roof = true
+	_p28_hedge(lower, y)
+	var rim := _largest(Geometry2D.offset_polygon(lower, -1.4, Geometry2D.JOIN_MITER))
+	if rim.size() < 3:
+		_no_roof = false
+		return
+	var grown := Geometry2D.offset_polygon(upper, 0.8, Geometry2D.JOIN_MITER)
+	var block: PackedVector2Array = grown[0] if not grown.is_empty() else upper
+	var n := 0
+	for i in rim.size():
+		var a := rim[i]
+		var b := rim[(i + 1) % rim.size()]
+		var length := a.distance_to(b)
+		var steps := floori(length / 6.0)
+		for k in steps:
+			var p := a.lerp(b, (k + 0.5) / steps)
+			if Geometry2D.is_point_in_polygon(p, block):
+				continue
+			var leaf: Color = P28_LEAF[n % P28_LEAF.size()]
+			n += 1
+			_prism(_square(p, 0.6), y, y + 0.7, Color("#6d6a64"), P28_GREEN, M_STONE, M_STONE)
+			_prism(_square(p, 0.08), y + 0.7, y + 2.0, Color("#6b5a48"), Color(0, 0, 0, 0), M_STONE)
+			_mode = M_STONE
+			_frustum(_circle(p, 0.6, 5), y + 1.6, _circle(p, 1.3, 5), y + 2.6, leaf.darkened(0.1))
+			_pyramid(_circle(p, 1.3, 5), y + 2.6, y + 4.0, leaf)
+	_no_roof = false
+
+
+## A low planter hedge just inside a ring's edge at y (the terraces' green line) and a glass rail.
+func _p28_hedge(ring: PackedVector2Array, y: float) -> void:
+	var keep := _no_roof
+	_no_roof = true
+	var hedge := _largest(Geometry2D.offset_polygon(ring, -0.5, Geometry2D.JOIN_MITER))
+	if hedge.size() >= 3:
+		_prism(hedge, y, y + 0.7, P28_GREEN.darkened(0.12), Color(0, 0, 0, 0), M_STONE, M_STONE)
+	_no_roof = keep
 
 
 ## The Forest (HRA Architekci, 2022; spec docs/landmarks/specs/forest.md), rebuilt from F's seven
