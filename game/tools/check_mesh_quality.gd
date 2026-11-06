@@ -99,7 +99,7 @@ const BUDGET := {
 	"europejski": 8000,
 	"flaga": 170,
 	"forest": 4900,
-	"gpy": 250,
+	"gpy": 2000,  # RD-3 (2026-11-06): black patches, the wings' decks, trees and tables
 	"gaulle": 880,
 	"rondo": 7000,
 	"sunken": 5600,  # 2026-11-05: the Patelnia and the Rotunda's stair: walls, railings, treads, two barrels
@@ -108,8 +108,8 @@ const BUDGET := {
 	"grob": 340,
 	"grzybowska63": 500,
 	"gwardii": 1450,
-	"hub_b": 100,
-	"hub_c": 90,
+	"hub_b": 260,  # RD-4: parapet, roof plant, podium skylight
+	"hub_c": 220,  # RD-4: parapet, roof plant
 	"ilmet": 180,
 	"jp2_21": 280,
 	"kopernik": 1720,

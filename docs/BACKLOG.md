@@ -166,13 +166,17 @@ evidence per street and junction, never coordinates.
   way); T22-2 (none: every new block stands free of the kept buildings, so no pocket rings are needed); T22-3 a Mac/phone look check (the hall
   frame's density, the wavy crown, the signs' faces); T22-4 a photo pass once the towers stand.
 - **Rondo Daszyńskiego towers by photo** (CITY_INVENTORY 60): rebuilt from the Mac's reports (2026-11-03).
-  Left: RD-1 Warsaw Unit's taper (about 10 % narrower at the top) and its 27 m base wings and gate;
-  RD-2 Mennica's open arcade of round steel columns with the copper lobby, its curved plan, the
-  west building's curved glass front and the plaza (fountain, ring sculpture); RD-3 GPY's irregular
-  black patches and the Z/X wings' roof terraces; RD-4 the HUB's chamfered plans and the podium
-  skylight; RD-5 a Mac look check of all five (no night photos on Commons); RD-6 a small dark
-  triangle floats over the Rondo between Skyliner and the HUB (seen from about yaw 45, 150 m up;
-  already on main before this lane, source not found yet).
+  Second pass 2026-11-06 (reports plus Mapillary street photos): Unit's shaft tapers to 90 % at
+  168.8 m under its crown, its base wings stand 9 m up over a glass hall set 6 m in (the gate);
+  Mennica's 13 m ground storeys are an arcade of round stainless columns before a copper lobby;
+  GPY has its black spandrel patches and dark top storeys, and decked terraces with trees and red
+  tables on the Z and X wings; the HUB's towers have parapets and roof plant blocks and the podium
+  its glazed skylight. Left: RD-2b Mennica's plaza (the fountain and the steel ring: where they
+  stand, from F's photos), its bulging plan and the west building's curved glass front; RD-4b the
+  HUB's darker north-east faces; RD-5 a Mac/phone look check of all five, night photos (F offered
+  photos 2026-11-06); RD-6 not found: a scan of every mesh round Skyliner and the HUB from 90 to
+  175 m shows nothing floating, so it was probably something far beyond the loaded edge (close it
+  if F doesn't see it again).
 
 ## Forest rebuilt from F's photos (F, 2026-11-03)
 

@@ -85,17 +85,34 @@ const TOWERS := [
 			"crown_from": 125.0, "crown": "#1e2226", "crown_sign": true, "slope_to": Vector2(1.0, 0.0), "fin": "#7fa7c8"},
 	# Warsaw Unit: sky-blue glass between black strips (each corner and the middle of the long
 	# faces), the 22 m black crown block (180-202 m) with the insurer's logo, here WARTKA in red.
+	# RD-1 (2026-11-06, the report and street photos): the shaft tapers from the 27 m base to
+	# 90 % at 168.8 m and the crown stands on the narrowed top (`taper`: from, to, scale); the
+	# base is a dark sloped-glass podium whose lifted wings (9 m up) stand over a glass hall set
+	# 6 m in, so the tower's foot reads as the two-storey gate (`hall`, `podium`).
 	{"key": "unit", "osm": "Warsaw Unit", "style": S_BANDS, "glass": "#6f99c2", "roof": "#8a96a0", "sign": "WARTKA",
-			"crown_from": 168.0, "crown": "#1b1e22", "crown_sign": true, "sign_col": Color(1.0, 0.15, 0.12), "strips": "#20252c"},
+			"crown_from": 168.0, "crown": "#1b1e22", "crown_sign": true, "sign_col": Color(1.0, 0.15, 0.12), "strips": "#20252c",
+			"taper": Vector3(27.0, 168.8, 0.9), "hall": 6.0, "podium": "#2e4560"},
 	# Mennica Legacy Tower: silver-blue glass with vertical silver fins, a flat top (no crown).
-	{"key": "mennica", "osm": "Mennica Legacy Tower", "style": S_FINS, "glass": "#86a6c4", "roof": "#b5c0c9"},
+	# RD-2 (2026-11-06): the 13 m ground storeys are an open arcade: the copper-tinted lobby
+	# set 5 m in under the shaft's soffit, the mapped posts as round stainless columns (`arcade`).
+	{"key": "mennica", "osm": "Mennica Legacy Tower", "style": S_FINS, "glass": "#86a6c4", "roof": "#b5c0c9",
+			"arcade": 13.0, "lobby": "#8a4a32", "columns": "#c9ced3"},
 	# Generation Park Y: blue glass in a white grid (white piers every 3 m), a flat roof; 140 m.
-	{"key": "gpy", "osm": "Generation Park Y", "style": S_GRID, "glass": "#6b94b8", "roof": "#8d969c"},
+	# RD-3 (2026-11-06): black spandrel patches a bay or two wide every few storeys and the two
+	# dark top storeys (`patches`), and the decked roof terraces of the Z and X wings (`terraces`:
+	# a point in each wing's roof, its deck at the roof's mapped height).
+	{"key": "gpy", "osm": "Generation Park Y", "style": S_GRID, "glass": "#6b94b8", "roof": "#8d969c",
+			"patches": "#1a1d22", "terraces": [Vector3(-2654.0, 43.9, 268.0), Vector3(-2687.0, 53.8, 286.0), Vector3(-2605.0, 37.3, 300.0)]},
 	# The Warsaw HUB's two glass towers (unnamed in OpenStreetMap: found by a point, `at`, in
 	# the tallest building there): blue-green glass, flat roofs; B (the south one) stands about
 	# 15 % lower than A in the photos though OSM gives both 130 m.
-	{"key": "hub_b", "at": Vector2(-2677.0, 576.0), "style": S_BANDS, "glass": "#6a93b3", "roof": "#b8bcbf"},
-	{"key": "hub_c", "at": Vector2(-2677.0, 633.0), "style": S_BANDS, "glass": "#6a93b3", "roof": "#b8bcbf", "top": 112.0},
+	# RD-4 (2026-11-06): a 1.5 m parapet with a silver edge and the grey plant blocks on each
+	# roof (`parapet`, `plant`), and the 8 x 12 m glazed skylight on the 10.9 m podium between
+	# the two (`skylight`: its rectangle, the podium's height).
+	{"key": "hub_b", "at": Vector2(-2677.0, 576.0), "style": S_BANDS, "glass": "#6a93b3", "roof": "#b8bcbf",
+			"parapet": "#c8ccd0", "plant": Vector2(17.0, 13.0), "skylight": [Rect2(-2678.0, 599.0, 9.0, 12.0), 10.9]},
+	{"key": "hub_c", "at": Vector2(-2677.0, 633.0), "style": S_BANDS, "glass": "#6a93b3", "roof": "#b8bcbf", "top": 112.0,
+			"parapet": "#c8ccd0", "plant": Vector2(12.0, 8.0)},
 	# The HUB's third, round-ended tower is the hotel (85 m): cream fins over narrow windows, a
 	# dark band over the glazed ground floors.
 	{"key": "crowne", "at": Vector2(-2706.0, 512.0), "style": S_TILE, "glass": "#e8e4da", "roof": "#b8bcbf", "cool": true,
@@ -973,6 +990,8 @@ func _find_sites() -> void:
 			_add_site(t["key"], zone)
 			if not sites.is_empty() and sites[-1]["key"] == t["key"]:
 				sites[-1]["tower"] = t
+				if t.has("terraces"):
+					sites[-1]["terraces"] = _find_terraces(t["terraces"])
 	_find_muzeum()
 	_find_mdm()
 	_find_skins()
@@ -3126,6 +3145,17 @@ func _build_tower(site: Dictionary) -> void:
 		if float(b["h"]) > top_h:
 			top_h = float(b["h"])
 			top_poly = _pts(b["p"])
+	# RD-1 the taper (Warsaw Unit): every part from `taper.x` up is narrowed towards the shaft's
+	# centre, linearly to `taper.z` at `taper.y` and held there above it (the crown).
+	var tp: Vector3 = spec.get("taper", Vector3.ZERO)
+	var taper_c := Vector2.ZERO
+	for b in parts:
+		if tp.z > 0.0 and absf(float(b["mh"]) - tp.x) < 0.5 and float(b["h"]) > tp.y - 0.5:
+			taper_c = _centre(_pts(b["p"]))
+	var shrink := func(y: float) -> float:
+		return 1.0 if tp.z <= 0.0 else lerpf(1.0, tp.z, clampf((y - g - tp.x) / (tp.y - tp.x), 0.0, 1.0))
+	var lifted: Array[PackedVector2Array] = []
+	var lift_h := 0.0
 	if spec["key"] == "zlota44":
 		# Złota 44: the tower is lofted (_zlota_sail); only the podium is built from its parts,
 		# with its roof garden.
@@ -3157,9 +3187,20 @@ func _build_tower(site: Dictionary) -> void:
 					held = true
 					break
 			if not held:
-				mh = 0.0
+				if spec.has("hall") and mh < 15.0:
+					lifted.append(poly)  # RD-1: a wing lifted over the gate's glass hall
+					lift_h = mh
+				else:
+					mh = 0.0
 		var small := boxes[k].size.length() < 9.0
 		var base := g + mh - (0.4 if mh < 0.5 else 0.0)
+		if small and spec.has("arcade") and h <= float(spec["arcade"]) + 0.5:
+			# RD-2 Mennica's arcade: a mapped post is a round stainless column, 0.9 m across.
+			var cc := Color(spec["columns"])
+			_prism(_circle(_centre(poly), 0.45, 10), g - 0.4, g + h, cc, cc, M_STONE, M_STONE)
+			continue
+		if small and spec.has("hall"):
+			base = g - 0.4  # Unit's gate posts stand on the ground
 		if small:
 			# A mast, a spire's piece or a ring: plain painted steel in its mapped colour. It starts on
 			# the roof of the part it stands on (Skyliner's mast on its crown block: no faces inside).
@@ -3187,8 +3228,34 @@ func _build_tower(site: Dictionary) -> void:
 		elif spec.get("mapped", false):
 			wall = _osm(b["c"], glass)  # mapped in its own colours (Chałubińskiego 8's white ribs)
 		elif h < top_h * 0.3 and h < 40.0:
-			# The podium: the tower's glass, a step warmer and darker.
-			wall = glass.darkened(0.12).lerp(Color("#b8a88c"), 0.0 if spec.get("cool", false) else 0.15)
+			# The podium: the tower's glass, a step warmer and darker (Unit's: dark sloped glass).
+			wall = Color(spec["podium"]) if spec.has("podium") \
+					else glass.darkened(0.12).lerp(Color("#b8a88c"), 0.0 if spec.get("cool", false) else 0.15)
+		if spec.has("arcade") and absf(h - float(spec["arcade"])) < 0.5 and mh < 0.5:
+			# RD-2 the arcade's lobby: copper-tinted glass 5 m in from the column line, lit warm.
+			var lobby := Geometry2D.offset_polygon(poly, -5.0)
+			if lobby.size() == 1:
+				_prism(lobby[0], g - 0.4, g + h, Color(spec["lobby"]), Color(0, 0, 0, 0), M_PAVILION, M_STONE)
+			_collide(poly)
+			continue
+		if spec.has("arcade") and absf(mh - float(spec["arcade"])) < 0.5:
+			_soffit(poly, g + mh, roof.darkened(0.25))  # the shaft's underside over the arcade
+		if tp.z > 0.0 and mh >= tp.x - 0.5:
+			var s0: float = shrink.call(g + mh)
+			var s1: float = shrink.call(g + h)
+			if absf(s0 - s1) < 0.0005:
+				poly = _scaled(poly, taper_c, s0)
+			else:
+				var p0 := _scaled(poly, taper_c, s0)
+				var p1 := _scaled(poly, taper_c, s1)
+				var keep_m := _mode
+				_mode = part_skin
+				_frustum(p0, base, p1, g + h, wall)
+				_mode = keep_m
+				_cap(p1, g + h, roof)
+				if spec.has("strips") and not crown and h >= 100.0:
+					_tower_strips(poly, base + 2.0, g + h, Color(spec["strips"]), taper_c, s0, s1)
+				continue
 		if spec.get("crest", "") == "slope" and h >= top_h - 0.5:
 			_sloped(poly, base, g + h, g + h - 24.0, wall, roof, skin)
 		elif spec.has("slope_to") and not crown and h >= 100.0:
@@ -3207,10 +3274,22 @@ func _build_tower(site: Dictionary) -> void:
 				_prism(poly, g + h, g + 192.0, wall, Color(0, 0, 0, 0), M_SKIN + float(S_FRAME) / 16.0)
 			if spec.get("chamfer", false) and h >= top_h - 0.5:
 				_chamfered_top(poly, g + h, wall)
+			if spec.has("patches") and h >= 100.0:
+				_tower_patches(poly, base, g + h, Color(spec["patches"]))
+			if spec.has("parapet") and h >= minf(top_h, float(spec.get("top", INF))) - 0.5:
+				_tower_roof(poly, g + h, Color(spec["parapet"]), spec.get("plant", Vector2.ZERO))
 		if mh < 2.0:
 			_collide(poly)
 	if spec.has("top"):
 		top_h = minf(top_h, float(spec["top"]))
+	if tp.z > 0.0:
+		top_poly = _scaled(top_poly, taper_c, shrink.call(g + top_h))
+	if not lifted.is_empty():
+		_gate_hall(lifted, g, lift_h, float(spec["hall"]), Color(spec["podium"]))
+	if spec.has("skylight"):
+		_podium_skylight(spec["skylight"][0], float(spec["skylight"][1]))
+	for t: Array in site.get("terraces", []):
+		_roof_terrace(t[0], float(t[1]), t[2])
 	if sign_poly.size() >= 3:
 		# The sign on the crown block, not on the shaft (_dusk_details skips it); a name of two
 		# words on a narrow block goes in two rows, so the letters stay readable from the street.
@@ -3307,7 +3386,7 @@ func _cut_fin(poly: PackedVector2Array, c: Vector2, axis: Vector2, hi: float, to
 
 ## Warsaw Unit's black strips (the photo report): a 4.5 m strip at each end and in the middle of
 ## every long face, 0.15 m proud of the glass, from `y0` to `y1`.
-func _tower_strips(poly: PackedVector2Array, y0: float, y1: float, col: Color) -> void:
+func _tower_strips(poly: PackedVector2Array, y0: float, y1: float, col: Color, c := Vector2.ZERO, s0 := 1.0, s1 := 1.0) -> void:
 	var longest := 0.0
 	for i in poly.size():
 		longest = maxf(longest, poly[i].distance_to(poly[(i + 1) % poly.size()]))
@@ -3322,7 +3401,15 @@ func _tower_strips(poly: PackedVector2Array, y0: float, y1: float, col: Color) -
 		for t: float in [0.0, 0.5 * l - 2.25, l - 4.5]:
 			var p0 := a + e * t
 			var p1 := a + e * (t + 4.5)
-			_prism(PackedVector2Array([p0, p1, p1 + o, p0 + o]), y0, y1, col, col, M_SKIN + float(S_DARK) / 16.0, M_STONE)
+			var strip := PackedVector2Array([p0, p1, p1 + o, p0 + o])
+			if absf(s0 - 1.0) < 0.0005 and absf(s1 - 1.0) < 0.0005:
+				_prism(strip, y0, y1, col, col, M_SKIN + float(S_DARK) / 16.0, M_STONE)
+			else:
+				# RD-1: on the tapering shaft the strip leans in with the glass.
+				var keep := _mode
+				_mode = M_SKIN + float(S_DARK) / 16.0
+				_frustum(_scaled(strip, c, s0), y0, _scaled(strip, c, s1), y1, col)
+				_mode = keep
 
 
 ## The hotel's dark band over its glazed ground floors (the HUB photo report), 0.2 m proud.
@@ -3330,6 +3417,193 @@ func _tower_band(poly: PackedVector2Array, y0: float, y1: float, col: Color) -> 
 	var wide := Geometry2D.offset_polygon(poly, 0.2)
 	if wide.size() == 1:
 		_prism(wide[0], y0, y1, col, col, M_STONE, M_STONE)
+
+
+## A plan scaled by `k` about `c` (RD-1's taper).
+func _scaled(poly: PackedVector2Array, c: Vector2, k: float) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	for q in poly:
+		out.append(c + (q - c) * k)
+	return out
+
+
+## RD-1 Warsaw Unit's gate (the report, street photos 2026-11-06): the base wings lifted 9 m stand
+## over a glass hall set `inset` in, lit cool at night, under the wings' dark soffit.
+func _gate_hall(lifted: Array[PackedVector2Array], g: float, lift: float, inset: float, col: Color) -> void:
+	# The wings overlap (OpenStreetMap maps the base twice): one outline, their union's outer ring.
+	var acc := lifted[0]
+	for i in range(1, lifted.size()):
+		acc = _largest(Geometry2D.merge_polygons(acc, lifted[i]))
+	for m: PackedVector2Array in [acc]:
+		_soffit(m, g + lift, col.darkened(0.35))
+		var hall := Geometry2D.offset_polygon(m, -inset)
+		for h in hall:
+			if not Geometry2D.is_polygon_clockwise(h):
+				_prism(h, g - 0.4, g + lift, Color("#9fb9cc"), Color(0, 0, 0, 0), M_PAVILION + 0.5, M_STONE)
+		_collide(m)
+
+
+## RD-3 Generation Park Y's black spandrels (the report, photo 1): on each face 3 m bays a storey
+## (3.9 m) tall; every few storeys a row holds a patch a bay or two wide, and the top two storeys
+## are dark under a 1.2 m white parapet. Panels 0.1 m proud of the glass, picked by a fixed hash.
+func _tower_patches(poly: PackedVector2Array, y0: float, y1: float, col: Color) -> void:
+	var keep := _mode
+	_mode = M_STONE
+	var white := Color("#e3e1da")
+	var run := 0.0
+	for i in poly.size():
+		var a := poly[i]
+		var b := poly[(i + 1) % poly.size()]
+		var l := a.distance_to(b)
+		var o := _out(poly, a, b)
+		var e := (b - a) / maxf(l, 0.01)
+		var lo := a + o * 0.1
+		if l >= 6.0:
+			var bays := int(l / 3.0)
+			var pad := (l - bays * 3.0) * 0.5
+			for lv in range(2, int((y1 - y0) / 3.9) - 2):
+				var row := hash(Vector2i(lv, 7)) % 100
+				if row >= 24:
+					continue
+				for bay in bays:
+					var r := hash(Vector3i(bay + int(run), lv, i)) % 100
+					if r >= 22:
+						continue
+					var w := 6.0 if r < 8 and bay < bays - 1 else 3.0
+					var t := pad + bay * 3.0
+					_wall(lo + e * t, lo + e * (t + w), y0 + lv * 3.9, y0 + (lv + 1) * 3.9, o, col)
+		# the dark top storeys and the white parapet over them, all round
+		_wall(lo, lo + e * l, y1 - 7.8, y1 - 1.2, o, col)
+		_wall(lo, lo + e * l, y1 - 1.2, y1 + 0.3, o, white)
+		run += l
+	_mode = keep
+
+
+## RD-4 the HUB's roofs (the report's ortho): a 1.5 m parapet with a silver edge, its inner face
+## too, and a grey plant block of `plant` metres (along the longest edge, across) in the middle.
+func _tower_roof(poly: PackedVector2Array, y: float, col: Color, plant: Vector2) -> void:
+	var keep := _mode
+	_mode = M_STONE
+	_prism(poly, y, y + 1.5, col, Color(0, 0, 0, 0), M_STONE)
+	var inner := Geometry2D.offset_polygon(poly, -0.3)
+	if inner.size() == 1:
+		var r := inner[0]
+		for i in r.size():
+			var a := r[i]
+			var b := r[(i + 1) % r.size()]
+			_wall(a, b, y, y + 1.5, -_out(r, a, b), col.darkened(0.15))
+	if plant.x > 0.0:
+		var c := _centre(poly)
+		var e := Vector2.RIGHT
+		var longest := 0.0
+		for i in poly.size():
+			var d := poly[(i + 1) % poly.size()] - poly[i]
+			if d.length() > longest:
+				longest = d.length()
+				e = d.normalized()
+		var n := Vector2(-e.y, e.x)
+		var hx := e * plant.x * 0.5
+		var hz := n * plant.y * 0.5
+		var box := PackedVector2Array([c - hx - hz, c + hx - hz, c + hx + hz, c - hx + hz])
+		_prism(box, y, y + 4.5, Color("#a4a9ad"), Color("#8f9599"), M_STONE, M_STONE)
+		for k in 3:
+			# fan units along the block's long side
+			var f := c - hx * 0.6 + hx * 0.6 * k + n * (plant.y * 0.5 + 2.0)
+			_prism(_square(f, 1.1), y, y + 1.6, Color("#9aa0a4"), Color("#5f6569"), M_STONE, M_STONE)
+	_mode = keep
+
+
+## RD-4 the HUB podium's skylight (the report's ortho): a glazed ridge over a steel kerb on the
+## 10.9 m podium between the two towers, lit cool at night, and green plant strips either side.
+func _podium_skylight(r: Rect2, podium_h: float) -> void:
+	var ring := PackedVector2Array([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)])
+	var gy := _ground_under(ring)
+	var y := gy + podium_h
+	_prism(ring, y, y + 0.6, Color("#3a3f44"), Color("#3a3f44"), M_STONE, M_STONE)
+	var cx := r.get_center().x
+	var ridge := PackedVector2Array([Vector2(cx - 0.15, r.position.y + 0.8), Vector2(cx + 0.15, r.position.y + 0.8),
+			Vector2(cx + 0.15, r.end.y - 0.8), Vector2(cx - 0.15, r.end.y - 0.8)])
+	var keep := _mode
+	_mode = M_PAVILION + 0.5
+	_frustum(ring, y + 0.6, ridge, y + 2.6, Color("#9fc3d6"), Color("#9fc3d6"))
+	_mode = keep
+	for side: float in [-1.0, 1.0]:
+		var x0 := (r.position.x - 4.0) if side < 0.0 else (r.end.x + 2.0)
+		var strip := PackedVector2Array([Vector2(x0, r.position.y), Vector2(x0 + 2.0, r.position.y),
+				Vector2(x0 + 2.0, r.end.y), Vector2(x0, r.end.y)])
+		_prism(strip, y, y + 0.45, Color("#6c7a5c"), Color("#6f8f4e"), M_STONE, M_STONE)
+
+
+## RD-3 the terraces' roofs, found once with the whole map (a sector's build sees only its own
+## buildings): for each (x, roof height, z) the outline at that height holding the point, and the
+## higher blocks standing on it.
+func _find_terraces(points: Array) -> Array:
+	var out: Array = []
+	for t: Vector3 in points:
+		var at := Vector2(t.x, t.z)
+		var roof := PackedVector2Array()
+		var over: Array[PackedVector2Array] = []
+		for bld in data["buildings"]:
+			var q := _pts(bld["p"])
+			if q.size() >= 3 and absf(float(bld["h"]) - t.y) < 0.3 and Geometry2D.is_point_in_polygon(at, q):
+				roof = q
+		if roof.size() < 3:
+			push_warning("landmarks: no %.1f m roof at %s for a terrace" % [t.y, at])
+			continue
+		# Only blocks whose middle stands on this roof (the parts bake_sectors.py keeps for the
+		# wing's named outline, so both city paths find the same).
+		var box := _box_of([roof])
+		for bld in data["buildings"]:
+			var q := _pts(bld["p"])
+			if q.size() < 3 or float(bld["h"]) <= t.y + 1.0 or float(bld["mh"]) >= t.y + 1.0:
+				continue
+			var c := _centre(q)
+			if box.has_point(c) and Geometry2D.is_point_in_polygon(c, roof):
+				over.append(q)
+		out.append([roof, t.y, over])
+	return out
+
+
+## RD-3 a decked roof terrace on one of Generation Park's low wings (the report, ortho_wide): on
+## the roof at `h` that holds `at`, timber decking 1.5 m in from the edge, red café tables and
+## small trees in planters, none where a higher block stands on the roof.
+func _roof_terrace(roof: PackedVector2Array, h: float, over: Array) -> void:
+	var gy := _ground_under(roof)
+	var y := gy + h
+	var deck := Geometry2D.offset_polygon(roof, -1.5)
+	if deck.size() != 1:
+		return
+	var keep := _mode
+	_mode = M_STONE
+	_prism(deck[0], y, y + 0.2, Color("#7a5c44"), Color("#9a7556"), M_STONE, M_STONE)
+	var box := _box_of([deck[0]])
+	var n := 0
+	var x := box.position.x + 3.0
+	while x < box.end.x - 2.0:
+		var z := box.position.y + 3.0
+		while z < box.end.y - 2.0:
+			var p := Vector2(x, z)
+			var free := Geometry2D.is_point_in_polygon(p, deck[0])
+			for q in over:
+				if free and Geometry2D.is_point_in_polygon(p, q) or free and _dist_to_ring(p, q) < 2.5:
+					free = false
+			if free:
+				if (n % 2) == 0:
+					_prism(_square(p, 0.6), y + 0.2, y + 0.75, Color("#6a6f72"), Color("#5a6b3e"), M_STONE, M_STONE)
+					_varso_tree(p, y + 0.75, 3.6, 1.3)
+				else:
+					_prism(_square(p, 0.45), y + 0.2, y + 0.95, Color("#b5342c"), Color("#c23c32"), M_STONE, M_STONE)
+				n += 1
+			z += 9.0
+		x += 9.0
+	_mode = keep
+
+
+func _dist_to_ring(p: Vector2, ring: PackedVector2Array) -> float:
+	var best := INF
+	for i in ring.size():
+		best = minf(best, p.distance_to(Geometry2D.get_closest_point_to_segment(p, ring[i], ring[(i + 1) % ring.size()])))
+	return best
 
 
 ## Novotel's cut-off top (the Rondo photos): the shaft ends in two setbacks, 1.4 m in and 2.8 m
