@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-06
 
+- The underpass entrances at Emilii Plater and Aleje Jerozolimskie are real stairs going down now instead of walled boxes: granite parapets round the two wells, steel canopies over the pavement stairs (Śródmieście's green ones with posters on the south side), and people walking down into the passage and coming up out of it.
 - When your car is stuck, the POMOC DROGOWA tow button now comes up even while the ride app button is on screen, and it also comes when you keep backing off a wall and trying again.
 
 ## 2026-11-05
