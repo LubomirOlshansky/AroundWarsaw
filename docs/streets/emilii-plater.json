@@ -3,10 +3,10 @@
  "title": "Emilii Plater: Świętokrzyska to Aleje Jerozolimskie",
  "updated": "2026-11-06",
  "stage": "baseline",
- "score": 92,
+ "score": 93,
  "counts": {
   "L1": 5,
-  "L2": 16,
+  "L2": 10,
   "L3": 1,
   "P1": 2
  },
@@ -33,10 +33,10 @@
    "title": "Złota to Aleje Jerozolimskie",
    "counts": {
     "L1": 1,
-    "L2": 9,
+    "L2": 5,
     "P1": 2
    },
-   "score": 84
+   "score": 88
   }
  ],
  "history": [
@@ -68,6 +68,21 @@
     "A": 96,
     "B": 96,
     "C": 84
+   }
+  },
+  {
+   "date": "2026-11-06",
+   "score": 93,
+   "counts": {
+    "L1": 5,
+    "L2": 10,
+    "L3": 1,
+    "P1": 2
+   },
+   "blocks": {
+    "A": 96,
+    "B": 96,
+    "C": 88
    }
   }
  ],
@@ -120,26 +135,6 @@
    "s": 623.8,
    "t": -19.6,
    "note": "1 -> 2 lanes, 6.5 -> 6.0 m wide where two ways meet",
-   "block": "-",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -1504.2,
-   "z": 9.3,
-   "s": -9.6,
-   "t": 19.8,
-   "note": "lane line ends mid-block",
-   "block": "-",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -1294.8,
-   "z": 607.3,
-   "s": 624.0,
-   "t": 21.3,
-   "note": "lane line ends mid-block",
    "block": "-",
    "status": "open"
   },
@@ -265,50 +260,10 @@
   },
   {
    "check": "L2",
-   "x": -1306.2,
-   "z": 453.8,
-   "s": 475.4,
-   "t": -19.0,
-   "note": "lane line ends mid-block",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -1321.7,
-   "z": 459.3,
-   "s": 475.4,
-   "t": -2.6,
-   "note": "lane line ends mid-block",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -1324.5,
-   "z": 460.2,
-   "s": 475.4,
-   "t": 0.4,
-   "note": "lane line ends mid-block",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L2",
    "x": -1264.8,
    "z": 571.6,
    "s": 600.3,
    "t": -18.9,
-   "note": "lane line ends mid-block",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -1295.8,
-   "z": 604.4,
-   "s": 620.9,
-   "t": 21.3,
    "note": "lane line ends mid-block",
    "block": "C",
    "status": "open"
