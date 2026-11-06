@@ -49,6 +49,12 @@ spec that already has its pattern (another mid-block stretch, another opening).
 7b. **Drive.** `godot --headless --path game --fixed-fps 60 --script res://tools/check_lane_drive.gd --
    "--streets=A,B" --box=X0,Z0,X1,Z1 [--route="NAME:x,z>x,z;..."]` on main's map and on the designed
    one: every street both ways plus routes into the side roads and through each junction.
+7c. **Continuity (quality gate, F 2026-11-06).** Footways and cycle tracks must stay continuous:
+   applying prints `road_design: continuity: N path ends at the road off a crossing` and must say 0
+   (`--check-all`, so verify.sh `design`, fails otherwise). Each failure is a path that stops at the
+   kerb while it goes on across the road: look at it on the ortho. A painted crossing there goes into
+   the spec (`crossings` with `bs` for the cycle crossing); a real dead end goes into the area's
+   `open_ends` with a note. Never loosen the check to pass.
 8. **Gates.** `python3 -I tools/check_map_data.py` (record new counts on purpose), `tools/verify.sh`
    (`--roads` set); the bench if the area adds many carriage chunks (they are 8 m pieces).
 
@@ -59,4 +65,8 @@ spec that already has its pattern (another mid-block stretch, another opening).
 - Kerbs run continuous past zebras (the renderer lowers them and lays tactile pads there); they break
   only at openings and junction mouths.
 - Every side road the old map had needs an opening or a gap, or it ends at a kerb.
+- Every zebra and cycle crossing meets its footway / cycle track at the kerb: apply_design moves
+  pavements the wider kerb covers out to it, bends cut paths onto the nearest crossing and paints
+  crossings over side-road mouths; a crossing the old map had and the design lacks shows up as a
+  continuity failure.
 - The AI traffic lane graph is not regenerated yet: shots use `--no-traffic` until it is.

@@ -161,7 +161,8 @@
 # street record names is in the library or on its wanted list), `overrides` runs
 # game/tools/check_object_overrides.gd (every id in game/data/road_objects.json names a barrier).
 # Road design (2026-11-06): `design` runs tools/road_design.py --check-all (every area applied to the
-# map, docs/roads/AREA.json, still builds with no problems: kerbs closed, lanes inside, crossings fit).
+# map, docs/roads/AREA.json, still builds with no problems: kerbs closed, lanes inside, crossings fit;
+# footways and cycle tracks continuous: every path end the new asphalt cut is on a crossing of its kind).
 # Street details (2026-11-01): `streetdetails` runs tools/check_street_details.py (the baked props along
 # the main line against the map: stale file, blocked spots, budget, kiosk spacing); `streetmesh` runs
 # game/tools/check_street_details.gd (every kind builds as one surface, a cell's triangle budget); CI too.

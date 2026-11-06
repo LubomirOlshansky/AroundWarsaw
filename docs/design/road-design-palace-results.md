@@ -86,3 +86,22 @@ the new one is one shape drawn from the four arms.
 - **Driving**: `game/tools/check_lane_drive.gd --streets=Marszałkowska,Świętokrzyska,Emilii Plater
   --box=-1500,-160,-930,470` drives the three streets both ways, and `--route=` 34 routes into and out
   of the side roads: all pass on main and on the designed map, at the same speeds.
+
+## Round 2b: continuous footways and cycle tracks (F, 2026-11-06)
+
+F's review: after the rebuild the zebras and cycle crossings no longer met the footways and cycle
+tracks, and the Emilii Plater approach to Jerozolimskie had the island in the wrong place.
+
+- **Continuity gate.** `continuity()` checks every path end the new asphalt cut: it must be on a
+  crossing of its kind, joined to another path, a cycle track running into a painted cycle lane, or a
+  real dead end listed in `open_ends`. It runs after `--out` and in `--check-all` (verify.sh
+  `design`). On the Palace area it found 65 failures before the fixes and 0 after.
+- **Fixes in apply_design.** Pavements and cycle tracks the wider kerb now covers move out to the new
+  kerb (16; a footway goes beyond a cycle track, never on it); cut ends bend onto the nearest crossing
+  of their kind over their last metres without crossing asphalt (53); a pavement cut by a side
+  road's mouth gets a zebra or cycle crossing over the mouth.
+- **Missing crossings** the gate found and the ortho confirms: Emilii Plater by the bus loop (zebra
+  s 483 + cycle crossing) and Świętokrzyska west (s 271 + cycle crossing).
+- **Emilii Plater approach** (e_mid s 495-639): no island from 495 to 553 (paved, as on the photo),
+  then the island −5.0..0.5 to the crossing; northbound 2 lanes + a 2 m cycle lane, southbound
+  4 lanes widening to 5 at the stop line (L, L, T, T, R; 17 m of asphalt on the ortho).

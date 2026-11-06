@@ -36,7 +36,18 @@ Spec (docs/roads/AREA.json), map metres, +x east, +z south; offsets are to the r
   w width (else an equal share of what is left). med: tram, grass, island (one per gap between
   carriageways; "none" for a painted gap). crossings: mid-block zebras (bs: a cycle crossing beside
   it). openings: a side road or driveway leaving one side (kerb break, two kerb returns). gaps: the
-  median broken where a side street or U-turn crosses (paved; the lanes' paint runs on).
+  median broken where a side street or U-turn crosses (paved; the lanes' paint runs on). closed:
+  [{"s0", "s1", "side"}] where the map has a road crossing the kerb but the photo has an unbroken
+  kerb (a footway-only service way, a plaza access): no automatic opening there.
+  open_ends (area level): [{"x", "z", "note"}] path ends checked on the ortho that really stop at
+  the kerb with no crossing; the continuity gate passes them.
+
+Continuity (quality gate, F 2026-11-06): footways and cycle tracks stay continuous over the new
+asphalt. Applying the design moves a pavement or cycle track the wider kerb covered out to the new
+kerb, paints a zebra / cycle crossing where a side road's mouth cut one in two, and bends every
+other cut end onto the nearest crossing of its kind; continuity() then fails any cut end that
+stops at the kerb while its path goes on across the road (printed after --out, part of
+--check-all, so tools/verify.sh `design` fails on it).
 """
 import json
 import math
@@ -661,9 +672,9 @@ class Design:
         # the side road's own direction out of the street (an angled road gets an angled mouth),
         # kept within 65 degrees of square so the corners stay buildable
         v = norm(tuple(op["dir"])) if op.get("dir") else nrm
-        if dot(v, nrm) < 0.42:
+        if dot(v, nrm) < 0.26:
             along = 1.0 if dot(v, d) > 0 else -1.0
-            v = norm(add(mul(nrm, 0.42), mul(d, along * 0.907)))
+            v = norm(add(mul(nrm, 0.26), mul(d, along * 0.966)))
         nv = right_of(v)
         if dot(nv, d) < 0:
             nv = mul(nv, -1.0)
@@ -823,7 +834,11 @@ class Design:
         if self.roads is None:
             return st.spec.get("openings", [])
         if not hasattr(st, "auto_open"):
-            st.auto_open = self.find_openings(st) + [o for o in st.spec.get("openings", []) if o.get("keep")]
+            shut = st.spec.get("closed", [])
+            st.auto_open = [o for o in self.find_openings(st)
+                            if not any(c["s0"] <= o["s"] <= c["s1"] and int(c.get("side", o["side"])) == o["side"]
+                                       for c in shut)] + \
+                [o for o in st.spec.get("openings", []) if o.get("keep")]
         return st.auto_open
 
     def find_openings(self, st):
@@ -1142,6 +1157,221 @@ def reseat_objects(out, d):
     return moved
 
 
+PATH_SET = 1.3    # m from the kerb to the middle of a footway / cycle track moved off the new asphalt
+
+
+def reseat_paths(paths, d):
+    """A footway or cycle track running along a street that the new, wider kerb now covers moves
+    out to the new kerb (its middle PATH_SET beyond it), so the pavement and the cycle track go on
+    beside the street instead of being cut away. Paths across the street stay (the crossings carry
+    them); in a junction box or a mouth nothing moves."""
+    asphalt = Footprint([pts_of(c["p"]) for c in d.out["carriage"]], 0.2)
+    # the cycle tracks, so a moved footway goes on beyond a cycle track, not on top of it
+    bikes = {}
+    for f in paths:
+        if f.get("k") == "cycle":
+            for q in dense(pts_of(f["p"]), 1.0):
+                bikes.setdefault((int(q[0] // 4), int(q[1] // 4)), []).append(q)
+
+    def by_bike(r):
+        gx, gz = int(r[0] // 4), int(r[1] // 4)
+        return any(math.dist(r, q) < 1.8 for i in (-1, 0, 1) for j in (-1, 0, 1)
+                   for q in bikes.get((gx + i, gz + j), []))
+
+    moved = 0
+    for f in paths:
+        if f.get("k") not in ("foot", "cycle") or f.get("dk") is not None:
+            continue
+        p = dense(pts_of(f["p"]), 1.0)
+        if not any(asphalt.has(*q) for q in p):
+            continue
+        hit = False
+        newp = []
+        for i, q in enumerate(p):
+            if not asphalt.has(*q):
+                newp.append(q)
+                continue
+            a, b = p[max(0, i - 1)], p[min(len(p) - 1, i + 1)]
+            h = norm(sub(b, a))
+            best = None
+            for st in d.streets.values():
+                s, off = project(st, q)
+                if s is None or not (st.s0 + 1.0 <= s <= st.s1 - 1.0):
+                    continue
+                t = norm(sub(st.point(min(s + 1.0, st.L), 0.0), st.point(max(s - 1.0, 0.0), 0.0)))
+                if abs(dot(h, t)) < 0.85:
+                    continue                 # across the street: a crossing's job
+                side = 1 if off > 0 else -1
+                gap = abs(off) - abs(st.outer(s, side))
+                if gap > 0.5:
+                    continue
+                if best is None or abs(gap) < abs(best[3]):
+                    best = (st, s, side, gap)
+            if best is None:
+                newp.append(q)
+                continue
+            st, s, side, _ = best
+            r = st.point(s, st.outer(s, side) + side * PATH_SET)
+            if f["k"] == "foot" and by_bike(r):
+                r = st.point(s, st.outer(s, side) + side * (PATH_SET + 2.6))
+            if asphalt.has(*r):
+                newp.append(q)
+                continue
+            newp.append(r)
+            hit = True
+        if hit:
+            f["p"] = flat(simplify_run(newp, 0.1))
+            moved += 1
+    return moved
+
+
+LEAD_R = 14.0     # m: a cut footway / cycle track end this close to a crossing's end walks to it
+LEAD_BACK = 6.0   # m back along the path where the bend to the crossing starts
+
+
+def lead_to_crossings(paths, d):
+    """Footways and cycle tracks cut by the new asphalt end where the old zebras were, which the
+    design may have moved: bend each cut end over its last metres onto the end of the nearest
+    crossing of its kind (a footway to a zebra, a cycle track to a cycle crossing) that it heads
+    across, so every path meets its crossing at the kerb."""
+    ends = {"foot": [], "cycle": []}
+    for z in d.out["zebras"]:
+        q = pts_of(z["p"])
+        u = norm(sub(q[-1], q[0]))
+        ends["foot"] += [(q[0], u, float(z.get("w", CROSS_W))), (q[-1], u, float(z.get("w", CROSS_W)))]
+    for z in d.out["cyclecross"]:
+        q = pts_of(z["p"])
+        u = norm(sub(q[-1], q[0]))
+        ends["cycle"] += [(q[0], u, 2.2), (q[-1], u, 2.2)]
+    # and the map's own crossings the design kept (past its free ends)
+    for z in paths:
+        if z["k"] in ("zebra", "cyclecross"):
+            q = pts_of(z["p"])
+            if len(q) >= 2 and math.dist(q[0], q[-1]) > 0.5:
+                u = norm(sub(q[-1], q[0]))
+                ends["foot" if z["k"] == "zebra" else "cycle"] += [(q[0], u, CROSS_W), (q[-1], u, 2.2)]
+    asphalt = Footprint(d.footprint, -0.2)
+    moved = 0
+    for g in paths:
+        cut = g.get("_cut")
+        if not cut or g["k"] not in ends:
+            continue
+        p = pts_of(g["p"])
+        for at_end in (0, 1):
+            if cut[at_end] is not True:
+                continue
+            run = p if at_end else list(reversed(p))     # run[-1] is the cut end
+            E = run[-1]
+            back = dense(run, 0.5)
+            # heading at the cut: from 3 m back to the end
+            k3 = max(0, len(back) - 7)
+            head = norm(sub(E, back[k3]))
+            best = None
+            for n, (T, u, w) in enumerate(ends[g["k"]]):
+                dd = math.dist(E, T)
+                if dd > LEAD_R:
+                    continue
+                # beyond a few metres the path must head on over the crossing (u_in: from this end
+                # into the road), not along the kerb or back from it
+                u_in = u if n % 2 == 0 else mul(u, -1.0)
+                if dd > 6.0 and dot(head, norm(sub(T, E))) < -0.2:
+                    continue                 # behind the end: another way's crossing
+                if dd > 10.0 and (abs(dot(head, u)) < 0.3 or dot(head, u_in) < -0.3):
+                    continue
+                if best is None or dd < best[0]:
+                    best = (dd, T, u)
+            if best is None or best[0] < 0.6:
+                continue
+            _, T, u = best
+            sgn = 1.0 if dot(head, u) > 0 else -1.0
+            # meet the kerb straight on: the last metre runs along the crossing
+            T_in = sub(T, mul(u, sgn * 1.2))
+            lead = max(LEAD_BACK, 1.5 * best[0])
+            acc, keep = 0.0, [back[-1]]
+            for i in range(len(back) - 1, 0, -1):
+                acc += math.dist(back[i], back[i - 1])
+                keep.append(back[i - 1])
+                if acc >= lead:
+                    break
+            keep.reverse()
+            start = keep[0]
+            if len(back) - len(keep) < 1:
+                start = back[0]
+            stem = back[:max(1, len(back) - len(keep) + 1)]
+            # the bend runs on the pavement: a lead that would cut over the asphalt is no lead
+            if sum(1 for q in dense([stem[-1], T_in], 0.5) if asphalt.has(*q)) > 2:
+                continue
+            new = simplify_run(stem + [T_in, T])
+            p = new if at_end else list(reversed(new))
+            cut[at_end] = "led"
+            moved += 1
+        g["p"] = flat(p)
+    return moved
+
+
+def on_street(d, q):
+    """Whether q lies on a designed street's own carriageways (not a junction, not a mouth)."""
+    for st in d.streets.values():
+        s, off = project(st, q)
+        if s is None or not (st.s0 <= s <= st.s1):
+            continue
+        if any(l - 0.3 <= off <= r + 0.3 for (l, r) in st.edges(s)):
+            return True
+    return False
+
+
+def bridge_mouths(paths, d):
+    """A pavement or a cycle track along the street that a side road's mouth cut in two: the two
+    cut ends face each other across the mouth's asphalt, so the design paints the crossing there
+    (a zebra for a footway, a cycle crossing for a cycle track), as Warsaw does at side streets."""
+    asphalt = Footprint(d.footprint, 0.3)
+    ends = []
+    for g in paths:
+        cut = g.get("_cut")
+        if not cut or g["k"] not in ("foot", "cycle"):
+            continue
+        p = pts_of(g["p"])
+        for at_end in (0, 1):
+            if cut[at_end] is not True:
+                continue
+            run = p if at_end else list(reversed(p))
+            back = dense(run, 0.5)
+            head = norm(sub(back[-1], back[max(0, len(back) - 7)]))
+            ends.append((g, at_end, back[-1], head))
+    made = 0
+    used = set()
+    for i, (g1, e1, E1, h1) in enumerate(ends):
+        best = None
+        for j, (g2, e2, E2, h2) in enumerate(ends):
+            if j <= i or g2["k"] != g1["k"] or g2 is g1 or j in used or i in used:
+                continue
+            dd = math.dist(E1, E2)
+            if not 2.0 < dd < 18.0:
+                continue
+            v = norm(sub(E2, E1))
+            if dot(h1, v) < 0.7 or dot(h2, v) > -0.7:
+                continue                 # not facing each other across the gap
+            mid = dense([E1, E2], 1.0)[1:-1]
+            if not mid or sum(1 for q in mid if asphalt.has(*q)) < 0.6 * len(mid):
+                continue
+            if any(on_street(d, q) for q in mid):
+                continue                 # over a designed street's lanes: not a side road's mouth
+            if best is None or dd < best[0]:
+                best = (dd, j, E2)
+        if best is None:
+            continue
+        used |= {i, best[1]}
+        g2, e2 = ends[best[1]][0], ends[best[1]][1]
+        g1["_cut"][e1] = "led"
+        g2["_cut"][e2] = "led"
+        if g1["k"] == "foot":
+            d.out["zebras"].append({"p": flat([E1, best[2]]), "w": 3.0})
+        else:
+            d.out["cyclecross"].append({"p": flat([E1, best[2]])})
+        made += 1
+    return made
+
+
 def clip_half(ring, p, d):
     """The part of a polygon on the side of the line through p (normal d) that d points to."""
     def side(q):
@@ -1234,6 +1464,7 @@ def apply_design(out, d):
          and any(fp_tight.has(*q) for q in dense(pts_of(f["p"]), 1.0)))
     # footways and cycle tracks: clipped where they cross the new asphalt (the zebras and the
     # cycle crossings carry them over it)
+    stats["paths moved out to the new kerb"] = reseat_paths(out.get("paths", []), d)
     paths = []
     cut = 0
     for f in out.get("paths", []):
@@ -1248,7 +1479,23 @@ def apply_design(out, d):
         for run in clip_line(p, fp_tight):
             g = dict(f)
             g["p"] = flat(run)
+            # which ends the asphalt cut (not the path's own ends): those walk to a crossing
+            g["_cut"] = [math.dist(run[0], p[0]) > 0.5 and math.dist(run[0], p[-1]) > 0.5,
+                         math.dist(run[-1], p[0]) > 0.5 and math.dist(run[-1], p[-1]) > 0.5]
             paths.append(g)
+    stats["crossings over side-road mouths"] = bridge_mouths(paths, d)
+    stats["path ends led to a crossing"] = lead_to_crossings(paths, d)
+    # the ends the asphalt cut, kept for the continuity gate (continuity(), --check-all)
+    cut_ends = []
+    for g in paths:
+        c = g.pop("_cut", None)
+        if c:
+            q = pts_of(g["p"])
+            for e, k, o in ((q[0], c[0], q[1]), (q[-1], c[1], q[-2])):
+                if k:
+                    h = norm(sub(e, o))
+                    cut_ends.append([round(e[0], 2), round(e[1], 2), g["k"], round(h[0], 3), round(h[1], 3)])
+    out.setdefault("road_design_ends", {})[d.area] = cut_ends
     out["paths"] = paths
     stats["paths clipped"] = cut
     # kerbs and painted lines: clipped to outside the footprint
@@ -1429,6 +1676,73 @@ def check(d):
     return problems
 
 
+def near_any(E, lines, r, along=None):
+    """Whether a polyline passes within r of E (with along: only its segments running within 60
+    degrees of that direction)."""
+    for q in lines:
+        for a, b in zip(q, q[1:]):
+            ab = sub(b, a)
+            if along is not None and abs(dot(norm(ab), along)) < 0.5:
+                continue
+            t = max(0.0, min(1.0, dot(sub(E, a), ab) / (dot(ab, ab) or 1e-9)))
+            if math.dist(E, add(a, mul(ab, t))) < r:
+                return True
+    return False
+
+
+def continuity(out, d):
+    """Footways and cycle tracks are continuous. Every end the designed asphalt cut off a path
+    (apply_design keeps them in the map's road_design_ends) must be one of: on a crossing of its
+    kind (a footway on a zebra, a cycle track on a cycle crossing), joined to another path of its
+    kind, a cycle track running into a painted cycle lane, or an end at the kerb with no path of
+    its kind straight across the road (a pavement link, not a way over). A path that stops at the
+    kerb while it goes on across the road is the fault: people would cross off any crossing."""
+    kinds = {"foot": "zebra", "cycle": "cyclecross"}
+    xs = {"zebra": [], "cyclecross": []}
+    own = {"foot": [], "cycle": []}
+    for f in out.get("paths", []):
+        if f["k"] in xs:
+            xs[f["k"]].append(pts_of(f["p"]))
+        elif f["k"] in own and f.get("dk") is None:
+            own[f["k"]].append(pts_of(f["p"]))
+    lanes = [pts_of(m["p"]) for m in out.get("markings", []) if m.get("k") == "cyclefill"]
+    asphalt = Footprint(d.footprint, 0.3)
+    open_ends = [(float(e["x"]), float(e["z"])) for e in d.spec.get("open_ends", [])]
+    problems = []
+    if d.area in out.get("road_design", {}) and d.area not in out.get("road_design_ends", {}):
+        problems.append("%s applied without its cut path ends: apply it again from the map before" % d.area)
+    for row in out.get("road_design_ends", {}).get(d.area, []):
+        x, z, k = row[0], row[1], row[2]
+        E = (x, z)
+        if any(math.dist(E, o) < 3.0 for o in open_ends):
+            continue                     # checked on the ortho: no crossing painted there
+        if near_any(E, xs[kinds[k]], 1.5):
+            continue
+        if near_any(E, [q for q in own[k] if math.dist(q[0], E) > 0.05 and math.dist(q[-1], E) > 0.05], 1.2):
+            continue
+        if k == "cycle" and near_any(E, lanes, 2.5):
+            continue
+        if len(row) < 5:
+            problems.append("%s path stops at the road off any %s at (%.1f, %.1f)" % (k, kinds[k], x, z))
+            continue
+        h = (row[3], row[4])
+        # straight on over the asphalt: does a path of its kind go on from the far kerb?
+        t, on = 0.0, False
+        while t < 45.0:
+            t += 0.5
+            q = add(E, mul(h, t))
+            if asphalt.has(*q):
+                on = True
+            elif on:
+                break
+            elif t > 3.0:
+                break
+        if on and near_any(add(E, mul(h, t)), own[k] + xs[kinds[k]], 4.0, along=h):
+            problems.append("%s path stops at the road off any %s at (%.1f, %.1f) and goes on across it" % (
+                k, kinds[k], x, z))
+    return problems
+
+
 def self_crossing(p):
     n = len(p)
     if n < 4:
@@ -1527,6 +1841,8 @@ def main(argv):
         for area in sorted(out.get("road_design", {})):
             d = Design(load_spec(area)).build()
             probs = check(d)
+            # on the map as applied: footways and cycle tracks continuous over the new asphalt
+            probs += continuity(out, Design(load_spec(area), out["roads"]).build())
             bad += len(probs)
             for p in probs[:20]:
                 print("  %s: %s" % (area, p))
@@ -1562,6 +1878,10 @@ def main(argv):
             print("  opening %s s %.0f %s w %.1f" % (st.id, o["s"], "right" if o["side"] > 0 else "left", o["w"]))
     stats = apply_design(out, d)
     print("road_design: removed " + ", ".join("%s %d" % kv for kv in stats.items()))
+    gaps = continuity(out, d)
+    for p in gaps[:40]:
+        print("  " + p)
+    print("road_design: continuity: %d path ends at the road off a crossing" % len(gaps))
     with open(dst, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, separators=(",", ":"))
     return 0
