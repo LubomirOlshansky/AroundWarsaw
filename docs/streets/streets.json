@@ -371,6 +371,206 @@
      ]
     }
    ]
+  },
+  {
+   "slug": "emilii-plater",
+   "title": "Emilii Plater: Świętokrzyska to Aleje Jerozolimskie",
+   "names": [
+    "Emilii Plater"
+   ],
+   "frame": {
+    "o": [
+     -1482.3,
+     11.8
+    ],
+    "s": [
+     0.33269,
+     0.94303
+    ],
+    "t": [
+     -0.94303,
+     0.33269
+    ]
+   },
+   "s": [
+    -10,
+    633
+   ],
+   "t": [
+    -45,
+    45
+   ],
+   "street_t": [
+    -24,
+    6
+   ],
+   "fresh_since": "2025-09",
+   "stage": "baseline",
+   "cameras": [
+    {
+     "name": "J1",
+     "x": -1475.6,
+     "z": 25.7,
+     "why": "Świętokrzyska junction"
+    },
+    {
+     "name": "A",
+     "x": -1439.4,
+     "z": 75.3
+    },
+    {
+     "name": "B",
+     "x": -1405.8,
+     "z": 224.2
+    },
+    {
+     "name": "C",
+     "x": -1307.4,
+     "z": 448.7
+    },
+    {
+     "name": "J2",
+     "x": -1279.9,
+     "z": 580.0,
+     "why": "Jerozolimskie junction (Złote Tarasy and Centralna side)"
+    }
+   ],
+   "blocks": [
+    {
+     "id": "A",
+     "title": "Świętokrzyska to Śliska",
+     "s": [
+      0,
+      136
+     ]
+    },
+    {
+     "id": "B",
+     "title": "Śliska to Złota",
+     "s": [
+      136,
+      320
+     ]
+    },
+    {
+     "id": "C",
+     "title": "Złota to Aleje Jerozolimskie",
+     "s": [
+      320,
+      623
+     ]
+    }
+   ],
+   "owned": []
+  },
+  {
+   "slug": "jerozolimskie-centrum",
+   "title": "Aleje Jerozolimskie: Emilii Plater to Rondo Dmowskiego",
+   "names": [
+    "Aleje Jerozolimskie"
+   ],
+   "frame": {
+    "o": [
+     -1262.0,
+     596.0
+    ],
+    "s": [
+     0.94967,
+     -0.31324
+    ],
+    "t": [
+     0.31324,
+     0.94967
+    ]
+   },
+   "s": [
+    -10,
+    412
+   ],
+   "t": [
+    -45,
+    45
+   ],
+   "street_t": [
+    -15,
+    28
+   ],
+   "fresh_since": "2025-09",
+   "stage": "baseline",
+   "cameras": [
+    {
+     "name": "J1",
+     "x": -1256.3,
+     "z": 593.6,
+     "why": "Emilii Plater junction"
+    },
+    {
+     "name": "A",
+     "x": -1180.3,
+     "z": 568.9,
+     "yaw": 135,
+     "why": "shoot with --yaw=135 (the south-side roofs hide the street at the default angle)"
+    },
+    {
+     "name": "B",
+     "x": -1112.8,
+     "z": 548.2,
+     "yaw": 135,
+     "why": "shoot with --yaw=135 (the south-side roofs hide the street at the default angle)"
+    },
+    {
+     "name": "C",
+     "x": -978.7,
+     "z": 499.7,
+     "yaw": 135,
+     "why": "shoot with --yaw=135 (the south-side roofs hide the street at the default angle)"
+    },
+    {
+     "name": "R",
+     "x": -894.5,
+     "z": 462.9,
+     "why": "Rondo Dmowskiego hotspot (not owned)"
+    }
+   ],
+   "blocks": [
+    {
+     "id": "A",
+     "title": "Emilii Plater to Centralna",
+     "s": [
+      0,
+      140
+     ]
+    },
+    {
+     "id": "B",
+     "title": "Centralna to Chmielna side",
+     "s": [
+      140,
+      290
+     ]
+    },
+    {
+     "id": "C",
+     "title": "to Rondo Dmowskiego",
+     "s": [
+      290,
+      402
+     ]
+    }
+   ],
+   "owned": [
+    {
+     "by": "Centralna station and Złote Tarasy buildings, sunken metro and underpass entrances (north side; sunken-places thread)",
+     "s": [
+      0,
+      230
+     ],
+     "t": [
+      -45,
+      -16
+     ]
+    }
+   ]
   }
  ]
 }

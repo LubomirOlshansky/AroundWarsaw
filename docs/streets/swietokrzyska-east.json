@@ -6,7 +6,7 @@
  "score": 92,
  "counts": {
   "L1": 3,
-  "L2": 9,
+  "L2": 8,
   "L3": 1,
   "O1": 1
  },
@@ -16,11 +16,11 @@
    "title": "Marszałkowska to Wallenberga",
    "counts": {
     "L1": 1,
-    "L2": 5,
+    "L2": 4,
     "L3": 1,
     "O1": 1
    },
-   "score": 89
+   "score": 90
   },
   {
    "id": "B",
@@ -86,6 +86,20 @@
    },
    "blocks": {
     "A": 89,
+    "B": 95
+   }
+  },
+  {
+   "date": "2026-11-06",
+   "score": 92,
+   "counts": {
+    "L1": 3,
+    "L2": 8,
+    "L3": 1,
+    "O1": 1
+   },
+   "blocks": {
+    "A": 90,
     "B": 95
    }
   }
@@ -187,16 +201,6 @@
    "z": -91.9,
    "s": 138.5,
    "t": 5.4,
-   "note": "lane line ends mid-block",
-   "block": "A",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -1307.9,
-   "z": -46.2,
-   "s": 258.1,
-   "t": -1.8,
    "note": "lane line ends mid-block",
    "block": "A",
    "status": "open"

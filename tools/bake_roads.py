@@ -2575,12 +2575,17 @@ class Roadbed:
 
     # -- lane lines, stop lines, arrows, bus and cycle lanes -----------------------------
 
-    def _crossed(self, r, lv, x, z, d):
+    def _crossed(self, r, lv, x, z, d, kind=None):
         """True where another road crosses (its strip, at an angle) or a junction box."""
         caps = self.allcaps.get(lv)
         if caps is not None:
             for a, b, half, other in caps.grid.at(x, z):
                 if other is r or other.get("_id") == r.get("_id"):
+                    continue
+                # Operation Unslop, Emilii Plater (2026-11-06, check L2): a street's lane and
+                # centre lines carry on past a driveway, a service road or a bus bay's mouth
+                # (only the edge line opens there); they broke 4-6 m at every one.
+                if kind in ("lane", "centre") and other["k"] in MINOR and r["k"] not in MINOR:
                     continue
                 od = _unit(a, b)
                 if od is None or abs(od[0] * d[0] + od[1] * d[1]) > 0.94:
@@ -2631,7 +2636,7 @@ class Roadbed:
             for k in range(n + 1):
                 x = a[0] + d[0] * ln * k / n
                 z = a[1] + d[1] * ln * k / n
-                if self._crossed(r, lv, x, z, d) or not self.paintable(lv, x, z):
+                if self._crossed(r, lv, x, z, d, kind) or not self.paintable(lv, x, z):
                     flush()
                 else:
                     run.append((x, z))
