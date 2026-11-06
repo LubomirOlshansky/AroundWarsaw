@@ -371,6 +371,97 @@
      ]
     }
    ]
+  },
+  {
+   "slug": "emilii-plater",
+   "title": "Emilii Plater: Świętokrzyska to Aleje Jerozolimskie",
+   "names": [
+    "Emilii Plater"
+   ],
+   "frame": {
+    "o": [
+     -1482.3,
+     11.8
+    ],
+    "s": [
+     0.33269,
+     0.94303
+    ],
+    "t": [
+     -0.94303,
+     0.33269
+    ]
+   },
+   "s": [
+    -10,
+    633
+   ],
+   "t": [
+    -45,
+    45
+   ],
+   "street_t": [
+    -24,
+    6
+   ],
+   "fresh_since": "2025-09",
+   "stage": "baseline",
+   "cameras": [
+    {
+     "name": "J1",
+     "x": -1475.6,
+     "z": 25.7,
+     "why": "Świętokrzyska junction"
+    },
+    {
+     "name": "A",
+     "x": -1439.4,
+     "z": 75.3
+    },
+    {
+     "name": "B",
+     "x": -1405.8,
+     "z": 224.2
+    },
+    {
+     "name": "C",
+     "x": -1307.4,
+     "z": 448.7
+    },
+    {
+     "name": "J2",
+     "x": -1279.9,
+     "z": 580.0,
+     "why": "Jerozolimskie junction (Złote Tarasy and Centralna side)"
+    }
+   ],
+   "blocks": [
+    {
+     "id": "A",
+     "title": "Świętokrzyska to Śliska",
+     "s": [
+      0,
+      136
+     ]
+    },
+    {
+     "id": "B",
+     "title": "Śliska to Złota",
+     "s": [
+      136,
+      320
+     ]
+    },
+    {
+     "id": "C",
+     "title": "Złota to Aleje Jerozolimskie",
+     "s": [
+      320,
+      623
+     ]
+    }
+   ],
+   "owned": []
   }
  ]
 }
