@@ -4794,13 +4794,45 @@ func _garden_ring(flat: Array) -> bool:
 	return true
 
 
+## Operation Unslop, Świętokrzyska (2026-11-06): OSM maps the planter edges inside traffic islands (Emilii Plater's median by the Palace: two wavy walls 95 m long) as `wall`; drawn 1.9 m high they read as a twisting beige ribbon across the junction. A wall lying inside a traffic island is a low planter edge (13 on the map), like the garden rings.
+const ISLAND_EDGE := ["#c9c2b4", 0.3, 0.45]
+var _island_boxes: Array = []
+
+
+func _in_island(flat: Array) -> bool:
+	if _island_boxes.is_empty():
+		for isl in data.get("islands", []):
+			var poly := PackedVector2Array()
+			var fp: Array = isl["p"]
+			for i in fp.size() / 2:
+				poly.append(Vector2(fp[i * 2], fp[i * 2 + 1]))
+			var box := Rect2(poly[0], Vector2.ZERO)
+			for q in poly:
+				box = box.expand(q)
+			_island_boxes.append([box, poly])
+	var n := flat.size() / 2
+	if n < 2:
+		return false
+	for e in _island_boxes:
+		var box: Rect2 = e[0]
+		if not box.has_point(Vector2(flat[0], flat[1])):
+			continue
+		var inside := 0
+		for i in n:
+			if Geometry2D.is_point_in_polygon(Vector2(flat[i * 2], flat[i * 2 + 1]), e[1]):
+				inside += 1
+		if inside * 5 >= n * 4:
+			return true
+	return false
+
+
 func _build_barriers(st) -> void:
 	_uv2 = Vector2(0.5, -1.0)
 	_load_object_overrides()
 	for l in data.get("lines", []):
 		var style: Array = BARRIER_STYLE.get(l["k"], ["#999999", 0.3, 1.0])
-		if l["k"] == "wall" and _garden_ring(l["p"]):
-			style = GARDEN_RING
+		if l["k"] == "wall" and (_garden_ring(l["p"]) or _in_island(l["p"])):
+			style = GARDEN_RING if _garden_ring(l["p"]) else ISLAND_EDGE
 		if not _object_overrides.is_empty() and l["k"] != "platform":
 			var o: Variant = _object_overrides.get(barrier_id(l["k"], l["p"]))
 			if o is Array:

@@ -3,10 +3,10 @@
  "title": "Marszałkowska: Rondo Dmowskiego to Świętokrzyska",
  "updated": "2026-11-06",
  "stage": "evidence",
- "score": 73,
+ "score": 79,
  "counts": {
   "F1": 7,
-  "L1": 9,
+  "L1": 3,
   "L2": 21,
   "L3": 1,
   "O1": 8,
@@ -18,34 +18,34 @@
    "title": "Rondo Dmowskiego to Złota",
    "counts": {
     "F1": 5,
-    "L1": 3,
+    "L1": 1,
     "L2": 7,
     "O1": 7
    },
-   "score": 62
+   "score": 68
   },
   {
    "id": "B",
    "title": "Złota to Sienkiewicza",
    "counts": {
     "F1": 1,
-    "L1": 3,
+    "L1": 1,
     "L2": 4,
     "L3": 1,
     "P1": 1
    },
-   "score": 80
+   "score": 86
   },
   {
    "id": "C",
    "title": "Sienkiewicza to Świętokrzyska",
    "counts": {
     "F1": 1,
-    "L1": 3,
+    "L1": 1,
     "L2": 10,
     "O1": 1
    },
-   "score": 77
+   "score": 83
   }
  ],
  "history": [
@@ -266,6 +266,23 @@
     "B": 80,
     "C": 77
    }
+  },
+  {
+   "date": "2026-11-06",
+   "score": 79,
+   "counts": {
+    "F1": 7,
+    "L1": 3,
+    "L2": 21,
+    "L3": 1,
+    "O1": 8,
+    "P1": 1
+   },
+   "blocks": {
+    "A": 68,
+    "B": 86,
+    "C": 83
+   }
   }
  ],
  "baseline": {
@@ -398,26 +415,6 @@
    "note": "F-06: east carriageway steps from 3 to 2 lanes with ragged asphalt edges by Złota -> should: one smooth carriageway, the extra lane opening on a 20-30 m taper [changed since the data: Skwer Linearny na Złotej (car-free since 2026-08) and its crossing to Plac Centralny]",
    "block": "A",
    "status": "changed"
-  },
-  {
-   "check": "L1",
-   "x": -862.1,
-   "z": 366.3,
-   "s": -172.5,
-   "t": 15.6,
-   "note": "3 -> 3 lanes, 12.8 -> 9.8 m wide where two ways meet",
-   "block": "A",
-   "status": "open"
-  },
-  {
-   "check": "L1",
-   "x": -888.4,
-   "z": 348.9,
-   "s": -147.0,
-   "t": -2.9,
-   "note": "3 -> 4 lanes, 9.1 -> 12.0 m wide where two ways meet",
-   "block": "A",
-   "status": "open"
   },
   {
    "check": "L1",
@@ -581,31 +578,11 @@
   },
   {
    "check": "L1",
-   "x": -934.3,
-   "z": 168.8,
-   "s": 37.8,
-   "t": 17.0,
-   "note": "3 -> 2 lanes, 10.2 -> 9.4 m wide where two ways meet [changed since the data: Skwer Linearny na Złotej (car-free since 2026-08) and its crossing to Plac Centralny]",
-   "block": "B",
-   "status": "changed"
-  },
-  {
-   "check": "L1",
    "x": -966.5,
    "z": 134.1,
    "s": 81.5,
    "t": -1.1,
    "note": "3 -> 2 lanes, 9.8 -> 6.5 m wide where two ways meet",
-   "block": "B",
-   "status": "open"
-  },
-  {
-   "check": "L1",
-   "x": -985.0,
-   "z": 84.0,
-   "s": 134.9,
-   "t": -0.9,
-   "note": "2 -> 3 lanes, 6.5 -> 9.8 m wide where two ways meet",
    "block": "B",
    "status": "open"
   },
@@ -676,26 +653,6 @@
    "s": 177.9,
    "t": 9.7,
    "note": "F-08: cyclists ride on the car road next to the red cycle path -> should: cyclists on the cycle path",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L1",
-   "x": -991.3,
-   "z": 14.1,
-   "s": 202.6,
-   "t": 17.6,
-   "note": "2 -> 3 lanes, 9.2 -> 7.8 m wide where two ways meet",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L1",
-   "x": -1055.5,
-   "z": -108.4,
-   "s": 339.8,
-   "t": 0.2,
-   "note": "3 -> 2 lanes, 9.8 -> 6.5 m wide where two ways meet",
    "block": "C",
    "status": "open"
   },

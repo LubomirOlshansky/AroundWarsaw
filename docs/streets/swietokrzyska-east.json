@@ -3,9 +3,9 @@
  "title": "Świętokrzyska: Metro Świętokrzyska to Emilii Plater",
  "updated": "2026-11-06",
  "stage": "baseline",
- "score": 89,
+ "score": 92,
  "counts": {
-  "L1": 5,
+  "L1": 3,
   "L2": 9,
   "L3": 1,
   "O1": 1
@@ -15,21 +15,21 @@
    "id": "A",
    "title": "Marszałkowska to Wallenberga",
    "counts": {
-    "L1": 2,
+    "L1": 1,
     "L2": 5,
     "L3": 1,
     "O1": 1
    },
-   "score": 86
+   "score": 89
   },
   {
    "id": "B",
    "title": "Wallenberga to Emilii Plater",
    "counts": {
-    "L1": 2,
+    "L1": 1,
     "L2": 2
    },
-   "score": 92
+   "score": 95
   }
  ],
  "history": [
@@ -73,6 +73,20 @@
    "blocks": {
     "A": 86,
     "B": 92
+   }
+  },
+  {
+   "date": "2026-11-06",
+   "score": 92,
+   "counts": {
+    "L1": 3,
+    "L2": 9,
+    "L3": 1,
+    "O1": 1
+   },
+   "blocks": {
+    "A": 89,
+    "B": 95
    }
   }
  ],
@@ -134,16 +148,6 @@
    "s": 0.0,
    "t": -0.0,
    "note": "5 -> 4 lanes, 15.0 -> 12.0 m wide where two ways meet",
-   "block": "A",
-   "status": "open"
-  },
-  {
-   "check": "L1",
-   "x": -1207.7,
-   "z": -79.9,
-   "s": 152.4,
-   "t": -2.5,
-   "note": "2 -> 3 lanes, 7.5 -> 10.5 m wide where two ways meet",
    "block": "A",
    "status": "open"
   },
@@ -215,16 +219,6 @@
    "t": -7.1,
    "note": "shelter/shelter 0.9 m from a lane's edge",
    "block": "A",
-   "status": "open"
-  },
-  {
-   "check": "L1",
-   "x": -1359.8,
-   "z": -37.1,
-   "s": 310.1,
-   "t": 6.4,
-   "note": "2 -> 3 lanes, 6.0 -> 9.0 m wide where two ways meet",
-   "block": "B",
    "status": "open"
   },
   {
