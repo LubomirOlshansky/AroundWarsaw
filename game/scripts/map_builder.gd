@@ -1463,6 +1463,34 @@ func _deck_hit(d: Dictionary, p: Vector2) -> Vector3:
 	return Vector3(height, best, inside)
 
 
+## F, 2026-11-05: footbridges over a road in a trench (Aleja Armii Ludowej, (380, 1500)) or over
+## the Ochota cutting ((-2170, 880), (-2324, 927)) came down to the floor under them: the bake
+## solved their height off the 10 m grid, which has the trench's floor between its two rims, so the
+## deck sank 4-6 m below its ends onto the road or the tracks. A path deck whose lowest point
+## sits within SAG_ON_GROUND of the ground and under the straight line between its ends by more
+## than SAG_DIP is lifted onto that line (never lowered), a level bridge over the gap.
+const SAG_DIP := 2.0
+const SAG_ON_GROUND := 0.6
+
+
+func _lift_sagging_deck(pts: PackedVector2Array, cum: PackedFloat32Array, hs: PackedFloat32Array) -> void:
+	var n := pts.size()
+	var total := cum[n - 1]
+	if n < 3 or total < 1.0 or hs.size() != n:
+		return
+	var worst := 0.0
+	var at := -1
+	for i in range(1, n - 1):
+		var dip := lerpf(hs[0], hs[n - 1], cum[i] / total) - hs[i]
+		if dip > worst:
+			worst = dip
+			at = i
+	if worst < SAG_DIP or hs[at] - terrain_height(pts[at].x, pts[at].y) > SAG_ON_GROUND:
+		return
+	for i in range(1, n - 1):
+		hs[i] = maxf(hs[i], lerpf(hs[0], hs[n - 1], cum[i] / total))
+
+
 func _load_decks() -> void:
 	_decks.clear()
 	var data_decks: Dictionary = data.get("decks", {})
@@ -1475,7 +1503,10 @@ func _load_decks() -> void:
 		for q in pts:
 			box = box.expand(q)
 		var reach := maxf(float(piece["l"]), float(piece["r"])) + 1.0
-		_decks.append({"pts": pts, "cum": cum, "h": PackedFloat32Array(piece["h"]), "l": float(piece["l"]),
+		var hs := PackedFloat32Array(piece["h"])
+		if String(piece["k"]) == "path":
+			_lift_sagging_deck(pts, cum, hs)
+		_decks.append({"pts": pts, "cum": cum, "h": hs, "l": float(piece["l"]),
 				"r": float(piece["r"]), "g": int(piece["g"]), "k": String(piece["k"]),
 				"o": PackedByteArray(piece.get("o", [])), "box": box.grow(reach)})
 

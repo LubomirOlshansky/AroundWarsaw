@@ -8,6 +8,8 @@ writes its record (the score the dev console shows), and fails when a swept stre
                                                      # objects, findings and their causes, in s/t
     python3 -I tools/street_pass.py --street=SLUG --photos         # one evidence pack: newest photos per block
                                                      # side and CHECK object -> docs/streets/SLUG-photos.md
+    python3 -I tools/street_pass.py --street=SLUG --spots          # the street's fixed cameras as one game
+                                                     # --spots= argument (same cameras before and after)
     python3 -I tools/street_pass.py --apply          # game/data/road_objects.json from the records
 
 A street is a box in its own frame (`s` metres along the street, `t` metres across it) with blocks
@@ -689,6 +691,27 @@ def write_record(sd, findings, ev, objs):
     return rec
 
 
+def spots(sd):
+    """--spots: the street's fixed cameras as one `--spots=` argument for the game's shot run. The
+    cameras are `cameras` in streets.json (name, x, z, optional h in degrees): every junction F has
+    looked at keeps its camera, so every before/after of every round is the same view. Without
+    them, one camera per block at its middle on the street centre line."""
+    cams = sd.get("cameras")
+    if not cams:
+        fr = Frame(sd["frame"])
+        tc = (sd["street_t"][0] + sd["street_t"][1]) / 2.0
+        cams = []
+        for b in sd["blocks"]:
+            x, z = fr.xz((b["s"][0] + b["s"][1]) / 2.0, tc)
+            cams.append({"name": b["id"], "x": round(x, 1), "z": round(z, 1)})
+    parts = []
+    for c in cams:
+        v = f"{c['x']},{c['z']}" + (f",{c['h']}" if "h" in c else "")
+        parts.append(f"{c['name']}:{v}")
+    print(f'"--spots={";".join(parts)}"')
+    return 0
+
+
 def main():
     args = sys.argv[1:]
     opt = {a.split("=", 1)[0]: (a.split("=", 1)[1] if "=" in a else True) for a in args}
@@ -758,6 +781,8 @@ def main():
         return dump(d, sd, None if opt["--dump"] is True else opt["--dump"])
     if "--photos" in opt:
         return photos(sd, sd["slug"])
+    if "--spots" in opt:
+        return spots(sd)
     findings = measure(d, sd)
     blocks, counts, total = summarise(findings, sd)
     ev = evidence(sd) if "--evidence" in opt else None

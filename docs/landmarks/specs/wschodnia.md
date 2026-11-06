@@ -74,3 +74,5 @@ are about two thirds).
 | ridge_lights | glass boxes | 3 x the hall's length - 16 m, 2.2 x 0.7 m | the roof | M_PAVILION | the glazed strips |
 | plant | boxes | 3.6 x 2.4 x 1.4 m | the roof's north side | grey | roof kit |
 | platform_roofs | ridged slabs + columns | platform width - 0.7 m, 0.35 m, 4.4 m up | five platforms, x 1860-2120 | rust-brown | the platform roofs |
+
+F's look check (2026-11-03): roof edge 10.4 m kept; pleats 2.3 m deep, 0.9 m out; struts 0.42 m, every 6 m; the short suburban platforms roofed from x 2020 east (endpoints to verify).

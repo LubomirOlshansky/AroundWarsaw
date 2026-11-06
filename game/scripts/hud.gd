@@ -28,6 +28,7 @@ extends CanvasLayer
 ## Loop 2b: time spent in this script's per-frame work since the bench last read it (µs).
 var spent_usec := 0
 
+const Chatter := preload("res://scripts/chatter.gd")
 const Access := preload("res://scripts/access.gd")
 const Lang := preload("res://scripts/lang.gd")  # one language at a time: every pl/en pair below shows one
 const SettingsPanel := preload("res://scripts/settings_panel.gd")
@@ -1203,6 +1204,23 @@ func pill_free() -> bool:
 	return not _pill.visible
 
 
+## Who may take the context button from whom (PT-23, 2026-11-06): the ride app's PODWÓZKA is up
+## whenever the player could take a ride, so "wait for a free button" meant the stuck offer's
+## POMOC DROGOWA (and KASETA by a tape) never came up while it was. A higher rank takes the button;
+## the one it took comes back on its own once the button is free again. A rescue call ranks top.
+const PILL_RANK := {"ride": 0, "tape": 1, "ride_start": 1, "unstuck": 2, "call": 3}
+
+
+## True when `owner` outranks `held` (an owner not in PILL_RANK ranks with a call).
+static func pill_outranks(owner: String, held: String) -> bool:
+	return int(PILL_RANK.get(owner, 3)) > int(PILL_RANK.get(held, 3))
+
+
+## The context button is free for `owner`: nobody's up, or a lower-ranked owner's (PILL_RANK).
+func pill_free_for(owner: String) -> bool:
+	return not _pill.visible or pill_outranks(owner, pill_owner)
+
+
 func hide_pill() -> void:
 	if _pill.visible:
 		_pill.visible = false
@@ -1388,7 +1406,7 @@ func ticker(text: String, colour: Color, subtitle := "") -> void:
 	_ticker_sub.visible = subtitle != ""
 	_ticker_style.border_color = colour
 	_ticker.reset_size()
-	_ticker_hold = 4.5 if subtitle == "" else 9.0
+	_ticker_hold = maxf(4.5 if subtitle == "" else 9.0, Chatter.read_time(text + subtitle))
 	_ticker_left = _ticker_hold
 	_show(_ticker, true)
 	_mark()
@@ -1450,7 +1468,7 @@ func toast(text: String, gloss := "") -> void:
 	# PT-20 (Autopilot run 20261103-152518): the same toast again while it is still up only
 	# keeps it up; it is not shown (and logged, and laid out) a second time.
 	if _toast_left > 0.0 and _toast.text == text and bool(_wants.get(_toast_box, false)):
-		_toast_left = 3.0
+		_toast_left = Chatter.read_time(text)
 		return
 	# A long line wraps at TOAST_W points rather than running off a phone's screen.
 	var font := ThemeDB.fallback_font
@@ -1464,7 +1482,7 @@ func toast(text: String, gloss := "") -> void:
 	_toast.text = text
 	_toast_gloss.text = gloss
 	_toast_gloss.visible = gloss != ""
-	_toast_left = 3.0
+	_toast_left = Chatter.read_time(text + gloss)
 	_toast_box.modulate.a = 1.0
 	_toast_box.reset_size()
 	_show(_toast_box, true)

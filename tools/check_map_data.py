@@ -72,7 +72,9 @@ MAP = os.path.join(ROOT, "game", "map")
 # garden) taken out; the court of "Plater" and the west court of "Galwan" carved open (COURTS);
 # +4 candelabra planes, +3 on Żelazna, +3 along the glass street, +2 in the west court, +17 in
 # Browary's Central Garden (22 with the scan's 5), +4 by Willa Schielego. Before: 271056 / 45176.
-EXPECTED = {"trees3d": 271152, "pois": 4572, "trees3d_crown": 45192}
+# Plac Centralny (F's photos, 2026-11-05, tools/plac_centralny.py): 45,289 trees (+97 young locusts, ginkgos,
+# ashes and magnolias on the new square's lawns and axis; 10 beds in surfaces, 6 benches). Before: 271152 / 45192.
+EXPECTED = {"trees3d": 271734, "pois": 4572, "trees3d_crown": 45289}
 # docs/DEMO.md 7 row 7: the lane graph's strongly connected share at least this.
 SCC_SHARE = 0.95
 

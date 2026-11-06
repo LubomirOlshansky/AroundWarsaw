@@ -9,12 +9,27 @@ that day here, in plain words a player would understand (no file names, no spoil
 rows in the progress log but no section here is listed automatically from the log's labels until
 someone writes its lines.
 
+## 2026-11-06
+
+- When your car is stuck, the POMOC DROGOWA tow button now comes up even while the ride app button is on screen, and it also comes when you keep backing off a wall and trying again.
+
 ## 2026-11-05
 
 - Roads no longer jump sideways where they change width: the asphalt now narrows or widens smoothly over 20-30 m, the dark blobs at the kerb are gone, and lane lines curve across instead of breaking off; the widening asphalt follows the kerb instead of poking into the tram tracks or a driveway; streets now run straight up to the tram tracks, and driveways no longer show through the street as pale flags.
 - Crossings over the big streets look finished: zebras sit right beside the red cycle crossing and reach the far kerb, a paved walk joins them across the tram tracks, and drivers get a stop line, solid lane lines and traffic lights before them; stray wedges of pavement between driveways and streets are now asphalt or painted islands, and street lamps no longer stand in the widened road.
 - Tram tracks on their own bed now show sleepers on gravel; cars, walkers and U-turns cross the tracks on clean asphalt or paving instead of stray kerb lines; driveways are the same asphalt as the street; and metro stairs darken as they go down into the station.
 - The U-turn through the tram tracks at Złota is now one clean asphalt opening with rounded gravel island ends and the rails running straight through; lane arrows show where each lane really goes (straight, turn, or straight plus U-turn before the opening); stop lines stand before both the cycle and the zebra crossing, and the little hatched triangle by the side street now runs out into a long painted taper along the road edge.
+- Foksal 13 and 15 look like the real restored tenements: salmon and ochre brick framed in white and cream stone, the arched gate with its two stone figures, crested gables, iron balconies and red window frames.
+- Three of Warsaw's best modernist blocks are built from photos: Młotek on Smolna with its hammer head jutting over the escarpment, Kozia 9 climbing a storey at a time to its round tower, and Karowa 18a with its columns of hanging boxes.
+- The title screen no longer freezes while the city loads: a loading bar with a percentage fills up until "Tap to drive", and the city is all there when you start.
+- The street where the game starts shows its shops as they are now: UNIKAT, the LUKA bakery, the huge new TAK MAKS on four floors, the two-storey FROGS XXL on the corner with its green seats and parasols, lit shop signs under the stores and new banners on the street side; and the Świętokrzyska metro entrances got their glass-and-steel triangle roofs.
+- Crazy drivers join the traffic: Szkoda Oktawia taxis and Szprynter courier vans speed, tailgate, overtake and cut in right in front of you, and once in a while the legendary Pasatini 1.9 TDJ storms past (black smoke, left lane, no indicator). They honk and shout when they cut you off, and KEBAB FM reports Pasatini sightings.
+- Race rivals drive like people now: they launch past you and make you chase, take shortcuts across squares, lawns and car parks, cut in front of you and block your line, and sometimes run wide in a corner or take a wrong turn. Each one has a style: Zbyszek knows every shortcut, Seba blocks, Słoik follows his satnav, and Mike is as fast as your car.
+- A race won by a few metres no longer says you won by 47 seconds, and a rival right by the finish no longer drives a loop round the block to reach it.
+- Quest bubbles, toasts and the radio announcements now stay on screen as long as it takes to read them: longer text stays longer.
+- Cyclists keep to the red cycle paths: the kerb-edge courier riders no longer ride the car lanes of a road that has a cycle path beside it.
+- Footbridges no longer sag onto the road or the tracks: the one over Aleja Armii Ludowej and the three over the Ochota cutting now span the gap level.
+- Plac Centralny in front of the Palace of Culture looks like the new square: young trees in groves on the lawns and along the axis, flower beds, a long stone seat-wall, wooden step seating round a pale paved heart, the red WARSZAWA letters, green deckchairs and tall lamps.
 - The railway at Plac Zawiszy no longer runs over the street: the tracks, sleepers and overhead wires stop where the cutting ends and the tunnel mouth stands, and trains disappear into it.
 
 ## 2026-11-04
@@ -26,7 +41,8 @@ someone writes its lines.
 - Driving now starts with the steering strip on the left and the GAS and BRAKE pedals on the right; pointing where to go is still in Settings → Jazda, and the first-minute hint shows the new controls.
 
 ## 2026-11-03
-
+- Ten landmarks look more like the real thing after a photo check: Fabryka Norblina's white workshops with dark metal roofs along its lane, its copper walls glowing at night and a glass-roofed passage; Browary's garden with its trees in clumps around the path and café tables; a pale bannered wing at the Rising Museum; a stone base and sharper cornices on Hotel Warszawa; Poczta Główna's columns set into the front under a red canopy; a darker PAST-a; bolder pleats and struts at Warszawa Wschodnia; patched stall roofs at Bazar Różyckiego; and grey slabs with balcony bands and taller white Y masts on Pasaż Wiecha.
+- The website now leads with the beta: join on iPhone through TestFlight, or request Android access with a short form. The open-source story moved to the footer and a quieter "How it's made" section.
 - Arkadka by Rondo Radosława looks like the real mall now: the round fountain plaza, a curved glass entrance between stone piers under a fan of glass roofs, the tall sign tower with its glowing crown, shop logos and a big pink screen, the dark glass office wing, the brick wing with its rotunda and yellow café awnings, and the big red letter sign on the lawns.
 - The Forest office complex by Rondo Radosława is rebuilt from photos: its tower now steps up in three dark glass slabs with orange, red and green fins and PEPEO ŻUBR in the crown, the low wings wear the same colourful fins under black top floors and roof gardens, and the courtyard between them has grass steps, a rusty-steel pavilion and young trees.
 - The Royal Castle's river front is pale right up to its tiled roof, with no salmon strip under the eaves, and the Clock Tower's copper helm stands clean, with no old tower block poking through it.
@@ -60,6 +76,7 @@ someone writes its lines.
 - On Świętokrzyska the main post office stands in its pale salmon plaster, with a little grey-silver dome on the Jasna corner and six white columns under a red POCZTA band at the door; on Zielna the PAST-a tower rises 51 m, with tall arches and castle-like merlons at the top, a gilt anchor on the roof and white-and-red banners down the front.
 - Warszawa Wschodnia stands on Praga's side of the tracks: a long glass hall under a flat roof with a zig-zag folded edge on green V-shaped legs, WARSZAWA WSCHODNIA in white letters over the platforms, and rust-brown roofs on columns over its five island platforms.
 - Fewer grass islands sitting across junctions: where Warsaw paints a hatched area, the game now does too, and walls no longer stick out at the ends of the Port Praski bridge.
+- Plac Bankowy's palaces look like the real ones: pale cream under green copper roofs, the city hall's wings end in white colonnades with the giant six-column portico at the back of its courtyard, and the old Bank Polski's rounded corner has its tier of arches and a green dome. On Jasna the Philharmonic shows its colonnade with a composer on every window sill and its green FN neon, and Teatr Polski on Karasia has its round corner bays and oval windows.
 
 ## 2026-11-02
 - The Supreme Court's colonnade on Plac Krasińskich is green as in Warsaw, not white: ribbed columns with dark lettering low down and rosettes in the capitals, under green beams.
@@ -174,7 +191,7 @@ someone writes its lines.
 - Powiśle has more to look at: the Ostrogski Castle with the Chopin Museum on Tamka, the parish church, the Syrenka statue on the boulevard, the water station and the Kaskada boat.
 - A new ice-cream parlour on Tamka, DALEJ DALLA GELATO: the queue stands all year, and in winter everyone queues in puffer jackets.
 - St John's Cathedral in the Old Town has its brick front: a stepped gable with a tall pointed window, stone pinnacles and a small gabled porch.
-- MDM on Plac Konstytucji looks like the socialist-realist district now: arcades along the ground floor of the blocks facing the square and Marszałkowska, and four stone towers with pointed roofs at the corners, each with a terracotta relief.
+- MDM on Plac Konstytucji looks like the real blocks now: cream plaster over a sand-stone base with shopfronts, small stepped pavilions with finials on the corners, and glowing roof signs: the red MDM, the Hotel MDM, and parodies of Xiaomi and BYD.
 - Most Śląsko-Dąbrowski's "find it" spot now sits on the bridge itself, where a car can reach it.
 - The football ground on Łazienkowska is a real stadium now (as "Stadion Leguminy"): a panelled facade under a red and green band, a white roof round an open middle, white, green and red stands round a striped pitch, floodlight masts at the corners and LEGUMINA in green neon, with a card.
 

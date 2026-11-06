@@ -568,6 +568,8 @@ static func add_metro_entrance(st: SurfaceTool, xf: Transform3D, form := "canopy
 					_xbox(st, xf, Vector3(x, hgt * 0.5, -1.5 + j * 1.0), Vector3(0.24, hgt, 1.0), concrete)
 				_xbox(st, xf, Vector3(x * 0.9, 1.0, -0.1), Vector3(0.05, 0.05, 3.7), rail)
 			_xbox(st, xf, Vector3(0, 0.6, 2.05), Vector3(2.66, 1.2, 0.2), concrete)
+		"tent":
+			_metro_tent(st, xf)
 		_:
 			# The canopy: steel sill and posts, glass sides and back, a vaulted glass roof on three
 			# ribs (seven points on an ellipse 1.35 m out and 0.7 m up from the 2.2 m springing).
@@ -607,6 +609,70 @@ static func add_metro_entrance(st: SurfaceTool, xf: Transform3D, form := "canopy
 		_xbox(st, xf, c + Vector3(0, 0.95, -0.67), Vector3(0.9, 1.9, 0.04), Color("#3a3e45"))
 
 
+## Metro Świętokrzyska's M2 entrances (F's photo, Feb 2026): a steel-and-glass triangle "tent"
+## over the stairs, tall at the open mouth (an A-frame gable 5.4 m high) and falling to 2.8 m at
+## the deep end; light grey tube rafters, a ridge, two purlins and cross braces a side, glazed
+## slopes with a fine mesh (lit at night), a white name band across the mouth with the M1 blue
+## and M2 red squares, and the yellow roundel with the red M high on the gable. Local frame as
+## add_metro_entrance's (open front -z). ~300 triangles.
+static func _metro_tent(st: SurfaceTool, xf: Transform3D) -> void:
+	var tube := Color("#d3d7da")
+	var glass := Color("#b9c9cf")
+	var concrete := Color("#a4a19a")
+	var half := 1.75
+	var z0 := -2.35
+	var z1 := 2.35
+	var front := Vector3(0, 5.4, z0)
+	var back := Vector3(0, 2.8, z1)
+	var basis := xf.basis.orthonormalized()
+	# The low concrete upstands the slopes stand on.
+	for x in [-half, half]:
+		_xbox(st, xf, Vector3(x, 0.3, 0.0), Vector3(0.3, 0.6, z1 - z0 + 0.2), concrete)
+	_xbox(st, xf, Vector3(0, 0.3, z1), Vector3(2 * half + 0.3, 0.6, 0.3), concrete)
+	# The glazed slopes, both faces (the camera sees in through the mouth), and the back gable.
+	for x: float in [-half, half]:
+		var a := xf * Vector3(x, 0.6, z0)
+		var b := xf * Vector3(x, 0.6, z1)
+		var c := xf * back
+		var d := xf * front
+		var n := basis * Vector3(signf(x) * 0.88, 0.47, 0.0)
+		for s: float in [1.0, -1.0]:
+			tri(st, a, b, c, n * s, glass, LIT_WINDOW)
+			tri(st, a, c, d, n * s, glass, LIT_WINDOW)
+	for s: float in [1.0, -1.0]:
+		tri(st, xf * Vector3(-half, 0.6, z1), xf * Vector3(half, 0.6, z1), xf * back, basis * Vector3(0, 0, s), glass, LIT_WINDOW)
+	# The frame: the mouth's and the back's A, the ridge, the sills, two purlins and an X a side.
+	for z: float in [z0, z1]:
+		var top := front if z == z0 else back
+		for x in [-half, half]:
+			_xbeam(st, xf, Vector3(x, 0.6, z), top, 0.16, 0.16, tube)
+	_xbeam(st, xf, front, back, 0.16, 0.16, tube)
+	for x: float in [-half, half]:
+		_xbeam(st, xf, Vector3(x, 0.62, z0), Vector3(x, 0.62, z1), 0.12, 0.12, tube)
+		for k: float in [0.36, 0.68]:
+			var p0 := Vector3(x, 0.6, z0).lerp(front, k)
+			var p1 := Vector3(x, 0.6, z1).lerp(back, k)
+			_xbeam(st, xf, p0, p1, 0.07, 0.07, tube)
+		_xbeam(st, xf, Vector3(x, 0.6, z0), Vector3(x, 0.6, z1).lerp(back, 0.85), 0.06, 0.06, tube)
+		_xbeam(st, xf, Vector3(x, 0.6, z1), Vector3(x, 0.6, z0).lerp(front, 0.85), 0.06, 0.06, tube)
+	# The tie across the mouth and the name band hung from it (white, lit; M1 blue, M2 red).
+	_xbeam(st, xf, Vector3(-half * 0.62, 2.35, z0), Vector3(half * 0.62, 2.35, z0), 0.12, 0.12, tube)
+	_xbox(st, xf, Vector3(0, 2.05, z0 - 0.02), Vector3(2.3, 0.42, 0.08), Color("#f2f6f8"), LIT_SIGN)
+	_xbox(st, xf, Vector3(-0.85, 2.05, z0 - 0.07), Vector3(0.24, 0.24, 0.03), Color("#2a6fc4"), LIT_SIGN)
+	_xbox(st, xf, Vector3(-0.55, 2.05, z0 - 0.07), Vector3(0.24, 0.24, 0.03), Color("#d3202a"), LIT_SIGN)
+	_xbox(st, xf, Vector3(0.35, 2.05, z0 - 0.07), Vector3(1.1, 0.08, 0.03), Color("#2a5ea8"), LIT_SIGN)
+	# The roundel high on the gable: a yellow octagon (0.95 m) with the red M.
+	var rc := Vector3(0, 4.25, z0 - 0.12)
+	var ring := 8
+	for i in ring:
+		var a0 := TAU * (i + 0.5) / ring
+		var a1 := TAU * (i + 1.5) / ring
+		for s: float in [-1.0, 1.0]:
+			tri(st, xf * (rc + Vector3(0, 0, 0.04 * s)), xf * (rc + Vector3(0.48 * cos(a0), 0.48 * sin(a0), 0.04 * s)),
+					xf * (rc + Vector3(0.48 * cos(a1), 0.48 * sin(a1), 0.04 * s)), basis * Vector3(0, 0, s), Color("#f6c813"), LIT_SIGN)
+	_metro_m(st, xf, rc, 0.07, [-1.0], 0.08, Color("#d3202a"))
+
+
 ## A beam between two points of an entrance's local frame, `w` wide along its z, through `xf`.
 static func _xbeam(st: SurfaceTool, xf: Transform3D, a: Vector3, b: Vector3, w: float, t: float, colour: Color, part := FIXED) -> void:
 	beam(st, xf * a, xf * b, w, t, colour, xf.basis * Vector3.UP, part)
@@ -614,8 +680,8 @@ static func _xbeam(st: SurfaceTool, xf: Transform3D, a: Vector3, b: Vector3, w: 
 
 ## The cream pixel M facing -z (sides -1) and/or +z (1) on a plate centred at `c` (local frame).
 ## `thick` is the plate's thickness (the M stands 5 mm off each face).
-static func _metro_m(st: SurfaceTool, xf: Transform3D, c: Vector3, px: float, sides: Array, thick := 0.14) -> void:
-	var cream := Color("#fbf7ee")
+static func _metro_m(st: SurfaceTool, xf: Transform3D, c: Vector3, px: float, sides: Array, thick := 0.14, ink := Color("#fbf7ee")) -> void:
+	var cream := ink
 	var w := PixelFont.width("M") * px
 	var top := (PixelFont.BODY + 3.5) * px
 	var basis := xf.basis.orthonormalized()
@@ -822,15 +888,17 @@ static func add_ad_column(st: SurfaceTool, xf: Transform3D, poster: Color) -> vo
 ## that splits at 6 m into two flat arms climbing out along ±z, each ending in a long flat lamp
 ## blade (lit underneath at night), about 10 m tall. ~90 triangles.
 static func add_y_mast(st: SurfaceTool, xf: Transform3D) -> void:
-	var white := Color("#eeeeea")
-	_xbox(st, xf, Vector3(0, 0.15, 0), Vector3(0.42, 0.3, 0.42), Color("#5d6166"))
-	_xbox(st, xf, Vector3(0, 3.1, 0), Vector3(0.24, 6.2, 0.24), white)
+	# F's look check (2026-11-03): the white Y masts come first on the pasaż, so they stand as
+	# in the photo: a stout pole to 7.4 m, two thick arms out to 11 m, long wide lamp blades.
+	var white := Color("#f2f2ee")
+	_xbox(st, xf, Vector3(0, 0.2, 0), Vector3(0.6, 0.4, 0.6), Color("#5d6166"))
+	_xbox(st, xf, Vector3(0, 3.7, 0), Vector3(0.36, 7.4, 0.36), white)
 	for side: float in [-1.0, 1.0]:
-		_xbeam(st, xf, Vector3(0, 5.9, 0), Vector3(0, 9.3, side * 1.4), 0.16, 0.12, white)
+		_xbeam(st, xf, Vector3(0, 7.1, 0), Vector3(0, 11.0, side * 1.8), 0.24, 0.18, white)
 		var tilt := Basis(Vector3.RIGHT, -side * 0.12)
-		var c := xf * Vector3(0, 9.4, side * 2.05)
-		obox(st, c, (xf.basis * tilt).orthonormalized(), Vector3(0.3, 0.1, 1.5), white)
-		obox(st, c + xf.basis * Vector3(0, -0.06, 0), (xf.basis * tilt).orthonormalized(), Vector3(0.2, 0.03, 1.35),
+		var c := xf * Vector3(0, 11.1, side * 2.7)
+		obox(st, c, (xf.basis * tilt).orthonormalized(), Vector3(0.5, 0.14, 2.2), white)
+		obox(st, c + xf.basis * Vector3(0, -0.08, 0), (xf.basis * tilt).orthonormalized(), Vector3(0.36, 0.03, 2.0),
 				Color("#fff4dc"), LIT_SIGN)
 
 

@@ -24,12 +24,22 @@ fails its gate or comes back with open questions is re-run one tier up, not patc
 | 2a | Evidence pack: newest photos per block side and per CHECK object | `street_pass.py --street=SLUG --photos` | `street-scout` (Haiku) | ~1 min |
 | 2b | Block probe: ways, lines, zebras, objects, findings with causes | `street_pass.py --street=SLUG --dump[=BLOCK]` | `street-scout` (Haiku) | seconds |
 | 2c | Orthophoto crops (Mac) | `overlay_ortho.py` | Sonnet (`qa-tester`) | minutes |
+| 2e | Target image, once per block (optional) | Codex on the Mac from the block's camera shot | Sonnet runs, F may veto | ~3 min, ~25k Codex tokens |
 | 3 | Audit: today's street vs the game, causes, verdicts, wanted models, the look pass and flags | reads 2a-2c, looks at the photos and shots | `street-unslopper` (Opus) | ~10 min |
 | 4a | A bake rule (lanes, zebras, tapers, surface) | `bake_roads.py`, `bake_osm.py` | Opus (main or `map-engineer`) | |
 | 4b | Overrides, verdicts, `--apply`, docs, record | `street_pass.py --apply --write` | Sonnet | |
 | 4c | A wanted model from a written spec | game code | `object-modeler` (Sonnet), Opus accepts | |
 | 5 | Re-bake (Mac), checks, after shots | `bake_all.sh --roads`, `--spots=` | Sonnet runs, Opus judges a rising class | ~10 min |
 | 6 | The look of the street, A/B calls | shot sheet, phone | Opus + F | |
+
+**Rounds, not tweaks** (smooth-roads review, 2026-11-05: one 9-hour thread, the full chain after
+every tweak). A round is: one defect list with `--at=X,Z` (flags), one batch of rule changes, one
+bake, one shot run at the fixed cameras, one review. Iterate in the cloud on the touched block with
+`verify.sh --roads` and `--shots=60`; run `verify.sh --quick`, the prebuilt `bake_city` and both
+city paths once at the end of the round. **One thread per round** (or per junction): close it with a
+15-line handoff note in the street's record (done, open flags, cameras, commands, guesses) and start
+the next round fresh; a long thread pays for its whole history on every call. Every report carries
+a time-per-step line, so the slowest step is named, not guessed.
 
 Escalate Sonnet to Opus when a score class grows, a check fails twice, or a spec needs a choice
 (a lane count, a verdict). Haiku never edits and never judges: it fetches, counts and tables.
@@ -92,6 +102,23 @@ shouldn't be, objects missing or doubled). Each item becomes a **flag** in stree
 fixed): check **F1**, 3 points each, so the score and the console show it until it is closed.
 A screenshot F circles becomes flags the same day. A class seen twice becomes a check or a rule.
 
+## 2e. Target image (optional, once per block)
+
+The look moved most when the round had a picture to aim at (F's ChatGPT image of Marszałkowska ×
+Złota, 2026-11-05). Make one per block, before the work, never inside the loop:
+1. Shoot the block's camera (`street_pass.py --street=SLUG --spots`, no HUD, phone size).
+2. On the Mac (F approves the quota use for the loop): prompt on stdin, the shot as `-i`:
+   `codex exec --skip-git-repo-check -s workspace-write -i SHOT.png < prompt.txt`, asking it to
+   keep the camera, palette, pixel density and buildings and to make the roads read as real
+   Warsaw streets, and to save the PNG in the current folder. Add an orthophoto crop or F's photo
+   as a second `-i` for Warsaw specifics. Save as `refs/SLUG/target-BLOCK.png` (gitignored).
+3. The auditor turns it into a priority list with places, and checks each item against facts.
+
+Limits: it invents things (a Palace of Culture in the wrong place, traffic lights OSM doesn't have),
+so it is a target, never evidence; nothing from it is traced or shipped (original art). A built
+item no fact supports is a **guess**: tag it template-default in the report and the record, so a
+photo can confirm or remove it later.
+
 ## 3. Classify and match (the model step)
 
 Every object gets a verdict (KEEP, RETEXTURE, REPLACE, SOFTEN, REMOVE, CHECK, A/B) and a model id.
@@ -146,10 +173,14 @@ Re-bake on the Mac (raw OSM is not in the cloud):
 - Bakes write only inside the worktree: a `data/` symlink to the main checkout must not receive
   the worktree's `data/work` output.
 
-Shots, one run for all cameras (the city is built once, ~70 s; was one launch per camera):
+Shots, one run for all cameras (the city is built once, ~70 s; was one launch per camera). The
+cameras are fixed per street (`cameras` in streets.json: one per block plus every junction F has
+looked at); `street_pass.py --street=SLUG --spots` prints the argument, so every round shoots the
+same views. 30-60 frames are enough for a still (240 was 4x the cost for nothing):
 ```zsh
 godot --path game --resolution 2532x1170 -- --nosave --nohud --no-traffic --shots=30 \
-  --out=shots/unslop/SLUG_after "--spots=A1:X,Z,HEAD;B:X,Z,HEAD;C1:X,Z,HEAD" --time=day --size=70
+  --out=shots/unslop/SLUG_after "$(python3 -I tools/street_pass.py --street=SLUG --spots | tr -d '"')" \
+  --time=day --size=70
 ```
 Files are `NAME_0030.png`; the run makes `--out` if missing and exits 1 when a PNG can't be
 written. Use the same `--spots` string before and after, and `--prebuilt` for the blocks you
@@ -162,8 +193,10 @@ The gates (none is skipped to save time):
 - `python3 -I tools/check_map_data.py` and `tools/check_roads.py` after any re-bake; new counts
   only on purpose.
 - `python3 -I tools/model_library.py --check`: every model id a record names exists or is WANTED.
-- `zsh tools/verify.sh --only=streetpass,models,overrides` plus the steps your change touches
-  (not the full set for a docs-only commit). The map jobs on CI must be green.
+- While iterating: `zsh tools/verify.sh --roads` (map data, road rules, street records, models,
+  smoothing ratchet, drive, stuck spots; minutes, not the ~100-step `--quick`). Once per round and
+  before the PR: `--quick` in the background, both city paths. A docs-only commit: `--only=` the
+  steps it touches. The map jobs on CI must be green.
 - A finding in a `changed` zone, or read off a crop with an unknown flight date, is listed, never
   called fixed.
 - `python3 -I tools/shot_sheet.py BEFORE AFTER` as the PR's one review sheet; bench before and

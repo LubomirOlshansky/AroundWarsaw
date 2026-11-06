@@ -60,7 +60,13 @@ touch git, game code, bakes or the map data.
    should) so the record scores it, and a class you see twice becomes a check or a rule.
    **F's flags come first**: every open F1 finding is answered (fixed, or the reason and the
    thread that owns it).
-7. **Rule-bug alarm**: if the record's history shows a class that rose after the last re-bake,
+7. **Target image** (when the brief names one, `refs/<slug>/target-*.png`): turn it into a numbered
+   priority list with `--at=X,Z` per item, and check each item against facts (OSM via `--dump`,
+   fresh photos, orthophoto). An item no fact supports is a **guess**: if built, it is tagged
+   template-default and listed for F (the ChatGPT image drew traffic lights OSM doesn't have). The
+   image is a target, never evidence and never traced. At the end of a round compare the shot at
+   the same camera with it.
+8. **Rule-bug alarm**: if the record's history shows a class that rose after the last re-bake,
    say first whether the rule or the check is at fault, before any street fix.
 
 ## Rules

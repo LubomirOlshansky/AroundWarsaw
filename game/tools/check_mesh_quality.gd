@@ -65,12 +65,16 @@ const BUDGET := {
 	"jablkowscy": 1450,
 	"sheraton": 2400,
 	"bgk": 2700,
+	"foksal": 3000,
+	"mlotek": 2400,
+	"kozia9": 7000,
+	"karowa18a": 1500,
 	"hotel_kasztel": 330,
 	"hotel_canaletto": 330,
 	"hotel_starowka": 330,
 	"karmelici": 1300,
 	"kordegarda": 950,
-	"mdm": 2400,
+	"mdm": 4100,
 	"mickiewicz": 1150,
 	"potocki": 760,
 	"prus": 250,
@@ -90,7 +94,7 @@ const BUDGET := {
 	"syrenka_powisle": 260,
 	"dworzec_wodny": 310,
 	"kaskada": 260,
-	"dtc": 1730,
+	"dtc": 1950,
 	"europejski": 8000,
 	"flaga": 170,
 	"forest": 4900,
@@ -121,9 +125,11 @@ const BUDGET := {
 	"msn": 500,
 	# Norblin on its real block (2026-11-02, photo report): two blocks, Plater and Galwan, about
 	# three times the first footprint, arched windows round their courts, green roofs and terraces.
-	"norblin": 4500,
+	# 2026-11-03 look check: the copper base, finned storeys, set-back tops, the passage roof and
+	# the old white workshops under zinc (the Mac's spec).
+	"norblin": 5700,
 	# Browary + the Central Garden's gravel path, café clearings and the sedum roofs (2026-11-02).
-	"browary": 3800,
+	"browary": 3900,   # 2026-11-03: paved main path and clearing edges (look check)
 	"koszyki": 1370,
 	"elektrownia": 1950,
 	"mpw": 3200,
@@ -141,7 +147,7 @@ const BUDGET := {
 	"rotunda": 1380,
 	"skyliner": 400,
 	"skysawa": 170,
-	"slabs": 270,
+	"slabs": 1100,   # 2026-11-03: balcony bands, a ledge every storey on the long faces (look check)
 	"zelazna": 1030,
 	"pokorna2": 1500,
 	"spektrum": 990,
@@ -162,6 +168,8 @@ const BUDGET := {
 	"pilsudski": 160,
 	"kaczynski": 100,
 	"plac_maszty": 520,
+	"plac_centralny": 1400,
+	"plac_centralny_lamps": 700,
 	"getto": 650,
 	"ochota": 1420,
 	"powisle": 1770,
@@ -183,6 +191,11 @@ const BUDGET := {
 	"stadium": 4750,
 	"swieto": 240,
 	"teatr": 600,
+	# Plac Bankowy, Filharmonia, Teatr Polski (the Mac photo reports, 2026-11-02): fronts on kept skins.
+	"ratusz": 2500,
+	"gielda": 1050,
+	"filharmonia": 1450,
+	"teatr_polski": 760,
 	"teresy": 280,
 	"florian": 2480,
 	"bazar": 2210,
