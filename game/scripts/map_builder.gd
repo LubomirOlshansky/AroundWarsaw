@@ -2048,6 +2048,7 @@ func _build_cut_banks(st) -> void:
 		return
 	var keep := _layer
 	_layer = L_GREEN
+	var streets := _cut_street_cells()
 	for run: Dictionary in _cut.edges():
 		var toe: PackedVector2Array = run["toe"]
 		var top: PackedVector2Array = run["top"]
@@ -2056,6 +2057,11 @@ func _build_cut_banks(st) -> void:
 			if wall[k] == 1 or wall[k + 1] == 1:
 				continue
 			var quad := PackedVector2Array([toe[k], toe[k + 1], top[k + 1], top[k]])
+			# A path or street down the bank keeps its own surface (check_drape: the grass lay
+			# over the Ochota footbridge's foot).
+			var mid := (toe[k] + toe[k + 1] + top[k] + top[k + 1]) * 0.25
+			if _cut_by_street(streets, mid) or _cut_by_street(streets, top[k]) or _cut_by_street(streets, toe[k]):
+				continue
 			if Geometry2D.is_polygon_clockwise(quad):
 				quad.reverse()
 			_fill_on_grid(st, quad, Y_AREA + BANK_Y, COL["grass"])
@@ -4421,8 +4427,13 @@ func _drawn_corner(x: float, z: float) -> float:
 	if _sunk_box.has_point(Vector2(x, z)):
 		t = minf(t, sunk_floor(x, z, true))
 	# The railway cutting's banks and shoulders may stand over the grid (its blurred slope).
+	# Not where an approach's fill holds the ground up (the grid's own drawing stays under it).
 	if _cut.box.has_point(Vector2(x, z)) and _cut.at(x, z, g).y > 1.5:
-		return t
+		var hit := _set_hit
+		var held := _fill_height_base(x, z) > g + 0.05
+		_set_hit = hit
+		if not held:
+			return t
 	return minf(g, t)
 
 
