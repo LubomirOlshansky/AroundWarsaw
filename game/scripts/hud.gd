@@ -1631,7 +1631,9 @@ func show_card(title: String, body: String, buttons: PackedStringArray, accent: 
 			# Loop 3h slice 4: "POLISH|ENGLISH", a button's own two words (the end card's).
 			pl = en.get_slice("|", 0)
 			en = en.get_slice("|", 1)
-		var b := _chip(_card_buttons, pl, "" if pl == en else en.substr(0, 1) + en.substr(1).to_lower())
+		# An all-caps English word reads as a sentence-case gloss; a written answer keeps its case.
+		var gloss := en if en != en.to_upper() else en.substr(0, 1) + en.substr(1).to_lower()
+		var b := _chip(_card_buttons, pl, "" if pl == en else gloss)
 		b.name = "button%d" % i
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		b.pressed.connect(func(): card_pressed.emit(i))
