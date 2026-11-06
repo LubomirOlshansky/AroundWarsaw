@@ -67,10 +67,22 @@ the new one is one shape drawn from the four arms.
    Emilii Plater to Marszałkowska.
 2. **Tram U-turns**: Marszałkowska has two links through the tram bed (s 191 and 283-291 from the
    junction) that the old map drew; the spec has no way to say "a paved gap in a tram median" yet.
-3. **Traffic**: the AI lane graph still comes from the OSM ways (shots use `--no-traffic`). The cars
-   follow lanes that are still in the right places on these stretches, but the graph should be made
-   from the spec's lanes (phase 2).
+3. **Traffic inside junctions**: the street edges now run on the designed lanes (round 1b, below);
+   the turn links inside the junction box still come from OSM and should come from the arm arrows.
 4. **Bake integration**: the design is applied to `centrum.json` by hand after the bake (and not yet in this PR).
    `apply_all()` is ready for `bake_osm.py` to call after `road_smooth`.
 5. **Phone check**: none yet. The draw call count is unchanged in kind (the same layers), but the
    carriageway comes in 8 m pieces, so a bench run is due before this goes beyond a POC.
+
+## Round 1b and 1c (same day, after F's review)
+
+- **Side roads** are found from the map: every road ribbon (not footways) that crosses a designed
+  street's kerb gets an opening, kerb returns turned to the side road's own angle (kept within 65
+  degrees of square), and up to 9 m of the side road paved so it meets the mouth. Two one-way
+  ribbons of one mouth (a Y) become one opening as wide as both roads.
+- **Median ends** are square with 0.8 m rounded corners, as kerbed on Emilii Plater.
+- **Traffic**: `retarget_graph` moves the OSM traffic edges of the designed streets onto the designed
+  lanes (44 edges), blending over 12 m at free ends.
+- **Driving**: `game/tools/check_lane_drive.gd --streets=Marszałkowska,Świętokrzyska,Emilii Plater
+  --box=-1500,-160,-930,470` drives the three streets both ways, and `--route=` 34 routes into and out
+  of the side roads: all pass on main and on the designed map, at the same speeds.
