@@ -86,7 +86,7 @@ One session per lane. Add a row when you start an item, remove it when the item 
 - **2026-11-02 · map · Krajobraz places: ul. Chmielna** — Mac look check of Chmielna (Nowy Świat to Pasaż Wiecha): 65 young trees went into the OSM tree pits (one each, 2.4 m² or more; elms on the narrow stretches, planes on the squares by Pasaż Wiecha and Kino Atlantic, a few cherries, a linden and black locusts), 85 with the 20 scanned (the city's list says 88: 57 elms, 24 planes). Do they match the orthophoto? Is the granite (#c9c7c1, cooler than the old paving) the right tone? Ali's memorial stone stands by the bed on the north-east corner of Pasaż Wiecha and Chmielna; is that its spot, and the square's official name (plate: SKWER BROWNE'A)? Default built: all of the above.
 - **2026-11-02 · map · Muzeum Historii Polski** — The museum (Cytadela, ul. Dymińska 13, with its 6,500 m² green roof and park) is ~0.7 km north of the map's north edge, so nothing was built. Grow the map north over the Citadel, or show it as a stand-in on the far skyline? Default: nothing until you say (docs/design/krajobraz-places.md K10).
 - **2026-11-02 · gameplay · Life and sound at the start (first-scene items 6-7)** — Phone look and listen at a fresh start: are about 35 people standing at the cafés, kiosk and paving plus the busier pavements (1.6 × walkers) lively or cluttered at the default zoom, do the café sitters read (they sit on the footway beside the tables, not on the chairs), is the tram bell heard over KEBAB FM in the first seconds, is the square's talk too loud? Also the bench at the start on the iPhone 11 (walkers' CPU, no new draw calls expected). Built default: the numbers above (`crowds.gd` `FIRST_SCENE`, `pedestrians.gd` `BUSY_BOOST`).
-- **2026-11-02 · content · CRINGULO TV lettering** — Mac/phone look check: is the 5 cm pixel lettering under the pink band readable at phone size (z offset -0.2, y 0.58 on the van's flank; `TrendJob._van_lettering`)? Default built: dark text, both flanks.
+- **2026-11-02 · content · MROŻULO TV lettering** — Mac/phone look check: is the 5 cm pixel lettering under the pink band readable at phone size (z offset -0.2, y 0.58 on the van's flank; `TrendJob._van_lettering`)? Default built: dark text, both flanks.
 - **2026-11-02 · map · Plac Zbawiciela cafés and church night (pass 5)** — Mac look check: the four neon cafés (`Storefronts.ZBAWICIELA`) on the real doors, the six parasol terraces in front of the MDM blocks (spots from the outlines: `TERRACES` in `bake_street_details.py`), and the church at night (lit crosses, amber rose, floodlamps; is the real church floodlit?). Built default: parody names, no heaters or awnings. Own photos of the square's real cafés would settle the doors.
 - **2026-11-02 · content · Nowy Świat shopfronts** — Mac look check for the eight signs (`Storefronts.NOWY_SWIAT`): each sits on a wall chosen from the road line, not a real door, so move any that land on a gap, a side street or the wrong side; are the pastel tubes readable at dusk beside the KUKŁA and NERWO signs? Still open (needs photos/orthophoto): per-house plaster colours, real shop awnings, café gardens, the Visitation and Staszic ends. Default built: neon only, no queues, no notebook cards.
 - **2026-11-02 · content · Krakowskie Przedmieście shopfronts** — Mac look check for the eight signs (`Storefronts.KRAKOWSKIE`): each sits on the wall nearest a mapped house number, not a real door, so move any that land on a gap, a side street or the wrong side. Open (photos): real awnings, café gardens, a carriage rank. Default built: neon only, no queues, no notebook cards.
@@ -222,11 +222,11 @@ Newest first. One entry per question.
   brake, Y car / helicopter, A / X the mission card, LB / RB turn the view, Start Settings, Back
   the map, D-pad zoom / radio / flash. Say if any should move once you try a pad.
 - **2026-11-01 · content · parody names for the food-hype lore** — Default built: TIMBER (dating
-  app, F's pick), Cringulo (food blogger, F's pick) with his grade MLASK (not the real catchphrase),
+  app, F's pick), Mrożulo (food blogger, F's pick) with his grade MLASK (not the real catchphrase),
   KUKŁA (crêpes), KOSZTA COFFEE, GREEN CAFFE NERWO, HOTEL PIURE with its rooftop bar LORETKA (F's pick), ROBUR on
   Dom Partii's roof, the bars NEWTWICE, ZAMĘT and PRZEGRYWKI (Zagrywki: F asked for it, kept a
   parody), the burger chain WACZEK (an upside-down W; Warsaw calls the real one "Maczek"). Say if any should change (fallback for
-  Cringulo: "Mlaskacz"). docs/design/gaulle-and-food-hype.md section 2.
+  Mrożulo: "Mlaskacz"). docs/design/gaulle-and-food-hype.md section 2.
 
 - **2026-11-01 · visuals · pavement colour** — R3 (docs/design/start-area-real.md) made the mapped
   footways Warsaw's grey concrete pavers. The wide pavements and squares drawn as plaza areas
@@ -749,7 +749,7 @@ backlog. Lasting decisions also go into BACKLOG's "Decided" sections, DEMO.md or
 - **2026-11-02 · gameplay · G10** — START KURS appears within 25 m of the waiting passenger and boards at once (the car is not auto-braked). Phone check: is a tap enough, or should driving through the ring start it too?
 - **2026-11-02 · landmarks · Warsaw Spire** — Rebuilt from F's three photos and the map alone, so these are guesses to check on the Mac: (1) which rim the roof fin stands on (built: the east rim, peaking over the north half); (2) the entrance side (built: north, towards the plaza between the wings); (3) the canopy's size and the V legs' spread; (4) how much narrower the lobby is (built: 0.74 of the roof plan); (5) the wings' colour and top storey. Default built: that. Alternative: move the fin or canopy to the side the photos show.
 
-- Mac look check (food-hype leftovers, 2026-11-02): the five fans stand behind Cringulo's van along
+- Mac look check (food-hype leftovers, 2026-11-02): the five fans stand behind Mrożulo's van along
   its local -Z; confirm they are on the pavement, not the road, at the four van spots; and the
   egg `easter_mlask` wording. Default built: as is.
 

@@ -1554,12 +1554,51 @@ const SUNKEN := [
 	{"key": "rotunda_stair", "sub": 10, "hb": NAN, "drop": 3.6, "a": Vector2(-819.6, 366.3), "b": Vector2(-815.5, 377.4),
 		"ring": [Vector2(-820.5, 366.4), Vector2(-819.1, 365.9), Vector2(-813.4, 363.8), Vector2(-808.3, 377.8),
 			Vector2(-810.0, 380.0), Vector2(-811.4, 382.2), Vector2(-812.4, 384.3), Vector2(-813.1, 386.8)]},
+	# The underpass under Aleje Jerozolimskie at Emilii Plater (F, 2026-11-06: "add stairs and
+	# arrange it like in real life with people going in and out"; site `underpass`, spec
+	# docs/landmarks/specs/underpass-emilii-plater.md). `at`/`top`: a lower flight's top lies `top`
+	# under the grid at `at` (the flight above's own top); `style` the edge (granite parapet, or a
+	# low parapet under a steel canopy); `walk` the walkers' way from the street down and on under
+	# the street through the mouth (its last point hidden in the passage, pedestrians.gd).
+	# The north-east well in the lawn (the mapped walls, line 421): a flight down to a landing,
+	# a second flight on south into the passage under the pavement.
+	{"key": "epl_ne", "site": "underpass", "style": "parapet", "sub": 20, "hb": NAN, "drop": 1.7,
+		"a": Vector2(-1254.1, 550.2), "b": Vector2(-1252.3, 555.6),
+		"ring": [Vector2(-1256.0, 551.2), Vector2(-1251.6, 549.8), Vector2(-1249.8, 554.7), Vector2(-1245.3, 553.2),
+			Vector2(-1244.3, 556.2), Vector2(-1243.3, 559.1), Vector2(-1247.9, 560.7), Vector2(-1253.3, 562.6),
+			Vector2(-1255.4, 556.4), Vector2(-1254.4, 556.1)]},
+	{"key": "epl_ne_low", "site": "underpass", "style": "parapet", "sub": 20, "hb": NAN, "drop": 1.9,
+		"at": Vector2(-1254.1, 550.2), "top": 1.7, "a": Vector2(-1250.4, 561.6), "b": Vector2(-1248.1, 568.4),
+		"ring": [Vector2(-1247.9, 560.7), Vector2(-1245.6, 567.6), Vector2(-1248.1, 568.4), Vector2(-1249.8, 569.0),
+			Vector2(-1252.0, 562.5), Vector2(-1253.2, 562.9), Vector2(-1253.3, 562.6)],
+		"walk": [Vector2(-1254.1, 550.2), Vector2(-1252.3, 555.6), Vector2(-1250.4, 561.6), Vector2(-1248.1, 568.4),
+			Vector2(-1246.8, 572.2)]},
+	# The north-west box on Centralna's forecourt (line 419): one flight south from footway 8754's end.
+	{"key": "epl_nw", "site": "underpass", "style": "parapet", "sub": 20, "hb": NAN, "drop": 3.6,
+		"a": Vector2(-1309.3, 579.9), "b": Vector2(-1307.0, 586.5),
+		"ring": [Vector2(-1307.0, 579.1), Vector2(-1304.2, 587.1), Vector2(-1306.4, 587.9), Vector2(-1308.7, 588.7),
+			Vector2(-1311.5, 581.0), Vector2(-1311.6, 580.7)],
+		"walk": [Vector2(-1309.3, 579.9), Vector2(-1307.0, 586.5), Vector2(-1305.1, 591.7)]},
+	# The north pavement's flight (steps 76) under its dark steel-and-glass canopy.
+	{"key": "epl_n", "site": "underpass", "style": "canopy_dark", "sub": 20, "hb": NAN, "drop": 3.6,
+		"a": Vector2(-1227.5, 572.7), "b": Vector2(-1239.0, 576.7),
+		"ring": [Vector2(-1227.7, 571.3), Vector2(-1241.3, 576.0), Vector2(-1240.4, 578.7), Vector2(-1226.8, 573.9)],
+		"walk": [Vector2(-1227.5, 572.7), Vector2(-1239.0, 576.7), Vector2(-1244.7, 578.7)]},
+	# The south pavement's two flights to Warszawa Śródmieście (steps 36, 220) under green canopies.
+	{"key": "epl_s1", "site": "underpass", "style": "canopy_green", "sub": 20, "hb": NAN, "drop": 3.6,
+		"a": Vector2(-1247.6, 619.9), "b": Vector2(-1236.4, 616.2),
+		"ring": [Vector2(-1247.4, 621.3), Vector2(-1234.1, 616.9), Vector2(-1234.9, 614.2), Vector2(-1248.3, 618.7)],
+		"walk": [Vector2(-1247.6, 619.9), Vector2(-1236.4, 616.2), Vector2(-1230.7, 614.3)]},
+	{"key": "epl_s2", "site": "underpass", "style": "canopy_green", "sub": 20, "hb": NAN, "drop": 3.6,
+		"a": Vector2(-1215.4, 609.1), "b": Vector2(-1226.7, 612.9),
+		"ring": [Vector2(-1215.6, 607.7), Vector2(-1229.0, 612.2), Vector2(-1228.1, 614.9), Vector2(-1214.7, 610.3)],
+		"walk": [Vector2(-1215.4, 609.1), Vector2(-1226.7, 612.9), Vector2(-1232.4, 614.8)]},
 ]
 ## How far past a ring's grown outline the drawn ground's cells go fine (a sub-cell touching it).
 const SINK_MARGIN := 0.5
 ## A wall line's segment with both ends this close to a sunken ring's edge is the site's.
 const SINK_WALL_REACH := 0.6
-## The rings as built: {"key", "ring", "grown", "box", "a", "b", "ha", "hb", "sub"}.
+## The rings as built: {"key", "ring", "grown", "box", "a", "b", "ha", "hb", "sub", "site", "style", "walk"}.
 var _sunk: Array[Dictionary] = []
 var _sunk_box := Rect2()
 
@@ -1570,14 +1609,14 @@ func _load_sunken() -> void:
 	if _t_h.is_empty():
 		return
 	for e: Dictionary in SUNKEN:
-		var a: Vector2 = e["a"]
-		var sk := sunk_entry(e, _grid_height(a.x, a.y), float(_terrain["step"]))
+		var at: Vector2 = e.get("at", e["a"])
+		var sk := sunk_entry(e, _grid_height(at.x, at.y), float(_terrain["step"]))
 		_sunk.append(sk)
 		_sunk_box = sk["box"] if not _sunk_box.has_area() else _sunk_box.merge(sk["box"])
 
 
-## One SUNKEN entry as built, its stair's top at height `ha` (a flat floor: `hb`, or `ha` less its
-## `drop`); `step` the terrain grid's cell. The landmark checks' stub maps build theirs with this.
+## One SUNKEN entry as built, its stair's top at height `ha` less its `top` (a flat floor: `hb`, or
+## the top less its `drop`); `step` the terrain grid's cell. The landmark checks' stub maps build theirs with this.
 static func sunk_entry(e: Dictionary, ha: float, step: float) -> Dictionary:
 	var ring := PackedVector2Array(e["ring"])
 	if Geometry2D.is_polygon_clockwise(ring):
@@ -1588,10 +1627,12 @@ static func sunk_entry(e: Dictionary, ha: float, step: float) -> Dictionary:
 	var box := Rect2(grown[0], Vector2.ZERO)
 	for q in grown:
 		box = box.expand(q)
+	ha -= float(e.get("top", 0.0))
 	var hb := float(e["hb"])
 	if is_nan(hb):
 		hb = ha - float(e["drop"])
-	return {"key": e["key"], "ring": ring, "grown": grown, "box": box, "a": e["a"], "b": e["b"], "ha": ha, "hb": hb, "sub": sub}
+	return {"key": e["key"], "ring": ring, "grown": grown, "box": box, "a": e["a"], "b": e["b"], "ha": ha, "hb": hb, "sub": sub,
+			"site": e.get("site", "sunken"), "style": e.get("style", "rail"), "walk": PackedVector2Array(e.get("walk", []))}
 
 
 ## A sunken ring's floor at a point (its ring, or `grown` its ring grown for the drawn ground),

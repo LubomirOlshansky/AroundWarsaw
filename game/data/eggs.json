@@ -1070,12 +1070,12 @@
 			"id": "easter_mlask",
 			"name": [
 				"W kadrze u Cringula",
-				"In Cringulo's shot"
+				"In Mrożulo's shot"
 			],
 			"place": "plac_zbawiciela",
 			"line": [
-				"W kadrze. Cringulo: „Kto to?” Fani: „Nikt, ale ma auto”.",
-				"In shot. Cringulo: \"Who's that?\" Fans: \"Nobody, has a car.\""
+				"W kadrze. Mrożulo: „Kto to?” Fani: „Nikt, ale ma auto”.",
+				"In shot. Mrożulo: \"Who's that?\" Fans: \"Nobody, has a car.\""
 			],
 			"trigger": {
 				"kind": "event",
