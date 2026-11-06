@@ -45,6 +45,7 @@ under the top, then the black storey set back 1.6 m.
 - Low wings (31 m): green roof on the black storey; on a 10 m grid inside it, corten planters
   4.4 x 1.4 x 0.6 m with planted tops, timber deck squares 6 x 4 m and, every fifth spot, a
   copper-clad stair house 4 x 3.2 x 3 m (the aerials' brown boxes).
+- The tallest slab also carries a 10 m cobalt-blue motor bowrider on a steel cradle (F's joke, 2026-11-06; `_forest_boat`): white hull with a blue sheer, windshield, seats, sun pad, turned 25 degrees, clear of the plant box and the crown sign. About 120 triangles, no new draw call.
 - The 27.4 m wing: the terrace of 2026-11-01 kept (timber deck, glass balustrade, parasols and
   tables, crowd `forest_terrace` 11-23 h), its planters now corten 3.2 x 1 m (F's planter photo).
 

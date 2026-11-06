@@ -12,6 +12,7 @@ someone writes its lines.
 ## 2026-11-06
 
 - Your mate Bartek calls: his electric TESŁO died at 0 %. Answer, and you take the helicopter, hook his car on a rope and carry it, swinging, to a charger while he jokes about winter range, free parking with green plates and the diesel parked at the charger. Dead TESŁOs with hazard lights now and then block a lane, and you can lift those to a charger too, for a tip.
+- A cobalt-blue motorboat now sits on the roof of the Forest tower, next to the PEPEO ŻUBR crown.
 - The underpass entrances at Emilii Plater and Aleje Jerozolimskie are real stairs going down now instead of walled boxes: granite parapets round the two wells, steel canopies over the pavement stairs (Śródmieście's green ones with posters on the south side), and people walking down into the passage and coming up out of it.
 - When your car is stuck, the POMOC DROGOWA tow button now comes up even while the ride app button is on screen, and it also comes when you keep backing off a wall and trying again.
 
