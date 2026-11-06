@@ -548,6 +548,9 @@ const INFO := {
 	"jablkowscy": ["Dom Towarowy Braci Jabłkowskich",
 			"Bracka 25, 1914: secesja, łuki witryn i dwie kolumny przy wejściu.",
 			"Bracka 25, 1914: Art Nouveau, arched windows, two columns at the door."],
+	"foksal": ["Kamienice Foksal 13 i 15",
+			"Dwie odnowione przedwojenne kamienice: cegła, biały kamień, żeliwne balkony.",
+			"Two restored pre-war tenements: brick, white stone, iron balconies."],
 	"bgk": ["Gmach Banku Gospodarstwa Krajowego",
 			"Al. Jerozolimskie 7, 1928–31: kamienny gmach Rudolfa Świerczyńskiego.",
 			"Al. Jerozolimskie 7, 1928–31: Rudolf Świerczyński's granite bank."],
@@ -1072,6 +1075,8 @@ func _find_sites() -> void:
 	_find_bracka()
 	# The BGK building next to Vitkac (F, 2026-11-03), from the Mac photo gather.
 	_find_bgk()
+	# Foksal 13 and 15 (F's photos, 2026-11-05): the two restored tenements' street fronts.
+	_find_foksal()
 	# Warsaw modernism (F, 2026-11-03), from the Mac photo gathers.
 	_find_mlotek()
 	_find_kozia9()
@@ -1646,6 +1651,9 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_sheraton(s)
 			"bgk":
 				_build_bgk(s)
+			"foksal":
+				_mark_zone(s)  # the masses and the mansards stay LoD2's, in their skin; the fronts are ours
+				_build_foksal(s)
 			"mlotek":
 				_build_mlotek(s)
 			"kozia9":
@@ -22657,6 +22665,215 @@ func _build_bgk(site: Dictionary) -> void:
 	_disc(Vector3(mono.x, g + 11.2, mono.y), Vector3(_b.x, 0.0, _b.y), 1.0, 10, BGK_GILT)
 	_collide_raw(site)
 
+
+# --- Foksal 13 and 15 (F's photos, 2026-11-05; spec docs/landmarks/specs/foksal.md) ------------
+
+## Two restored tenements on Foksal. The masses, courtyards and zinc mansards stay LoD2's, in a
+## kept skin (cream plaster behind, zinc on the roofs); the street fronts are ours, from F's
+## photos. Foksal 13: salmon brick framed in white stone, eleven bays (two in each end bay under
+## a crested gable, seven between), a white rusticated ground floor round an arched gate with two
+## atlantes, stone balconies on the first floor, iron ones above. Foksal 15 (west): ochre brick,
+## cream stone, red window frames, arched top-floor windows, and a forward bay at its east end
+## with stacked iron balconies under a small gable. Frames: u along the front from its west end,
+## +v out to the street (north-north-west). LoD2's front walls stand 0.3 m behind the outline.
+const FK13_W := Vector2(-184.2, 27.8)    # Foksal 13's front, west end
+const FK13_E := Vector2(-160.2, 18.6)    # east end
+const FK15_W := Vector2(-206.5, 38.3)    # Foksal 15's front, west end (the party wall with 17)
+const FK15_J := Vector2(-188.6, 31.7)    # where its front steps out to the bay
+const FK15_BW := Vector2(-189.3, 29.8)   # the bay's front, west end
+const FK15_BE := Vector2(-184.2, 27.8)   # east end (Foksal 13's corner)
+const FK13_EAVES := 22.4
+const FK15_EAVES := 20.6
+const FK_BRICK13 := Color("#dc9c7a")     # salmon brick (F's street photo)
+const FK_WHITE := Color("#eeebe4")
+const FK_BRICK15 := Color("#c39a72")     # ochre brick (F's close-up)
+const FK_CREAM := Color("#e9dfc8")
+const FK_RED := Color("#8c2b2b")         # Foksal 15's window frames
+const FK_GLASS := Color("#3d4652")
+const FK_IRON := Color("#3f4247")
+const FK_GATE := Color("#2c2a2b")
+const FK_PLASTER := "#e3d6bd"            # the kept skin: courtyard and back walls
+const FK_ZINC := "#6f7882"               # the mansards
+
+
+func _find_foksal() -> void:
+	var zone: Array = []
+	for at: Vector2 in [Vector2(-161.4, 60.1), Vector2(-187.7, 51.1)]:  # the address points of 13 and 15
+		var q := _tallest_at(at)
+		if q.size() < 3 or not Geometry2D.is_point_in_polygon(at, q):
+			return
+		zone.append(q)
+	_add_site("foksal", zone)
+	if not sites.is_empty() and sites[-1]["key"] == "foksal":
+		sites[-1]["skin"] = {"mode": 0.37, "wall": Color(FK_PLASTER), "roof": Color(FK_ZINC), "steep": 0.3}
+
+
+## The frame of a front from its west end `w` to `e`, +v out to the street.
+func _fk_frame(w: Vector2, e: Vector2) -> float:
+	_o = w
+	_a = (e - w).normalized()
+	_b = Vector2(_a.y, -_a.x)
+	return w.distance_to(e)
+
+
+## A window in the local frame: a stone surround proud of the wall at `v`, the glass 5 cm before it
+## (a red frame between the two when `frame` is opaque), and a round head when `arched`.
+func _fk_window(u: float, v: float, y0: float, h: float, hw: float, stone: Color, frame := Color(0, 0, 0, 0), arched := false) -> void:
+	var at := _w(u, v)
+	if arched:
+		var spring := y0 + h - hw
+		_arch_panel(at, _a, _b, hw + 0.24, y0 - 0.2, spring, stone, 0.04, M_STONE)
+		if frame.a > 0.0:
+			_arch_panel(at, _a, _b, hw + 0.08, y0 - 0.06, spring, frame, 0.09, M_STONE)
+		_arch_panel(at, _a, _b, hw, y0, spring, FK_GLASS, 0.14, M_GLASS)
+		return
+	_lbox(u, v + 0.06, hw + 0.24, 0.06, y0 - 0.22, y0 + h + 0.24, stone, M_STONE, stone)
+	var keep := _mode
+	if frame.a > 0.0:
+		_mode = M_STONE
+		_wall(_w(u - hw - 0.08, v + 0.165), _w(u + hw + 0.08, v + 0.165), y0 - 0.08, y0 + h + 0.08, _b, frame)
+	_mode = M_GLASS
+	# each window its own column of the glass shader's lit rooms (one every 4.5 m of `run`)
+	_wall(_w(u - hw, v + 0.21), _w(u + hw, v + 0.21), y0, y0 + h, _b, FK_GLASS, u * 2.0 + 0.2)
+	_mode = keep
+
+
+## A balcony on the local frame: a slab from the wall at `v` out `depth`, `hw` each side of `u`,
+## its floor at `y`, and a railing round its front and sides (stone balusters or iron).
+func _fk_balcony(u: float, v: float, hw: float, depth: float, y: float, rail: Color, slab: Color, rail_h := 1.0) -> void:
+	_lbox(u, v + depth * 0.5, hw, depth * 0.5, y - 0.28, y, slab, M_STONE, slab)
+	_lbox(u, v + depth - 0.07, hw, 0.07, y, y + rail_h, rail, M_STONE, rail)
+	for sd: float in [-1.0, 1.0]:
+		_lbox(u + sd * (hw - 0.07), v + (depth - 0.14) * 0.5, 0.07, (depth - 0.14) * 0.5, y, y + rail_h, rail, M_STONE, rail)
+	for sd: float in [-0.6, 0.6]:  # two brackets under it
+		_lbox(u + sd * hw, v + depth * 0.3, 0.12, depth * 0.3, y - 0.75, y - 0.28, slab.darkened(0.08), M_STONE, slab)
+
+
+## A crested gable over an end bay: a stone face from the cornice up, a pointed crest, a finial
+## and an attic window.
+func _fk_gable(u: float, hw: float, v: float, y: float, h: float, stone: Color) -> void:
+	_lbox(u, v + 0.25, hw, 0.25, y, y + h, stone, M_STONE, stone)
+	_mode = M_STONE
+	_pyramid(_rect(u, v + 0.25, hw, 0.25), y + h, y + h + hw * 0.7, stone.darkened(0.04))
+	_lbox(u, v + 0.25, 0.14, 0.14, y + h + hw * 0.55, y + h + hw * 0.7 + 0.9, stone, M_STONE, stone)
+	_arch_panel(_w(u, v + 0.5), _a, _b, 0.5, y + 0.4, y + h - 0.6, FK_GLASS, 0.05, M_GLASS)
+
+
+func _build_foksal(site: Dictionary) -> void:
+	_g = _ground_under((site["zone"] as Array)[0])
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	_build_foksal13(g, none)
+	_build_foksal15(g, none)
+
+
+func _build_foksal13(g: float, none: Color) -> void:
+	var length := _fk_frame(FK13_W, FK13_E)
+	var top := g + FK13_EAVES
+	var mid := length * 0.5
+	var bay := 4.8   # each end bay's width
+	var ground := 6.4
+	# the brick between the end bays, the end bays 0.25 m forward
+	_mode = M_STONE
+	_wall(_w(bay, 0.0), _w(length - bay, 0.0), g + ground, top - 0.4, _b, FK_BRICK13, bay)
+	for c: float in [bay * 0.5, length - bay * 0.5]:
+		_lbox(c, 0.125, bay * 0.5, 0.125, g + ground, top - 0.4, FK_BRICK13, M_STONE, FK_BRICK13)
+	# the white rusticated ground floor in four courses
+	for k in 4:
+		var y0 := g - 0.3 + (ground + 0.3) * k / 4.0
+		var y1 := g - 0.3 + (ground + 0.3) * (k + 1) / 4.0
+		_lbox(mid, 0.17, mid, 0.17, y0, y1, FK_WHITE.darkened(0.05 if k % 2 == 0 else 0.0), M_STONE, FK_WHITE)
+	# string courses at every floor, the cornice's frieze and its ledge
+	_lbox(mid, 0.3, mid + 0.1, 0.3, g + ground, g + ground + 0.45, FK_WHITE, M_STONE, FK_WHITE.darkened(0.04))
+	for y: float in [10.55, 14.45, 18.35]:
+		_lbox(mid, 0.33, mid, 0.08, g + y, g + y + 0.25, FK_WHITE, M_STONE, FK_WHITE)
+	_lbox(mid, 0.38, mid + 0.1, 0.13, top - 0.4, top, FK_WHITE, M_STONE, FK_WHITE)
+	_lbox(mid, 0.45, mid + 0.25, 0.45, top, top + 0.5, FK_WHITE.darkened(0.03), M_STONE, FK_WHITE.darkened(0.08))
+	# the windows: eleven bays over four floors (two in each end bay, seven between), pediments on
+	# the first floor
+	var us: Array[float] = [1.4, 3.4]
+	for k in 7:
+		us.append(bay + 1.15 + k * 2.3)
+	us.append(length - 3.4)
+	us.append(length - 1.4)
+	for f in 4:
+		var y := g + 6.9 + f * 3.9
+		for u: float in us:
+			var v := 0.25 if (u < bay or u > length - bay) else 0.0
+			_fk_window(u, v, y, 2.6, 0.62, FK_WHITE)
+			if f == 0:
+				_lbox(u, v + 0.15, 0.95, 0.15, y + 2.86, y + 3.3, FK_WHITE, M_STONE, FK_WHITE.darkened(0.05))
+	# the ground floor's windows each side of the gate
+	for u: float in [1.4, 3.4, 6.1, 8.5, length - 8.5, length - 6.1, length - 3.4, length - 1.4]:
+		_fk_window(u, 0.34, g + 1.3, 3.0, 0.58, FK_WHITE.darkened(0.06))
+	# the gate: a dark arched door in a white surround, an atlas each side carrying the balcony
+	_arch_panel(_w(mid, 0.34), _a, _b, 1.75, g - 0.1, g + 3.5, FK_WHITE.darkened(0.1), 0.04, M_STONE)
+	_arch_panel(_w(mid, 0.34), _a, _b, 1.35, g, g + 3.3, FK_GATE, 0.09, M_STONE)
+	for sd: float in [-1.0, 1.0]:
+		_lbox(mid + sd * 2.15, 0.5, 0.32, 0.16, g + 3.0, g + 5.7, FK_WHITE, M_STONE, FK_WHITE)
+		_lbox(mid + sd * 2.15, 0.5, 0.2, 0.14, g + 5.7, g + 6.1, FK_WHITE.darkened(0.04), M_STONE, FK_WHITE)
+	# balconies: stone on the first floor (both end bays, the middle), iron above
+	for c: float in [bay * 0.5, mid, length - bay * 0.5]:
+		var v := 0.0 if c == mid else 0.25
+		_fk_balcony(c, v + 0.34 if c == mid else v, 2.3, 0.95, g + 6.9, FK_WHITE, FK_WHITE.darkened(0.04))
+	for c: float in [bay * 0.5, length - bay * 0.5]:
+		_fk_balcony(c, 0.25, 2.1, 0.8, g + 10.8, FK_IRON, FK_IRON.lightened(0.25), 0.9)
+	for c: float in [bay * 0.5, mid, length - bay * 0.5]:
+		_fk_balcony(c, 0.0 if c == mid else 0.25, 2.1, 0.8, g + 14.7, FK_IRON, FK_IRON.lightened(0.25), 0.9)
+	# the crested gables over the end bays
+	for c: float in [bay * 0.5, length - bay * 0.5]:
+		_fk_gable(c, 2.0, 0.0, top + 0.5, 3.4, FK_WHITE)
+
+
+func _build_foksal15(g: float, none: Color) -> void:
+	var length := _fk_frame(FK15_W, FK15_J)
+	var top := g + FK15_EAVES
+	var mid := length * 0.5
+	var ground := 5.6
+	_mode = M_STONE
+	_wall(_w(0.0, 0.0), _w(length, 0.0), g + ground, top - 0.4, _b, FK_BRICK15)
+	for k in 3:
+		var y0 := g - 0.3 + (ground + 0.3) * k / 3.0
+		_lbox(mid, 0.14, mid, 0.14, y0, y0 + (ground + 0.3) / 3.0, FK_CREAM.darkened(0.06 if k % 2 == 0 else 0.0), M_STONE, FK_CREAM)
+	_lbox(mid, 0.25, mid, 0.25, g + ground, g + ground + 0.4, FK_CREAM, M_STONE, FK_CREAM.darkened(0.04))
+	for y: float in [9.35, 13.05]:
+		_lbox(mid, 0.06, mid, 0.06, g + y, g + y + 0.22, FK_CREAM, M_STONE, FK_CREAM)
+	_lbox(mid, 0.35, mid, 0.12, top - 0.4, top, FK_CREAM, M_STONE, FK_CREAM)
+	_lbox(mid, 0.4, mid, 0.4, top, top + 0.45, FK_CREAM.darkened(0.04), M_STONE, FK_CREAM.darkened(0.08))
+	# six bays: arched openings on the ground floor, framed windows over four floors (red frames,
+	# the top floor's round-headed)
+	for k in 6:
+		var u := 1.85 + k * 3.1
+		_fk_window(u, 0.28, g + 0.7, 3.4, 0.7, FK_CREAM.darkened(0.08), Color(0, 0, 0, 0), true)
+		for f in 4:
+			_fk_window(u, 0.0, g + 6.0 + f * 3.7, 2.5, 0.65, FK_CREAM, FK_RED, f == 3)
+	for u: float in [1.85 + 3.1, 1.85 + 3.1 * 4.0]:
+		_fk_balcony(u, 0.0, 1.3, 0.75, g + 13.4, FK_IRON, FK_IRON.lightened(0.25), 0.9)
+	# the bay's west side, in brick over the stone
+	var side := _fk_frame(FK15_J, FK15_BW)
+	_b = Vector2(-_a.y, _a.x) if Vector2(-_a.y, _a.x).dot(FK15_W - FK15_J) > 0.0 else Vector2(_a.y, -_a.x)
+	_lbox(side * 0.5, 0.07, side * 0.5, 0.07, g - 0.3, g + ground, FK_CREAM.darkened(0.04), M_STONE, FK_CREAM)
+	_mode = M_STONE
+	_wall(_w(0.0, 0.03), _w(side, 0.03), g + ground, top - 0.4, _b, FK_BRICK15)
+	# the bay: two windows a floor, an iron balcony across it on three floors, a small gable
+	var bl := _fk_frame(FK15_BW, FK15_BE)
+	var bm := bl * 0.5
+	var btop := top + 0.6
+	_mode = M_STONE
+	_wall(_w(0.0, 0.0), _w(bl, 0.0), g + ground, btop - 0.4, _b, FK_BRICK15)
+	for k in 3:
+		var y0 := g - 0.3 + (ground + 0.3) * k / 3.0
+		_lbox(bm, 0.14, bm, 0.14, y0, y0 + (ground + 0.3) / 3.0, FK_CREAM.darkened(0.06 if k % 2 == 0 else 0.0), M_STONE, FK_CREAM)
+	_lbox(bm, 0.25, bm, 0.25, g + ground, g + ground + 0.4, FK_CREAM, M_STONE, FK_CREAM.darkened(0.04))
+	_lbox(bm, 0.35, bm, 0.12, btop - 0.4, btop, FK_CREAM, M_STONE, FK_CREAM)
+	_lbox(bm, 0.4, bm, 0.4, btop, btop + 0.45, FK_CREAM.darkened(0.04), M_STONE, FK_CREAM.darkened(0.08))
+	_fk_window(bm, 0.28, g + 0.7, 3.4, 0.9, FK_CREAM.darkened(0.08), Color(0, 0, 0, 0), true)
+	for f in 4:
+		for u: float in [bm - 1.25, bm + 1.25]:
+			_fk_window(u, 0.0, g + 6.0 + f * 3.7, 2.5, 0.6, FK_CREAM, FK_RED, f >= 2)
+		if f >= 1:
+			_fk_balcony(bm, 0.0, bl * 0.5 - 0.3, 0.85, g + 6.0 + f * 3.7, FK_IRON, FK_IRON.lightened(0.25), 0.9)
+	_fk_gable(bm, bl * 0.5 - 0.4, 0.0, btop + 0.45, 2.0, FK_CREAM)
 
 # --- Warsaw modernism: Młotek, Kozia 9, Karowa 18a (F, 2026-11-03; docs/design/modernism-collection.md) ---
 

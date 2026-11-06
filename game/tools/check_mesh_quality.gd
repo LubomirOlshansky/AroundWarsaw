@@ -65,6 +65,7 @@ const BUDGET := {
 	"jablkowscy": 1450,
 	"sheraton": 2400,
 	"bgk": 2700,
+	"foksal": 3000,
 	"mlotek": 2400,
 	"kozia9": 7000,
 	"karowa18a": 1500,
