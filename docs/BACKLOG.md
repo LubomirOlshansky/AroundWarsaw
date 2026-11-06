@@ -1502,8 +1502,13 @@ the OSM outlines, no photos; specs in docs/landmarks/specs/):
 Plan: docs/design/railway.md. One PR per item, in this order:
 - ~~S1 Warszawa Ochota and S2 Warszawa Powiśle as landmarks~~ Done 2026-11-01 (sites `ochota`,
   `powisle`, specs in docs/landmarks/specs/). Left: Mac photo checks (Ochota's stripes, supports and
-  stairs; Powiśle's arches, the saucer's profile, the canopies' length, the neon's letters); the
-  stairs from the round pavilion up to the platforms; a WARSZAWA OCHOTA sign if the real one has it.
+  stairs; Powiśle's arches, the canopies' length); the stairs from the round pavilion up to the
+  platforms; a WARSZAWA OCHOTA sign if the real one has it. The round pavilion's saucer and letters
+  were rebuilt from F's photos on 2026-11-06 (jazz nights, below).
+- Powiśle jazz nights (F, 2026-11-06, spec `powisle.md` 9), open: the phone's look of the letter
+  boxes and the bulbs (draw calls unchanged, triangles up), the jazz loop's level against the radio on
+  the phone's speaker, the coloured light washes under the saucer (the game's camera never sees the
+  underside, so none were built), the projected line patterns of F's night photo, planters.
 
 ## Krakowskie Przedmieście street by street (F, 2026-11-02), pass 1
 Built (cloud, Sonnet): eight shopfronts (`Storefronts.KRAKOWSKIE`, 93 venue signs in check_parodies), original names, at the mapped house numbers 20/22, 19, 27, 56, 45, 58/60, 64, 69. Open:

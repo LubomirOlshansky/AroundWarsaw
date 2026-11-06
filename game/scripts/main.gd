@@ -2353,6 +2353,14 @@ func _build_crowds(data: Dictionary, world: Node3D) -> void:
 				var at: Vector2 = site["door"]
 				city_sounds.add_crowd(str(site["id"]), "murmur", Vector3(at.x, map.ground_height(at.x, at.y), at.y),
 						func() -> bool: return int(site["n"]) >= 4)
+			if site["kind"] == "jazz_cafe":
+				var at: Vector2 = site["door"]
+				city_sounds.add_crowd(str(site["id"]), "murmur", Vector3(at.x, map.ground_height(at.x, at.y), at.y),
+						func() -> bool: return int(site["n"]) >= 4)
+			if site["kind"] == "jazz":
+				var sc: Vector2 = site["at"]
+				city_sounds.add_crowd(str(site["id"]), "jazz", Vector3(sc.x, map.ground_height(sc.x, sc.y), sc.y),
+						func() -> bool: return int(site["n"]) > 0)
 			if site["kind"] == "steps":
 				var g: Vector2 = site["guitar"]
 				city_sounds.add_crowd(str(site["id"]), "guitar", Vector3(g.x, map.ground_height(g.x, g.y), g.y),

@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-06
+- Warszawa Powiśle's "UFO" pavilion looks like the real one now: the yellow WARSZAWA POWIŚLE letters in their dark boxes on the rim, warm bulbs all round it, orange deck chairs and café tables, and every evening from 18:30 a jazz band plays on a little stage under the saucer, with people listening and music you can hear as you drive by.
 - The food blogger from the Mlask job is now called Mrożulo (was Cringulo), on his van, the signs, the fans and the news.
 
 - A cobalt-blue motorboat now sits on the roof of the Forest tower, next to the PEPEO ŻUBR crown.

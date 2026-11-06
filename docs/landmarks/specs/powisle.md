@@ -1,5 +1,30 @@
 # Warszawa Powiśle (site `powisle`)
 
+**Round pavilion rebuilt from F's four photos, 2026-11-06** (day, summer café, dusk event, night
+event): the saucer's thin white knife edge (0.35 m) and its underside curving up from the drum to
+the rim; WARSZAWA POWIŚLE in fifteen separate dark teal-black letter boxes (1.05 x 1.75 m) on a
+steel rail along the rim's front arc, yellow tube letters on stand-offs (yellow by day, lit at
+night, a neon glyph over each for the glow); a festoon of warm bulbs all round the rim's lower edge
+and three more out to posts over the deck chairs; a dark transom band round the glass drum. The
+terrace: thirteen orange deck chairs with a white band (a parody brewery's chairs in the game: the
+real ones carry a real beer brand, never drawn), six red-framed café tables with white folding
+chairs, and the jazz evenings' stage (section 9). Section 4's lower pavilion and section 8's rows
+for it are replaced by this.
+
+## 9. The jazz evenings (F, 2026-11-06)
+
+`landmarks.gd powisle_jazz_plan()` is the one plan the model and `crowds.gd` share. The stage sits
+under the canopy's east edge (13 m from the middle, 3 x 7.2 m, 0.6 m high), facing the open paving
+towards Kruczkowskiego: the side the game's camera sees past the saucer (south of it the Poniatowski
+viaduct hides the ground). Black riser with a cream valance reading JAZZ (a pink JAZZ neon at night),
+a truss with warm and blue lamps, two speakers, an upright piano, a double bass, a drum kit and a
+vibraphone. Crowds (`powisle_jazz`): the band of four (bass and vibraphone standing, piano and
+drums sitting) from 18:30 to 23:30 every evening, sitters in the deck chairs and up to 48 standing
+in a fan in front; half full on weeknights, full on Friday and Saturday, thinner out of season and
+in rain. The café's tables (`powisle_cafe`) fill from noon. Sound: `jazz_trio` (tools/make_sfx.py,
+original synthesis: a swung tune in F at 132 BPM, walking bass, ride and brushes, piano comping,
+vibraphone) from the stage while the band is on it, through `city_sounds.gd` (`jazz`, reach 95 m).
+
 Written 2026-11-01 for F's railway ask (docs/design/railway.md, S2). No reference photos in the
 cloud; measured from the OpenStreetMap outlines in `centrum.json` ("Dworzec PKP Powiśle", a
 24 x 20 m outline at (171, 89) over the tunnel's east mouth; the round roof outline of r 10.6 m
@@ -61,7 +86,7 @@ foot to 4 m over the floor) and round the drum.
 
 ## 7. Detail level and budget
 
-L3, budget 1770 triangles (in `check_mesh_quality.gd`; built 1470).
+L3, budget 6800 triangles (in `check_mesh_quality.gd`; built 6186 after the 2026-11-06 rebuild: letters, bulbs, terrace and stage; was 1770).
 
 ## 8. Parts table
 
