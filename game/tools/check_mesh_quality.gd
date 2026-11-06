@@ -48,7 +48,7 @@ const BUDGET := {
 	"church_zielonoswiatkowy": 320,
 	"church_zwycieska": 950,
 	"aleksander": 1460,
-	"barbakan": 900,
+	"barbakan": 1500,  # 2026-11-06 photo pass: merlon caps and swollen cone roofs
 	"piano_house": 180,
 	"cube_house": 390,
 	"hortus": 590,
@@ -137,7 +137,7 @@ const BUDGET := {
 	"elektrownia": 1950,
 	"mpw": 3200,
 	"metropolitan": 3100,
-	"muzeum": 1280,
+	"muzeum": 3500,  # 2026-11-06 photo pass: a stone pier on every bay boundary, fence, flagpoles
 	"palace": 3900,
 	"pawilony": 2100,
 	"plater49": 140,
@@ -202,7 +202,7 @@ const BUDGET := {
 	"teresy": 280,
 	"florian": 2480,
 	"bazar": 2210,
-	"sw_krzyz": 1100,
+	"sw_krzyz": 1250,  # 2026-11-06 photo pass: the real flat front, balustrade and statue
 	"sejm": 1400,
 	"staszic": 360,
 	"zamek": 3400,
@@ -217,7 +217,7 @@ const BUDGET := {
 	"wszystkich": 950,
 	"wizytki": 690,
 	"archikatedra": 1100,
-	"sw_anna": 620,
+	"sw_anna": 1050,  # 2026-11-06 photo pass: giant order, niches, attic, tower dome
 	"widok": 450,
 	"pzu": 900,
 	"jm": 900,

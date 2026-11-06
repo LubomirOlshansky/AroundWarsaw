@@ -219,7 +219,8 @@ then the Launch gate.
   - [x] M1 Młotek (Smolna 8), M2 Kozia 9, M3 Karowa 18a: photo builds (2026-11-05, specs `mlotek.md`, `kozia9.md`, `karowa18a.md`)
   - [ ] Kozia 9 re-spec from walk photos of its north-east side (Mapillary has none) (below the L3 bar in review, `docs/landmarks/kozia9.md`)
   - [ ] M4-M12: Żyletkowiec, Dom Chłopa, NBP, the Kopernika skyscraper, Za Żelazną Bramą, Torwar, Ministerstwo Komunikacji, Dom Słowa Polskiego (M10 BGK built 2026-11-03, site `bgk`)
-  - [ ] M13-M17 photo re-passes: Sofitel Victoria, Plac Defilad's pavilions, Muzeum Narodowe, the Sejm's hall, Warszawa Wschodnia
+  - [ ] M13-M17 photo re-passes: Sofitel Victoria, Plac Defilad's pavilions, the Sejm's hall, Warszawa Wschodnia (Muzeum Narodowe done 2026-11-06, piers, fence, flagpoles, doors; Mac look check parked)
+  - [x] Batch 2 of the next 20 buildings (CITY_INVENTORY #47, #24, #23, #25, #34): Muzeum Narodowe, Archikatedra, Barbakan, St Anne's and Holy Cross rebuilt from photos (2026-11-06)
 - [ ] Monuments pass (City inventory Part 3 item 6)
   - [x] Every OSM monument, sculpture, talking bench and memorial plaque in the box as a generic piece, plaques on their walls with candles (2026-11-02, tools/bake_monuments.py)
   - [x] Plac Piłsudskiego from photos: the Smolensk memorial, Piłsudski, Kaczyński, the masts and the granite chequer (2026-11-02, refs/pilsudskiego/)
