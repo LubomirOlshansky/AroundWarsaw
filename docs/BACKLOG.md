@@ -4,6 +4,13 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Autopilot findings on recent work (2026-11-06; docs/PLAYTEST.md)
+
+- PT-23 (S2): the tow offer never comes while the ride button is up; a pinned car gets no help.
+- PT-24 (suspect): backing off a wall resets the stall timer, so the offer may never come.
+- PT-25 (suspect): crazy drivers honk but said no line in 5 cut-ins.
+- PT-26, PT-27 (S3): a bubble over the steering hint; the KEBAB label over BRAKE.
+
 ## Loading bar on the title screen (F, 2026-11-05)
 
 Built: `main.gd` loads `index.res` and `proxies.scn` with threaded requests under the title, the
@@ -56,6 +63,13 @@ Found and left:
 - The Norblin copper glow at night is flat and strong at phone size; a phone look should say if it
   needs toning down.
 
+## Foksal 13 and 15 from F's photos (F, 2026-11-05)
+
+Built (site `foksal`, spec docs/landmarks/specs/foksal.md). Open:
+- Night: the warm uplights on the stone frames and under the balconies, and the glowing ground floor, as in the developer's night render (needs a lamp strip or a floodlit code for small fronts; measure the bench).
+- F's look check on the phone or the Mac: the brick tones in the north front's shade, the gables' height, Foksal 15's dormers (LoD2's as they stand; no ortho was gathered).
+- The pack's model of Foksal 13 (Tiny Warsaw 14556781) had its details on the courtyard side: any port of the pack needs a per-building photo check first (the A/B review).
+
 ## Lessons from Tiny Warsaw (F, 2026-11-04; docs/design/tiny-warsaw-comparison.md)
 
 - **PWSM 1967 point blocks as one kit** (Jerozolimskie 135-141, Niemcewicza 24-25, Spiska 4A/16A, Grójecka 14A): candidate for the modernism lane, needs Mac photos first.
@@ -83,7 +97,7 @@ signs, poles, junction boxes, hydrants or manholes; detection positions are 10-2
 evidence per street and junction, never coordinates.
 - [ ] RS1 junction shapes with kerb returns + RS2 kink fillets (pilot: Marszałkowska × Świętokrzyska,
       Krucza × Hoża, Nowy Świat × Świętokrzyska), then city-wide; Mac re-bake
-- [ ] RS3 width that varies along a street (tapers between ways; ortho width profiles on the Mac)
+- [ ] RS3 width that varies along a street: tapers between ways done (road_smooth.py, 2026-11-05); ortho width profiles on the Mac left
 - [ ] RS4 surfaces from OSM tags (setts, paving, concrete) by id in the ground shader
 - [ ] RS5 tram beds and medians that read
 - [ ] RS6 crossings with kerb drops, zebras aligned to the crossing way
@@ -125,14 +139,20 @@ Built (spec `docs/landmarks/specs/forest.md`): the three-slab tower with crown b
 - **The roof crane and the tower's lobby**: the window-cleaning crane on the crown and the glazed double-height lobby are not modelled.
 - **Older docs still name the real tenant** in a few places (CITY_INVENTORY, LANDMARKS, QUESTIONS, MUSIC, inventory candidates, wiki_build.py): a sweep to the parody is open.
 
+## Ground check holes in the far west
+
+`check_ground` fails with 13 holes around `--at=-2591,905` to `-2861,1015`, and one at `-1711,-2765`, found 2026-11-05 on the modernism branch. They are far from anything that branch touches, so they came from elsewhere; not chased there.
+
 ## Warsaw modernism and brutalism (F, 2026-11-03, high priority)
 
 F loves Warsaw modernism and asked for every modernist and brutalist building as good as photos allow
 (Karowa 18, Kozia 9 and the Hammer building by name), a collect-them-all quest, and high priority.
 Plan, ranking, facts with sources and the quest: docs/design/modernism-collection.md. Docs only so far.
 
-- **Photo builds, in order** (CITY_INVENTORY 147-153, LANDMARKS P1b): M1 Młotek (Smolna 8), M2 Kozia 9,
-  M3 Karowa 18a; then M4 Żyletkowiec, M5 Dom Chłopa, M6 NBP, M7 the Kopernika skyscraper, M8 Osiedle Za
+- **Photo builds, in order** (CITY_INVENTORY 147-153, LANDMARKS P1b): M1 Młotek, M2 Kozia 9 and M3 Karowa 18a
+  built 2026-11-05 (sites `mlotek`, `kozia9`, `karowa18a`); open on them: the Moliera side of Kozia 9 and
+  Młotek's north face want street photos (Mapillary needs `MAPILLARY_TOKEN` on the Mac), Karowa's rear
+  terraces; Kozia 9 did not reach L3 in review (see `docs/landmarks/kozia9.md`). Next: M4 Żyletkowiec, M5 Dom Chłopa, M6 NBP, M7 the Kopernika skyscraper, M8 Osiedle Za
   Żelazną Bramą (one slab kit), M9 Torwar, M10 BGK (built 2026-11-03, site `bgk`), M11 Ministerstwo Komunikacji, M12 Dom Słowa Polskiego.
   Each starts with a Mac gather (`refs/<slug>/`, REPORT with the outline's x, z) and F's "go" for the
   Remote Control session; Opus spec, Sonnet build, art-director against the photos, bench before/after.
@@ -331,6 +351,38 @@ the steering. Review, findings and the A/B list: `docs/design/beta-values.md`.
 - [ ] A real-map hands-off drive with the lane assist (Wisłostrada, Trasa Łazienkowska, the bridges): `check_lane_drive` with a Classic driver
 - [ ] GAMEPLAY_PLAN 1.5 items 2, 3, 5: wall look-ahead, junction pick, camera lead at junctions
 - [ ] If F picks them: the delivery streak "Seria", a smooth tip, slipstream, a shorter card wait
+
+## Operation Unslop: streets that don't look generated (F, 2026-11-05)
+
+F: "unslop the roads and the objects on them, make the streets prettier, street by street, using
+every workflow we have (maps, real street maps, photos), with Marszałkowska between Centrum and
+Świętokrzyska as the test, so it then improves the other places by itself; classify every object
+to a model we have, model the missing ones, and keep a database of models in the CRM". Plan:
+docs/design/operation-unslop.md (merges roads-and-objects-plan.md and road-objects.md). Tools:
+`tools/street_pass.py`, `tools/model_library.py`; records in docs/streets/, library in docs/models/;
+skill `street-pass`, agent `street-unslopper`; console tabs Streets and Models.
+Found: the test street's west carriageway changes lane count between OSM ways (2/3/2 lanes,
+6/10/6 m) where the street is the same; 16 lane lines end mid-block; no balustrade, tram railing,
+canopy-on-posts, Jersey barrier, yard gate or park fence model exists (library "wanted").
+Found: only 559 of 45,192 scanned trees stand inside a lane, none on the test street; trees on the
+road in F's shots are the drawn strip covering a real median (check T1 looks at the drawn surface).
+- [x] Pipeline, checks, records, model library, agent, skill, console tabs (2026-11-05)
+- [x] Lane lines cut at zebras (bake_roads `_crossed`, whole map; 643 of 2,177 zebras had a line across), L2 reads a zebra cut as intentional (2026-11-05, Mac re-bake)
+- [x] Smooth joins (F, 2026-11-05 "smooth, like hand designed"): `tools/road_smooth.py` (run by bake_osm, also on a baked map) tapers the asphalt where two ways of a carriageway change width (799 joins: the narrower way flares to the wider one over 20-30 m, no round cap bulging past the kerb), moves kerbs and edge lines that jogged with the step, stitches lane lines across joins (2,483) and rounds small line kinks (3,116); edge steps 727 → 12, line jogs 969 → 16 ; where a smooth kerb runs past a flare the asphalt follows the kerb, and no flare beside a driveway mouth; streets drawn 0.3-3 m short of a tram bed go out onto its ballast (23 ways, Mapillary 2026-08-30 shows the asphalt meeting the tracks) and kerb breaks along a tram bed are closed; service roads always drawn under streets; a way narrower than its street at both ends takes the street's kerb line (64 ways, F's satellite lesson: kerbs run straight, lanes change by paint) (verify step `smooth`; street_pass K1, K2)
+- [x] Workflow speed-ups from the first street's logs (probe, evidence pack, rule-bug alarm, multi-spot shots, roads-only bake, Haiku scout) (2026-11-05)
+- [ ] `overlay_ortho.py --plain` (no overlay lines, to read paint) and the flight date in its notes; raw OSM extract in the map pack so bake-rule changes can be baked in the cloud
+- [ ] Chained-carriageway lane painting with tapers (L1, 354 joins city-wide); today's lanes override; `lane_split` width sanity
+- [ ] Lane changes as paint (F's satellite shots 2026-11-05): within one street's kerbs a new lane starts as a line out of the edge line with hatching in the spare width, instead of the edge moving; lane widths from the street's width, not each way's count
+- [ ] Crossing kit poles (road_smooth crossing_kit, 82 at 79 zebras across main streets with no mapped signal) have no lit lamps and no controller: give them a ped/vehicle cycle, and check the places on Mapillary (some may be unsignalled)
+- [ ] Lane changes inside straight kerbs: a widened way spreads its lanes over the chain's width (spread_lanes); F's round 3 asks for 3.25 m lanes from one edge with chevron hatching in the spare width (round 4 asked again: edge-connected white chevrons where the lane count changes; not built yet, the reference view at Złota has no such change left in sight)
+- [ ] Tram medians have no collision: a car can cross the gravel bed anywhere, so the U-turn opening is a look, not a route the car needs (decide whether medians get kerb collision outside openings)
+- [ ] The 10 joins left with a step have no room for a taper (ways shorter than 8 m between joins): merge such stubs in the bake
+- [ ] Test street fixes and F's look (see the street record docs/streets/marszalkowska-centrum.md)
+- [x] Barrier overrides by stable id: `street_pass.py --apply` writes game/data/road_objects.json from the records and hand `decisions`, map_builder draws REMOVE / styles; `tram_railing`, `balustrade`, `balustrade_rail` styles (2026-11-05)
+- [ ] The other wanted models
+- [ ] More classify rules from the test street's hand calls; then the next streets
+- [x] Lessons from the smooth-roads thread (2026-11-05): `verify.sh --roads` (the road-loop set instead of ~100 steps), fixed cameras per street (`cameras`, `street_pass.py --spots`), target image step (Codex on the Mac, a target never evidence), rounds and one thread per round with a handoff note, guesses tagged template-default
+- [ ] One road layout per street chain (kerbs, asphalt, lanes as paint, bays from one cross-section) and junction templates (tram-median crossing, U-turn, driveway mouth, T), replacing the road_smooth repair passes; after #447 merges, own map thread (Opus)
 
 ## Road objects and collisions (F, 2026-11-04)
 
@@ -1042,6 +1094,11 @@ Settings → Jazda (the first tab); NOWA GRA asks a second tap within 4 s, then 
 drive (gas, brake or the stick) for 8 s and still within 4 m of one spot, whatever holds the car (a
 wall nothing pins it against, a gap inside a building), POMOC DROGOWA comes up on the context button
 with one toast and a tap tows (car.gd `stalled`, main.gd `_stuck_offer_frame`, `check_stuck_offer`).
+Fixed 2026-11-06 (PT-23/PT-24, Autopilot run 2026-11-05): the offer never came up while the ride
+app's PODWÓZKA held the context button (it waited for a free button, and PODWÓZKA is up whenever a
+ride could be taken); the button now has ranks (hud.gd PILL_RANK: call > POMOC DROGOWA > KASETA,
+START KURS > PODWÓZKA), so KASETA by a tape also shows over PODWÓZKA. And the spot is 10 m, not 4 m:
+backing off a wall for another run reset the count every try.
 Not while parked by the game, held by the stop assist, in the water or flying; the pinned car's own
 turn-out and tow still come first. Left: the phone look. ~~A pad has no button for the context
 button~~ Done (2026-11-03): the pad's A presses it (see "The Mac App Store version and gamepads").

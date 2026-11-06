@@ -61,6 +61,8 @@ const L_FOAM := 18.0
 const L_TRAMBED := 19.0
 ## First-scene item 5 (2026-11-02): the tactile warning pads where a crossing meets a kerb.
 const L_TACTILE := 20.0
+## Smooth roads loop 7 (F's ChatGPT target, 2026-11-05): a tram track's sleepers on its own bed.
+const L_SLEEPERS := 21.0
 
 const Y_GROUND := 0.0
 const Y_AREA := 0.02
@@ -82,7 +84,7 @@ const COL := {
 	"pitch": Color("#6fa94f"),
 	"water": Color("#5ea8d8"),
 	"road": Color("#4f535a"),
-	"road_minor": Color("#62666c"),
+	"road_minor": Color("#4f535a"),
 	# R3 of docs/design/start-area-real.md: Warsaw's footways are light grey concrete, not sand.
 	"foot": Color("#dddcd6"),
 	"cycle": Color("#c86e5c"),
@@ -546,6 +548,14 @@ func _build_parts(marks, roofs_only: bool) -> void:
 		_drape_bias = 0.34
 		_build_islands(flat)
 		_build_medians(flat)
+		# Smooth roads loop 7: the sleepers over the tram bed, the crossings over them, and the
+		# cycle crossings (0.36) and kerbs over both.
+		_drape_bias = 0.35
+		_build_tram_sleepers(flat)
+		_drape_bias = 0.355
+		_build_tram_crossings(flat)
+		_drape_bias = 0.357
+		_build_tram_noses(flat)
 		_drape_bias = 0.36
 		_build_kerbs(flat)
 		_build_shore_stone(flat)
@@ -4129,19 +4139,70 @@ func _build_paths(st) -> void:
 	_layer = L_GROUND
 
 
+## Smooth roads loop 2: the depth bias of service roads and living streets (the streets' 0.3).
+const MINOR_ROAD_BIAS := 0.25
+
+
 ## Roads as strips `w` wide around their centreline shifted `c` to the right, except
 ## where a mapped carriageway area already covers them ("hide": metres along the road).
 func _build_roads(st) -> void:
 	_layer = L_ROAD
+	var keep := _drape_bias
 	for r in data["roads"]:
 		var minor: bool = r["k"] in ["service", "living_street"]
 		var col: Color = COL["road_minor"] if minor else COL["road"]
 		var w := float(r["w"])
 		var y := Y_ROAD - (0.005 if minor else 0.0)
+		# Smooth roads loop 2 (F's crop by the PKiN driveway): a service road's 10 m pieces sag
+		# over the grid's folds unlike the street's they run into, so 5 mm under it was not enough
+		# and its paler asphalt poked up through the street in flags cut along the grid lines.
+		# A lower depth bias (between the rail beds' and the roads') keeps it under every street.
+		_drape_bias = MINOR_ROAD_BIAS if minor and keep >= 0.0 else keep
 		_dk = int(r.get("dk", -1))
 		var full := _pts(r["p"])
+		var tapered: bool = r.has("wv")
 		for run in _visible_runs(full, r.get("hide", [])):
+			if tapered:
+				# Smooth roads (tools/road_smooth.py): a join's width step tapered over 20-30 m,
+				# one mitred band whose ends are as wide as the next way's, so the round patches
+				# at its ends and bends no longer bulge past the narrower way.
+				var prof := _profile(r, full, run[3])
+				var rp: PackedVector2Array = run[0]
+				# Smooth roads loop 3: where the band goes under a mapped carriageway area, it runs
+				# on half its width under the area (as a plain strip's square cap does), so an
+				# area whose outline starts at a slant leaves no bare triangle by the kerb.
+				var ws: PackedFloat32Array = prof[0]
+				var cs: PackedFloat32Array = prof[1]
+				if run[1] and rp.size() >= 2:
+					rp.insert(0, rp[0] - (rp[1] - rp[0]).normalized() * ws[0] * 0.5)
+					ws.insert(0, ws[0])
+					cs.insert(0, cs[0])
+				if run[2] and rp.size() >= 2:
+					var e := rp.size() - 1
+					rp.append(rp[e] + (rp[e] - rp[e - 1]).normalized() * ws[e] * 0.5)
+					ws.append(ws[e])
+					cs.append(cs[e])
+				prof = [ws, cs]
+				_band_var(st, rp, prof[0], prof[1], y, col)
+				var mid := _offset_var(rp, prof[1])
+				for i in rp.size():
+					if i > 0 and i < rp.size() - 1:
+						if absf((rp[i] - rp[i - 1]).angle_to(rp[i + 1] - rp[i])) <= 0.12:
+							continue
+					elif (i == 0 and run[1]) or (i == rp.size() - 1 and run[2]):
+						continue
+					# At a tapered join both ways are this wide: the patch only rounds the joint.
+					_disc(st, mid[i], prof[0][i] * 0.5, y, col)
+				continue
 			var poly := _offset(run[0], float(r.get("c", 0.0)))
+			# Smooth roads loop 6 (F's crop at Marszałkowska by Złota): the same half-width run
+			# under a mapped carriageway area for a plain strip too, or an area outline that starts
+			# at a slant leaves a bare triangle of pavement between the street and the tram bed.
+			if run[1] and poly.size() >= 2:
+				poly.insert(0, poly[0] - (poly[1] - poly[0]).normalized() * w * 0.5)
+			if run[2] and poly.size() >= 2:
+				var pe := poly.size() - 1
+				poly.append(poly[pe] + (poly[pe] - poly[pe - 1]).normalized() * w * 0.5)
 			_strip(st, poly, w, y, col, false)
 			# Round patches fill the gaps at the ends and wherever the road bends; not
 			# where an area takes over (the area has the exact shape there).
@@ -4153,6 +4214,7 @@ func _build_roads(st) -> void:
 					continue
 				if bend > 0.12:
 					_disc(st, poly[i], w * 0.5, y, col)
+	_drape_bias = keep
 	_dk = -1
 	_layer = L_GROUND
 
@@ -4178,9 +4240,13 @@ func _build_tunnel_roads(st) -> void:
 ## the start, cut at the end] each.
 func _visible_runs(poly: PackedVector2Array, hide: Array) -> Array:
 	if hide.is_empty():
-		return [[poly, false, false]]
+		var all_s := PackedFloat32Array([0.0])
+		for i in range(1, poly.size()):
+			all_s.append(all_s[i - 1] + poly[i].distance_to(poly[i - 1]))
+		return [[poly, false, false, all_s]]
 	var runs := []
 	var cur := PackedVector2Array()
+	var cur_s := PackedFloat32Array()
 	var cut_start := false
 	var s := 0.0
 	for i in poly.size() - 1:
@@ -4207,17 +4273,89 @@ func _visible_runs(poly: PackedVector2Array, hide: Array) -> Array:
 			var p1 := a.lerp(b, c1 / length) if length > 0.0 else b
 			if hidden:
 				if cur.size() >= 2:
-					runs.append([cur, cut_start, true])
+					runs.append([cur, cut_start, true, cur_s])
 				cur = PackedVector2Array()
+				cur_s = PackedFloat32Array()
 				cut_start = true
 			else:
 				if cur.is_empty():
 					cur.append(p0)
+					cur_s.append(s + c0)
 				cur.append(p1)
+				cur_s.append(s + c1)
 		s += length
 	if cur.size() >= 2:
-		runs.append([cur, cut_start, false])
+		runs.append([cur, cut_start, false, cur_s])
 	return runs
+
+
+## Smooth roads: a tapered road's (`wv`, `cv`: width and centre offset per point of `p`) width
+## and offset at each distance in `along` (metres from its first point), by its cumulative length.
+func _profile(r: Dictionary, full: PackedVector2Array, along: PackedFloat32Array) -> Array:
+	var wv: Array = r["wv"]
+	var cv: Array = r["cv"]
+	var ws := PackedFloat32Array()
+	var cs := PackedFloat32Array()
+	var k := 0
+	var s0 := 0.0
+	for s in along:
+		while k < full.size() - 2 and s0 + full[k].distance_to(full[k + 1]) < s:
+			s0 += full[k].distance_to(full[k + 1])
+			k += 1
+		var ln := full[k].distance_to(full[k + 1]) if k < full.size() - 1 else 0.0
+		var t := clampf((s - s0) / ln, 0.0, 1.0) if ln > 0.0 else 0.0
+		var k1 := mini(k + 1, wv.size() - 1)
+		ws.append(lerpf(float(wv[k]), float(wv[k1]), t))
+		cs.append(lerpf(float(cv[k]), float(cv[k1]), t))
+	return [ws, cs]
+
+
+## A polyline moved off[i] metres to its right at point i, mitred at the corners.
+static func _offset_var(poly: PackedVector2Array, off: PackedFloat32Array) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	var n := poly.size()
+	for i in n:
+		var back := (poly[i] - poly[i - 1]).normalized() if i > 0 else Vector2.ZERO
+		var ahead := (poly[i + 1] - poly[i]).normalized() if i < n - 1 else Vector2.ZERO
+		if back == Vector2.ZERO:
+			back = ahead
+		if ahead == Vector2.ZERO:
+			ahead = back
+		var r0 := Vector2(-back.y, back.x)
+		var r1 := Vector2(-ahead.y, ahead.x)
+		var m := (r0 + r1).normalized()
+		if m == Vector2.ZERO:
+			m = r1
+		out.append(poly[i] + m * off[i] / maxf(m.dot(r1), 0.5))
+	return out
+
+
+## A band between two offset lines of `poly` (widths and centre offsets per point): one quad per
+## piece, shared edges, so its width can change smoothly along it (cut into the 10 m pieces the
+## draped strips use).
+func _band_var(st, poly: PackedVector2Array, ws: PackedFloat32Array, cs: PackedFloat32Array, y: float, col: Color) -> void:
+	var lo := PackedFloat32Array()
+	var hi := PackedFloat32Array()
+	for i in poly.size():
+		lo.append(cs[i] - ws[i] * 0.5)
+		hi.append(cs[i] + ws[i] * 0.5)
+	var left := _offset_var(poly, lo)
+	var right := _offset_var(poly, hi)  # + is to the right, as _strip's `side`
+	for i in poly.size() - 1:
+		var d := poly[i + 1] - poly[i]
+		if d.length() < 0.01:
+			continue
+		_axis = d.normalized()
+		var pieces := maxi(1, ceili(d.length() / 10.0)) if _drape_bias >= 0.0 else 1
+		for k in pieces:
+			var t0 := float(k) / pieces
+			var t1 := float(k + 1) / pieces
+			var a := right[i].lerp(right[i + 1], t0)
+			var b := right[i].lerp(right[i + 1], t1)
+			var c := left[i].lerp(left[i + 1], t1)
+			var e := left[i].lerp(left[i + 1], t0)
+			_quad(st, Vector3(a.x, y, a.y), Vector3(b.x, y, b.y), Vector3(c.x, y, c.y), Vector3(e.x, y, e.y), Vector3.UP, col)
+	_axis = Vector2.ZERO
 
 
 ## A polyline moved `off` metres to its right, mitred at the corners.
@@ -4246,10 +4384,18 @@ static func _offset(poly: PackedVector2Array, off: float) -> PackedVector2Array:
 ## and bus bays included; hatched areas are asphalt too (the hatching comes later).
 func _build_carriageways(st) -> void:
 	_layer = L_ROAD
+	var keep := _drape_bias
 	for c in data.get("carriage", []):
 		_dk = int(c.get("dk", -1))
 		var minor: bool = c["k"] in ["service", "living_street"]
+		_drape_bias = MINOR_ROAD_BIAS if minor and keep >= 0.0 else keep
 		_fill(st, _pts(c["p"]), Y_ROAD - (0.005 if minor else 0.0), COL["road_minor"] if minor else COL["road"])
+	# Round 3 (F: "one clean asphalt surface"): the bare pockets walled in by roads where a
+	# driveway leaves a street (`asphalt_fills`, tools/road_smooth.py fill_pockets).
+	_drape_bias = MINOR_ROAD_BIAS if keep >= 0.0 else keep
+	for f in data.get("asphalt_fills", []):
+		_fill(st, _pts(f["p"]), Y_ROAD - 0.005, COL["road"])
+	_drape_bias = keep
 	_dk = -1
 	_layer = L_GROUND
 
@@ -4308,8 +4454,26 @@ func _build_surfaces(st) -> void:
 
 func _build_steps(st) -> void:
 	_layer = L_STEPS
+	# Smooth roads loop 7 (F's ChatGPT target, 2026-11-05): a flight that ends at a metro
+	# entrance (`down`, tools/road_smooth.py metro_steps) goes down into it: its treads darken
+	# towards the entrance's deep end.
 	for p in data.get("steps", []):
-		_strip(st, _pts(p["p"]), 2.4, Y_PATH + 0.01, Color("#d2cabb"))
+		var poly := _pts(p["p"])
+		var deep := int(p.get("down", -1))
+		if deep < 0 or poly.size() != 2:
+			_strip(st, poly, 2.4, Y_PATH + 0.01, Color("#d2cabb"))
+			continue
+		var top := poly[1 - deep]
+		var bottom := poly[deep]
+		var length := top.distance_to(bottom)
+		var n := maxi(2, int(length / 0.34))
+		var dir := (bottom - top) / length
+		for i in n:
+			var k := float(i) / float(n - 1)
+			var tone := Color("#d2cabb").lerp(Color("#34363b"), k * k * 0.85 + k * 0.15)
+			var a := top + dir * (length * float(i) / float(n))
+			var b := top + dir * (length * float(i + 1) / float(n))
+			_strip(st, PackedVector2Array([a, b]), 2.4, Y_PATH + 0.01, tone, false)
 	_layer = L_GROUND
 
 
@@ -4333,9 +4497,12 @@ func _build_islands(st) -> void:
 ## Loop 3b-2: the tram bed (a median with trams) a concrete track slab, darker than the
 ## pavements (its pale grey read as pavement, and with dark rails on it as a barcode), and the
 ## tram rails thinner and closer to it in tone.
-const TRAM_BED := Color("#8c887f")
+const TRAM_BED := Color("#8f887d")
 const TRAM_RAIL := Color("#6a6761")
 const TRAM_RAIL_W := 0.16
+const TRAM_SLEEPER_W := 2.4
+const TRAM_GRAVEL := Color("#958e83")
+const TRAM_XING := Color("#a9a69f")
 
 
 ## Dual-carriageway medians: raised grass, or the tram bed at road level where trams run.
@@ -4343,7 +4510,8 @@ func _build_medians(st) -> void:
 	for m in data.get("medians", []):
 		_dk = int(m.get("dk", -1))
 		var grass: bool = m["k"] == "grass"
-		_layer = L_GREEN if grass else L_TRAMBED
+		# Smooth roads loop 7 (F's ChatGPT target): the bed is gravel, as the ballast round it.
+		_layer = L_GREEN if grass else L_GRAVEL
 		var col: Color = COL["grass"] if grass else TRAM_BED
 		var y := KERB_UP if grass else Y_ROAD + 0.005
 		var s4: Array = m["s"]
@@ -4519,7 +4687,87 @@ const BARRIER_STYLE := {
 	"fence": ["#7d838a", 0.12, 1.6],
 	"wall": ["#a49d92", 0.35, 1.9],
 	"platform": ["#d2cdc3", 2.4, 0.25],
+	# Operation Unslop (2026-11-05, docs/streets/marszalkowska-centrum-audit.md "Wanted models"):
+	# styles a street pass gives single barriers by id (OBJECT_OVERRIDES). The tram railing is the
+	# black steel railing along tram beds and platform edges (1.1 m); the balustrades go round stairs
+	# instead of the 1.9 m grey wall: granite at metro entrances, a concrete upstand with a rail
+	# at platform and underpass stairs.
+	# A 4th entry makes the style an open railing (F, 2026-11-05: the solid 1.1 m black strip read
+	# as a black wall): [upstand height, rail colour]; posts every 2 m and two rails, see-through.
+	"tram_railing": ["#22262a", 0.06, 1.1, [0.0, "#22262a"]],
+	"balustrade": ["#8f8f8a", 0.3, 1.0],
+	"balustrade_rail": ["#a9a59d", 0.2, 1.0, [0.45, "#2a2e33"]],
 }
+
+
+## An open railing along `poly`: an optional concrete upstand, then round-ish posts every 2 m and a
+## top and a middle rail you can see through (Operation Unslop's tram railing and stair balustrade).
+## It collides like a wall of the same height, so driving stays as it was.
+func _railing_along(st, poly: PackedVector2Array, height: float, upstand: float, up_col: Color, rail_col: Color, collide: bool) -> void:
+	if upstand > 0.0:
+		_wall_along(st, poly, 0.2, upstand, up_col, false)
+	var run := 0.0
+	var next_post := 0.0
+	var low := maxf(upstand, 0.0) + (0.1 if upstand > 0.0 else 0.35)
+	for i in poly.size() - 1:
+		var a := poly[i]
+		var b := poly[i + 1]
+		var length := a.distance_to(b)
+		if length < 0.05:
+			continue
+		var dir := (b - a) / length
+		var side := Vector2(-dir.y, dir.x) * 0.03
+		var ga := terrain_height(a.x, a.y)
+		var gb := terrain_height(b.x, b.y)
+		var n := Vector3(side.x, 0, side.y).normalized()
+		for h in [low, height - 0.05]:
+			for sgn in [1.0, -1.0]:
+				var o: Vector2 = side * sgn
+				_quad(st, Vector3(a.x + o.x, ga + h, a.y + o.y), Vector3(b.x + o.x, gb + h, b.y + o.y),
+						Vector3(b.x + o.x, gb + h + 0.05, b.y + o.y), Vector3(a.x + o.x, ga + h + 0.05, a.y + o.y), n * sgn, rail_col)
+			_quad(st, Vector3(a.x + side.x, ga + h + 0.05, a.y + side.y), Vector3(b.x + side.x, gb + h + 0.05, b.y + side.y),
+					Vector3(b.x - side.x, gb + h + 0.05, b.y - side.y), Vector3(a.x - side.x, ga + h + 0.05, a.y - side.y), Vector3.UP, rail_col.lightened(0.12))
+		while next_post <= run + length:
+			var p := a + dir * (next_post - run)
+			var y := lerpf(ga, gb, (next_post - run) / length)
+			var bottom := maxf(upstand, 0.0)
+			_box_oriented(st, Vector3(p.x, y + (bottom + height) * 0.5, p.y), Basis(Vector3.UP, atan2(-dir.x, -dir.y)),
+					Vector3(0.06, height - bottom, 0.06), rail_col)
+			next_post += 2.0
+		run += length
+		if collide:
+			_wall_faces.append_array([Vector3(a.x, ga - 0.3, a.y), Vector3(b.x, gb - 0.3, b.y), Vector3(b.x, gb + height + 1.5, b.y),
+					Vector3(a.x, ga - 0.3, a.y), Vector3(b.x, gb + height + 1.5, b.y), Vector3(a.x, ga + height + 1.5, a.y)])
+
+## Operation Unslop's per-object decisions (tools/street_pass.py --apply writes them from the street
+## records): {"items": {id: [verdict, style]}}. The id is road-objects.md's stable id: class, kind
+## and the outline's mean rounded to a 2 m cell ("barrier:fence:-870:392"), so a re-bake keeps it.
+## REMOVE leaves the barrier out; RETEXTURE / REPLACE draw it in the named BARRIER_STYLE.
+const OBJECT_OVERRIDES := "res://data/road_objects.json"
+var _object_overrides := {}
+
+
+func _load_object_overrides() -> void:
+	_object_overrides = {}
+	if not FileAccess.file_exists(OBJECT_OVERRIDES):
+		return
+	var j: Variant = JSON.parse_string(FileAccess.get_file_as_string(OBJECT_OVERRIDES))
+	if j is Dictionary and (j as Dictionary).get("items") is Dictionary:
+		_object_overrides = j["items"]
+
+
+## The stable id of a barrier line (tools/street_pass.py stable_id: the mean of its points, each
+## coordinate floor(c / 2 + 0.5) * 2).
+static func barrier_id(kind: String, flat: Array) -> String:
+	var n := flat.size() / 2
+	var cx := 0.0
+	var cz := 0.0
+	for i in n:
+		cx += float(flat[i * 2])
+		cz += float(flat[i * 2 + 1])
+	cx /= maxf(n, 1)
+	cz /= maxf(n, 1)
+	return "barrier:%s:%d:%d" % [kind, int(floor(cx / 2.0 + 0.5)) * 2, int(floor(cz / 2.0 + 0.5)) * 2]
 
 
 ## The Royal Castle's gardens map their fountain basins, the vases' round beds and the round
@@ -4546,14 +4794,64 @@ func _garden_ring(flat: Array) -> bool:
 	return true
 
 
+## Operation Unslop, Świętokrzyska (2026-11-06): OSM maps the planter edges inside traffic islands (Emilii Plater's median by the Palace: two wavy walls 95 m long) as `wall`; drawn 1.9 m high they read as a twisting beige ribbon across the junction. A wall lying inside a traffic island is a low planter edge (13 on the map), like the garden rings.
+const ISLAND_EDGE := ["#c9c2b4", 0.3, 0.45]
+var _island_boxes: Array = []
+var _island_src: Array = []
+
+
+func _in_island(flat: Array) -> bool:
+	# `data` is swapped for every sector the builder makes: rebuild the boxes when it changes
+	# (a cache from the first sector left every later sector's median walls at 1.9 m).
+	var src: Array = data.get("islands", [])
+	if not is_same(src, _island_src):
+		_island_src = src
+		_island_boxes.clear()
+		for isl in src:
+			var poly := PackedVector2Array()
+			var fp: Array = isl["p"]
+			for i in fp.size() / 2:
+				poly.append(Vector2(fp[i * 2], fp[i * 2 + 1]))
+			var box := Rect2(poly[0], Vector2.ZERO)
+			for q in poly:
+				box = box.expand(q)
+			_island_boxes.append([box, poly])
+	var n := flat.size() / 2
+	if n < 2:
+		return false
+	for e in _island_boxes:
+		var box: Rect2 = e[0]
+		if not box.has_point(Vector2(flat[0], flat[1])):
+			continue
+		var inside := 0
+		for i in n:
+			if Geometry2D.is_point_in_polygon(Vector2(flat[i * 2], flat[i * 2 + 1]), e[1]):
+				inside += 1
+		if inside * 5 >= n * 4:
+			return true
+	return false
+
+
 func _build_barriers(st) -> void:
 	_uv2 = Vector2(0.5, -1.0)
+	_load_object_overrides()
 	for l in data.get("lines", []):
 		var style: Array = BARRIER_STYLE.get(l["k"], ["#999999", 0.3, 1.0])
-		if l["k"] == "wall" and _garden_ring(l["p"]):
-			style = GARDEN_RING
+		if l["k"] == "wall" and (_garden_ring(l["p"]) or _in_island(l["p"])):
+			style = GARDEN_RING if _garden_ring(l["p"]) else ISLAND_EDGE
+		if not _object_overrides.is_empty() and l["k"] != "platform":
+			var o: Variant = _object_overrides.get(barrier_id(l["k"], l["p"]))
+			if o is Array:
+				if str(o[0]) == "REMOVE":
+					continue
+				if (o as Array).size() > 1 and BARRIER_STYLE.has(str(o[1])):
+					style = BARRIER_STYLE[str(o[1])]
 		# Loop 3b: a stop's platform is kerb height (0.25 m), not a wall: like the kerbs and
 		# islands, the car drives over it (check_drive.gd found buses brushing them).
+		if style.size() > 3:
+			var open: Array = style[3]
+			_railing_along(st, _pts(l["p"]), float(style[2]), float(open[0]), Color(style[0]), Color(str(open[1])), true)
+			continue
 		_wall_along(st, _pts(l["p"]), float(style[1]), float(style[2]), Color(style[0]), l["k"] != "platform")
 	_uv2 = Vector2.ZERO
 
@@ -5402,6 +5700,15 @@ const ARROW_LTR := [
 	"....#....", "...###...", "..#####..", "....#....", ".#..#..#.", "##..#..##", "#########",
 	"##..#..##", ".#..#..#.", "....#....", "....#....",
 ]
+## Round 4 (F): the U-turn (left and back, through a median's opening) and straight on with it.
+const ARROW_U := [
+	"...####..", "..#...#..", "..#...#..", "..#...#..", "#####.#..", ".###..#..", "..#...#..", "......#..",
+	"......#..", "......#..",
+]
+const ARROW_TU := [
+	"......#..", ".....###.", "....#####", "......#..", "...####..", "..#...#..", "#####.#..", ".###..#..",
+	"..#...#..", "......#..",
+]
 const BIKE := [
 	"....##..", "...#..#.", ".###....", "#..#.##.", "#..##..#", "#.#.#..#", ".#...##.",
 ]
@@ -5440,6 +5747,10 @@ func _build_symbols(st) -> void:
 						rows = ARROW_LR
 					"LTR":
 						rows = ARROW_LTR
+					"U":
+						rows = ARROW_U
+					"TU":
+						rows = ARROW_TU
 				# Loop 3b-2: cells up to 0.3 m across, the arrow up to 2.7 m wide (a lane is 3+ m),
 				# so a 9-cell arrow keeps whole 0.3 m strokes and gaps (2.4 m made them 0.27).
 				_pixel_shape(st, rows, at, fwd, minf(0.3, 2.7 / String(rows[0]).length()), 0.5, mirror)
@@ -5512,6 +5823,118 @@ func _dashes(st, poly: PackedVector2Array, offset: float, on: float, off: float,
 				_strip(st, dash, width, Y_MARK, COL["mark"], false)
 			t += on + off
 		phase = fposmod(phase + length, on + off)
+
+
+## Smooth roads loop 7 (F's ChatGPT target): where a tram track runs on its own bed
+## (`trams[].bed`, metres along it, tools/road_smooth.py tram_beds) a 2.4 m band of gravel under
+## it that the shader (ground.gdshader, layer 21) cuts into sleepers every 0.6 m. Same mesh and
+## material: no new draw call.
+func _build_tram_sleepers(st) -> void:
+	_layer = L_SLEEPERS
+	for t in data["trams"]:
+		if not t.has("bed"):
+			continue
+		var poly := _pts(t["p"])
+		_dk = int(t.get("dk", -1))
+		for b in t["bed"]:
+			var run := _sub_poly(poly, float(b[0]), float(b[1]))
+			if run.size() >= 2:
+				_strip(st, run, TRAM_SLEEPER_W, Y_ROAD + 0.008, TRAM_GRAVEL, false)
+	_dk = -1
+	_layer = L_GROUND
+
+
+## Smooth roads loop 7: a road or a footway across a tram bed (`tram_xings`,
+## tools/road_smooth.py tram_crossings): one mitred band over the bed and its sleepers, under the
+## rails: the road's asphalt, or a footway's pale concrete panels (the road under the bed showed
+## only its lines and kerbs, curving across the tracks).
+func _build_tram_crossings(st) -> void:
+	for x in data.get("tram_xings", []):
+		# Round 4 (F): a road's opening through a median is one paved footprint (`foot`), flush,
+		# its noses rounded over it (_build_tram_noses).
+		# Asphalt like the carriageways it joins, so the opening reads as one flush road.
+		if x.has("foot"):
+			_layer = L_ROAD
+			_fill_quad_fine(st, _pts(x["foot"]), Y_ROAD + 0.01, COL["road"])
+			continue
+		# A road keeps its asphalt across the tracks; a footway gets the pale panels.
+		var road: bool = x.get("k", "") == "road"
+		_layer = L_ROAD if road else L_TRAMBED
+		var poly := _pts(x["p"])
+		var ws := PackedFloat32Array()
+		var cs := PackedFloat32Array()
+		for i in poly.size():
+			ws.append(float(x["w"]))
+			cs.append(0.0)
+		_band_var(st, poly, ws, cs, Y_ROAD + 0.01, COL["road"] if road else TRAM_XING)
+	_axis = Vector2.ZERO
+	_layer = L_GROUND
+
+
+## Round 4: a four-cornered polygon in cells of about a metre, so it follows the ground like
+## the bed's sleeper strips under it (one flat 12 m triangle sank under them mid-span).
+func _fill_quad_fine(st, q: PackedVector2Array, y: float, col: Color) -> void:
+	if q.size() != 4:
+		_fill(st, q, y, col)
+		return
+	var nu := maxi(1, ceili(q[0].distance_to(q[1])))
+	var nv := maxi(1, ceili(q[1].distance_to(q[2])))
+	for i in nu:
+		for j in nv:
+			var u0 := float(i) / nu
+			var u1 := float(i + 1) / nu
+			var v0 := float(j) / nv
+			var v1 := float(j + 1) / nv
+			var a := _bilerp(q, u0, v0)
+			var b := _bilerp(q, u1, v0)
+			var c := _bilerp(q, u1, v1)
+			var d := _bilerp(q, u0, v1)
+			_fill(st, PackedVector2Array([a, b, c, d]), y, col)
+
+
+func _bilerp(q: PackedVector2Array, u: float, v: float) -> Vector2:
+	return q[0].lerp(q[1], u).lerp(q[3].lerp(q[2], u), v)
+
+
+## Round 4 (F): the rounded ends of a tram median at a road's opening (`tram_noses`,
+## tools/road_smooth.py shape_openings): gravel like the bed, over the opening's paving; their
+## kerbs come with the kerbs.
+func _build_tram_noses(st) -> void:
+	_layer = L_GRAVEL
+	for n in data.get("tram_noses", []):
+		# in rings round the middle, so it follows the ground over the opening's paving
+		var ring := _pts(n["p"])
+		var mid := Vector2.ZERO
+		for q in ring:
+			mid += q
+		mid /= maxf(1.0, ring.size())
+		for i in ring.size():
+			var a := ring[i]
+			var b := ring[(i + 1) % ring.size()]
+			for k in 4:
+				var t0 := k / 4.0
+				var t1 := (k + 1) / 4.0
+				_fill(st, PackedVector2Array([mid.lerp(a, t0), mid.lerp(a, t1), mid.lerp(b, t1), mid.lerp(b, t0)]),
+					Y_ROAD + 0.03, TRAM_BED)
+	_layer = L_GROUND
+
+
+## The part of a polyline from s0 to s1 metres along it.
+func _sub_poly(poly: PackedVector2Array, s0: float, s1: float) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	var s := 0.0
+	for i in poly.size() - 1:
+		var a := poly[i]
+		var b := poly[i + 1]
+		var length := a.distance_to(b)
+		if length > 0.0 and s + length >= s0 and s <= s1:
+			var f0 := clampf((s0 - s) / length, 0.0, 1.0)
+			var f1 := clampf((s1 - s) / length, 0.0, 1.0)
+			if out.is_empty():
+				out.append(a.lerp(b, f0))
+			out.append(a.lerp(b, f1))
+		s += length
+	return out
 
 
 func _build_trams(st) -> void:

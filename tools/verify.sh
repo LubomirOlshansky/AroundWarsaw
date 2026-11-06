@@ -8,6 +8,9 @@
 #                              prebuilt city (game/map/sectors/*.scn, index.res, proxies.scn:
 #                              with a renderer, so a window opens for a moment).
 #   tools/verify.sh --only=steering,plain   just those steps (--list prints the names)
+#   tools/verify.sh --roads    the road-loop set (STEPS_ROADS, a few minutes): map data, road rules,
+#                              street records, models, smoothing ratchet, drive and stuck spots.
+#                              For iterating on a road or marking rule; run --quick once before a PR.
 #   tools/verify.sh --logs=DIR              keep the logs there (default build/verify/<time>)
 #
 # `roads` runs tools/check_roads.py (loop 3a): the road and deck rules C1-C10 over the whole
@@ -151,6 +154,12 @@
 # The opening flyover: `opening` runs game/tools/check_opening.gd: the first launch's camera flight
 # (camera_shots.gd `open_view`) is short, starts on the Palace, ends exactly on the follow view and
 # moves smoothly frame to frame; no map (CI too).
+# Smooth roads (2026-11-05): `smooth` runs tools/road_smooth.py --check (the map is smoothed: the
+# width steps at the joins tapered, the lane lines stitched; its steps and jogs never grow).
+# Operation Unslop (2026-11-05): `streetpass` runs tools/street_pass.py --check (the street records in
+# docs/streets/ may never get worse), `models` runs tools/model_library.py --check (every model a
+# street record names is in the library or on its wanted list), `overrides` runs
+# game/tools/check_object_overrides.gd (every id in game/data/road_objects.json names a barrier).
 # Street details (2026-11-01): `streetdetails` runs tools/check_street_details.py (the baked props along
 # the main line against the map: stale file, blocked spots, budget, kiosk spacing); `streetmesh` runs
 # game/tools/check_street_details.gd (every kind builds as one surface, a cell's triangle budget); CI too.
@@ -201,8 +210,12 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh monuments monumentmesh spec lod2 courts drape ground drive drive-prebuilt deckxray stuckspots stuckspots-prebuilt lanedrive finite steering laneassist stuckoffer handling stopassist questlines settings credits language tiers governor heliview hud places edge roadworks roadworks-prebuilt eggs tape crowds life buses zaglebie crashes loud crazy oldtram trains packs wellness fans garage save districts syrenki cassettes ladder racecuts first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram teleport firstlife heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh monuments monumentmesh spec drape drive deckxray stuckspots finite steering laneassist stuckoffer handling stopassist questlines settings credits language tiers governor heliview hud places edge roadworks eggs tape crowds life buses zaglebie crashes loud crazy oldtram trains packs wellness fans garage save districts syrenki cassettes ladder racecuts first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds police plain ram teleport firstlife prebuilt)
+STEPS_ALL=(map roads smooth streets outline pois streetdetails streetpass models overrides stops streetmesh parkdetails parkmesh monuments monumentmesh spec lod2 courts drape ground drive drive-prebuilt deckxray stuckspots stuckspots-prebuilt lanedrive finite steering laneassist stuckoffer handling stopassist questlines settings credits language tiers governor heliview hud places edge roadworks roadworks-prebuilt eggs tape crowds life buses zaglebie crashes loud crazy oldtram trains packs wellness fans garage save districts syrenki cassettes ladder racecuts first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram teleport firstlife heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads smooth streets outline pois streetdetails streetpass models overrides stops streetmesh parkdetails parkmesh monuments monumentmesh spec drape drive deckxray stuckspots finite steering laneassist stuckoffer handling stopassist questlines settings credits language tiers governor heliview hud places edge roadworks eggs tape crowds life buses zaglebie crashes loud crazy oldtram trains packs wellness fans garage save districts syrenki cassettes ladder racecuts first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds police plain ram teleport firstlife prebuilt)
+# Operation Unslop review (2026-11-05): the road loop ran the whole --quick (~100 steps, most start
+# the game) after every tweak. --roads keeps only the steps a road rule can break; steps not in
+# STEPS_ALL on this branch (e.g. `smooth` before the smooth-roads PR) are skipped.
+STEPS_ROADS=(map roads streets streetdetails streetpass models overrides smooth drive stuckspots)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -217,21 +230,24 @@ fi
 
 want=()
 quick=0
+roadset=0
 ios=0
 logs=""
 for arg in "$@"; do
 	case $arg in
 		--quick) quick=1 ;;
+		--roads) roadset=1 ;;
 		--ios) ios=1 ;;
 		--logs=*) logs=${arg#--logs=} ;;
 		--only=*) want=(${(s:,:)${arg#--only=}}) ;;
 		--list) print -r -- "steps: ${STEPS_ALL[*]} ios"; exit 0 ;;
-		-h|--help) sed -n '2,22p' $0; exit 0 ;;
+		-h|--help) sed -n '2,25p' $0; exit 0 ;;
 		*) print -r -- "unknown option $arg (try --help)"; exit 2 ;;
 	esac
 done
 if (( ${#want} == 0 )); then
-	if (( quick )); then want=($STEPS_QUICK); else want=($STEPS_ALL); fi
+	if (( roadset )); then want=(${STEPS_ROADS:*STEPS_ALL})
+	elif (( quick )); then want=($STEPS_QUICK); else want=($STEPS_ALL); fi
 	(( ios )) && want+=(ios)
 fi
 for s in $want; do
@@ -699,6 +715,35 @@ for s in $want; do
 				0) row PASS "streetdetails" $secs "check_street_details: OK · $counts" ;;
 				*) row FAIL "streetdetails" $secs "$(grep '^check_street_details: ' $logs/streetdetails.log | tail -1) · $counts ($logs/streetdetails.log)" ;;
 			esac ;;
+		smooth)
+			t0=$EPOCHREALTIME
+			python3 -I $ROOT/tools/road_smooth.py --check > $logs/smooth.log 2>&1
+			code=$?
+			secs=$(printf '%.0f' $(( EPOCHREALTIME - t0 )))
+			case $code in
+				0) row PASS "smooth" $secs "$(grep '^road_smooth: ' $logs/smooth.log | tail -1)" ;;
+				*) row FAIL "smooth" $secs "$(grep '^road_smooth: ' $logs/smooth.log | tail -1) ($logs/smooth.log)" ;;
+			esac ;;
+		streetpass)
+			t0=$EPOCHREALTIME
+			python3 -I $ROOT/tools/street_pass.py --check > $logs/streetpass.log 2>&1
+			code=$?
+			secs=$(printf '%.0f' $(( EPOCHREALTIME - t0 )))
+			case $code in
+				0) row PASS "streetpass" $secs "$(grep '^street_pass: ' $logs/streetpass.log | tail -1)" ;;
+				*) row FAIL "streetpass" $secs "$(grep '^street_pass: ' $logs/streetpass.log | tail -1) ($logs/streetpass.log)" ;;
+			esac ;;
+		models)
+			t0=$EPOCHREALTIME
+			python3 -I $ROOT/tools/model_library.py --check > $logs/models.log 2>&1
+			code=$?
+			secs=$(printf '%.0f' $(( EPOCHREALTIME - t0 )))
+			counts=$(grep -m1 '^model_library counts:' $logs/models.log)
+			counts=${counts#model_library counts: }
+			case $code in
+				0) row PASS "models" $secs "model_library: OK · $counts" ;;
+				*) row FAIL "models" $secs "$(grep '^model_library: ' $logs/models.log | tail -1) ($logs/models.log)" ;;
+			esac ;;
 		parkdetails)
 			t0=$EPOCHREALTIME
 			python3 -I $ROOT/tools/check_park_details.py > $logs/parkdetails.log 2>&1
@@ -709,6 +754,7 @@ for s in $want; do
 				*) row FAIL "parkdetails" $secs "$(tail -1 $logs/parkdetails.log) ($logs/parkdetails.log)" ;;
 			esac ;;
 		parkmesh) check parkmesh '^park_details:' --script res://tools/check_park_details.gd ;;
+		overrides) check overrides '^check_object_overrides:' --script res://tools/check_object_overrides.gd ;;
 		monuments)
 			t0=$EPOCHREALTIME
 			python3 -I $ROOT/tools/check_monuments.py > $logs/monuments.log 2>&1

@@ -158,6 +158,21 @@ def visible(r):
     return runs
 
 
+def add_band(strips, r):
+    """A `wv`/`cv` way's drawn band, piece by piece, outside its hidden ranges."""
+    pts, hide = pairs(r["p"]), r.get("hide", [])
+    wv, cv = r["wv"], r["cv"]
+    s = 0.0
+    for i, (a, b) in enumerate(zip(pts, pts[1:])):
+        ln = math.dist(a, b)
+        s0, s = s, s + ln
+        if ln < 1e-6 or any(h0 <= s0 and s <= h1 for h0, h1 in hide):
+            continue
+        c = (cv[i] + cv[i + 1]) / 2
+        nx, nz = -(b[1] - a[1]) / ln, (b[0] - a[0]) / ln
+        strips.add((a[0] + nx * c, a[1] + nz * c), (b[0] + nx * c, b[1] + nz * c), min(wv[i], wv[i + 1]) * 0.5, 1)
+
+
 def pole_tests(d):
     """Loop 3d-1: S1's two tests on map data `d` (centrum.json's shape), for bake_lights.py too:
     (asphalt(x, z): on the ground's carriageway, not a hatched area; raised(x, z): on an
@@ -168,6 +183,11 @@ def pole_tests(d):
     strips = Caps()
     for r in d["roads"]:
         if not ground(r):
+            continue
+        if "wv" in r:
+            # tools/road_smooth.py: a tapered or widened way is drawn as one band of per-vertex
+            # widths and centre offsets (the narrower end of each piece, to be safe)
+            add_band(strips, r)
             continue
         for run in visible(r):
             run = offset(run, r.get("c", 0.0))
@@ -191,6 +211,11 @@ def main():
     strips = Caps()
     for r in d["roads"]:
         if not ground(r):
+            continue
+        if "wv" in r:
+            # tools/road_smooth.py: a tapered or widened way is drawn as one band of per-vertex
+            # widths and centre offsets (the narrower end of each piece, to be safe)
+            add_band(strips, r)
             continue
         for run in visible(r):
             run = offset(run, r.get("c", 0.0))

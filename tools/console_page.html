@@ -109,6 +109,8 @@ details{margin:2px 0}summary{cursor:pointer;font-weight:600;font-size:13px;paddi
  <button class="nb" data-t="overview"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/></svg>Overview</button>
  <button class="nb" data-t="map"><svg viewBox="0 0 24 24"><path d="M9 4 3 6.5v13L9 17l6 3 6-2.5v-13L15 7zM9 4v13M15 7v13"/></svg>City map</button>
  <button class="nb" data-t="pipeline"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="9.5" y="4" width="5" height="10" rx="1.5"/><rect x="16" y="4" width="5" height="13" rx="1.5"/></svg>Pipeline<span class="badge" id="b-pipe"></span></button>
+ <button class="nb" data-t="streets"><svg viewBox="0 0 24 24"><path d="M8 3 5 21M16 3l3 18M12 4v3M12 10.5v3M12 17v3"/></svg>Streets<span class="badge" id="b-str"></span></button>
+ <button class="nb" data-t="models"><svg viewBox="0 0 24 24"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9zM12 12l8-4.5M12 12v9M12 12 4 7.5"/></svg>Models<span class="badge" id="b-mod"></span></button>
  <button class="nb" data-t="plan"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Plan<span class="badge" id="b-plan"></span></button>
  <button class="nb" data-t="content"><svg viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h11M9 8h6"/></svg>Content<span class="badge" id="b-cont"></span></button>
  <button class="nb" data-t="approvals"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 3 3 5-6"/></svg>Approvals<span class="badge" id="b-appr"></span></button>
@@ -132,6 +134,7 @@ details{margin:2px 0}summary{cursor:pointer;font-weight:600;font-size:13px;paddi
 
  <section class="tab" id="t-map"><div class="mapwrap" id="mapbox"><canvas id="cv"></canvas><div id="tip"></div>
   <button class="btn ptog" id="ptog">Filters</button>
+  <button class="btn ptog" id="uonly" style="left:96px" title="Show only the street passes: progress by block, findings and objects">Unslop only</button>
   <aside class="panel" id="panel">
    <h4>Area</h4><select class="s" id="area"></select>
    <div id="circ" style="display:none"><div class="row2 sub" style="margin-top:8px"><span>Radius</span><b id="rv"></b></div><input type="range" id="rad" min="100" max="3000" step="50" value="600"><div class="sub">Click the map to move the circle.</div></div>
@@ -159,6 +162,12 @@ details{margin:2px 0}summary{cursor:pointer;font-weight:600;font-size:13px;paddi
   <div class="toolbar"><div class="seg" id="plarea"></div><div class="seg" id="plstat"></div><span class="sub" id="plnote"></span></div>
   <div style="flex:1;min-height:0"><div class="board" id="plboard" style="grid-template-columns:repeat(6,minmax(240px,1fr))"></div></div></div></section>
 
+ <section class="tab" id="t-streets"><div class="page" id="strpage"></div></section>
+
+ <section class="tab" id="t-models" style="overflow:hidden"><div style="display:flex;flex-direction:column;height:100%">
+  <div class="toolbar"><div class="seg" id="mcat"></div><input class="s" id="mq" placeholder="Search models…" style="max-width:260px"><span class="sub" id="mcount"></span></div>
+  <div style="flex:1;min-height:0;overflow:auto;padding:0 18px 18px"><div class="card" style="padding:0" id="mtable"></div></div></div></section>
+
  <section class="tab" id="t-content" style="overflow:hidden"><div class="split"><div class="l" id="clist"></div><div class="r"><div class="row2" style="margin-bottom:12px"><div><div style="font:650 18px var(--disp)" id="ctitle"></div><div class="sub" id="cfile"></div></div><input class="s" id="cq" placeholder="Filter rows…" style="max-width:260px"></div><div class="card" style="padding:0;overflow:auto"><div id="ctable"></div></div></div></div></section>
 
  <section class="tab" id="t-approvals"><div class="page" style="max-width:900px">
@@ -184,11 +193,12 @@ const EVS=['photo report','spec',"F's photos",'Mac refs','OSM outline'];
 const EV_COL={'photo report':'#2e9e5b','spec':'#3a86d8',"F's photos":'#e0a82e','Mac refs':'#9a6fd1','OSM outline':'#8f97a3'};
 const OUT_COL={photo:'#2e9e5b',model:'#e0a82e',dress:'#9a6fd1',plain:'#6b7380'};
 const OUT_LAB={photo:'Photo build',model:'Own model',dress:'Dressed or named in game',plain:'Plain OSM block'};
-const TABS={overview:['Overview','How far the city has come'],map:['City map','Every place, object and road, with counts by area'],pipeline:['Pipeline','Ranked places by stage, like a sales board for the city'],plan:['Plan','The multi-day city plan: roads, road objects, buildings'],content:['Content','Quests, story points and collectibles'],approvals:['Approvals','What waits for F'],renders:['Renders','Screenshots matched to places']};
+const TABS={overview:['Overview','How far the city has come'],map:['City map','Every place, object and road, with counts by area'],pipeline:['Pipeline','Ranked places by stage, like a sales board for the city'],plan:['Plan','The multi-day city plan: roads, road objects, buildings'],streets:['Streets','Operation Unslop: every street pass, its score, findings and object verdicts'],models:['Models','Every model the game draws, and the ones street passes still need'],content:['Content','Quests, story points and collectibles'],approvals:['Approvals','What waits for F'],renders:['Renders','Screenshots matched to places']};
 let S={tab:'overview',area:'all',rad:600,cx:0,cz:0,colorby:'stage',stage:D.stages.map(s=>s[0]),tier:['S','A','B'],ev:'',q:'',ms:8,bh:0,ds:2,base:true,
  layers:{places:true,outlines:false,road_primary:true,road_secondary:true,trams:true,bridges:true},auto:false,ctab:'',aflag:'',view:null,sel:null,focus:null,groupsOpen:{},ptier:'all',pdist:'all',panel:true,plarea:'all',plstat:'all'};
 try{Object.assign(S,JSON.parse(localStorage.getItem('awc2')||'{}'))}catch(e){}
 const save=()=>{try{localStorage.setItem('awc2',JSON.stringify(S))}catch(e){}};
+LY.filter(l=>l.key.startsWith('unslopp_')).forEach(l=>{if(!(l.key in S.layers))S.layers[l.key]=true});
 D.content.forEach(c=>{if(c.rows.some(r=>r.x!=null))LY.push({key:'c_'+c.key,group:'Game content',label:c.label,color:c.color==='#fff'?'#8e8e93':c.color,type:'pt',content:c,
  p:c.rows.filter(r=>r.x!=null).flatMap(r=>[r.x,r.z]),n:c.rows.filter(r=>r.x!=null).length,names:c.rows.filter(r=>r.x!=null).map(r=>r.cells[1]||r.cells[0])})});
 const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
@@ -341,6 +351,8 @@ $('rad').oninput=e=>{S.rad=+e.target.value;save();refresh()};$('colorby').onchan
 $('q').oninput=e=>{S.q=e.target.value.toLowerCase();save();refresh()};
 $('ms').oninput=e=>{S.ms=+e.target.value;save();draw();showSide()};$('bh').oninput=e=>{S.bh=+e.target.value;save();draw();showSide()};$('ds').oninput=e=>{S.ds=+e.target.value;save();draw();showSide()};
 $('showbase').onchange=e=>{S.base=e.target.checked;save();draw()};
+function setUnslopOnly(on){if(on&&!S.uonly){S.uprev=Object.assign({},S.layers);Object.keys(S.layers).forEach(k=>S.layers[k]=false);LY.filter(l=>l.key.startsWith('unslop')).forEach(l=>S.layers[l.key]=true)}else if(!on&&S.uonly){S.layers=Object.assign({},S.uprev||S.layers)}S.uonly=on;$('uonly').classList.toggle('on',on);$('uonly').textContent=on?'Show everything':'Unslop only';save();buildSide();draw()}
+$('uonly').onclick=()=>setUnslopOnly(!S.uonly);
 $('ptog').onclick=()=>{S.panel=!S.panel;$('panel').classList.toggle('hide',!S.panel);save()};
 function goMap(x,z,n){setTab('map');view.cx=x;view.cz=z;view.s=Math.max(view.s,0.7);S.focus=[x,z];if(n)S.sel=n;refresh()}
 // ---------- plan
@@ -356,6 +368,33 @@ function showPlan(){const P=D.plan;$('b-plan').textContent=P?P.days.reduce((a,d)
   its.map(i=>'<div class="pc" style="cursor:default"><b>'+esc(i.id)+' '+esc(i.title)+'</b><div class="m"><span class="pill" style="background:'+(PLSTAT[i.status]||'#888')+'22;color:'+(PLSTAT[i.status]||'#888')+'"><span class="dot" style="background:'+(PLSTAT[i.status]||'#888')+';margin:0"></span>'+esc(i.status)+'</span><span class="pill">'+esc(i.area)+'</span>'+(i.model?'<span class="pill ev">'+esc(i.model)+'</span>':'')+'</div>'+
    (i.needs?'<div class="sub" style="margin-top:6px">Needs: '+esc(i.needs)+'</div>':'')+(i.ref?'<div style="margin-top:4px"><a target="_blank" rel="noopener" href="'+GH+esc(i.ref)+'">'+esc(i.ref)+'</a></div>':'')+'</div>').join('')+'</div></div>'}).join('');
  document.querySelectorAll('[data-pa]').forEach(b=>b.onclick=()=>{S.plarea=b.dataset.pa;save();showPlan()});document.querySelectorAll('[data-ps]').forEach(b=>b.onclick=()=>{S.plstat=b.dataset.ps;save();showPlan()})}
+// ---------- streets (Operation Unslop, tools/street_pass.py records)
+const VCOL={KEEP:'#2e9e5b',SOFTEN:'#3a86d8',RETEXTURE:'#7b61c9',REPLACE:'#e0a82e',REMOVE:'#d8504a',CHECK:'#8e8e93','A/B':'#d0679d'};
+function showStreets(){const R=D.streets||[];$('b-str').textContent=R.length||'';
+ if(!R.length){$('strpage').innerHTML='<div class="card">No street pass yet. Run <code>python3 -I tools/street_pass.py --street=SLUG --write</code>.</div>';return}
+ $('strpage').innerHTML=R.map((r,ri)=>{const vc=r.verdicts||{},base=r.baseline||{};
+  const hist=(r.history||[]).map(h=>h.date+' '+h.score).join(' → ');
+  return '<div class="card" style="margin-bottom:14px"><div class="row2"><div><div style="font:650 18px var(--disp)">'+esc(r.title)+'</div><div class="sub">Stage <b>'+esc(r.stage)+'</b> · updated '+esc(r.updated)+' · baseline '+(base.score??'-')+' on '+esc(base.date||'-')+'</div></div><div style="text-align:right"><div style="font:650 30px var(--disp)">'+r.score+'<span class="sub">/100</span></div><a href="#" data-smap="'+ri+'">Show on map</a></div></div>'+
+  '<div class="sub" style="margin:6px 0">History: '+esc(hist)+'</div>'+
+  '<div class="legend" style="margin:4px 0 8px">On the map: <span><span class="dot" style="background:#2e9e5b"></span>90+</span><span><span class="dot" style="background:#8bbf3f"></span>80-89</span><span><span class="dot" style="background:#e0a82e"></span>65-79</span><span><span class="dot" style="background:#d8504a"></span>under 65</span></div>'+
+  '<table><tr><th>Block</th><th class="r">Score</th>'+Object.keys(D.street_checks).map(k=>'<th class="r" title="'+esc(D.street_checks[k])+'">'+k+'</th>').join('')+'</tr>'+r.blocks.map(b=>'<tr><td>'+esc(b.id+' '+b.title)+'</td><td class="r"><b>'+b.score+'</b></td>'+Object.keys(D.street_checks).map(k=>'<td class="r">'+(b.counts[k]||'')+'</td>').join('')+'</tr>').join('')+'</table>'+
+  '<div class="legend" style="margin:10px 0">'+Object.entries(vc).map(([k,n])=>'<span><span class="dot" style="background:'+(VCOL[k]||'#888')+'"></span>'+esc(k)+' '+n+'</span>').join('')+'</div>'+
+  ((r.evidence||[]).length?'<div class="sub">Street photos: '+r.evidence.map(e=>esc(e.block)+' newest '+esc(e.newest||'none')+' ('+e.photos+')').join(' · ')+'</div>':'')+
+  ((r.changed||[]).length?'<div class="sub">Changed since the data: '+r.changed.map(c=>esc(c.what)).join('; ')+'</div>':'')+
+  ((r.owned||[]).length?'<div class="sub">Owned elsewhere: '+r.owned.map(c=>esc(c.by)).join('; ')+'</div>':'')+
+  '<details style="margin-top:10px"><summary>Objects within 3 m of a lane ('+r.objects.length+')</summary><table><tr><th>Object</th><th>Verdict</th><th>Model</th><th>Why</th><th></th></tr>'+r.objects.map((o,oi)=>'<tr><td>'+esc(o.cls+'/'+o.kind)+' <span class="sub">'+o.gap+' m, '+o.len+' m</span></td><td><span class="pill" style="background:'+(VCOL[o.verdict]||'#888')+'22;color:'+(VCOL[o.verdict]||'#888')+'">'+esc(o.verdict)+'</span></td><td>'+(o.model?'<a href="#" data-mod="'+esc(o.model)+'">'+esc(o.model)+'</a>':'')+'</td><td class="sub">'+esc(o.why)+(o.status!=='open'?' ['+esc(o.status)+']':'')+'</td><td class="r"><a href="#" data-sgo="'+ri+':o:'+oi+'">On map</a></td></tr>').join('')+'</table></details>'+
+  '<details style="margin-top:6px"><summary>Findings ('+r.findings.length+')</summary><table><tr><th>Check</th><th>Block</th><th>What</th><th>Status</th><th></th></tr>'+r.findings.map((f,fi)=>'<tr><td>'+esc(f.check)+'</td><td>'+esc(f.block)+'</td><td>'+esc(f.note)+'</td><td>'+esc(f.status)+'</td><td class="r"><a href="#" data-sgo="'+ri+':f:'+fi+'">On map</a></td></tr>').join('')+'</table></details></div>'}).join('');
+ document.querySelectorAll('[data-sgo]').forEach(a=>a.onclick=e=>{e.preventDefault();const [ri,k,i]=a.dataset.sgo.split(':'),r=R[+ri],o=(k==='o'?r.objects:r.findings)[+i];S.layers['unslop_'+r.slug+'_'+(k==='o'?'obj':'find')]=true;buildSide();goMap(o.x,o.z)});
+ document.querySelectorAll('[data-smap]').forEach(a=>a.onclick=e=>{e.preventDefault();const r=R[+a.dataset.smap],ls=LY.filter(l=>l.key.startsWith('unslopp_'+r.slug+'_'));setUnslopOnly(true);const q=ls.flatMap(l=>l.lines.map(x=>[x[1],x[2]]));const cx=q.reduce((a,b)=>a+b[0],0)/(q.length||1),cz=q.reduce((a,b)=>a+b[1],0)/(q.length||1);goMap(cx,cz)});
+ document.querySelectorAll('[data-mod]').forEach(a=>a.onclick=e=>{e.preventDefault();S.mq=a.dataset.mod;S.mcat='all';save();setTab('models');showModels()})}
+// ---------- models (tools/model_library.py)
+function showModels(){const L=D.models||[];$('b-mod').textContent=L.length||'';const cats=['all'].concat([...new Set(L.map(m=>m.cat))]);if(!S.mcat)S.mcat='all';
+ $('mcat').innerHTML=cats.map(c=>'<button data-mc="'+c+'" class="'+(S.mcat===c?'on':'')+'">'+(c==='all'?'All':c)+' <span class="sub">'+(c==='all'?L.length:L.filter(m=>m.cat===c).length)+'</span></button>').join('');
+ $('mq').value=S.mq||'';const q=(S.mq||'').toLowerCase(),rows=L.filter(m=>(S.mcat==='all'||m.cat===S.mcat)&&(!q||(m.id+' '+m.name+' '+m.about).toLowerCase().includes(q)));
+ $('mcount').textContent=rows.length+' models';
+ $('mtable').innerHTML='<table><tr><th>Model</th><th>Category</th><th class="r">In the map</th><th>Code</th><th>About</th></tr>'+rows.map(m=>'<tr><td><b>'+esc(m.name)+'</b><div class="sub"><code>'+esc(m.id)+'</code></div></td><td>'+(m.cat==='wanted'?'<span class="pill" style="background:#d8504a22;color:#d8504a">wanted</span>':esc(m.cat))+'</td><td class="r">'+(m.count==null?'':(m.cat==='wanted'?m.count+' asked':m.count))+(m.cat==='wanted'&&m.used_by.length?'<div class="sub">'+esc(m.used_by.join(', '))+'</div>':'')+'</td><td class="sub">'+(m.file?'<a target="_blank" rel="noopener" href="'+GH+esc(m.file.split(':')[0])+'#L'+esc(m.file.split(':')[1]||'1')+'">'+esc(m.file)+'</a>':'to model')+'</td><td class="sub">'+esc(m.about||'')+'</td></tr>').join('')+'</table>';
+ document.querySelectorAll('[data-mc]').forEach(b=>b.onclick=()=>{S.mcat=b.dataset.mc;save();showModels()})}
+$('mq').oninput=e=>{S.mq=e.target.value;save();showModels()};
 // ---------- content
 function showContent(){const cs=D.content;if(!S.ctab||!cs.find(c=>c.key===S.ctab))S.ctab=cs[0].key;
  $('clist').innerHTML=cs.map(c=>'<div class="item'+(c.key===S.ctab?' on':'')+'" data-c="'+c.key+'"><span>'+esc(c.label)+'</span><span class="sub">'+c.rows.length+'</span></div>').join('');
@@ -382,6 +421,7 @@ function showRenders(){const q=$('rq').value.toLowerCase(),l=D.renders.filter(r=
 $('rq').oninput=showRenders;
 // ---------- boot
 addEventListener('resize',()=>{fit();draw()});matchMedia('(prefers-color-scheme:dark)').addEventListener('change',()=>draw());
-buildSide();overview();pipeline();showPlan();showContent();showAppr();showRenders();
+if(S.uonly){$('uonly').classList.add('on');$('uonly').textContent='Show everything'}
+buildSide();overview();pipeline();showPlan();showStreets();showModels();showContent();showAppr();showRenders();
 const h0=(location.hash||'').slice(1);setTab(TABS[h0]?h0:(TABS[S.tab]?S.tab:'overview'));fit();refresh();
 </script></body></html>
