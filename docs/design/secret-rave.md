@@ -34,8 +34,10 @@ away nothing is drawn (RIG_FAR 1.4 km).
 4. **Meeting point** (secret rave only). The arrow says "???": he knows only that much. A hooded
    man there gives the spot (`rave_meet`).
 5. **The door.** Stop at the door ring: the bouncer asks three questions (SELEKCJA 1/3...). At a
-   secret rave one of them is the password. All three right: "WEJDŹ" (+150 zł, +40 respect).
-   The first wrong one: "Nie tym razem. Wróć później." and half the fare.
+   secret rave one of them is the password. All three right: Ziomek pays the ride (+150 zł,
+   +40 respect) and the ticket is 50 zł, cash only (F, 2026-11-06; the card machine "temporarily
+   down since 2019"): PŁACĘ 50 ZŁ goes in, POTEM leaves it. Short of cash: a toast, no entry.
+   The first wrong answer: "Nie tym razem. Wróć później." and half the fare.
 6. **Inside** (Smoła, and a secret rave you get into): the cutaway room.
 
 ✕ gives up at any step (Ziomek takes the night bus). Other calls are paused while it runs.
@@ -60,8 +62,20 @@ long-coated man in sunglasses by the wall (our own parody of a film vampire hunt
 - **Red light moment:** now and then the lights go red and the DJ says something (`club_red`).
 - **WYJDŹ** (or Esc): back to the car at the door.
 
-Cost: one room mesh, the dancers' MultiMesh and the lights' MultiMesh (3-4 draw calls while
-inside; the city is not drawn then). The rig outside: four draw calls near an active spot.
+**The jungle** (F's photo of a jungle-dressed booth): palms by the pillars and in the corners,
+vines hanging from the trusses and the walls, big leaves round the riser, ferns in pots, all in
+the room's one mesh.
+
+**The patio** (F's photos of a courtyard club garden): PATIO (the green-lit door behind the bar)
+goes out to a tenement courtyard next to the room: white walls with windows and balconies, a
+wooden deck with red deck chairs under a truss, three trees full of fairy lights, garlands of
+bulbs, a mirror ball whose rays turn, the bar kiosk, a small DJ table in the plants, a crowd that
+chats and sways. The music is lighter there (PÓŁNOC FM), the room's kick muffled through the
+wall. Tap the barmaid, the patio's DJ or anyone (`club_patio`, `club_patio_bar`,
+`club_patio_dj`). SALA goes back in.
+
+Cost: one room mesh, the dancers' MultiMesh and the lights' MultiMesh (3 draw calls in the room,
+3 on the patio; the city is not drawn then; about 13k triangles for both). The rig outside: four draw calls near an active spot.
 
 ## LEKTI's voice
 

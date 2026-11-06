@@ -116,6 +116,8 @@ const TALK_GAP := Vector2(9.0, 13.0)
 ## Pay: Ziomek's share of the fare and respect (half the fare when the door says no).
 const PAY := 150
 const RESPECT := 40
+## The ticket inside (F, 2026-11-06: "to enter you have to pay cash"): cash only, at the door.
+const ENTRY := 50
 const RESULT_LIFE := 12.0
 
 ## The rig: drawn within RIG_FAR m of the view's focus (the beams show over the skyline), the
@@ -938,7 +940,12 @@ func _on_card(i: int) -> void:
 			var go_in := i == 0 and String(last_pay.get("result", "")) != "out" and enter_club.is_valid()
 			var t := ["SMOŁA", "SMOŁA"] if kind == "smola" else ["SEKRETNY RAVE", "SECRET RAVE"]
 			_finish()
+			if go_in and wallet != null and not wallet.spend(ENTRY):
+				go_in = false
+				hud.toast("Za mało gotówki. Bramkarz wskazuje bankomat… trzy ulice dalej.", "Not enough cash. The bouncer points to a cash machine… three streets away.")
+				_log("door: no cash for the %d zł ticket" % ENTRY)
 			if go_in:
+				_log("door: paid %d zł cash" % ENTRY)
 				enter_club.call(t[0], t[1])
 
 
@@ -1072,9 +1079,18 @@ func _enter(result: String) -> void:
 	_result_t = 0.0
 	var title := ("SMOŁA" if kind == "smola" else "SEKRETNY RAVE") if result != "out" else "NIE DZIŚ"
 	var title_en := ("SMOŁA" if kind == "smola" else "SECRET RAVE") if result != "out" else "NOT TONIGHT"
-	var buttons := PackedStringArray(["OK"]) if result == "out" or not enter_club.is_valid() else PackedStringArray(["WEJDŹ|GO IN", "POTEM|LATER"])
+	if result != "out" and enter_club.is_valid():
+		pl += " " + entry_note()[0]
+		en += " " + entry_note()[1]
+	var buttons := PackedStringArray(["OK"]) if result == "out" or not enter_club.is_valid() else PackedStringArray(["PŁACĘ %d ZŁ|PAY %d ZŁ CASH" % [ENTRY, ENTRY], "POTEM|LATER"])
 	hud.show_card(title, pl, buttons, COLOUR, false, title_en, en)
 	_log("%s: %s, %d/3 right, +%d zł +%d respect" % [place, result, quiz_right, p[0], p[1]])
+
+
+## The door's cash line under the result: the ticket, cash only, the card machine a joke.
+static func entry_note() -> Array:
+	return ["Bilet: %d zł. Tylko gotówka, terminal „chwilowo nie działa” od 2019." % ENTRY,
+			"Ticket: %d zł. Cash only, the card machine has been \"temporarily down\" since 2019." % ENTRY]
 
 
 ## Where the quest drives now: the secret spot or Smoła.

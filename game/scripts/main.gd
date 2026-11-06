@@ -2723,8 +2723,11 @@ func _build_rave(data: Dictionary, world: Node3D) -> void:
 		for i in rave.spots.size():
 			if String(rave.spots[i]["id"]) == rave_spot:
 				rave.night_spot = i
-	if rave_flag == "club":
-		get_tree().create_timer(1.0).timeout.connect(func() -> void: _enter_club("SMOŁA", "SMOŁA"))
+	if rave_flag in ["club", "patio"]:
+		get_tree().create_timer(1.0).timeout.connect(func() -> void:
+			_enter_club("SMOŁA", "SMOŁA")
+			if rave_flag == "patio":
+				club.go_patio())
 	if rave_flag in ["call", "smola"]:
 		get_tree().create_timer(1.0).timeout.connect(func() -> void:
 			if rave_flag == "smola":
@@ -4166,7 +4169,7 @@ func _parse_args() -> void:
 			bus_log = true
 		elif arg.begins_with("--crash="):
 			crash_flag = arg.trim_prefix("--crash=")
-		elif arg == "--rave-call" or arg == "--rave-smola" or arg == "--rave-club":
+		elif arg in ["--rave-call", "--rave-smola", "--rave-club", "--rave-patio"]:
 			rave_flag = arg.trim_prefix("--rave-")
 		elif arg.begins_with("--rave-spot="):
 			rave_spot = arg.trim_prefix("--rave-spot=")

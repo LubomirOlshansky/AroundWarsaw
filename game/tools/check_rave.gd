@@ -6,7 +6,7 @@ extends SceneTree
 ##      board_smola, ride 10+, meet, go, go_smola, door_ok, door_out, abort), the
 ##      meeting point's lines name {where}, the crowd's night and day; Polish and English, bubbles
 ##      under 90 characters (the radio's under 200), no real brand (brand_denylist.json); the club's
-##      people (club_dj, club_red, club_ziomek, club_bar, club_kolek, club_crowd, club_dance) 3+ each;
+##      people (club_dj, club_red, club_ziomek, club_bar, club_kolek, club_crowd, club_dance, club_patio*) 3+ each;
 ##   3. the clock: a rave on Friday and Saturday nights (and Thursday's), not on Sunday's, not by
 ##      day; the day rave on weekend afternoons only; LEKTI only on a rave night's evening;
 ##   4. the door: three questions, each with three different answers and the right one among them,
@@ -68,7 +68,7 @@ func _run() -> void:
 
 func _check_meshes(digest: PackedStringArray) -> void:
 	var tris := 0
-	for row: Array in [["cone", Rave.cone_mesh()], ["booth", Rave.booth_mesh()], ["club room", Club.room_mesh()]]:
+	for row: Array in [["cone", Rave.cone_mesh()], ["booth", Rave.booth_mesh()], ["club room", Club.room_mesh()], ["patio", Club.patio_mesh()]]:
 		var m: ArrayMesh = row[1]
 		if m.get_surface_count() != 1:
 			problems.append("%s: %d surfaces (want 1)" % [row[0], m.get_surface_count()])
@@ -76,7 +76,7 @@ func _check_meshes(digest: PackedStringArray) -> void:
 	var cone := Rave.cone_mesh().get_aabb()
 	if absf(cone.size.y - 1.0) > 0.01 or cone.position.y < -0.01:
 		problems.append("cone mesh not unit length from the origin: %s" % cone)
-	digest.append("3 meshes, %d triangles" % tris)
+	digest.append("4 meshes, %d triangles" % tris)
 
 
 func _check_lines(digest: PackedStringArray) -> void:
@@ -120,7 +120,7 @@ func _check_lines(digest: PackedStringArray) -> void:
 	for tag: String in ["night", "day"]:
 		if int(crowd.get(tag, 0)) < 5:
 			problems.append("rave_crowd: %d %s lines (want 5+)" % [int(crowd.get(tag, 0)), tag])
-	for group: String in ["club_dj", "club_red", "club_ziomek", "club_bar", "club_kolek", "club_crowd", "club_dance"]:
+	for group: String in ["club_dj", "club_red", "club_ziomek", "club_bar", "club_kolek", "club_crowd", "club_dance", "club_patio", "club_patio_bar", "club_patio_dj"]:
 		var rows: Array = all.get(group, [])
 		if rows.size() < 3:
 			problems.append("%s: %d lines (want 3+)" % [group, rows.size()])
@@ -231,9 +231,20 @@ func _check_door(digest: PackedStringArray) -> void:
 				var tip := tr * Vector3(0, 1, 0)
 				if not tip.is_finite() or absf(tip.x) > Club.ROOM.x or absf(tip.z) > Club.ROOM.y or tip.y < -0.5:
 					problems.append("a room light reaches out of the room: %s" % tip)
+	for t: float in [0.0, 4.1, 77.0]:
+		var pl := Club.patio_lights(t)
+		if pl.size() != Rave.BEAMS + Rave.LASERS + 1:
+			problems.append("patio_lights: %d instances" % pl.size())
+		for p: Array in pl:
+			var tip: Vector3 = (p[0] as Transform3D) * Vector3(0, 1, 0)
+			if not tip.is_finite() or absf(tip.x) > Club.PATIO.x * 0.5 or absf(tip.z) > Club.PATIO.y * 0.5 or tip.y < -0.5:
+				problems.append("a patio light reaches out of the yard: %s" % tip)
+	for l: String in Rave.entry_note():
+		if l.length() > 110 or not l.contains(str(Rave.ENTRY)):
+			problems.append("entry note: %s" % l)
 	if Club.beat_offset(60.0 / Club.BPM * 7.0) > 0.001 or Club.beat_offset(60.0 / Club.BPM * 7.5) < 0.2:
 		problems.append("beat_offset off the beat")
-	digest.append("door 80 quizzes, room lights in the room")
+	digest.append("door 80 quizzes, room and patio lights inside")
 
 
 func _check_map(g: LaneGraph, map: Node3D, origin: Array, digest: PackedStringArray) -> void:

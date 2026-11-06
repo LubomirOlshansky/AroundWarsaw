@@ -5750,7 +5750,8 @@ Command-line options (after `--`):
 | `--crash-log` | crash scenes: print `crash:` lines: the first scene's wait, each scene (where, street, lane, vehicles, distance, life), the radio line, every bubble line, each clear and the next wait |
 | `--rave-call` | secret rave (`rave.gd`): LEKTI's break-in on MORDOR FM now (with his voice) and Ziomek rings a second later, whatever the time |
 | `--rave-smola` | secret rave: Ziomek rings now for the club night at Smoła (the door's three questions, then the room) |
-| `--rave-club` | secret rave: straight into Smoła's cutaway room (option A: the DJ, the dancers, the lights, TAŃCZ and WYJDŹ) |
+| `--rave-club` | secret rave: straight into Smoła's cutaway room (option A: the jungle, the DJ, the dancers, the lights, TAŃCZ, PATIO and WYJDŹ) |
+| `--rave-patio` | secret rave: straight into Smoła and out to its patio (the courtyard, the mirror ball, PÓŁNOC FM, SALA back in) |
 | `--rave=on` / `--rave=day` / `--rave=0` | secret rave: the night rig on now (the lights in the lit look), the day rave's crowd now, or no raves and no calls |
 | `--rave-spot=ID` | secret rave: tonight's spot (`wiadukt`, `zajezdnia`, `hala`; `plaza` is the day spot) |
 | `--rave-log` | secret rave: print `rave:` lines (tease, the call, pickup, meeting point, door questions and answers, pay, the rig's mode, the room) |

@@ -20,8 +20,16 @@ extends Node3D
 ## beat (the ring on the button pulses at BPM); eight in a row earn respect (DANCE_PAY, up to
 ## DANCE_MAX times a visit). WYJDŹ goes back to the car. MORDOR FM plays (the radio tunes to it).
 ##
-## Cost: three draw calls (the room with its people's furniture, the dancers' MultiMesh, the
-## lights' MultiMesh); the city is out of view. The room is built once, on the first visit.
+## The jungle (F, 2026-11-06): palms, vines from the trusses and walls, big leaves round the
+## booth, all in the room's one mesh. PATIO (the green-lit door behind the bar) goes out to the
+## patio, its own cutaway next door (PATIO_AT): a tenement courtyard with a deck, red deck
+## chairs, trees full of fairy lights, garlands, a mirror ball whose rays turn, the bar kiosk and
+## a small DJ; lighter music there (PÓŁNOC FM), the room's kick muffled through the wall; the
+## barmaid, the patio's DJ and the crowd to tap (`club_patio*`). SALA goes back in.
+##
+## Cost: three draw calls in the room (its mesh, the dancers, the lights), three on the patio
+## (its mesh, its crowd, the same lights moved there); the city is out of view. Both are built
+## once, on the first visit (about 13k triangles together).
 
 ## The room's kick under the music: the city's techno thump, looped.
 const THUMP_FILE := "res://audio/sfx/techno_thump.wav"
@@ -51,6 +59,20 @@ const RED_GAP := Vector2(35.0, 55.0)
 const RED_LONG := 6.0
 const VIOLET := Color("#b44cff")
 const TAP_R := 1.6
+## The patio (F, 2026-11-06, from photos of a tenement courtyard club garden): its own cutaway
+## next to the room, PATIO.x × PATIO.y m, tenement walls PATIO_H high on two sides.
+const PATIO_AT := PLACE + Vector3(70.0, 0.0, 0.0)
+const PATIO := Vector2(20.0, 15.0)
+const PATIO_H := 10.0
+const PATIO_VIEW := 23.0
+const PATIO_CROWD := 26
+## The patio's music: lighter (PÓŁNOC FM), the room's kick muffled through the wall.
+const PATIO_THUMP_DB := -24.0
+const PATIO_BPM := 112.0
+## The mirror ball (patio local).
+const BALL := Vector3(2.0, 4.4, 0.0)
+## The patio door in the left wall (local z).
+const PATIO_DOOR_Z := -4.6
 
 signal left
 
@@ -73,6 +95,10 @@ var danced := 0
 var streak := 0
 var title_pl := "SMOŁA"
 var title_en := "SMOŁA"
+## Where one is: "sala" (the room) or "patio".
+var area := "sala"
+## The patio's people one can tap, as `people`.
+var patio_people: Array = []
 
 var _built := false
 var _room: MeshInstance3D
@@ -92,6 +118,12 @@ var _talk: PanelContainer
 var _beat: Control
 var _dance_btn: Button
 var _rng := RandomNumberGenerator.new()
+var _patio: MeshInstance3D
+var _crowd: MultiMeshInstance3D
+var _crowd_at: Array[Vector3] = []
+var _patio_btn: Button
+var _sala_btn: Button
+var _mordor_i := -1
 
 
 # --- the room -------------------------------------------------------------------------------
@@ -156,7 +188,222 @@ static func room_mesh() -> ArrayMesh:
 	Models.box(st, k + Vector3(0, 2.08, 0), Vector3(0.28, 0.3, 0.28), Color("#8a6a52"), Models.FIXED)
 	Models.box(st, k + Vector3(0, 2.12, 0.15), Vector3(0.3, 0.07, 0.03), Color("#050505"), Models.FIXED)
 	Models.box(st, k + Vector3(0, 2.26, 0), Vector3(0.3, 0.06, 0.3), Color("#0b0b0d"), Models.FIXED)
+	_jungle(st)
+	# The way to the patio: an open door in the left wall behind the bar, warm light beyond it.
+	Models.box(st, Vector3(-hx + 0.02, 1.25, PATIO_DOOR_Z), Vector3(0.06, 2.5, 1.6), Color("#ffcf7a"), Models.LIT_SIGN)
+	Models.box(st, Vector3(-hx + 0.06, 2.85, PATIO_DOOR_Z), Vector3(0.04, 0.32, 1.6), Color("#7ad66a"), Models.LIT_SIGN)
 	return st.commit()
+
+
+## The jungle inside (F, 2026-11-06, from a photo of a jungle-dressed booth): palms by the
+## pillars and in the corners, vines hanging from the trusses and over the booth, big leaves
+## along the walls and round the riser, ferns in pots. Low poly: tilted boxes, deep greens.
+static func _jungle(st: SurfaceTool) -> void:
+	var hx := ROOM.x * 0.5
+	var hz := ROOM.y * 0.5
+	var greens := [Color("#1f5a2a"), Color("#2c7a34"), Color("#3f8f3a"), Color("#17482a"), Color("#4fa04a")]
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 707
+	for p: Vector3 in [Vector3(-hx + 1.4, 0, -hz + 1.4), Vector3(hx - 1.2, 0, -hz + 3.4), Vector3(-5.2, 0, -hz + 2.2),
+			Vector3(5.2, 0, -hz + 2.2), Vector3(-hx + 1.5, 0, hz - 6.6), Vector3(-4.6, 0, 4.6), Vector3(hx - 1.2, 0, 1.5)]:
+		_palm(st, p, 3.2 + rng.randf() * 1.6, rng, greens)
+	# Vines: from the two trusses and the back wall's top, swaying lengths, a leaf every half metre.
+	for z: float in [-hz + 3.0, 2.0]:
+		for i in 9:
+			var x := -6.6 + i * 1.65 + rng.randf_range(-0.3, 0.3)
+			_vine(st, Vector3(x, 5.3, z), rng.randf_range(1.2, 2.8), rng, greens)
+	for i in 12:
+		_vine(st, Vector3(-hx + 0.6 + i * 1.9, WALL_H - 0.1, -hz + 0.25), rng.randf_range(1.0, 3.2), rng, greens)
+	for i in 7:
+		var vz := -hz + 1.5 + i * 2.0
+		if absf(vz - PATIO_DOOR_Z) > 1.2:
+			_vine(st, Vector3(-hx + 0.25, WALL_H - 0.1, vz), rng.randf_range(1.0, 2.6), rng, greens)
+	# Big leaves in front of the riser and the stacks (the booth in the green), ferns in pots.
+	for i in 11:
+		var x := -4.6 + i * 0.92
+		var yaw := rng.randf_range(-0.5, 0.5)
+		_leaf(st, Vector3(x, 0.8, -hz + 3.75), Basis(Vector3.UP, yaw) * Basis(Vector3.RIGHT, -0.55), Vector3(0.55, 0.04, 1.1), greens[i % 5])
+	for p: Vector3 in [Vector3(hx - 4.8, 0, -hz + 1.0), Vector3(-hx + 2.6, 0, -2.4), Vector3(-hx + 2.6, 0, 5.4), Vector3(hx - 0.8, 0, -2.0)]:
+		Models.box(st, p + Vector3(0, 0.3, 0), Vector3(0.7, 0.6, 0.7), Color("#2a2a30"), Models.FIXED)
+		for j in 7:
+			var a := TAU * j / 7.0
+			_leaf(st, p + Vector3(cos(a) * 0.4, 0.95, sin(a) * 0.4), Basis(Vector3.UP, -a + PI * 0.5) * Basis(Vector3.RIGHT, 0.7), Vector3(0.3, 0.03, 0.9), greens[(j + 1) % 5])
+
+
+## A palm: a leaning trunk of rings, a crown of eight drooping fronds.
+static func _palm(st: SurfaceTool, at: Vector3, h: float, rng: RandomNumberGenerator, greens: Array) -> void:
+	var lean := Vector3(rng.randf_range(-0.12, 0.12), 0, rng.randf_range(-0.12, 0.12))
+	Models.box(st, at + Vector3(0, 0.25, 0), Vector3(0.8, 0.5, 0.8), Color("#2a2a30"), Models.FIXED)
+	var rings := int(h / 0.4)
+	for i in rings:
+		var y := 0.5 + i * 0.4
+		Models.box(st, at + lean * y + Vector3(0, y + 0.2, 0), Vector3(0.24, 0.38, 0.24), Color("#6b4a32") if i % 2 == 0 else Color("#5a3d2a"), Models.FIXED)
+	var top := at + lean * (h + 0.5) + Vector3(0, h + 0.5, 0)
+	for j in 8:
+		var a := TAU * j / 8.0 + rng.randf() * 0.4
+		var b := Basis(Vector3.UP, -a) * Basis(Vector3.FORWARD, -0.35 - rng.randf() * 0.35)
+		_leaf(st, top + b * Vector3(0.9, 0, 0), b, Vector3(1.9, 0.04, 0.42), greens[j % 5])
+		_leaf(st, top + b * Vector3(1.9, -0.25, 0), b * Basis(Vector3.FORWARD, -0.6), Vector3(0.6, 0.04, 0.3), greens[(j + 2) % 5])
+
+
+## A vine: a thin stem down from `top`, a leaf every half metre, alternate sides.
+static func _vine(st: SurfaceTool, top: Vector3, length: float, rng: RandomNumberGenerator, greens: Array) -> void:
+	Models.box(st, top - Vector3(0, length * 0.5, 0), Vector3(0.04, length, 0.04), Color("#2f4a24"), Models.FIXED)
+	var n := int(length / 0.45)
+	for i in n:
+		var side := 1.0 if i % 2 == 0 else -1.0
+		var b := Basis(Vector3.UP, rng.randf() * TAU) * Basis(Vector3.FORWARD, side * 0.6)
+		_leaf(st, top - Vector3(0, 0.3 + i * 0.45, 0) + b * Vector3(0.12 * side, 0, 0), b, Vector3(0.26, 0.03, 0.18), greens[i % 5])
+
+
+## A box turned by `b` (Models.box is axis-aligned): eight corners through the basis.
+static func _leaf(st: SurfaceTool, centre: Vector3, b: Basis, size: Vector3, colour: Color, part := Models.FIXED) -> void:
+	var h := size * 0.5
+	for axis in 3:
+		for sgn in [-1.0, 1.0]:
+			var n := Vector3.ZERO
+			n[axis] = sgn
+			var u := Vector3.ZERO
+			u[(axis + 1) % 3] = h[(axis + 1) % 3]
+			var v := Vector3.ZERO
+			v[(axis + 2) % 3] = h[(axis + 2) % 3]
+			var c := n * h[axis]
+			var q := [c - u - v, c + u - v, c + u + v, c - u + v]
+			if (q[1] - q[0]).cross(q[2] - q[0]).dot(n) > 0.0:
+				q = [q[0], q[3], q[2], q[1]]
+			var wn := (b * n).normalized()
+			for k in [0, 1, 2, 0, 2, 3]:
+				st.set_color(colour)
+				st.set_normal(wn)
+				st.set_uv(Vector2(part, 0.0))
+				st.add_vertex(centre + b * (q[k] as Vector3))
+
+
+## The patio's static mesh (local frame: the floor's middle at the origin, tenement walls at -Z
+## and -X, open towards the camera): a cobbled yard with a wooden deck, white tenement walls
+## with windows (some lit) and balconies, the door back into the room, three trees full of
+## fairy lights, garlands of bulbs, a mirror ball, the bar kiosk, red deck chairs under a truss,
+## a small DJ table in the plants.
+static func patio_mesh() -> ArrayMesh:
+	var st := Models._begin()
+	var hx := PATIO.x * 0.5
+	var hz := PATIO.y * 0.5
+	var plaster := Color("#cfc8ba")
+	var trim := Color("#b8b0a2")
+	var glass := Color("#1a1f2c")
+	var warm := Color("#ffe3a0")
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 1313
+	Models.box(st, Vector3(0, -0.6, 0), Vector3(400, 1.0, 400), Color("#020203"), Models.FIXED)
+	Models.box(st, Vector3(0, -0.1, 0), Vector3(PATIO.x, 0.2, PATIO.y), Color("#45444a"), Models.FIXED)
+	for i in 10:
+		Models.box(st, Vector3(-hx + 1.0 + i * 2.0, 0.01, 0), Vector3(0.05, 0.02, PATIO.y), Color("#3a393f"), Models.FIXED)
+	# The deck on the right half, planks.
+	Models.box(st, Vector3(hx * 0.5, 0.06, 1.0), Vector3(hx - 0.4, 0.12, PATIO.y - 4.0), Color("#6b4a32"), Models.FIXED)
+	for i in 12:
+		Models.box(st, Vector3(0.6 + i * 0.8, 0.125, 1.0), Vector3(0.03, 0.01, PATIO.y - 4.0), Color("#523826"), Models.FIXED)
+	# The tenement walls, a cornice, windows in rows, two balconies on the back wall.
+	Models.box(st, Vector3(0, PATIO_H * 0.5, -hz - 0.3), Vector3(PATIO.x + 1.2, PATIO_H, 0.6), plaster, Models.FIXED)
+	Models.box(st, Vector3(-hx - 0.3, PATIO_H * 0.5, 0), Vector3(0.6, PATIO_H, PATIO.y), plaster, Models.FIXED)
+	Models.box(st, Vector3(0, PATIO_H + 0.15, -hz - 0.25), Vector3(PATIO.x + 1.4, 0.3, 0.8), trim, Models.FIXED)
+	Models.box(st, Vector3(-hx - 0.25, PATIO_H + 0.15, 0), Vector3(0.8, 0.3, PATIO.y), trim, Models.FIXED)
+	for floor_i in 3:
+		var y := 3.6 + floor_i * 2.6
+		for i in 7:
+			var x := -hx + 1.8 + i * 2.7
+			var lit := rng.randf() < 0.3
+			Models.box(st, Vector3(x, y, -hz + 0.01), Vector3(1.1, 1.7, 0.04), warm if lit else glass, Models.LIT_WINDOW if lit else Models.FIXED)
+			Models.box(st, Vector3(x, y - 0.95, -hz + 0.06), Vector3(1.3, 0.1, 0.14), trim, Models.FIXED)
+		for i in 5:
+			var z := -hz + 2.0 + i * 2.8
+			var lit := rng.randf() < 0.3
+			Models.box(st, Vector3(-hx + 0.01, y, z), Vector3(0.04, 1.7, 1.1), warm if lit else glass, Models.LIT_WINDOW if lit else Models.FIXED)
+			Models.box(st, Vector3(-hx + 0.06, y - 0.95, z), Vector3(0.14, 0.1, 1.3), trim, Models.FIXED)
+	for x: float in [-hx + 4.5, -hx + 15.3]:
+		Models.box(st, Vector3(x, 5.6, -hz + 0.45), Vector3(2.0, 0.12, 0.9), trim, Models.FIXED)
+		Models.box(st, Vector3(x, 6.05, -hz + 0.88), Vector3(2.0, 0.8, 0.04), Color("#1c1c20"), Models.FIXED)
+	# The door back into the room (back wall, left), lit, its green sign.
+	Models.box(st, Vector3(-hx + 3.0, 1.25, -hz + 0.02), Vector3(1.6, 2.5, 0.06), Color("#b44cff"), Models.LIT_SIGN)
+	Models.box(st, Vector3(-hx + 3.0, 2.85, -hz + 0.06), Vector3(1.6, 0.32, 0.04), Color("#7ad66a"), Models.LIT_SIGN)
+	# The bar kiosk on the left wall: a timber box, a warm lit front, a lit shelf.
+	Models.box(st, Vector3(-hx + 1.3, 1.3, 2.0), Vector3(2.2, 2.6, 4.2), Color("#5a3d2a"), Models.FIXED)
+	Models.box(st, Vector3(-hx + 2.42, 1.05, 2.0), Vector3(0.05, 0.25, 4.0), warm, Models.LIT_SIGN)
+	Models.box(st, Vector3(-hx + 2.42, 1.9, 2.0), Vector3(0.05, 0.7, 3.6), Color("#ffb85a"), Models.LIT_SIGN)
+	Models.box(st, Vector3(-hx + 2.6, 1.0, 2.0), Vector3(0.5, 0.08, 4.2), Color("#3a2a1e"), Models.FIXED)
+	# Trees with fairy lights (three), on the cobbles.
+	for p: Vector3 in [Vector3(-3.0, 0, -3.0), Vector3(1.5, 0, -4.6), Vector3(-1.6, 0, 3.2)]:
+		Models.box(st, p + Vector3(0, 1.6, 0), Vector3(0.28, 3.2, 0.28), Color("#4a3426"), Models.FIXED)
+		Models.box(st, p + Vector3(0, 3.6, 0), Vector3(2.4, 1.6, 2.4), Color("#21402a"), Models.FIXED)
+		Models.box(st, p + Vector3(0.3, 4.6, -0.2), Vector3(1.7, 1.0, 1.7), Color("#2a5232"), Models.FIXED)
+		for j in 46:
+			var a := rng.randf() * TAU
+			var r := rng.randf_range(0.4, 1.3)
+			var y := rng.randf_range(2.7, 5.1)
+			var d := p + Vector3(cos(a) * r, y, sin(a) * r)
+			Models.box(st, d, Vector3(0.09, 0.09, 0.09), warm, Models.LIT_SIGN)
+		for j in 12:
+			var y := 0.4 + j * 0.2
+			var a := j * 1.2
+			Models.box(st, p + Vector3(cos(a) * 0.17, y, sin(a) * 0.17), Vector3(0.07, 0.07, 0.07), warm, Models.LIT_SIGN)
+	# Two poles at the front, garlands of bulbs from the walls to them.
+	for pole: Vector3 in [Vector3(hx - 0.6, 0, hz - 0.6), Vector3(-hx + 4.0, 0, hz - 0.6)]:
+		Models.box(st, pole + Vector3(0, 2.6, 0), Vector3(0.12, 5.2, 0.12), Color("#2a2a30"), Models.FIXED)
+	for g: Array in [[Vector3(-hx, 5.0, -hz + 3.0), Vector3(hx - 0.6, 5.0, hz - 0.6)], [Vector3(-hx + 6.0, 5.4, -hz), Vector3(-hx + 4.0, 5.0, hz - 0.6)],
+			[Vector3(hx - 2.0, 5.4, -hz), Vector3(hx - 0.6, 5.0, hz - 0.6)], [Vector3(-hx, 5.2, 4.0), Vector3(hx - 0.6, 5.0, hz - 0.6)]]:
+		var a: Vector3 = g[0]
+		var b: Vector3 = g[1]
+		var n := int(a.distance_to(b) / 0.7)
+		for i in n + 1:
+			var t := float(i) / n
+			var q := a.lerp(b, t) - Vector3(0, sin(t * PI) * 0.8, 0)
+			Models.box(st, q, Vector3(0.12, 0.14, 0.12), Color("#fff1c4") if i % 3 else Color("#ffd27a"), Models.LIT_SIGN)
+	# The mirror ball on its wire, and its spots on the walls (still; the rays move).
+	Models.box(st, BALL + Vector3(0, 0.8, 0), Vector3(0.02, 1.6, 0.02), Color("#2a2a30"), Models.FIXED)
+	Models.box(st, BALL, Vector3(0.62, 0.62, 0.62), Color("#d8dce6"), Models.LIT_WINDOW)
+	_leaf(st, BALL, Basis(Vector3.UP, PI * 0.25) * Basis(Vector3.RIGHT, PI * 0.25), Vector3(0.6, 0.6, 0.6), Color("#aab0c0"), Models.FIXED)
+	for i in 70:
+		var on_back := i % 2 == 0
+		var y := rng.randf_range(1.5, 8.5)
+		if on_back:
+			Models.box(st, Vector3(rng.randf_range(-hx, hx), y, -hz + 0.05), Vector3(0.1, 0.1, 0.02), Color("#f2f4ff"), Models.LIT_SIGN)
+		else:
+			Models.box(st, Vector3(-hx + 0.05, y, rng.randf_range(-hz, hz)), Vector3(0.02, 0.1, 0.1), Color("#f2f4ff"), Models.LIT_SIGN)
+	# The deck: a truss on four legs over red deck chairs and two low tables.
+	for c: Vector2 in [Vector2(1.0, -3.0), Vector2(hx - 0.8, -3.0), Vector2(1.0, 5.0), Vector2(hx - 0.8, 5.0)]:
+		Models.box(st, Vector3(c.x, 2.0, c.y), Vector3(0.22, 4.0, 0.22), Color("#8a8a92"), Models.FIXED)
+	for z: float in [-3.0, 5.0]:
+		Models.box(st, Vector3((1.0 + hx - 0.8) * 0.5, 4.0, z), Vector3(hx - 1.6, 0.22, 0.22), Color("#8a8a92"), Models.FIXED)
+	for x: float in [1.0, hx - 0.8]:
+		Models.box(st, Vector3(x, 4.0, 1.0), Vector3(0.22, 0.22, 8.0), Color("#8a8a92"), Models.FIXED)
+	for i in 8:
+		var c := Vector3(2.2 + (i % 4) * 2.0, 0.12, 2.2 + (i / 4) * 2.4)
+		var b := Basis(Vector3.UP, rng.randf_range(-0.3, 0.3))
+		_leaf(st, c + b * Vector3(0, 0.45, 0), b * Basis(Vector3.RIGHT, 0.7), Vector3(0.62, 0.05, 1.2), Color("#c8372d"))
+		_leaf(st, c + b * Vector3(0, 0.25, 0.35), b * Basis(Vector3.RIGHT, -0.9), Vector3(0.66, 0.05, 0.7), Color("#6b4a32"))
+	for t: Vector3 in [Vector3(4.2, 0.12, 3.4), Vector3(8.2, 0.12, 3.4)]:
+		Models.box(st, t + Vector3(0, 0.25, 0), Vector3(0.7, 0.5, 0.7), Color("#3a2a1e"), Models.FIXED)
+		Models.box(st, t + Vector3(0.1, 0.62, 0), Vector3(0.08, 0.22, 0.08), Color("#ffb85a"), Models.LIT_SIGN)
+	# The DJ table at the back right, in plants.
+	Models.box(st, Vector3(hx - 4.0, 0.5, -hz + 1.5), Vector3(2.2, 1.0, 0.9), Color("#1c1c20"), Models.FIXED)
+	Models.box(st, Vector3(hx - 4.0, 1.02, -hz + 1.45), Vector3(1.6, 0.04, 0.5), Color("#3ad8ff"), Models.LIT_SIGN)
+	var greens := [Color("#1f5a2a"), Color("#2c7a34"), Color("#3f8f3a"), Color("#17482a"), Color("#4fa04a")]
+	for p: Vector3 in [Vector3(hx - 5.8, 0, -hz + 1.2), Vector3(hx - 2.2, 0, -hz + 1.2), Vector3(hx - 0.8, 0, -1.0), Vector3(-hx + 0.9, 0, -hz + 0.9)]:
+		_palm(st, p, 2.2 + rng.randf() * 1.0, rng, greens)
+	return st.commit()
+
+
+## The patio's lights: rays from the mirror ball turning slowly, warm white, one soft violet cone
+## up onto the ball (the room's light count: the same MultiMesh moves here).
+static func patio_lights(t: float) -> Array:
+	var out: Array = []
+	var n := Rave.BEAMS + Rave.LASERS
+	for i in n:
+		var a := TAU * i / n + t * 0.35
+		var down := -0.25 - 0.45 * float(i % 3) / 2.0
+		var dir := Vector3(cos(a), down, sin(a)).normalized()
+		out.append([Rave._aim(BALL, dir, 0.06, 7.0), Color(1.0, 0.95, 0.85) * 0.35])
+	out.append([Rave._aim(BALL - Vector3(0, 3.6, 0), Vector3.UP, 1.2, 3.3), Color("#b44cff") * 0.5])
+	return out
 
 
 func _build(world: Node3D) -> void:
@@ -235,8 +482,64 @@ func _build(world: Node3D) -> void:
 	_lights.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_lights.position = PLACE
 	world.add_child(_lights)
+	_build_patio(world)
 	_build_ui()
 	_show(false)
+
+
+## The patio's mesh and its crowd (a MultiMesh of its own: chatting, swaying, a few dancing),
+## the barmaid and the patio's DJ.
+func _build_patio(world: Node3D) -> void:
+	_patio = MeshInstance3D.new()
+	_patio.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
+	_patio.name = "ClubPatio"
+	_patio.mesh = patio_mesh()
+	_patio.material_override = Models.material()
+	_patio.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_patio.position = PATIO_AT
+	world.add_child(_patio)
+	var dm := MultiMesh.new()
+	dm.transform_format = MultiMesh.TRANSFORM_3D
+	dm.use_custom_data = true
+	InstanceBuffers.prepare(dm)
+	dm.mesh = Models.person_mesh()
+	dm.instance_count = PATIO_CROWD + 2
+	InstanceBuffers.whiten(dm)
+	_crowd = MultiMeshInstance3D.new()
+	_crowd.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
+	_crowd.multimesh = dm
+	_crowd.material_override = _dancers.material_override
+	_crowd.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_crowd.position = PATIO_AT
+	world.add_child(_crowd)
+	var frng := RandomNumberGenerator.new()
+	frng.seed = 5151
+	var clothes := [Color("#e8e2d6"), Color("#3a5a8a"), Color("#c8372d"), Color("#1a1a1e"), Color("#7ad66a"), Color("#f2d34a"), Color("#ff8ac0"), Color("#5a3d2a")]
+	var hx := PATIO.x * 0.5
+	var hz := PATIO.y * 0.5
+	while _crowd_at.size() < PATIO_CROWD:
+		var p := Vector3(frng.randf_range(-hx + 3.2, hx - 1.0), frng.randf(), frng.randf_range(-hz + 2.6, hz - 1.0))
+		var clear := true
+		for q: Vector2 in [Vector2(-3.0, -3.0), Vector2(1.5, -4.6), Vector2(-1.6, 3.2)]:
+			if Vector2(p.x, p.z).distance_to(q) < 1.0:
+				clear = false
+		if p.x > 1.6 and p.z > 1.4 and p.z < 6.0:
+			clear = false
+		if clear:
+			dm.set_instance_custom_data(_crowd_at.size(), Color(clothes[frng.randi() % clothes.size()], 0.25))
+			_crowd_at.append(p)
+	var named := [
+		["Barmanka", "club_patio_bar", Vector3(-hx + 3.0, 0, 2.0), Color("#f2d34a"), PI * 0.5],
+		["DJ na patio", "club_patio_dj", Vector3(hx - 4.0, 0, -hz + 0.9), Color("#7a3aa8"), 0.0],
+	]
+	patio_people.clear()
+	for i in named.size():
+		var row: Array = named[i]
+		dm.set_instance_custom_data(PATIO_CROWD + i, Color(row[3], 0.25))
+		dm.set_instance_transform(PATIO_CROWD + i, Transform3D(Basis(Vector3.UP, row[4]), row[2]))
+		patio_people.append([row[0], row[1], row[2]])
+	for i in 6:
+		patio_people.append(["", "club_patio", _crowd_at[i * 4]])
 
 
 func _build_ui() -> void:
@@ -284,6 +587,10 @@ func _build_ui() -> void:
 	_ui.add_child(buttons)
 	_dance_btn = _button(buttons, "TAŃCZ", "dance", pt)
 	_dance_btn.pressed.connect(_on_dance)
+	_patio_btn = _button(buttons, "PATIO", "patio", pt)
+	_patio_btn.pressed.connect(go_patio)
+	_sala_btn = _button(buttons, "SALA", "inside", pt)
+	_sala_btn.pressed.connect(go_sala)
 	var out := _button(buttons, "WYJDŹ", "leave", pt)
 	out.pressed.connect(leave)
 	_beat = Control.new()
@@ -338,12 +645,45 @@ func enter(world: Node3D, pl: String, en: String, mordor: int) -> void:
 	streak = 0
 	_red_in = _rng.randf_range(RED_GAP.x, RED_GAP.y)
 	inside = true
-	_show(true)
-	if radio != null and mordor >= 0 and int(radio.station) != mordor:
-		radio.tune(mordor)
-	_thump_on(true)
+	_mordor_i = mordor
+	_go("sala")
 	_say(people[0])
 	_log("in: %s" % pl)
+
+
+## Out to the patio: the yard, the mirror ball, lighter music, the room's kick through the wall.
+func go_patio() -> void:
+	if inside and area != "patio":
+		_go("patio")
+		_say(patio_people[0])
+		_log("patio")
+
+
+## Back into the room from the patio.
+func go_sala() -> void:
+	if inside and area != "sala":
+		_go("sala")
+		_say(people[0])
+		_log("sala")
+
+
+func _go(where: String) -> void:
+	area = where
+	var patio := where == "patio"
+	centre = (PATIO_AT if patio else PLACE) + Vector3(0, 1.2, 0)
+	view_size = PATIO_VIEW if patio else VIEW
+	_title.text = "%s · %s" % [title_pl, "patio" if patio else "w środku / inside"]
+	_lights.position = PATIO_AT if patio else PLACE
+	_show(true)
+	_thump_on(true)
+	if _thump != null:
+		_thump.volume_db = PATIO_THUMP_DB if patio else THUMP_DB
+	if radio != null:
+		var want := _mordor_i
+		if patio and radio.has_method("polnoc_index") and int(radio.polnoc_index()) >= 0:
+			want = int(radio.polnoc_index())
+		if want >= 0 and int(radio.station) != want:
+			radio.tune(want)
 
 
 func leave() -> void:
@@ -352,6 +692,7 @@ func leave() -> void:
 	inside = false
 	_show(false)
 	_thump_on(false)
+	area = "sala"
 	_log("out (danced %d)" % danced)
 	left.emit()
 
@@ -380,11 +721,17 @@ func _thump_on(on: bool) -> void:
 
 
 func _show(on: bool) -> void:
-	_room.visible = on
-	_dancers.visible = on
+	var patio := area == "patio"
+	_room.visible = on and not patio
+	_dancers.visible = on and not patio
+	_patio.visible = on and patio
+	_crowd.visible = on and patio
 	_lights.visible = on
 	_ui.visible = on
 	_talk.visible = false
+	_dance_btn.visible = not patio
+	_patio_btn.visible = not patio
+	_sala_btn.visible = patio
 
 
 # --- the frame ------------------------------------------------------------------------------
@@ -397,7 +744,12 @@ func _process(dt: float) -> void:
 	_dance_t -= dt
 	if _dance_t <= 0.0:
 		_dance_t = 1.0 / 15.0
-		_dance()
+		if area == "patio":
+			_sway()
+		else:
+			_dance()
+	if area == "patio":
+		return
 	_red_in -= dt
 	if _red_in <= 0.0 and _red_t <= 0.0:
 		_red_t = RED_LONG
@@ -436,7 +788,7 @@ static func room_lights(t: float, calm: bool, red: bool) -> Array:
 
 func _pose_lights() -> void:
 	var mm := _lights.multimesh
-	var pose := room_lights(_clock, Access.calm, _red_t > 0.0)
+	var pose := patio_lights(_clock) if area == "patio" else room_lights(_clock, Access.calm, _red_t > 0.0)
 	for i in pose.size():
 		mm.set_instance_transform(i, pose[i][0])
 		mm.set_instance_color(i, pose[i][1])
@@ -455,6 +807,19 @@ func _dance() -> void:
 	dm.set_instance_transform(DANCERS, Transform3D(Basis.IDENTITY, people[0][2] + Vector3(0, nod, 0)))
 	var zh := 0.1 * (1.0 - absf(fmod(beat, 1.0) * 2.0 - 1.0))
 	dm.set_instance_transform(DANCERS + 1, Transform3D(Basis(Vector3.UP, PI + sin(beat) * 0.3), people[1][2] + Vector3(0, zh, 0)))
+
+
+## The patio's crowd: most chat and sway slowly in small turns, every third one dances.
+func _sway() -> void:
+	var dm := _crowd.multimesh
+	var beat := _clock * PATIO_BPM / 60.0
+	for i in _crowd_at.size():
+		var f := _crowd_at[i]
+		var dancer := i % 3 == 0
+		var ph := fmod(beat + f.y, 1.0)
+		var hop := (0.08 if dancer else 0.02) * (1.0 - absf(ph * 2.0 - 1.0))
+		var yaw_i := f.y * TAU + sin(beat * PI * (0.5 if dancer else 0.12) + f.y * 6.0) * (0.5 if dancer else 0.25)
+		dm.set_instance_transform(i, Transform3D(Basis(Vector3.UP, yaw_i), Vector3(f.x, hop, f.z)))
 
 
 # --- taps -----------------------------------------------------------------------------------
@@ -477,7 +842,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	var who := pick(at)
 	if who >= 0:
-		_say(people[who])
+		_say(_here()[who])
 		get_viewport().set_input_as_handled()
 
 
@@ -491,14 +856,21 @@ func pick(at: Vector2) -> int:
 	var dir := cam.project_ray_normal(p)
 	var best := -1
 	var best_d := TAP_R
-	for i in people.size():
-		var c: Vector3 = PLACE + (people[i][2] as Vector3) + Vector3(0, 1.2, 0)
+	var list := _here()
+	var origin := PATIO_AT if area == "patio" else PLACE
+	for i in list.size():
+		var c: Vector3 = origin + (list[i][2] as Vector3) + Vector3(0, 1.2, 0)
 		var t := (c - from).dot(dir)
 		var d := (from + dir * t).distance_to(c)
 		if d < best_d:
 			best_d = d
 			best = i
 	return best
+
+
+## The people one can tap where one is.
+func _here() -> Array:
+	return patio_people if area == "patio" else people
 
 
 func _say(person: Array) -> void:
