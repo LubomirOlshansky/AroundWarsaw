@@ -1037,6 +1037,11 @@ Settings → Jazda (the first tab); NOWA GRA asks a second tap within 4 s, then 
 drive (gas, brake or the stick) for 8 s and still within 4 m of one spot, whatever holds the car (a
 wall nothing pins it against, a gap inside a building), POMOC DROGOWA comes up on the context button
 with one toast and a tap tows (car.gd `stalled`, main.gd `_stuck_offer_frame`, `check_stuck_offer`).
+Fixed 2026-11-06 (PT-23/PT-24, Autopilot run 2026-11-05): the offer never came up while the ride
+app's PODWÓZKA held the context button (it waited for a free button, and PODWÓZKA is up whenever a
+ride could be taken); the button now has ranks (hud.gd PILL_RANK: call > POMOC DROGOWA > KASETA,
+START KURS > PODWÓZKA), so KASETA by a tape also shows over PODWÓZKA. And the spot is 10 m, not 4 m:
+backing off a wall for another run reset the count every try.
 Not while parked by the game, held by the stop assist, in the water or flying; the pinned car's own
 turn-out and tow still come first. Left: the phone look. ~~A pad has no button for the context
 button~~ Done (2026-11-03): the pad's A presses it (see "The Mac App Store version and gamepads").

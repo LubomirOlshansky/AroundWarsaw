@@ -4860,7 +4860,7 @@ func _stuck_offer_frame() -> void:
 	var want: bool = not flying and not autopilot and _bench_ghost == null and title == null \
 			and not car.in_water and car.stalled >= Car.STALL_TIME \
 			and not (fotka != null and fotka.is_open())
-	if want and hud.pill_free():
+	if want and not hud.pill_shown("unstuck") and hud.pill_free_for("unstuck"):
 		hud.show_pill("POMOC DROGOWA", "tow truck", "unstuck")
 		if Gamepad.in_use():
 			hud.toast(Gamepad.fmt("Utknąłeś? {a}: pomoc drogowa."), Gamepad.fmt("Stuck? {a}: tow truck."))

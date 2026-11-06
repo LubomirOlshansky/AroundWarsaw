@@ -1204,6 +1204,23 @@ func pill_free() -> bool:
 	return not _pill.visible
 
 
+## Who may take the context button from whom (PT-23, 2026-11-06): the ride app's PODWÓZKA is up
+## whenever the player could take a ride, so "wait for a free button" meant the stuck offer's
+## POMOC DROGOWA (and KASETA by a tape) never came up while it was. A higher rank takes the button;
+## the one it took comes back on its own once the button is free again. A rescue call ranks top.
+const PILL_RANK := {"ride": 0, "tape": 1, "ride_start": 1, "unstuck": 2, "call": 3}
+
+
+## True when `owner` outranks `held` (an owner not in PILL_RANK ranks with a call).
+static func pill_outranks(owner: String, held: String) -> bool:
+	return int(PILL_RANK.get(owner, 3)) > int(PILL_RANK.get(held, 3))
+
+
+## The context button is free for `owner`: nobody's up, or a lower-ranked owner's (PILL_RANK).
+func pill_free_for(owner: String) -> bool:
+	return not _pill.visible or pill_outranks(owner, pill_owner)
+
+
 func hide_pill() -> void:
 	if _pill.visible:
 		_pill.visible = false

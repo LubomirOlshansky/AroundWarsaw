@@ -9,6 +9,10 @@ that day here, in plain words a player would understand (no file names, no spoil
 rows in the progress log but no section here is listed automatically from the log's labels until
 someone writes its lines.
 
+## 2026-11-06
+
+- When your car is stuck, the POMOC DROGOWA tow button now comes up even while the ride app button is on screen, and it also comes when you keep backing off a wall and trying again.
+
 ## 2026-11-05
 
 - Three of Warsaw's best modernist blocks are built from photos: Młotek on Smolna with its hammer head jutting over the escarpment, Kozia 9 climbing a storey at a time to its round tower, and Karowa 18a with its columns of hanging boxes.
