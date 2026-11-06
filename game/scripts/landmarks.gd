@@ -6279,6 +6279,8 @@ func _forest_tower(poly: PackedVector2Array, g: float) -> void:
 		_no_roof = true
 		_prism(_square(c, 2.2), top, top + 2.4, Color("#5b5f60"), Color("#6a6e6f"), M_STONE, M_STONE)
 		_no_roof = false
+		if float(s[2]) >= 119.0:
+			_forest_boat(slab, c, top)
 
 
 ## PEPEO ŻUBR (F, 2026-11-03), F's parody of the tenant's name, in the south slab's crown band:
@@ -6300,6 +6302,63 @@ func _forest_sign(slab: PackedVector2Array, top: float) -> void:
 	# The east end: 0.85 (about 10 m), on the slab's own 12 m end.
 	var east := FOREST_O + FOREST_U * (hi.x + 0.1) + v * ((lo.y + hi.y) * 0.5)
 	signs.append(["PEPEO ŻUBR", Vector3(east.x, y + 1.2, east.y), Vector3(FOREST_U.x, 0.0, FOREST_U.y), 0.85, FOREST_BANK])
+
+
+## F's joke (2026-11-06): a cobalt-blue motor bowrider on a cradle on the tallest slab's roof, well
+## clear of the crown band that carries PEPEO ŻUBR and of the plant box. Ten metres long, white
+## hull with a cobalt sheer and stripe, a swept windshield, bow and stern seats, a sun pad over
+## the engine, a chrome rail. Two metres beside the slab's axis and turned 25 degrees, as if it
+## were being lifted.
+const FOREST_BOAT_BLUE := Color("#0b3d91")
+func _forest_boat(slab: PackedVector2Array, c: Vector2, top: float) -> void:
+	var none := Color(0, 0, 0, 0)
+	var a := Vector2(FOREST_U.x, FOREST_U.y).rotated(deg_to_rad(25.0))
+	var b := Vector2(-a.y, a.x)
+	var m := c + FOREST_U * 9.0
+	var hl := 5.0
+	var hb := 1.35
+	var hull := PackedVector2Array([m + a * hl, m + a * hl * 0.4 + b * hb * 0.85, m - a * hl * 0.85 + b * hb,
+			m - a * hl + b * hb * 0.9, m - a * hl - b * hb * 0.9, m - a * hl * 0.85 - b * hb, m + a * hl * 0.4 - b * hb * 0.85])
+	for q in hull:
+		if not Geometry2D.is_point_in_polygon(q, slab):
+			return
+	_no_roof = true
+	_mode = M_STONE
+	# Cradle: two steel skids and a keel block.
+	for sd: float in [-0.9, 0.9]:
+		_prism(PackedVector2Array([m - a * 3.6 + b * (sd - 0.12), m + a * 3.2 + b * (sd - 0.12), m + a * 3.2 + b * (sd + 0.12),
+				m - a * 3.6 + b * (sd + 0.12)]), top, top + 0.55, Color("#4a4f54"), Color("#4a4f54"), M_STONE, M_STONE)
+	var y := top + 0.55
+	_prism(hull, y, y + 0.55, FOREST_BOAT_BLUE, none, M_STONE)
+	_prism(hull, y + 0.55, y + 1.0, Color("#f4f5f2"), none, M_STONE)
+	var sheer := _largest(Geometry2D.offset_polygon(hull, -0.12, Geometry2D.JOIN_MITER))
+	if sheer.size() >= 3:
+		_prism(sheer, y + 1.0, y + 1.12, FOREST_BOAT_BLUE, Color("#e8dcc0"), M_STONE, M_STONE)
+	var d := y + 1.12
+	# Bow seat, dash console, stern bench and the engine-cover sun pad.
+	_prism(PackedVector2Array([m + a * 3.3 + b * 0.9, m + a * 2.2 + b * 1.0, m + a * 2.2 - b * 1.0, m + a * 3.3 - b * 0.9]),
+			d, d + 0.35, Color("#f1efe8"), Color("#f1efe8"), M_STONE, M_STONE)
+	_prism(PackedVector2Array([m + a * 1.0 + b * 1.0, m + a * 0.3 + b * 1.0, m + a * 0.3 - b * 1.0, m + a * 1.0 - b * 1.0]),
+			d, d + 0.8, Color("#e9e8e2"), Color("#2b2d2f"), M_STONE, M_STONE)
+	_prism(PackedVector2Array([m - a * 2.0 + b * 1.15, m - a * 3.0 + b * 1.15, m - a * 3.0 - b * 1.15, m - a * 2.0 - b * 1.15]),
+			d, d + 0.4, Color("#f1efe8"), Color("#f1efe8"), M_STONE, M_STONE)
+	_prism(PackedVector2Array([m - a * 3.2 + b * 1.2, m - a * 4.3 + b * 1.2, m - a * 4.3 - b * 1.2, m - a * 3.2 - b * 1.2]),
+			d, d + 0.45, Color("#0b3d91"), Color("#f1efe8"), M_STONE, M_STONE)
+	# Windshield: a tinted glass quad, leaning back.
+	var w0 := m + a * 1.1 + b * 0.95
+	var w1 := m + a * 1.1 - b * 0.95
+	var t0 := m + a * 0.4 + b * 0.95
+	var t1 := m + a * 0.4 - b * 0.95
+	_mode = M_PAVILION
+	_quad(Vector3(w0.x, d + 0.8, w0.y), Vector3(w1.x, d + 0.8, w1.y), Vector3(t1.x, d + 1.5, t1.y), Vector3(t0.x, d + 1.5, t0.y),
+			Vector3(a.x, 0.5, a.y).normalized(), Color("#6b8794"))
+	_mode = M_STONE
+	# Chrome rail round the bow and a flag staff at the stern.
+	var bow := m + a * 4.6
+	_beam(Vector3(bow.x, d, bow.y), Vector3(bow.x, d + 0.5, bow.y), 0.05, Color("#c9ced2"), false)
+	var st := m - a * 4.6
+	_beam(Vector3(st.x, d, st.y), Vector3(st.x, d + 1.6, st.y), 0.05, Color("#c9ced2"), false)
+	_no_roof = false
 
 
 ## A wing: glass behind the colour fins up to a planted ledge, the black-clad top storey set
