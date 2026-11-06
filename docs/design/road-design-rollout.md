@@ -91,3 +91,15 @@ done when a design in docs/roads/ covers it, applied to the map or not.
   Generator additions: per-kerb `l_at`/`r_at` steps, `shift` for carriageways that move sideways,
   and `greens` (grass strips in a tram median). Continuity 0; check 0; the lane-drive bot passes
   12 routes (both streets both ways plus every straight and right turn through the ring).
+- **5, part 1: Jerozolimskie east to short of Rondo de Gaulle'a** (2026-11-06,
+  docs/roads/jerozolimskie_e.json): it starts on area 6's east arm end, with the same section. Its
+  axis bends 0.7 degrees so it runs down the tram tracks to the de Gaulle centre. North
+  carriageway: three lanes, -13.3..-3.8 m. Tram bed in the middle. South carriageway: three lanes,
+  3.6..15.2 m (in the towers' shadow on the photo; checked against the parked-car rows and main's
+  kerb). There is an 8 m zebra 32 m past the rondo arm. The Krucza junction `j_kr` has 8-9 m zebras
+  on all four arms; Krucza north has an island median, Krucza south is one five-lane carriageway.
+  Bracka is a south-side mouth. The street stops with a free end 55 m short of the de Gaulle
+  centre. Continuity 0; check 0; lane drive passes 9 routes (both streets, all turns at Krucza).
+  Part 2, Rondo de Gaulle'a: a circular island (r 14.6 m, the palm) round one tram axis. Its north
+  and south arms are Y pairs of one-way roads, and the northbound exit leaves the ring tangentially
+  about 24 m off the centre, which the ring model (radial arms) cannot build yet.
