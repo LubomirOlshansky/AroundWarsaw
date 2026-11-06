@@ -14,6 +14,7 @@ someone writes its lines.
 
 - A cobalt-blue motorboat now sits on the roof of the Forest tower, next to the PEPEO ŻUBR crown.
 - The underpass entrances at Emilii Plater and Aleje Jerozolimskie are real stairs going down now instead of walled boxes: granite parapets round the two wells, steel canopies over the pavement stairs (Śródmieście's green ones with posters on the south side), and people walking down into the passage and coming up out of it.
+- The railway from Centralna to Ochota is rebuilt: the cutting has a flat track bed with straight grass banks, concrete walls at the tunnel mouth and fences along the top, steel gantries carry the wires over the tracks, Warszawa Główna has real raised platforms and its footbridge crosses high over the wires with stairs and lifts down to each platform; trains stop there too, people get off and on at every door, the local trains look like modern red or white-and-green units, and the long-distance train has a locomotive pulling its coaches.
 - When your car is stuck, the POMOC DROGOWA tow button now comes up even while the ride app button is on screen, and it also comes when you keep backing off a wall and trying again.
 
 ## 2026-11-05
