@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-06
 
+- A cobalt-blue motorboat now sits on the roof of the Forest tower, next to the PEPEO ŻUBR crown.
 - When your car is stuck, the POMOC DROGOWA tow button now comes up even while the ride app button is on screen, and it also comes when you keep backing off a wall and trying again.
 
 ## 2026-11-05

@@ -162,6 +162,7 @@ evidence per street and junction, never coordinates.
 Built (spec `docs/landmarks/specs/forest.md`): the three-slab tower with crown bands, colour fins and PEPEO ŻUBR, the finned wings with black top storeys and roof gardens, the courtyard's amphitheatre, pavilion and 43 young trees. Left:
 
 - **Wing heights** (F, 2026-11-03: estimate from the photos): the low wings are 31 m, eight storeys under the black top storey, against OSM's 20.8 m; the 27.4 m terrace wing keeps OSM's height so its crowd's deck (crowds.gd `forest_terrace`) stays put.
+- **The roof boat** (F, 2026-11-06): a 10 m cobalt-blue bowrider on a cradle on the tallest slab's roof (`_forest_boat`), clear of the sign. Left: a crane or sling to explain it, a night glow.
 - **The roof crane and the tower's lobby**: the window-cleaning crane on the crown and the glazed double-height lobby are not modelled.
 - **Older docs still name the real tenant** in a few places (CITY_INVENTORY, LANDMARKS, QUESTIONS, MUSIC, inventory candidates, wiki_build.py): a sweep to the parody is open.
 
