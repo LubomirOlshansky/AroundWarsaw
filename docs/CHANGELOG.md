@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-06
 
+- 18 more houses got real street fronts from photos, including Pałac Karnickich, Hotel Indigo, Krucza 51 and The Tides.
 - Aleje Ujazdowskie 47 stands in its dark grey render, with balconies and the green pharmacy signs.
 - The garden in front of Pałac Krasińskich has its flower ring, gravel cross and clipped hedges.
 - Kamienica Ławrynowicza on Aleje Ujazdowskie is back in its striped yellow and red brick, with arcades and stepped gables.

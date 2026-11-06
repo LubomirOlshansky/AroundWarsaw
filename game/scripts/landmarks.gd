@@ -1174,6 +1174,8 @@ func _find_sites() -> void:
 	if not sites.is_empty() and sites[-1]["key"] == "ujazdowskie47":
 		sites[-1]["skin"] = {"mode": M_MONUMENT, "wall": U47_WALL, "roof": Color("#5f6264")}
 		sites[-1]["quiet"] = true
+	# Houses with street fronts read from F's photos (2026-11-06): game/data/photo_fronts.json.
+	_find_photo_fronts()
 	# Street blocks with modelled fronts (Nowy Świat, 2026-11-06).
 	_find_blocks()
 
@@ -1752,6 +1754,9 @@ func build(surface, near := Rect2(), only := "") -> void:
 				elif s.has("block"):
 					_id = 0  # not tappable
 					_build_block(s)
+				elif s.has("fronts"):
+					_id = 0  # not tappable
+					_build_photo_fronts(s)
 				elif s.has("tower"):
 					_build_tower(s)
 				elif s.has("skin"):
@@ -24132,3 +24137,90 @@ func _build_ujazdowskie47() -> void:
 			_u47_balcony(u, g + 15.1)
 		elif k < 5:
 			_u47_balcony(u, g + 19.1)
+
+
+# --- Street fronts read from photos (F, 2026-11-06) --------------------------------------------
+
+const PF_PATH := "res://data/photo_fronts.json"
+
+
+## Each entry keeps LoD2's mass in its plaster and gets its street fronts: a site "pf_<id>".
+func _find_photo_fronts() -> void:
+	if not FileAccess.file_exists(PF_PATH):
+		return
+	var list = JSON.parse_string(FileAccess.get_file_as_string(PF_PATH))
+	if not list is Array:
+		return
+	for d: Dictionary in list:
+		var key := "pf_" + str(d["id"])
+		_add_site(key, [_pts(d["outline"])])
+		if not sites.is_empty() and sites[-1]["key"] == key:
+			sites[-1]["skin"] = {"mode": M_MONUMENT, "wall": Color(d["wall"]), "roof": Color(d["roof"])}
+			sites[-1]["fronts"] = d
+			sites[-1]["quiet"] = true
+
+
+func _build_photo_fronts(site: Dictionary) -> void:
+	var d: Dictionary = site["fronts"]
+	_g = _ground_under(_pts(d["outline"]))
+	for f: Dictionary in d["fronts"]:
+		_pf_front(f, d)
+
+
+## One street front in the house's style. `classic`: sills, heads, string courses and a cornice;
+## `plain`: sills only; `ribbon`: long panes between floor bands; `glass`: a curtain wall;
+## `fins`: plain windows between upright fins.
+func _pf_front(f: Dictionary, d: Dictionary) -> void:
+	var from := Vector2(f["a"][0], f["a"][1])
+	var to := Vector2(f["b"][0], f["b"][1])
+	_o = from
+	_a = (to - from).normalized()
+	_b = Vector2(-_a.y, _a.x)  # out of the front
+	var width := from.distance_to(to)
+	var mid := width * 0.5
+	var g := _g
+	var h: float = f["h"]
+	var gf: float = d["gf"]
+	var bays: int = f["bays"]
+	var floors: int = f["floors"]
+	var bay := width / bays
+	var fh := (h - gf - 0.7) / floors
+	var wall := Color(d["wall"])
+	var base := Color(d["base"])
+	var trim := Color(d["trim"])
+	var style: String = d["style"]
+	var glass := Color("#2c3640")
+	_lbox(mid, 0.12, mid, 0.16, g - 0.3, g + gf, base)
+	_lbox(mid, 0.12, mid, 0.16, g + gf, g + h, wall)
+	_lbox(mid, 0.34, mid, 0.08, g + gf - 0.25, g + gf, trim)
+	for k in bays:  # street level
+		var u := (k + 0.5) * bay
+		_lbox(u, 0.32, bay * 0.36, 0.03, g + 0.7, g + gf - 0.8, glass, _lit(u, 1.0))
+	for i in floors:
+		var y := g + gf + 0.7 + i * fh
+		match style:
+			"ribbon":
+				_lbox(mid, 0.32, mid - 0.4, 0.03, y, y + fh * 0.58, glass, _lit(mid, y))
+				_lbox(mid, 0.36, mid, 0.08, y - 0.4, y - 0.15, trim)
+			"glass":
+				for k in bays:
+					_lbox((k + 0.5) * bay, 0.31, bay * 0.47, 0.03, y - 0.5, y + fh - 0.75, wall.darkened(0.25), _lit(k, y))
+				_lbox(mid, 0.35, mid, 0.05, y - 0.75, y - 0.55, trim)
+			_:
+				for k in bays:
+					var u := (k + 0.5) * bay
+					var w := minf(bay * 0.3, 0.8)
+					var wh := minf(fh * 0.62, 2.4)
+					_lbox(u, 0.31, w, 0.03, y, y + wh, glass, _lit(u, y))
+					_lbox(u, 0.36, w + 0.14, 0.09, y - 0.18, y - 0.04, trim)
+					if style == "classic":
+						_lbox(u, 0.36, w + 0.1, 0.09, y + wh + 0.04, y + wh + 0.2, trim)
+		if style == "classic" and i == 1:
+			_lbox(mid, 0.34, mid, 0.07, y - 0.5, y - 0.36, trim)
+	if style == "fins":
+		for k in bays + 1:
+			_lbox(k * bay, 0.42, 0.1, 0.26, g + gf, g + h - 0.2, trim)
+	if style == "classic":
+		_lbox(mid, 0.62, mid + 0.3, 0.44, g + h - 0.5, g + h, trim)
+	else:
+		_lbox(mid, 0.3, mid, 0.14, g + h - 0.3, g + h, trim)

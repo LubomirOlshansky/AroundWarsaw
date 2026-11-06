@@ -6893,33 +6893,33 @@ func _camera_far(distance: float, size: float) -> float:
 ## of the JSON list and saves <name>.png in --out, so one run shoots a whole street.
 var stops: Array = []
 var _stop_at := 0
+var _stop_busy := false
+const STOP_DRAWS := 24
 
 
 func _stop_step() -> void:
-	const WAIT := 60
-	const SETTLE := 50
-	if stops.is_empty() or frame < 120 or _stop_at >= stops.size():
+	if stops.is_empty() or frame < 120 or _stop_busy or _stop_at >= stops.size():
 		return
-	var k := frame - 120
-	if k % WAIT == 0:
-		var s: Array = stops[_stop_at]
-		car.global_position = Vector3(s[0], map.ground_height(s[0], s[1]), s[1])
-		car.vel = Vector3.ZERO
-		cam_yaw = s[2]
-		cam_yaw_target = s[2]
-		camera_pitch = s[3]
-		base_size = s[4]
-		_view_size = s[4]
-		cam.size = s[4]
-		cam_focus = car.global_position
-	elif k % WAIT == SETTLE:
-		var at := _stop_at
-		_stop_at += 1
+	_stop_busy = true
+	var s: Array = stops[_stop_at]
+	car.global_position = Vector3(s[0], map.ground_height(s[0], s[1]), s[1])
+	car.vel = Vector3.ZERO
+	cam_yaw = s[2]
+	cam_yaw_target = s[2]
+	camera_pitch = s[3]
+	base_size = s[4]
+	_view_size = s[4]
+	cam.size = s[4]
+	cam_focus = car.global_position
+	# Count drawn frames, not game frames: a hidden window can draw far less often than it runs.
+	for i in STOP_DRAWS:
 		await RenderingServer.frame_post_draw
-		get_viewport().get_texture().get_image().save_png(out_dir.path_join("%s.png" % stops[at][5]))
-		print("stops: %d / %d" % [at + 1, stops.size()])
-		if at + 1 >= stops.size():
-			_quit_quietly()
+	get_viewport().get_texture().get_image().save_png(out_dir.path_join("%s.png" % s[5]))
+	_stop_at += 1
+	_stop_busy = false
+	print("stops: %d / %d %s at %.0f,%.0f" % [_stop_at, stops.size(), s[5], car.global_position.x, car.global_position.z])
+	if _stop_at >= stops.size():
+		_quit_quietly()
 
 
 func _capture(n: int) -> void:

@@ -17,7 +17,7 @@ to 185 MB. Left:
 - **#29 Nowy Świat**: still its old block; its LoD2 is one mesh with the wing behind.
 - **Detail worth adding**: the long iron balconies of Nowy Świat 54/56 and 58.
 - **Outside Nowy Świat** the blocks had a look for breakage, not a house-by-house photo check.
-- **Photo builds F asked for (2026-11-06, still their old blocks)**: Block 136840337, Filtrowa 65, Filtrowa 67, Filtrowa 73, Generated landmark module for pw_req (Politechnika Warszawska & Lwowsk, GfK Polonia, Gorskiego1 U-plan courtyard block, Grójecka 14A, Hotel Indigo, Kamienica, Kamienica Pusłowskiego, Krucza51 angled street wing, Pałac Karnickich, Pod Gigantami; west to Aleje Ujazdowskie; giants flank central street, Solec 22, Solec 24, Solec Residence, South Aleje11/19 continuous slab with regular masonry window grid, The Tides, Wspólna 47/49; reference/DSM decisions in inventory/REFERENCES, Zgoda 3. Pod Gigantami is done: photo model, card, and the date ride (`DATE_SHARE`, passenger kind `date`).
+- **Photo fronts (2026-11-06)**: 18 houses keep LoD2's mass under street fronts read from F's photos (`game/data/photo_fronts.json`, `_build_photo_fronts`; styles classic, plain, ribbon, glass, fins). Weak evidence, check again: Aleje Jerozolimskie 11/19 (no facade photo), Solec 24 (photo shows the small house beside it). The block near Zgoda 13 stays on its old block until F says what it should be.
 
 ## The Emilii Plater underpass entrances (F, 2026-11-06)
 
