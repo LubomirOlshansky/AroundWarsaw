@@ -129,6 +129,7 @@ const Police := preload("res://scripts/police.gd")
 const Buses := preload("res://scripts/buses.gd")
 const OldTram := preload("res://scripts/old_tram.gd")
 const CrashScenes := preload("res://scripts/crash_scenes.gd")
+const EvTow := preload("res://scripts/ev_tow.gd")
 ## Packs (docs/design/packs.md): running clubs, cycling packs and coffee raves.
 const Packs := preload("res://scripts/packs.gd")
 ## Kibice (docs/design/city-life-satire.md 7): friendly fans by Stadion Leguminy on match evenings.
@@ -490,6 +491,14 @@ var old_tram: OldTram
 var crash_scenes: CrashScenes
 var crash_flag := ""
 var crash_log := false
+## Dead electric cars (ev_tow.gd, F's ask 2026-11-06): Bartek's call to carry his TESŁO to a charger
+## under the helicopter, and stranded ones in the kerb lane. Flags --ev-call (the call rings now),
+## --ev-tow (accepted, the helicopter over his car), --ev-tow=carry (his car already on the rope),
+## --ev-stranded (one about 30 m ahead now), --ev=0 (none), --ev-log.
+var ev_tow: EvTow
+var ev_flag := ""
+var ev_log := false
+var _ev_auto := false
 var _crash_auto := false
 var old_tram_flag := ""
 var tram_log := false
@@ -1533,6 +1542,7 @@ func _build_world() -> void:
 	_build_buses(data, world)
 	_build_old_tram(world)
 	_build_crash_scenes()
+	_build_ev_tow(world)
 	_build_storefronts(data, world)
 	_build_packs(data, world)
 	_build_fans(data, world)
@@ -2673,6 +2683,78 @@ func _build_crash_scenes() -> void:
 		var f := -car.global_transform.basis.z
 		var at := Vector2(float(xz[0]), float(xz[1])) if xz.size() == 2 else Vector2.INF
 		crash_scenes.place(Vector2(p.x, p.z), Vector2(f.x, f.z).normalized(), true, at)
+
+
+# --- dead electric cars ----------------------------------------------------------------------
+
+## Bartek's call and the stranded TESŁO cars (ev_tow.gd). None with --no-traffic or --ev=0.
+func _build_ev_tow(world: Node3D) -> void:
+	if traffic == null or ev_flag == "0":
+		return
+	ev_tow = EvTow.new()
+	ev_tow.name = "EvTow"
+	ev_tow.hud = hud
+	ev_tow.dialogue = dialogue
+	ev_tow.wallet = wallet
+	ev_tow.missions = missions
+	ev_tow.map = map
+	ev_tow.graph = graph
+	ev_tow.traffic = traffic
+	ev_tow.radio = radio
+	ev_tow.heli = heli
+	ev_tow.log_on = ev_log
+	ev_tow.auto = _ev_auto
+	ev_tow.vehicle = func() -> Array:
+		if flying:
+			return [heli.global_position, heli.speed() * 3.6, true]
+		return [car.global_position, car.vel.length() * 3.6, false]
+	ev_tow.free_now = _ev_free
+	ev_tow.take_off = func() -> void: _take_off(Heli.CRUISE)
+	add_child(ev_tow)
+	ev_tow.setup(world)
+	if ev_flag != "":
+		get_tree().create_timer(1.0).timeout.connect(_ev_start)
+
+
+## Nothing else on: no title, bench, Spacer, guide, card, rescue, ride, job, race or tow.
+func _ev_free() -> bool:
+	if title != null or _phone_bench or _bench_ghost != null or (spacer != null and spacer.on):
+		return false
+	if first10 != null and first10.guide_on():
+		return false
+	if hud.cards_up() or missions.state != Missions.State.CLOSED or missions.has_target():
+		return false
+	if (rides != null and rides.busy()) or (jobs != null and jobs.busy()) or (trend_job != null and trend_job.busy()):
+		return false
+	if rivals != null and rivals.busy():
+		return false
+	return flying or not car.in_water
+
+
+## The --ev-* test flags, a second into the drive.
+func _ev_start() -> void:
+	match ev_flag:
+		"call":
+			ev_tow.ring()
+		"stranded":
+			var p := car.global_position
+			var f := -car.global_transform.basis.z
+			ev_tow.place_stranded(Vector2(p.x, p.z), Vector2(f.x, f.z).normalized(), true)
+		_:
+			ev_tow.ring()
+			ev_tow._on_card(0)
+			ev_tow._on_card(0)
+			if ev_tow.job.is_empty():
+				return
+			var at: Vector3 = ev_tow.job["at"]
+			if not flying:
+				_take_off(Heli.CRUISE)
+			var carry := ev_flag == "tow=carry"
+			# Over the car, low enough to hook; for the carry 22 m up, the rope lifting it.
+			heli.place(at + Vector3(-3.0, 0.0, 2.0), heli.rotation.y, 22.0 if carry else EvTow.ROPE + EvTow.SIZE.y - 0.5)
+			cam_focus = heli.global_position
+			if carry:
+				ev_tow._hook()
 
 
 # --- the vintage-tram loop --------------------------------------------------------------------
@@ -4063,6 +4145,14 @@ func _parse_args() -> void:
 			bus_log = true
 		elif arg.begins_with("--crash="):
 			crash_flag = arg.trim_prefix("--crash=")
+		elif arg == "--ev-call" or arg == "--ev-tow" or arg == "--ev-stranded":
+			ev_flag = arg.trim_prefix("--ev-")
+		elif arg.begins_with("--ev-tow="):
+			ev_flag = "tow=" + arg.trim_prefix("--ev-tow=")
+		elif arg == "--ev=0":
+			ev_flag = "0"
+		elif arg == "--ev-log":
+			ev_log = true
 		elif arg == "--crash-log":
 			crash_log = true
 		elif arg.begins_with("--loud="):
@@ -4278,6 +4368,7 @@ func _parse_args() -> void:
 	_governor_on = _flag_governor == 1 if _flag_governor >= 0 else not test_run
 	# The crash scenes' timer: a normal launch only (a test run with --crash=on or =now too).
 	_crash_auto = not test_run
+	_ev_auto = not test_run
 	# Loop G1b: test runs (and --last-session=) never write Auto's image state, even with the
 	# governor on and without --nosave.
 	_image_write = not test_run and _flag_last_session == ""
@@ -6086,6 +6177,15 @@ func _main_line_tick(dt: float) -> void:
 ## The arrow and minimap dot for the mission target.
 func _show_target() -> void:
 	_free_now = false
+	if ev_tow != null and ev_tow.has_target():
+		var ep: Vector3 = ev_tow.target_position()
+		var at_e := _vehicle_position()
+		var me := roundi(Vector2(ep.x - at_e.x, ep.z - at_e.z).length())
+		var on_e := cam.unproject_position(ep + Vector3(0, 3.5, 0)) * float(view.stretch_shrink)
+		hud.set_target(on_e, "%d m" % me, ev_tow.target_colour(), me > 12)
+		_put_target(Vector2(ep.x, ep.z), ev_tow.target_colour(), false)
+		_new_target("job", ep)
+		return
 	if rivals != null and rivals.has_target():
 		var f: Vector3 = rivals.target_position()
 		var p := _vehicle_position()
@@ -6427,6 +6527,9 @@ func _follow(d) -> void:
 ## H or the HELI / CAR button: take off from the car, or land and take the car back.
 func _toggle_vehicle() -> void:
 	if _phone_bench:
+		return
+	if flying and ev_tow != null and ev_tow.carrying():
+		hud.toast("Najpierw odstaw %s pod ładowarkę (albo ✕)" % EvTow.NAME, "Set the %s down at the charger first (or ✕)" % EvTow.NAME)
 		return
 	if rivals != null and rivals.racing():
 		hud.toast("Najpierw dokończ wyścig", "Finish the race first")
