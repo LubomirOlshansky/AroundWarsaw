@@ -50,6 +50,9 @@ then the Launch gate.
 - [x] Rondo Dmowskiego as it is: the paved island with its four crescent flower beds round the tram cross,
       Metro Centrum's blue tubes over all twelve underpass stairs and the Patelnia's, the Patelnia mural, a
       kiosk, a cart and the east tram shelter (F, 2026-11-02; spec `rondo-dmowskiego.md`; Mac look check parked)
+- [x] The Patelnia sunk 3.4 m with retaining walls, railings, its two stairs and Metro Centrum's two glass
+      barrels; the Rotunda's underpass stair going down to a glazed door; Wars's slab a low planter edge
+      (F, 2026-11-05; spec `patelnia.md`; sunken ground in `map_builder.gd` SUNKEN; look check parked)
 - [x] Arkadka redesign, roof car park, BANK PEPEO sign and the Forest roof terrace (F, 2026-11-01; spec `arkadia.md`)
 - [x] Arkadka rebuilt from F's photos: the fountain plaza, curved entrance with piers, canopies and fanned glass gables, the sign tower with its crown, logo panels and screen, the office wing, the brick wing and rotunda with yellow awnings, the letter sign (F, 2026-11-03; spec `arkadia.md`)
 - [x] Forest rebuilt from F's photos: the stepped three-slab tower with colour fins and PEPEO ŻUBR in its crown, the finned wings with black top storeys and roof gardens, the courtyard amphitheatre and trees (F, 2026-11-03; spec `forest.md`; wing heights parked)
@@ -148,6 +151,7 @@ then the Launch gate.
       shows), 2026-11-01, PR #183
 - [x] Bike paths smoothed (F, 2026-11-02, `tools/cycleways.py`, run by bake_osm): 195 gaps closed, 218 split ways joined, 52 ends on a line, 68 corners rounded; Mac look and ride check parked, comparison with OSM and the 3-8 m gaps left
 - [x] Bike path markings (F's idea #9, 2026-11-02): white square edges on the cycle crossings (P-11), 660 bike pictograms on the paths (`tools/bike_marks.py`)
+- [x] Edge roadworks visible on the phone (F, 2026-11-05): the prebuilt city rebuilds their meshes at the start; `check_edge_prebuilt` rams the real car into all 238 closures
 - [x] Cyclists on the cycle paths (F, 2026-11-05): kerb-edge courier riders skip roads with a cycle path within 14 m of their line (`city_life.gd` `_cycle_path_beside`, check_couriers); Mac look check parked
 - [x] Bike network matched to OSM (F's idea #9, 2026-11-02, `tools/compare_cycleways.py`): paths, crossings and lanes all drawn; contraflow streets, bus lanes open to bikes and sharrows painted (`tools/bike_network.py`)
 - [x] Map review C: the streets of the 3d-1 box and map north against the orthophoto (2026-11-02):

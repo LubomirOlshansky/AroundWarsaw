@@ -5,7 +5,7 @@ Plan: docs/design/operation-unslop.md. Stage: **baseline**. Score **92/100** (ba
 
 | Block | Score | L1 lane step | L2 loose lane line | L3 line on a kerb | L4 line through a zebra | T1 tree on the road | P1 prop on the road | O1 solid within 1 m of a lane | K1 edge step | K2 line jog | F1 F's flag (a circled screenshot) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| A Marszałkowska to Wallenberga | 89 | 1 | 5 | 1 | 0 | 0 | 0 | 1 | 0 | 0 | 0 |
+| A Marszałkowska to Wallenberga | 90 | 1 | 4 | 1 | 0 | 0 | 0 | 1 | 0 | 0 | 0 |
 | B Wallenberga to Emilii Plater | 95 | 1 | 2 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 
 ## Objects within 3 m of a lane (road-objects S2 verdicts)
@@ -32,7 +32,6 @@ Verdicts: CHECK 2, KEEP 3. The override file applies them by id (stage S8).
 | L2 | A | 23 | 5 | open | lane line ends mid-block | `--at=-1087,-129` |
 | L2 | A | 138 | 2 | open | lane line ends mid-block | `--at=-1196,-89` |
 | L2 | A | 138 | 5 | open | lane line ends mid-block | `--at=-1197,-92` |
-| L2 | A | 258 | -2 | open | lane line ends mid-block | `--at=-1308,-46` |
 | L3 | A | 85 | 9 | open | edge line crosses a kerb | `--at=-1148,-112` |
 | O1 | A | 91 | -7 | open | shelter/shelter 0.9 m from a lane's edge | `--at=-1148,-95` |
 | L1 | B | 442 | -0 | open | 3 -> 2 lanes, 9.0 -> 6.0 m wide where two ways meet | `--at=-1482,12` |

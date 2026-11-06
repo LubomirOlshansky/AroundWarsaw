@@ -77,7 +77,7 @@ LOOSE_REACH = 2.0      # L2: another line's end this close continues the line
 JUNCTION_REACH = 14.0  # L2: a line may end this close to a junction node
 STOP_REACH = 5.0       # L2: ...or to a stop line
 LANE_JOIN_REACH = 4.0  # L2: ...or to a join where the lane count changes (a lane opens or closes)
-ZEBRA_REACH = 3.5      # L2: ...or to a zebra (bake_roads cuts 2.4 m each side; more where a line meets it at an angle)
+ZEBRA_REACH = 5.0      # L2: ...or to a zebra (zebra half 1.8 + gap 0.6 + the stop line and cycle crossing in front of it at signalised crossings)
 CELL = 20.0
 
 

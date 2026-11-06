@@ -462,6 +462,115 @@
     }
    ],
    "owned": []
+  },
+  {
+   "slug": "jerozolimskie-centrum",
+   "title": "Aleje Jerozolimskie: Emilii Plater to Rondo Dmowskiego",
+   "names": [
+    "Aleje Jerozolimskie"
+   ],
+   "frame": {
+    "o": [
+     -1262.0,
+     596.0
+    ],
+    "s": [
+     0.94967,
+     -0.31324
+    ],
+    "t": [
+     0.31324,
+     0.94967
+    ]
+   },
+   "s": [
+    -10,
+    412
+   ],
+   "t": [
+    -45,
+    45
+   ],
+   "street_t": [
+    -15,
+    28
+   ],
+   "fresh_since": "2025-09",
+   "stage": "baseline",
+   "cameras": [
+    {
+     "name": "J1",
+     "x": -1256.3,
+     "z": 593.6,
+     "why": "Emilii Plater junction"
+    },
+    {
+     "name": "A",
+     "x": -1180.3,
+     "z": 568.9,
+     "yaw": 135,
+     "why": "shoot with --yaw=135 (the south-side roofs hide the street at the default angle)"
+    },
+    {
+     "name": "B",
+     "x": -1112.8,
+     "z": 548.2,
+     "yaw": 135,
+     "why": "shoot with --yaw=135 (the south-side roofs hide the street at the default angle)"
+    },
+    {
+     "name": "C",
+     "x": -978.7,
+     "z": 499.7,
+     "yaw": 135,
+     "why": "shoot with --yaw=135 (the south-side roofs hide the street at the default angle)"
+    },
+    {
+     "name": "R",
+     "x": -894.5,
+     "z": 462.9,
+     "why": "Rondo Dmowskiego hotspot (not owned)"
+    }
+   ],
+   "blocks": [
+    {
+     "id": "A",
+     "title": "Emilii Plater to Centralna",
+     "s": [
+      0,
+      140
+     ]
+    },
+    {
+     "id": "B",
+     "title": "Centralna to Chmielna side",
+     "s": [
+      140,
+      290
+     ]
+    },
+    {
+     "id": "C",
+     "title": "to Rondo Dmowskiego",
+     "s": [
+      290,
+      402
+     ]
+    }
+   ],
+   "owned": [
+    {
+     "by": "Centralna station and Złote Tarasy buildings, sunken metro and underpass entrances (north side; sunken-places thread)",
+     "s": [
+      0,
+      230
+     ],
+     "t": [
+      -45,
+      -16
+     ]
+    }
+   ]
   }
  ]
 }

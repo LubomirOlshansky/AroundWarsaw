@@ -3,10 +3,10 @@
  "title": "Świętokrzyska: Emilii Plater to Rondo ONZ",
  "updated": "2026-11-06",
  "stage": "baseline",
- "score": 81,
+ "score": 82,
  "counts": {
   "L1": 3,
-  "L2": 3,
+  "L2": 2,
   "L3": 4
  },
  "blocks": [
@@ -15,10 +15,10 @@
    "title": "Emilii Plater to Rondo ONZ",
    "counts": {
     "L1": 3,
-    "L2": 2,
+    "L2": 1,
     "L3": 4
    },
-   "score": 81
+   "score": 82
   }
  ],
  "history": [
@@ -68,6 +68,18 @@
    },
    "blocks": {
     "C": 81
+   }
+  },
+  {
+   "date": "2026-11-06",
+   "score": 82,
+   "counts": {
+    "L1": 3,
+    "L2": 2,
+    "L3": 4
+   },
+   "blocks": {
+    "C": 82
    }
   }
  ],
@@ -146,16 +158,6 @@
    "s": 113.8,
    "t": -12.6,
    "note": "3 -> 2 lanes, 9.0 -> 6.0 m wide where two ways meet",
-   "block": "C",
-   "status": "open"
-  },
-  {
-   "check": "L2",
-   "x": -1504.2,
-   "z": 9.3,
-   "s": 20.9,
-   "t": 7.0,
-   "note": "lane line ends mid-block",
    "block": "C",
    "status": "open"
   },
