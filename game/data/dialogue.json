@@ -253,6 +253,27 @@
       {
         "only": "pasatini"
       }
+    ],
+    [
+      "{street}: elektryk stoi z zerem na baterii. Kierowcy diesli pozdrawiają i trąbią.",
+      "{street}: an electric car stands with a flat battery. Diesel drivers wave and honk.",
+      {
+        "only": "ev"
+      }
+    ],
+    [
+      "Uwaga, {street}: prawy pas zajęty, auto bez prądu. Objazd obok, memy w drodze.",
+      "Heads up, {street}: right lane blocked by a car out of charge. Go round it; the memes are on their way.",
+      {
+        "only": "ev"
+      }
+    ],
+    [
+      "Słuchacze donoszą: {street}, rozładowany elektryk. Kierowca czeka na cud albo na helikopter.",
+      "Listeners report: {street}, a dead electric car. The driver awaits a miracle or a helicopter.",
+      {
+        "only": "ev"
+      }
     ]
   ],
   "kebab_order": [
@@ -5067,6 +5088,271 @@
     [
       "Kierunkowskaz? Nie było w wyposażeniu.",
       "Indicators? Weren't in the spec."
+    ]
+  ],
+  "ev_tow": [
+    [
+      "Tu jestem! Ten biały, co nie dymi i nie jedzie.",
+      "Over here! The white one that doesn't smoke and doesn't move.",
+      {
+        "only": "hello"
+      }
+    ],
+    [
+      "Machamy! To ja! Zero procent, sto procent nadziei.",
+      "Waving! It's me! Zero percent battery, a hundred percent hope.",
+      {
+        "only": "hello"
+      }
+    ],
+    [
+      "Zaczepione! Wskakuję do ciebie. Lina trzyma? Lina trzyma.",
+      "Hooked! I'm climbing in. Is the rope holding? It's holding.",
+      {
+        "only": "hook"
+      }
+    ],
+    [
+      "Jest! Pierwszy raz od tygodnia jedzie szybciej niż ja idę.",
+      "Got it! First time in a week it's faster than me walking.",
+      {
+        "only": "hook"
+      }
+    ],
+    [
+      "Tylko delikatnie. Sama szyba w dachu kosztuje jak twój samochód.",
+      "Gently. The glass roof alone costs as much as your car.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "Wiesz, że on robi setkę w 2,1 sekundy? No, robił. Rano.",
+      "You know it does 0 to 100 in 2.1 seconds? Well, it did. This morning.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "Ironia, co? Palisz naftę, żeby ratować moją planetę.",
+      "Ironic, huh? Burning kerosene to save my planet.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "Szwagier ma Pasatini 1.9 TDJ. Tankuje 3 minuty i jedzie do Chorwacji.",
+      "My brother-in-law has a Pasatini 1.9 TDJ. Fills up in 3 minutes, drives to Croatia.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "W katalogu 600 km zasięgu. W listopadzie: Mokotów i może z powrotem.",
+      "600 km of range in the brochure. In November: Mokotów, and maybe back.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "Ale za to parkuję za darmo w strefie. Zielone tablice, mordo.",
+      "But I park for free in the paid zone. Green plates, bro.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "Parkuję za darmo. Głównie dlatego, że nie mogę odjechać.",
+      "I park for free. Mostly because I can't drive off.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "Pan Piżmo obiecał, że w tym roku pojedzie sam. No to sam stanął.",
+      "Mr Piżmo promised it would drive itself this year. So it stopped itself.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "Klamki się chowają. Bez prądu siedziałem w środku czterdzieści minut.",
+      "The door handles hide away. With no power I sat inside for forty minutes.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "W nocy była aktualizacja. Zaktualizował mi się do zera.",
+      "There was an update overnight. It updated itself down to zero.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "Na jedynej ładowarce stał diesel. Kierowca patrzył mi prosto w oczy.",
+      "A diesel was parked at the only charger. The driver looked me dead in the eye.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "Wycieraczki włączam z ekranu. W ulewie to jest gra zręcznościowa.",
+      "I turn the wipers on from the screen. In a downpour it's an arcade game.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "Rano podgrzałem baterię. Potem nie było już czym jechać.",
+      "This morning I pre-heated the battery. Then there was nothing left to drive on.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "Benzyniarze mówią 'lęk przed zasięgiem'. Ja mówię 'planowanie'.",
+      "Petrolheads call it range anxiety. I call it planning.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "Koledzy z grupy diesli wyślą mi memy. Ten będzie najlepszy.",
+      "My mates in the diesel group will send me memes. This one's the best yet.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "Hulajnoga córki ma większy zasięg. I ładuje się z gniazdka w kuchni.",
+      "My daughter's scooter has more range. And it charges from the kitchen socket.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "Do 80 procent pół godziny. Do 100 procent: do emerytury.",
+      "Half an hour to 80 percent. To 100 percent: until retirement.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "Aplikacja mówi, że ładowarka działa. Aplikacja mówi wiele rzeczy.",
+      "The app says the charger works. The app says a lot of things.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "Nie zaczynaj o pożarach baterii. Mam dziś wolne od forum.",
+      "Don't start on battery fires. I'm taking the day off the forum.",
+      {
+        "only": "carry"
+      }
+    ],
+    [
+      "Zaczepione! Ładowarka przy Elektrowni Powiśle. No co, nazwa się zgadza.",
+      "Hooked! The charger's by Elektrownia Powiśle. What, the name fits.",
+      {
+        "only": "elektrownia"
+      }
+    ],
+    [
+      "Nie bujaj! Dwie tony baterii i rata na osiem lat!",
+      "Don't swing it! Two tonnes of battery and an eight-year loan!",
+      {
+        "only": "swing"
+      }
+    ],
+    [
+      "Aaa, lusterko! Ono się samo składa, ale nie tak!",
+      "Aaah, the mirror! It folds by itself, but not like that!",
+      {
+        "only": "swing"
+      }
+    ],
+    [
+      "Wolniej! Tryb psa się włączył, a psa nawet nie ma!",
+      "Slower! Dog mode switched on and there isn't even a dog!",
+      {
+        "only": "swing"
+      }
+    ],
+    [
+      "Dobra, zostaw go tu. Może ktoś ma przedłużacz na sto metrów.",
+      "Fine, leave it here. Maybe someone has a hundred-metre extension cord.",
+      {
+        "only": "drop"
+      }
+    ],
+    [
+      "Pan z nieba! Pół roku mówiłem żonie, że elektryk to przyszłość.",
+      "A man from the sky! I've told my wife for six months that electric is the future.",
+      {
+        "only": "stranger"
+      }
+    ],
+    [
+      "Zawiśnięcie nad Warszawą. Tego w salonie nie obiecywali.",
+      "Hanging over Warsaw. They didn't promise that at the showroom.",
+      {
+        "only": "stranger"
+      }
+    ],
+    [
+      "Tylko nie mów nikomu z pracy. Oni wszyscy jeżdżą dieslem.",
+      "Just don't tell anyone at work. They all drive diesels.",
+      {
+        "only": "stranger"
+      }
+    ]
+  ],
+  "ev_stranded": [
+    [
+      "Zero procent. A rano było osiemdziesiąt.",
+      "Zero percent. It was eighty this morning."
+    ],
+    [
+      "Ktoś ma powerbank na 75 kilowatogodzin?",
+      "Anyone got a 75 kWh power bank?"
+    ],
+    [
+      "Infolinia mówi: proszę zachować spokój i zasięg.",
+      "The helpline says: please keep calm and keep your range."
+    ],
+    [
+      "Czekam na lawetę. Laweta jest na diesla.",
+      "Waiting for the tow truck. The tow truck runs on diesel."
+    ],
+    [
+      "Nie przepchniemy go. Ma dwie tony i obrażoną minę.",
+      "We can't push it. Two tonnes and a sulk."
+    ],
+    [
+      "Zielone tablice, a stoję jak wszyscy.",
+      "Green plates, and I'm stuck like everybody else."
+    ],
+    [
+      "Włączyłem tylko podgrzewanie fotela. Tylko!",
+      "All I turned on was the seat heater. That's all!"
+    ],
+    [
+      "Mapa pokazała ładowarkę. Ładowarka pokazała 'awaria'.",
+      "The map showed a charger. The charger showed 'out of order'."
+    ],
+    [
+      "Proszę nie trąbić, on się wtedy stresuje.",
+      "Please don't honk, it stresses him out."
+    ],
+    [
+      "To nie jest awaria. To jest postój strategiczny.",
+      "This isn't a breakdown. It's a strategic stop."
+    ],
+    [
+      "Panie z Pasatini, nie śmiej się pan. Pana też dopadnie.",
+      "You in the Pasatini, don't laugh. Your turn's coming."
     ]
   ],
   "rave_lekti": [
