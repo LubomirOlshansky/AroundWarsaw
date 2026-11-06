@@ -1105,7 +1105,7 @@ tapped again it goes. Empty while a race, job or rescue is on. `--quest-pick=N` 
   the tab (its first row picked out), the D-pad up / down moves the pick in the pad's yellow ring (a
   place's row centres the map on it), Y takes it as a tap; A stays the teleport hold. The card shows
   the keys while the pad is used. Left: phone look (are four rows enough, is the card in the map's way).
-- **G12c: done (2026-11-02).** AUTO also lists the open "Na czasie" slots, Cringulo's van (Mlask) and
+- **G12c: done (2026-11-02).** AUTO also lists the open "Na czasie" slots, Mrożulo's van (Mlask) and
   the Friday PISTACJA drop (trend_job.gd `offer_places`, only places not cooling down), the ladder's
   next rival where they cruise now (the pin follows them, quest_lines.gd `MOVING`) or Seba's start for
   "Trzy mosty" at night; HELI the peacock's roof call while Pan Paw is up (missions.gd
@@ -1721,10 +1721,10 @@ real ones added to `brand_denylist.json`). One PR each:
       `timber`), TIMBER on a billboard and a column poster, 10 date lines, radio lines, 2026-11-01.
 - [x] G4 KOSZTA COFFEE ×3, GREEN CAFFE NERWO ×2 (one on the mapped pavilion), KUKŁA ×2 with its
       all-day queue (8-30, tag `kolejka`), 8 queue lines, radio lines, a KUKŁA poster, 2026-11-01.
-- [x] G5 Cringulo: his cream van at one of four spots by weekday (11-21), the "Mlask" job in
+- [x] G5 Mrożulo: his cream van at one of four spots by weekday (11-21), the "Mlask" job in
       `trend_job.gd` (`--trend-job=6`): fetch from a new place, bring it warm in 5 min, his review
       card with a MLASK grade, the sticker back in 4 min, the place's queue at its longest for the
-      day (crowds.gd `cringulo_boost`); 9 review lines, 4 owner lines, 6 fan lines, CRINGULO PIZZA
+      day (crowds.gd `mrozulo_boost`); 9 review lines, 4 owner lines, 6 fan lines, MROŻULO PIZZA
       sold out at Frogs (3 till lines, a poster), radio news; rules in `check_city_life.gd`, 2026-11-01.
 - [x] F's follow-up: the rooftop bar is LORETKA (was LUŹNO) with its summer terrace on the roof
       (deck, planters, eight tables with poufs, pink parasols, the bar, string lights; landmarks
@@ -1733,10 +1733,10 @@ real ones added to `brand_denylist.json`). One PR each:
       chain with an upside-down golden W, at the real chain's central restaurants, 2026-11-01.
 - [x] The notebook card "Kolejki" (place `kolejki`, chapter Kolejka po trend, at KUKŁA on Nowy Świat), 2026-11-02.
 - [x] Left from G3-G5, done 2026-11-02: Podwózka `timber` passengers (evenings 18-01, 20 % of
-      normal rides, 3 request and 4 ride lines; `rides.gd`), five fans behind Cringulo's van with
-      `viral` "cringulo" bubbles, and the egg `easter_mlask` (the car stopped within 9 m of the van
+      normal rides, 3 request and 4 ride lines; `rides.gd`), five fans behind Mrożulo's van with
+      `viral` "mrozulo" bubbles, and the egg `easter_mlask` (the car stopped within 9 m of the van
       for 3 s while he is out; `trend_job.gd`, 48 cards now).
-- [x] The van's CRINGULO TV lettering (pixel font, dark, both flanks under the pink band; a second
+- [x] The van's MROŻULO TV lettering (pixel font, dark, both flanks under the pink band; a second
       surface, +424 tris, check budget 800), 2026-11-02.
 - [ ] Still left: Mac look check of the lettering's size and the fans' spot behind the van
       (the side of the kerb), the egg's wording; phone checks of every sign's size, the queues and

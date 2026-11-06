@@ -457,11 +457,11 @@ then the Launch gate.
   - [x] G2 part 2: Dom Partii's bars as neons, 2026-11-01
   - [x] G3 HOTEL PIURE, the LORETKA date bar and TIMBER jokes, 2026-11-01
   - [x] G4 KOSZTA COFFEE, GREEN CAFFE NERWO, KUKŁA and the queues, 2026-11-01
-  - [x] G5 Cringulo: the "Mlask" job, his pizza, fans and news, 2026-11-01
+  - [x] G5 Mrożulo: the "Mlask" job, his pizza, fans and news, 2026-11-01 (renamed from Cringulo, 2026-11-06)
   - [x] LORETKA's summer terrace with couples, PRZEGRYWKI, WACZEK burger neons, 2026-11-01
   - [x] The "Kolejki" notebook card at KUKŁA on Nowy Świat (place `kolejki`, 2026-11-02; `check_places` not run in the cloud, no Godot)
-  - [x] Podwózka TIMBER date passengers, fans by Cringulo's van and the egg `easter_mlask`, 2026-11-02
-  - [x] The van's CRINGULO TV lettering, 2026-11-02
+  - [x] Podwózka TIMBER date passengers, fans by Mrożulo's van and the egg `easter_mlask`, 2026-11-02
+  - [x] The van's MROŻULO TV lettering, 2026-11-02
   - [ ] Still left (BACKLOG): Mac and phone look checks
 - [x] Roof rescues never name a real chain (2026-11-02, `missions.gd` `ROOF_PARODIES`): Puro shows as Hotel Piure, Green Caffè Nero as Green Caffè Nerwo; headless check not run in the cloud (no Godot)
 - [x] Zagłębie Kebabowe and Kino Femina (F, 2026-11-02; spec docs/design/zaglebie-kebabowe.md): five parody kebab shops on Al. Solidarności, Femina's neon, delivery twists, the craft kebab's choice, Szlak Szpili, 2026-11-02 (the Mac photo check of Femina's front is open; a queue outside ZAKWAS I ROŻEN, 2026-11-02)
