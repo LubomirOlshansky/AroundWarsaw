@@ -549,9 +549,21 @@ const INFO := {
 	"jablkowscy": ["Dom Towarowy Braci Jabłkowskich",
 			"Bracka 25, 1914: secesja, łuki witryn i dwie kolumny przy wejściu.",
 			"Bracka 25, 1914: Art Nouveau, arched windows, two columns at the door."],
+	"foksal": ["Kamienice Foksal 13 i 15",
+			"Dwie odnowione przedwojenne kamienice: cegła, biały kamień, żeliwne balkony.",
+			"Two restored pre-war tenements: brick, white stone, iron balconies."],
 	"bgk": ["Gmach Banku Gospodarstwa Krajowego",
 			"Al. Jerozolimskie 7, 1928–31: kamienny gmach Rudolfa Świerczyńskiego.",
 			"Al. Jerozolimskie 7, 1928–31: Rudolf Świerczyński's granite bank."],
+	"mlotek": ["Młotek",
+			"Smolna 8, 1976: blok Bogusławskiego i Gniewiewskiego, głowa młotka nad skarpą.",
+			"Smolna 8, 1976: Bogusławski and Gniewiewski's block, a hammer's head over the escarpment."],
+	"kozia9": ["Kozia 9",
+			"1974–76, Kuźmienko i Sembrat: blok wspina się po piętrze, okna chowają się w zębach.",
+			"1974-76, Kuźmienko and Sembrat: the block climbs a storey at a time, windows hidden in its teeth."],
+	"karowa18a": ["Karowa 18a",
+			"1978: blok-rzeźba na zakręcie Karowej, kolumny skrzyń przesunięte o piętro.",
+			"1978: a block like a sculpture on Karowa's bend, columns of boxes a storey apart."],
 	"sheraton": ["Szeraton Grand",
 			"Hotel przy placu Trzech Krzyży: pasy na fasadzie, wieża na rogu.",
 			"A hotel on Plac Trzech Krzyży: banded fronts, a drum on the corner."],
@@ -787,6 +799,12 @@ static func tower_colour(key: String, fallback: Color) -> Color:
 		return SHER_WHITE
 	if key == "bgk":
 		return BGK_STONE
+	if key == "mlotek":
+		return ML_WALL
+	if key == "kozia9":
+		return KZ_WALL
+	if key == "karowa18a":
+		return KR_TAN
 	if key == "florian":
 		return FL_BRICK
 	if key == "mpw":
@@ -962,6 +980,7 @@ func _find_sites() -> void:
 	_find_zygmunt()
 	_find_gaulle()
 	_find_rondo()
+	_find_sunken()
 	_find_deski()
 	_find_dom_partii()
 	_find_rynek()
@@ -1058,6 +1077,12 @@ func _find_sites() -> void:
 	_find_bracka()
 	# The BGK building next to Vitkac (F, 2026-11-03), from the Mac photo gather.
 	_find_bgk()
+	# Foksal 13 and 15 (F's photos, 2026-11-05): the two restored tenements' street fronts.
+	_find_foksal()
+	# Warsaw modernism (F, 2026-11-03), from the Mac photo gathers.
+	_find_mlotek()
+	_find_kozia9()
+	_find_karowa18a()
 	# Plac Zbawiciela (Marszałkowska street by street, 2026-11-01): the basilica, a model.
 	_find_zbawiciela()
 	# F's ask (2026-11-01): every church designed by the same rules (the church kit).
@@ -1556,6 +1581,9 @@ func build(surface, near := Rect2(), only := "") -> void:
 			"rondo":
 				_id = 0
 				_build_rondo(s)
+			"sunken", "underpass":
+				_id = 0
+				_build_sunken(s)
 			"zodiak":
 				_build_zodiak(s)
 			"wiecha":
@@ -1628,6 +1656,15 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_sheraton(s)
 			"bgk":
 				_build_bgk(s)
+			"foksal":
+				_mark_zone(s)  # the masses and the mansards stay LoD2's, in their skin; the fronts are ours
+				_build_foksal(s)
+			"mlotek":
+				_build_mlotek(s)
+			"kozia9":
+				_build_kozia9(s)
+			"karowa18a":
+				_build_karowa18a(s)
 			"krolewska":
 				pass  # a skin with no card: drawn by the builder, not on the picking grid
 			_:
@@ -4798,6 +4835,447 @@ func _rondo_disc(m: Vector2, along: Vector2, nrm: Vector3, y: float, r: float, c
 				Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
 
 
+# --- Sunken places: the Patelnia and the Rotunda's stair (F's aerial, 2026-11-05) -------------
+
+## map_builder.gd SUNKEN lowers the ground of each ring (terrain_height and the drawn ground); this
+## site builds what makes the drop read (spec docs/landmarks/specs/patelnia.md):
+##  - on every ring edge that drops: a concrete retaining face from the floor to just over the
+##    street, its coping, a band of paving over the street side (the drawn ground's sunken band
+##    lies under it), a dark steel railing and the car's collision (the stair tops stay open);
+##  - a stair's treads across its ring (risers ~0.16 m) from the street down to the floor;
+##  - the Patelnia: Metro Centrum's two glass barrel vaults over the stairs down to the station
+##    (F's aerial: smoky ribbed glass, open to the square, closed against the pavilions; the
+##    OpenStreetMap outlines are their plans), dark wells inside;
+##  - the Rotunda: the lower floor's glazed doorway at the foot of the stair.
+## Zone: the barrels' outlines (their boxes go) and two 0.2 m squares at the corners of it all.
+const SUNK_CONCRETE := Color("#bfb9ad")
+const SUNK_COPING := Color("#cdc7bb")
+const SUNK_RAIL := Color("#3b4046")
+const SUNK_TREAD := Color("#c4beb1")
+const SUNK_PLANTER := Color("#5f8a3f")
+## The barrels (`buildings` outlines, 4.5 m): the long side's ends, then the mouth's far corner.
+const PATELNIA_BARRELS := [
+	[Vector2(-897.4, 378.1), Vector2(-890.6, 392.1), Vector2(-897.8, 395.5), Vector2(-904.6, 381.5)],
+	[Vector2(-926.5, 392.0), Vector2(-919.9, 406.0), Vector2(-927.1, 409.4), Vector2(-933.8, 395.4)],
+]
+const BARREL_SKIN := Color("#a9b9c2")
+const BARREL_RIB := Color("#5c666e")
+const BARREL_WELL := Color("#2a2e33")
+const SUNK_BOX := [Vector2(-955.0, 360.0), Vector2(-805.0, 432.0)]
+const UNDERPASS_BOX := [Vector2(-1315.0, 546.0), Vector2(-1211.0, 625.0)]
+## The underpass's entrances (street photos, Mapillary 2020-2026, refs/epl_*): a granite parapet
+## round the wells in the lawn and the forecourt, steel canopies over the pavement flights
+## (Śródmieście's green ones on the south side, a dark one on the north).
+const PARAPET_FACE := Color("#8e8a83")
+const PARAPET_TOP := Color("#a8a49c")
+const CANOPY_GREEN := Color("#2e5a45")
+const CANOPY_DARK := Color("#2b3035")
+const CANOPY_GLASS := Color("#8fa9a6")
+const PASSAGE_DARK := Color("#24272b")
+const POSTERS := [Color("#d94f3d"), Color("#3f6fb0"), Color("#e8c547"), Color("#f2efe8")]
+
+
+func _find_sunken() -> void:
+	if map._sunk.is_empty():
+		return
+	var zone: Array = []
+	for b: Array in PATELNIA_BARRELS:
+		zone.append(PackedVector2Array(b))
+	for a: Vector2 in SUNK_BOX:
+		zone.append(PackedVector2Array([a, a + Vector2(0.2, 0), a + Vector2(0.2, 0.2), a + Vector2(0, 0.2)]))
+	_add_site("sunken", zone)
+	# The Emilii Plater underpass's entrances: their own site (another sector), tiny squares at
+	# its box's corners (nothing mapped is replaced: the walls are map_builder's to leave out).
+	var under: Array = []
+	for a: Vector2 in UNDERPASS_BOX:
+		under.append(PackedVector2Array([a, a + Vector2(0.2, 0), a + Vector2(0.2, 0.2), a + Vector2(0, 0.2)]))
+	_add_site("underpass", under)
+
+
+var _sunk_done: Array[PackedVector2Array] = []
+
+
+func _build_sunken(site: Dictionary) -> void:
+	_no_roof = true
+	_sunk_done.clear()
+	var key: String = site["key"]
+	for sk: Dictionary in map._sunk:
+		if str(sk.get("site", "sunken")) != key:
+			continue
+		_sunk_edges(sk)
+		if (sk["a"] as Vector2).distance_to(sk["b"]) > 0.1:
+			_sunk_treads(sk)
+		if not (sk.get("walk", PackedVector2Array()) as PackedVector2Array).is_empty():
+			_sunk_mouth(sk)
+		if str(sk.get("style", "")).begins_with("canopy"):
+			_sunk_canopy(sk)
+	if key == "sunken":
+		for b: Array in PATELNIA_BARRELS:
+			_glass_barrel(b)
+		for sk: Dictionary in map._sunk:
+			if sk["key"] == "rotunda_stair":
+				_sunk_doorway(sk)
+	_no_roof = false
+
+
+## The street's height beside a ring's edge point p (outward `out`): the grid's highest over the
+## next 3 m out (the 10 m grid blurs the drop: right at the edge it lies metres low).
+func _sunk_upper(p: Vector2, out: Vector2) -> float:
+	var u: float = map._grid_height(p.x, p.y)
+	for d: float in [0.8, 1.8, 3.0]:
+		var q := p + out * d
+		u = maxf(u, map._grid_height(q.x, q.y))
+	return u
+
+
+## Each edge of ring `sk` in pieces up to 2 m: where the street side stands over the floor, a
+## retaining face, coping, paving band, railing and collision; an edge another ring continues
+## (a stair's foot on the square) or a stair's top (no drop) stays open.
+func _sunk_edges(sk: Dictionary) -> void:
+	var ring: PackedVector2Array = sk["ring"]
+	var band := 1.42 * 2.0 * 10.0 / float(sk["sub"]) + 0.2
+	var planted: bool = sk["key"] == "rotunda_stair"
+	# The edge's top over the street: the coping (a railing on it), a granite parapet, or the
+	# low parapet a canopy's frame stands on.
+	var style := str(sk.get("style", "rail"))
+	var rise := 0.12
+	var face_col := SUNK_CONCRETE
+	var top_col := SUNK_COPING.lightened(0.05)
+	if style == "parapet":
+		rise = 1.1
+		face_col = PARAPET_FACE
+		top_col = PARAPET_TOP
+	elif style.begins_with("canopy"):
+		rise = 0.9
+		face_col = PARAPET_FACE
+		top_col = PARAPET_TOP
+	# A stair's band lies over the square's where they meet: 0.1 m higher (no flicker).
+	var band_lift := 0.0 if (sk["a"] as Vector2).distance_to(sk["b"]) < 0.1 else 0.1
+	for i in ring.size():
+		var a := ring[i]
+		var b := ring[(i + 1) % ring.size()]
+		var length := a.distance_to(b)
+		if length < 0.05:
+			continue
+		var d := (b - a) / length
+		var out := Vector2(d.y, -d.x)
+		if Geometry2D.is_point_in_polygon((a + b) * 0.5 + out * 0.1, ring):
+			out = -out
+		# Open where the ground past the edge is another ring's at this floor.
+		var mid := (a + b) * 0.5
+		var past: float = map.sunk_floor(mid.x + out.x * 0.8, mid.y + out.y * 0.8)
+		if past < INF and absf(past - map.sunk_level(sk, mid)) < 0.8:
+			continue
+		var n := maxi(1, ceili(length / 2.0))
+		for k in n:
+			var p0 := a + d * (length * k / n)
+			var p1 := a + d * (length * (k + 1) / n)
+			var f0: float = map.sunk_level(sk, p0)
+			var f1: float = map.sunk_level(sk, p1)
+			var u0 := _sunk_upper(p0, out)
+			var u1 := _sunk_upper(p1, out)
+			if u0 - f0 < 0.35 and u1 - f1 < 0.35:
+				continue  # a stair's top: level with the street
+			var t0 := u0 + rise
+			var t1 := u1 + rise
+			var nin := Vector3(-out.x, 0.0, -out.y)
+			var nout := Vector3(out.x, 0.0, out.y)
+			var q0 := p0 + out * 0.3
+			var q1 := p1 + out * 0.3
+			# The retaining face (the square's side), the coping on top and its street face.
+			_mode = M_STONE
+			_quad(Vector3(p0.x, f0 - 0.3, p0.y), Vector3(p1.x, f1 - 0.3, p1.y), Vector3(p1.x, t1, p1.y), Vector3(p0.x, t0, p0.y),
+					nin, face_col)
+			var along := func(v: Vector2) -> float:
+				return lerpf(t0, t1, clampf((v - p0).dot(d) / maxf(p0.distance_to(p1), 0.01), 0.0, 1.0))
+			_sunk_top(PackedVector2Array([p0, p1, q1, q0]), along, top_col)
+			var g0: float = map._grid_height(q0.x, q0.y)
+			var g1: float = map._grid_height(q1.x, q1.y)
+			_quad(Vector3(q0.x, minf(t0, g0 + 0.05), q0.y), Vector3(q1.x, minf(t1, g1 + 0.05), q1.y),
+					Vector3(q1.x, t1, q1.y), Vector3(q0.x, t0, q0.y), nout, face_col.darkened(0.05))
+			# The band over the street side's sunken ground: paving (planting by the Rotunda).
+			var on_grid := func(v: Vector2) -> float:
+				return map._grid_height(v.x, v.y) + 0.05 + band_lift
+			# By the Rotunda the first 1.3 m are the planters' planting, the rest paving.
+			var split := 1.3 if planted else 0.3
+			if planted:
+				_sunk_top(PackedVector2Array([q0, q1, p1 + out * split, p0 + out * split]), on_grid, SUNK_PLANTER)
+			_sunk_top(PackedVector2Array([p0 + out * split, p1 + out * split, p1 + out * band, p0 + out * band]), on_grid, SUNK_COPING)
+			# The railing: a post every piece and a top rail at 1.05 m, thin two-sided bands.
+			var w0 := p0 + out * 0.12
+			var w1 := p1 + out * 0.12
+			if style == "rail":
+				_sunk_band(w0, w1, t0 + 0.99, t1 + 0.99, 0.07, nout)
+				_sunk_band(w0 + d * 0.02, w0 + d * 0.08, t0, t0, 0.99, nout)
+			# The car: from the floor to well over the railing (or the parapet), on the edge.
+			var over := 1.6 if style == "rail" else 0.6
+			map._wall_faces.append_array([Vector3(p0.x, f0 - 0.5, p0.y), Vector3(p1.x, f1 - 0.5, p1.y), Vector3(p1.x, t1 + over, p1.y),
+					Vector3(p0.x, f0 - 0.5, p0.y), Vector3(p1.x, t1 + over, p1.y), Vector3(p0.x, t0 + over, p0.y)])
+
+
+## A flat top over plan polygon `poly`, less what this build already covered (neighbouring edges'
+## coping and bands overlap at the corners and would flicker), each corner at `height`(corner).
+func _sunk_top(poly: PackedVector2Array, height: Callable, col: Color) -> void:
+	var parts: Array[PackedVector2Array] = [poly]
+	for done: PackedVector2Array in _sunk_done:
+		var left: Array[PackedVector2Array] = []
+		for part in parts:
+			for q in Geometry2D.clip_polygons(part, done):
+				if not Geometry2D.is_polygon_clockwise(q) or q.size() < 3:
+					left.append(q)
+		parts = left
+	_sunk_done.append(poly)
+	_mode = M_STONE
+	for part in parts:
+		var idx := Geometry2D.triangulate_polygon(part)
+		for t in range(0, idx.size() - 2, 3):
+			var a := part[idx[t]]
+			var b := part[idx[t + 1]]
+			var c := part[idx[t + 2]]
+			var pa := Vector3(a.x, float(height.call(a)), a.y)
+			var pb := Vector3(b.x, float(height.call(b)), b.y)
+			var pc := Vector3(c.x, float(height.call(c)), c.y)
+			if (pb - pa).cross(pc - pa).length() < 0.001:
+				continue  # a clipped sliver
+			_tri(pa, pb, pc, Vector3.UP, col, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+
+
+## A thin vertical band from a to b (plan), bottom y0/y1 at each end, `h` tall, both faces dark steel.
+func _sunk_band(a: Vector2, b: Vector2, y0: float, y1: float, h: float, n: Vector3) -> void:
+	_mode = M_STONE
+	var pa := Vector3(a.x, y0, a.y)
+	var pb := Vector3(b.x, y1, b.y)
+	var up := Vector3(0.0, h, 0.0)
+	_quad(pa, pb, pb + up, pa + up, n, SUNK_RAIL)
+	_quad(pb, pa, pa + up, pb + up, -n, SUNK_RAIL)
+
+
+## A stair's treads across its ring from its top `a` (the street's height) to its foot `b`
+## (the floor): risers ~0.16 m, each tread level with the higher end of its strip so the sunken
+## ground's slope stays under them; a darker nosing on each.
+func _sunk_treads(sk: Dictionary) -> void:
+	var ring: PackedVector2Array = sk["ring"]
+	var a: Vector2 = sk["a"]
+	var b: Vector2 = sk["b"]
+	var length := a.distance_to(b)
+	var d := (b - a) / length
+	var side := Vector2(-d.y, d.x)
+	var ha := float(sk["ha"])
+	var hb := float(sk["hb"])
+	var n := maxi(3, roundi((ha - hb) / 0.16))
+	for k in n:
+		var s0 := length * k / n
+		var s1 := length * (k + 1) / n
+		var strip := PackedVector2Array([a + d * s0 - side * 40.0, a + d * s1 - side * 40.0, a + d * s1 + side * 40.0,
+				a + d * s0 + side * 40.0])
+		var top := lerpf(ha, hb, float(k) / n)
+		for poly in Geometry2D.intersect_polygons(strip, ring):
+			if Geometry2D.is_polygon_clockwise(poly):
+				continue  # a hole: none in a convex strip
+			_prism(poly, top - 0.4, top, SUNK_TREAD.darkened(0.12), SUNK_TREAD.darkened(0.04 if k % 2 == 0 else 0.0), M_STONE, M_STONE)
+
+
+## One of Metro Centrum's glass barrels on the Patelnia over a stair down to the station: plan
+## `q` (q0-q1 the long side, q1-q2 the mouth), a half barrel springing from 0.45 m (crown at
+## the outline's 4.5 m), smoky ribbed glass, closed at the far end, open at the mouth, a dark
+## well inside and a concrete sill along each side.
+func _glass_barrel(q: Array) -> void:
+	var q0: Vector2 = q[0]
+	var q1: Vector2 = q[1]
+	var q2: Vector2 = q[2]
+	var q3: Vector2 = q[3]
+	var length := q0.distance_to(q1)
+	var up := (q1 - q0) / length
+	var c := (q0 + q1 + q2 + q3) * 0.25
+	var side := Vector2(-up.y, up.x)
+	var width := q1.distance_to(q2)
+	var r := width * 0.5 - 0.15
+	var g: float = map.terrain_height(c.x, c.y)
+	var y0 := g + 0.45
+	var half := length * 0.5
+	var segs := 9
+	var arc: Array[Vector2] = []
+	for k in segs + 1:
+		var ang := PI * float(k) / float(segs)
+		arc.append(Vector2(cos(ang) * r, sin(ang) * r))
+	var at := func(s: float, p: Vector2) -> Vector3:
+		var w := c + up * s + side * p.x
+		return Vector3(w.x, y0 + p.y, w.y)
+	_mode = M_PAVILION + 0.5
+	for k in segs:
+		var p0: Vector2 = arc[k]
+		var p1: Vector2 = arc[k + 1]
+		var n3: Vector3 = ((at.call(0.0, (p0 + p1) * 0.5) as Vector3) - Vector3(c.x, y0, c.y)).normalized()
+		_quad(at.call(-half, p0), at.call(half, p0), at.call(half, p1), at.call(-half, p1), n3, BARREL_SKIN)
+	var back := Vector3(-up.x, 0.0, -up.y)
+	var hub: Vector3 = at.call(-half, Vector2.ZERO)
+	for k in segs:
+		_tri(hub, at.call(-half, arc[k]), at.call(-half, arc[k + 1]), back, BARREL_SKIN.darkened(0.08),
+				Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+	# Ribs every ~1.3 m (the mouth's a little heavier), steel.
+	var n_rib := maxi(4, roundi(length / 1.3) + 1)
+	for i in n_rib:
+		var s := -half + length * float(i) / float(n_rib - 1)
+		_barrel_rib(at, s, 0.22 if i == n_rib - 1 else 0.12, arc, r)
+	# Sills along both sides, the dark well between them (the stair going down under the pavilions).
+	_o = c
+	_a = up
+	_b = side
+	for sx: float in [-1.0, 1.0]:
+		_lbox(0.0, r * sx, half, 0.14, g, y0 + 0.02, SUNK_CONCRETE, M_STONE, SUNK_CONCRETE.lightened(0.05))
+	_mode = M_STONE
+	var w0 := c + up * (half - 0.6) - side * (r - 0.2)
+	var w1 := c + up * (half - 0.6) + side * (r - 0.2)
+	var w2 := c - up * (half - 0.2) + side * (r - 0.2)
+	var w3 := c - up * (half - 0.2) - side * (r - 0.2)
+	_quad(Vector3(w0.x, g + 0.03, w0.y), Vector3(w1.x, g + 0.03, w1.y), Vector3(w2.x, g + 0.03, w2.y), Vector3(w3.x, g + 0.03, w3.y),
+			Vector3.UP, BARREL_WELL)
+	# The well's first steps at the mouth, lighter, so it reads as a stair going down.
+	for k in 3:
+		var s := half - 0.6 - 0.45 * k
+		var e0 := c + up * s - side * (r - 0.25)
+		var e1 := c + up * s + side * (r - 0.25)
+		var e2 := c + up * (s - 0.18) + side * (r - 0.25)
+		var e3 := c + up * (s - 0.18) - side * (r - 0.25)
+		_quad(Vector3(e0.x, g + 0.07, e0.y), Vector3(e1.x, g + 0.07, e1.y), Vector3(e2.x, g + 0.07, e2.y), Vector3(e3.x, g + 0.07, e3.y),
+				Vector3.UP, SUNK_TREAD.darkened(0.25 + 0.15 * k))
+
+
+## A barrel's steel rib at `s` along it, `w` wide: an annular band 0.1 m proud of the glass.
+func _barrel_rib(at: Callable, s: float, w: float, arc: Array[Vector2], r: float) -> void:
+	_mode = M_STONE
+	var k_in := (r + 0.01) / r
+	var k_out := (r + 0.11) / r
+	var axis := ((at.call(s + 0.1, Vector2.ZERO) as Vector3) - (at.call(s - 0.1, Vector2.ZERO) as Vector3)).normalized()
+	for k in arc.size() - 1:
+		var pa: Vector2 = arc[k]
+		var pb: Vector2 = arc[k + 1]
+		var hub: Vector3 = at.call(s, Vector2.ZERO)
+		var n_out: Vector3 = ((at.call(s, (pa + pb) * 0.5) as Vector3) - hub).normalized()
+		var fa_o: Vector3 = at.call(s - w * 0.5, pa * k_out)
+		var fb_o: Vector3 = at.call(s - w * 0.5, pb * k_out)
+		var ba_o: Vector3 = at.call(s + w * 0.5, pa * k_out)
+		var bb_o: Vector3 = at.call(s + w * 0.5, pb * k_out)
+		# The face towards the mouth and the outer band (the far face is never seen past the glass).
+		_quad(at.call(s + w * 0.5, pa * k_in), at.call(s + w * 0.5, pb * k_in), bb_o, ba_o, axis, BARREL_RIB)
+		_quad(fa_o, fb_o, bb_o, ba_o, n_out, BARREL_RIB.lightened(0.08))
+
+
+## The Rotunda's lower floor at the foot of its stair: a glazed doorway across the landing 2.5 m
+## past the last step, dark glass in a steel frame under a concrete lintel up to the street.
+func _sunk_doorway(sk: Dictionary) -> void:
+	var a: Vector2 = sk["a"]
+	var b: Vector2 = sk["b"]
+	var d := (b - a).normalized()
+	var side := Vector2(-d.y, d.x)
+	var at := b + d * 2.5
+	var hits := Geometry2D.intersect_polyline_with_polygon(PackedVector2Array([at - side * 20.0, at + side * 20.0]), sk["ring"])
+	if hits.is_empty() or (hits[0] as PackedVector2Array).size() < 2:
+		return
+	var seg: PackedVector2Array = hits[0]
+	var p0 := seg[0]
+	var p1 := seg[seg.size() - 1]
+	var f := float(sk["hb"])
+	var u := _sunk_upper(at, d)
+	var n := Vector3(-d.x, 0.0, -d.y)
+	_mode = M_GLASS_ROOF
+	_quad(Vector3(p0.x, f, p0.y), Vector3(p1.x, f, p1.y), Vector3(p1.x, f + 2.4, p1.y), Vector3(p0.x, f + 2.4, p0.y), n, Color("#33424d"))
+	_mode = M_STONE
+	_quad(Vector3(p0.x, f + 2.4, p0.y), Vector3(p1.x, f + 2.4, p1.y), Vector3(p1.x, u + 0.12, p1.y), Vector3(p0.x, u + 0.12, p0.y), n, SUNK_CONCRETE)
+	var mid := (p0 + p1) * 0.5
+	for p: Vector2 in [p0.lerp(p1, 0.04), mid, p1.lerp(p0, 0.04)]:
+		_beam(Vector3(p.x, f, p.y) - Vector3(d.x, 0.0, d.y) * 0.05, Vector3(p.x, f + 2.4, p.y) - Vector3(d.x, 0.0, d.y) * 0.05, 0.08, SUNK_RAIL, false)
+
+
+## Where a sunken entry's `walk` leaves its ring (the passage's mouth under the street): a dark
+## opening 2.2 m wide and 2.3 m tall on that edge, just inside the retaining face, so the walkers
+## going in pass behind the face and under the street (pedestrians.gd hides them there).
+func _sunk_mouth(sk: Dictionary) -> void:
+	var walk: PackedVector2Array = sk["walk"]
+	if walk.size() < 2:
+		return
+	var ring: PackedVector2Array = sk["ring"]
+	var w0 := walk[walk.size() - 2]
+	var w1 := walk[walk.size() - 1]
+	for i in ring.size():
+		var a := ring[i]
+		var b := ring[(i + 1) % ring.size()]
+		var hit: Variant = Geometry2D.segment_intersects_segment(w0, w1, a, b)
+		if hit == null:
+			continue
+		var at: Vector2 = hit
+		var d := (b - a).normalized()
+		var inward := (w0 - w1).normalized()
+		var f := float(map.sunk_level(sk, at))
+		var p0 := at - d * 1.1 + inward * 0.03
+		var p1 := at + d * 1.1 + inward * 0.03
+		var n := Vector3(inward.x, 0.0, inward.y)
+		_mode = M_STONE
+		_quad(Vector3(p0.x, f - 0.3, p0.y), Vector3(p1.x, f - 0.3, p1.y), Vector3(p1.x, f + 2.3, p1.y), Vector3(p0.x, f + 2.3, p0.y),
+				n, PASSAGE_DARK)
+		# A lighter lintel band over the opening.
+		_quad(Vector3(p0.x, f + 2.3, p0.y), Vector3(p1.x, f + 2.3, p1.y), Vector3(p1.x, f + 2.55, p1.y), Vector3(p0.x, f + 2.55, p0.y),
+				n, PARAPET_TOP)
+		return
+
+
+## A steel canopy over a pavement flight (its ring): posts along both long sides every ~2.6 m on
+## the parapet, a beam along each side and across every bay at 2.8 m over the street, glass in
+## the lower bays only where posters hang (the green Śródmieście canopies carry ads), the roof
+## left open between the beams (the glass there would hide the stair and its people from the
+## game's camera: the frame reads as the canopy).
+func _sunk_canopy(sk: Dictionary) -> void:
+	var ring: PackedVector2Array = sk["ring"]
+	if ring.size() != 4:
+		return
+	var col := CANOPY_GREEN if str(sk["style"]) == "canopy_green" else CANOPY_DARK
+	# The long sides: ring[0]-ring[1] and ring[3]-ring[2] (the top end ring[3]-ring[0]).
+	var sides := [[ring[0], ring[1]], [ring[3], ring[2]]]
+	var length := ring[0].distance_to(ring[1])
+	var n := maxi(2, roundi(length / 2.6))
+	var top: float = map._grid_height(ring[0].x, ring[0].y)
+	for sd: Array in sides:
+		var a: Vector2 = sd[0]
+		var b: Vector2 = sd[1]
+		var d := (b - a) / length
+		var y := top + 2.8
+		for k in n + 1:
+			var p := a + d * (length * k / n)
+			var g: float = map._grid_height(p.x, p.y)
+			_beam(Vector3(p.x, g + 0.9, p.y), Vector3(p.x, y, p.y), 0.1, col, false)
+		_beam(Vector3(a.x, y, a.y), Vector3(b.x, y, b.y), 0.14, col, false)
+	for k in n + 1:
+		var t := float(k) / n
+		var p := ring[0].lerp(ring[1], t)
+		var q := ring[3].lerp(ring[2], t)
+		_beam(Vector3(p.x, top + 2.8, p.y), Vector3(q.x, top + 2.8, q.y), 0.08, col, false)
+	# Posters behind glass in the two middle bays of both long sides (green canopies only).
+	if str(sk["style"]) != "canopy_green":
+		return
+	var c := 0
+	for sd: Array in sides:
+		var a: Vector2 = sd[0]
+		var b: Vector2 = sd[1]
+		var d := (b - a) / length
+		var out := Vector2(d.y, -d.x)
+		var mid := (ring[0] + ring[1] + ring[2] + ring[3]) * 0.25
+		if out.dot(a - mid) < 0.0:
+			out = -out
+		for k: int in [n / 2 - 1, n / 2]:
+			if k < 0 or k >= n:
+				continue
+			var p0 := a + d * (length * k / n + 0.25) + out * 0.02
+			var p1 := a + d * (length * (k + 1) / n - 0.25) + out * 0.02
+			var g: float = map._grid_height(p0.x, p0.y)
+			var nn := Vector3(out.x, 0.0, out.y)
+			_mode = M_STONE
+			_quad(Vector3(p0.x, g + 0.9, p0.y), Vector3(p1.x, g + 0.9, p1.y), Vector3(p1.x, g + 2.6, p1.y), Vector3(p0.x, g + 2.6, p0.y),
+					nn, POSTERS[c % POSTERS.size()])
+			_quad(Vector3(p1.x, g + 0.9, p1.y), Vector3(p0.x, g + 0.9, p0.y), Vector3(p0.x, g + 2.6, p0.y), Vector3(p1.x, g + 2.6, p1.y),
+					-nn, CANOPY_GLASS)
+			c += 1
+
+
 # --- Dom Partii (F's photos, 2026-11-01) --------------------------------------------------------
 
 ## The Party House (1948-1952, Nowy Świat 6/12, today Centrum Bankowo-Finansowe): its massing is
@@ -5864,6 +6342,8 @@ func _forest_tower(poly: PackedVector2Array, g: float) -> void:
 		_no_roof = true
 		_prism(_square(c, 2.2), top, top + 2.4, Color("#5b5f60"), Color("#6a6e6f"), M_STONE, M_STONE)
 		_no_roof = false
+		if float(s[2]) >= 119.0:
+			_forest_boat(slab, c, top)
 
 
 ## PEPEO ŻUBR (F, 2026-11-03), F's parody of the tenant's name, in the south slab's crown band:
@@ -5885,6 +6365,63 @@ func _forest_sign(slab: PackedVector2Array, top: float) -> void:
 	# The east end: 0.85 (about 10 m), on the slab's own 12 m end.
 	var east := FOREST_O + FOREST_U * (hi.x + 0.1) + v * ((lo.y + hi.y) * 0.5)
 	signs.append(["PEPEO ŻUBR", Vector3(east.x, y + 1.2, east.y), Vector3(FOREST_U.x, 0.0, FOREST_U.y), 0.85, FOREST_BANK])
+
+
+## F's joke (2026-11-06): a cobalt-blue motor bowrider on a cradle on the tallest slab's roof, well
+## clear of the crown band that carries PEPEO ŻUBR and of the plant box. Ten metres long, white
+## hull with a cobalt sheer and stripe, a swept windshield, bow and stern seats, a sun pad over
+## the engine, a chrome rail. Two metres beside the slab's axis and turned 25 degrees, as if it
+## were being lifted.
+const FOREST_BOAT_BLUE := Color("#0b3d91")
+func _forest_boat(slab: PackedVector2Array, c: Vector2, top: float) -> void:
+	var none := Color(0, 0, 0, 0)
+	var a := Vector2(FOREST_U.x, FOREST_U.y).rotated(deg_to_rad(25.0))
+	var b := Vector2(-a.y, a.x)
+	var m := c + FOREST_U * 9.0
+	var hl := 5.0
+	var hb := 1.35
+	var hull := PackedVector2Array([m + a * hl, m + a * hl * 0.4 + b * hb * 0.85, m - a * hl * 0.85 + b * hb,
+			m - a * hl + b * hb * 0.9, m - a * hl - b * hb * 0.9, m - a * hl * 0.85 - b * hb, m + a * hl * 0.4 - b * hb * 0.85])
+	for q in hull:
+		if not Geometry2D.is_point_in_polygon(q, slab):
+			return
+	_no_roof = true
+	_mode = M_STONE
+	# Cradle: two steel skids and a keel block.
+	for sd: float in [-0.9, 0.9]:
+		_prism(PackedVector2Array([m - a * 3.6 + b * (sd - 0.12), m + a * 3.2 + b * (sd - 0.12), m + a * 3.2 + b * (sd + 0.12),
+				m - a * 3.6 + b * (sd + 0.12)]), top, top + 0.55, Color("#4a4f54"), Color("#4a4f54"), M_STONE, M_STONE)
+	var y := top + 0.55
+	_prism(hull, y, y + 0.55, FOREST_BOAT_BLUE, none, M_STONE)
+	_prism(hull, y + 0.55, y + 1.0, Color("#f4f5f2"), none, M_STONE)
+	var sheer := _largest(Geometry2D.offset_polygon(hull, -0.12, Geometry2D.JOIN_MITER))
+	if sheer.size() >= 3:
+		_prism(sheer, y + 1.0, y + 1.12, FOREST_BOAT_BLUE, Color("#e8dcc0"), M_STONE, M_STONE)
+	var d := y + 1.12
+	# Bow seat, dash console, stern bench and the engine-cover sun pad.
+	_prism(PackedVector2Array([m + a * 3.3 + b * 0.9, m + a * 2.2 + b * 1.0, m + a * 2.2 - b * 1.0, m + a * 3.3 - b * 0.9]),
+			d, d + 0.35, Color("#f1efe8"), Color("#f1efe8"), M_STONE, M_STONE)
+	_prism(PackedVector2Array([m + a * 1.0 + b * 1.0, m + a * 0.3 + b * 1.0, m + a * 0.3 - b * 1.0, m + a * 1.0 - b * 1.0]),
+			d, d + 0.8, Color("#e9e8e2"), Color("#2b2d2f"), M_STONE, M_STONE)
+	_prism(PackedVector2Array([m - a * 2.0 + b * 1.15, m - a * 3.0 + b * 1.15, m - a * 3.0 - b * 1.15, m - a * 2.0 - b * 1.15]),
+			d, d + 0.4, Color("#f1efe8"), Color("#f1efe8"), M_STONE, M_STONE)
+	_prism(PackedVector2Array([m - a * 3.2 + b * 1.2, m - a * 4.3 + b * 1.2, m - a * 4.3 - b * 1.2, m - a * 3.2 - b * 1.2]),
+			d, d + 0.45, Color("#0b3d91"), Color("#f1efe8"), M_STONE, M_STONE)
+	# Windshield: a tinted glass quad, leaning back.
+	var w0 := m + a * 1.1 + b * 0.95
+	var w1 := m + a * 1.1 - b * 0.95
+	var t0 := m + a * 0.4 + b * 0.95
+	var t1 := m + a * 0.4 - b * 0.95
+	_mode = M_PAVILION
+	_quad(Vector3(w0.x, d + 0.8, w0.y), Vector3(w1.x, d + 0.8, w1.y), Vector3(t1.x, d + 1.5, t1.y), Vector3(t0.x, d + 1.5, t0.y),
+			Vector3(a.x, 0.5, a.y).normalized(), Color("#6b8794"))
+	_mode = M_STONE
+	# Chrome rail round the bow and a flag staff at the stern.
+	var bow := m + a * 4.6
+	_beam(Vector3(bow.x, d, bow.y), Vector3(bow.x, d + 0.5, bow.y), 0.05, Color("#c9ced2"), false)
+	var st := m - a * 4.6
+	_beam(Vector3(st.x, d, st.y), Vector3(st.x, d + 1.6, st.y), 0.05, Color("#c9ced2"), false)
+	_no_roof = false
 
 
 ## A wing: glass behind the colour fins up to a planted ledge, the black-clad top storey set
@@ -22694,3 +23231,675 @@ func _build_bgk(site: Dictionary) -> void:
 	var mono := _w(mu, 0.1)
 	_disc(Vector3(mono.x, g + 11.2, mono.y), Vector3(_b.x, 0.0, _b.y), 1.0, 10, BGK_GILT)
 	_collide_raw(site)
+
+
+# --- Foksal 13 and 15 (F's photos, 2026-11-05; spec docs/landmarks/specs/foksal.md) ------------
+
+## Two restored tenements on Foksal. The masses, courtyards and zinc mansards stay LoD2's, in a
+## kept skin (cream plaster behind, zinc on the roofs); the street fronts are ours, from F's
+## photos. Foksal 13: salmon brick framed in white stone, eleven bays (two in each end bay under
+## a crested gable, seven between), a white rusticated ground floor round an arched gate with two
+## atlantes, stone balconies on the first floor, iron ones above. Foksal 15 (west): ochre brick,
+## cream stone, red window frames, arched top-floor windows, and a forward bay at its east end
+## with stacked iron balconies under a small gable. Frames: u along the front from its west end,
+## +v out to the street (north-north-west). LoD2's front walls stand 0.3 m behind the outline.
+const FK13_W := Vector2(-184.2, 27.8)    # Foksal 13's front, west end
+const FK13_E := Vector2(-160.2, 18.6)    # east end
+const FK15_W := Vector2(-206.5, 38.3)    # Foksal 15's front, west end (the party wall with 17)
+const FK15_J := Vector2(-188.6, 31.7)    # where its front steps out to the bay
+const FK15_BW := Vector2(-189.3, 29.8)   # the bay's front, west end
+const FK15_BE := Vector2(-184.2, 27.8)   # east end (Foksal 13's corner)
+const FK13_EAVES := 22.4
+const FK15_EAVES := 20.6
+const FK_BRICK13 := Color("#dc9c7a")     # salmon brick (F's street photo)
+const FK_WHITE := Color("#eeebe4")
+const FK_BRICK15 := Color("#c39a72")     # ochre brick (F's close-up)
+const FK_CREAM := Color("#e9dfc8")
+const FK_RED := Color("#8c2b2b")         # Foksal 15's window frames
+const FK_GLASS := Color("#3d4652")
+const FK_IRON := Color("#3f4247")
+const FK_GATE := Color("#2c2a2b")
+const FK_PLASTER := "#e3d6bd"            # the kept skin: courtyard and back walls
+const FK_ZINC := "#6f7882"               # the mansards
+
+
+func _find_foksal() -> void:
+	var zone: Array = []
+	for at: Vector2 in [Vector2(-161.4, 60.1), Vector2(-187.7, 51.1)]:  # the address points of 13 and 15
+		var q := _tallest_at(at)
+		if q.size() < 3 or not Geometry2D.is_point_in_polygon(at, q):
+			return
+		zone.append(q)
+	_add_site("foksal", zone)
+	if not sites.is_empty() and sites[-1]["key"] == "foksal":
+		sites[-1]["skin"] = {"mode": 0.37, "wall": Color(FK_PLASTER), "roof": Color(FK_ZINC), "steep": 0.3}
+
+
+## The frame of a front from its west end `w` to `e`, +v out to the street.
+func _fk_frame(w: Vector2, e: Vector2) -> float:
+	_o = w
+	_a = (e - w).normalized()
+	_b = Vector2(_a.y, -_a.x)
+	return w.distance_to(e)
+
+
+## A window in the local frame: a stone surround proud of the wall at `v`, the glass 5 cm before it
+## (a red frame between the two when `frame` is opaque), and a round head when `arched`.
+func _fk_window(u: float, v: float, y0: float, h: float, hw: float, stone: Color, frame := Color(0, 0, 0, 0), arched := false) -> void:
+	var at := _w(u, v)
+	if arched:
+		var spring := y0 + h - hw
+		_arch_panel(at, _a, _b, hw + 0.24, y0 - 0.2, spring, stone, 0.04, M_STONE)
+		if frame.a > 0.0:
+			_arch_panel(at, _a, _b, hw + 0.08, y0 - 0.06, spring, frame, 0.09, M_STONE)
+		_arch_panel(at, _a, _b, hw, y0, spring, FK_GLASS, 0.14, M_GLASS)
+		return
+	_lbox(u, v + 0.06, hw + 0.24, 0.06, y0 - 0.22, y0 + h + 0.24, stone, M_STONE, stone)
+	var keep := _mode
+	if frame.a > 0.0:
+		_mode = M_STONE
+		_wall(_w(u - hw - 0.08, v + 0.165), _w(u + hw + 0.08, v + 0.165), y0 - 0.08, y0 + h + 0.08, _b, frame)
+	_mode = M_GLASS
+	# each window its own column of the glass shader's lit rooms (one every 4.5 m of `run`)
+	_wall(_w(u - hw, v + 0.21), _w(u + hw, v + 0.21), y0, y0 + h, _b, FK_GLASS, u * 2.0 + 0.2)
+	_mode = keep
+
+
+## A balcony on the local frame: a slab from the wall at `v` out `depth`, `hw` each side of `u`,
+## its floor at `y`, and a railing round its front and sides (stone balusters or iron).
+func _fk_balcony(u: float, v: float, hw: float, depth: float, y: float, rail: Color, slab: Color, rail_h := 1.0) -> void:
+	_lbox(u, v + depth * 0.5, hw, depth * 0.5, y - 0.28, y, slab, M_STONE, slab)
+	_lbox(u, v + depth - 0.07, hw, 0.07, y, y + rail_h, rail, M_STONE, rail)
+	for sd: float in [-1.0, 1.0]:
+		_lbox(u + sd * (hw - 0.07), v + (depth - 0.14) * 0.5, 0.07, (depth - 0.14) * 0.5, y, y + rail_h, rail, M_STONE, rail)
+	for sd: float in [-0.6, 0.6]:  # two brackets under it
+		_lbox(u + sd * hw, v + depth * 0.3, 0.12, depth * 0.3, y - 0.75, y - 0.28, slab.darkened(0.08), M_STONE, slab)
+
+
+## A crested gable over an end bay: a stone face from the cornice up, a pointed crest, a finial
+## and an attic window.
+func _fk_gable(u: float, hw: float, v: float, y: float, h: float, stone: Color) -> void:
+	_lbox(u, v + 0.25, hw, 0.25, y, y + h, stone, M_STONE, stone)
+	_mode = M_STONE
+	_pyramid(_rect(u, v + 0.25, hw, 0.25), y + h, y + h + hw * 0.7, stone.darkened(0.04))
+	_lbox(u, v + 0.25, 0.14, 0.14, y + h + hw * 0.55, y + h + hw * 0.7 + 0.9, stone, M_STONE, stone)
+	_arch_panel(_w(u, v + 0.5), _a, _b, 0.5, y + 0.4, y + h - 0.6, FK_GLASS, 0.05, M_GLASS)
+
+
+func _build_foksal(site: Dictionary) -> void:
+	_g = _ground_under((site["zone"] as Array)[0])
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	_build_foksal13(g, none)
+	_build_foksal15(g, none)
+
+
+func _build_foksal13(g: float, none: Color) -> void:
+	var length := _fk_frame(FK13_W, FK13_E)
+	var top := g + FK13_EAVES
+	var mid := length * 0.5
+	var bay := 4.8   # each end bay's width
+	var ground := 6.4
+	# the brick between the end bays, the end bays 0.25 m forward
+	_mode = M_STONE
+	_wall(_w(bay, 0.0), _w(length - bay, 0.0), g + ground, top - 0.4, _b, FK_BRICK13, bay)
+	for c: float in [bay * 0.5, length - bay * 0.5]:
+		_lbox(c, 0.125, bay * 0.5, 0.125, g + ground, top - 0.4, FK_BRICK13, M_STONE, FK_BRICK13)
+	# the white rusticated ground floor in four courses
+	for k in 4:
+		var y0 := g - 0.3 + (ground + 0.3) * k / 4.0
+		var y1 := g - 0.3 + (ground + 0.3) * (k + 1) / 4.0
+		_lbox(mid, 0.17, mid, 0.17, y0, y1, FK_WHITE.darkened(0.05 if k % 2 == 0 else 0.0), M_STONE, FK_WHITE)
+	# string courses at every floor, the cornice's frieze and its ledge
+	_lbox(mid, 0.3, mid + 0.1, 0.3, g + ground, g + ground + 0.45, FK_WHITE, M_STONE, FK_WHITE.darkened(0.04))
+	for y: float in [10.55, 14.45, 18.35]:
+		_lbox(mid, 0.33, mid, 0.08, g + y, g + y + 0.25, FK_WHITE, M_STONE, FK_WHITE)
+	_lbox(mid, 0.38, mid + 0.1, 0.13, top - 0.4, top, FK_WHITE, M_STONE, FK_WHITE)
+	_lbox(mid, 0.45, mid + 0.25, 0.45, top, top + 0.5, FK_WHITE.darkened(0.03), M_STONE, FK_WHITE.darkened(0.08))
+	# the windows: eleven bays over four floors (two in each end bay, seven between), pediments on
+	# the first floor
+	var us: Array[float] = [1.4, 3.4]
+	for k in 7:
+		us.append(bay + 1.15 + k * 2.3)
+	us.append(length - 3.4)
+	us.append(length - 1.4)
+	for f in 4:
+		var y := g + 6.9 + f * 3.9
+		for u: float in us:
+			var v := 0.25 if (u < bay or u > length - bay) else 0.0
+			_fk_window(u, v, y, 2.6, 0.62, FK_WHITE)
+			if f == 0:
+				_lbox(u, v + 0.15, 0.95, 0.15, y + 2.86, y + 3.3, FK_WHITE, M_STONE, FK_WHITE.darkened(0.05))
+	# the ground floor's windows each side of the gate
+	for u: float in [1.4, 3.4, 6.1, 8.5, length - 8.5, length - 6.1, length - 3.4, length - 1.4]:
+		_fk_window(u, 0.34, g + 1.3, 3.0, 0.58, FK_WHITE.darkened(0.06))
+	# the gate: a dark arched door in a white surround, an atlas each side carrying the balcony
+	_arch_panel(_w(mid, 0.34), _a, _b, 1.75, g - 0.1, g + 3.5, FK_WHITE.darkened(0.1), 0.04, M_STONE)
+	_arch_panel(_w(mid, 0.34), _a, _b, 1.35, g, g + 3.3, FK_GATE, 0.09, M_STONE)
+	for sd: float in [-1.0, 1.0]:
+		_lbox(mid + sd * 2.15, 0.5, 0.32, 0.16, g + 3.0, g + 5.7, FK_WHITE, M_STONE, FK_WHITE)
+		_lbox(mid + sd * 2.15, 0.5, 0.2, 0.14, g + 5.7, g + 6.1, FK_WHITE.darkened(0.04), M_STONE, FK_WHITE)
+	# balconies: stone on the first floor (both end bays, the middle), iron above
+	for c: float in [bay * 0.5, mid, length - bay * 0.5]:
+		var v := 0.0 if c == mid else 0.25
+		_fk_balcony(c, v + 0.34 if c == mid else v, 2.3, 0.95, g + 6.9, FK_WHITE, FK_WHITE.darkened(0.04))
+	for c: float in [bay * 0.5, length - bay * 0.5]:
+		_fk_balcony(c, 0.25, 2.1, 0.8, g + 10.8, FK_IRON, FK_IRON.lightened(0.25), 0.9)
+	for c: float in [bay * 0.5, mid, length - bay * 0.5]:
+		_fk_balcony(c, 0.0 if c == mid else 0.25, 2.1, 0.8, g + 14.7, FK_IRON, FK_IRON.lightened(0.25), 0.9)
+	# the crested gables over the end bays
+	for c: float in [bay * 0.5, length - bay * 0.5]:
+		_fk_gable(c, 2.0, 0.0, top + 0.5, 3.4, FK_WHITE)
+
+
+func _build_foksal15(g: float, none: Color) -> void:
+	var length := _fk_frame(FK15_W, FK15_J)
+	var top := g + FK15_EAVES
+	var mid := length * 0.5
+	var ground := 5.6
+	_mode = M_STONE
+	_wall(_w(0.0, 0.0), _w(length, 0.0), g + ground, top - 0.4, _b, FK_BRICK15)
+	for k in 3:
+		var y0 := g - 0.3 + (ground + 0.3) * k / 3.0
+		_lbox(mid, 0.14, mid, 0.14, y0, y0 + (ground + 0.3) / 3.0, FK_CREAM.darkened(0.06 if k % 2 == 0 else 0.0), M_STONE, FK_CREAM)
+	_lbox(mid, 0.25, mid, 0.25, g + ground, g + ground + 0.4, FK_CREAM, M_STONE, FK_CREAM.darkened(0.04))
+	for y: float in [9.35, 13.05]:
+		_lbox(mid, 0.06, mid, 0.06, g + y, g + y + 0.22, FK_CREAM, M_STONE, FK_CREAM)
+	_lbox(mid, 0.35, mid, 0.12, top - 0.4, top, FK_CREAM, M_STONE, FK_CREAM)
+	_lbox(mid, 0.4, mid, 0.4, top, top + 0.45, FK_CREAM.darkened(0.04), M_STONE, FK_CREAM.darkened(0.08))
+	# six bays: arched openings on the ground floor, framed windows over four floors (red frames,
+	# the top floor's round-headed)
+	for k in 6:
+		var u := 1.85 + k * 3.1
+		_fk_window(u, 0.28, g + 0.7, 3.4, 0.7, FK_CREAM.darkened(0.08), Color(0, 0, 0, 0), true)
+		for f in 4:
+			_fk_window(u, 0.0, g + 6.0 + f * 3.7, 2.5, 0.65, FK_CREAM, FK_RED, f == 3)
+	for u: float in [1.85 + 3.1, 1.85 + 3.1 * 4.0]:
+		_fk_balcony(u, 0.0, 1.3, 0.75, g + 13.4, FK_IRON, FK_IRON.lightened(0.25), 0.9)
+	# the bay's west side, in brick over the stone
+	var side := _fk_frame(FK15_J, FK15_BW)
+	_b = Vector2(-_a.y, _a.x) if Vector2(-_a.y, _a.x).dot(FK15_W - FK15_J) > 0.0 else Vector2(_a.y, -_a.x)
+	_lbox(side * 0.5, 0.07, side * 0.5, 0.07, g - 0.3, g + ground, FK_CREAM.darkened(0.04), M_STONE, FK_CREAM)
+	_mode = M_STONE
+	_wall(_w(0.0, 0.03), _w(side, 0.03), g + ground, top - 0.4, _b, FK_BRICK15)
+	# the bay: two windows a floor, an iron balcony across it on three floors, a small gable
+	var bl := _fk_frame(FK15_BW, FK15_BE)
+	var bm := bl * 0.5
+	var btop := top + 0.6
+	_mode = M_STONE
+	_wall(_w(0.0, 0.0), _w(bl, 0.0), g + ground, btop - 0.4, _b, FK_BRICK15)
+	for k in 3:
+		var y0 := g - 0.3 + (ground + 0.3) * k / 3.0
+		_lbox(bm, 0.14, bm, 0.14, y0, y0 + (ground + 0.3) / 3.0, FK_CREAM.darkened(0.06 if k % 2 == 0 else 0.0), M_STONE, FK_CREAM)
+	_lbox(bm, 0.25, bm, 0.25, g + ground, g + ground + 0.4, FK_CREAM, M_STONE, FK_CREAM.darkened(0.04))
+	_lbox(bm, 0.35, bm, 0.12, btop - 0.4, btop, FK_CREAM, M_STONE, FK_CREAM)
+	_lbox(bm, 0.4, bm, 0.4, btop, btop + 0.45, FK_CREAM.darkened(0.04), M_STONE, FK_CREAM.darkened(0.08))
+	_fk_window(bm, 0.28, g + 0.7, 3.4, 0.9, FK_CREAM.darkened(0.08), Color(0, 0, 0, 0), true)
+	for f in 4:
+		for u: float in [bm - 1.25, bm + 1.25]:
+			_fk_window(u, 0.0, g + 6.0 + f * 3.7, 2.5, 0.6, FK_CREAM, FK_RED, f >= 2)
+		if f >= 1:
+			_fk_balcony(bm, 0.0, bl * 0.5 - 0.3, 0.85, g + 6.0 + f * 3.7, FK_IRON, FK_IRON.lightened(0.25), 0.9)
+	_fk_gable(bm, bl * 0.5 - 0.4, 0.0, btop + 0.45, 2.0, FK_CREAM)
+
+# --- Warsaw modernism: Młotek, Kozia 9, Karowa 18a (F, 2026-11-03; docs/design/modernism-collection.md) ---
+
+## A window on a wall's plane a→b: a white frame 4 cm proud, the glass 9 cm proud and 10 cm inside it
+## (under 3 cm apart, _wall takes the two for one plane and cuts the glass away).
+func _framed(a: Vector2, b: Vector2, y0: float, y1: float, out: Vector2, frame: Color, glass: Color, run := 0.0) -> void:
+	var keep := _mode
+	var e := (b - a).normalized()
+	_mode = M_STONE
+	_wall(a + out * 0.04, b + out * 0.04, y0, y1, out, frame, run)
+	_mode = M_GLASS
+	_wall(a + e * 0.1 + out * 0.09, b - e * 0.1 + out * 0.09, y0 + 0.1, y1 - 0.1, out, glass, run)
+	_mode = keep
+
+
+## A hanging volume: `poly`'s walls and top, and its underside, which the street sees.
+func _hang(poly: PackedVector2Array, y0: float, y1: float, wall: Color, top: Color, under: Color) -> void:
+	_prism(poly, y0, y1, wall, top, M_STONE, M_STONE)
+	_mode = M_STONE
+	_soffit(poly, y0, under)
+
+
+## A flat roof from above: `poly` in a pale rim, the deck 40 cm inside it and 5 cm over it.
+func _rimmed(poly: PackedVector2Array, y: float, rim: Color, deck: Color) -> void:
+	var keep := _mode
+	_mode = M_STONE
+	_cap(poly, y, rim)
+	var inner := _largest(Geometry2D.offset_polygon(poly, -0.4, Geometry2D.JOIN_MITER))
+	if inner.size() >= 3:
+		_prism(inner, y, y + 0.05, deck, deck, M_STONE, M_STONE)
+	_mode = keep
+
+
+## Młotek, Smolna 8 (1964-76, Jan Bogusławski and Bohdan Gniewiewski), from the Mac photo gather
+## (docs/landmarks/photo-reports/mlotek.md: 17 Commons photos and the GUGiK ortho). The slab of
+## grey-brown roughcast with its strip windows, the balconies with yellow edges stacked up both
+## ends, and on top the hammer's head: two storeys wider and 7.5 m longer than the slab, jutting
+## out over the east end on a dark soffit, a glazed band round it, its end face leaning out. The
+## concrete pergola stands at the east foot. Frame: u along the slab from its west end, v from
+## the north side to the south side. Spec mlotek.md.
+const ML_AT := Vector2(83.0, 32.0)
+const ML_O := Vector2(63.36, 31.27)
+const ML_A := Vector2(0.9252, -0.3794)
+const ML_LEN := 35.5
+const ML_WID := 17.1
+const ML_GROUND := 3.0       # the ground storey
+const ML_FLOOR := 2.8
+const ML_FLOORS := 19
+const ML_NECK := 56.2        # the slab's top, over the ground
+const ML_NOTCH := 54.5       # the dark notch over the west balconies starts here
+const ML_LEDGE := 57.0       # the head's underside
+const ML_BAND := 58.0        # the glazed band's sill
+const ML_BAND_TOP := 60.2
+const ML_TOP := 62.8         # the head's roof, flat: photo 3 shows a straight top, LoD2's deck averages map height 67.8
+const ML_JAW := 43.0         # the head's east end, in u (the ortho's roof length)
+const ML_JAW_ROOT := 54.5    # the underside where it leaves the slab, a storey under the ledge (photos 3, 13)
+const ML_WALL := Color("#8f877a")
+const ML_HEAD := Color("#8a857c")
+const ML_SOFFIT := Color("#4a4743")
+const ML_YELLOW := Color("#d8bb45")
+const ML_DARK := Color("#3a3d40")
+const ML_RAIL := Color("#6e6b65")
+const ML_FRAME := Color("#e8e8e4")
+const ML_GLASS := Color("#2e3640")
+const ML_BASE := Color("#8c8a86")
+const ML_CONCRETE := Color("#7f7b74")
+const ML_ROOF := Color("#6d6f72")
+const ML_RIM := Color("#c8c6bf")
+## The long faces' four strip windows and the column of single ones, in u.
+const ML_STRIPS := [Vector2(5.3, 9.5), Vector2(9.9, 14.1), Vector2(14.5, 18.7), Vector2(19.1, 23.7), Vector2(25.7, 28.1)]
+
+
+func _find_mlotek() -> void:
+	var q := _tallest_at(ML_AT)
+	if q.size() < 3 or not Geometry2D.is_point_in_polygon(ML_O + ML_A * 18.0 + Vector2(-ML_A.y, ML_A.x) * 8.0, q):
+		return
+	_add_site("mlotek", [_largest(Geometry2D.offset_polygon(q, 1.5, Geometry2D.JOIN_MITER))])
+	if not sites.is_empty() and sites[-1]["key"] == "mlotek":
+		sites[-1]["ring"] = _simplify(q, 0.4)
+		sites[-1]["raw"] = q
+
+
+func _build_mlotek(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	_g = _ground_under(ring)
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	_o = ML_O
+	_a = ML_A
+	_b = Vector2(-ML_A.y, ML_A.x)   # from the north side to the south side
+	_mode = M_STONE
+	# window_bands, stair_column: 19 storeys on both long faces.
+	for k in ML_FLOORS:
+		var y := g + ML_GROUND + ML_FLOOR * k + 0.85
+		for s: Vector2 in ML_STRIPS:
+			_framed(_w(s.x, ML_WID), _w(s.y, ML_WID), y, y + 1.5, _b, ML_FRAME, ML_GLASS, s.x + 4.5 * k)
+			_framed(_w(s.x, 0.0), _w(s.y, 0.0), y, y + 1.5, -_b, ML_FRAME, ML_GLASS, s.x + 13.5 * k)
+	# shaft: the slab, narrower behind the west balconies, the end walls behind both stacks.
+	_lbox(19.25, ML_WID * 0.5, 13.75, ML_WID * 0.5, g - 0.8, g + ML_NECK, ML_WALL, M_STONE, ML_SOFFIT)
+	_lbox(4.15, ML_WID * 0.5, 1.35, 6.35, g - 0.8, g + ML_NOTCH, ML_WALL, M_STONE, ML_SOFFIT)
+	for v: float in [0.25, ML_WID - 0.25]:
+		_lbox(34.25, v, 1.25, 0.25, g - 0.8, g + ML_NECK, ML_WALL, M_STONE, ML_SOFFIT)
+	# base: the ground storey's lobby glass and the plinth on the south front.
+	_framed(_w(8.0, ML_WID), _w(24.0, ML_WID), g + 0.6, g + ML_GROUND - 0.3, _b, ML_BASE, ML_GLASS, 8.0)
+	_framed(_w(26.0, ML_WID), _w(30.0, ML_WID), g + 0.3, g + ML_GROUND - 0.3, _b, ML_BASE, ML_GLASS, 26.0)
+	_band(_rect(19.25, ML_WID * 0.5, 13.75, ML_WID * 0.5), 0.12, g - 0.6, g + 0.6, ML_BASE)
+	# balcony_strip: a slab with a yellow edge on every storey up both ends, a dark balustrade on
+	# it, the glass doors behind.
+	for k in ML_FLOORS + 1:
+		var y := g + ML_GROUND + ML_FLOOR * k - 0.1
+		if k == ML_FLOORS:
+			continue
+		_hang(_rect(34.0, ML_WID * 0.5, 1.5, 8.05), y - 0.6, y, ML_YELLOW, ML_CONCRETE, ML_SOFFIT)
+		_hang(_rect(2.75, ML_WID * 0.5, 2.75, 7.5), y - 0.6, y, ML_YELLOW, ML_CONCRETE, ML_SOFFIT)
+		_mode = M_STONE
+		_wall(_w(ML_LEN, 0.5), _w(ML_LEN, ML_WID - 0.5), y + 0.1, y + 1.0, Vector2(_a), ML_RAIL, 0.0)
+		_wall(_w(0.0, 1.0), _w(0.0, 16.0), y + 0.1, y + 1.0, -_a, ML_RAIL, 0.0)
+		_wall(_w(0.0, 16.0), _w(5.5, 16.0), y + 0.1, y + 1.0, _b, ML_RAIL, 0.0)
+		_wall(_w(0.0, 1.0), _w(5.5, 1.0), y + 0.1, y + 1.0, -_b, ML_RAIL, 0.0)
+		_framed(_w(33.0, 1.0), _w(33.0, ML_WID - 1.0), y + 0.2, y + 2.3, _a, ML_FRAME, ML_GLASS, 0.0)
+		if y + 2.3 < g + ML_NOTCH:
+			_framed(_w(2.8, 2.6), _w(2.8, 14.5), y + 0.2, y + 2.3, -_a, ML_FRAME, ML_GLASS, 0.0)
+	_build_mlotek_head(g, none)
+	_build_mlotek_foot(g)
+	_collide_raw(site)
+
+
+## crown_slab, crown_glaze, roof_plant: the hammer's head on its dark neck, the underside sloping
+## up from a storey below the ledge to the head's east end, the end face leaning out.
+func _build_mlotek_head(g: float, none: Color) -> void:
+	var v0 := -0.6
+	var v1 := ML_WID + 0.6
+	var u0 := -0.3
+	var ue := ML_JAW - 0.9
+	var tip := ML_JAW - 0.6
+	# The neck: a dark recess between the slab and the head, a deep notch over the west balconies.
+	_lbox(19.25, ML_WID * 0.5, 13.75, ML_WID * 0.5 - 0.9, g + ML_NECK, g + ML_LEDGE, ML_SOFFIT, M_STONE, ML_SOFFIT)
+	_lbox(2.75, ML_WID * 0.5, 2.75, 6.0, g + ML_NOTCH, g + ML_LEDGE, ML_SOFFIT, M_STONE, ML_SOFFIT)
+	# The ledge over the slab, and the jaw east of it.
+	_hang(PackedVector2Array([_w(u0, v0), _w(35.5, v0), _w(35.5, v1), _w(u0, v1)]), g + ML_LEDGE, g + ML_BAND, ML_HEAD, ML_SOFFIT, ML_SOFFIT)
+	_mode = M_STONE
+	var yr := g + ML_JAW_ROOT
+	var yt := g + ML_LEDGE
+	var yb := g + ML_BAND
+	for c: Array in [[v1, _b], [v0, -_b]]:
+		var v: float = c[0]
+		var n := Vector3(c[1].x, 0.0, c[1].y)
+		var p0 := _w(35.5, v)
+		var p1 := _w(tip, v)
+		_quad(Vector3(p0.x, yr, p0.y), Vector3(p1.x, yt, p1.y), Vector3(p1.x, yb, p1.y), Vector3(p0.x, yb, p0.y), n, ML_HEAD)
+	var j0 := _w(35.5, v0)
+	var j1 := _w(35.5, v1)
+	var t0 := _w(tip, v0)
+	var t1 := _w(tip, v1)
+	_quad(Vector3(j0.x, yr, j0.y), Vector3(j1.x, yr, j1.y), Vector3(t1.x, yt, t1.y), Vector3(t0.x, yt, t0.y),
+			(Vector3(_a.x, 0.0, _a.y) * (yt - yr) + Vector3.DOWN * (tip - 35.5)).normalized(), ML_SOFFIT)
+	_wall(t0, t1, yt, yb, _a, ML_HEAD, 0.0)
+	_wall(_w(35.5, v1), _w(35.5, v0), yr, g + ML_LEDGE, -_a, ML_SOFFIT, 0.0)
+	var over := PackedVector2Array([_w(35.5, v0), _w(tip, v0), _w(tip, v1), _w(35.5, v1)])
+	_cap(over, yb, ML_SOFFIT)
+	# The glazed band, 30 cm in: glass from the middle of the long faces round the east end, the
+	# slit vents on the west half.
+	var i0 := v0 + 0.3
+	var i1 := v1 - 0.3
+	_lbox((u0 + 0.3 + ue) * 0.5, (i0 + i1) * 0.5, (ue - u0 - 0.3) * 0.5, (i1 - i0) * 0.5, g + ML_BAND, g + ML_BAND_TOP, ML_SOFFIT, M_STONE, ML_SOFFIT)
+	_framed(_w(19.0, i1), _w(ue, i1), g + ML_BAND + 0.1, g + ML_BAND_TOP - 0.1, _b, ML_FRAME, ML_GLASS, 0.0)
+	_framed(_w(19.0, i0), _w(ue, i0), g + ML_BAND + 0.1, g + ML_BAND_TOP - 0.1, -_b, ML_FRAME, ML_GLASS, 0.0)
+	_framed(_w(ue, i0), _w(ue, i1), g + ML_BAND + 0.1, g + ML_BAND_TOP - 0.1, _a, ML_FRAME, Color("#a9b4b8"), 0.0)
+	for y: float in [ML_BAND + 0.5, ML_BAND + 1.3]:
+		_mode = M_STONE
+		_wall(_w(1.0, i1 + 0.06), _w(18.5, i1 + 0.06), g + y, g + y + 0.35, _b, ML_HEAD.darkened(0.25), 0.0)
+	# The head: flat on top, its east end leaning out 1.5 m.
+	var ub := ML_JAW - 1.0
+	var ut := ML_JAW + 0.5
+	var y0 := g + ML_BAND_TOP
+	var y1 := g + ML_TOP
+	_soffit(PackedVector2Array([_w(u0, v0), _w(ub, v0), _w(ub, v1), _w(u0, v1)]), y0, ML_SOFFIT)
+	_mode = M_STONE
+	_wall(_w(u0, v1), _w(u0, v0), y0, y1, -_a, ML_HEAD, 0.0)
+	for c: Array in [[v1, _b], [v0, -_b]]:
+		var v: float = c[0]
+		var p0 := _w(u0, v)
+		var p1 := _w(ub, v)
+		var p2 := _w(ut, v)
+		_quad(Vector3(p0.x, y0, p0.y), Vector3(p1.x, y0, p1.y), Vector3(p2.x, y1, p2.y), Vector3(p0.x, y1, p0.y), Vector3(c[1].x, 0.0, c[1].y), ML_HEAD)
+	var e0 := _w(ub, v0)
+	var e1 := _w(ub, v1)
+	var e2 := _w(ut, v1)
+	var e3 := _w(ut, v0)
+	_quad(Vector3(e0.x, y0, e0.y), Vector3(e1.x, y0, e1.y), Vector3(e2.x, y1, e2.y), Vector3(e3.x, y1, e3.y),
+			(Vector3(_a.x, 0.0, _a.y) * (y1 - y0) + Vector3.DOWN * (ut - ub)).normalized(), ML_HEAD.darkened(0.08))
+	var top := PackedVector2Array([_w(u0, v0), _w(ut, v0), _w(ut, v1), _w(u0, v1)])
+	# The roof: the pale rim, the raised middle, the plant.
+	_rimmed(top, y1, ML_RIM, ML_ROOF)
+	var deck := y1 + 0.05
+	var mid := _rect(21.0, ML_WID * 0.5, 14.0, 5.6)
+	_prism(mid, deck, deck + 0.35, ML_ROOF, none, M_STONE)
+	_rimmed(mid, deck + 0.35, ML_RIM, ML_ROOF.lightened(0.08))
+	for p: Vector3 in [Vector3(9.0, 6.0, 2.2), Vector3(17.0, 11.0, 1.6), Vector3(26.0, 6.5, 2.0), Vector3(33.0, 10.5, 1.6), Vector3(39.0, 8.5, 1.4)]:
+		_lbox(p.x, p.y, 1.3, 1.3, deck - 0.05, deck + p.z, ML_BASE, M_STONE, ML_BASE)
+	for p: Vector2 in [Vector2(40.5, 3.0), Vector2(0.8, 14.5)]:
+		_lbox(p.x, p.y, 0.1, 0.1, deck - 0.05, deck + 3.0, ML_DARK, M_STONE, ML_DARK)
+
+
+## canopy: the concrete pergola on pilotis at the east foot, slats between its beams.
+func _build_mlotek_foot(g: float) -> void:
+	var u0 := 36.0
+	var u1 := 50.0
+	var v0 := 1.5
+	var v1 := 15.5
+	var y0 := g + 3.1
+	var y1 := g + 4.3
+	_hang(_rect((u0 + u1) * 0.5, v1, (u1 - u0) * 0.5, 0.3), y0, y1, ML_CONCRETE, ML_CONCRETE.lightened(0.05), ML_SOFFIT)
+	_hang(_rect((u0 + u1) * 0.5, v0, (u1 - u0) * 0.5, 0.3), y0, y1, ML_CONCRETE, ML_CONCRETE.lightened(0.05), ML_SOFFIT)
+	_hang(_rect(u1, (v0 + v1) * 0.5, 0.3, (v1 - v0) * 0.5 - 0.3), y0, y1, ML_CONCRETE, ML_CONCRETE.lightened(0.05), ML_SOFFIT)
+	for k in 9:
+		_hang(_rect(u0 + 1.2 + k * 1.45, (v0 + v1) * 0.5, 0.09, (v1 - v0) * 0.5 - 0.3), y0 + 0.3, y1 - 0.15, ML_DARK, ML_DARK, ML_DARK)
+	for p: Vector2 in [Vector2(u0 + 1.0, v0), Vector2(u0 + 1.0, v1), Vector2(u1 - 0.3, v0), Vector2(u1 - 0.3, v1), Vector2(43.0, v0), Vector2(43.0, v1)]:
+		_lbox(p.x, p.y, 0.25, 0.25, g - 0.6, y0, ML_CONCRETE, M_STONE, ML_CONCRETE)
+
+
+## Kozia 9 (1974-76, Jerzy Kuźmienko and Piotr Sembrat), from the Mac photo gather
+## (docs/landmarks/photo-reports/kozia9.md). A slab of cream-grey roughcast that climbs a storey
+## at a time from five floors at its north-west end to nine at its south-east end, ending in a
+## round stair tower. Both long sides are saw-toothed in plan (the mapped outline's teeth): flat
+## plates of plain wall, with every window turned sideways into the jogs between them. Frame: u
+## along the slab from the low end, +v out of the south-west (car park) side. Spec kozia9.md.
+const KZ_AT := Vector2(-805.0, -1174.0)
+const KZ_O := Vector2(-832.7, -1189.3)
+const KZ_A := Vector2(0.69, 0.724)
+const KZ_FLOOR := 3.1
+const KZ_CUTS := [-12.0, 16.0, 29.0, 42.0, 53.5, 80.0]    # the five sections, in u
+const KZ_TOPS := [14.4, 17.5, 20.6, 23.7, 26.8]           # their roofs over the ground (LoD2)
+const KZ_JOG := Vector2(0.93, -0.37)                      # the direction of a jog between two plates
+const KZ_WALL := Color("#b8b1a0")
+const KZ_SHADE := Color("#8f897a")
+const KZ_FRAME := Color("#eeeeea")
+const KZ_GLASS := Color("#2e3640")
+const KZ_ROOF := Color("#70716f")
+const KZ_RIM := Color("#e0ded6")
+const KZ_DOOR := Color("#8c5a32")
+const KZ_GREY := Color("#8e8e8c")
+
+
+func _find_kozia9() -> void:
+	var q := _tallest_at(KZ_AT)
+	if q.size() < 40:
+		return
+	_add_site("kozia9", [_largest(Geometry2D.offset_polygon(q, 1.5, Geometry2D.JOIN_MITER))])
+	if not sites.is_empty() and sites[-1]["key"] == "kozia9":
+		sites[-1]["ring"] = _simplify(q, 0.15)
+		sites[-1]["raw"] = q
+
+
+func _build_kozia9(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	_g = _ground_under(ring)
+	var g := _g
+	_o = KZ_O
+	_a = KZ_A
+	_b = Vector2(-KZ_A.y, KZ_A.x)
+	_mode = M_STONE
+	for s in KZ_TOPS.size():
+		var u0: float = KZ_CUTS[s]
+		var u1: float = KZ_CUTS[s + 1]
+		# Each section runs 5 cm into the next, taller one: their cut faces would meet back to back.
+		var cut := Geometry2D.intersect_polygons(ring, _rect((u0 + u1) * 0.5 + 0.025, -10.0, (u1 - u0) * 0.5 + 0.025, 30.0))
+		if cut.is_empty():
+			continue
+		var poly := _largest(cut)
+		var top := float(KZ_TOPS[s])
+		_kozia9_jogs(poly, top, g)
+		_prism(poly, g - 0.8, g + top + 0.45, KZ_WALL, Color(0, 0, 0, 0), M_STONE, M_STONE)
+		_rimmed(poly, g + top + 0.45, KZ_RIM, KZ_ROOF)
+	# stair_tower: the round end, a storey over the tallest roof.
+	var tower := _circle(_w(61.5, -4.5), 5.0, 14)
+	_prism(tower, g - 0.8, g + 27.3, KZ_WALL.darkened(0.05), KZ_ROOF, M_STONE, M_STONE)
+	# roof_plant: the lift head on the middle section, the dishes.
+	for p: Vector3 in [Vector3(10.0, -6.5, 14.85), Vector3(33.0, -6.5, 20.65), Vector3(44.0, -6.5, 23.75), Vector3(51.5, -7.0, 23.75)]:
+		_lbox(p.x, p.y, 2.2, 2.2, g + p.z, g + p.z + 2.2, KZ_WALL, M_STONE, KZ_ROOF)
+	for p: Vector3 in [Vector3(24.0, -3.0, 17.5), Vector3(50.0, -3.0, 23.7)]:
+		var c := _w(p.x, p.y)
+		_mode = M_STONE
+		_disc(Vector3(c.x, g + p.z + 1.3, c.y), Vector3(_b.x, 0.7, _b.y).normalized(), 0.7, 10, KZ_FRAME)
+		_lbox(p.x, p.y, 0.06, 0.06, g + p.z, g + p.z + 1.3, KZ_SHADE, M_STONE, KZ_SHADE)
+	# entrance: the two flat canopies, doors and steps on the car park side.
+	for u: float in [27.0, 53.0]:
+		_hang(_rect(u, 1.6, 2.4, 1.0), g + 2.7, g + 3.0, KZ_FRAME, Color("#d8d6cf"), KZ_SHADE)
+		_lbox(u, 0.9, 1.2, 1.1, g - 0.5, g + 2.5, KZ_DOOR, M_STONE, KZ_SHADE)
+		_lbox(u, 3.3, 1.8, 1.1, g - 0.5, g + 0.3, KZ_GREY, M_STONE, KZ_GREY)
+	# garage_ramp: the retaining walls and the dark mouth by the tower.
+	for v: float in [55.6, 61.2]:
+		_lbox(v, 7.5, 0.2, 5.5, g - 0.5, g + 1.2, KZ_GREY, M_STONE, KZ_GREY.lightened(0.1))
+	_lbox(58.4, 2.6, 2.6, 0.5, g - 0.5, g + 2.7, Color("#232527"), M_STONE, KZ_GREY)
+	_hang(_rect(58.4, 3.6, 3.0, 1.5), g + 2.7, g + 3.0, KZ_GREY, KZ_GREY.lightened(0.1), KZ_SHADE)
+	_collide_raw(site)
+
+
+## window_strips, balcony_boxes: a window on every jog of the saw-tooth, a storey at a time, with
+## the white sill that catches the light; on the deep jogs of the north-east side the staggered
+## balcony boxes.
+func _kozia9_jogs(poly: PackedVector2Array, top: float, g: float) -> void:
+	for i in poly.size():
+		var a := poly[i]
+		var b := poly[(i + 1) % poly.size()]
+		var length := a.distance_to(b)
+		var e := (b - a) / length
+		if length < 0.7 or length > 4.0 or absf(e.dot(KZ_JOG)) < 0.9:
+			continue
+		var out := _out(poly, a, b)
+		var m := (a + b) * 0.5
+		# A jog over 2.6 m holds two bays.
+		var spots: Array[Vector2] = [m]
+		var w := minf(length - 0.25, 1.2) * 0.5
+		if length > 2.6:
+			spots = [m - e * length * 0.25, m + e * length * 0.25]
+			w = 0.55
+		var rows := floori((top - 2.0) / KZ_FLOOR)
+		for k in rows:
+			var y := g + 1.1 + KZ_FLOOR * k
+			for c: Vector2 in spots:
+				# Each jog its own stretch of the shader's room grid, or the block goes dark at night.
+				_framed(c - e * w, c + e * w, y, y + 1.4, out, KZ_FRAME, KZ_GLASS, (float(i) + 0.5 * spots.find(c)) * 4.5 + float(k) * 13.5)
+				_mode = M_STONE
+				_hang(PackedVector2Array([c - e * (w + 0.1), c + e * (w + 0.1), c + e * (w + 0.1) + out * 0.5, c - e * (w + 0.1) + out * 0.5]),
+						y - 0.14, y, KZ_FRAME, KZ_FRAME, KZ_SHADE)
+				_hang(PackedVector2Array([c - e * (w + 0.1), c + e * (w + 0.1), c + e * (w + 0.1) + out * 0.35, c - e * (w + 0.1) + out * 0.35]),
+						y + 1.4, y + 1.55, KZ_SHADE, KZ_SHADE, KZ_SHADE.darkened(0.2))
+			if out.dot(_b) >= 0.0 or (k + i) % 2 == 0:
+				continue
+			var hw := 1.2 if length > 2.2 else 0.75
+			var depth := 2.1 if length > 2.2 else 1.3
+			var p := m + out * 0.05
+			_hang(PackedVector2Array([p - e * hw, p + e * hw, p + e * hw + out * depth, p - e * hw + out * depth]),
+					y - 1.45, y - 0.15, KZ_WALL, KZ_RIM, KZ_SHADE.darkened(0.3))
+
+
+## Karowa 18a (1978, Dąbrowski, Kuźmienko, Nowak, Sembrat), from the Mac photo gather
+## (docs/landmarks/photo-reports/karowa18a.md; the street is on the south-east side, the report's
+## "rear", as the road and the ortho show). Nine columns of splayed roughcast boxes two storeys
+## tall hang out of an ochre wall, each column a storey off the next like a brick bond, with wide
+## white windows between them: the sculpture the block is known for. The roofline drops a few
+## metres along the street, and the dark tiled ground floor runs under it all. Frame: u along the
+## street front from the uphill (south-west) end, +v out of it. Spec karowa18a.md.
+const KR_AT := Vector2(-463.0, -952.0)
+const KR_O := Vector2(-477.2, -935.2)
+const KR_A := Vector2(0.8426, -0.5398)
+const KR_LEN := 43.9
+const KR_WALL_V := -1.0      # the wall behind the boxes
+const KR_BOX_V := 1.0        # the boxes' fronts
+const KR_REAR_V := -12.6
+const KR_D := 7.4            # the first floor, map height: the floors run level down the slope
+const KR_FLOOR := 2.95
+const KR_COLS := [1.6, 5.9, 10.8, 15.3, 19.8, 24.3, 28.8, 33.3, 37.7]
+const KR_HIGH := 26.7        # the box tops over the first floor, the uphill four columns
+const KR_LOW := 23.6         # and the next five
+const KR_END := 19.5         # the last bay
+const KR_TAN := Color("#c4a07e")
+const KR_SHADE := Color("#94745a")
+const KR_RECESS := Color("#8a6144")
+const KR_FRAME := Color("#f0eee8")
+const KR_GLASS := Color("#2e3640")
+const KR_TILE := Color("#3f4448")
+const KR_STONE := Color("#8c8a86")
+const KR_ROOF := Color("#7a7873")
+const KR_RIM := Color("#cfccc4")
+const KR_WOOD := Color("#7a5534")
+
+
+func _find_karowa18a() -> void:
+	var q := _tallest_at(KR_AT)
+	if q.size() < 20:
+		return
+	_add_site("karowa18a", [_largest(Geometry2D.offset_polygon(q, 1.5, Geometry2D.JOIN_MITER))])
+	if not sites.is_empty() and sites[-1]["key"] == "karowa18a":
+		sites[-1]["ring"] = _simplify(q, 0.5)
+		sites[-1]["raw"] = q
+
+
+func _build_karowa18a(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	_g = _ground_under(ring)
+	var g := _g
+	var d := KR_D
+	_o = KR_O
+	_a = KR_A
+	_b = Vector2(-KR_A.y, KR_A.x)
+	_mode = M_STONE
+	var mid := (KR_WALL_V + KR_REAR_V) * 0.5
+	var hv := (KR_WALL_V - KR_REAR_V) * 0.5
+	# windows: wide white windows between the columns, a storey at a time, and strips on the rear.
+	for c in KR_COLS.size() - 1:
+		var u := (float(KR_COLS[c]) + float(KR_COLS[c + 1])) * 0.5
+		var rows := 8 if c < 3 else 7
+		for k in rows:
+			var y := d + 0.75 + KR_FLOOR * k
+			_framed(_w(u - 0.9, KR_WALL_V), _w(u + 0.9, KR_WALL_V), y, y + 1.6, _b, KR_FRAME, KR_GLASS, u)
+			_framed(_w(u - 1.0, KR_REAR_V), _w(u + 1.0, KR_REAR_V), y, y + 1.4, -_b, KR_FRAME, KR_GLASS, u)
+	# slab: the wall in three steps down the street, the last bay coming forward to the boxes' line.
+	var c4 := 22.0
+	var c9 := 39.7
+	var none := Color(0, 0, 0, 0)
+	var high := _rect(c4 * 0.5, mid, c4 * 0.5, hv)
+	var low := _rect((c4 + c9) * 0.5, mid, (c9 - c4) * 0.5, hv)
+	_prism(high, d, d + KR_HIGH - 1.2, KR_SHADE, none, M_STONE)
+	_rimmed(high, d + KR_HIGH - 1.2, KR_RIM, KR_ROOF)
+	_prism(low, d, d + KR_LOW - 1.2, KR_SHADE, none, M_STONE)
+	_rimmed(low, d + KR_LOW - 1.2, KR_RIM, KR_ROOF)
+	var ev := (KR_BOX_V - 0.6 + KR_REAR_V) * 0.5
+	var ehv := (KR_BOX_V - 0.6 - KR_REAR_V) * 0.5
+	var last := _rect((c9 + KR_LEN) * 0.5, ev, (KR_LEN - c9) * 0.5, ehv)
+	_prism(last, d, d + KR_END, KR_TAN, none, M_STONE)
+	_rimmed(last, d + KR_END, KR_RIM, KR_ROOF)
+	for k in 6:
+		var y := d + 0.75 + KR_FLOOR * k
+		_framed(_w(c9 + 0.5, KR_BOX_V - 0.6), _w(c9 + 1.7, KR_BOX_V - 0.6), y, y + 1.5, _b, KR_FRAME, KR_GLASS, c9)
+		_framed(_w(c9 + 2.3, KR_BOX_V - 0.6), _w(c9 + 3.9, KR_BOX_V - 0.6), y, y + 1.5, _b, KR_FRAME, KR_GLASS, c9)
+	# balcony_boxes: two storeys tall, the fronts narrower than the backs, the columns a storey
+	# apart; between one box and the next the dark gap of the open balcony.
+	for c in KR_COLS.size():
+		var u := float(KR_COLS[c])
+		var top := KR_HIGH if c < 4 else KR_LOW
+		var y := d + top - (0.0 if c % 2 == 0 else KR_FLOOR)
+		if c % 2 == 1:   # the odd columns' top box is one storey tall
+			_kr_box(u, y, d + top, KR_ROOF)
+		while y > d + 0.5:
+			var y0 := maxf(y - KR_FLOOR * 2.0 + 0.85, d)
+			_kr_box(u, y0, y, KR_ROOF if y > d + top - 0.1 else KR_TAN.darkened(0.12))
+			y -= KR_FLOOR * 2.0
+	# roof_plant: three stair heads on the roof, plant at the tall end.
+	for u: float in [13.0, 25.0, 36.0]:
+		var y := d + (KR_HIGH if u < c4 else KR_LOW) - 1.2
+		var head := _rect(u, -6.0, 3.0, 3.0)
+		_prism(head, y + 0.05, y + 1.8, KR_TAN, none, M_STONE)
+		_rimmed(head, y + 1.8, KR_RIM, KR_ROOF.lightened(0.1))
+	_lbox(5.0, -9.0, 1.4, 1.4, d + KR_HIGH - 1.2, d + KR_HIGH + 0.6, KR_ROOF, M_STONE, KR_ROOF)
+	_kr_ground(g, d)
+	_collide_raw(site)
+
+
+## One box of a column, from y0 to y1.
+func _kr_box(u: float, y0: float, y1: float, top: Color) -> void:
+	var poly := PackedVector2Array([_w(u - 1.35, KR_WALL_V), _w(u + 1.35, KR_WALL_V), _w(u + 0.95, KR_BOX_V), _w(u - 0.95, KR_BOX_V)])
+	_hang(poly, y0, y1, KR_TAN, top, KR_RECESS)
+
+
+## garage_base, base_cladding, entrance: the dark tiled ground floor under the boxes, its shop
+## windows, the passage and the two gates, the grey stone at the low end.
+func _kr_ground(g: float, d: float) -> void:
+	var v := -0.15
+	_lbox(KR_LEN * 0.5, (v + KR_REAR_V) * 0.5, KR_LEN * 0.5, (v - KR_REAR_V) * 0.5, g - 0.8, d, KR_TILE, M_STONE, KR_TILE)
+	_mode = M_STONE
+	_wall(_w(39.7, v + 0.04), _w(KR_LEN, v + 0.04), g - 0.5, d, _b, KR_STONE, 0.0)
+	for s: Vector2 in [Vector2(6.2, 7.9), Vector2(8.5, 10.2), Vector2(10.8, 12.5), Vector2(13.1, 14.8), Vector2(15.4, 17.1), Vector2(17.5, 19.1),
+			Vector2(23.2, 24.9), Vector2(25.5, 27.2), Vector2(27.8, 29.5), Vector2(30.0, 31.7)]:
+		_mode = M_STONE
+		_wall(_w(s.x, v + 0.04), _w(s.y, v + 0.04), d - 2.8, d - 0.3, _b, KR_WOOD, s.x)
+		_mode = M_PAVILION
+		_wall(_w(s.x + 0.1, v + 0.09), _w(s.y - 0.1, v + 0.09), d - 2.7, d - 0.4, _b, Color("#8fa3ad"), s.x)
+	for s: Vector3 in [Vector3(2.0, 5.6, 0.0), Vector3(19.5, 22.8, 0.0), Vector3(32.2, 36.0, 1.0), Vector3(36.7, 40.2, 0.0)]:
+		_mode = M_STONE
+		_wall(_w(s.x, v + 0.06), _w(s.y, v + 0.06), g - 0.5, d - 0.2, _b, KR_WOOD.darkened(0.3) if s.z > 0.0 else Color("#1f2224"), 0.0)

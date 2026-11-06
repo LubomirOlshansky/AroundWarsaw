@@ -18,6 +18,10 @@ Tabs (everything is worked out from the repo each time, nothing is written by ha
   Content    the game's content as tables (activities, notebook places, eggs, Kadr spots, Syrenki,
              cassettes, speed traps, districts) with the file to edit; points also show on the map.
   Plan       the multi-day city plan (docs/plan/city-plan.json) as day columns, filter by area and status.
+  Streets    Operation Unslop: each street pass record (docs/streets/<slug>.json, tools/street_pass.py):
+             score per block, history, object verdicts with their library model, findings; map layers.
+  Models     the model library (docs/models/library.json, tools/model_library.py): every model the game
+             draws, where its code is, how many the map places, and the wanted models street passes need.
   Approvals  what waits for F: the parked questions (docs/QUESTIONS.md), A/B mentions and "check
              open" lines of the ROADMAP; a click jumps to the place on the map when it names one.
   Renders    screenshots found in the renders folders, matched to places by their file names.
@@ -428,6 +432,80 @@ def street_layers():
     return out, sf.get('attribution') or 'Map features: Mapillary contributors, CC BY-SA 4.0'
 
 
+SCORE_BANDS = ((90, '#2e9e5b'), (80, '#8bbf3f'), (65, '#e0a82e'), (0, '#d8504a'))
+
+
+def progress_layers(rec, d):
+    """One coloured line per block of a street pass, along the street's centre (its frame in
+    docs/streets/streets.json): green 90+, light green 80+, amber 65+, red below. The label carries
+    the score and the baseline, so the City map shows Unslop progress street by street."""
+    if not d or 'frame' not in d:
+        return []
+    fr = d['frame']
+    o, sv, tv = fr['o'], fr['s'], fr['t']
+    t0, t1 = d.get('street_t', [0, 0])
+    tc = (t0 + t1) / 2
+    base = (rec.get('baseline') or {}).get('blocks') or {}
+    out = []
+    for b in rec.get('blocks', []):
+        rng = next((x['s'] for x in d.get('blocks', []) if x['id'] == b['id']), None)
+        if not rng:
+            continue
+        pts = []
+        n = max(2, int((rng[1] - rng[0]) / 10) + 1)
+        for k in range(n):
+            sa = rng[0] + (rng[1] - rng[0]) * k / (n - 1)
+            pts += [o[0] + sv[0] * sa + tv[0] * tc, o[1] + sv[1] * sa + tv[1] * tc]
+        sc = b.get('score', 0)
+        col = next(c for lim, c in SCORE_BANDS if sc >= lim)
+        was = base.get(b['id'])
+        tail = '' if was is None or was == sc else ' (was %s)' % was
+        label = '%s %s · %s/100%s' % (b['id'], b.get('title', ''), sc, tail)
+        out.append(line_layer('unslopp_%s_%s' % (rec['slug'], b['id']), 'Unslop progress', rec['title'].split(':')[0] + ' ' + label,
+                              col, [pts], width=6.0))
+    return out
+
+
+def unslop():
+    """Operation Unslop: the street-pass records (docs/streets/<slug>.json, tools/street_pass.py), their
+    map layers (findings by check, objects by verdict) and the model library (docs/models/library.json)."""
+    recs, layers = [], []
+    sdir = os.path.join(ROOT, 'docs', 'streets')
+    try:
+        defs = {d['slug']: d for d in load('docs/streets/streets.json').get('streets', [])}
+    except (OSError, ValueError):
+        defs = {}
+    for name in sorted(os.listdir(sdir)) if os.path.isdir(sdir) else []:
+        if not name.endswith('.json') or name == 'streets.json':
+            continue
+        try:
+            with open(os.path.join(sdir, name), encoding='utf-8') as f:
+                r = json.load(f)
+        except (OSError, ValueError):
+            continue
+        recs.append(r)
+        layers += progress_layers(r, defs.get(r.get('slug')))
+        open_f = [f for f in r.get('findings', []) if f.get('status') != 'owned']
+        if open_f:
+            layers.append(pts_layer('unslop_%s_find' % r['slug'], 'Unslop: ' + r['title'], 'Findings', '#d8504a',
+                                    [(f['x'], f['z']) for f in open_f], ['%s %s' % (f['check'], f['note']) for f in open_f]))
+        objs = r.get('objects', [])
+        if objs:
+            layers.append(pts_layer('unslop_%s_obj' % r['slug'], 'Unslop: ' + r['title'], 'Objects by verdict', '#e0a82e',
+                                    [(o['x'], o['z']) for o in objs], ['%s %s/%s -> %s' % (o['verdict'], o['cls'], o['kind'], o.get('model', '')) for o in objs]))
+    try:
+        models = load('docs/models/library.json').get('models', [])
+    except (OSError, ValueError):
+        models = []
+    try:
+        sys.path.insert(0, os.path.join(ROOT, 'tools'))
+        import street_pass
+        checks = street_pass.TITLES
+    except Exception:
+        checks = {}
+    return recs, layers, models, checks
+
+
 # ---- history ----------------------------------------------------------------------------------
 
 def update_history(out, snap):
@@ -473,7 +551,8 @@ def build(renders_dirs, out):
                       'stage': r['stage'], 'next': r['next'], 'x': i1(p[0]) if p else None, 'z': i1(p[1]) if p else None,
                       'exact': bool(p and p[2]), 'links': links, 'ev': ev, 'd': ds.of(p[0], p[1]) if p else -2})
     sl, attribution = street_layers()
-    layers = object_layers(data, origin) + road_layers(data) + sl
+    srecs, slayers, models, checks = unslop()
+    layers = object_layers(data, origin) + road_layers(data) + sl + slayers
     cont, _ = content(data, origin, ds, None)
     outl = outlines(data, ds)
     appr = approvals(items)
@@ -500,7 +579,8 @@ def build(renders_dirs, out):
             'content': cont, 'approvals': appr, 'renders': [[p[0], p[2]] for p in imgs], 'render_match': match,
             'districts': [{'id': d['id'], 'name': d['name_en'], 'hero': bool(d.get('hero')), 'polys': [[i1(v) for v in a] for a in d.get('areas', [])]} for d in ds.list],
             'history': hist, 'git': {'branch': snap['branch'], 'commit': commit, 'subject': git('log', '-1', '--format=%s'), 'date': git('log', '-1', '--format=%ad', '--date=short'), 'merges': merges},
-            'generated': snap['t'], 'bounds': data['bounds'], 'plan': city_plan(), 'attribution': attribution}
+            'generated': snap['t'], 'bounds': data['bounds'], 'plan': city_plan(), 'attribution': attribution,
+            'streets': srecs, 'models': models, 'street_checks': checks}
 
 
 def default_renders():
@@ -508,7 +588,7 @@ def default_renders():
 
 
 def signature():
-    paths = ['docs/plan/city-plan.json', 'build/street_features.json', 'docs/CITY_INVENTORY.md', 'docs/ROADMAP.md', 'docs/BACKLOG.md', 'docs/QUESTIONS.md', 'game/map/centrum.json']
+    paths = ['docs/streets', 'docs/models/library.json', 'docs/plan/city-plan.json', 'build/street_features.json', 'docs/CITY_INVENTORY.md', 'docs/ROADMAP.md', 'docs/BACKLOG.md', 'docs/QUESTIONS.md', 'game/map/centrum.json']
     s = [git('rev-parse', 'HEAD')]
     for rel in paths:
         try:

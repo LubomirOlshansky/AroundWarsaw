@@ -4,7 +4,8 @@ extends Node
 ##
 ## Command-line options (after `--`): --demo drives the car (or circles the
 ## helicopter) by itself, --shots=60,240 saves screenshots at those frames and
-## quits, --out=DIR sets where they go, --style=N picks a style, --yaw=N rotates
+## quits, --out=DIR sets where they go (made if missing), --spots=NAME:X,Z[,HEADING];...
+## shoots each spot in one run (files NAME_FFFF.png), --style=N picks a style, --yaw=N rotates
 ## the camera, --heli starts in the helicopter, --mission=N starts rescue call N
 ## at once, --autopilot flies or drives to the mission targets (for testing; the
 ## car ghosts through buildings) or drives the race route, --no-traffic leaves the
@@ -298,6 +299,10 @@ var shots: Array[int] = []
 ## without one says so in _exit_tree).
 var _shots_saved: Array[int] = []
 var out_dir := "user://"
+## --spots: [name, Vector2 x/z, heading or INF] per camera; one run shoots them all, the city
+## built once (a street pass needs 6-10 cameras; a launch per camera cost ~70 s each).
+var shot_spots: Array = []
+var _spot_i := 0
 var frame := 0
 var start_at := Vector3.INF
 ## --heading=deg: the car's heading at the start (0 = north, 90 = east), for testing.
@@ -2863,7 +2868,7 @@ func _life_start() -> void:
 	if trend_job_flag > 0 and trend_job != null:
 		var i := trend_job_flag - 1
 		if trend_job_flag == 6:
-			# "Mlask" (G5): Cringulo's van parked by the car, his request at once (KUKŁA by Nowy
+			# "Mlask" (G5): Mrożulo's van parked by the car, his request at once (KUKŁA by Nowy
 			# Świat if no Wiralek slot is new enough).
 			if crowds != null and crowds.by_id.has(Crowds.KUKLA[1]):
 				_put_car_near(crowds.sites[crowds.by_id[Crowds.KUKLA[1]]]["door"], 120.0)
@@ -3790,6 +3795,19 @@ func _parse_args() -> void:
 			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_NO_FOCUS, true)
 		elif arg.begins_with("--out="):
 			out_dir = arg.trim_prefix("--out=")
+		elif arg.begins_with("--spots="):
+			# NAME:X,Z[,HEADING];NAME:X,Z... : one run shoots every spot (street passes, before/after).
+			for item in arg.trim_prefix("--spots=").split(";", false):
+				var nv := item.split(":")
+				var v := nv[1].split(",") if nv.size() > 1 else PackedStringArray()
+				if v.size() < 2:
+					push_error("--spots: '%s' is not NAME:X,Z[,HEADING]" % item)
+					continue
+				shot_spots.append([nv[0], Vector2(float(v[0]), float(v[1])), float(v[2]) if v.size() > 2 else INF])
+			if not shot_spots.is_empty():
+				start_at = Vector3(shot_spots[0][1].x, 0.0, shot_spots[0][1].y)
+				if shot_spots[0][2] != INF:
+					start_heading = shot_spots[0][2]
 		elif arg.begins_with("--style="):
 			_flag_style = posmod(int(arg.trim_prefix("--style=")), STYLES.size())
 		elif arg.begins_with("--at="):
@@ -4494,7 +4512,7 @@ func _open_full_map() -> void:
 ## the słoiki stations and the Leżak depots (jobs.gd `offer_places`), Warsztat u Mirka, and "ask for
 ## a ride" (Podwózka's rule). HELI: the cassettes on the roofs not taken, and "a rescue call" (one
 ## only the helicopter reaches). Nothing while a race, a job or a rescue is on.
-## G12c: AUTO also lists the open "Na czasie" slots, Cringulo's van (Mlask) and the Friday drop
+## G12c: AUTO also lists the open "Na czasie" slots, Mrożulo's van (Mlask) and the Friday drop
 ## (trend_job.gd `offer_places`), and the ladder's next rival where they cruise now (or Seba's start
 ## for "Trzy mosty" at night); HELI the peacock's roof call while Pan Paw is still up there. While a
 ## race, a job, a ride or a rescue is on, its one row ("Teraz · ...") leads the vehicle's tab.
@@ -4874,7 +4892,7 @@ func _stuck_offer_frame() -> void:
 	var want: bool = not flying and not autopilot and _bench_ghost == null and title == null \
 			and not car.in_water and car.stalled >= Car.STALL_TIME \
 			and not (fotka != null and fotka.is_open())
-	if want and hud.pill_free():
+	if want and not hud.pill_shown("unstuck") and hud.pill_free_for("unstuck"):
 		hud.show_pill("POMOC DROGOWA", "tow truck", "unstuck")
 		if Gamepad.in_use():
 			hud.toast(Gamepad.fmt("Utknąłeś? {a}: pomoc drogowa."), Gamepad.fmt("Stuck? {a}: tow truck."))
@@ -6887,10 +6905,55 @@ func _capture(n: int) -> void:
 	if ghost_debug > 0:
 		print("ghost: frame %d centre %.1f %.1f radii %.1f %.1f (screen px)" % [n, _ghost_px.x, _ghost_px.y, _ghost_px.z, _ghost_px.w])
 	var img := get_viewport().get_texture().get_image()
-	img.save_png(out_dir.path_join("shot_%04d.png" % n))
+	# A missing --out folder used to end the run with code 0 and no PNG: make it, and fail loudly.
+	var dir := ProjectSettings.globalize_path(out_dir)
+	if not DirAccess.dir_exists_absolute(dir):
+		DirAccess.make_dir_recursive_absolute(dir)
+	var name := "shot_%04d.png" % n
+	if not shot_spots.is_empty():
+		name = "%s_%04d.png" % [shot_spots[_spot_i][0], n - _spot_base]
+	var err := img.save_png(out_dir.path_join(name))
+	if err != OK:
+		printerr("shots: could not write %s (error %d)" % [out_dir.path_join(name), err])
+		get_tree().quit(1)
+		return
 	_shots_saved.append(n)
 	if n == shots.max():
+		if _spot_i + 1 < shot_spots.size():
+			_next_spot()
+			return
 		_quit_quietly()  # sweep 2: was get_tree().quit()
+
+
+## --spots: the frame the current spot's shot frames count from.
+var _spot_base := 0
+
+
+## --spots: moves the car (and the camera, with no blend) to the next spot and shifts the shot
+## frames by the frames spent so far, so each spot gets the same settle time as the first.
+func _next_spot() -> void:
+	_spot_i += 1
+	var sp: Array = shot_spots[_spot_i]
+	var p: Vector2 = sp[1]
+	car.global_position = Vector3(p.x, map.ground_height(p.x, p.y), p.y)
+	if sp[2] != INF:
+		car.rotation.y = -deg_to_rad(sp[2])
+	car.vel = Vector3.ZERO
+	car.forward_speed = 0.0
+	car.reset_physics_interpolation()
+	cam_focus = car.global_position
+	# The same view as the first spot (and as a single --at run): keep the camera's yaw, since
+	# _cut_camera turns a following camera behind the car.
+	var yaw := cam_yaw
+	var yaw_target := cam_yaw_target
+	_cut_camera()
+	cam_yaw = yaw
+	cam_yaw_target = yaw_target
+	var shift: int = frame - _spot_base
+	_spot_base = frame
+	for i in shots.size():
+		shots[i] += shift
+	print("shots: spot %s at %.0f, %.0f (frame %d, shots %s)" % [sp[0], p.x, p.y, frame, str(shots)])
 
 
 # --- sweep 2: a shots run quits without leaking its sounds ---------------------------------

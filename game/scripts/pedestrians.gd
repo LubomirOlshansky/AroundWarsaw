@@ -6,6 +6,7 @@ extends Node3D
 
 const Models := preload("res://scripts/models.gd")
 const InstanceBuffers := preload("res://scripts/instance_buffers.gd")
+const MapBuilderStatic := preload("res://scripts/map_builder.gd")
 
 const MAX := 60
 ## Loop 3g-1: people who stand still at a spot (the speed traps' officers), in the same MultiMesh
@@ -91,6 +92,16 @@ const BUSY_SHARE := 0.6
 const BUSY_STEP := 3.0
 var _busy_box := Rect2()
 var _busy_i := PackedInt32Array()
+## The underpasses' ways in (map_builder SUNKEN `walk`, F 2026-11-06: "people going in and out"):
+## footways from the street down a sunken stair and on through the passage's mouth, their last
+## metres under the street (hidden). A walker reaching that end goes in (PORTAL_IN of them leave,
+## the rest turn back later), and PORTAL_SHARE of the spawns come out of one whose mouth is in
+## view. Their footways' `_deck` is PORTAL (heights from the sunken floors, carried on past the
+## mouth, every metre in `_deck_h`).
+var _portals := PackedInt32Array()
+const PORTAL := -2
+const PORTAL_IN := 0.7
+const PORTAL_SHARE := 0.12
 var _busy_s := PackedFloat32Array()
 
 
@@ -147,6 +158,39 @@ func setup(map_node: Node3D, camera: Camera3D, traffic_node: Node3D, data: Dicti
 				_grid[key] = PackedInt32Array()
 			if _grid[key].is_empty() or _grid[key][_grid[key].size() - 1] != i:
 				_grid[key].append(i)
+			s += CELL * 0.5
+	# The underpasses' ways in: a footway each, joined at its street end like the mapped ones.
+	for e: Dictionary in MapBuilderStatic.SUNKEN:
+		var walk := PackedVector2Array(e.get("walk", []))
+		if walk.size() < 2:
+			continue
+		var i := _first.size()
+		_first.append(_pts.size())
+		_count.append(walk.size())
+		var run := 0.0
+		for k in walk.size():
+			if k > 0:
+				run += walk[k].distance_to(walk[k - 1])
+			_pts.append(walk[k])
+			_cum.append(run)
+		_len.append(run)
+		_width.append(2.0)
+		_deck.append(PORTAL)
+		_deck_h.append(PackedFloat32Array())
+		_joins_start.append(PackedInt32Array())
+		_joins_end.append(PackedInt32Array())
+		var key := Vector2i(roundi(walk[0].x), roundi(walk[0].y))
+		if not ends.has(key):
+			ends[key] = []
+		ends[key].append(i * 2)
+		_portals.append(i)
+		var s := 0.0
+		while s <= run:
+			var cell := _cell(_at(i, s))
+			if not _grid.has(cell):
+				_grid[cell] = PackedInt32Array()
+			if _grid[cell].is_empty() or _grid[cell][_grid[cell].size() - 1] != i:
+				_grid[cell].append(i)
 			s += CELL * 0.5
 	for key in ends:
 		var list: Array = ends[key]
@@ -463,7 +507,9 @@ func _process(dt: float) -> void:
 	for k in tries:
 		if _alive_count >= target:
 			break
-		if busy and _rng.randf() < BUSY_SHARE:
+		if not _portals.is_empty() and _rng.randf() < PORTAL_SHARE:
+			_try_spawn_portal(centre, right, ahead, half)
+		elif busy and _rng.randf() < BUSY_SHARE:
 			_try_spawn_busy(centre, right, ahead, half, not _filled)
 		else:
 			_try_spawn(centre, right, ahead, half, not _filled)
@@ -489,10 +535,22 @@ func _process(dt: float) -> void:
 ## The ground under a walker at `s` along footway `i` (at `q`): the terrain, or the deck's
 ## height from samples along the footway (bridge decks rise and fall slowly).
 func _height(i: int, s: float, q: Vector2) -> float:
-	if _deck[i] < 0:
+	if _deck[i] == -1:
 		return map.deck_height(-1, q.x, q.y)
 	var h := _deck_h[i]
-	if h.is_empty():
+	if h.is_empty() and _deck[i] == PORTAL:
+		# A way in: the ground (the sunken floor) every metre while in a sunken ring, then that
+		# floor carried on through the mouth and under the street.
+		var n := maxi(2, ceili(_len[i]) + 1)
+		h.resize(n)
+		var last := NAN
+		for k in n:
+			var at := _at(i, _len[i] * k / (n - 1))
+			if is_nan(last) or MapBuilderStatic.in_sunken(at.x, at.y):
+				last = map.deck_height(-1, at.x, at.y)
+			h[k] = last
+		_deck_h[i] = h
+	elif h.is_empty():
 		var n := maxi(2, ceili(_len[i] / DECK_STEP) + 1)
 		h.resize(n)
 		for k in n:
@@ -525,7 +583,8 @@ func _try_spawn_busy(centre: Vector2, right: Vector2, ahead: Vector2, half: Vect
 
 ## A walker on footway `i` at `s` m along it, if that is inside the view's band and (once the view
 ## is filled) out of sight.
-func _spawn_on(i: int, s: float, centre: Vector2, right: Vector2, ahead: Vector2, half: Vector2, anywhere: bool) -> void:
+func _spawn_on(i: int, s: float, centre: Vector2, right: Vector2, ahead: Vector2, half: Vector2, anywhere: bool,
+		dir := 0.0) -> void:
 	var off := _rng.randf_range(-0.3, 0.3) * _width[i]
 	var q := _at(i, s, off)
 	var y := _height(i, s, q)
@@ -541,7 +600,7 @@ func _spawn_on(i: int, s: float, centre: Vector2, right: Vector2, ahead: Vector2
 	_alive_count += 1
 	_path[n] = i
 	_s[n] = s
-	_dir[n] = 1.0 if _rng.randf() < 0.5 else -1.0
+	_dir[n] = dir if dir != 0.0 else (1.0 if _rng.randf() < 0.5 else -1.0)
 	_speed[n] = _rng.randf_range(1.0, 1.6)
 	_off[n] = off
 	_phase[n] = _rng.randf() * TAU
@@ -554,6 +613,16 @@ func _spawn_on(i: int, s: float, centre: Vector2, right: Vector2, ahead: Vector2
 	_buf[b + 15] = _rng.randf() * 0.99
 
 
+## Someone coming up out of an underpass: at the hidden end of a way in whose mouth is in the view's
+## band, walking out (hidden there, so the on-screen test is skipped).
+func _try_spawn_portal(centre: Vector2, right: Vector2, ahead: Vector2, half: Vector2) -> void:
+	var i := _portals[_rng.randi() % _portals.size()]
+	var lq := _at(i, _len[i]) - centre
+	if absf(lq.dot(right)) > half.x or absf(lq.dot(ahead)) > half.y:
+		return
+	_spawn_on(i, _len[i] - 0.2, centre, right, ahead, half, true, -1.0)
+
+
 func _kill(n: int) -> void:
 	_alive[n] = 0
 	_alive_count -= 1
@@ -564,6 +633,9 @@ func _kill(n: int) -> void:
 func _walk(n: int, dt: float) -> void:
 	var i := _path[n]
 	var s := _s[n] + _dir[n] * _speed[n] * dt
+	if _deck[i] == PORTAL and s > _len[i] and _rng.randf() < PORTAL_IN:
+		_kill(n)  # gone down into the passage, out of sight under the street
+		return
 	if s < _lo[i] or s > _hi[i]:
 		# Carry on into a footway that joins here, else turn back (loop 10a: also a metre
 		# short of the water).

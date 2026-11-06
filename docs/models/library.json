@@ -1,0 +1,2442 @@
+{
+"_about": "tools/model_library.py: every model the game draws, and the ones street passes want",
+"models": [
+{
+"id": "canopy_posts",
+"cat": "wanted",
+"name": "Canopy on posts (station, fuel, pavilion)",
+"about": "road-objects B6: canopies drawn as solid blocks",
+"file": "",
+"count": 0,
+"used_by": []
+},
+{
+"id": "jersey_barrier",
+"cat": "wanted",
+"name": "Concrete Jersey barrier",
+"about": "road-objects 3.4",
+"file": "",
+"count": 0,
+"used_by": []
+},
+{
+"id": "park_fence",
+"cat": "wanted",
+"name": "Black steel park fence",
+"about": "road-objects 3.4: park and square fences read as grey",
+"file": "",
+"count": 0,
+"used_by": []
+},
+{
+"id": "yard_gate",
+"cat": "wanted",
+"name": "Yard gate, closed and open",
+"about": "road-objects B3 and B14",
+"file": "",
+"count": 0,
+"used_by": []
+},
+{
+"id": "landmark:aleksander",
+"cat": "landmark",
+"name": "aleksander",
+"about": "",
+"file": "game/scripts/landmarks.gd:11179",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:archikatedra",
+"cat": "landmark",
+"name": "archikatedra",
+"about": "",
+"file": "game/scripts/landmarks.gd:1458",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:arkadia",
+"cat": "landmark",
+"name": "arkadia",
+"about": "",
+"file": "game/scripts/landmarks.gd:5196",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:arkady",
+"cat": "landmark",
+"name": "arkady",
+"about": "",
+"file": "game/scripts/landmarks.gd:10410",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:barbakan",
+"cat": "landmark",
+"name": "barbakan",
+"about": "",
+"file": "game/scripts/landmarks.gd:10583",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:bazar",
+"cat": "landmark",
+"name": "bazar",
+"about": "",
+"file": "game/scripts/landmarks.gd:18581",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:bgk",
+"cat": "landmark",
+"name": "bgk",
+"about": "",
+"file": "game/scripts/landmarks.gd:21604",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:brama_uw",
+"cat": "landmark",
+"name": "brama_uw",
+"about": "The University's main gate (Brama Główna, Krakowskie Przedmieście 26/28; Stefan Szyller,",
+"file": "game/scripts/landmarks.gd:16667",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:bristol",
+"cat": "landmark",
+"name": "bristol",
+"about": "",
+"file": "game/scripts/landmarks.gd:1504",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:browary",
+"cat": "landmark",
+"name": "browary",
+"about": "",
+"file": "game/scripts/landmarks.gd:15680",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:bulwary_bary",
+"cat": "landmark",
+"name": "bulwary_bary",
+"about": "",
+"file": "game/scripts/landmarks.gd:19132",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:bulwary_basen",
+"cat": "landmark",
+"name": "bulwary_basen",
+"about": "",
+"file": "game/scripts/landmarks.gd:1570",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:bulwary_pawilony",
+"cat": "landmark",
+"name": "bulwary_pawilony",
+"about": "",
+"file": "game/scripts/landmarks.gd:19043",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:bulwary_pomosty",
+"cat": "landmark",
+"name": "bulwary_pomosty",
+"about": "",
+"file": "game/scripts/landmarks.gd:1567",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:buw",
+"cat": "landmark",
+"name": "buw",
+"about": "",
+"file": "game/scripts/landmarks.gd:11810",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:cedet",
+"cat": "landmark",
+"name": "cedet",
+"about": "",
+"file": "game/scripts/landmarks.gd:19890",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:centralna",
+"cat": "landmark",
+"name": "centralna",
+"about": "The station hall's glass box under the flat overhanging slab, and under the slab the roof's",
+"file": "game/scripts/landmarks.gd:6899",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:cepelia",
+"cat": "landmark",
+"name": "cepelia",
+"about": "",
+"file": "game/scripts/landmarks.gd:13195",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:cube_house",
+"cat": "landmark",
+"name": "cube_house",
+"about": "",
+"file": "game/scripts/landmarks.gd:10673",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:czapski",
+"cat": "landmark",
+"name": "czapski",
+"about": "Pałac Czapskich (Krasiński-Czapski palace, the Academy of Fine Arts), photos 18-19: built whole",
+"file": "game/scripts/landmarks.gd:16762",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:deski",
+"cat": "landmark",
+"name": "deski",
+"about": "",
+"file": "game/scripts/landmarks.gd:17586",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:dom_partii_extras",
+"cat": "landmark",
+"name": "dom_partii_extras",
+"about": "",
+"file": "game/scripts/landmarks.gd:4738",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:dtc",
+"cat": "landmark",
+"name": "dtc",
+"about": "",
+"file": "game/scripts/landmarks.gd:8029",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:dworzec_wodny",
+"cat": "landmark",
+"name": "dworzec_wodny",
+"about": "Dworzec Wodny: the Vistula's water station, a low glass-and-timber pavilion on its landing",
+"file": "game/scripts/landmarks.gd:5094",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:elektrownia",
+"cat": "landmark",
+"name": "elektrownia",
+"about": "",
+"file": "game/scripts/landmarks.gd:15799",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:europejski",
+"cat": "landmark",
+"name": "europejski",
+"about": "",
+"file": "game/scripts/landmarks.gd:7708",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:flaga",
+"cat": "landmark",
+"name": "flaga",
+"about": "",
+"file": "game/scripts/landmarks.gd:6455",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:florian",
+"cat": "landmark",
+"name": "florian",
+"about": "",
+"file": "game/scripts/landmarks.gd:18251",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:forest",
+"cat": "landmark",
+"name": "forest",
+"about": "",
+"file": "game/scripts/landmarks.gd:5708",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:gaulle",
+"cat": "landmark",
+"name": "gaulle",
+"about": "",
+"file": "game/scripts/landmarks.gd:4297",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:gbc",
+"cat": "landmark",
+"name": "gbc",
+"about": "",
+"file": "game/scripts/landmarks.gd:6409",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:getto",
+"cat": "landmark",
+"name": "getto",
+"about": "",
+"file": "game/scripts/landmarks.gd:20780",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:grob",
+"cat": "landmark",
+"name": "grob",
+"about": "The Tomb of the Unknown Soldier: the three arches left of the Saxon Palace's colonnade (blown",
+"file": "game/scripts/landmarks.gd:8818",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:gwardii",
+"cat": "landmark",
+"name": "gwardii",
+"about": "",
+"file": "game/scripts/landmarks.gd:9979",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:hortus",
+"cat": "landmark",
+"name": "hortus",
+"about": "",
+"file": "game/scripts/landmarks.gd:10772",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:hotel_warszawa",
+"cat": "landmark",
+"name": "hotel_warszawa",
+"about": "",
+"file": "game/scripts/landmarks.gd:19572",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:houseboats",
+"cat": "landmark",
+"name": "houseboats",
+"about": "",
+"file": "game/scripts/landmarks.gd:1560",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:jablkowscy",
+"cat": "landmark",
+"name": "jablkowscy",
+"about": "",
+"file": "game/scripts/landmarks.gd:21098",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:kaczynski",
+"cat": "landmark",
+"name": "kaczynski",
+"about": "",
+"file": "game/scripts/landmarks.gd:21342",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:karmelici",
+"cat": "landmark",
+"name": "karmelici",
+"about": "",
+"file": "game/scripts/landmarks.gd:1464",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:kaskada",
+"cat": "landmark",
+"name": "kaskada",
+"about": "Kaskada: a vessel moored along the boulevard. The mapped outline (about 46 x 10 m, round at",
+"file": "game/scripts/landmarks.gd:5127",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:kazimierzowski",
+"cat": "landmark",
+"name": "kazimierzowski",
+"about": "",
+"file": "game/scripts/landmarks.gd:1489",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:kopernik",
+"cat": "landmark",
+"name": "kopernik",
+"about": "",
+"file": "game/scripts/landmarks.gd:12143",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:kordegarda",
+"cat": "landmark",
+"name": "kordegarda",
+"about": "The Kordegarda (the palace's old guardhouse, today the ministry's gallery), photos 22-23: built",
+"file": "game/scripts/landmarks.gd:16890",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:koszyki",
+"cat": "landmark",
+"name": "koszyki",
+"about": "",
+"file": "game/scripts/landmarks.gd:15777",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:krasinski",
+"cat": "landmark",
+"name": "krasinski",
+"about": "",
+"file": "game/scripts/landmarks.gd:20300",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:krolewska",
+"cat": "landmark",
+"name": "krolewska",
+"about": "",
+"file": "game/scripts/landmarks.gd:1606",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:legia",
+"cat": "landmark",
+"name": "legia",
+"about": "",
+"file": "game/scripts/landmarks.gd:17741",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:level26_club",
+"cat": "landmark",
+"name": "level26_club",
+"about": "Level 26 (F, 2026-11-01), the rooftop club on the Atlas Tower: on the roof of the tower's crown",
+"file": "game/scripts/landmarks.gd:9177",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:loretka",
+"cat": "landmark",
+"name": "loretka",
+"about": "LORETKA in bubblegum pink on HOTEL PIURE's roof (the rooftop bar's neon), on its long fronts,",
+"file": "game/scripts/landmarks.gd:9079",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:mariensztat",
+"cat": "landmark",
+"name": "mariensztat",
+"about": "",
+"file": "game/scripts/landmarks.gd:16983",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:marina",
+"cat": "landmark",
+"name": "marina",
+"about": "",
+"file": "game/scripts/landmarks.gd:14993",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:mdm",
+"cat": "landmark",
+"name": "mdm",
+"about": "",
+"file": "game/scripts/landmarks.gd:1595",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:metropolitan",
+"cat": "landmark",
+"name": "metropolitan",
+"about": "The Metropolitan: the outline's fronts in glass (M_GLASS) behind granite fins standing out",
+"file": "game/scripts/landmarks.gd:9330",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:metropolsign",
+"cat": "landmark",
+"name": "metropolsign",
+"about": "Hotel Metropol (the Rondo night photos, 2026-10-31): the building stays the map's own; its",
+"file": "game/scripts/landmarks.gd:8969",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:mf",
+"cat": "landmark",
+"name": "mf",
+"about": "",
+"file": "game/scripts/landmarks.gd:16327",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:mickiewicz",
+"cat": "landmark",
+"name": "mickiewicz",
+"about": "Adam Mickiewicz's monument (Cyprian Godebski, 1898), photos 1-4: in its own lawn square on the",
+"file": "game/scripts/landmarks.gd:16617",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:mirowska",
+"cat": "landmark",
+"name": "mirowska",
+"about": "",
+"file": "game/scripts/landmarks.gd:9856",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:moderna",
+"cat": "landmark",
+"name": "moderna",
+"about": "",
+"file": "game/scripts/landmarks.gd:10843",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:mpw",
+"cat": "landmark",
+"name": "mpw",
+"about": "",
+"file": "game/scripts/landmarks.gd:15985",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:msn",
+"cat": "landmark",
+"name": "msn",
+"about": "",
+"file": "game/scripts/landmarks.gd:7885",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:muzeum",
+"cat": "landmark",
+"name": "muzeum",
+"about": "Muzeum Narodowe: Tadeusz Tołwiński's stripped-classical block in pale stone. The mapped",
+"file": "game/scripts/landmarks.gd:7434",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:norblin",
+"cat": "landmark",
+"name": "norblin",
+"about": "",
+"file": "game/scripts/landmarks.gd:15624",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:ochota",
+"cat": "landmark",
+"name": "ochota",
+"about": "",
+"file": "game/scripts/landmarks.gd:13423",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:orly",
+"cat": "landmark",
+"name": "orly",
+"about": "",
+"file": "game/scripts/landmarks.gd:19269",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:ostrogski",
+"cat": "landmark",
+"name": "ostrogski",
+"about": "",
+"file": "game/scripts/landmarks.gd:17082",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:palace",
+"cat": "landmark",
+"name": "palace",
+"about": "",
+"file": "game/scripts/landmarks.gd:2158",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:pasta",
+"cat": "landmark",
+"name": "pasta",
+"about": "",
+"file": "game/scripts/landmarks.gd:21486",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:pawilony",
+"cat": "landmark",
+"name": "pawilony",
+"about": "",
+"file": "game/scripts/landmarks.gd:13030",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:piano_house",
+"cat": "landmark",
+"name": "piano_house",
+"about": "",
+"file": "game/scripts/landmarks.gd:10634",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:pilsudski",
+"cat": "landmark",
+"name": "pilsudski",
+"about": "",
+"file": "game/scripts/landmarks.gd:21325",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:plac_maszty",
+"cat": "landmark",
+"name": "plac_maszty",
+"about": "",
+"file": "game/scripts/landmarks.gd:1486",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:poczta",
+"cat": "landmark",
+"name": "poczta",
+"about": "",
+"file": "game/scripts/landmarks.gd:1439",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:pokorna2",
+"cat": "landmark",
+"name": "pokorna2",
+"about": "",
+"file": "game/scripts/landmarks.gd:1524",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:polin",
+"cat": "landmark",
+"name": "polin",
+"about": "",
+"file": "game/scripts/landmarks.gd:20526",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:polonia",
+"cat": "landmark",
+"name": "polonia",
+"about": "Hotel Polonia Palace (1913), Al. Jerozolimskie 45: the one grand hotel that came through the",
+"file": "game/scripts/landmarks.gd:17527",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:pomnik_powstania",
+"cat": "landmark",
+"name": "pomnik_powstania",
+"about": "",
+"file": "game/scripts/landmarks.gd:20077",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:poniatowski",
+"cat": "landmark",
+"name": "poniatowski",
+"about": "",
+"file": "game/scripts/landmarks.gd:7094",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:potocki",
+"cat": "landmark",
+"name": "potocki",
+"about": "",
+"file": "game/scripts/landmarks.gd:1475",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:powisle",
+"cat": "landmark",
+"name": "powisle",
+"about": "",
+"file": "game/scripts/landmarks.gd:13682",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:prezydencki",
+"cat": "landmark",
+"name": "prezydencki",
+"about": "",
+"file": "game/scripts/landmarks.gd:11424",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:prus",
+"cat": "landmark",
+"name": "prus",
+"about": "Bolesław Prus's statue (Anna Kamieńska-Łapińska, 1977) on Twardowski Square: 3.6 m of bronze,",
+"file": "game/scripts/landmarks.gd:17006",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:rondo",
+"cat": "landmark",
+"name": "rondo",
+"about": "",
+"file": "game/scripts/landmarks.gd:1531",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:rotunda",
+"cat": "landmark",
+"name": "rotunda",
+"about": "",
+"file": "game/scripts/landmarks.gd:2608",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:rynek",
+"cat": "landmark",
+"name": "rynek",
+"about": "",
+"file": "game/scripts/landmarks.gd:4860",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:sad_najwyzszy",
+"cat": "landmark",
+"name": "sad_najwyzszy",
+"about": "",
+"file": "game/scripts/landmarks.gd:20874",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:sejm",
+"cat": "landmark",
+"name": "sejm",
+"about": "",
+"file": "game/scripts/landmarks.gd:1513",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:sheraton",
+"cat": "landmark",
+"name": "sheraton",
+"about": "",
+"file": "game/scripts/landmarks.gd:21185",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:slabs",
+"cat": "landmark",
+"name": "slabs",
+"about": "",
+"file": "game/scripts/landmarks.gd:1519",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:smolensk",
+"cat": "landmark",
+"name": "smolensk",
+"about": "",
+"file": "game/scripts/landmarks.gd:21307",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:sobieski",
+"cat": "landmark",
+"name": "sobieski",
+"about": "Radisson Blu Sobieski (Plac Zawiszy 1) as \"Radysław Blu\": the OSM outline is a plain extrusion,",
+"file": "game/scripts/landmarks.gd:18830",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:srodmiescie",
+"cat": "landmark",
+"name": "srodmiescie",
+"about": "",
+"file": "game/scripts/landmarks.gd:15155",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:stadion_pkp",
+"cat": "landmark",
+"name": "stadion_pkp",
+"about": "",
+"file": "game/scripts/landmarks.gd:13957",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:stadium",
+"cat": "landmark",
+"name": "stadium",
+"about": "",
+"file": "game/scripts/landmarks.gd:6579",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:staszic",
+"cat": "landmark",
+"name": "staszic",
+"about": "",
+"file": "game/scripts/landmarks.gd:1510",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:sw_anna",
+"cat": "landmark",
+"name": "sw_anna",
+"about": "",
+"file": "game/scripts/landmarks.gd:1507",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:sw_krzyz",
+"cat": "landmark",
+"name": "sw_krzyz",
+"about": "",
+"file": "game/scripts/landmarks.gd:1452",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:swieto",
+"cat": "landmark",
+"name": "swieto",
+"about": "",
+"file": "game/scripts/landmarks.gd:6510",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:syrenka",
+"cat": "landmark",
+"name": "syrenka",
+"about": "",
+"file": "game/scripts/landmarks.gd:4916",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:syrenka_powisle",
+"cat": "landmark",
+"name": "syrenka_powisle",
+"about": "The statue on a low stone plinth: a footing slab, a block, a cap, then the bronze mermaid",
+"file": "game/scripts/landmarks.gd:5012",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:tarasy",
+"cat": "landmark",
+"name": "tarasy",
+"about": "",
+"file": "game/scripts/landmarks.gd:2427",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:teatr",
+"cat": "landmark",
+"name": "teatr",
+"about": "",
+"file": "game/scripts/landmarks.gd:1444",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:teresy",
+"cat": "landmark",
+"name": "teresy",
+"about": "",
+"file": "game/scripts/landmarks.gd:17192",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:towarowa22",
+"cat": "landmark",
+"name": "towarowa22",
+"about": "",
+"file": "game/scripts/landmarks.gd:6010",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:tower75",
+"cat": "landmark",
+"name": "tower75",
+"about": "",
+"file": "game/scripts/landmarks.gd:1516",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:tr",
+"cat": "landmark",
+"name": "tr",
+"about": "",
+"file": "game/scripts/landmarks.gd:8700",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:trojca",
+"cat": "landmark",
+"name": "trojca",
+"about": "",
+"file": "game/scripts/landmarks.gd:9540",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:ujazdowski",
+"cat": "landmark",
+"name": "ujazdowski",
+"about": "",
+"file": "game/scripts/landmarks.gd:18709",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:varso",
+"cat": "landmark",
+"name": "varso",
+"about": "Built from its mapped parts: the glass slabs (177 and 205 m, the south part to 230 m),",
+"file": "game/scripts/landmarks.gd:2768",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:varso_place",
+"cat": "landmark",
+"name": "varso_place",
+"about": "The plaza's sign and the erratic (P1, P2), then the roof terraces on Varso 1 and 2 (T1-T3). No",
+"file": "game/scripts/landmarks.gd:2869",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:vitkac",
+"cat": "landmark",
+"name": "vitkac",
+"about": "",
+"file": "game/scripts/landmarks.gd:21053",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:wiecha",
+"cat": "landmark",
+"name": "wiecha",
+"about": "",
+"file": "game/scripts/landmarks.gd:13296",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:wiktoria",
+"cat": "landmark",
+"name": "wiktoria",
+"about": "Hotel Wiktoria: the podium over the whole outline in dark glass under a stone fascia, the",
+"file": "game/scripts/landmarks.gd:9466",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:wizytki",
+"cat": "landmark",
+"name": "wizytki",
+"about": "",
+"file": "game/scripts/landmarks.gd:1461",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:wkd_ochota",
+"cat": "landmark",
+"name": "wkd_ochota",
+"about": "",
+"file": "game/scripts/landmarks.gd:15374",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:wkd_srodmiescie",
+"cat": "landmark",
+"name": "wkd_srodmiescie",
+"about": "",
+"file": "game/scripts/landmarks.gd:15245",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:wschodnia",
+"cat": "landmark",
+"name": "wschodnia",
+"about": "",
+"file": "game/scripts/landmarks.gd:14239",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:wszystkich",
+"cat": "landmark",
+"name": "wszystkich",
+"about": "",
+"file": "game/scripts/landmarks.gd:1455",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:wyszynski",
+"cat": "landmark",
+"name": "wyszynski",
+"about": "Cardinal Stefan Wyszyński's statue (Andrzej Renes, 1987) before the Visitationists' church:",
+"file": "game/scripts/landmarks.gd:17028",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:zacheta",
+"cat": "landmark",
+"name": "zacheta",
+"about": "",
+"file": "game/scripts/landmarks.gd:9696",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:zamek",
+"cat": "landmark",
+"name": "zamek",
+"about": "",
+"file": "game/scripts/landmarks.gd:1447",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:zbawiciela",
+"cat": "landmark",
+"name": "zbawiciela",
+"about": "",
+"file": "game/scripts/landmarks.gd:11292",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:zelazna",
+"cat": "landmark",
+"name": "zelazna",
+"about": "",
+"file": "game/scripts/landmarks.gd:8522",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:zodiak",
+"cat": "landmark",
+"name": "zodiak",
+"about": "",
+"file": "game/scripts/landmarks.gd:13225",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "landmark:zygmunt",
+"cat": "landmark",
+"name": "zygmunt",
+"about": "",
+"file": "game/scripts/landmarks.gd:4248",
+"count": 1,
+"used_by": [
+"landmarks.gd sites"
+]
+},
+{
+"id": "instanced:bench",
+"cat": "instanced",
+"name": "bench",
+"about": "",
+"file": "game/scripts/map_builder.gd:6559",
+"count": 3843,
+"used_by": [
+"centrum.json"
+]
+},
+{
+"id": "instanced:bin",
+"cat": "instanced",
+"name": "bin",
+"about": "",
+"file": "game/scripts/map_builder.gd:6572",
+"count": 1561,
+"used_by": [
+"centrum.json"
+]
+},
+{
+"id": "instanced:broadleaf",
+"cat": "instanced",
+"name": "broadleaf",
+"about": "",
+"file": "game/scripts/map_builder.gd:6464",
+"count": 44180,
+"used_by": [
+"centrum.json"
+]
+},
+{
+"id": "instanced:column",
+"cat": "instanced",
+"name": "column",
+"about": "",
+"file": "game/scripts/map_builder.gd:6589",
+"count": 309,
+"used_by": [
+"centrum.json"
+]
+},
+{
+"id": "instanced:conifer",
+"cat": "instanced",
+"name": "conifer",
+"about": "",
+"file": "game/scripts/map_builder.gd:6465",
+"count": 1012,
+"used_by": [
+"centrum.json"
+]
+},
+{
+"id": "instanced:lamp",
+"cat": "instanced",
+"name": "lamp",
+"about": "",
+"file": "game/scripts/map_builder.gd:6478",
+"count": 5385,
+"used_by": [
+"centrum.json"
+]
+},
+{
+"id": "instanced:parked",
+"cat": "instanced",
+"name": "parked",
+"about": "",
+"file": "game/scripts/map_builder.gd:6524",
+"count": 4901,
+"used_by": [
+"centrum.json"
+]
+},
+{
+"id": "instanced:rack",
+"cat": "instanced",
+"name": "rack",
+"about": "",
+"file": "game/scripts/map_builder.gd:6579",
+"count": 1649,
+"used_by": [
+"centrum.json"
+]
+},
+{
+"id": "instanced:shelter",
+"cat": "instanced",
+"name": "shelter",
+"about": "",
+"file": "game/scripts/map_builder.gd:6633",
+"count": 385,
+"used_by": [
+"centrum.json"
+]
+},
+{
+"id": "instanced:signal",
+"cat": "instanced",
+"name": "signal",
+"about": "",
+"file": "game/scripts/map_builder.gd:6523",
+"count": 1133,
+"used_by": [
+"centrum.json"
+]
+},
+{
+"id": "barrier:balustrade",
+"cat": "barrier",
+"name": "balustrade",
+"about": "#8f8f8a, 0.3 m thick, 1.0 m high (one style for every balustrade)",
+"file": "game/scripts/map_builder.gd:4499",
+"count": null,
+"used_by": [
+"centrum.json lines"
+]
+},
+{
+"id": "barrier:balustrade_rail",
+"cat": "barrier",
+"name": "balustrade_rail",
+"about": "#a9a59d, open railing, 1.0 m high (one style for every balustrade_rail)",
+"file": "game/scripts/map_builder.gd:4500",
+"count": null,
+"used_by": [
+"centrum.json lines"
+]
+},
+{
+"id": "barrier:fence",
+"cat": "barrier",
+"name": "fence",
+"about": "#7d838a, 0.12 m thick, 1.6 m high (one style for every fence)",
+"file": "game/scripts/map_builder.gd:4488",
+"count": 4932,
+"used_by": [
+"centrum.json lines"
+]
+},
+{
+"id": "barrier:guard_rail",
+"cat": "barrier",
+"name": "guard rail",
+"about": "",
+"file": "game/scripts/map_builder.gd:4828",
+"count": null,
+"used_by": [
+"centrum.json guards"
+]
+},
+{
+"id": "barrier:hedge",
+"cat": "barrier",
+"name": "hedge",
+"about": "#4f7d39, 0.9 m thick, 1.2 m high (one style for every hedge)",
+"file": "game/scripts/map_builder.gd:4487",
+"count": 1083,
+"used_by": [
+"centrum.json lines"
+]
+},
+{
+"id": "barrier:platform",
+"cat": "barrier",
+"name": "platform",
+"about": "#d2cdc3, 2.4 m thick, 0.25 m high (one style for every platform)",
+"file": "game/scripts/map_builder.gd:4490",
+"count": 351,
+"used_by": [
+"centrum.json lines"
+]
+},
+{
+"id": "barrier:tram_railing",
+"cat": "barrier",
+"name": "tram_railing",
+"about": "#22262a, open railing, 1.1 m high (one style for every tram_railing)",
+"file": "game/scripts/map_builder.gd:4498",
+"count": null,
+"used_by": [
+"centrum.json lines"
+]
+},
+{
+"id": "barrier:wall",
+"cat": "barrier",
+"name": "wall",
+"about": "#a49d92, 0.35 m thick, 1.9 m high (one style for every wall)",
+"file": "game/scripts/map_builder.gd:4489",
+"count": 2083,
+"used_by": [
+"centrum.json lines"
+]
+},
+{
+"id": "detail:bench",
+"cat": "detail",
+"name": "bench",
+"about": "",
+"file": "game/scripts/street_details.gd:69",
+"count": 3,
+"used_by": [
+"game/data/street_details.json"
+]
+},
+{
+"id": "detail:bollards",
+"cat": "detail",
+"name": "bollards",
+"about": "",
+"file": "game/scripts/street_details.gd:61",
+"count": 11,
+"used_by": [
+"game/data/street_details.json"
+]
+},
+{
+"id": "detail:cafe",
+"cat": "detail",
+"name": "cafe",
+"about": "",
+"file": "game/scripts/street_details.gd:55",
+"count": 47,
+"used_by": [
+"game/data/street_details.json"
+]
+},
+{
+"id": "detail:cart",
+"cat": "detail",
+"name": "cart",
+"about": "",
+"file": "game/scripts/street_details.gd:63",
+"count": 3,
+"used_by": [
+"game/data/street_details.json"
+]
+},
+{
+"id": "detail:column",
+"cat": "detail",
+"name": "column",
+"about": "",
+"file": "game/scripts/street_details.gd:59",
+"count": 8,
+"used_by": [
+"game/data/street_details.json"
+]
+},
+{
+"id": "detail:heater",
+"cat": "detail",
+"name": "heater",
+"about": "",
+"file": "game/scripts/street_details.gd:71",
+"count": 40,
+"used_by": [
+"game/data/street_details.json"
+]
+},
+{
+"id": "detail:kiosk",
+"cat": "detail",
+"name": "kiosk",
+"about": "",
+"file": "game/scripts/street_details.gd:51",
+"count": 12,
+"used_by": [
+"game/data/street_details.json"
+]
+},
+{
+"id": "detail:planter",
+"cat": "detail",
+"name": "planter",
+"about": "",
+"file": "game/scripts/street_details.gd:57",
+"count": 258,
+"used_by": [
+"game/data/street_details.json"
+]
+},
+{
+"id": "detail:post",
+"cat": "detail",
+"name": "post",
+"about": "",
+"file": "game/scripts/street_details.gd:65",
+"count": 34,
+"used_by": [
+"game/data/street_details.json"
+]
+},
+{
+"id": "detail:shelter",
+"cat": "detail",
+"name": "shelter",
+"about": "",
+"file": "game/scripts/street_details.gd:73",
+"count": 1,
+"used_by": [
+"game/data/street_details.json"
+]
+},
+{
+"id": "detail:stall",
+"cat": "detail",
+"name": "stall",
+"about": "",
+"file": "game/scripts/street_details.gd:53",
+"count": 14,
+"used_by": [
+"game/data/street_details.json"
+]
+},
+{
+"id": "detail:ticket",
+"cat": "detail",
+"name": "ticket",
+"about": "",
+"file": "game/scripts/street_details.gd:67",
+"count": 3,
+"used_by": [
+"game/data/street_details.json"
+]
+},
+{
+"id": "park:carousel",
+"cat": "park",
+"name": "carousel",
+"about": "",
+"file": "game/scripts/park_details.gd:1",
+"count": 1,
+"used_by": [
+"game/data/park_details.json"
+]
+},
+{
+"id": "park:duck",
+"cat": "park",
+"name": "duck",
+"about": "",
+"file": "game/scripts/park_details.gd:1",
+"count": 32,
+"used_by": [
+"game/data/park_details.json"
+]
+},
+{
+"id": "park:footbridge",
+"cat": "park",
+"name": "footbridge",
+"about": "",
+"file": "game/scripts/park_details.gd:1",
+"count": 1,
+"used_by": [
+"game/data/park_details.json"
+]
+},
+{
+"id": "park:fountain",
+"cat": "park",
+"name": "fountain",
+"about": "",
+"file": "game/scripts/park_details.gd:1",
+"count": 1,
+"used_by": [
+"game/data/park_details.json"
+]
+},
+{
+"id": "park:gazebo",
+"cat": "park",
+"name": "gazebo",
+"about": "",
+"file": "game/scripts/park_details.gd:1",
+"count": 1,
+"used_by": [
+"game/data/park_details.json"
+]
+},
+{
+"id": "park:pergola",
+"cat": "park",
+"name": "pergola",
+"about": "",
+"file": "game/scripts/park_details.gd:1",
+"count": 2,
+"used_by": [
+"game/data/park_details.json"
+]
+},
+{
+"id": "park:picnic",
+"cat": "park",
+"name": "picnic",
+"about": "",
+"file": "game/scripts/park_details.gd:1",
+"count": 17,
+"used_by": [
+"game/data/park_details.json"
+]
+},
+{
+"id": "park:playground",
+"cat": "park",
+"name": "playground",
+"about": "",
+"file": "game/scripts/park_details.gd:1",
+"count": 1,
+"used_by": [
+"game/data/park_details.json"
+]
+},
+{
+"id": "park:ropecourse",
+"cat": "park",
+"name": "ropecourse",
+"about": "",
+"file": "game/scripts/park_details.gd:1",
+"count": 1,
+"used_by": [
+"game/data/park_details.json"
+]
+},
+{
+"id": "park:seated",
+"cat": "park",
+"name": "seated",
+"about": "",
+"file": "game/scripts/park_details.gd:1",
+"count": 93,
+"used_by": [
+"game/data/park_details.json"
+]
+},
+{
+"id": "park:squirrel",
+"cat": "park",
+"name": "squirrel",
+"about": "",
+"file": "game/scripts/park_details.gd:1",
+"count": 27,
+"used_by": [
+"game/data/park_details.json"
+]
+},
+{
+"id": "park:sundial",
+"cat": "park",
+"name": "sundial",
+"about": "",
+"file": "game/scripts/park_details.gd:1",
+"count": 1,
+"used_by": [
+"game/data/park_details.json"
+]
+},
+{
+"id": "park:swan",
+"cat": "park",
+"name": "swan",
+"about": "",
+"file": "game/scripts/park_details.gd:1",
+"count": 10,
+"used_by": [
+"game/data/park_details.json"
+]
+},
+{
+"id": "park:yoga",
+"cat": "park",
+"name": "yoga",
+"about": "",
+"file": "game/scripts/park_details.gd:1",
+"count": 3,
+"used_by": [
+"game/data/park_details.json"
+]
+},
+{
+"id": "monument:allegory",
+"cat": "monument",
+"name": "allegory",
+"about": "",
+"file": "game/scripts/monuments.gd:1",
+"count": 19,
+"used_by": [
+"game/data/monuments.json"
+]
+},
+{
+"id": "monument:bench",
+"cat": "monument",
+"name": "bench",
+"about": "",
+"file": "game/scripts/monuments.gd:1",
+"count": 9,
+"used_by": [
+"game/data/monuments.json"
+]
+},
+{
+"id": "monument:bust",
+"cat": "monument",
+"name": "bust",
+"about": "",
+"file": "game/scripts/monuments.gd:1",
+"count": 32,
+"used_by": [
+"game/data/monuments.json"
+]
+},
+{
+"id": "monument:cross",
+"cat": "monument",
+"name": "cross",
+"about": "",
+"file": "game/scripts/monuments.gd:1",
+"count": 1,
+"used_by": [
+"game/data/monuments.json"
+]
+},
+{
+"id": "monument:obelisk",
+"cat": "monument",
+"name": "obelisk",
+"about": "",
+"file": "game/scripts/monuments.gd:1",
+"count": 2,
+"used_by": [
+"game/data/monuments.json"
+]
+},
+{
+"id": "monument:plaque",
+"cat": "monument",
+"name": "plaque",
+"about": "",
+"file": "game/scripts/monuments.gd:1",
+"count": 520,
+"used_by": [
+"game/data/monuments.json"
+]
+},
+{
+"id": "monument:sculpture",
+"cat": "monument",
+"name": "sculpture",
+"about": "",
+"file": "game/scripts/monuments.gd:1",
+"count": 25,
+"used_by": [
+"game/data/monuments.json"
+]
+},
+{
+"id": "monument:statue",
+"cat": "monument",
+"name": "statue",
+"about": "",
+"file": "game/scripts/monuments.gd:1",
+"count": 73,
+"used_by": [
+"game/data/monuments.json"
+]
+},
+{
+"id": "monument:stele",
+"cat": "monument",
+"name": "stele",
+"about": "",
+"file": "game/scripts/monuments.gd:1",
+"count": 68,
+"used_by": [
+"game/data/monuments.json"
+]
+},
+{
+"id": "monument:stone",
+"cat": "monument",
+"name": "stone",
+"about": "",
+"file": "game/scripts/monuments.gd:1",
+"count": 66,
+"used_by": [
+"game/data/monuments.json"
+]
+},
+{
+"id": "prop:ad_column",
+"cat": "prop",
+"name": "ad column",
+"about": "An advertising column (a litfaza): a green foot, an eight-sided drum of posters in `poster`",
+"file": "game/scripts/props.gd:808",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:barrier",
+"cat": "prop",
+"name": "barrier",
+"about": "A roadwork barrier 2 m long and 1.2 m tall, chunky enough to read at the default zoom",
+"file": "game/scripts/props.gd:194",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:bike_dock",
+"cat": "prop",
+"name": "bike dock",
+"about": "R7: a city bike dock (a parody of the city's hire bikes): a row of `n` docked bikes, mint",
+"file": "game/scripts/props.gd:889",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:billboard_frame",
+"cat": "prop",
+"name": "billboard frame",
+"about": "A billboard's frame: two posts and a dark border round a board w × h metres whose",
+"file": "game/scripts/props.gd:316",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:bollards",
+"cat": "prop",
+"name": "bollards",
+"about": "A row of `n` street bollards (a dark steel post 0.9 m tall with a pale band, 1.5 m apart along",
+"file": "game/scripts/props.gd:839",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:cafe_set",
+"cat": "prop",
+"name": "cafe set",
+"about": "A café table for two under a square parasol, 2.6 m across: a round-ish table, two chairs,",
+"file": "game/scripts/props.gd:750",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:carried_armchair",
+"cat": "prop",
+"name": "carried armchair",
+"about": "Loop jobs-2 (vision.md 3.7, egg E34): a 1960s armchair carried upside down on a man's head (his",
+"file": "game/scripts/props.gd:492",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:cone",
+"cat": "prop",
+"name": "cone",
+"about": "A traffic cone, 0.75 m: orange with a white band (loop 1: bigger, stepped like a cone).",
+"file": "game/scripts/props.gd:210",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:contact_pad",
+"cat": "prop",
+"name": "contact pad",
+"about": "A flat dark quad 2 cm over the paving, `half` (x, z) metres each way: the contact shadow of a",
+"file": "game/scripts/props.gd:997",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:dig",
+"cat": "prop",
+"name": "dig",
+"about": "The dig the barriers fence off: a dark trench and a heap of sand.",
+"file": "game/scripts/props.gd:222",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:flower_stall",
+"cat": "prop",
+"name": "flower stall",
+"about": "A flower stall (a kwiaciarnia's table on the pavement), 2.2 m wide: a green trestle with rows",
+"file": "game/scripts/props.gd:780",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:frogs_shop",
+"cat": "prop",
+"name": "frogs shop",
+"about": "A Frogs shop front (parodies.md 2.1), on a wall: x along the wall (to the reader's right), y",
+"file": "game/scripts/props.gd:390",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:ice_cream_cart",
+"cat": "prop",
+"name": "ice cream cart",
+"about": "An ice-cream cart (LODY, ice cream): a white box on two wheels with a striped awning on two",
+"file": "game/scripts/props.gd:977",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:kebab_stand",
+"cat": "prop",
+"name": "kebab stand",
+"about": "A kiosk about 3 m wide: cream walls with a red band, a lit serving hatch with a",
+"file": "game/scripts/props.gd:69",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:kiosk",
+"cat": "prop",
+"name": "kiosk",
+"about": "A newspaper kiosk, 2.6 m wide and 1.9 m deep, its front (the hatch) towards -z: a green steel",
+"file": "game/scripts/props.gd:712",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:lezak",
+"cat": "prop",
+"name": "lezak",
+"about": "A Leżak (parodies.md 5.1): a dumped e-scooter, ≤ 120 triangles, standing, its length along",
+"file": "game/scripts/props.gd:446",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:long_bench",
+"cat": "prop",
+"name": "long bench",
+"about": "A long park bench (Złota's square): `length` m of larch slats on three grey concrete feet, a low",
+"file": "game/scripts/props.gd:1014",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:memorial_stone",
+"cat": "prop",
+"name": "memorial stone",
+"about": "Krajobraz K2 (ul. Chmielna, 2026-11-02): a memorial stone, a rough grey granite boulder about",
+"file": "game/scripts/props.gd:877",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:mermaid",
+"cat": "prop",
+"name": "mermaid",
+"about": "A small Mermaid (no particular statue): a stone plinth, a curled fish tail, her",
+"file": "game/scripts/props.gd:257",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:metro_entrance",
+"cat": "prop",
+"name": "metro entrance",
+"about": "A metro entrance (vision.md 3.5, M1 and M2 at the real stairs) into the sector's street-prop",
+"file": "game/scripts/props.gd:520",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:named_kebab_stand",
+"cat": "prop",
+"name": "named kebab stand",
+"about": "A kebab stand with its name on a smaller board under KEBAB (parodies.md 6.1: U ZDZICHA at",
+"file": "game/scripts/props.gd:691",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:palm",
+"cat": "prop",
+"name": "palm",
+"about": "The palm on Rondo de Gaulle'a: a ringed, gently curving trunk about 13 m tall on",
+"file": "game/scripts/props.gd:120",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:park_lamp",
+"cat": "prop",
+"name": "park lamp",
+"about": "A slim park lamp (Złota's square): a 4.6 m graphite pole and a flat round head that glows warm",
+"file": "game/scripts/props.gd:1035",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:patio_heater",
+"cat": "prop",
+"name": "patio heater",
+"about": "A patio heater (a café garden's gas \"mushroom\", Nowy Świat pass 2): a round base, a 2.1 m steel",
+"file": "game/scripts/props.gd:768",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:payphone",
+"cat": "prop",
+"name": "payphone",
+"about": "Loop jobs-2 (vision.md 3.9 T17, egg E40): the old card payphone at Plac Konstytucji, into the",
+"file": "game/scripts/props.gd:472",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:pedzik_rider",
+"cat": "prop",
+"name": "pedzik rider",
+"about": "A Pędzik rider (parodies.md 4.1), ≤ 300 triangles, facing -z: a dark bike (boxes), the rider",
+"file": "game/scripts/props.gd:637",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:person",
+"cat": "prop",
+"name": "person",
+"about": "A person standing, 1.75 m tall, in their own colours (no instance paint), so it",
+"file": "game/scripts/props.gd:296",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:pigeon",
+"cat": "prop",
+"name": "pigeon",
+"about": "A pigeon about 0.7 m long (bigger than life, so it reads): grey body, a green",
+"file": "game/scripts/props.gd:167",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:planter",
+"cat": "prop",
+"name": "planter",
+"about": "A round concrete planter (Warsaw's street bowls), 1.2 m across and 0.6 m tall, full of",
+"file": "game/scripts/props.gd:737",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:poster_quad",
+"cat": "prop",
+"name": "poster quad",
+"about": "A flat quad w × h facing -Z with UV 0..1 (u right, v down), for a poster texture.",
+"file": "game/scripts/props.gd:333",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:scooter_zone",
+"cat": "prop",
+"name": "scooter zone",
+"about": "A Leżak parking zone (parodies.md 5.2): a painted white rectangle 3 × 1.5 m on the pavement",
+"file": "game/scripts/props.gd:461",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:spout",
+"cat": "prop",
+"name": "spout",
+"about": "The rock fountain's water: a thin pale jet and the foam round its foot. 24 triangles.",
+"file": "game/scripts/props.gd:1026",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:stone_block",
+"cat": "prop",
+"name": "stone block",
+"about": "Skwer Linearny na Złotej (2026-11-02): a free-standing pale stone block on the lawn (people sit",
+"file": "game/scripts/props.gd:1004",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:stop_bench",
+"cat": "prop",
+"name": "stop bench",
+"about": "A tram-stop bench (ławka): a 1.8 m slatted seat and back on two graphite feet, the back to",
+"file": "game/scripts/props.gd:951",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:stop_post",
+"cat": "prop",
+"name": "stop post",
+"about": "A stop post (a tram or bus stop's pole): a 2.6 m grey pole, a round yellow-green plate facing the",
+"file": "game/scripts/props.gd:942",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:street_plates",
+"cat": "prop",
+"name": "street plates",
+"about": "The start area as real Warsaw (R7, docs/design/start-area-real.md): Warsaw's street name plate",
+"file": "game/scripts/props.gd:851",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:ticket_machine",
+"cat": "prop",
+"name": "ticket machine",
+"about": "A ticket machine (BILETY, tickets): a 1.7 m grey-and-yellow box with a lit screen and the word in",
+"file": "game/scripts/props.gd:963",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:tram_shelter",
+"cat": "prop",
+"name": "tram shelter",
+"about": "R7: Warsaw's glass tram shelter, as the map's shared shelter (map_builder.gd) but into a",
+"file": "game/scripts/props.gd:921",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:work_sign",
+"cat": "prop",
+"name": "work sign",
+"about": "A yellow roadworks sign on two posts with `word` in black pixel letters on both",
+"file": "game/scripts/props.gd:233",
+"count": null,
+"used_by": []
+},
+{
+"id": "prop:y_mast",
+"cat": "prop",
+"name": "y mast",
+"about": "Pasaż Wiecha's lamp mast (the Mac photo report dt_pawilony, 2026-11-02): a single white pole",
+"file": "game/scripts/props.gd:824",
+"count": null,
+"used_by": []
+},
+{
+"id": "vehicle:bus_mesh",
+"cat": "vehicle",
+"name": "bus mesh",
+"about": "Warsaw's city bus, an 18 m articulated Solaris (the Rondo night photos, 2026-10-31): red",
+"file": "game/scripts/models.gd:717",
+"count": null,
+"used_by": []
+},
+{
+"id": "vehicle:parked_mesh",
+"cat": "vehicle",
+"name": "parked mesh",
+"about": "Loop 2c: the parked cars' mesh (map_builder.gd, and main.gd for a city.scn baked before",
+"file": "game/scripts/models.gd:912",
+"count": null,
+"used_by": []
+},
+{
+"id": "vehicle:person_mesh",
+"cat": "vehicle",
+"name": "person mesh",
+"about": "A pedestrian 1.75 m tall: trousers (palette), shirt (instance paint), skin, hair.",
+"file": "game/scripts/models.gd:1176",
+"count": null,
+"used_by": []
+},
+{
+"id": "vehicle:player_meshes",
+"cat": "vehicle",
+"name": "player meshes",
+"about": "Loop 2c: the player's hatchback (car.gd): [body, head lamps, tail lamps] (three draw",
+"file": "game/scripts/models.gd:958",
+"count": null,
+"used_by": []
+},
+{
+"id": "vehicle:police_mesh",
+"cat": "vehicle",
+"name": "police mesh",
+"about": "Loop 2c, for loop 3g: the police estate and the city guards' car in one family (police.md",
+"file": "game/scripts/models.gd:794",
+"count": null,
+"used_by": []
+},
+{
+"id": "vehicle:rival_mesh",
+"cat": "vehicle",
+"name": "rival mesh",
+"about": "The rivals' cars, one look each (style 0..5), all colours fixed (loop 2c: built from the",
+"file": "game/scripts/models.gd:1035",
+"count": null,
+"used_by": []
+},
+{
+"id": "vehicle:traffic_mesh",
+"cat": "vehicle",
+"name": "traffic mesh",
+"about": "Loop 2c: traffic.gd's mesh for a kind (0 cars, 1 taxis, 2 vans, 3 the bus): a family of the",
+"file": "game/scripts/models.gd:611",
+"count": null,
+"used_by": []
+},
+{
+"id": "vehicle:tram_mesh",
+"cat": "vehicle",
+"name": "tram mesh",
+"about": "A tram car about 10.5 m long; `cab` adds a driver's cab at -Z. Warsaw colours: a yellow",
+"file": "game/scripts/models.gd:1122",
+"count": null,
+"used_by": []
+}
+]
+}

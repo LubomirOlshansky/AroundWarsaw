@@ -1,0 +1,361 @@
+{
+ "slug": "swietokrzyska-east",
+ "title": "Świętokrzyska: Metro Świętokrzyska to Emilii Plater",
+ "updated": "2026-11-06",
+ "stage": "baseline",
+ "score": 92,
+ "counts": {
+  "L1": 3,
+  "L2": 8,
+  "L3": 1,
+  "O1": 1
+ },
+ "blocks": [
+  {
+   "id": "A",
+   "title": "Marszałkowska to Wallenberga",
+   "counts": {
+    "L1": 1,
+    "L2": 4,
+    "L3": 1,
+    "O1": 1
+   },
+   "score": 90
+  },
+  {
+   "id": "B",
+   "title": "Wallenberga to Emilii Plater",
+   "counts": {
+    "L1": 1,
+    "L2": 2
+   },
+   "score": 95
+  }
+ ],
+ "history": [
+  {
+   "date": "2026-11-05",
+   "score": 90,
+   "counts": {
+    "L1": 5,
+    "L2": 6,
+    "O1": 1
+   },
+   "blocks": {
+    "A": 91,
+    "B": 90
+   }
+  },
+  {
+   "date": "2026-11-06",
+   "score": 83,
+   "counts": {
+    "L1": 5,
+    "L2": 9,
+    "L3": 5,
+    "L4": 3,
+    "O1": 1
+   },
+   "blocks": {
+    "A": 80,
+    "B": 86
+   }
+  },
+  {
+   "date": "2026-11-06",
+   "score": 89,
+   "counts": {
+    "L1": 5,
+    "L2": 9,
+    "L3": 1,
+    "O1": 1
+   },
+   "blocks": {
+    "A": 86,
+    "B": 92
+   }
+  },
+  {
+   "date": "2026-11-06",
+   "score": 92,
+   "counts": {
+    "L1": 3,
+    "L2": 9,
+    "L3": 1,
+    "O1": 1
+   },
+   "blocks": {
+    "A": 89,
+    "B": 95
+   }
+  },
+  {
+   "date": "2026-11-06",
+   "score": 92,
+   "counts": {
+    "L1": 3,
+    "L2": 8,
+    "L3": 1,
+    "O1": 1
+   },
+   "blocks": {
+    "A": 90,
+    "B": 95
+   }
+  }
+ ],
+ "baseline": {
+  "date": "2026-11-05",
+  "score": 90,
+  "counts": {
+   "L1": 5,
+   "L2": 6,
+   "O1": 1
+  },
+  "blocks": {
+   "A": 91,
+   "B": 90
+  }
+ },
+ "evidence": [],
+ "owned": [],
+ "changed": [],
+ "verdicts": {
+  "CHECK": 2,
+  "KEEP": 3
+ },
+ "findings": [
+  {
+   "check": "L1",
+   "x": -1486.2,
+   "z": 3.4,
+   "s": 442.8,
+   "t": 9.2,
+   "note": "3 -> 2 lanes, 9.0 -> 6.0 m wide where two ways meet",
+   "block": "-",
+   "status": "open"
+  },
+  {
+   "check": "L2",
+   "x": -1053.3,
+   "z": -106.1,
+   "s": -2.1,
+   "t": -27.9,
+   "note": "lane line ends mid-block",
+   "block": "-",
+   "status": "open"
+  },
+  {
+   "check": "L2",
+   "x": -1071.7,
+   "z": -158.1,
+   "s": -1.7,
+   "t": 27.3,
+   "note": "lane line ends mid-block",
+   "block": "-",
+   "status": "open"
+  },
+  {
+   "check": "L1",
+   "x": -1064.4,
+   "z": -131.8,
+   "s": 0.0,
+   "t": -0.0,
+   "note": "5 -> 4 lanes, 15.0 -> 12.0 m wide where two ways meet",
+   "block": "A",
+   "status": "open"
+  },
+  {
+   "check": "L2",
+   "x": -1075.0,
+   "z": -156.9,
+   "s": 1.9,
+   "t": 27.2,
+   "note": "lane line ends mid-block",
+   "block": "A",
+   "status": "open"
+  },
+  {
+   "check": "L2",
+   "x": -1087.3,
+   "z": -128.9,
+   "s": 22.6,
+   "t": 4.7,
+   "note": "lane line ends mid-block",
+   "block": "A",
+   "status": "open"
+  },
+  {
+   "check": "L2",
+   "x": -1195.5,
+   "z": -88.8,
+   "s": 138.0,
+   "t": 1.9,
+   "note": "lane line ends mid-block",
+   "block": "A",
+   "status": "open"
+  },
+  {
+   "check": "L2",
+   "x": -1197.1,
+   "z": -91.9,
+   "s": 138.5,
+   "t": 5.4,
+   "note": "lane line ends mid-block",
+   "block": "A",
+   "status": "open"
+  },
+  {
+   "check": "L3",
+   "x": -1147.5,
+   "z": -112.4,
+   "s": 84.8,
+   "t": 8.7,
+   "note": "edge line crosses a kerb",
+   "block": "A",
+   "status": "open"
+  },
+  {
+   "check": "O1",
+   "x": -1148.5,
+   "z": -95.4,
+   "s": 91.4,
+   "t": -7.1,
+   "note": "shelter/shelter 0.9 m from a lane's edge",
+   "block": "A",
+   "status": "open"
+  },
+  {
+   "check": "L1",
+   "x": -1482.3,
+   "z": 11.8,
+   "s": 441.9,
+   "t": -0.0,
+   "note": "3 -> 2 lanes, 9.0 -> 6.0 m wide where two ways meet",
+   "block": "B",
+   "status": "open"
+  },
+  {
+   "check": "L2",
+   "x": -1373.4,
+   "z": -28.8,
+   "s": 325.7,
+   "t": 3.0,
+   "note": "lane line ends mid-block",
+   "block": "B",
+   "status": "open"
+  },
+  {
+   "check": "L2",
+   "x": -1474.7,
+   "z": 28.5,
+   "s": 440.1,
+   "t": -18.3,
+   "note": "lane line ends mid-block",
+   "block": "B",
+   "status": "open"
+  }
+ ],
+ "objects": [
+  {
+   "id": "barrier:wall:-1448:80",
+   "cls": "barrier",
+   "kind": "wall",
+   "gap": 2.36,
+   "len": 100.5,
+   "angle": 89,
+   "s": 430,
+   "t": -34,
+   "x": -1460.5,
+   "z": 40.1,
+   "street": "Emilii Plater",
+   "jn": 0,
+   "rule": "B3",
+   "verdict": "CHECK",
+   "why": "crosses towards a lane: an open gate (REMOVE) or a yard gate (REPLACE)",
+   "model": "yard_gate",
+   "style": "",
+   "status": "open"
+  },
+  {
+   "id": "barrier:wall:-1448:82",
+   "cls": "barrier",
+   "kind": "wall",
+   "gap": 2.09,
+   "len": 101.0,
+   "angle": 87,
+   "s": 435,
+   "t": -31,
+   "x": -1465.9,
+   "z": 38.6,
+   "street": "Emilii Plater",
+   "jn": 0,
+   "rule": "B3",
+   "verdict": "CHECK",
+   "why": "crosses towards a lane: an open gate (REMOVE) or a yard gate (REPLACE)",
+   "model": "yard_gate",
+   "style": "",
+   "status": "open"
+  },
+  {
+   "id": "platform:rail:-1084:-202",
+   "cls": "platform",
+   "kind": "rail",
+   "gap": 0.0,
+   "len": 153.3,
+   "angle": 90,
+   "s": -2,
+   "t": 39,
+   "x": -1075.3,
+   "z": -169.6,
+   "street": "Marszałkowska",
+   "jn": 0,
+   "rule": "-",
+   "verdict": "KEEP",
+   "why": "platform: not a barrier; C5/C10 checks cover it",
+   "model": "",
+   "style": "",
+   "status": "open"
+  },
+  {
+   "id": "shelter:shelter:-1128:-120",
+   "cls": "shelter",
+   "kind": "shelter",
+   "gap": 1.65,
+   "len": 10.0,
+   "angle": 90,
+   "s": 67,
+   "t": 10,
+   "x": -1130.9,
+   "z": -119.6,
+   "street": "Świętokrzyska",
+   "jn": 0,
+   "rule": "B13",
+   "verdict": "KEEP",
+   "why": "real tram/bus shelter; soften its corner with collision v2",
+   "model": "instanced:shelter",
+   "style": "",
+   "status": "open"
+  },
+  {
+   "id": "shelter:shelter:-1150:-94",
+   "cls": "shelter",
+   "kind": "shelter",
+   "gap": 0.86,
+   "len": 10.0,
+   "angle": 90,
+   "s": 91,
+   "t": -7,
+   "x": -1148.5,
+   "z": -95.4,
+   "street": "Świętokrzyska",
+   "jn": 0,
+   "rule": "B13",
+   "verdict": "KEEP",
+   "why": "real tram/bus shelter; soften its corner with collision v2",
+   "model": "instanced:shelter",
+   "style": "",
+   "status": "open"
+  }
+ ]
+}

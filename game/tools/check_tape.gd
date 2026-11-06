@@ -19,6 +19,7 @@ extends SceneTree
 const Tape := preload("res://scripts/tape.gd")
 const Notebook := preload("res://scripts/notebook.gd")
 const Wallet := preload("res://scripts/wallet.gd")
+const HudScript := preload("res://scripts/hud.gd")
 const MAX_PL := 70
 
 var problems: Array[String] = []
@@ -42,6 +43,9 @@ class FakeHud:
 
 	func pill_free() -> bool:
 		return owner_now == ""
+
+	func pill_free_for(who: String) -> bool:
+		return owner_now == "" or HudScript.pill_outranks(who, owner_now)
 
 	func show_note(title: String, body: String, _c: Color) -> void:
 		notes.append([title, body])

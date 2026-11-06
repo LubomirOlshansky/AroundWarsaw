@@ -1,0 +1,1139 @@
+{
+ "slug": "marszalkowska-centrum",
+ "title": "Marszałkowska: Rondo Dmowskiego to Świętokrzyska",
+ "updated": "2026-11-06",
+ "stage": "evidence",
+ "score": 81,
+ "counts": {
+  "F1": 7,
+  "L1": 3,
+  "L2": 15,
+  "L3": 1,
+  "O1": 8,
+  "P1": 1
+ },
+ "blocks": [
+  {
+   "id": "A",
+   "title": "Rondo Dmowskiego to Złota",
+   "counts": {
+    "F1": 5,
+    "L1": 1,
+    "L2": 4,
+    "O1": 7
+   },
+   "score": 71
+  },
+  {
+   "id": "B",
+   "title": "Złota to Sienkiewicza",
+   "counts": {
+    "F1": 1,
+    "L1": 1,
+    "L2": 3,
+    "L3": 1,
+    "P1": 1
+   },
+   "score": 87
+  },
+  {
+   "id": "C",
+   "title": "Sienkiewicza to Świętokrzyska",
+   "counts": {
+    "F1": 1,
+    "L1": 1,
+    "L2": 8,
+    "O1": 1
+   },
+   "score": 85
+  }
+ ],
+ "history": [
+  {
+   "date": "2026-11-05",
+   "score": 70,
+   "counts": {
+    "L1": 9,
+    "L2": 16,
+    "L4": 19,
+    "O1": 8,
+    "P1": 1
+   },
+   "blocks": {
+    "A": 71,
+    "B": 81,
+    "C": 57
+   }
+  },
+  {
+   "date": "2026-11-05",
+   "score": 83,
+   "counts": {
+    "L1": 9,
+    "L2": 14,
+    "O1": 8,
+    "P1": 1
+   },
+   "blocks": {
+    "A": 79,
+    "B": 85,
+    "C": 85
+   }
+  },
+  {
+   "date": "2026-11-05",
+   "score": 76,
+   "counts": {
+    "F1": 7,
+    "L1": 9,
+    "L2": 14,
+    "O1": 8,
+    "P1": 1
+   },
+   "blocks": {
+    "A": 64,
+    "B": 82,
+    "C": 82
+   }
+  },
+  {
+   "date": "2026-11-05",
+   "score": 77,
+   "counts": {
+    "F1": 7,
+    "L1": 9,
+    "L2": 12,
+    "O1": 8,
+    "P1": 1
+   },
+   "blocks": {
+    "A": 64,
+    "B": 83,
+    "C": 83
+   }
+  },
+  {
+   "date": "2026-11-05",
+   "score": 73,
+   "counts": {
+    "F1": 7,
+    "K1": 4,
+    "L1": 9,
+    "L2": 12,
+    "O1": 8,
+    "P1": 1
+   },
+   "blocks": {
+    "A": 61,
+    "B": 77,
+    "C": 80
+   }
+  },
+  {
+   "date": "2026-11-05",
+   "score": 77,
+   "counts": {
+    "F1": 7,
+    "L1": 9,
+    "L2": 12,
+    "O1": 8,
+    "P1": 1
+   },
+   "blocks": {
+    "A": 64,
+    "B": 83,
+    "C": 83
+   }
+  },
+  {
+   "date": "2026-11-05",
+   "score": 73,
+   "counts": {
+    "F1": 7,
+    "L1": 9,
+    "L2": 12,
+    "L3": 6,
+    "O1": 8,
+    "P1": 1
+   },
+   "blocks": {
+    "A": 64,
+    "B": 73,
+    "C": 81
+   }
+  },
+  {
+   "date": "2026-11-05",
+   "score": 74,
+   "counts": {
+    "F1": 7,
+    "L1": 9,
+    "L2": 12,
+    "L3": 4,
+    "O1": 8,
+    "P1": 1
+   },
+   "blocks": {
+    "A": 64,
+    "B": 77,
+    "C": 81
+   }
+  },
+  {
+   "date": "2026-11-05",
+   "score": 73,
+   "counts": {
+    "F1": 7,
+    "L1": 9,
+    "L2": 14,
+    "L3": 4,
+    "O1": 8,
+    "P1": 1
+   },
+   "blocks": {
+    "A": 62,
+    "B": 77,
+    "C": 81
+   }
+  },
+  {
+   "date": "2026-11-05",
+   "score": 66,
+   "counts": {
+    "F1": 7,
+    "L1": 9,
+    "L2": 18,
+    "L3": 4,
+    "L4": 9,
+    "O1": 8,
+    "P1": 1
+   },
+   "blocks": {
+    "A": 54,
+    "B": 75,
+    "C": 69
+   }
+  },
+  {
+   "date": "2026-11-05",
+   "score": 65,
+   "counts": {
+    "F1": 7,
+    "L1": 9,
+    "L2": 20,
+    "L3": 4,
+    "L4": 9,
+    "O1": 8,
+    "P1": 1
+   },
+   "blocks": {
+    "A": 54,
+    "B": 75,
+    "C": 67
+   }
+  },
+  {
+   "date": "2026-11-05",
+   "score": 66,
+   "counts": {
+    "F1": 7,
+    "L1": 9,
+    "L2": 22,
+    "L3": 1,
+    "L4": 10,
+    "O1": 8,
+    "P1": 1
+   },
+   "blocks": {
+    "A": 54,
+    "B": 75,
+    "C": 69
+   }
+  },
+  {
+   "date": "2026-11-06",
+   "score": 73,
+   "counts": {
+    "F1": 7,
+    "L1": 9,
+    "L2": 21,
+    "L3": 1,
+    "O1": 8,
+    "P1": 1
+   },
+   "blocks": {
+    "A": 62,
+    "B": 80,
+    "C": 77
+   }
+  },
+  {
+   "date": "2026-11-06",
+   "score": 79,
+   "counts": {
+    "F1": 7,
+    "L1": 3,
+    "L2": 21,
+    "L3": 1,
+    "O1": 8,
+    "P1": 1
+   },
+   "blocks": {
+    "A": 68,
+    "B": 86,
+    "C": 83
+   }
+  },
+  {
+   "date": "2026-11-06",
+   "score": 81,
+   "counts": {
+    "F1": 7,
+    "L1": 3,
+    "L2": 15,
+    "L3": 1,
+    "O1": 8,
+    "P1": 1
+   },
+   "blocks": {
+    "A": 71,
+    "B": 87,
+    "C": 85
+   }
+  }
+ ],
+ "baseline": {
+  "date": "2026-11-05",
+  "score": 70,
+  "counts": {
+   "L1": 9,
+   "L2": 16,
+   "L4": 19,
+   "O1": 8,
+   "P1": 1
+  },
+  "blocks": {
+   "A": 71,
+   "B": 81,
+   "C": 57
+  }
+ },
+ "evidence": [
+  {
+   "block": "A",
+   "photos": 244,
+   "newest": "2026-08-30",
+   "fresh": 36
+  },
+  {
+   "block": "B",
+   "photos": 76,
+   "newest": "2026-08-30",
+   "fresh": 13
+  },
+  {
+   "block": "C",
+   "photos": 88,
+   "newest": "2026-08-30",
+   "fresh": 10
+  }
+ ],
+ "owned": [
+  {
+   "by": "Plac Centralny thread (tools/plac_centralny.py, site plac_centralny)",
+   "s": [
+    -45,
+    92
+   ],
+   "t": [
+    -245,
+    -25
+   ]
+  }
+ ],
+ "changed": [
+  {
+   "what": "Skwer Linearny na Złotej (car-free since 2026-08) and its crossing to Plac Centralny",
+   "since": "2026-08",
+   "s": [
+    20,
+    80
+   ],
+   "t": [
+    -30,
+    48
+   ]
+  },
+  {
+   "what": "Plac Centralny and the west pavement rebuilt 2024-2026 (OSM and the 2023 orthophoto can be older)",
+   "since": "2024-06",
+   "s": [
+    -45,
+    92
+   ],
+   "t": [
+    -25,
+    -8
+   ]
+  }
+ ],
+ "verdicts": {
+  "KEEP": 9,
+  "REPLACE": 7,
+  "RETEXTURE": 4
+ },
+ "findings": [
+  {
+   "check": "F1",
+   "x": -815,
+   "z": 414,
+   "s": -233.7,
+   "t": 43.1,
+   "note": "F-02: the metro stair entrance by the Rotunda reads as a walled pit -> should: a stair entrance: steps down, low parapet or open rail, the Centrum tube roof",
+   "block": "A",
+   "status": "open"
+  },
+  {
+   "check": "F1",
+   "x": -845,
+   "z": 385,
+   "s": -196.0,
+   "t": 25.1,
+   "note": "F-05: an asphalt wedge ending in the grass by the cycle path near the Rotunda -> should: no stub: grass or pavement, or the real slip road",
+   "block": "A",
+   "status": "open"
+  },
+  {
+   "check": "F1",
+   "x": -925,
+   "z": 410,
+   "s": -191.5,
+   "t": -58.6,
+   "note": "F-04: Patelnia is flat -> should: a sunken plaza with steps down, two glass-roofed stair entrances, the kiosk, the red hoarding by the road",
+   "block": "A",
+   "status": "open"
+  },
+  {
+   "check": "F1",
+   "x": -828,
+   "z": 348,
+   "s": -167.3,
+   "t": 54.0,
+   "note": "F-03: a long grey wall slab on the Rotunda plaza -> should: CHECK what stands there today; remove it if nothing does",
+   "block": "A",
+   "status": "open"
+  },
+  {
+   "check": "F1",
+   "x": -922,
+   "z": 170,
+   "s": 32.3,
+   "t": 28.1,
+   "note": "F-06: east carriageway steps from 3 to 2 lanes with ragged asphalt edges by Złota -> should: one smooth carriageway, the extra lane opening on a 20-30 m taper [changed since the data: Skwer Linearny na Złotej (car-free since 2026-08) and its crossing to Plac Centralny]",
+   "block": "A",
+   "status": "changed"
+  },
+  {
+   "check": "L1",
+   "x": -937.0,
+   "z": 210.1,
+   "s": -0.0,
+   "t": 0.0,
+   "note": "2 -> 3 lanes, 6.5 -> 9.2 m wide where two ways meet",
+   "block": "A",
+   "status": "open"
+  },
+  {
+   "check": "L2",
+   "x": -866.0,
+   "z": 361.4,
+   "s": -166.6,
+   "t": 13.7,
+   "note": "lane line ends mid-block",
+   "block": "A",
+   "status": "open"
+  },
+  {
+   "check": "L2",
+   "x": -863.3,
+   "z": 359.3,
+   "s": -165.5,
+   "t": 17.0,
+   "note": "lane line ends mid-block",
+   "block": "A",
+   "status": "open"
+  },
+  {
+   "check": "L2",
+   "x": -875.6,
+   "z": 334.4,
+   "s": -137.9,
+   "t": 14.1,
+   "note": "lane line ends mid-block",
+   "block": "A",
+   "status": "open"
+  },
+  {
+   "check": "L2",
+   "x": -872.1,
+   "z": 333.1,
+   "s": -137.9,
+   "t": 17.9,
+   "note": "lane line ends mid-block",
+   "block": "A",
+   "status": "open"
+  },
+  {
+   "check": "O1",
+   "x": -877.7,
+   "z": 437.8,
+   "s": -234.1,
+   "t": -23.9,
+   "note": "guard_rail/ground 0.3 m from a lane's edge",
+   "block": "A",
+   "status": "open"
+  },
+  {
+   "check": "O1",
+   "x": -855.8,
+   "z": 426.0,
+   "s": -230.7,
+   "t": 0.8,
+   "note": "barrier/fence 0.3 m from a lane's edge",
+   "block": "A",
+   "status": "open"
+  },
+  {
+   "check": "O1",
+   "x": -878.2,
+   "z": 425.4,
+   "s": -222.3,
+   "t": -20.1,
+   "note": "barrier/wall 0.4 m from a lane's edge",
+   "block": "A",
+   "status": "open"
+  },
+  {
+   "check": "O1",
+   "x": -878.7,
+   "z": 424.9,
+   "s": -221.6,
+   "t": -20.3,
+   "note": "barrier/wall 0.8 m from a lane's edge",
+   "block": "A",
+   "status": "open"
+  },
+  {
+   "check": "O1",
+   "x": -878.7,
+   "z": 414.1,
+   "s": -211.5,
+   "t": -16.6,
+   "note": "guard_rail/ground 0.3 m from a lane's edge",
+   "block": "A",
+   "status": "open"
+  },
+  {
+   "check": "O1",
+   "x": -876.1,
+   "z": 366.7,
+   "s": -168.0,
+   "t": 2.4,
+   "note": "barrier/fence 0.3 m from a lane's edge",
+   "block": "A",
+   "status": "open"
+  },
+  {
+   "check": "O1",
+   "x": -923.2,
+   "z": 178.2,
+   "s": 25.1,
+   "t": 24.1,
+   "note": "barrier/wall 1.0 m from a lane's edge [changed since the data: Skwer Linearny na Złotej (car-free since 2026-08) and its crossing to Plac Centralny]",
+   "block": "A",
+   "status": "changed"
+  },
+  {
+   "check": "F1",
+   "x": -940,
+   "z": 130,
+   "s": 76.1,
+   "t": 25.2,
+   "note": "F-07: ragged lane edge and a jagged bus pocket on the east carriageway -> should: a clean kerb line and a drawn bus bay [changed since the data: Skwer Linearny na Złotej (car-free since 2026-08) and its crossing to Plac Centralny]",
+   "block": "B",
+   "status": "changed"
+  },
+  {
+   "check": "L1",
+   "x": -966.5,
+   "z": 134.1,
+   "s": 81.5,
+   "t": -1.1,
+   "note": "3 -> 2 lanes, 9.8 -> 6.5 m wide where two ways meet",
+   "block": "B",
+   "status": "open"
+  },
+  {
+   "check": "L2",
+   "x": -957.0,
+   "z": 162.6,
+   "s": 51.6,
+   "t": -2.2,
+   "note": "lane line ends mid-block [changed since the data: Skwer Linearny na Złotej (car-free since 2026-08) and its crossing to Plac Centralny]",
+   "block": "B",
+   "status": "changed"
+  },
+  {
+   "check": "L2",
+   "x": -991.8,
+   "z": 61.6,
+   "s": 158.3,
+   "t": 0.5,
+   "note": "lane line ends mid-block",
+   "block": "B",
+   "status": "open"
+  },
+  {
+   "check": "L2",
+   "x": -993.7,
+   "z": 56.2,
+   "s": 164.0,
+   "t": 0.6,
+   "note": "lane line ends mid-block",
+   "block": "B",
+   "status": "open"
+  },
+  {
+   "check": "L3",
+   "x": -964.3,
+   "z": 125.8,
+   "s": 88.6,
+   "t": 3.8,
+   "note": "edge line crosses a kerb",
+   "block": "B",
+   "status": "open"
+  },
+  {
+   "check": "P1",
+   "x": -968.5,
+   "z": 38.4,
+   "s": 171.9,
+   "t": 30.4,
+   "note": "bin on the drawn road (strip Henryka Sienkiewicza)",
+   "block": "B",
+   "status": "open"
+  },
+  {
+   "check": "F1",
+   "x": -990,
+   "z": 40,
+   "s": 177.9,
+   "t": 9.7,
+   "note": "F-08: cyclists ride on the car road next to the red cycle path -> should: cyclists on the cycle path",
+   "block": "C",
+   "status": "open"
+  },
+  {
+   "check": "L1",
+   "x": -1047.0,
+   "z": -137.0,
+   "s": 363.7,
+   "t": 18.1,
+   "note": "3 -> 3 lanes, 7.8 -> 9.8 m wide where two ways meet",
+   "block": "C",
+   "status": "open"
+  },
+  {
+   "check": "L2",
+   "x": -986.2,
+   "z": 23.3,
+   "s": 192.2,
+   "t": 19.1,
+   "note": "lane line ends mid-block",
+   "block": "C",
+   "status": "open"
+  },
+  {
+   "check": "L2",
+   "x": -1008.7,
+   "z": 15.7,
+   "s": 207.3,
+   "t": 0.7,
+   "note": "lane line ends mid-block",
+   "block": "C",
+   "status": "open"
+  },
+  {
+   "check": "L2",
+   "x": -979.6,
+   "z": -41.6,
+   "s": 250.7,
+   "t": 48.0,
+   "note": "lane line ends mid-block",
+   "block": "C",
+   "status": "open"
+  },
+  {
+   "check": "L2",
+   "x": -1035.6,
+   "z": -112.6,
+   "s": 336.8,
+   "t": 20.3,
+   "note": "lane line ends mid-block",
+   "block": "C",
+   "status": "open"
+  },
+  {
+   "check": "L2",
+   "x": -1038.0,
+   "z": -111.7,
+   "s": 336.8,
+   "t": 17.7,
+   "note": "lane line ends mid-block",
+   "block": "C",
+   "status": "open"
+  },
+  {
+   "check": "L2",
+   "x": -1032.0,
+   "z": -141.9,
+   "s": 363.0,
+   "t": 33.9,
+   "note": "lane line ends mid-block",
+   "block": "C",
+   "status": "open"
+  },
+  {
+   "check": "L2",
+   "x": -1032.9,
+   "z": -144.8,
+   "s": 366.0,
+   "t": 34.1,
+   "note": "lane line ends mid-block",
+   "block": "C",
+   "status": "open"
+  },
+  {
+   "check": "L2",
+   "x": -1087.3,
+   "z": -128.9,
+   "s": 370.1,
+   "t": -22.5,
+   "note": "lane line ends mid-block",
+   "block": "C",
+   "status": "open"
+  },
+  {
+   "check": "O1",
+   "x": -1038.2,
+   "z": -102.7,
+   "s": 328.4,
+   "t": 14.4,
+   "note": "barrier/fence 0.7 m from a lane's edge",
+   "block": "C",
+   "status": "open"
+  }
+ ],
+ "objects": [
+  {
+   "id": "guard_rail:ground:-878:440",
+   "cls": "guard_rail",
+   "kind": "ground",
+   "gap": 0.32,
+   "len": 7.5,
+   "angle": 42,
+   "s": -234,
+   "t": -24,
+   "x": -877.7,
+   "z": 437.8,
+   "street": "Marszałkowska",
+   "jn": 1,
+   "rule": "B1",
+   "verdict": "KEEP",
+   "why": "the road's edge rail; collisions are collision v2's job",
+   "model": "barrier:guard_rail",
+   "style": "",
+   "status": "open"
+  },
+  {
+   "id": "platform:rail:-866:400",
+   "cls": "platform",
+   "kind": "rail",
+   "gap": 0.0,
+   "len": 172.2,
+   "angle": 90,
+   "s": -232,
+   "t": 4,
+   "x": -852.3,
+   "z": 425.9,
+   "street": "Rondo Romana Dmowskiego",
+   "jn": 0,
+   "rule": "-",
+   "verdict": "KEEP",
+   "why": "platform: not a barrier; C5/C10 checks cover it",
+   "model": "",
+   "style": "",
+   "status": "open"
+  },
+  {
+   "id": "shelter:shelter:-856:420",
+   "cls": "shelter",
+   "kind": "shelter",
+   "gap": 2.77,
+   "len": 10.0,
+   "angle": 90,
+   "s": -228,
+   "t": 3,
+   "x": -854.1,
+   "z": 422.6,
+   "street": "Rondo Romana Dmowskiego",
+   "jn": 0,
+   "rule": "B13",
+   "verdict": "KEEP",
+   "why": "real tram/bus shelter; soften its corner with collision v2",
+   "model": "instanced:shelter",
+   "style": "",
+   "status": "open"
+  },
+  {
+   "id": "guard_rail:ground:-882:396",
+   "cls": "guard_rail",
+   "kind": "ground",
+   "gap": 0.31,
+   "len": 48.4,
+   "angle": 8,
+   "s": -211,
+   "t": -17,
+   "x": -878.7,
+   "z": 414.1,
+   "street": "Marszałkowska",
+   "jn": 0,
+   "rule": "B1",
+   "verdict": "KEEP",
+   "why": "the road's edge rail; collisions are collision v2's job",
+   "model": "barrier:guard_rail",
+   "style": "",
+   "status": "open"
+  },
+  {
+   "id": "shelter:shelter:-878:296",
+   "cls": "shelter",
+   "kind": "shelter",
+   "gap": 2.1,
+   "len": 10.0,
+   "angle": 90,
+   "s": -103,
+   "t": 24,
+   "x": -878.7,
+   "z": 298.6,
+   "street": "Marszałkowska",
+   "jn": 0,
+   "rule": "B13",
+   "verdict": "KEEP",
+   "why": "real tram/bus shelter; soften its corner with collision v2",
+   "model": "instanced:shelter",
+   "style": "",
+   "status": "open"
+  },
+  {
+   "id": "shelter:shelter:-932:244",
+   "cls": "shelter",
+   "kind": "shelter",
+   "gap": 1.22,
+   "len": 10.0,
+   "angle": 90,
+   "s": -35,
+   "t": -6,
+   "x": -930.5,
+   "z": 244.8,
+   "street": "Marszałkowska",
+   "jn": 0,
+   "rule": "B13",
+   "verdict": "KEEP",
+   "why": "real tram/bus shelter; soften its corner with collision v2",
+   "model": "instanced:shelter",
+   "style": "",
+   "status": "open"
+  },
+  {
+   "id": "shelter:shelter:-998:-24",
+   "cls": "shelter",
+   "kind": "shelter",
+   "gap": 2.81,
+   "len": 10.0,
+   "angle": 90,
+   "s": 239,
+   "t": 25,
+   "x": -997.0,
+   "z": -23.0,
+   "street": "Marszałkowska",
+   "jn": 0,
+   "rule": "B13",
+   "verdict": "KEEP",
+   "why": "real tram/bus shelter; soften its corner with collision v2",
+   "model": "instanced:shelter",
+   "style": "",
+   "status": "open"
+  },
+  {
+   "id": "shelter:shelter:-1036:-92",
+   "cls": "shelter",
+   "kind": "shelter",
+   "gap": 1.66,
+   "len": 10.0,
+   "angle": 90,
+   "s": 321,
+   "t": 13,
+   "x": -1036.4,
+   "z": -95.2,
+   "street": "Marszałkowska",
+   "jn": 0,
+   "rule": "B13",
+   "verdict": "KEEP",
+   "why": "real tram/bus shelter; soften its corner with collision v2",
+   "model": "instanced:shelter",
+   "style": "",
+   "status": "open"
+  },
+  {
+   "id": "platform:rail:-1028:-70",
+   "cls": "platform",
+   "kind": "rail",
+   "gap": 0.0,
+   "len": 172.8,
+   "angle": 90,
+   "s": 325,
+   "t": 15,
+   "x": -1036.1,
+   "z": -99.3,
+   "street": "Marszałkowska",
+   "jn": 0,
+   "rule": "-",
+   "verdict": "KEEP",
+   "why": "platform: not a barrier; C5/C10 checks cover it",
+   "model": "",
+   "style": "",
+   "status": "open"
+  },
+  {
+   "id": "barrier:wall:-814:414",
+   "cls": "barrier",
+   "kind": "wall",
+   "gap": 2.39,
+   "len": 24.2,
+   "angle": 72,
+   "s": -234,
+   "t": 40,
+   "x": -817.4,
+   "z": 415.7,
+   "street": "Marszałkowska",
+   "jn": 1,
+   "rule": "B5",
+   "verdict": "REPLACE",
+   "why": "wall/fence round a stair or metro entrance: balustrade",
+   "model": "barrier:balustrade_rail",
+   "style": "balustrade_rail",
+   "status": "open"
+  },
+  {
+   "id": "barrier:wall:-862:416",
+   "cls": "barrier",
+   "kind": "wall",
+   "gap": 2.18,
+   "len": 23.1,
+   "angle": 70,
+   "s": -222,
+   "t": -5,
+   "x": -863.9,
+   "z": 420.1,
+   "street": "Marszałkowska",
+   "jn": 0,
+   "rule": "hand",
+   "verdict": "REPLACE",
+   "why": "hand call: stair at the tram platform tip: concrete upstand with a black rail (Mapillary 1023049187379291, 2026-08-30)",
+   "model": "barrier:balustrade_rail",
+   "style": "balustrade_rail",
+   "status": "open"
+  },
+  {
+   "id": "barrier:wall:-882:428",
+   "cls": "barrier",
+   "kind": "wall",
+   "gap": 0.81,
+   "len": 14.8,
+   "angle": 54,
+   "s": -222,
+   "t": -20,
+   "x": -878.7,
+   "z": 424.9,
+   "street": "Marszałkowska",
+   "jn": 0,
+   "rule": "B5",
+   "verdict": "REPLACE",
+   "why": "wall/fence round a stair or metro entrance: balustrade",
+   "model": "barrier:balustrade_rail",
+   "style": "balustrade_rail",
+   "status": "open"
+  },
+  {
+   "id": "barrier:wall:-878:430",
+   "cls": "barrier",
+   "kind": "wall",
+   "gap": 0.41,
+   "len": 9.0,
+   "angle": 26,
+   "s": -222,
+   "t": -20,
+   "x": -878.2,
+   "z": 425.4,
+   "street": "Marszałkowska",
+   "jn": 0,
+   "rule": "B5",
+   "verdict": "REPLACE",
+   "why": "wall/fence round a stair or metro entrance: balustrade",
+   "model": "barrier:balustrade_rail",
+   "style": "balustrade_rail",
+   "status": "open"
+  },
+  {
+   "id": "barrier:wall:-882:408",
+   "cls": "barrier",
+   "kind": "wall",
+   "gap": 1.44,
+   "len": 13.7,
+   "angle": 40,
+   "s": -197,
+   "t": -15,
+   "x": -882.6,
+   "z": 400.4,
+   "street": "Marszałkowska",
+   "jn": 0,
+   "rule": "B5",
+   "verdict": "REPLACE",
+   "why": "wall/fence round a stair or metro entrance: balustrade",
+   "model": "barrier:balustrade_rail",
+   "style": "balustrade_rail",
+   "status": "open"
+  },
+  {
+   "id": "barrier:wall:-916:190",
+   "cls": "barrier",
+   "kind": "wall",
+   "gap": 1.05,
+   "len": 23.2,
+   "angle": 90,
+   "s": 15,
+   "t": 24,
+   "x": -920.0,
+   "z": 188.1,
+   "street": "Marszałkowska",
+   "jn": 0,
+   "rule": "B5",
+   "verdict": "REPLACE",
+   "why": "wall/fence round a stair or metro entrance: balustrade",
+   "model": "barrier:balustrade",
+   "style": "balustrade",
+   "status": "open"
+  },
+  {
+   "id": "barrier:wall:-922:174",
+   "cls": "barrier",
+   "kind": "wall",
+   "gap": 1.0,
+   "len": 22.8,
+   "angle": 85,
+   "s": 25,
+   "t": 24,
+   "x": -923.2,
+   "z": 178.2,
+   "street": "Marszałkowska",
+   "jn": 0,
+   "rule": "hand",
+   "verdict": "REPLACE",
+   "why": "hand call: metro Centrum entrance 7: granite parapet about 1 m with a flat coping (Mapillary 1200822230992201, 2024-09-07; the stair predates the skwer)",
+   "model": "barrier:balustrade",
+   "style": "balustrade",
+   "status": "changed"
+  },
+  {
+   "id": "barrier:fence:-856:424",
+   "cls": "barrier",
+   "kind": "fence",
+   "gap": 0.34,
+   "len": 4.4,
+   "angle": 0,
+   "s": -231,
+   "t": 1,
+   "x": -855.8,
+   "z": 426.0,
+   "street": "Rondo Romana Dmowskiego",
+   "jn": 0,
+   "rule": "B2b",
+   "verdict": "RETEXTURE",
+   "why": "railing along the tram bed or platform edge: the tram railing (solid or soft is the B2 A/B)",
+   "model": "barrier:tram_railing",
+   "style": "tram_railing",
+   "status": "open"
+  },
+  {
+   "id": "barrier:fence:-870:392",
+   "cls": "barrier",
+   "kind": "fence",
+   "gap": 0.27,
+   "len": 53.5,
+   "angle": 8,
+   "s": -168,
+   "t": 2,
+   "x": -876.1,
+   "z": 366.7,
+   "street": "Marszałkowska",
+   "jn": 0,
+   "rule": "B2b",
+   "verdict": "RETEXTURE",
+   "why": "railing along the tram bed or platform edge: the tram railing (solid or soft is the B2 A/B)",
+   "model": "barrier:tram_railing",
+   "style": "tram_railing",
+   "status": "open"
+  },
+  {
+   "id": "barrier:wall:-886:402",
+   "cls": "barrier",
+   "kind": "wall",
+   "gap": 2.65,
+   "len": 59.0,
+   "angle": 13,
+   "s": -163,
+   "t": -12,
+   "x": -891.3,
+   "z": 367.5,
+   "street": "Marszałkowska",
+   "jn": 0,
+   "rule": "hand",
+   "verdict": "RETEXTURE",
+   "why": "hand call: a continuous black pedestrian railing about 1.1 m along the west kerb, not a wall (Mapillary 1786758819186175, 2505406509980804, 2026-08-30)",
+   "model": "barrier:tram_railing",
+   "style": "tram_railing",
+   "status": "open"
+  },
+  {
+   "id": "barrier:fence:-1024:-64",
+   "cls": "barrier",
+   "kind": "fence",
+   "gap": 0.71,
+   "len": 83.0,
+   "angle": 0,
+   "s": 328,
+   "t": 14,
+   "x": -1038.2,
+   "z": -102.7,
+   "street": "Marszałkowska",
+   "jn": 0,
+   "rule": "B2b",
+   "verdict": "RETEXTURE",
+   "why": "railing along the tram bed or platform edge: the tram railing (solid or soft is the B2 A/B)",
+   "model": "barrier:tram_railing",
+   "style": "tram_railing",
+   "status": "open"
+  }
+ ]
+}
