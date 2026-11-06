@@ -32,7 +32,8 @@ Spec (docs/roads/AREA.json), map metres, +x east, +z south; offsets are to the r
                 "gaps": [{"s0": 140, "s1": 160}],
                 "start": "j1", "end": "cut"}],
    "junctions": [{"id": "j1", "r": 9, "arms": {"marsz": {"x": 3.5}, ...}}]}
-  lanes: d +1 along the axis, -1 against; k lane (default), bus, bike; t turn arrows (L T R LT TR U);
+  lanes: d +1 along the axis, -1 against; k lane (default), bus, bike, park, gap (hatched; "plain":
+  true for an unhatched strip between two solid lines); t turn arrows (L T R LT TR U);
   w width (else an equal share of what is left). med: tram, grass, island (one per gap between
   carriageways; "none" for a painted gap). crossings: mid-block zebras (bs: a cycle crossing beside
   it). openings: a side road or driveway leaving one side (kerb break, two kerb returns). gaps: the
@@ -812,7 +813,7 @@ class Design:
             if not self.in_crossing(st, s):
                 for row in st.lanes(s):
                     for (x, l, r) in row:
-                        if x.get("k") == "gap" and r - l > 0.8:
+                        if x.get("k") == "gap" and not x.get("plain") and r - l > 0.8:
                             a = st.point(s, l + 0.2)
                             b = st.point(min(s + (r - l) * 0.8, s1), r - 0.2)
                             self.out["markings"].append({"k": "stripe", "p": flat([a, b])})

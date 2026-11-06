@@ -56,15 +56,19 @@ Left:
 
 ## Road design rollout: every street on the map (F, 2026-11-06; docs/design/road-design-rollout.md)
 
-Areas and progress: docs/plan/road-areas.json, `python3 -I tools/road_progress.py` (main streets 3.4%,
-all streets 1.9% after areas 1-2).
+Areas and progress: docs/plan/road-areas.json, `python3 -I tools/road_progress.py` (main streets 4.5%,
+all streets 2.5% after areas 1-3). Quality bar: docs/design/road-design-quality.md.
 
-- Tier A core, next: 3 Marszałkowska north, 4 Świętokrzyska east, 5 Jerozolimskie east, 6 Rondo
+- Area 3 done (docs/roads/krolewska.json): Marszałkowska Świętokrzyska to Królewska, the junction,
+  Królewska both ways, Marszałkowska north to the Plac Bankowy bend. Left: side streets (Zielna,
+  Rysia, Bagno, Próżna) keep their shapes; bus-stop zigzags not painted; Królewska east's fence on
+  its island not modelled; junction turn arrows guessed where the photo is blurred.
+- Tier A core, next: 4 Świętokrzyska east, 5 Jerozolimskie east, 6 Rondo
   Dmowskiego, 7 Marszałkowska south, 8 Emilii Plater south + Chałubińskiego, 9 Rondo ONZ +
   Świętokrzyska west, 10 Królewska + Plac Małachowskiego, 11 Jerozolimskie west, 12 Plac Trzech
   Krzyży + Ujazdowskie. Each with an in-game before/after page for F.
-- Ortho tiles for areas 3-12 and tier B (Mac, GUGiK WMS, refs/road_design2/): the cloud cannot reach
-  GUGiK.
+- Ortho tiles for areas 3-12: fetched 2026-11-06 into refs/road_design2/ (87 tiles, 64 MB, Mac;
+  staged to the cloud thread). Tier B needs more tiles.
 - Tier B arterials B1-B10 after the core; tier C 500 m grid after that, nearest the Palace first.
 - Apply the designs to the shipped map once area 6 closes the core with no free ends; phone bench
   first.

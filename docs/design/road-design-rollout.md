@@ -60,3 +60,14 @@ done when a design in docs/roads/ covers it, applied to the map or not.
   closes the core around the Palace with no free ends, with a phone bench first (BACKLOG).
 - The traffic lane graph still follows the OSM ways moved onto the designed lanes; a graph built
   from the spec's lanes is its own item.
+
+## Area log
+
+- **3, Marszałkowska north to Królewska** (2026-11-06, docs/roads/krolewska.json): measured on
+  refs/road_design2. Marszałkowska keeps three lanes each way. The inner northbound lane becomes a
+  plain strip between two solid lines (`"k": "gap", "plain": true`), and there is a west parking
+  lane from Rysia. The tram-stop median is ~9 m for 50 m, so area 1's `m_north` was corrected to
+  the same photo (palace v3). The junction zebras are 6-6.6 m wide, with cycle crossings on the
+  junction side. Królewska west is one carriageway with no median, and Królewska east has a
+  fenced 1 m island. Continuity 0. The lane-drive bot passes Marszałkowska, Królewska and
+  Świętokrzyska both ways.
