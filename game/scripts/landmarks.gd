@@ -35,6 +35,7 @@ const M_MEMBRANE := 11.0  # the stadium's roof membrane
 const M_GLASS := 12.0     # curtain wall with mullions (Varso)
 const M_SKIN := 13.0      # a tower's own skin; fraction = style / 16 (S_*, building.gdshader skin())
 const M_GOTHIC := 14.0    # brick Gothic: buttresses and pointed lancets (the Cathedral, the Barbican)
+const M_PANE := 15.0      # one real pane of a modelled block: fraction = its number; lit by chance at night
 
 ## The skins (building.gdshader S_*): Złota 44's white banded cladding, Warsaw Spire's diamonds,
 ## silver floor bands, vertical fins, a white grid, balcony slabs, dark glass, gold glass,
@@ -717,6 +718,8 @@ func _init(builder, map_data: Dictionary) -> void:
 	# Loop 3c: the info cards (and so the picking ids) for every site up front, in site order,
 	# so a sector built alone gives its landmarks the same ids as the whole city.
 	for s in sites:
+		if s.has("block"):
+			continue  # street blocks come last and are no landmarks: no card, no map icon
 		var card: Array = INFO.get(s["key"], [s["key"], "", ""])
 		info.append({"key": s["key"], "name": card[0], "pl": card[1], "en": card[2],
 				"centre": (s["box"] as Rect2).get_center(), "box": s["box"]})
@@ -740,6 +743,16 @@ func replaces(p: Vector2) -> bool:
 				break
 		if inside:
 			return true
+	return false
+
+
+## A modelled block that keeps LoD2's measured roof over its own walls.
+func keeps_lod2_roof(p: Vector2) -> bool:
+	for s in sites:
+		if s.has("lod2_roof") and (s["box"] as Rect2).has_point(p):
+			for z: PackedVector2Array in s["zone"]:
+				if Geometry2D.is_point_in_polygon(p, z):
+					return true
 	return false
 
 
@@ -1112,6 +1125,8 @@ func _find_sites() -> void:
 	# Praga (2026-11-02, the Mac's photo reports): St Florian's cathedral and Bazar Różyckiego.
 	_find_florian()
 	_find_bazar()
+	# Street blocks with modelled fronts (Nowy Świat, 2026-11-06).
+	_find_blocks()
 
 
 ## Warszawa Centralna (spec docs/landmarks/specs/centralna.md, 2026-10-31): OpenStreetMap maps
@@ -1665,6 +1680,9 @@ func build(surface, near := Rect2(), only := "") -> void:
 			_:
 				if key.begins_with("church_"):
 					_build_church(s)
+				elif s.has("block"):
+					_id = 0  # not tappable
+					_build_block(s)
 				elif s.has("tower"):
 					_build_tower(s)
 				elif s.has("skin"):
@@ -23336,3 +23354,92 @@ func _kr_ground(g: float, d: float) -> void:
 	for s: Vector3 in [Vector3(2.0, 5.6, 0.0), Vector3(19.5, 22.8, 0.0), Vector3(32.2, 36.0, 1.0), Vector3(36.7, 40.2, 0.0)]:
 		_mode = M_STONE
 		_wall(_w(s.x, v + 0.06), _w(s.y, v + 0.06), g - 0.5, d - 0.2, _b, KR_WOOD.darkened(0.3) if s.z > 0.0 else Color("#1f2224"), 0.0)
+
+
+# --- street blocks with modelled fronts ------------------------------------------------------
+
+const BLOCKS_DIR := "res://data/street_blocks"
+
+## game/data/street_blocks/index.json lists each modelled block's id and our outline: a site
+## "blk_<id>" over it. `extra` claims an L-shaped LoD2 block's box centre, which falls outside the
+## outline. A skin on the same outline stays (its card and name); only the block's LoD2 goes.
+func _find_blocks() -> void:
+	if not FileAccess.file_exists(BLOCKS_DIR + "/index.json"):
+		return
+	var list = JSON.parse_string(FileAccess.get_file_as_string(BLOCKS_DIR + "/index.json"))
+	if not list is Array:
+		return
+	for d: Dictionary in list:
+		var q := _pts(d["outline"])
+		if q.size() < 3:
+			continue
+		var key := "blk_" + str(d["id"])
+		var zone: Array = [_largest(Geometry2D.offset_polygon(q, 1.0, Geometry2D.JOIN_MITER))]
+		for e: Array in d.get("extra", []):
+			var c := Vector2(e[0], e[1])
+			zone.append(PackedVector2Array([c + Vector2(-2, -2), c + Vector2(2, -2), c + Vector2(2, 2), c + Vector2(-2, 2)]))
+		_add_site(key, zone)
+		if not sites.is_empty() and sites[-1]["key"] == key:
+			sites[-1]["ring"] = q
+			sites[-1]["raw"] = q
+			sites[-1]["block"] = str(d["id"])
+			if d.get("roof", false):
+				sites[-1]["lod2_roof"] = true
+
+
+## A modelled block: its triangles as they are, on our ground. Walls and trim are plain stone in
+## their own colours, the real panes are M_PANE (lit one by one at night), a `facade` wall takes the
+## ordinary building shader's windows, roofs take the roof material. One gzipped file per block:
+## u32 header size, the JSON header, then per group int16 centimetres from (ox, oz) and, for glass,
+## one byte per triangle, the pane's number. Read only when its sector is built.
+func _build_block(site: Dictionary) -> void:
+	var raw := FileAccess.get_file_as_bytes(BLOCKS_DIR + "/" + site["block"] + ".bin")
+	if raw.is_empty():
+		return
+	var data := raw.decompress_dynamic(-1, FileAccess.COMPRESSION_GZIP)
+	var head_size := data.decode_u32(0)
+	var d = JSON.parse_string(data.slice(4, 4 + head_size).get_string_from_utf8())
+	var at := 4 + head_size
+	_g = _ground_under(site["raw"])
+	var seed := fposmod(float(str(site["block"]).hash() % 1000) / 1000.0, 1.0) * 0.98 + 0.01
+	var keep := _mode
+	var ox: float = d["ox"]
+	var oz: float = d["oz"]
+	var top: float = d["top"]
+	for grp: Dictionary in d["groups"]:
+		var col := Color(grp["color"])
+		var role: String = grp["role"]
+		var tris: int = grp["n"]
+		var panes := at + tris * 18
+		for i in tris:
+			var q: Array[Vector3] = []
+			for k in 3:
+				var o := at + i * 18 + k * 6
+				q.append(Vector3(data.decode_s16(o) * 0.01 + ox, data.decode_s16(o + 2) * 0.01 + _g, data.decode_s16(o + 4) * 0.01 + oz))
+			var n := (q[1] - q[0]).cross(q[2] - q[0])
+			if n.length_squared() < 1e-8:
+				continue
+			n = n.normalized()
+			if n.y < -0.3:
+				n = -n
+			if role == "roof":
+				_mode = seed
+				_tri(q[0], q[1], q[2], n, col, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), 0.0)
+				continue
+			if absf(n.y) >= 0.3:
+				_mode = M_STONE
+				_tri(q[0], q[1], q[2], n, col, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), 0.0)
+				continue
+			var t := Vector2(-n.z, n.x).normalized()
+			var ua := Vector2(Vector2(q[0].x, q[0].z).dot(t), q[0].y - _g)
+			var ub := Vector2(Vector2(q[1].x, q[1].z).dot(t), q[1].y - _g)
+			var uc := Vector2(Vector2(q[2].x, q[2].z).dot(t), q[2].y - _g)
+			if role == "facade":
+				_mode = seed
+				_tri(q[0], q[1], q[2], n, col, ua, ub, uc, top, false)
+			else:
+				_mode = M_PANE + data[panes + i] / 256.0 if role == "glass" else M_STONE
+				_tri(q[0], q[1], q[2], n, col, ua, ub, uc, 0.0, false)
+		at = panes + (tris if role == "glass" else 0)
+	_mode = keep
+	_collide_raw(site)

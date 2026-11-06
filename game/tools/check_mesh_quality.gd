@@ -314,7 +314,8 @@ func _initialize() -> void:
 	var marks = Landmarks.new(map, data)
 	var keys: Array[String] = []
 	for s: Dictionary in marks.sites:
-		keys.append(s["key"])
+		if not s.has("block"):  # street blocks are city fabric, not landmarks: no budget of their own
+			keys.append(s["key"])
 	keys.sort()
 	var measured := {}
 	for key in keys:

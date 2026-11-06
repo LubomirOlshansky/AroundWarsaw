@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-06
 
+- More than 500 plain blocks across the city now have their real shapes, and Nowy Świat's houses have real windows, cornices and dormers that light up one by one at night.
 - When your car is stuck, the POMOC DROGOWA tow button now comes up even while the ride app button is on screen, and it also comes when you keep backing off a wall and trying again.
 
 ## 2026-11-05

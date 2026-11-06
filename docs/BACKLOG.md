@@ -4,6 +4,21 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Street blocks across the city (F, 2026-11-06)
+
+536 plain blocks are modelled, 50 of them along Nowy Świat with colours checked against street
+photos (`game/data/street_blocks/`, one gzipped file each; sites `blk_<id>`, `_find_blocks`,
+`_build_block`; panes M_PANE). They join the city mesh, are no landmarks (no card, no icon), and
+collide on our outline. Blocks with real window openings bring their own roofs; the others keep
+LoD2's measured roof over their walls (`keeps_lod2_roof`). Bench, prebuilt: Nowy Świat 131 draw
+calls before and after, triangles 0.57 M to 1.10 M, video memory 323 MB to 405 MB, sectors 164 MB
+to 185 MB. Left:
+- **Phone**: the triangle total and memory on the iPhone.
+- **#29 Nowy Świat**: still its old block; its LoD2 is one mesh with the wing behind.
+- **Detail worth adding**: the long iron balconies of Nowy Świat 54/56 and 58.
+- **Outside Nowy Świat** the blocks had a look for breakage, not a house-by-house photo check.
+
+
 ## Loading bar on the title screen (F, 2026-11-05)
 
 Built: `main.gd` loads `index.res` and `proxies.scn` with threaded requests under the title, the
@@ -61,7 +76,6 @@ Found and left:
 Built (site `foksal`, spec docs/landmarks/specs/foksal.md). Open:
 - Night: the warm uplights on the stone frames and under the balconies, and the glowing ground floor, as in the developer's night render (needs a lamp strip or a floodlit code for small fronts; measure the bench).
 - F's look check on the phone or the Mac: the brick tones in the north front's shade, the gables' height, Foksal 15's dormers (LoD2's as they stand; no ortho was gathered).
-- The pack's model of Foksal 13 (Tiny Warsaw 14556781) had its details on the courtyard side: any port of the pack needs a per-building photo check first (the A/B review).
 
 ## Lessons from Tiny Warsaw (F, 2026-11-04; docs/design/tiny-warsaw-comparison.md)
 
