@@ -69,9 +69,10 @@ barge and its wake. Left:
 
 ### Free ride and the marina's access (F, 2026-11-07)
 
-Built: the bowrider "Kobolt 23" moored by the start pontoon, the PRZYSTAŃ pill and the marina card
-(POPŁYWAJ / WYŚCIG / NIE TERAZ), the free ride (no rings, clock or rivals; the barge passes for its
-wake) with ✕ back to the car, the boat mark on the minimap and the full map. Left:
+Built: three boats from F's photos moored by the start pontoon, each with its own physics (jet ski
+"Rekin X", electric "Srebrna Strzała", offshore "Czarna Pantera"), the PRZYSTAŃ pill and the marina
+card (pick one or WYŚCIG), the free ride (no rings, clock or rivals; the barge passes for its wake)
+with ✕ back to the car, the boat mark on the minimap and the full map. Left:
 - [ ] **F's photos** of the real place before any rebuild (landmarks-photos rule): the pontoon area at
   the tip of Cypel Czerniakowski from the promenade and from the water side; the drive in from Solec
   along Zaruskiego (the gate or barrier, the car park, the kerbs and surface); the promenade from the
@@ -82,8 +83,9 @@ wake) with ✕ back to the car, the boat mark on the minimap and the full map. L
   mapped road reaches the promenade); keep it until the photos say what is really there
 - [ ] The PRZYSTAŃ pill is up (logged, on screen at the top centre) but missing from the cloud's
   `--shots` frames; check on the Mac that it shows when the car stops by the pontoon
-- [ ] Phone feel of the bowrider (heavier, top 70 km/h), a way back to the mooring that parks it
-  (now ✕ anywhere), an engine sound
+- [ ] Phone feel of the three (jet steering off the gas, the offshore's slow start), a way back to
+  the mooring that parks it (now ✕ anywhere), an engine sound each (the electric one near silent)
+- [ ] Mac Autopilot run of the three free rides (F asked 2026-11-07)
 
 ## The Emilii Plater underpass entrances (F, 2026-11-06)
 

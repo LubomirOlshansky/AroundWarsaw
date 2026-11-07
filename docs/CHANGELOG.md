@@ -13,7 +13,7 @@ someone writes its lines.
 - Miodowa's palaces look like themselves: cream and pink plaster under tile-red roofs (Paca's are green copper), and Pałac Branickich's long front has pink pilaster strips, a cornice, an attic crowded with statues, three scrolled dormers and its balconied gate.
 
 
-- A motorboat now waits at the race pontoon by Port Czerniakowski: stop there and take it out on the Vistula whenever you like. A boat sign marks it on the map.
+- Three boats now wait at the race pontoon by Port Czerniakowski (a jet ski, a silver electric runabout and a black offshore racer, each handling its own way): stop there, pick one and take it out on the Vistula whenever you like. A boat sign marks them on the map.
 - Marszałkowska: 16 more houses got street fronts from real photos, from Hotel Saski to the long block at number 140.
 - Aleje Jerozolimskie: 21 more houses along the avenue got street fronts from real photos.
 - Świętokrzyska, Chmielna, Nowy Świat and Aleje Ujazdowskie: 25 more houses got street fronts from real photos.

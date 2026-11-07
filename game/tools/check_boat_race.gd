@@ -9,9 +9,11 @@ extends SceneTree
 ##   autopilot) ends with every boat finished or out inside RACE_MAX s, the player's careful boat
 ##   with no miss inside the expected time, the times spread (they are not one boat four times);
 ## - three misses put the player out (ODPADASZ!), JESZCZE RAZ starts the grid again, WYJDŹ ends it;
-## - the free ride (F 2026-11-07): the bowrider is moored in open water clear of the pontoon; the
-##   marina card's POPŁYWAJ takes it out, full throttle gets it away from the pontoon and up to
-##   speed without the rivals or the rings, ✕ ends the ride and it is back at its mooring;
+## - the free ride (F 2026-11-07): three boats moored in open water, clear of each other; each one
+##   picked on the marina card goes out, gets away from the pontoon at full throttle without the
+##   rivals or the rings, ✕ ends the ride and it is back at its mooring; and they feel different:
+##   the offshore fastest, the jet ski quickest off the line and steering only on the gas, the turn
+##   rates jet ski > electric > offshore;
 ## - the race's dialogue lines exist in Polish and English for every rival's situations.
 ##   godot --headless --path game --script res://tools/check_boat_race.gd
 
@@ -303,39 +305,86 @@ func _fail_path(race: Node3D, hud: FakeHud) -> void:
 
 
 func _free(race: Node3D, map: WaterMap) -> void:
-	var m: Vector2 = BoatRace.MOOR
-	if map.shore_distance(m.x, m.y) < 2.5:
-		_fail("the bowrider's mooring %s is %.1f m from the bank" % [m, map.shore_distance(m.x, m.y)])
-	race._marina_card()
-	if race.state != BoatRace.State.MENU:
-		_fail("the pill did not open the marina card")
-	race._on_card(0)
-	if race.state != BoatRace.State.FREE or not race.boating() or race.player != race.free_boat:
-		_fail("POPŁYWAJ did not start the free ride (state %d)" % race.state)
+	var n: int = BoatRace.FLEET.size()
+	if n != 3 or race.fleet.size() != n:
+		_fail("the marina has %d boats, not 3" % race.fleet.size())
 		return
-	var b: Node3D = race.free_boat
-	if b.pos.distance_to(m) > 0.5:
-		_fail("the free ride did not start at the mooring")
-	# Full throttle, the bow to the river: out past the pontoon's end and onto the plane.
-	b.throttle = 1.0
-	var t := 0.0
-	var best := 0.0
-	while t < 10.0:
-		race._process(STEP)
-		t += STEP
-		best = maxf(best, b.forward_speed())
-	var gone: float = b.pos.distance_to(m)
-	if gone < 60.0 or best < 0.75 * b.top():
-		_fail("the bowrider got %.0f m from its mooring at %.1f m/s top in 10 s (stuck by the pontoon?)" % [gone, best])
-	for k in race.boats.size():
-		if race.boats[k].visible:
-			_fail("a race boat is out during the free ride")
-	print("check_boat_race: free ride %.0f m out, %.1f m/s top" % [gone, best])
-	race.hud.abort_pressed.emit()
-	if race.state != BoatRace.State.IDLE or race.boating() or race.player == race.free_boat:
-		_fail("✕ did not end the free ride")
-	if race.free_boat.pos.distance_to(m) > 0.5 or not race.free_boat.visible:
-		_fail("the bowrider is not back at its mooring")
+	for i in n:
+		var m: Vector2 = BoatRace.fleet_spot(i)
+		if map.shore_distance(m.x, m.y) < float(race.fleet[i].spec["r"]) + 0.8:
+			_fail("%s's mooring %s is %.1f m from the bank" % [BoatRace.FLEET[i]["name"], m, map.shore_distance(m.x, m.y)])
+		for k in range(i + 1, n):
+			if m.distance_to(BoatRace.fleet_spot(k)) < float(race.fleet[i].spec["r"]) + float(race.fleet[k].spec["r"]):
+				_fail("the moorings of %s and %s overlap" % [BoatRace.FLEET[i]["name"], BoatRace.FLEET[k]["name"]])
+	var stats := []
+	for i in n:
+		race._marina_card()
+		if race.state != BoatRace.State.MENU:
+			_fail("the pill did not open the marina card")
+		race._on_card(i)
+		var name: String = BoatRace.FLEET[i]["name"]
+		if race.state != BoatRace.State.FREE or not race.boating() or race.player != race.fleet[i]:
+			_fail("picking %s did not start its free ride (state %d)" % [name, race.state])
+			return
+		var b: Node3D = race.fleet[i]
+		var m: Vector2 = BoatRace.fleet_spot(i)
+		# Full throttle, bow to the river: out past the pontoon and up on the plane, then on down
+		# the middle of the river (the course's line) so the turns below are in open water.
+		b.throttle = 1.0
+		var t := 0.0
+		var best := 0.0
+		var t10 := -1.0
+		while t < 14.0:
+			if t > 3.0:
+				var li := clampi(race.line.size() / 6, 0, race.line.size() - 1)
+				var to: Vector2 = race.line[li] - b.pos
+				b.target_dir = Vector3(to.x, 0.0, to.y).normalized()
+			race._process(STEP)
+			t += STEP
+			best = maxf(best, b.forward_speed())
+			if t10 < 0.0 and b.forward_speed() >= 10.0:
+				t10 = t
+		var gone: float = b.pos.distance_to(m)
+		if gone < 60.0:
+			_fail("%s got only %.0f m from its mooring in 14 s (stuck by the pontoon?)" % [name, gone])
+		# The turn at speed with the gas on, then coasting with the wheel over.
+		b.target_dir = Vector3.ZERO
+		b.throttle = 1.0
+		var y0: float = b.yaw
+		b.steer = 1.0
+		for f in 60:
+			race._process(STEP)
+		var turn_gas := absf(wrapf(b.yaw - y0, -PI, PI))
+		b.throttle = 0.0
+		for f in 30:
+			race._process(STEP)
+		var y1: float = b.yaw
+		for f in 30:
+			race._process(STEP)
+		var turn_coast := absf(wrapf(b.yaw - y1, -PI, PI)) * 2.0
+		stats.append({"best": best, "t10": t10, "gas": turn_gas, "coast": turn_coast})
+		print("check_boat_race: free ride %s: %.0f m out, top %.1f m/s, 10 m/s in %.1f s, turn %.2f rad/s on gas, %.2f coasting" % [name, gone, best, t10, turn_gas, turn_coast])
+		for k in race.boats.size():
+			if race.boats[k].visible:
+				_fail("a race boat is out during the free ride")
+		race.hud.abort_pressed.emit()
+		if race.state != BoatRace.State.IDLE or race.boating() or race.player == race.fleet[i]:
+			_fail("✕ did not end the free ride in %s" % name)
+		if race.fleet[i].pos.distance_to(m) > 0.5 or not race.fleet[i].visible:
+			_fail("%s is not back at its mooring" % name)
+	# Their own physics: the offshore is the fastest, the jet ski the quickest off the line and the
+	# only one that hardly turns off the gas, the electric quicker to 10 m/s than the heavy offshore.
+	var sk: Dictionary = stats[0]
+	var el: Dictionary = stats[1]
+	var of: Dictionary = stats[2]
+	if not (float(of["best"]) > float(sk["best"]) + 3.0 and float(of["best"]) > float(el["best"]) + 3.0):
+		_fail("the offshore is not clearly the fastest (%.1f vs %.1f, %.1f)" % [of["best"], sk["best"], el["best"]])
+	if not (float(sk["t10"]) < float(el["t10"]) and float(el["t10"]) < float(of["t10"])):
+		_fail("off the line: jet ski %.1f s, electric %.1f s, offshore %.1f s to 10 m/s (want that order)" % [sk["t10"], el["t10"], of["t10"]])
+	if not (float(sk["coast"]) < 0.5 * float(sk["gas"])):
+		_fail("the jet ski turns %.2f rad/s off the gas (jet steering wants under half of %.2f)" % [sk["coast"], sk["gas"]])
+	if not (float(of["gas"]) < float(el["gas"]) and float(el["gas"]) < float(sk["gas"])):
+		_fail("turn rates on the gas: jet ski %.2f, electric %.2f, offshore %.2f (want that order)" % [sk["gas"], el["gas"], of["gas"]])
 
 
 func _lines() -> void:

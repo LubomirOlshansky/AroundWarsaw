@@ -162,7 +162,7 @@ var _ring_mats := {}
 var _stand_halo: ArrayMesh
 var _halo_mat: ShaderMaterial
 var _places_shown := false
-## The free-ride boat's mooring (boat_race.gd MOOR, set by main.gd; INF: none) and its mark's colour.
+## The free-ride boat's mooring (boat_race.gd fleet_spot(1), set by main.gd; INF: none) and its mark's colour.
 var boat_spot := Vector2.INF
 const BOAT_COLOUR := Color("#1f4fa8")
 var _rng := RandomNumberGenerator.new()

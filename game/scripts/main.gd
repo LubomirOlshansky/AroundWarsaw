@@ -520,7 +520,8 @@ var rave_log := false
 var _rave_auto := false
 ## The boat race (boat_race.gd): --boat-race=call (Szymek phones now), =race (the car at the
 ## pontoon, straight onto the grid), =auto (that, with the player's boat driven by the rivals'
-## driver), =free (the car at the pontoon, out in the free-ride bowrider), =marina (the car there, the
+## driver), =free / free0..2 (the car at the pontoon, out in a free-ride boat: 0 the jet ski,
+## 1 the electric (default), 2 the offshore), =marina (the car there, the
 ## marina card up), =0 (none); --boat-log.
 var boat_race: BoatRace
 var boat_flag := ""
@@ -2751,7 +2752,7 @@ func _build_boat_race(world: Node3D) -> void:
 	boat_race.left_boat.connect(_on_boat_left)
 	if jobs != null:
 		# The free-ride boat's mark on the minimap and the full map, with the job places.
-		jobs.boat_spot = BoatRace.MOOR
+		jobs.boat_spot = BoatRace.fleet_spot(1)
 		jobs._show_places(jobs._places_shown, true)
 	if boat_flag in ["race", "auto"]:
 		get_tree().create_timer(1.0).timeout.connect(func() -> void:
@@ -2759,13 +2760,13 @@ func _build_boat_race(world: Node3D) -> void:
 			car.global_position = Vector3(at.x, map.ground_height(at.x, at.y), at.y)
 			car.reset_physics_interpolation()
 			boat_race._board())
-	elif boat_flag in ["free", "marina"]:
+	elif boat_flag.begins_with("free") or boat_flag == "marina":
 		get_tree().create_timer(1.0).timeout.connect(func() -> void:
 			var at := BoatRace.CAR_SPOT
 			car.global_position = Vector3(at.x, map.ground_height(at.x, at.y), at.y)
 			car.reset_physics_interpolation()
-			if boat_flag == "free":
-				boat_race.free_ride()
+			if boat_flag.begins_with("free"):
+				boat_race.free_ride(int(boat_flag.trim_prefix("free")) if boat_flag.length() > 4 else 1)
 			else:
 				boat_race._marina_card())
 	elif boat_flag == "call":
