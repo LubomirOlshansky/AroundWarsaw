@@ -4,20 +4,6 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
-## Złote Tarasy 3D screen (F, 2026-11-05)
-Built from F's photos (`tarasy_screen.gd`, `led_screen.gdshader`). Open:
-- Phone look and bench check (the shader follows a ray into a box per pixel; cost is bounded by the
-  strip's size on screen, 1 draw call). Wipe/scene timings, glow strength at night, the flowers' and
-  the cat's drawing are first guesses to tune against F's videos.
-- Rebuilt after F's photos and the Mac gather (refs/skylight/REPORT.md, 2026-11-05): the screen hangs on
-  a graphite box over the entrance (the mapped plate raised to 38 m), an L in plan (south face + curved
-  west return); Skylight (`_tarasy_skylight`) is silver-grey cladding with a dark window dash per floor,
-  a dark lobby with a 5 m canopy, the 4-floor glazed belt at 20-33 m, and a roof scooped on the west
-  half with an oval glass cap. Still to do from the report: slim round piers at the foot and the gold
-  stair slits (the foot is plain dark glass), the podium's louvres and pink brick curved end, the roof
-  crane, the Palace-side look. The Mac's photos show printed advert panels (older); F's photos show the
-  LED screen, which we follow.
-- More scenes for the loop (F's ideas: sea, a car driving out of the screen) and a day/night level pass.
 ## Novotel Warszawa Centrum from F's photos (F, 2026-11-07; docs/landmarks/novotel.md)
 
 Built: the white tiled slab with its paired windows and the lift core's blank strip, the blank narrow ends round
@@ -95,6 +81,20 @@ barge and its wake. Left:
 - [ ] The marina (PR #251) as the start once the harbour's 8 m entrance can be widened or raced in single file
 - [ ] Pan Zdzisiek fishing from the Złota Rybka after the race; Kamil's "relacja" as a ticker joke
 
+## Złote Tarasy 3D screen (F, 2026-11-05)
+Built from F's photos (`tarasy_screen.gd`, `led_screen.gdshader`). Open:
+- Phone look and bench check (the shader follows a ray into a box per pixel; cost is bounded by the
+  strip's size on screen, 1 draw call). Wipe/scene timings, glow strength at night, the flowers' and
+  the cat's drawing are first guesses to tune against F's videos.
+- Rebuilt after F's photos and the Mac gather (refs/skylight/REPORT.md, 2026-11-05): the screen hangs on
+  a graphite box over the entrance (the mapped plate raised to 38 m), an L in plan (south face + curved
+  west return); Skylight (`_tarasy_skylight`) is silver-grey cladding with a dark window dash per floor,
+  a dark lobby with a 5 m canopy, the 4-floor glazed belt at 20-33 m, and a roof scooped on the west
+  half with an oval glass cap. Still to do from the report: slim round piers at the foot and the gold
+  stair slits (the foot is plain dark glass), the podium's louvres and pink brick curved end, the roof
+  crane, the Palace-side look. The Mac's photos show printed advert panels (older); F's photos show the
+  LED screen, which we follow.
+- More scenes for the loop (F's ideas: sea, a car driving out of the screen) and a day/night level pass.
 ## The Emilii Plater underpass entrances (F, 2026-11-06)
 
 F's screenshots: walled boxes with steps on flat ground. Done 2026-11-06 (spec
