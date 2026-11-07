@@ -12,6 +12,8 @@ map data, and a ranked inventory of how each one is built in the game.
         cv 1 for an escalator (conveying)      br 1 on a bridge or a footbridge
         (the walls' heights, materials and the fences' types are tools/barrier_tags.py's).
         bake_osm.py calls stair_tags() for a full re-bake, so the Mac's bake keeps them too.
+        After it, re-run tools/bake_street_details.py and tools/bake_park_details.py (their stamps
+        follow centrum.json, or the quick checks go red).
     python3 -I tools/stairs.py report [MAP.json] [--osm ...] [--out DIR]
         the inventory (stairs.json + stairs.md in DIR, default build/stairs): every flight with
         its place, length, its real drop (step count x 0.16 m) against what the 10 m terrain grid

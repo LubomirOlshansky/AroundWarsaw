@@ -10,6 +10,8 @@ maps more than that; this copies it onto centrum.json's `lines`, and adds the ci
         ft  fence type: railing (railing, bars, balustrade, metal), mesh (chain link, wire), wood
         and `citywalls`: the Old Town's defence walls (OSM barrier=city_wall areas, brick, their
         mapped height or CITY_WALL_H), drawn by map_builder.gd as brick walls.
+        After it, re-run tools/bake_street_details.py and tools/bake_park_details.py (their stamps
+        follow centrum.json, or the quick checks go red).
     python3 -I tools/barrier_tags.py --check [MAP.json]
         exit 1 unless the map carries the barrier tags and the city walls (verify step `stairs`).
 
