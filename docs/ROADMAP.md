@@ -15,6 +15,7 @@ item. Updated 2026-11-01 from the audit. v1.0 = the Demo and TestFlight gates in
 then the Launch gate.
 
 ### Done (built and checked headless)
+- [x] Flicker over the railway from the helicopter (F, 2026-11-07, phone videos): the cutting's floor no longer z-fights the gravel, and the railway's ballast and rails no longer sink under the ground of the cutting by Główna and Ochota (`check_drape` rail pass; phone look open)
 - [x] Open-PR audit and merge train (F, 2026-11-07; `docs/PR_AUDIT.md`): 12 orphan PRs whose threads had ended merged to main together (#456 #473 #477 #478 #479 #482 #484 #487 #489 #490 #493 #496), plus #371 #467 #486 #488 on their own; no work lost
 - [x] Batch 3 landmark photo pass (F, 2026-11-06; reports `docs/landmarks/photo-reports/staszic.md`, `wszystkich.md`, `zygmunt.md`, `swietokrzyski.md`): Sigismund's Column in granite and bronze with four steps, All Saints with spired towers, arcade galleries and the crossing dome, Staszic colours; Staszic front/statue and the Świętokrzyski A-frame pylon stay open (QUESTIONS), Browary unchanged (same 3 photos)
 - [x] Zachodnia offices (F, 2026-11-06): Brama Zachodnia (terracotta), Equator (graphite ribbon glazing), Equator II (blue-grey ribbon glass) skinned from Mapillary/Panoramax street photos (TOWERS keys `brama`, `equator`, `equator2`), the parody BLUZOFT on Equator II (9th floor); about 40 developer / AI / vibe-coding jokes in dialogue.json (radio_host, office, passenger, kebab_order office); PR pending, phone check open

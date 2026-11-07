@@ -3,6 +3,20 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Flickering textures from the helicopter (F, 2026-11-07, two phone screen recordings)
+
+Fixed: over the rail yard by Warszawa Główna and the cutting to Ochota the beige ground tore through
+the ballast in jagged, crawling patches and the rails broke into dashes. Two causes: the cutting's
+floor had the gravel shoulders' depth bias (same layer, same height: z-fighting), and the railway's
+flat layers were laid in 10 m pieces that sagged up to a metre under the cutting's 2 m ground. Now
+the floor sits under the shoulders (bias 0.16), the railway layers keep their corners on the drawn
+ground and bend with the cutting's sub-cells (`map_builder._drape_edge`); check_drape's rail pass
+(ground over them in the cutting: 6,589 m2 before, 330 m2 after, +137k flat triangles map-wide, +4 %). Left:
+- Rail beds outside the cutting still sag under the 10 m grid in places (~3,300 m2 of gravel
+  shoulders, ~700 m2 of beds, mostly by bridges and aprons); a phone look decides if it shows.
+- The second recording (Rondo Daszyńskiego area, by car) shows a shimmer on the long window rows of
+  slab blocks while the camera moves: the shader's window grid near the pixel size (aliasing), not
+  z-fighting. Candidate fix: fade the window pattern by fwidth like the roofs do; needs a phone look.
 
 ## Open-PR audit (F, 2026-11-07; docs/PR_AUDIT.md)
 
@@ -91,7 +105,6 @@ planters). Left:
 - The window rhythm (pairs in 6.2 m bays, 31 floors of 2.95 m) is read from one daytime photo; the lift core strip's
   place along the face is a guess (the middle bay).
 - The podium's Marszałkowska front has no photo: built as two glazed storeys under a lit fascia.
-
 
 ## Zachodnia offices and BLUZOFT (F, 2026-11-06)
 
@@ -1225,7 +1238,6 @@ Built from photos gathered on the Mac (`refs/mpw/`: 25 Commons photos, the GUGiK
 ## Pokorna 2 (F, 2026-11-02)
 
 - Pokorna 2 remodelled as flats (site `pokorna2`, spec pokorna2.md). Open: Mac look check (QUESTIONS); the Gdański Business Center thread works nearby (Dworzec Gdański), keep its site zone clear of the outline at (-2123, -2217).
-
 
 ## Level 26 rooftop club (F, 2026-11-01)
 
@@ -3827,7 +3839,6 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
   1 % in `check_streaming.gd` `SPOT_MAX`, the reason there.
 - `verify.sh` ride: 30000 frames (the river quirk's legs run 1.7-1.8 km on the demo map).
 
-
 ## From the first Android build (2026-10-29)
 
 - **Nothing has run on an Android phone.** The AAB is built and signed, but the game has never
@@ -3946,7 +3957,6 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
   the numbers, not yet on the phone: how a 35 % bump feels, whether 7 m/s of sidestep reads as a
   jump at 60 fps, and whether shoved traffic overlapping the next lane looks wrong.
 - A shoved car slides off its line only on a lane, not on a junction's curve.
-
 
 ## From loop MW-0 (Moja Warszawa: data and lines, 2026-10-30)
 
