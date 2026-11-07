@@ -25618,13 +25618,15 @@ const NOHO_STRIP := [Vector2(-2880.0, 653.0), Vector2(-2873.0, 694.0), Vector2(-
 const NOHO_GATES := [[0, 0, 92.0, 104.0], [0, 1, 60.0, 70.0], [1, 0, 16.0, 24.0]]
 ## Frames: [u0, u1, v0, v1, floors, glazed floors, cascade floors, slab overhang].
 const NOHO_FRAMES := [
-	[150.0, 182.0, 22.0, 118.0, 9, 4, 3, 0.0],   # the long block on the east street (the yard photo)
-	[70.0, 138.0, 9.0, 27.0, 5, 2, 0, 0.0],       # the first floors on Kasprzaka, its cores ahead
+	# F's Kasprzaka photos (2026-10-26): both blocks topped out at 11 storeys, the cascade's stepped
+	# terraces on top, windows in, wrapped in scaffolding with red and white boards.
+	[150.0, 182.0, 22.0, 118.0, 11, 10, 3, 0.0, true],   # the long block on the east street
+	[70.0, 138.0, 9.0, 27.0, 11, 10, 3, 0.0, true],      # the block on Kasprzaka, its cores ahead
 	[70.0, 120.0, 161.0, 187.0, 8, 3, 0, 1.4],    # the estate's last stage (Street View): balconies
 	[136.0, 180.0, 149.0, 172.0, 8, 3, 0, 1.4],
 ]
 ## The Kasprzaka block's two cores, rising past its floors: [u, v, half size, floors].
-const NOHO_CORES := [[86.0, 18.0, 3.2, 8], [122.0, 18.0, 3.2, 8]]
+const NOHO_CORES := [[86.0, 18.0, 3.2, 12], [122.0, 18.0, 3.2, 12]]
 ## Cranes: [u, v, mast height, jib angle (deg, from +u), jib length, counter-jib length, colour].
 const NOHO_CRANES := [[143.0, 72.0, 46.0, 200.0, 46.0, 12.0, "#4f8a3c"], [104.0, 38.0, 42.0, 110.0, 40.0, 11.0, "#c8322e"],
 		[127.0, 167.0, 38.0, 330.0, 36.0, 10.0, "#d9d6cf"]]
@@ -25646,7 +25648,7 @@ const NOHO_CONCRETE := Color("#b8b5ae")
 const NOHO_SLAB_EDGE := Color("#a9a69f")
 const NOHO_GLASS := Color("#3e5560")
 const NOHO_RAIL := Color("#d8c23a")      # the yellow edge barriers and their tags
-const NOHO_HOARD := Color("#1f2a44")     # the navy boards with the name
+const NOHO_HOARD := Color("#454c53")     # the navy boards with the name
 const NOHO_FENCE := Color("#8e9497")     # galvanised mesh panels elsewhere
 const NOHO_CABIN := Color("#eceeef")
 const NOHO_CABIN_RED := Color("#c8322e")
@@ -25853,7 +25855,9 @@ func _noho_frame(f: Array) -> void:
 		if n < glazed:
 			# closed in: a dark glazed box set 0.6 m in from the slab's edge
 			_lbox(cu, cv, hu - 0.6, hv - 0.6, bottom, top, NOHO_GLASS, M_GLASS, none)
-		# columns round the edge, 0.5 m in
+		# columns round the edge, 0.5 m in (behind the glass and the scaffolding they don't show)
+		if n < glazed:
+			continue
 		var nu := maxi(1, roundi((hu * 2.0 - 1.0) / NOHO_BAY))
 		var nv := maxi(1, roundi((hv * 2.0 - 1.0) / NOHO_BAY))
 		for i in nu + 1:
@@ -25873,7 +25877,37 @@ func _noho_frame(f: Array) -> void:
 				_lbox(ru, vv, rh - e, 0.04, y, y + 1.08, NOHO_RAIL.darkened(0.35), M_STONE, NOHO_RAIL)
 			for uu: float in [rail_u0 + e, u1 - e]:
 				_lbox(uu, cv, 0.04, hv + over - 2.0 * e, y, y + 1.08, NOHO_RAIL.darkened(0.35), M_STONE, NOHO_RAIL)
+	if f.size() > 8 and f[8]:
+		_noho_scaffold(u0, u1, v0, v1, g, floors + 1 - cascade)
 	_collide(_rect((u0 + u1) * 0.5, (v0 + v1) * 0.5, (u1 - u0) * 0.5, (v1 - v0) * 0.5))
+
+
+## Scaffolding round a block up to `levels` floors: galvanised posts every 5 m, 0.9 m out, and a
+## board at each floor in red or white (the photos' scaffolding).
+func _noho_scaffold(u0: float, u1: float, v0: float, v1: float, g: float, levels: int) -> void:
+	var out := 0.9
+	var top := g + levels * NOHO_FLOOR + 1.0
+	var a0 := u0 - out
+	var a1 := u1 + out
+	var b0 := v0 - out
+	var b1 := v1 + out
+	var none := Color(0, 0, 0, 0)
+	for side in 4:
+		var p0: Vector2 = [Vector2(a0, b0), Vector2(a1, b0), Vector2(a1, b1), Vector2(a0, b1)][side]
+		var p1: Vector2 = [Vector2(a1, b0), Vector2(a1, b1), Vector2(a0, b1), Vector2(a0, b0)][side]
+		var ln := p0.distance_to(p1)
+		var n := maxi(1, roundi(ln / 5.0))
+		for i in n:
+			var q := p0.lerp(p1, float(i) / n)
+			var w := _w(q.x, q.y)
+			_beam(Vector3(w.x, g - 0.2, w.y), Vector3(w.x, top, w.y), 0.08, NOHO_FENCE.lightened(0.15))
+	for lv in range(1, levels + 1):
+		var y := g + lv * NOHO_FLOOR + 0.7
+		var col := Color("#b8473a") if lv % 2 == 1 else Color("#dcd8cf")
+		_lbox((a0 + a1) * 0.5, b0, (a1 - a0) * 0.5, 0.03, y, y + 0.3, col, M_STONE, none)
+		_lbox((a0 + a1) * 0.5, b1, (a1 - a0) * 0.5, 0.03, y, y + 0.3, col, M_STONE, none)
+		_lbox(a0, (b0 + b1) * 0.5, 0.03, (b1 - b0) * 0.5 - 0.04, y, y + 0.3, col, M_STONE, none)
+		_lbox(a1, (b0 + b1) * 0.5, 0.03, (b1 - b0) * 0.5 - 0.04, y, y + 0.3, col, M_STONE, none)
 
 
 ## How far the slab of floor n (0 the ground, `floors` the roof) steps back with the cascade.

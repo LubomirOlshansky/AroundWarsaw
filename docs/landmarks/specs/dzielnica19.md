@@ -36,8 +36,10 @@ towers of dark blue glass in orange and gold frames (developer parody ASBUDKA).
 
 Frame D19_O/A/B: u along Kasprzaka (east), v into the plot (south). `noho`'s zone is the
 OpenStreetMap `construction` outline (NOHO_PLOT) plus the strip south of it to the diagonal street's
-kerb (NOHO_STRIP, the estate's last stage): four frames of 5-9 storeys of 3.2 m (the long one's top
-3 storeys step back 3.5 m a storey on the west as the cascade's terraces), two 8-storey cores, a raft.
+kerb (NOHO_STRIP, the estate's last stage): four frames of 3.2 m storeys: the long one and the Kasprzaka one topped out at 11 storeys (F's
+October photos: glazed to 10, the top storey open, scaffolding with red-and-white boards round
+them; the long one's top 3 storeys step back 3.5 m a storey on the west as the cascade's
+terraces), the last stage's two at 8, two 12-storey cores, a raft.
 `d19` rebuilds every mapped part in D19_ESTATE from its outline (simplified 5 cm, the parts share
 fronts): podiums up to 5 m, blocks 14-34 m with set-back top floors, `roof` parts as 0.4 m canopies.
 `asbud` rebuilds the parts in ASBUD_ZONE: the two towers (parts over 60 m, simplified 1.5 m) and the
@@ -48,7 +50,7 @@ white blocks beside them.
 - Frames: perimeter columns every 8 m, the lowest floors glazed in dark glass 0.6 m in, 1.08 m
   safety screens with a yellow top on the open floors; the last stage's slabs run 1.4 m out as
   balconies on the long sides (Street View).
-- Hoarding: 2.4 m navy boards with OHO ONE along Kasprzaka and the east street, galvanised panels
+- Hoarding: 2.4 m dark grey boards with OHO ONE along Kasprzaka and the east street, galvanised panels
   elsewhere, three gates.
 - Estate look 0: S_PUNCHED cream with rust frames (4 cm proud, the pane 8 cm proud) round about a
   third of the windows, scattered; a dark shop band 40 cm in on the ground floor. Look 1 (the two
@@ -70,7 +72,7 @@ crown, ASBUDKA in green neon on it.
 
 ## 5. Colour and material
 
-Concrete #b8b5ae, glass #3e5560, safety rail #d8c23a, hoarding navy #1f2a44, panels #8e9497, cranes
+Concrete #b8b5ae, glass #3e5560, safety rail #d8c23a, hoarding grey #454c53, scaffold boards red #c8322e and white #d9d6cf, panels #8e9497, cranes
 green #4f8a3c, red #c8322e, white #d9d6cf. Estate cream #dfcdb0, rust #94573a, pane #2c343b, bronze
 #7b6450, charcoal #3f4245, white #eceae4, garden #7f9b58, shop glass #2f383f. Towers glass #2f4d6c,
 gold #c9a24c, orange #d5562a, stone #e4e1da.
@@ -85,20 +87,20 @@ ONE, ATLAS WIATR and ASBUDKA lit (neon_signs LANDMARK_WORDS).
 ## 7. Detail level and budget
 
 L3 with a named exception: these are three whole quarters, not one building. Triangle budget 12700
-for `noho` (the build is 11314), 9000 for `d19` (8150), 3900 for `asbud` (3194), the sites' entries in
+for `noho` (the build is 8278), 9000 for `d19` (8150), 3900 for `asbud` (3194), the sites' entries in
 `check_mesh_quality.gd`. No new materials, so no new draw calls.
 
 ## 8. Parts table
 
 | Part | Shape | Size | Position (u, v) | Material | Feature |
 | --- | --- | --- | --- | --- | --- |
-| Long frame | slabs, columns, screens | 32 × 96 m, 9 storeys | 150-182, 22-118 | concrete, dark glass, yellow rail | the cascade's stepped terraces |
-| Kasprzaka frame | slabs, columns, 2 cores | 68 × 18 m, 5 storeys, cores 8 | 70-138, 9-27 | concrete, dark glass | cores rising ahead of the floors |
+| Long frame | slabs, columns, screens | 32 × 96 m, 11 storeys, scaffolded | 150-182, 22-118 | concrete, dark glass, yellow rail | the cascade's stepped terraces |
+| Kasprzaka frame | slabs, columns, 2 cores | 68 × 18 m, 11 storeys, scaffolded, cores 12 | 70-138, 9-27 | concrete, dark glass | cores rising ahead of the floors |
 | Last stage | two frames with balcony slabs | 50 × 26 m and 44 × 23 m, 8 storeys | 70-120, 161-187; 136-180, 149-172 | concrete, dark glass | the Street View frames |
 | Foundation slab | raft, starter columns | 32 × 40 m, 30 columns | 8-40, 116-156 | concrete, steel bars | the next block starting |
 | Cranes | lattice mast, jib, counter-jib | 46, 42, 38 m masts | (143, 72), (104, 38), (127, 167) | green, red, white steel | red lamp on top |
 | Yard | pallet blocks, cabins, container, silo, skip, heaps, digger, cars | 55-145 × 34-122 m | across the plot | EPS white, XPS blue, pink, cabins with a red band | ATLAS WIATR cabins |
-| Hoarding | boards in 12 m pieces | 2.4 m high | round both zones | navy boards, galvanised panels | OHO ONE, three gates |
+| Hoarding | boards in 12 m pieces | 2.4 m high | round both zones | dark grey boards, galvanised panels | OHO ONE, three gates |
 | Estate blocks | rebuilt outlines | 58 parts, 4.3-34 m | D19_ESTATE | cream S_PUNCHED, rust frames; S_GOLD + charcoal grid | 19. Dzielnica's look |
 | Towers | rebuilt outlines, fins, crown | 2 × 96.7 m | ASBUD_ZONE | blue glass, orange and gold frames, stone spine | ASBUDKA crown |
 
