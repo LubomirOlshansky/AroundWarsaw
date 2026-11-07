@@ -8,10 +8,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
 
 Built: "Dekalog na kółkach", Claire from Lyon from Centralna to six Dekalog places and the Inflancka
 estate (`dekalog_tour.gd`, check `dekalog`). Left:
-- **The estate from F's photos** (K01-K08): Dzika 6, Inflancka 11/15/19, Dzika 19/23, Stawki 6/8,
-  Dzika 4A, Stawki 4A and the yards are plain OSM boxes; the sightline from Dzika 6 to Inflancka 15.
-- **The Inflancka pools** (K09): Ośrodek Sportowy Inflancka 8 is missing from the game: summer basins,
-  paddling pool, slides, the indoor hall. Needs OSM pool outlines in the bake or a site; photos first.
+- **The estate, the rest** (K07, K08): the six main slabs and the pools are built from F's photos
+  (sites `dekalog_estate`, `inflancka_pools`, spec `docs/landmarks/specs/dekalog_estate.md`);
+  Stawki 8, Dzika 4A, the Stawki 4A tower and the yards (benches, lamps, playgrounds) are still OSM.
+- **The pools, the rest** (K09): fence, cashier, benches; the spiral's real path.
 - **The stops' fronts** (K12-K19): Noakowskiego 12's courtyard shrine, the café at Krakowskie
   Przedmieście 27, St Alexander's portico, the W-Z tunnel portals.
 - **Quest map**: the `stories.add` entry once PR #504 is in.

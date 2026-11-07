@@ -25,7 +25,7 @@ const Chunked := preload("res://scripts/chunked_surface.gd")
 ## Triangles a site may hold (the museum and Plac loop's own models).
 const BUDGET := {"muzeum": 2500, "europejski": 8000, "grob": 600, "metropolitan": 3200, "wiktoria": 900,
 		"hotel_kasztel": 400, "hotel_canaletto": 400, "hotel_starowka": 400, "polonia": 1450, "ujazdowski": 1650, "sobieski": 1500,
-		"zamek": 3200, "arkady": 2400}
+		"zamek": 3200, "arkady": 2400, "dekalog_estate": 18000, "inflancka_pools": 1000}
 ## The Królewska edge's skins: key -> a point in a building the skin must cover.
 const SKINNED := {"bez_kantow": Vector2(-580.0, -785.0), "departament": Vector2(-596.0, -702.0),
 		"krolewska": Vector2(-660.0, -790.0)}
@@ -216,6 +216,10 @@ func _check_site(marks, map: StubMap, key: String) -> void:
 			marks._build_zamek(s)
 		"arkady":
 			marks._build_arkady(s)
+		"dekalog_estate":
+			marks._build_dekalog_estate(s)
+		"inflancka_pools":
+			marks._build_inflancka_pools(s)
 		"hotel_kasztel", "hotel_canaletto", "hotel_starowka":
 			marks._build_hotel(s)
 	marks._id = 0
