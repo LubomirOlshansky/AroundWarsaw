@@ -10,7 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-07
-- The stray thin towers are gone: kiosks, sheds, booths and metro lifts across the city (like the two by the Ratusz-Arsenał tram stop) are now their real low size.
+- The stray thin towers are gone: each one was looked up and is now what it really is, from the glass metro lifts by the Ratusz-Arsenał tram stop and the slatted vent towers by the stadium to kiosks, bin shelters, substations, toilets and houseboats.
 - Hala Mirowska has its glazed gallery along the market front, and the Metropolitan's top floor is silver metal, both from real photos.
 - The Novotel by Rondo Dmowskiego looks like itself: a white tower with rows of small paired windows, its name in blue neon down both narrow ends and in light boxes on the roof, a glazed podium with a lit edge, and a curved cream entrance canopy under a blue sign.
 - Miodowa's palaces look like themselves: cream and pink plaster under tile-red roofs (Paca's are green copper), and Pałac Branickich's long front has pink pilaster strips, a cornice, an attic crowded with statues, three scrolled dormers and its balconied gate.

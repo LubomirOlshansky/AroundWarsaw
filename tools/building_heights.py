@@ -96,14 +96,73 @@ def stale(b):
     return area < MIGRATE_AREA and default_height(b.get("kind", ""), area) != OLD_GUESS
 
 
+USES_FILE = os.path.join(ROOT, "game", "data", "small_buildings.json")
+# Uses small_buildings.gd draws (LOOK there); "part" and "none" are left out of the map.
+USES = {"lift", "metro_vent", "metro_vent_tower", "metro_entrance_roof", "kiosk", "pavilion",
+        "bin_shelter", "substation", "toilet", "guard_booth", "ticket_booth", "garage", "shed",
+        "canopy", "bus_tram_shelter", "houseboat", "boathouse", "chapel_shrine",
+        "monument_structure", "staircase_or_lift_head", "historic", "unknown", "part", "none"}
+# Heights (m) for a researched use when no height was seen (small_buildings.gd LOOK keeps the same).
+USE_HEIGHTS = {"lift": 3.6, "metro_vent": 4.0, "metro_vent_tower": 5.5, "metro_entrance_roof": 3.2,
+               "kiosk": 2.8, "pavilion": 3.6, "bin_shelter": 2.0, "substation": 2.7, "toilet": 2.8,
+               "guard_booth": 2.6, "ticket_booth": 2.6, "garage": 2.5, "shed": 2.6, "canopy": 3.0,
+               "bus_tram_shelter": 2.6, "houseboat": 3.2, "boathouse": 4.2, "chapel_shrine": 3.5,
+               "monument_structure": 3.0, "staircase_or_lift_head": 3.2, "historic": 4.0, "unknown": 3.0}
+MATCH = 1.0  # m: a researched row names the building whose outline's centre is this close
+
+
+def centre(flat):
+    xs, zs = flat[0::2], flat[1::2]
+    return sum(xs) / len(xs), sum(zs) / len(zs)
+
+
+def researched(out, path=USES_FILE):
+    """{building index: row} for the rows of small_buildings.json, matched by outline centre."""
+    try:
+        with open(path, encoding="utf-8") as f:
+            rows = json.load(f)["buildings"]
+    except OSError:
+        return {}, []
+    grid = {}
+    for i, b in enumerate(out.get("buildings", [])):
+        if len(b["p"]) < 6:
+            continue
+        x, z = centre(b["p"])
+        grid.setdefault((int(x // 10), int(z // 10)), []).append((x, z, i))
+    found, missing = {}, []
+    for r in rows:
+        best = None
+        for dx in (-1, 0, 1):
+            for dz in (-1, 0, 1):
+                for x, z, i in grid.get((int(r["x"] // 10) + dx, int(r["z"] // 10) + dz), []):
+                    d = math.hypot(x - r["x"], z - r["z"])
+                    if d < MATCH and (best is None or d < best[0]):
+                        best = (d, i)
+        if best is None:
+            missing.append(r)
+        else:
+            found[best[1]] = r
+    return found, missing
+
+
 def apply(out):
-    """Re-guess the stale buildings of a baked map in place; returns a one-line summary."""
+    """Re-guess the stale buildings of a baked map in place and write each researched one's use
+    (`u`) and seen height; returns a one-line summary."""
     changed = 0
     for b in out.get("buildings", []):
         if stale(b):
             b["h"] = default_height(b.get("kind", ""), area_of(b["p"]))
             changed += 1
-    return f"{changed} small buildings lowered from the old {OLD_GUESS:.0f} m guess"
+    found, missing = researched(out)
+    for i, r in found.items():
+        b = out["buildings"][i]
+        b["u"] = r["u"]
+        if "h" in r:
+            b["h"] = float(r["h"])
+        elif r["u"] in USE_HEIGHTS:
+            b["h"] = USE_HEIGHTS[r["u"]]
+    return (f"{changed} small buildings lowered from the old {OLD_GUESS:.0f} m guess, "
+            f"{len(found)} researched uses written ({len(missing)} rows not found)")
 
 
 def category(b, area, width):
@@ -150,8 +209,18 @@ def main(argv):
             print(f"building_heights: FAIL · {len(left)} small buildings at the old 14 m guess "
                   f"(first: {left[:5]}); run python3 -I tools/building_heights.py")
             return 1
-        print(f"building_heights: OK · no small building at the old 14 m guess, "
-              f"{len(thin_list(out))} thin parts with tagged heights kept (pillars, chimneys, towers)")
+        found, missing = researched(out)
+        bad = [r for r in found.values() if r["u"] not in USES]
+        unwritten = [i for i, r in found.items() if out["buildings"][i].get("u") != r["u"]]
+        if missing or bad or unwritten:
+            print(f"building_heights: FAIL · {len(missing)} researched rows match no building, "
+                  f"{len(bad)} unknown uses, {len(unwritten)} uses not written (run the tool)")
+            return 1
+        uses = {}
+        for r in found.values():
+            uses[r["u"]] = uses.get(r["u"], 0) + 1
+        print(f"building_heights: OK · no small building at the old 14 m guess, {len(found)} "
+              f"researched ({', '.join(f'{k} {v}' for k, v in sorted(uses.items(), key=lambda kv: -kv[1]))})")
         return 0
     if "--list" in argv:
         for row in thin_list(out):
