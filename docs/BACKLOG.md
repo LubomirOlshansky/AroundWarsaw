@@ -423,6 +423,22 @@ in, with window bays every 3.6 m and storey. The Palace already had its courts (
 - Mac look check: the three courts from the helicopter and the game's angle, day and night (the court
   walls' windows light like the model's own bays).
 
+## Trybunał Konstytucyjny, al. Szucha 12a (F, 2026-11-06: parked until the map grows south)
+
+F asked for the Constitutional Tribunal as a landmark. The building is OSM way 30871847 (52.215631 N
+21.023906 E), game x -6, z 2031, footprint x -35..22, z 2013..2049 (about 57 x 35 m, 3 levels, hipped
+roof). The baked map ends at z 1736, so there is no ground, street, LoD2 or neighbour there (the Prime
+Minister's Chancellery, way 30871838 near x 38, z 2012, and the modern semicircular hall south of the
+Tribunal are missing too). F chose to park it (2026-11-06). The job: grow the map south by about 330 m
+(map lane: bake_osm BBOX and tools/map_shape.py, the whole chain, check_map_data counts on purpose, new
+map pack, bench before and after), then build it from the photos gathered on the Mac (refs/trybunal/:
+6 Commons photos, GUGiK ortho, osm_way.json, REPORT.md). What the photos show: ground floor, tall upper
+floor with a Greek-key frieze, dark metal mansard roof with 5 round dormers, bowed corner bays, a
+sandstone portal with an arched door and a stair each side, a flagpole at the roof centre, a round
+cobbled drive. Open: which face of the U carries the entrance (the ortho shows a planted courtyard with
+no drive); heights are estimates (eaves about 11-12 m, ridge 17-18 m). Landmark model needs
+`_collide_raw` and pocket_rings.
+
 ## Grow the map north-east (F, 2026-11-03: not now)
 
 Koneser (1426, -2355), Park Fontann (the Multimedia Fountain Park, -868, -2208) and Ząbkowska's bar
