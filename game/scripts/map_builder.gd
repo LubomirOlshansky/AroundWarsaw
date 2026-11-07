@@ -19,6 +19,7 @@ const RailYard := preload("res://scripts/rail_yard.gd")
 const StationLines := preload("res://scripts/station_lines.gd")
 const MapEdge := preload("res://scripts/map_edge.gd")
 const EdgeRoadworks := preload("res://scripts/edge_roadworks.gd")
+const RatuszHub := preload("res://scripts/ratusz_hub.gd")
 ## Pasaż Wiecha's white Y masts stand where the map has its lamps (first_scene.gd PASAZ).
 const FirstScene := preload("res://scripts/first_scene.gd")
 ## Tile size for instanced things (trees, lamps, parked cars). Loop 2b: 512 m (was 256): one
@@ -9379,7 +9380,14 @@ func _build_props() -> void:
 	for i in range(0, list.size() - 2, 3):
 		tints.append(Color(POSTER[int(absf(float(list[i]) * 7.0 + float(list[i + 1]) * 3.0)) % POSTER.size()]))
 	_props(_shared["column"], metal, list, 0.0, tints)
-	var shelters: Array = data.get("shelters", [])
+	# The Ratusz Arsenał hub's platforms carry their own arched canopies (ratusz_hub.gd): no
+	# generic shelter there.
+	var hub := RatuszHub.hub_platforms(data)
+	var shelters: Array = []
+	var all_shelters: Array = data.get("shelters", [])
+	for i in range(0, all_shelters.size() - 2, 3):
+		if not RatuszHub.covers(float(all_shelters[i]), float(all_shelters[i + 1]), hub):
+			shelters.append_array([all_shelters[i], all_shelters[i + 1], all_shelters[i + 2]])
 	var glows: Array[Color] = []
 	glows.resize(shelters.size() / 3)
 	glows.fill(SHELTER_GLOW)
