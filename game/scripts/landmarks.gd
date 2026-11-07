@@ -285,6 +285,9 @@ const INFO := {
 	"wizytki": ["Kościół Wizytek",
 			"Rokokowa fasada z 1761 roku, tuż przy Krakowskim Przedmieściu.",
 			"A rococo facade of 1761, right on Krakowskie Przedmieście."],
+	"branickich": ["Pałac Branickich",
+			"Barokowy pałac z 1740 roku przy Miodowej, z attyką pełną rzeźb i lukarnami z oculusami.",
+			"The baroque palace of 1740 on Miodowa, its attic crowded with statues and oculus dormers."],
 	"karmelici": ["Kościół Karmelitów",
 			"Rokokowo-klasycystyczna fasada z końca XVIII wieku, ze złotym globem na szczycie.",
 			"A late-18th-century front with a gilt globe on top."],
@@ -1516,6 +1519,9 @@ func build(surface, near := Rect2(), only := "") -> void:
 			"karmelici":
 				_mark_zone(s)  # the nave stays LoD2's, in its skin; the front is ours
 				_build_karmelici(s)
+			"branickich":
+				_mark_zone(s)  # the mass stays LoD2's, in its skin; the pilasters, cornice and attic are ours
+				_build_branickich(s)
 			"mickiewicz":
 				_build_mickiewicz(s)
 			"prus":
@@ -4074,12 +4080,23 @@ const SKINS := [
 	# front, corner dome and glazed hall are the site's own model (_build_poczta).
 	{"key": "poczta", "osm": "Poczta Główna", "mode": M_MONUMENT, "wall": "#ecd2c2", "roof": "#77706b"},
 	{"key": "dom_partii", "osm": "Centrum Bankowo-Finansowe", "mode": M_MONUMENT, "wall": "#ebe8df", "roof": "#8e9091"},
+	# Miodowa's and Senatorska's palaces from F's photos (2026-11-07, docs/landmarks/specs/miodowa.md):
+	# cream and pink plaster under tile-red roofs; Paca's roofs are green copper.
+	{"key": "branickich", "osm": "Pałac Branickich", "near": Vector2(-852.0, -1425.0), "mode": M_MONUMENT,
+			"wall": "#ecd7c2", "roof": "#a85f45"},
+	{"key": "mlodziejowski", "osm": "Pałac Młodziejowskiego", "mode": M_MONUMENT, "wall": "#f0e8d2", "roof": "#b3583c"},
+	{"key": "szaniawski", "osm": "Pałac Szaniawskich", "mode": M_MONUMENT, "wall": "#efe9db", "roof": "#a85f45"},
+	{"key": "chodkiewicz", "osm": "Pałac Chodkiewiczów", "mode": M_MONUMENT, "wall": "#eadfc4", "roof": "#a85f45"},
+	{"key": "arcybiskupi", "osm": "Pałac Arcybiskupi d. Pałac Borchów", "mode": M_MONUMENT, "wall": "#e8dcae", "roof": "#ad6446"},
+	{"key": "paca", "osm": "Pałac Paca", "mode": M_MONUMENT, "wall": "#ebe3cc", "roof": "#7fa391"},
+	{"key": "nobilium", "osm": "Collegium Nobilium", "mode": M_MONUMENT, "wall": "#e8dcc2", "roof": "#8c8f86"},
 ]
 
 
 func _find_skins() -> void:
 	for t: Dictionary in SKINS:
-		var outline := _landmark(t["osm"])
+		# `near` picks one of several outlines that share a name (two "Pałac Branickich")
+		var outline := _landmark_near(t["osm"], t["near"], 60.0) if t.has("near") else _landmark(t["osm"])
 		if outline.size() < 3:
 			continue
 		_add_site(t["key"], [outline])
@@ -24720,3 +24737,62 @@ func _kr_ground(g: float, d: float) -> void:
 	for s: Vector3 in [Vector3(2.0, 5.6, 0.0), Vector3(19.5, 22.8, 0.0), Vector3(32.2, 36.0, 1.0), Vector3(36.7, 40.2, 0.0)]:
 		_mode = M_STONE
 		_wall(_w(s.x, v + 0.06), _w(s.y, v + 0.06), g - 0.5, d - 0.2, _b, KR_WOOD.darkened(0.3) if s.z > 0.0 else Color("#1f2224"), 0.0)
+
+
+## Pałac Branickich on Miodowa (Tylman van Gameren's, then Fontana's rococo remodel, 1740s):
+## the long south-west front, 59.8 m, of cream plaster with dusty-pink pilaster strips, a
+## cornice, a stone attic balustrade crowded with statues, three scrolled dormers with
+## oculi over the tile roof, and the central gate with its iron balcony. The mass stays
+## LoD2's, in its skin (SKINS `branickich`). Spec docs/landmarks/specs/miodowa.md.
+## Frame: origin at the front's south-west end on the outline, u along it towards the
+## north-east (59.8 m), +v out of it to Miodowa (south-west).
+const BRANICKICH := Vector2(-883.7, -1420.3)
+const BRANICKICH_AXIS := Vector2(0.856, 0.5167)
+const BRANICKICH_LEN := 59.8
+const BRK_WALL := Color("#ecd7c2")
+const BRK_PINK := Color("#d6a898")
+const BRK_STONE := Color("#cfc7b6")
+const BRK_DARK := Color("#34383b")
+const BRK_COR := 10.4  # the cornice's underside above the ground (the photo: two storeys and a mezzanine)
+
+
+func _build_branickich(_site: Dictionary) -> void:
+	_o = BRANICKICH
+	_a = BRANICKICH_AXIS.normalized()
+	_b = Vector2(-_a.y, _a.x)  # (-0.517, 0.856): out of the front, to Miodowa
+	var m := BRANICKICH_LEN * 0.5
+	_g = map.terrain_height(_w(m, 1.0).x, _w(m, 1.0).y)
+	var g := _g
+	_mode = M_STONE
+	# the plinth band, then a pilaster strip on every bay (7.1 m apart, in pairs at the pavilions)
+	_lbox(m, 0.15, m, 0.15, g - 0.6, g + 0.9, BRK_STONE, M_STONE, BRK_STONE.lightened(0.05))
+	for k in 9:
+		var u := 3.5 + 7.1 * k
+		_lbox(u, 0.2, 0.35, 0.2, g + 0.9, g + BRK_COR, BRK_PINK, M_STONE, BRK_PINK)
+	# the cornice and the stone attic with its balustrade
+	_lbox(m, 0.35, m + 0.1, 0.45, g + BRK_COR, g + BRK_COR + 0.8, BRK_WALL.lightened(0.04), M_STONE, BRK_WALL.lightened(0.04))
+	_lbox(m, 0.0, m, 0.3, g + BRK_COR + 0.8, g + BRK_COR + 2.1, BRK_STONE, M_STONE, BRK_STONE.lightened(0.04))
+	# statues on the balustrade, a plinth and a figure every 5.7 m
+	for k in 10:
+		var u := 2.9 + 5.7 * k
+		_lbox(u, 0.0, 0.3, 0.3, g + BRK_COR + 2.1, g + BRK_COR + 2.7, BRK_STONE, M_STONE, BRK_STONE)
+		_lbox(u, 0.0, 0.22, 0.2, g + BRK_COR + 2.7, g + BRK_COR + 4.2, BRK_STONE.lightened(0.06), M_STONE, BRK_STONE)
+	# the three scrolled dormers: stepped tiers, an oculus, two cherubs
+	for u: float in [9.0, m, BRANICKICH_LEN - 9.0]:
+		_lbox(u, -0.4, 3.3, 0.6, g + BRK_COR + 2.1, g + BRK_COR + 3.9, BRK_STONE, M_STONE, BRK_STONE)
+		_lbox(u, -0.4, 2.3, 0.6, g + BRK_COR + 3.9, g + BRK_COR + 5.5, BRK_STONE, M_STONE, BRK_STONE)
+		_lbox(u, -0.4, 1.2, 0.6, g + BRK_COR + 5.5, g + BRK_COR + 6.4, BRK_STONE, M_STONE, BRK_STONE)
+		var oc := _w(u, 0.25)
+		_disc(Vector3(oc.x, g + BRK_COR + 4.5, oc.y), Vector3(_b.x, 0.0, _b.y), 0.7, 8, BRK_DARK)
+		for sd: float in [-1.0, 1.0]:  # the scrolls and the cherubs
+			_lbox(u + sd * 3.6, -0.2, 0.5, 0.5, g + BRK_COR + 2.1, g + BRK_COR + 3.3, BRK_STONE.lightened(0.05), M_STONE, BRK_STONE)
+			_lbox(u + sd * 3.6, -0.2, 0.25, 0.25, g + BRK_COR + 3.3, g + BRK_COR + 4.5, BRK_STONE.lightened(0.08), M_STONE, BRK_STONE)
+	# the gate: a dark door in a stone frame under an iron balcony on two brackets
+	_mode = M_GLASS
+	_wall(_w(m - 1.2, 0.5), _w(m + 1.2, 0.5), g + 0.9, g + 4.0, _b, BRK_DARK)
+	_mode = M_STONE
+	_lbox(m, 0.55, 1.7, 0.2, g + 0.9, g + 4.3, BRK_STONE, M_STONE, BRK_STONE)
+	_lbox(m, 0.75, 1.9, 0.5, g + 4.3, g + 4.7, BRK_STONE, M_STONE, BRK_STONE)
+	_lbox(m, 1.2, 1.9, 0.05, g + 4.7, g + 5.7, BRK_DARK, M_STONE, BRK_DARK)
+	# the car meets the front's plinth
+	_collide(_rect(m, 0.15, m, 0.2))

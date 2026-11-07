@@ -217,6 +217,7 @@ const BUDGET := {
 	"wcf": 190,
 	"wszystkich": 950,
 	"wizytki": 690,
+	"branickich": 1500,
 	"archikatedra": 1100,
 	"sw_anna": 620,
 	"widok": 450,
