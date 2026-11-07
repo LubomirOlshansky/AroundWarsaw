@@ -10,7 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-07
-- The Palace of Culture's grounds are tidier: knee-high planters instead of grey walls, real shrub beds, a proper car park with painted bays, and the Palace's venues lit at their doors: Kinoteka, the theatres, Sala Kongresowa, the technology museum, the 30th-floor terrace, and Bar Studio's deck-chair garden with people in it on summer evenings.
+- The Palace of Culture's grounds are tidier: knee-high planters instead of grey walls, real shrub beds, a proper car park with painted bays, and the Palace's venues lit at their doors: Kinoteka, the theatres, Sala Kongresowa, the technology museum, the 30th-floor terrace. Teatr Studio has its columned portico with steps, banners and neon, Bar Studio's tables under umbrellas and palms on a granite square with corten planters and trees, busy on summer evenings.
 - The Novotel by Rondo Dmowskiego looks like itself: a white tower with rows of small paired windows, its name in blue neon down both narrow ends and in light boxes on the roof, a glazed podium with a lit edge, and a curved cream entrance canopy under a blue sign.
 - Miodowa's palaces look like themselves: cream and pink plaster under tile-red roofs (Paca's are green copper), and Pałac Branickich's long front has pink pilaster strips, a cornice, an attic crowded with statues, three scrolled dormers and its balconied gate.
 

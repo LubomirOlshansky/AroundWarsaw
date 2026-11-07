@@ -9,14 +9,19 @@ osm_more.json, Overpass JSON; the Mac's tools/setup_map.sh fetches them) and wri
 game/data/pkin_grounds.json:
 
     {"_about", "zone": [x, z, ...], "parking": [{"p": [...], "s": "asphalt" | "pavers"}, ...],
-     "bays": [[x, z, ...], ...], "scrub": [[x, z, ...], ...]}
+     "bays": [[x, z, ...], ...], "scrub": [[x, z, ...], ...],
+     "forecourt": {"p": [x, z, ...], "bands": [[x0, z0, x1, z1], ...]}}
 
 `zone` is the grounds between Emilii Plater, Świętokrzyska, Marszałkowska and Al. Jerozolimskie
 (game metres, +x east, +z south), drawn about 8 m inside the four streets' carriageways; only
 closed ways whose centre lies in it are kept. map_builder.gd draws the lots (asphalt for the big
 Plac Defilad lot, grey pavers for the kerbside lots along the Palace's service roads) and the bay
 lines, and a shrub bed with bushes on each scrub; it also draws every OSM `wall` inside `zone`
-as the low granite planter or retaining wall it is (PKIN_WALL), not a 1.9 m wall. Deterministic
+as the low granite planter or retaining wall it is (PKIN_WALL), not a 1.9 m wall. `forecourt` is
+the open square before Teatr Studio's portico (F's photos, 2026-11-07): light granite with Plac
+Defilad's dark bands every 6 m (`bands`, in 6 m pieces so each sector owns its own), and no
+barrier line stands in it (OSM still maps the TR Warszawa site's old fence hard against the
+Palace; the 2025 photos show the square open, Bar Studio's tables on it). Deterministic
 (sorted by OSM id, coordinates to 0.01 m). Standard library only.
 """
 import argparse
@@ -35,6 +40,44 @@ ZONE = [(-1452, 10), (-1426, -2), (-1358, -29), (-1180, -86), (-1064, -105), (-1
         (-974, 137), (-945, 212), (-933, 245), (-898, 296), (-880, 345), (-879, 440), (-925, 469),
         (-1000, 500), (-1147, 550), (-1272, 525), (-1303, 440), (-1334, 349), (-1370, 250), (-1391, 190),
         (-1413, 129), (-1429, 82)]
+## The Palace's frame (landmarks.gd PKIN_O, PKIN_A, PKIN_B): u east-north-east out of the
+## Teatr Studio front, v south-south-east along it.
+PKIN_O = (-1214.25, 247.3)
+PKIN_A = (0.9403, -0.3404)
+PKIN_B = (0.3404, 0.9403)
+## The forecourt in the frame: from the portico's bays (u 89.6) out 42 m, between the north
+## path (v -128) and the lawn by the main entrance (v -56). Bands every 6 m from the portico.
+FORECOURT_U = (89.6, 131.6)
+FORECOURT_V = (-128.0, -56.0)
+BAND = 6.0
+
+
+def frame(u, v):
+    return (PKIN_O[0] + PKIN_A[0] * u + PKIN_B[0] * v, PKIN_O[1] + PKIN_A[1] * u + PKIN_B[1] * v)
+
+
+def forecourt():
+    u0, u1 = FORECOURT_U
+    v0, v1 = FORECOURT_V
+    poly = [frame(u0, v0), frame(u1, v0), frame(u1, v1), frame(u0, v1)]
+    bands = []
+    u = u0 + BAND
+    while u < u1 - 1.0:
+        v = v0
+        while v < v1 - 0.01:
+            w = min(v + BAND, v1)
+            bands.append([round(c, 2) for c in frame(u, v) + frame(u, w)])
+            v = w
+        u += BAND
+    v = v0 + BAND
+    while v < v1 - 1.0:
+        u = u0
+        while u < u1 - 0.01:
+            w = min(u + BAND, u1)
+            bands.append([round(c, 2) for c in frame(u, v) + frame(w, v)])
+            u = w
+        v += BAND
+    return {"p": flat(poly), "bands": bands}
 
 
 def inside(x, z, poly):
@@ -101,11 +144,13 @@ def main():
         sys.exit("bake_pkin_grounds: no raw OSM under %s (the Mac's data/raw/)" % args.raw)
     out = {
         "_about": "The Palace of Culture's grounds (tools/bake_pkin_grounds.py from the raw OSM): parking lots "
-                  "(s: asphalt or pavers), their bays, the shrub beds, and the zone whose walls are low planters.",
+                  "(s: asphalt or pavers), their bays, the shrub beds, the zone whose walls are low planters, and "
+                  "Teatr Studio's granite forecourt with its bands.",
         "zone": flat(ZONE),
         "parking": parking,
         "bays": bays,
         "scrub": scrub,
+        "forecourt": forecourt(),
     }
     with open(args.out, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, separators=(",", ":"))

@@ -89,7 +89,7 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		"WARSZAWA 2050", "DRONOPORT", "TOWAROWA 22", "OSTATNI ŻURAW WOLI",
 		# The Palace of Culture's venues (F, 2026-11-07): its stages, cinema, bars, museum and terrace.
 		"KINOTEKA", "KULTURALNA", "TEATR", "DRAMATYCZNY", "MUZEUM", "TECHNIKI", "KONGRESOWA", "STUDIO",
-		"TARAS", "30 PIĘTRO", "LALKA"]
+		"TARAS", "30 PIĘTRO", "LALKA", "THE FUTURE", "SHOULD", "ALWAYS BE", "BETTER"]
 ## Tube colours (linear, bright): pink, cyan, violet, and a few words' usual colours.
 const PINK := Color(1.0, 0.1, 0.55)
 const CYAN := Color(0.1, 0.9, 1.0)

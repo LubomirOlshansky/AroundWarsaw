@@ -5056,6 +5056,8 @@ func _build_paths(st) -> void:
 	for p in data["paths"]:
 		if p["k"] in ["cyclecross", "zebra"]:
 			continue  # these lie on the road; the crossing builder paints them
+		if p["k"] == "foot" and _in_pkin_forecourt(p["p"]):
+			continue  # Teatr Studio's forecourt is one granite square, its bands drawn with it
 		var col: Color = COL["cycle"] if p["k"] == "cycle" else COL["foot"]
 		var y := Y_PATH + (0.005 if p["k"] == "cycle" else 0.0)
 		_layer = L_CYCLE if p["k"] == "cycle" else L_FOOT
@@ -5761,9 +5763,14 @@ const PKIN_ASPHALT := Color("#55585d")
 const PKIN_PAVERS := Color("#9a968f")
 const PKIN_BAY := Color("#eceae3")
 const PKIN_SCRUB := Color("#4d7334")
+## Teatr Studio's forecourt (F's photos 2026-11-07): light granite slabs, Plac Defilad's dark
+## bands every 6 m (0.45 m wide).
+const PKIN_GRANITE := Color("#c9c6bf")
+const PKIN_GRANITE_BAND := Color("#86837d")
 const PKIN_BUSH := [Color("#3f6a2c"), Color("#4b7a33"), Color("#365e27"), Color("#56853a")]
 static var _pkin: Dictionary = {}
 var _pkin_zone := PackedVector2Array()
+var _pkin_forecourt := PackedVector2Array()
 
 
 static func pkin_grounds() -> Dictionary:
@@ -5788,6 +5795,23 @@ func _in_pkin_zone(flat: Array) -> bool:
 	for i in n:
 		c += Vector2(flat[i * 2], flat[i * 2 + 1])
 	return Geometry2D.is_point_in_polygon(c / n, _pkin_zone)
+
+
+## Whether a barrier line's centre lies on Teatr Studio's open forecourt (pkin_grounds.json
+## `forecourt`): OSM still maps the TR Warszawa site's old fence along the Palace there; the
+## 2025 photos show the square open, with Bar Studio's tables on it.
+func _in_pkin_forecourt(flat: Array) -> bool:
+	if _pkin_forecourt.is_empty():
+		_pkin_forecourt = _pts(pkin_grounds().get("forecourt", {}).get("p", []))
+		if _pkin_forecourt.is_empty():
+			return false
+	var n := flat.size() / 2
+	if n < 1:
+		return false
+	var c := Vector2.ZERO
+	for i in n:
+		c += Vector2(flat[i * 2], flat[i * 2 + 1])
+	return Geometry2D.is_point_in_polygon(c / n, _pkin_forecourt)
 
 
 ## Whether a wall line passes within 2.5 m of a flight of steps (the underpass and terrace stairs).
@@ -5825,6 +5849,10 @@ func _build_pkin_ground(st) -> void:
 		var asphalt := str(lot.get("s", "")) == "asphalt"
 		_layer = L_ROAD if asphalt else L_PLAZA
 		_fill_on_grid(st, _pts(lot["p"]), Y_AREA + 0.008, PKIN_ASPHALT if asphalt else PKIN_PAVERS)
+	var court := _pts(g.get("forecourt", {}).get("p", []))
+	if court.size() >= 3:
+		_layer = L_PLAZA
+		_fill_on_grid(st, court, Y_AREA + 0.007, PKIN_GRANITE)
 	_layer = L_GREEN
 	for bed: Array in g.get("scrub", []):
 		_fill_on_grid(st, _pts(bed), Y_AREA + 0.009, PKIN_SCRUB)
@@ -5840,6 +5868,11 @@ func _build_pkin_bays(st) -> void:
 			continue
 		poly.append(poly[0])
 		_strip(st, poly, 0.15, Y_MARK, PKIN_BAY, false)
+	for b: Array in pkin_grounds().get("forecourt", {}).get("bands", []):
+		var a := Vector2(b[0], b[1])
+		var c := Vector2(b[2], b[3])
+		if _owns((a + c) * 0.5):
+			_strip(st, PackedVector2Array([a, c]), 0.45, Y_MARK - 0.01, PKIN_GRANITE_BAND, false)
 	_layer = L_GROUND
 
 
@@ -5918,6 +5951,8 @@ func _build_barriers(st) -> void:
 	_uv2 = Vector2(0.5, -1.0)
 	_load_object_overrides()
 	for l in data.get("lines", []):
+		if l["k"] != "platform" and _in_pkin_forecourt(l["p"]):
+			continue
 		var style: Array = BARRIER_STYLE.get(l["k"], ["#999999", 0.3, 1.0])
 		if l["k"] == "wall":
 			if _garden_ring(l["p"]):
