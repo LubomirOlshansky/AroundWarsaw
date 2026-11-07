@@ -310,16 +310,15 @@ func _check_screen(screen: Vector2i) -> int:
 			bubbles.layout()
 			_check_state(hud, bubbles, "%s %s%s" % [tag, state, " + " + mode if mode != "" else ""])
 			if mode == "left-handed" and state in ["car, Point", "car, Classic", "helicopter"]:
-				# The pressable discs all on the left half; the credit line on the right.
+				# The pressable discs all on the left half; the credit line is gone (credits page in Settings).
 				var tt: Dictionary = hud.touch_targets()
 				for k in ["brake", "gas", "horn", "climb", "sink"]:
 					if tt.has(k) and (tt[k] as Rect2).get_center().x > screen.x * 0.5:
 						problems.append("%s %s + left-handed: %s is on the right" % [tag, state, k])
 				if not hud.call("_stick_side", screen.x * 0.8, float(screen.x)) or hud.call("_stick_side", screen.x * 0.2, float(screen.x)):
 					problems.append("%s %s + left-handed: the stick's side is not the right" % [tag, state])
-				var nr: Dictionary = hud.named_rects()
-				if nr.has("credit") and (nr["credit"] as Rect2).get_center().x < screen.x * 0.5:
-					problems.append("%s %s + left-handed: the credit line is on the left, under the pedals" % [tag, state])
+				if hud.named_rects().has("credit"):
+					problems.append("%s %s: the credit line is back on the main screen" % [tag, state])
 			# Landmark card fix: with the ticker up and the car parked, a tapped landmark's card
 			# (and a note card) must be on screen at once, not waiting for room, and not over the car.
 			if state in ["landmark card", "note card"]:
