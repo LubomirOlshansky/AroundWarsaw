@@ -1,6 +1,12 @@
 {
   "_about": "Original lines for Around Warsaw: affectionate Warsaw humour about the city and its stereotypes, never about real private people, no brand names. Each line is [Polish, English], optionally with a third element of notes for the game: {\"only\": tag or [tags]} limits it to one situation (kebab orders: \"powisle\", \"praga\" across the river, \"office\"; rescues: \"roof\", \"street\", \"river\", \"child\", \"square\"; słoiki: \"all\" jars intact, \"some\"; water_tow, loop 10a: \"river\", \"pond\"), {\"customer\": name} names who ordered. {\"poster\": [lines]} (column_posters, loop 1) is how the poster on an advertising column breaks the line: at most four lines of eight letters. Loop 3g-1 (police, docs/design/police.md section 6): police_warn \"speed\", \"red\", \"bump\"; police_chase \"start\", \"backup\", \"roadblock\" (untagged: every 10 to 12 s); police_lost \"escaped\", \"shift\", \"heli\"; police_stop \"routine\", \"roosters\", \"trap\", \"kebab\", \"sloik\" (untagged: the generic opener); police_reply \"trap\", \"kebab\" (untagged: always offered; at most 28 characters, they are buttons); police_caution \"police\", \"fifth\"; radio_host \"traps\" ({pl} / {en}: the day's three speed traps). Speech bubbles stay under 70 characters in Polish. Loop MW-0 (Moja Warszawa, docs/design/vision.md section 7): radio_polnoc (PÓŁNOC FM's host Kuba, \"south_gate\": entering the box from Plac Na Rozdrożu); radio_host (the Hyrax line); club_door (the bouncer: \"reject\", \"queue\", \"car\", \"car_black\", \"dawn\"); clubbers; dawn_crowd (\"palm\"); police_club (the units parked by the clubs, \"sober\"); schodki (\"sunset\", \"guitar\", \"fourth\"); viral (Wiralek: \"queue\", \"new\", \"gone\", \"glon\", \"late\"); runners (\"zajac\", \"hyrax\"); dog_walkers (\"horn\", \"influencer\"); cyclists (\"lane\"); metro_announce; bus_stop (\"night\"); podwozka_request and podwozka_passenger \"club\" (dawn rides from the club doors); notes (the notebook toasts: \"found\", \"chapter\", \"kadr\"); four signs and four column_posters. The notebook's place cards are in places.json and the tape's then cards in then_cards.json. Crash scenes (crash_scenes.gd, 2026-11-01): crash_scene \"driver\", \"officer\", \"medic\", \"gawker\" (bubbles at a fender bender); radio_host \"crash\" ({street}: the road's name, starting the line). Office crowds at Rondo Daszyńskiego (crowds.gd \"office\" sites and walkers, 2026-11-02): office (\"morning\" 07-10, \"lunch\" 11-14, \"evening\" 16-19, \"rain\"; untagged anywhere): overheard corporate jokes, no brand names. Beta radio (2026-11-02): the host's greeting when the game starts (dialogue.gd greeting) = radio_hello_morning / _day / _evening / _night + radio_weather_warm / _mild / _cold / _rain ({t}: the temperature, \"20 stopni\" / \"20 degrees\") + radio_bye (\"morning\", \"day\", \"evening\", \"night\"). City-life satire #1, loud cars (loud_cars.gd, 2026-11-02): car_meet (the crowd at the Browary meet; \"rev\" when a parked car revs), loud_driver (a passing loud supercar's driver), radio_host \"loud\" (KEBAB FM: \"Sąsiedzi znów liczą obroty\"). Crazy drivers (crazy_drivers.gd, docs/design/crazy-drivers.md, 2026-11-05): crazy_taxi (the Szkoda Oktawia taxis), crazy_courier (the Szprynter couriers), crazy_pasatini (Janusz in the Pasatini 1.9 TDJ), said when one cuts in or blocks near the player; radio_host \"pasatini\" (KEBAB FM: a Pasatini sighting).",
   "radio_host": [
+    ["Woda w kranie? Filtry przy Koszykowej robią to od 1886. Starsze niż twój remont.", "Water in your tap? The Filtry on Koszykowa have done that since 1886. Older than your renovation."],
+    ["Lindley zaprojektował, Starynkiewicz wywalczył, Warszawa się kłóciła o koszty. Klasyka.", "Lindley designed it, Starynkiewicz fought for it, Warsaw argued about the cost. A classic."],
+    ["Na Filtrach 36 filtrów leży pod trawą. Najdroższy trawnik w mieście i nikt na nim nie grilluje.", "At the Filtry, 36 filter beds lie under the grass. The city's priciest lawn, and nobody barbecues on it."],
+    ["Warszawska Syrenka powstała w starej kotłowni na Filtrach. Morsowanie miała we krwi.", "Warsaw's Mermaid statue was made in an old boiler hall at the Filtry. Cold water was in her blood."],
+    ["W 1944 ludzie z Filtrów trzymali wodę do końca. Bohaterowie w gumowcach.", "In 1944 the Filtry's workers kept the water running to the end. Heroes in rubber boots."],
+    ["Wieża ciśnień na Filtrach nie pracuje od 1924. Stoi i wygląda. Prawie jak w urzędzie.", "The Filtry's water tower hasn't worked since 1924. It just stands and looks good. Rather like an office."],
     [
       "Na Marszałkowskiej znowu remont. Czyli wszystko po staremu.",
       "Roadworks on Marszałkowska again. So, business as usual."
@@ -539,6 +545,8 @@
     ]
   ],
   "podwozka_request": [
+    ["Uwagi: „randka Pod Gigantami, spóźnienie = koniec związku”.", "Note: \"date at Pod Gigantami, late = relationship over\".", {"only": "date"}],
+    ["Uwagi: „mam kwiaty, proszę hamować delikatnie”.", "Note: \"I have flowers, please brake gently\".", {"only": "date"}],
     [
       "Uwagi: „stoję pod Frogsem”.",
       "Note: \"I'm outside the Frogs.\""
@@ -654,6 +662,10 @@
     ]
   ],
   "podwozka_passenger": [
+    ["Pod Gigantami czekają giganci. Stoją tam od lat. Ona nie będzie.", "The giants at Pod Gigantami have stood there for years. She won't.", {"only": "date"}],
+    ["Jak wyglądam? Tylko szczerze. Nie, jednak nie mów.", "How do I look? Be honest. No, actually, don't.", {"only": "date"}],
+    ["Kwiaty się trzymają? Bo ja średnio.", "Are the flowers holding up? Because I'm not.", {"only": "date"}],
+    ["Ostatni kierowca jechał przez Pragę. Randka nie wypaliła.", "The last driver went via Praga. That date didn't work out.", {"only": "date"}],
     [
       "Ale aplikacja mówi w lewo! Aplikacja się nie myli. Prawie.",
       "But the app says left! The app is never wrong. Almost.",
@@ -5996,6 +6008,253 @@
     [
       "O świcie puszczam ptaki. Prawdziwe przylatują same.",
       "At dawn I play birdsong. The real ones turn up on their own."
+    ]
+  ],
+  "boat_race": [
+    [
+      "Gaz do dechy! Znaczy… do pokładu!",
+      "Pedal to the metal! I mean… to the deck!",
+      {
+        "only": "szymek_start"
+      }
+    ],
+    [
+      "Kto ostatni pod mostem, ten stawia lody!",
+      "Last one under the bridge buys the ice cream!",
+      {
+        "only": "szymek_start"
+      }
+    ],
+    [
+      "Pa pa! Widzimy się na mecie!",
+      "Bye bye! See you at the finish!",
+      {
+        "only": "szymek_pass"
+      }
+    ],
+    [
+      "Wisła jest szeroka, a ty jedziesz moim torem!",
+      "The Vistula's wide and you're on my line!",
+      {
+        "only": "szymek_pass"
+      }
+    ],
+    [
+      "Ej! To była moja fala!",
+      "Hey! That was my wave!",
+      {
+        "only": "szymek_passed"
+      }
+    ],
+    [
+      "Dobra, dobra, jeszcze się policzymy przy Poniatowskim.",
+      "Fine, fine, we'll settle this by Poniatowski.",
+      {
+        "only": "szymek_passed"
+      }
+    ],
+    [
+      "Kółko się przesunęło! Przysięgam!",
+      "The ring moved! I swear!",
+      {
+        "only": "szymek_miss"
+      }
+    ],
+    [
+      "Pudło. Nic nie widziałeś.",
+      "Missed. You saw nothing.",
+      {
+        "only": "szymek_miss"
+      }
+    ],
+    [
+      "Trzy pudła… Płynę po lody. Sam.",
+      "Three misses… I'm off for ice cream. Alone.",
+      {
+        "only": "szymek_out"
+      }
+    ],
+    [
+      "Lakier! Mój lakier!",
+      "The paint! My paint!",
+      {
+        "only": "szymek_bump"
+      }
+    ],
+    [
+      "To nie autodrom, tylko Wisła!",
+      "This isn't bumper cars, it's the Vistula!",
+      {
+        "only": "szymek_bump"
+      }
+    ],
+    [
+      "Meta! Gdzie moje lody?",
+      "Finish! Where's my ice cream?",
+      {
+        "only": "szymek_finish"
+      }
+    ],
+    [
+      "Spokojnie, panowie. Rzeka nie ucieka.",
+      "Easy, lads. The river isn't going anywhere.",
+      {
+        "only": "zdzisiek_start"
+      }
+    ],
+    [
+      "Złota Rybka pływała, jak was jeszcze na świecie nie było.",
+      "The Złota Rybka was sailing before you were born.",
+      {
+        "only": "zdzisiek_start"
+      }
+    ],
+    [
+      "Powoli, ale do przodu. Jak tramwaj.",
+      "Slow but forward. Like a tram.",
+      {
+        "only": "zdzisiek_pass"
+      }
+    ],
+    [
+      "Młody, kółko trzeba trafić, nie wyprzedzić.",
+      "Son, you hit the ring, you don't outrun it.",
+      {
+        "only": "zdzisiek_pass"
+      }
+    ],
+    [
+      "Leć, leć. Zobaczymy przy barce.",
+      "Off you go. We'll see by the barge.",
+      {
+        "only": "zdzisiek_passed"
+      }
+    ],
+    [
+      "Za moich czasów wyprzedzało się z kulturą.",
+      "In my day you overtook politely.",
+      {
+        "only": "zdzisiek_passed"
+      }
+    ],
+    [
+      "Okulary zostały w domu…",
+      "Left my glasses at home…",
+      {
+        "only": "zdzisiek_miss"
+      }
+    ],
+    [
+      "No to wędka i do domu.",
+      "Right, out with the rod and home.",
+      {
+        "only": "zdzisiek_out"
+      }
+    ],
+    [
+      "Ostrożnie! To jeszcze z Gierka!",
+      "Careful! She's from the seventies!",
+      {
+        "only": "zdzisiek_bump"
+      }
+    ],
+    [
+      "Rybki mi wystraszysz!",
+      "You'll scare the fish!",
+      {
+        "only": "zdzisiek_bump"
+      }
+    ],
+    [
+      "Kto pomału, ten na mecie.",
+      "Slow and steady makes the finish.",
+      {
+        "only": "zdzisiek_finish"
+      }
+    ],
+    [
+      "Nagrywam! Lajk, sub i do przodu!",
+      "I'm recording! Like, sub and go!",
+      {
+        "only": "kamil_start"
+      }
+    ],
+    [
+      "Skuter wodny, jedenaście lajków na sekundę!",
+      "Jet ski, eleven likes a second!",
+      {
+        "only": "kamil_start"
+      }
+    ],
+    [
+      "Wjeżdżam w to, ziomek!",
+      "I'm all in, mate!",
+      {
+        "only": "kamil_pass"
+      }
+    ],
+    [
+      "To idzie na rolkę!",
+      "That's going in the reel!",
+      {
+        "only": "kamil_pass"
+      }
+    ],
+    [
+      "Ej, nie było mnie w kadrze!",
+      "Hey, I was out of the shot!",
+      {
+        "only": "kamil_passed"
+      }
+    ],
+    [
+      "To się nie liczy, miałem selfie!",
+      "Doesn't count, I was taking a selfie!",
+      {
+        "only": "kamil_passed"
+      }
+    ],
+    [
+      "Kółko? Jakie kółko? To był content!",
+      "Ring? What ring? That was content!",
+      {
+        "only": "kamil_miss"
+      }
+    ],
+    [
+      "Celowo. Dla zasięgów.",
+      "On purpose. For the reach.",
+      {
+        "only": "kamil_miss"
+      }
+    ],
+    [
+      "Odpadłem, ale relacja wyszła sztos.",
+      "I'm out, but the story looks great.",
+      {
+        "only": "kamil_out"
+      }
+    ],
+    [
+      "Uważaj na kamerkę!",
+      "Mind the camera!",
+      {
+        "only": "kamil_bump"
+      }
+    ],
+    [
+      "Kontakt! To będzie miniaturka!",
+      "Contact! That's the thumbnail!",
+      {
+        "only": "kamil_bump"
+      }
+    ],
+    [
+      "Meta! Wrzucam od razu!",
+      "Finish! Posting right now!",
+      {
+        "only": "kamil_finish"
+      }
     ]
   ]
 }
