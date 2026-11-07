@@ -15,7 +15,7 @@ extends SceneTree
 ## plac_centralny and its lamps (2026-11-05): the seat-wall, steps and lamp posts stand 1-5 m, under the heli's 6 m floor.
 ## Towarowa 22 is a quarter: its box's middle is the printing hall's open frame and the 28 m tanks
 ## block, under the heli's 45 m; its towers stand at the box's west edge and stop it there.
-const FLY_OVER := ["bulwary_basen", "bazar", "towarowa22", "plac_centralny", "plac_centralny_lamps", "sunken", "underpass"]
+const FLY_OVER := ["bulwary_basen", "bazar", "towarowa22", "noho", "plac_centralny", "plac_centralny_lamps", "sunken", "underpass"]
 
 var map: Node3D
 var _frames := 0

@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-07
+- Wola by Kolejowa looks like itself: the old drug works' plot is a busy building site with bare concrete floors, three cranes and stacks of materials, the estate's blocks have their cream walls and brown window frames, and the two tall towers wear their orange and gold frames.
 - Miodowa's palaces look like themselves: cream and pink plaster under tile-red roofs (Paca's are green copper), and Pałac Branickich's long front has pink pilaster strips, a cornice, an attic crowded with statues, three scrolled dormers and its balconied gate.
 
 

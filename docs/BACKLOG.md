@@ -4,6 +4,20 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Wola's 19. Dzielnica, Asbud's towers and the drug works' building site (F, 2026-11-07; spec docs/landmarks/specs/dzielnica19.md)
+
+- **Built from F's 11 photos** (sites `noho`, `d19`, `asbud`): the old Polfa plot on Kasprzaka as NOHO
+  ONE's building site (OHO ONE on the hoarding), four bare concrete frames, three cranes, the yard;
+  the estate's 58 mapped parts in cream with rust window frames (two blocks in the dark grid); the
+  Towarowa Towers in blue glass with orange and gold frames and the ASBUDKA crown.
+- **D19-1** the photo list for the next pass is /mnt/project-files/dzielnica19/PHOTOS-NEEDED.txt
+  (frame storey counts, which blocks wear the dark grid, the cascade terraces, the crane count).
+- **D19-2** the old "ruins" building on Prosta west of the towers (OpenStreetMap `ruins`, 27 m) is
+  still drawn as a plain block; check what stands there now.
+- **D19-3** the green south of the roundabout (next to Generation Park) is an OpenStreetMap
+  `construction` area drawn as grass; a building site there too if F's photos show one.
+- **D19-4** the glass footbridge between two blocks (F's courtyard photo) is not built: where is it?
+
 ## Miodowa's palaces from F's photos (F, 2026-11-07; spec docs/landmarks/specs/miodowa.md)
 
 Built: seven palaces in photo-read skins (Branickich, Młodziejowskiego, Szaniawskich, Chodkiewiczów, Arcybiskupi,
