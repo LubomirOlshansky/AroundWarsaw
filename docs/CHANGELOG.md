@@ -11,9 +11,11 @@ someone writes its lines.
 
 ## 2026-11-07
 - Kino Muranów looks like the real one now: red MURANÓW letters over the doors, posters under little lamps, the terrace with its white balustrade and two pillars before the arch, the fountain with the putti, and at night warm festoons over a café garden. A new quest goes with it: your director friend Wiktor calls and you drive him and the only copy of his film round Amondo, Atlantic, the Kinoteka and Muranów to get it screened, while he jokes about arthouse cinema and asks for long takes and reverse shots. Every bump scratches the reel.
+- The Novotel by Rondo Dmowskiego looks like itself: a white tower with rows of small paired windows, its name in blue neon down both narrow ends and in light boxes on the roof, a glazed podium with a lit edge, and a curved cream entrance canopy under a blue sign.
 - Miodowa's palaces look like themselves: cream and pink plaster under tile-red roofs (Paca's are green copper), and Pałac Branickich's long front has pink pilaster strips, a cornice, an attic crowded with statues, three scrolled dormers and its balconied gate.
 
 
+- Podwózka taxi rides now come with stories: 18 passengers, from a Mordor office worker heading for Warsaw Spire to a film star off to the Palace of Culture, a saxophonist late for jazz under the Powiśle UFO and a beekeeper invited to the Presidential Palace, chat on the way to real places and ask you a question; your answer changes the tip and a good talk earns half a star.
 - Marszałkowska: 16 more houses got street fronts from real photos, from Hotel Saski to the long block at number 140.
 - Aleje Jerozolimskie: 21 more houses along the avenue got street fronts from real photos.
 - Świętokrzyska, Chmielna, Nowy Świat and Aleje Ujazdowskie: 25 more houses got street fronts from real photos.
