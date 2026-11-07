@@ -12,6 +12,7 @@ someone writes its lines.
 ## 2026-11-07
 
 - Marszałkowska: 16 more houses got street fronts from real photos, from Hotel Saski to the long block at number 140.
+- Aleje Jerozolimskie: 21 more houses along the avenue got street fronts from real photos.
 
 ## 2026-11-06
 - The Bridge by Plac Europejski looks like itself now: its glass folds along long diagonal seams, the south corner steps down under a dark crown, ERZATZ (the bank's parody) glows blue at the top, and a tall timber lobby with leaning concrete columns sits under it. The brick and stone block at Grzybowska 77 in front got its stone piers, long balcony, framed windows and attic.

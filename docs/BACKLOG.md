@@ -19,6 +19,7 @@ to 185 MB. Left:
 - **Outside Nowy Świat** the blocks had a look for breakage, not a house-by-house photo check.
 - **Photo fronts (2026-11-06)**: 17 houses keep LoD2's mass under street fronts read from F's photos (`game/data/photo_fronts.json`, `_build_photo_fronts`; styles classic, plain, ribbon, glass, fins). Weak evidence, check again: Aleje Jerozolimskie 11/19 (no facade photo), Solec 24 (photo shows the small house beside it).
 - **Photo fronts, Marszałkowska (2026-11-07)**: 16 more houses from F's photos (Hotel Saski, Saski Park, Marszałkowska 41 to 140, ids `b<building index>`). Left: rows M015 to M019 and M023 to M035 have aerial photos only, so their fronts wait for street photos; Hotel Saski's curve and arcade are not modelled yet.
+- **Photo fronts, Aleje Jerozolimskie (2026-11-07)**: 21 more houses along the avenue, Hotel Polonia's block and Nordic Park among them. Left: rows without street photos, and the murals at numbers 8 and 12, which are blank walls in the game.
 ## Secret rave: LEKTI, Ziomek, Smoła (F, 2026-11-06; docs/design/secret-rave.md)
 
 Built: night and day raves, LEKTI's voiced break-in on MORDOR FM, Ziomek's call and ride, the
