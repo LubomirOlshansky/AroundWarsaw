@@ -86,7 +86,10 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		"CUDAK", "POMOSTEK", "RZECZKA", "LEMONIADA", "ZAPIEKANKI",
 		# Towarowa 22 built as finished (2026-11-03): the drone port, the superblock's name and the
 		# gilded last crane's plaque (the "Warsaw of the future" jokes).
-		"WARSZAWA 2050", "DRONOPORT", "TOWAROWA 22", "OSTATNI ŻURAW WOLI"]
+		"WARSZAWA 2050", "DRONOPORT", "TOWAROWA 22", "OSTATNI ŻURAW WOLI",
+		# The Palace of Culture's venues (F, 2026-11-07): its stages, cinema, bars, museum and terrace.
+		"KINOTEKA", "KULTURALNA", "TEATR", "DRAMATYCZNY", "MUZEUM", "TECHNIKI", "KONGRESOWA", "STUDIO",
+		"TARAS", "30 PIĘTRO", "LALKA"]
 ## Tube colours (linear, bright): pink, cyan, violet, and a few words' usual colours.
 const PINK := Color(1.0, 0.1, 0.55)
 const CYAN := Color(0.1, 0.9, 1.0)

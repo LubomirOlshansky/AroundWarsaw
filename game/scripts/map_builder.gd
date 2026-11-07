@@ -5375,6 +5375,7 @@ func _build_surfaces(st) -> void:
 		else:
 			_fill_on_grid(st, _pts(a["p"]), Y_AREA + 0.01, Color(style[0]))
 	_dk = -1
+	_build_pkin_ground(st)
 	_layer = L_GROUND
 
 
@@ -5745,6 +5746,142 @@ var _island_boxes: Array = []
 var _island_src: Array = []
 
 
+## The Palace of Culture's grounds (F, 2026-11-07, "the barriers and the lawns round the Palace"):
+## game/data/pkin_grounds.json (tools/bake_pkin_grounds.py from the raw OSM). OSM maps the
+## granite planters and the raised lawns' retaining walls round the Palace as `wall` (59 of them
+## barrier=retaining_wall, a few tagged 0.5 or 1 m); drawn 1.9 m high they stood round every bed
+## and lawn like grey crowd barriers. Mapillary 1174856613029600 (2021-03, the south court) and
+## 2909087812705418 (2020-12, Emilii Plater) show them knee high: inside the zone a wall is
+## PKIN_WALL, or a 1 m granite balustrade where it rims a flight of steps. The file also gives the
+## lots (asphalt, or grey pavers at the kerbside lots), their bays and the shrub beds, which the
+## main bake folds into nothing and into lawn.
+const PKIN_FILE := "res://data/pkin_grounds.json"
+const PKIN_WALL := ["#aaa69e", 0.4, 0.65]
+const PKIN_ASPHALT := Color("#55585d")
+const PKIN_PAVERS := Color("#9a968f")
+const PKIN_BAY := Color("#eceae3")
+const PKIN_SCRUB := Color("#4d7334")
+const PKIN_BUSH := [Color("#3f6a2c"), Color("#4b7a33"), Color("#365e27"), Color("#56853a")]
+static var _pkin: Dictionary = {}
+var _pkin_zone := PackedVector2Array()
+
+
+static func pkin_grounds() -> Dictionary:
+	if _pkin.is_empty():
+		_pkin = {"zone": [], "parking": [], "bays": [], "scrub": []}
+		if FileAccess.file_exists(PKIN_FILE):
+			var j: Variant = JSON.parse_string(FileAccess.get_file_as_string(PKIN_FILE))
+			if j is Dictionary:
+				_pkin = j
+	return _pkin
+
+
+func _in_pkin_zone(flat: Array) -> bool:
+	if _pkin_zone.is_empty():
+		_pkin_zone = _pts(pkin_grounds().get("zone", []))
+		if _pkin_zone.is_empty():
+			return false
+	var n := flat.size() / 2
+	if n < 1:
+		return false
+	var c := Vector2.ZERO
+	for i in n:
+		c += Vector2(flat[i * 2], flat[i * 2 + 1])
+	return Geometry2D.is_point_in_polygon(c / n, _pkin_zone)
+
+
+## Whether a wall line passes within 2.5 m of a flight of steps (the underpass and terrace stairs).
+func _by_steps(flat: Array) -> bool:
+	var pts := _pts(flat)
+	var box := _box_of_pts(pts).grow(2.5)
+	for s in data.get("steps", []):
+		var sp := _pts(s["p"])
+		if sp.is_empty() or not box.intersects(_box_of_pts(sp)):
+			continue
+		for q in sp:
+			for i in pts.size() - 1:
+				if Geometry2D.get_closest_point_to_segment(q, pts[i], pts[i + 1]).distance_to(q) < 2.5:
+					return true
+	return false
+
+
+## Whether a feature centred at c is this build's: every one on the whole map, a sector's own.
+func _owns(c: Vector2) -> bool:
+	return not _in_sector or _sector_rect.has_point(c)
+
+
+static func _centre_of(poly: PackedVector2Array) -> Vector2:
+	var c := Vector2.ZERO
+	for q in poly:
+		c += q
+	return c / maxf(poly.size(), 1)
+
+
+## The lots (on the ground's grid, so the sector clip is the fill's own) and the shrub beds' soil.
+func _build_pkin_ground(st) -> void:
+	var g := pkin_grounds()
+	_layer = L_ROAD
+	for lot: Dictionary in g.get("parking", []):
+		var asphalt := str(lot.get("s", "")) == "asphalt"
+		_layer = L_ROAD if asphalt else L_PLAZA
+		_fill_on_grid(st, _pts(lot["p"]), Y_AREA + 0.008, PKIN_ASPHALT if asphalt else PKIN_PAVERS)
+	_layer = L_GREEN
+	for bed: Array in g.get("scrub", []):
+		_fill_on_grid(st, _pts(bed), Y_AREA + 0.009, PKIN_SCRUB)
+	_layer = L_GROUND
+
+
+## The bays' white lines (0.15 m) round each mapped parking space.
+func _build_pkin_bays(st) -> void:
+	_layer = L_MARK
+	for bay: Array in pkin_grounds().get("bays", []):
+		var poly := _pts(bay)
+		if poly.size() < 3 or not _owns(_centre_of(poly)):
+			continue
+		poly.append(poly[0])
+		_strip(st, poly, 0.15, Y_MARK, PKIN_BAY, false)
+	_layer = L_GROUND
+
+
+## The shrub beds' bushes: low domes about 1.1 m high on a 1.6 m grid with a hashed jitter, so
+## the beds read as clipped yew and box, not lawn. No collider (the beds lie inside the planters).
+func _build_pkin_bushes(st) -> void:
+	for bed: Array in pkin_grounds().get("scrub", []):
+		var poly := _pts(bed)
+		if poly.size() < 3 or not _owns(_centre_of(poly)):
+			continue
+		var box := _box_of_pts(poly)
+		var x := box.position.x + 0.8
+		while x < box.end.x:
+			var z := box.position.y + 0.8
+			while z < box.end.y:
+				var h := absi(hash(Vector2i(roundi(x * 10.0), roundi(z * 10.0))))
+				var p := Vector2(x + float(h % 7 - 3) * 0.12, z + float((h / 7) % 7 - 3) * 0.12)
+				if Geometry2D.is_point_in_polygon(p, poly):
+					var r := 0.75 + float((h / 49) % 5) * 0.08
+					_bush(st, p, r, 0.8 + float((h / 245) % 5) * 0.1, PKIN_BUSH[(h / 1225) % PKIN_BUSH.size()])
+				z += 1.6
+			x += 1.6
+
+
+## One bush: an eight-sided dome (a ring at the foot, a wider one at 55 %, a top point).
+func _bush(st, c: Vector2, r: float, h: float, col: Color) -> void:
+	var g := terrain_height(c.x, c.y) + Y_AREA
+	var top := Vector3(c.x, g + h, c.y)
+	var low: Array[Vector3] = []
+	var mid: Array[Vector3] = []
+	for i in 8:
+		var a := TAU * (float(i) + 0.5) / 8.0
+		var d := Vector2(cos(a), sin(a))
+		low.append(Vector3(c.x + d.x * r * 0.8, g, c.y + d.y * r * 0.8))
+		mid.append(Vector3(c.x + d.x * r, g + h * 0.55, c.y + d.y * r))
+	for i in 8:
+		var j := (i + 1) % 8
+		var out := Vector3((mid[i].x + mid[j].x) * 0.5 - c.x, 0.0, (mid[i].z + mid[j].z) * 0.5 - c.y).normalized()
+		_quad(st, low[i], low[j], mid[j], mid[i], out, col.darkened(0.12))
+		_tri(st, mid[i], mid[j], top, (out + Vector3.UP).normalized(), col)
+
+
 func _in_island(flat: Array) -> bool:
 	# `data` is swapped for every sector the builder makes: rebuild the boxes when it changes
 	# (a cache from the first sector left every later sector's median walls at 1.9 m).
@@ -5789,6 +5926,8 @@ func _build_barriers(st) -> void:
 				style = LOW_WALL
 			elif _in_island(l["p"]):
 				style = ISLAND_EDGE
+			elif _in_pkin_zone(l["p"]):
+				style = BARRIER_STYLE["balustrade"] if _by_steps(l["p"]) else PKIN_WALL
 		if not _object_overrides.is_empty() and l["k"] != "platform":
 			var o: Variant = _object_overrides.get(barrier_id(l["k"], l["p"]))
 			if o is Array:
@@ -5816,6 +5955,7 @@ func _build_barriers(st) -> void:
 				_wall_along(st, piece, float(style[1]), float(style[2]), Color(style[0]), true)
 			continue
 		_wall_along(st, pts, float(style[1]), float(style[2]), Color(style[0]), l["k"] != "platform")
+	_build_pkin_bushes(st)
 	_uv2 = Vector2.ZERO
 
 
@@ -6680,6 +6820,7 @@ func _build_markings(st) -> void:
 		else:
 			_dashes(st, poly, 0.0, 1000000.0, 0.0, float(style[1]))
 	_dk = -1
+	_build_pkin_bays(st)
 	_layer = L_GROUND
 
 

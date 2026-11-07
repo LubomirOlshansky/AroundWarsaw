@@ -145,7 +145,7 @@ const BUDGET := {
 	"mpw": 3200,
 	"metropolitan": 3100,
 	"muzeum": 1280,
-	"palace": 3900,
+	"palace": 7600,   # 2026-11-07: 3696 -> 7288, Bar Studio's 34 deck chairs, tables, festoons and frame signs (same mesh, no new draw call)
 	"pawilony": 2100,
 	"plater49": 140,
 	"platinum_a": 80,

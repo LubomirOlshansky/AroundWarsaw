@@ -4,6 +4,27 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## The Palace of Culture's grounds and venues (F, 2026-11-07, with F's aerial photo)
+
+Built: the walls OSM maps round the Palace's beds and raised lawns (59 retaining walls, planters)
+are knee-high granite planters (0.65 m, 1 m balustrade at steps) instead of 1.9 m grey walls; the
+five shrub beds (natural=scrub, folded into lawn by the bake) are clipped bushes on dark soil; the
+Plac Defilad lot is asphalt with its 168 mapped bays painted, the 43 kerbside lots along the
+service roads are grey pavers (game/data/pkin_grounds.json, `tools/bake_pkin_grounds.py` from the
+raw OSM, Mac only). The venues at their OSM doors: KINOTEKA (its storefront sign stood 130 m west,
+across Emilii Plater; moved to the Palace's own), KULTURALNA, TEATR DRAMATYCZNY, MUZEUM TECHNIKI,
+SALA KONGRESOWA, TEATR STUDIO, TARAS 30 PIĘTRO under the terrace ledge; Bar Studio's garden of deck
+chairs and festoons on the strip east of the north-east pavilion with BAR STUDIO and TEATR LALKA
+frames; sitters in the deck chairs (jazz café curve) and the evening audiences outside four stages
+(crowds.gd THEATRES, `theatre` curve, dark on Mondays). Left:
+- Mac/phone look check: the planters' height and colour against the real granite, the garden's
+  place and layout (no 2026 photo of Bar Studio's garden in the cloud; QUESTIONS), the signs' size.
+- The north courtyard's car park and the Muzeum Ewolucji / Pałac Młodzieży doors (north side, faces
+  the camera never sees) have no sign; the terrace has no ticket queue at the east portico yet.
+- Joke billboard "UWAGA:" by the pigeons on Plac Defilad shows the camera its dark back.
+- The bake still turns scrub into plain lawn city-wide; only the Palace's beds are bushes.
+
+
 ## Miodowa's palaces from F's photos (F, 2026-11-07; spec docs/landmarks/specs/miodowa.md)
 
 Built: seven palaces in photo-read skins (Branickich, Młodziejowskiego, Szaniawskich, Chodkiewiczów, Arcybiskupi,

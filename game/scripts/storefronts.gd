@@ -185,7 +185,6 @@ const VENUES := {
 	"kino_luna": [["KINO", "LUNA"], CINEMA_TUBE_C, 3.2],
 	"kino_kultura": [["KINO", "KULTURA"], CINEMA_TUBE, 3.2],
 	"kino_elektronik": [["KINO", "ELEKTRONIK"], CINEMA_TUBE_B, 3.2],
-	"kino_kinoteka": [["KINOTEKA"], CINEMA_TUBE, 3.2],
 	# Powiśle's streets (F, 2026-11-02): the small shops of a student and cyclist quarter, original
 	# names, one tube each, low over the door.
 	"pow_flat_bialy": [["FLAT", "BIAŁY"], CAFE_TUBE, 2.8],
@@ -353,8 +352,9 @@ const HYPE := {
 }
 ## Warsaw's classic and arthouse cinemas (F, 2026-11-02; BACKLOG "Lore: coffee raves and arthouse
 ## cinemas"): Kino Muranów (Andersa 1), Atlantic (Chmielna 33), Luna (Marszałkowska 28), Kultura
-## (Krakowskie Przedmieście 21/23), Elektronik (Czerwonego Krzyża 3/5) and the Kinoteka in the Palace
-## (Kino Femina's fascia is zaglebie.gd's `zag_femina`). Like the cafés, not notebook places;
+## (Krakowskie Przedmieście 21/23) and Elektronik (Czerwonego Krzyża 3/5). The Kinoteka's sign is the
+## Palace's own (landmarks.gd PKIN_SIGNS, 2026-11-07: this table put it 130 m west, across Emilii
+## Plater). (Kino Femina's fascia is zaglebie.gd's `zag_femina`). Like the cafés, not notebook places;
 ## same venue code, the nearest road snaps the sign. Iluzjon (Narbutta, Mokotów) is south of the map.
 const CINEMAS := {
 	"kino_muranow": [52.24620, 21.00030],
@@ -362,7 +362,6 @@ const CINEMAS := {
 	"kino_luna": [52.22830, 21.01360],
 	"kino_kultura": [52.24060, 21.01680],
 	"kino_elektronik": [52.23480, 21.02900],
-	"kino_kinoteka": [52.23100, 21.00450],
 }
 ## Powiśle's streets (F, 2026-11-02; BACKLOG "Powiśle streets"): a cafe on Tamka, a bike workshop and
 ## a bakery on Dobra, a record shop and a bookshop towards the Library, a bar on Topiel, a stairwell

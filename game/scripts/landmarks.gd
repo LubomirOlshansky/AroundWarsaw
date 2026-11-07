@@ -2538,6 +2538,113 @@ func _build_palace(site: Dictionary) -> void:
 	# Two rings on the spire.
 	_prism(_rect(0.0, 0.0, 1.3, 1.3), g + 214.0, g + 215.0, SPIRE_GOLD, SPIRE_GOLD, M_GOLD, M_GOLD)
 	_prism(_rect(0.0, 0.0, 1.0, 1.0), g + 225.0, g + 225.8, SPIRE_GOLD, SPIRE_GOLD, M_GOLD, M_GOLD)
+	_palace_venues(g)
+
+
+# --- The Palace's venues (F, 2026-11-07: "add the entertainment the Palace has, Bar Studio and the others")
+
+## The Palace's frame as _palace_frame's fallback measures it, for the static plans crowds.gd
+## reads (the model and the crowd must agree without a built map).
+const PKIN_O := Vector2(-1214.25, 247.3)
+const PKIN_A := Vector2(0.9403, -0.3404)
+const PKIN_B := Vector2(0.3404, 0.9403)
+## The venues' lit names on the faces the camera sees (+v, BEHIND_FACE), over their real doors
+## (OSM's amenity points, docs/inventory/osm_candidates.json): [lines, u, v (the face), y0, y1
+## over the ground, most width, tube]. Kinoteka over the south block's door, the bar Kulturalna
+## beside it, Teatr Dramatyczny on the south-east pavilion's end, Muzeum Techniki on the
+## south-west one's, Sala Kongresowa on the hall's south front over the base's roof, Teatr Studio on the north-east
+## pavilion's top storey (its door looks east, to Bar Studio's garden) and the 30th-floor
+## terrace's name under its ledge. Real names: they are public stages and museums (place names).
+const PKIN_SIGNS := [
+	[["KINOTEKA"], 0.0, 69.25, 7.0, 10.0, 12.5, Color(1.0, 0.72, 0.25)],
+	[["KULTURALNA"], 14.7, 60.25, 3.6, 5.0, 4.6, Color(1.0, 0.45, 0.35)],
+	[["TEATR", "DRAMATYCZNY"], 68.2, 132.45, 15.5, 21.0, 12.5, Color(1.0, 0.9, 0.7)],
+	[["MUZEUM", "TECHNIKI"], -66.0, 132.55, 15.5, 21.0, 11.5, Color(0.75, 0.9, 1.0)],
+	[["SALA", "KONGRESOWA"], -72.6, 33.45, 18.4, 22.3, 14.0, Color(1.0, 0.86, 0.55)],
+	[["TEATR", "STUDIO"], 67.1, -69.65, 18.4, 22.1, 22.0, Color(1.0, 0.95, 0.85)],
+	[["TARAS", "30 PIĘTRO"], 0.0, 21.75, 103.5, 110.5, 18.0, Color(1.0, 0.86, 0.55)],
+]
+## Bar Studio's garden: the paved strip between the north-east pavilion's east face (u 89) and
+## the TR Warszawa site's hoarding (u 97), deck chairs in two rows facing the sun (+v), a high
+## table every few chairs, warm festoons on posts over them; BAR STUDIO and TEATR LALKA on frames
+## at its ends. u, v rows and steps *guess* (no photo of the 2026 garden in the cloud).
+const PKIN_GARDEN_U := [91.4, 94.6]
+const PKIN_GARDEN_V := Vector2(-114.0, -64.0)
+const PKIN_GARDEN_STEP := 2.5
+
+
+## Bar Studio's garden plan (model and crowds.gd): chairs [p, facing], tables [p, yaw], seats
+## [p, sitter's yaw] (one per chair), festoon posts [p], frame signs [lines, p, tube].
+static func pkin_studio_plan() -> Dictionary:
+	var chairs: Array = []
+	var tables: Array = []
+	var seats: Array = []
+	var face := PKIN_B
+	var yaw := atan2(-face.x, -face.y)
+	for row: float in PKIN_GARDEN_U:
+		var k := 0
+		var v := PKIN_GARDEN_V.x
+		while v <= PKIN_GARDEN_V.y:
+			var p := PKIN_O + PKIN_A * row + PKIN_B * v
+			if k % 5 == 2:
+				tables.append([p, atan2(PKIN_A.y, PKIN_A.x)])
+			else:
+				chairs.append([p, face])
+				seats.append([p, yaw])
+			k += 1
+			v += PKIN_GARDEN_STEP
+	var posts: Array = []
+	var pv := PKIN_GARDEN_V.x - 1.0
+	while pv <= PKIN_GARDEN_V.y + 1.5:
+		for pu: float in [89.7, 96.3]:
+			posts.append(PKIN_O + PKIN_A * pu + PKIN_B * pv)
+		pv += 8.0
+	var frames := [[["BAR", "STUDIO"], PKIN_O + PKIN_A * 93.0 + PKIN_B * (PKIN_GARDEN_V.y + 4.0), Color(1.0, 0.3, 0.55)],
+			[["TEATR", "LALKA"], PKIN_O + PKIN_A * 93.0 + PKIN_B * (PKIN_GARDEN_V.x - 5.0), Color(0.45, 0.85, 1.0)]]
+	return {"chairs": chairs, "tables": tables, "seats": seats, "posts": posts, "frames": frames,
+			"centre": PKIN_O + PKIN_A * 93.0 + PKIN_B * (0.5 * (PKIN_GARDEN_V.x + PKIN_GARDEN_V.y))}
+
+
+## Where the evening audiences gather (crowds.gd THEATRES reads it): before the doors of Teatr
+## Dramatyczny, Teatr Studio, the Kinoteka and Sala Kongresowa, 2-4 m out of their faces.
+static func pkin_theatre_doors() -> Dictionary:
+	return {
+		"theatre_dramatyczny": PKIN_O + PKIN_A * 68.0 + PKIN_B * 136.0,
+		"theatre_studio": PKIN_O + PKIN_A * 93.0 + PKIN_B * (PKIN_GARDEN_V.y + 7.0),
+		"theatre_kinoteka": PKIN_O + PKIN_A * 0.0 + PKIN_B * 73.0,
+		"theatre_kongresowa": PKIN_O + PKIN_A * -72.0 + PKIN_B * 37.0,
+	}
+
+
+func _palace_venues(g: float) -> void:
+	for s: Array in PKIN_SIGNS:
+		var at := _w(float(s[1]), float(s[2]))
+		_dtc_words(s[0], at, _b, g + float(s[3]), g + float(s[4]), float(s[5]), 4.0, s[6])
+	var plan := pkin_studio_plan()
+	_pow_terrace({"chairs": plan["chairs"], "tables": plan["tables"], "seats": []}, g)
+	# Festoons: a wire zig-zagging across the strip between the posts, warm bulbs on it.
+	var posts: Array = plan["posts"]
+	for p: Vector2 in posts:
+		var y: float = map.terrain_height(p.x, p.y)
+		_beam(Vector3(p.x, y - 0.3, p.y), Vector3(p.x, y + 3.4, p.y), 0.1, POW_DARK)
+	for i in range(0, posts.size() - 2, 2):
+		for pair: Array in [[posts[i], posts[i + 3]], [posts[i + 1], posts[i + 2]]]:
+			var a: Vector2 = pair[0]
+			var b: Vector2 = pair[1]
+			_pow_festoon(Vector3(a.x, map.terrain_height(a.x, a.y) + 3.35, a.y),
+					Vector3(b.x, map.terrain_height(b.x, b.y) + 3.35, b.y), 0.4, 6)
+	# The frame signs at the garden's ends: two posts, a dark rail, the lit words over it.
+	for f: Array in plan["frames"]:
+		var p: Vector2 = f[1]
+		var y: float = map.terrain_height(p.x, p.y)
+		for side: float in [-2.6, 2.6]:
+			var q := p + _a * side - _b * 0.3
+			_prism(_square(q, 0.12), y, y + 4.6, POW_DARK, POW_DARK, M_STONE, M_STONE)
+		var r0 := p - _a * 2.8 - _b * 0.3
+		var r1 := p + _a * 2.8 - _b * 0.3
+		_prism(PackedVector2Array([r0 - _b * 0.12, r1 - _b * 0.12, r1 + _b * 0.12, r0 + _b * 0.12]), y + 2.2, y + 4.6,
+				POW_DARK, POW_DARK, M_STONE, M_STONE)
+		_dtc_words(f[0], p, _b, y + 2.3, y + 4.5, 5.2, 1.2, f[2])
 
 
 ## A clock dial facing `n` (plan, unit) centred at plan point c, height y: a cream disc
