@@ -11,8 +11,6 @@ showed as thin windowed towers (F's crop: two metro lift housings by the Ratusz-
 footprint; bake_osm uses it, verify step `heights` keeps the old guess off small buildings. The thin
 blocks left have real OSM heights (pillars under raised floors, chimneys, BUW's round towers) or
 stand inside a landmark or LoD2 building. Left:
-- Ratusz-Arsenał tram stop: the long glass canopies over both platforms (F's photo, 2026-11-07); the
-  Ratusz hub thread's area.
 - Courtyard outbuildings over 150 m² with no height tags still get 14 m (fair for a tenement).
 
 ## Novotel Warszawa Centrum from F's photos (F, 2026-11-07; docs/landmarks/novotel.md)
