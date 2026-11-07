@@ -5789,6 +5789,10 @@ func _build_barriers(st) -> void:
 				style = LOW_WALL
 			elif _in_island(l["p"]):
 				style = ISLAND_EDGE
+		# Street objects unslopped (tools/object_fixes.py, 2026-11-07): a barrier's own style, e.g. the
+		# balustrade of the wall or fence that frames a flight of steps. A street pass's override wins.
+		if l.has("st") and BARRIER_STYLE.has(str(l["st"])):
+			style = BARRIER_STYLE[str(l["st"])]
 		if not _object_overrides.is_empty() and l["k"] != "platform":
 			var o: Variant = _object_overrides.get(barrier_id(l["k"], l["p"]))
 			if o is Array:

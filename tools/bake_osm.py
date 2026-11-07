@@ -479,6 +479,11 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
     # the lane lines stitched across them, small line kinks rounded (tools/road_smooth.py).
     import road_smooth
     print("road_smooth: " + road_smooth.apply(out))
+    # Street objects unslopped (F, 2026-11-07): lamps, signals, benches, bins, racks, shelters, parked
+    # cars and barriers out of walls, carriageways, water and decks; gates where paths cross fences;
+    # balustrades round stairs (tools/object_fixes.py; the same code runs on a baked map).
+    import object_fixes
+    print("object_fixes: " + object_fixes.apply(out))
     # Loop "content POIs" (2026-10-31): the corner shops, metro entrances, city bike docks, the
     # places' missing addresses and the Leżaks with their zones, appended after every older poi
     # on the finished data (they keep clear of its solids; tools/bake_street_pois.py).

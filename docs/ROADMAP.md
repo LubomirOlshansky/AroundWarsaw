@@ -580,6 +580,8 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [ ] One road layout per street chain plus junction templates, replacing the road_smooth repair passes
 - [ ] Next wanted models, most-asked first (canopy on posts, Jersey barrier, yard gate, park fence)
 - [ ] Next streets with the same pipeline unchanged: Aleje Jerozolimskie, Nowy Świat, Świętokrzyska
+- [x] Street objects unslopped, whole map (F, 2026-11-07): `tools/object_audit.py` (16 artifact rules: objects in walls, roads, water, under decks, on rails, doubles; barrier stubs, doubles, walls across paths, stair slabs; shelters that are not bus stops) and `tools/object_fixes.py` (run by bake_osm): 810 findings → 24 CHECK; 192 stair walls → balustrades, 153 gates, 17 park shelters → benches; verify `objects`; docs/streets/objects.md
+- [ ] Street objects part 2: the CHECK list (lone signals, benches on steps) against Mapillary; picnic roof and smoking shelter models; bollards at the new gates
 
 ### Left: street races that feel like races (F, 2026-11-04; plan docs/design/street-races.md)
 - [x] Research and race AI audit: why Halina drives slowly and by the rules, R1-R7 (2026-11-04, docs only)
