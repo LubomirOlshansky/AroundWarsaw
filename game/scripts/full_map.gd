@@ -51,7 +51,7 @@ const PAD_ZOOM := 1.4
 const PAD_HOLD := 99
 ## The icons' badge radius in points, and the zoom (metres across the screen's height) under
 ## which their names show.
-const ICON_R := 13.0
+const ICON_R := 11.0
 const NAMES_M := 2200.0
 ## The side streets (residential, service: map_art.gd's minor mesh) show under this zoom only.
 const MINOR_M := 2600.0
@@ -544,7 +544,7 @@ func _paint_legend() -> void:
 	hud.poi_mark(ic[3], 5.4 * pt, Color("#ff8a3d"), MapIcons.POI_KEBAB)
 	hud.poi_mark(ic[4], 5.4 * pt, Color("#4fd8c4"), MapIcons.POI_STATION)  # jobs.gd SLOIK_COLOUR
 	hud._tri_diamond(ic[5], 4.6 * pt, Color("#5aa0ff"))  # garage.gd GARAGE_COLOUR
-	MapIcons.paint(hud, "metro", MapIcons.METRO, ic[6] + Vector2(0.0, 8.0 * pt), 6.2 * pt)
+	MapIcons.paint_quiet(hud, "metro", MapIcons.METRO, ic[6], 7.5 * pt)
 	hud._tri_question(ic[7], 1.3)
 	hud._tri_flush(_legend_art)
 
@@ -888,8 +888,8 @@ func _paint() -> void:
 	var fog := Color(0.12, 0.13, 0.2, 0.34)
 	for i in range(0, _fog.size() - 2, 3):
 		hud._tri(to_screen(_fog[i]), to_screen(_fog[i + 1]), to_screen(_fog[i + 2]), fog, fog, fog)
-	# The landmarks' pins: the most important first; one that would touch a pin already drawn is
-	# left out (they come back as it zooms in).
+	# The landmarks, printed small on the map (no pins since 2026-11-07): the most important first;
+	# one that would touch one already drawn is left out (they come back as it zooms in).
 	var r := ICON_R * pt
 	var shown: Array[Vector2] = []
 	var named: Array[Dictionary] = []
@@ -898,16 +898,17 @@ func _paint() -> void:
 		var tip := to_screen(ic["at"])
 		if not view.grow(r * 2.0).has_point(tip):
 			continue
-		var c := tip - Vector2(0.0, r * 1.45)
+		var c := tip
 		var crowded := false
 		for q in shown:
-			if q.distance_to(c) < r * 2.3:
+			if q.distance_to(c) < r * 1.7:
 				crowded = true
 				break
 		if crowded:
 			continue
 		shown.append(c)
-		MapIcons.paint(hud, ic["shape"], ic["colour"], tip, r)
+		# F (2026-11-07): printed on the map, quiet (no pins); fainter still while a quest runs.
+		MapIcons.paint_quiet(hud, ic["shape"], ic["colour"], c, r, 0.5 if focus else 0.9)
 		if close_in:
 			named.append(ic)
 	# The side quests' places to start one: squares in their job's colour.
@@ -1046,7 +1047,7 @@ func _paint() -> void:
 	for ic in named:
 		var text: String = ic["pl"]
 		var w := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, ns).x
-		var p := to_screen(ic["at"]) + Vector2(-w * 0.5, ns * 1.1)
+		var p := to_screen(ic["at"]) + Vector2(-w * 0.5, ICON_R * pt * 0.85 + ns)
 		var box := Rect2(p - Vector2(0.0, ns), Vector2(w, ns * 1.3)).grow(2.0 * pt)
 		var clash := false
 		for q in taken:
@@ -1056,8 +1057,9 @@ func _paint() -> void:
 		if clash:
 			continue
 		taken.append(box)
-		o.draw_string_outline(font, p, text, HORIZONTAL_ALIGNMENT_LEFT, -1, ns, _px(4), Color(0.11, 0.1, 0.14, 0.92))
-		o.draw_string(font, p, text, HORIZONTAL_ALIGNMENT_LEFT, -1, ns, Color("#fff8e8"))
+		# Printed like a map's own labels: dark ink in a cream outline (quieter than the quests' names).
+		o.draw_string_outline(font, p, text, HORIZONTAL_ALIGNMENT_LEFT, -1, ns, _px(4), Color(1.0, 0.97, 0.9, 0.85))
+		o.draw_string(font, p, text, HORIZONTAL_ALIGNMENT_LEFT, -1, ns, Color(0.16, 0.14, 0.2, 0.95))
 
 
 ## The map point (m) under a screen point (px).

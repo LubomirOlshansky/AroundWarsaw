@@ -38,6 +38,10 @@ What carries over to a phone-sized isometric drive:
   1.5 km away; on the full map it is twice a job icon's size with the questline's name under it.
   The legend has a "questline start" row.
 - *Street jobs*: unchanged, one small icon per stand, station or depot.
+- *Landmarks, metro, hospitals* (F, 2026-11-07: "they jump out too much"): no more pins and
+  badges on the full map. Each is a small silhouette printed on the map in its category's colour,
+  darkened, on a faint cream halo, with its name in dark ink like a paper map's own labels; fainter
+  still while a quest runs. So the only loud marks are the main star and the "!" badges.
 
 **Quest focus.** While anything runs (a race, a job, a ride, a rescue, the boat race, the rave, a
 tow), the minimap and the full map hide the street jobs, the garage, the "?" places and the

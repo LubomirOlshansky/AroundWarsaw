@@ -13,7 +13,7 @@ someone writes its lines.
 - Miodowa's palaces look like themselves: cream and pink plaster under tile-red roofs (Paca's are green copper), and Pałac Branickich's long front has pink pilaster strips, a cornice, an attic crowded with statues, three scrolled dormers and its balconied gate.
 
 
-- The map shows what matters: the main story's star glows gold, the big quests (the boat race, the secret rave) have their own "!" badges at their start spots, and while you're on a quest everything else hides. Drive up to a start and your friend comes out to talk in person, and a new STORIES tab on the map starts any big quest right away.
+- The map shows what matters: the main story's star glows gold, the big quests (the boat race, the secret rave) have their own "!" badges at their start spots, and while you're on a quest everything else hides. Drive up to a start and your friend comes out to talk in person, and a new STORIES tab on the map starts any big quest right away. Landmarks on the map are now quiet little drawings instead of big pins.
 - Marszałkowska: 16 more houses got street fronts from real photos, from Hotel Saski to the long block at number 140.
 - Aleje Jerozolimskie: 21 more houses along the avenue got street fronts from real photos.
 - Świętokrzyska, Chmielna, Nowy Świat and Aleje Ujazdowskie: 25 more houses got street fronts from real photos.
