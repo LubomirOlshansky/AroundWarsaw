@@ -15,6 +15,7 @@ someone writes its lines.
 - Miodowa's palaces look like themselves: cream and pink plaster under tile-red roofs (Paca's are green copper), and Pałac Branickich's long front has pink pilaster strips, a cornice, an attic crowded with statues, three scrolled dormers and its balconied gate.
 
 
+- Andersa by Ratusz Arsenał drives cleaner: straight kerbs where the street splits round the median, no bite out of the asphalt by the tram stop, and lane lines that run on smoothly instead of breaking off.
 - Junctions across the city look cleaner: lane lines now end at the zebra or the stop line instead of running on into the middle of the junction, turn arrows sit before the stop line instead of on or past the crossing, and a few crossings that stopped short now reach the kerb.
 - The map shows what matters: the main story's star glows gold, the big quests (the boat race, the secret rave) have their own "!" badges at their start spots, and while you're on a quest everything else hides. Drive up to a start and your friend comes out to talk in person, and a new STORIES tab on the map starts any big quest right away. Landmarks on the map are now quiet little drawings instead of big pins.
 - Podwózka taxi rides now come with stories: 18 passengers, from a Mordor office worker heading for Warsaw Spire to a film star off to the Palace of Culture, a saxophonist late for jazz under the Powiśle UFO and a beekeeper invited to the Presidential Palace, chat on the way to real places and ask you a question; your answer changes the tip and a good talk earns half a star.

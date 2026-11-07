@@ -559,6 +559,11 @@ then whole-map in `tools/road_fixes.py` (run after road_smooth; verify step `fix
 - [x] 61 zebras under 1 m (dots left by the asphalt clip) dropped; zebra ends short of the kerb run on (158 m)
 - [x] Dark patches in junction boxes: not in the game (every ribbon and area is one colour at one height);
   they came from the flat comparison pictures, which draw ribbons half transparent over the photo
+- [x] Andersa by Ratusz Arsenał (F's screenshot): where the 4-lane street splits round the median, the west
+  kerb jogged out, the asphalt had a notch beside the tram stop and the lane lines broke off and drifted.
+  Site fix 5 in `road_fixes.py`: one straight east kerb along the platform, a gentle west taper (the third
+  southbound lane opens by paint), lane lines joined by smooth curves, the centre line on to the median's
+  nose, asphalt filled out to the new kerbs; `--check` counts `site_gaps` (0). Shelters not touched
 Found:
 - [ ] Zebras and cycle crossings already run kerb to kerb (or kerb to median) on the data: no dual
   carriageway crossed on one side only, 1 cycle crossing shorter than its zebra. What still reads as
@@ -566,6 +571,8 @@ Found:
   main streets (a map_builder change, not done: F's call, main as base)
 - [ ] Lane lines through a junction where the same street turns (one name both ways) are kept
 - [ ] Unsignalled crossings more than 12 m from the junction's ribbons count as mid-block (lines kept)
+- [ ] Other places where a street splits into carriageways may jog the same way (each OSM way sized from
+  its own lane count); a new spot is one more entry in `road_fixes.SITES` until the chain-width rework
 
 ## Operation Unslop: streets that don't look generated (F, 2026-11-05)
 
