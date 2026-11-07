@@ -5615,6 +5615,7 @@ Command-line options (after `--`):
 | `--spots=NAME:X,Z[,HEADING];...` | with `--shots`: shoots every spot in one run (the city is built once; the car and camera jump to the next spot after each spot's last shot frame, the frames shift by the frames spent), files `NAME_FFFF.png`. `--out` is made when missing, and a PNG that can't be written ends the run with exit 1 (it used to exit 0 with no file) (Operation Unslop, 2026-11-05) |
 | `--style=N` / `--lines=N` | visual style 0–3 (loop 2e: wins over the saved style for this run) / override the pixel image's line count |
 | `--size=M` / `--yaw=deg` / `--fixed` | view height in metres (default 80) / camera turn / fixed camera (in Point: the Fixed camera scheme) |
+| `--stops=FILE` | with `--shots=` far ahead: the camera stops at each `[x, z, yaw, pitch, size, name]` of the JSON list and saves `<name>.png` in `--out`, then quits; one run shoots a whole street |
 | `--at=x,z` | start at map coordinates (metres, +x east, +z south), on top of a bridge deck if there is one |
 | `--heading=deg` | the car's heading at the start (0 north, 90 east), for testing: with `--demo` it drives off that way |
 | `--nohud` | hide the controls |
@@ -5664,6 +5665,8 @@ Command-line options (after `--`):
 | `--ride=N` | loop 2d-1: Podwózka ride N's request, the car on the road 60 m before its passenger (the same N gives the same ride; with `--ride-quirk=river` or `zone` the passenger is picked near river spot / park N, so the leg fits); with `--autopilot` it is accepted after 2 s and driven |
 | `--ride-quirk=river\|zone\|oldtown\|rechotka\|reroute` | loop 2d-1: force the ride's quirk (`oldtown` becomes `zone` on today's map; `rechotka`, the Frogs turn: in the random pool since loop MW-2) |
 | `--passenger=normal\|believer\|hurry\|detour` | loop 2d-1: force the passenger type (loop MW-2: `detour` asks for a Frogs stop, +½ star once) |
+| `--ride-story=ID\|none` | 2026-11-07: that story passenger (`data/taxi_stories.json` id) on the rides, or `none` for the old chat |
+| `--ride-answer=0\|1` | 2026-11-07: the autopilot's answer to the story passenger's question (default 0) |
 | `--no-parodies` | loop MW-2: no storefronts (Frogs, venue neon, Leżaks, metro entrances, the new billboards) and no Pędzik couriers |
 | `--rechotka` | loop MW-2: the car on the lane by the nearest placed Frogs' door, stopped (the stamp in 2 s) |
 | `--stamps=K` | loop MW-2: the Frogs card starts at K stamps (9: the next stop is the free hot dog) |

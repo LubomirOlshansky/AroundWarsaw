@@ -103,7 +103,7 @@ often, known to every visitor; **B** characteristic, known to locals, gives a st
 | 37 | Pałac Potockich, Kordegarda (OSM: Galeria Kordegarda), Pałac Czapskich | Krakowskie Przedmieście | palaces | ★ | photos gathered (`refs/krakowskie/`); built 2026-11-02 from them, Czapski whole, Potocki's gates and colours, the Kordegarda (specs `czapski.md`, `potocki.md`, `kordegarda.md`); F's look on the Mac or the phone |
 | 38 | Plac Zamkowy's houses and Mariensztat | Plac Zamkowy / Mariensztat | tenements | ○ | photo re-pass of the gables; Mariensztat's reliefs |
 | 39 | Old Town and New Town tenements: Kamienica Pod Bazyliszkiem, Pod Murzynkiem, Fukierowska, Baryczkowska, Pod Okrętem | Rynek Starego Miasta / Freta | tenements | ○ | photo pass per famous house (signs, portals, painted fronts) |
-| 40 | Nowy Świat tenements and palaces (Zamoyski, Mikulski, Bürger, Jasiński, Kossakowski) | Nowy Świat | tenements | ○ | photo pass of the fronts |
+| 40 | Nowy Świat tenements and palaces (Zamoyski, Mikulski, Bürger, Jasiński, Kossakowski) | Nowy Świat | tenements | ◐ | 50 blocks modelled (BACKLOG "Street blocks across the city"); #29 left |
 | 41 | Kościół Świętego Aleksandra and Plac Trzech Krzyży | Plac Trzech Krzyży | church, square | ◐ | photo check; the square's houses (Kamienica pod Gryfami) |
 | 42 | Sejm and Senat (OSM: Sala posiedzeń Sejmu RP, Senat RP) | Wiejska | parliament | ◐ | photo check; the Senate and the Sejm's office slabs are ✗ |
 | 43 | Zamek Ujazdowski | Jazdów (Aleje Ujazdowskie) | castle, art centre | ◐ | photo check |
@@ -167,7 +167,7 @@ often, known to every visitor; **B** characteristic, known to locals, gives a st
 | 96 | Plan B's corner, Plac Zbawiciela's café row | Plac Zbawiciela | bars | ○ | the summer crowd on the pavement (crowds.gd) |
 | 97 | Kawiarnia and bar street of Chmielna, Mokotowska, Hoża, Poznańska | Chmielna / Mokotowska / Poznańska | street of bars | ○ | more parody fascias and terraces per block |
 | 98 | Kina: Muranów, Atlantic, Luna, Kultura, Elektronik, Femina, Kinoteka, Iluzjon (south of the box) | Andersa / Chmielna / Marszałkowska / Krakowskie Przedmieście / Aleja Solidarności | cinemas | ○ | marquee signs are in; poster facades and evening queues |
-| 99 | Pałac Paca, Pałac Branickich (Miodowa), Pałac Prymasowski, Pałac Blanka, Pałac Jabłonowskich | Miodowa / Senatorska | palaces | ✗ | Miodowa street pass: palace fronts from photos |
+| 99 | Pałac Paca, Pałac Branickich (Miodowa), Pałac Prymasowski, Pałac Blanka, Pałac Jabłonowskich | Miodowa / Senatorska | palaces | ◐ | 2026-11-07 from F's photos (spec `miodowa.md`): Branickich front modelled; Paca, Młodziejowskiego, Szaniawskich, Chodkiewiczów, Arcybiskupi and Collegium Nobilium in photo-read skins. Left: Młodziejowskiego's pediment block, Paca's gate court, Nobilium's tower block; Prymasowski and Blanka (Senatorska) |
 | 100 | Katedra polowa, the Cerkiew, Kapucyni (Miodowa churches) | Miodowa | churches | ◐ | church kit; photo check |
 | 101 | Synagoga Nożyków and Próżna's pre-war tenements (Kamienica Zalmana Nożyka, Kamienica Wolanowskiego) | Próżna / Twarda | synagogue, tenements | ◐ | the synagogue is the church kit's; Próżna's facades ✗ (photo build) |
 | 102 | Plac Grzybowski and Kościół Wszystkich Świętych | Plac Grzybowski | square, church | ◐ | photo check; the square's fountain and benches |

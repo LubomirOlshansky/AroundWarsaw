@@ -609,10 +609,13 @@ var rides: Rides
 var quest_pin: Dictionary = {}
 ## --ride=N: ride N's request, the car by its passenger; --ride-quirk=, --passenger=, --stars=X
 ## (the live rating's start), --ignore-app (the autopilot drives the shortest road, not the
-## app's), --parody-log (`ride:` and `gps:` lines).
+## app's), --parody-log (`ride:` and `gps:` lines). Story rides (taxi_stories.json): --ride-story=ID
+## (that passenger, "none" for no story), --ride-answer=0|1 (the autopilot's answer to the question).
 var start_ride := -1
 var ride_quirk := ""
 var ride_passenger := ""
+var ride_story := ""
+var ride_answer := -1
 var ride_stars := -1.0
 var ignore_app := false
 var parody_log := false
@@ -2260,6 +2263,8 @@ func _build_side_jobs(data: Dictionary, world: Node3D) -> void:
 	rides.log_on = parody_log
 	rides.force_quirk = ride_quirk
 	rides.force_passenger = ride_passenger
+	rides.force_story = ride_story
+	rides.force_answer = ride_answer
 	rides.start_stars = ride_stars
 	rides.gps_first = gps_in
 	add_child(rides)
@@ -4125,6 +4130,8 @@ func _parse_args() -> void:
 					start_heading = shot_spots[0][2]
 		elif arg.begins_with("--style="):
 			_flag_style = posmod(int(arg.trim_prefix("--style=")), STYLES.size())
+		elif arg.begins_with("--stops="):
+			stops = JSON.parse_string(FileAccess.get_file_as_string(arg.trim_prefix("--stops=")))
 		elif arg.begins_with("--at="):
 			var xz := arg.trim_prefix("--at=").split(",")
 			start_at = Vector3(float(xz[0]), 0.0, float(xz[1]))
@@ -4281,6 +4288,10 @@ func _parse_args() -> void:
 			ride_quirk = arg.trim_prefix("--ride-quirk=").to_lower()
 		elif arg.begins_with("--passenger="):
 			ride_passenger = arg.trim_prefix("--passenger=").to_lower()
+		elif arg.begins_with("--ride-story="):
+			ride_story = arg.trim_prefix("--ride-story=").to_lower()
+		elif arg.begins_with("--ride-answer="):
+			ride_answer = clampi(int(arg.trim_prefix("--ride-answer=")), 0, 1)
 		elif arg.begins_with("--stars="):
 			ride_stars = clampf(float(arg.trim_prefix("--stars=")), 1.0, 5.0)
 		elif arg == "--ignore-app":
@@ -5980,6 +5991,7 @@ func _process(dt: float) -> void:
 	hud.set_car_marker(marker, cam.size > 55.0)
 
 	frame += 1
+	_stop_step()
 	_inject_clicks()
 	if frame == 60 and tap_at != Vector2.INF:
 		_on_tap(tap_at)
@@ -7294,6 +7306,39 @@ func _camera_far(distance: float, size: float) -> float:
 	var need: float = distance + 0.5 * cam.size * t + low
 	var depth := sqrt(maxf(diagonal - cam.size * cam.size * (aspect * aspect + 1.0), need * need))
 	return cam.near + depth
+
+
+## --stops=FILE (with --shots= far ahead): the camera stops at each [x, z, yaw, pitch, size, name]
+## of the JSON list and saves <name>.png in --out, so one run shoots a whole street.
+var stops: Array = []
+var _stop_at := 0
+var _stop_busy := false
+const STOP_DRAWS := 24
+
+
+func _stop_step() -> void:
+	if stops.is_empty() or frame < 120 or _stop_busy or _stop_at >= stops.size():
+		return
+	_stop_busy = true
+	var s: Array = stops[_stop_at]
+	car.global_position = Vector3(s[0], map.ground_height(s[0], s[1]), s[1])
+	car.vel = Vector3.ZERO
+	cam_yaw = s[2]
+	cam_yaw_target = s[2]
+	camera_pitch = s[3]
+	base_size = s[4]
+	_view_size = s[4]
+	cam.size = s[4]
+	cam_focus = car.global_position
+	# Count drawn frames, not game frames: a hidden window can draw far less often than it runs.
+	for i in STOP_DRAWS:
+		await RenderingServer.frame_post_draw
+	get_viewport().get_texture().get_image().save_png(out_dir.path_join("%s.png" % s[5]))
+	_stop_at += 1
+	_stop_busy = false
+	print("stops: %d / %d %s at %.0f,%.0f" % [_stop_at, stops.size(), s[5], car.global_position.x, car.global_position.z])
+	if _stop_at >= stops.size():
+		_quit_quietly()
 
 
 func _capture(n: int) -> void:

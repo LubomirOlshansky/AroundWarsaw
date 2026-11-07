@@ -7391,8 +7391,11 @@ func _build_lod2(walls, marks) -> Array:
 					hi = hi.max(q)
 				t1 += 3
 		if marks.replaces((lo + hi) * 0.5):
+			# A modelled block on a LoD2 roof: only the walls go, the measured roof stays.
+			var roofs: bool = marks.keeps_lod2_roof((lo + hi) * 0.5)
 			for t in range(t0, t1, 3):
-				dropped[t / 3] = 1
+				if not roofs or absf(nrm[t].y) < 0.3:
+					dropped[t / 3] = 1
 		else:
 			# The landmarks loop: a kept building in a landmark's own stone (Muzeum Narodowe).
 			var skin: Dictionary = marks.skin_at(Rect2(lo, hi - lo))
