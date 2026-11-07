@@ -16,6 +16,7 @@ Small problems that agents reported or that showed up in screenshots. They are f
   pin, so on that weekday the Mlask van never parks (trend_job.gd `_park_van` logs it with
   `--trend-log`). The Dżemini call falls back to his next spot; the Mlask job still needs the pin
   moved or a `near` hint.
+
 ## Novotel Warszawa Centrum from F's photos (F, 2026-11-07; docs/landmarks/novotel.md)
 
 Built: the white tiled slab with its paired windows and the lift core's blank strip, the blank narrow ends round
