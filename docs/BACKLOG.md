@@ -4,6 +4,16 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## 11 listopada day event (F, 2026-11-07; docs/design/event-11-listopad.md)
+Built (event_day.gd): date gate, hours, crowd + flags, four barrier lines, white-red bands on the Palace, Złota 44 (white to red like F's photo) and Stadion Narodowy, glow pots, haze and puffs. Open:
+- Phone bench (iPhone 16 first, then the 11) with `--event-day`: draw calls budget +8, crowd 1,600 figures; name what only the phone shows.
+- Look checks from F's photos: flag density, haze height, the Palace tiers (upper white, lower red), Złota 44's gradient side.
+- Traffic and trams are released at the zone edge (they pop out at the barrier); a real lane closure (lane_graph `e_shut`) would queue them at the line.
+- Side streets into the corridor are not walled: a car that gets in is set down at the nearest barrier (toast).
+- Flags are still (no sway); heli-only day missions, the notebook stamp, event sounds and the Settings toggle for smoke are not built yet (plan sections 3.3, 3.5, 6 E5).
+- Stadion Narodowy white-red panels are coded (`_stadium_bands`) but did not show in the cloud shot: unverified, check on the Mac or phone (mast heights, radius).
+- Trailer rig (plan section 7) not started.
+
 ## The Palace of Culture's grounds and venues (F, 2026-11-07, with F's aerial photo)
 
 Built: the walls OSM maps round the Palace's beds and raised lawns (59 retaining walls, planters)
