@@ -1123,8 +1123,10 @@ static func match_pay(won: int, flew: bool) -> Dictionary:
 	return {"zl": MATCH_ZL * won, "respect": MATCH_RESPECT * won + (FLY_RESPECT if flew else 0)}
 
 
-## On time at DESKA: the match, one card per point, the three shots in a row (stacked, the side
-## card grew taller than the room beside the car and never showed: Mac run 2026-11-07).
+## On time at DESKA: the match, one card per point, the three shots in a row on the centred card
+## (the car stands still). Beside the car the card never showed on a 16:9 screen: three shots in a
+## row were wider than the room there, stacked they were taller than the screen (Mac Autopilot,
+## 2026-11-07).
 func _start_match() -> void:
 	state = State.RESULT
 	order["stage"] = "match"
@@ -1154,8 +1156,8 @@ func _ask_point() -> void:
 	elif said != "":
 		lead = said + " "
 		lead_en = said_en + " "
-	hud.show_side_card("PADEL · PUNKT %d/%d · %d:%d" % [i + 1, DESKI_POINTS, int(order["won"]), i - int(order["won"])],
-			lead + str(rally[0][0]), buttons, CZ_COLOUR, "Padel · point %d/%d · %d-%d" % [i + 1, DESKI_POINTS, int(order["won"]), i - int(order["won"])],
+	hud.show_card("PADEL · PUNKT %d/%d · %d:%d" % [i + 1, DESKI_POINTS, int(order["won"]), i - int(order["won"])],
+			lead + str(rally[0][0]), buttons, CZ_COLOUR, false, "Padel · point %d/%d · %d-%d" % [i + 1, DESKI_POINTS, int(order["won"]), i - int(order["won"])],
 			lead_en + str(rally[0][1]))
 
 
@@ -1195,9 +1197,9 @@ func _end_match() -> void:
 			["Wygrane w tie-breaku! %s stuka gipsem w ławkę." % order["hurt"], "Won in the tie-break! %s bangs the cast on the bench." % order["hurt"]],
 			["Wygrane! Bluza klubowa twoja. Od poniedziałku grasz z nami na stałe.", "We won! The club hoodie is yours. From Monday you're our regular fourth."]][won]
 	_t = 0.0
-	hud.show_side_card("PADEL · %s · +%d zł" % [score[0], zl],
+	hud.show_card("PADEL · %s · +%d zł" % [score[0], zl],
 			"%s\n„%s” · %s\n+%d zł (napiwek %d zł, punkty %d zł), +%d szacunku" % [order["said"], line[0], order["customer"], zl, int(r["tip"]), int(m["zl"]), respect],
-			PackedStringArray(["OK"]), CZ_COLOUR, "Padel · %s · +%d zł" % [score[1], zl],
+			PackedStringArray(["OK"]), CZ_COLOUR, false, "Padel · %s · +%d zł" % [score[1], zl],
 			"%s\n\"%s\"\n+%d zł (tip %d zł, points %d zł), +%d respect" % [order["said_en"], line[1], zl, int(r["tip"]), int(m["zl"]), respect])
 	print("trend job: DESKA match %d/%d (%s), %s: +%d zł (base %d, tip %d, points %d), +%d respect" % [won, DESKI_POINTS, score[1],
 			"landed by helicopter" if flew else "by car", zl, int(r["base"]), int(r["tip"]), int(m["zl"]), respect])
