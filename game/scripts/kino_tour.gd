@@ -85,10 +85,10 @@ const STOPS := [
 ]
 ## The shots he asks for: the status line's hint and how much of it is needed.
 const SHOTS := {
-	"long": ["UJĘCIE: długie, 15 s płynnie (5-40 km/h, bez stłuczek)", "SHOT: a long take, 15 s smooth (5-40 km/h, no hits)", 15.0],
-	"static": ["UJĘCIE: statyczne, stań na 5 s (jak u mistrzów)", "SHOT: a static one, stand still for 5 s (like the masters)", 5.0],
-	"reverse": ["UJĘCIE: odwrócona chronologia, 20 m na wstecznym", "SHOT: reverse chronology, 20 m in reverse", 20.0],
-	"rush": ["UJĘCIE: pęd, 4 s powyżej 60 km/h", "SHOT: the rush, 4 s over 60 km/h", 4.0],
+	"long": ["Ujęcie: długie, 15 s przy 5-40 km/h", "Shot: a long take, 15 s at 5-40 km/h", 15.0],
+	"static": ["Ujęcie: statyczne, stój 5 s", "Shot: a static one, stand still 5 s", 5.0],
+	"reverse": ["Ujęcie: na wstecznym 20 m", "Shot: 20 m in reverse", 20.0],
+	"rush": ["Ujęcie: pęd, 4 s ponad 60 km/h", "Shot: the rush, 4 s over 60 km/h", 4.0],
 }
 
 enum State { IDLE, RING, OFFER, TO_PICKUP, LEG, PITCH, DONE }
@@ -333,9 +333,7 @@ func _aim() -> void:
 
 
 func _status(d: float) -> void:
-	var tape := ""
-	for k in FRAMES:
-		tape += "■" if k < frames else "□"
+	var tape := "%d/%d" % [frames, FRAMES]
 	var hint := "Wiktor czeka z filmem: %s" % PICKUP["name"]
 	var hint_en := "Wiktor waits with the film: %s" % PICKUP["name"]
 	var progress := 0.0

@@ -31,8 +31,8 @@ cinema is the quest stop of "Kino objazdowe" (docs/design/kino-tour.md).
 - The front (u from the doors' middle along the street): glass doors u -2.4..2.4, 3.0 m, five
   dark frames and two transoms; poster boards u -8.6..-3.1 and 3.1..8.6 at 0.95-3.45 m, two
   parody posters each (shapes only, no real film), a little lamp on an arm over each poster.
-- Words: MURANÓW 0.95 m tall in red pixel blocks, 13 m wide, centred at u 0.6, bottom 3.75 m;
-  KINO 0.6 m in white at u -11.3 and 11.6.
+- Words: MURANÓW 0.95 m tall in red pixel blocks, 13 m wide, centred at u -0.6 (read left to right along -u), bottom 3.75 m;
+  KINO 0.6 m in white at u -11.6 and 11.3.
 
 ## Roof
 
@@ -75,8 +75,8 @@ the shared building material: no new draw call, material or light.
 | km_balustrade | boxes along square-facing edges | 1.05 m x 0.26 m | terrace edge | M_STONE | 3 |
 | km_doors | glass quad + frames | 4.8 m x 3.0 m | u -2.4..2.4 | M_PAVILION | 2 |
 | km_posters | framed quads | 5.5 m x 2.5 m each | u ±3.1..8.6 | M_STONE | 2 |
-| km_letters | pixel blocks | 13 m x 0.95 m | u 0.6, 3.75 m up | M_LAMP | 1 |
-| km_kino | pixel blocks | 2.4 m x 0.6 m | u -11.3, 11.6 | M_LAMP | 1 |
+| km_letters | pixel blocks | 13 m x 0.95 m | u -0.6, 3.75 m up | M_LAMP | 1 |
+| km_kino | pixel blocks | 2.4 m x 0.6 m | u -11.6, 11.3 | M_LAMP | 1 |
 | km_pillars | base, shaft, cap, ball | 0.6 m x 5.6 m | u -8.6, 2.6, v -19.5 | M_STONE | 3 |
 | km_arch | piers, stepped arch, attic | 10.4 m x 15.4 m | u -3, v -27.3 | M_STONE | 4 |
 | km_fountain | basin, pedestal, putti, bowl | r 4.2 m, 4.3 m | u -2.75, v 19 | M_STONE | 5 |

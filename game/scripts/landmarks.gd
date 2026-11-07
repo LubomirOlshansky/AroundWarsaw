@@ -9873,7 +9873,8 @@ func _find_kino_muranow() -> void:
 	if q.size() < 3:
 		return
 	var front := PackedVector2Array([_km(-KM_FRONT, 0.0), _km(KM_FRONT, 0.0), _km(KM_FRONT, -KM_DEEP), _km(-KM_FRONT, -KM_DEEP)])
-	var body := _largest(Geometry2D.merge_polygons(_simplify(q, 0.6), front))
+	# Simplified again: the OSM corners left a hand's breadth off the straight front make slivers.
+	var body := _simplify(_largest(Geometry2D.merge_polygons(_simplify(q, 0.6), front)), 0.4)
 	if body.size() < 3:
 		return
 	var fc := _km(KM_FOUNT.x, KM_FOUNT.y)
@@ -9933,10 +9934,10 @@ func _km_front(g: float, top: float) -> void:
 			Vector2(0, 0), Vector2(4.8, 0), Vector2(4.8, 3.0), Vector2(0, 3.0), 3.0)
 	_mode = M_STONE
 	for u: float in [-2.4, -1.2, 0.0, 1.2, 2.4]:
-		var p := _km(u, f + 0.04)
+		var p := _km(u, f + 0.1)
 		_beam(Vector3(p.x, g, p.y), Vector3(p.x, g + 3.05, p.y), 0.09, KM_FRAME)
-	var h0 := _km(-2.45, f + 0.04)
-	var h1 := _km(2.45, f + 0.04)
+	var h0 := _km(-2.45, f + 0.1)
+	var h1 := _km(2.45, f + 0.1)
 	for y: float in [3.05, 2.2]:
 		_beam(Vector3(h0.x, g + y, h0.y), Vector3(h1.x, g + y, h1.y), 0.09, KM_FRAME)
 	# The poster boards: a dark frame, two posters each, a little lamp over each poster.
@@ -9950,18 +9951,18 @@ func _km_front(g: float, top: float) -> void:
 		for k in 2:
 			var pu0 := lerpf(u0, u1, k * 0.5) + 0.12
 			var pu1 := lerpf(u0, u1, (k + 1) * 0.5) - 0.12
-			var p0 := _km(pu0, f + 0.03)
-			var p1 := _km(pu1, f + 0.03)
+			var p0 := _km(pu0, f + 0.05)
+			var p1 := _km(pu1, f + 0.05)
 			var col: Color = cols[k]
 			_quad(Vector3(p0.x, g + 1.07, p0.y), Vector3(p1.x, g + 1.07, p1.y), Vector3(p1.x, g + 3.33, p1.y), Vector3(p0.x, g + 3.33, p0.y), n3, col)
 			# A title band and a face-sized block on each (shapes only, no real film).
-			var t0 := _km(pu0 + 0.2, f + 0.05)
-			var t1 := _km(pu1 - 0.2, f + 0.05)
+			var t0 := _km(pu0 + 0.2, f + 0.1)
+			var t1 := _km(pu1 - 0.2, f + 0.1)
 			_quad(Vector3(t0.x, g + 1.35, t0.y), Vector3(t1.x, g + 1.35, t1.y), Vector3(t1.x, g + 1.65, t1.y), Vector3(t0.x, g + 1.65, t0.y), n3,
 					KM_WHITE if col.get_luminance() < 0.5 else KM_FRAME)
 			var c := (pu0 + pu1) * 0.5
-			var m0 := _km(c - 0.55, f + 0.05)
-			var m1 := _km(c + 0.55, f + 0.05)
+			var m0 := _km(c - 0.55, f + 0.1)
+			var m1 := _km(c + 0.55, f + 0.1)
 			_quad(Vector3(m0.x, g + 2.0, m0.y), Vector3(m1.x, g + 2.0, m1.y), Vector3(m1.x, g + 3.05, m1.y), Vector3(m0.x, g + 3.05, m0.y), n3,
 					col.lightened(0.35) if col.get_luminance() < 0.5 else col.darkened(0.45))
 			var lamp := _km(c, f + 0.35)
