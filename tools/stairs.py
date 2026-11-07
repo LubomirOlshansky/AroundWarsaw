@@ -10,9 +10,8 @@ map data, and a ranked inventory of how each one is built in the game.
         rp 1 when the flight has a ramp for prams or bikes (ramp, ramp:stroller, ramp:bicycle)
         sf surface: "sett", "concrete", "metal", "wood" or "stone" (paving stones, granite)
         cv 1 for an escalator (conveying)      br 1 on a bridge or a footbridge
-        and `h` (OSM height) onto the walls in `lines` that map one.
-        bake_osm.py calls stair_tags() and wall_height() for a full re-bake, so the Mac's bake
-        keeps them too.
+        (the walls' heights, materials and the fences' types are tools/barrier_tags.py's).
+        bake_osm.py calls stair_tags() for a full re-bake, so the Mac's bake keeps them too.
     python3 -I tools/stairs.py report [MAP.json] [--osm ...] [--out DIR]
         the inventory (stairs.json + stairs.md in DIR, default build/stairs): every flight with
         its place, length, its real drop (step count x 0.16 m) against what the 10 m terrain grid
@@ -189,29 +188,6 @@ def match(steps, ways):
         wpts = ways[best[1]][1]
         out.append((ways[best[1]][0], poly_dist(p[0], wpts)[1], poly_dist(p[-1], wpts)[1]))
     return out
-
-
-def apply_wall_heights(lines, edges):
-    """`h` on every map wall that matches an OSM wall with a mapped height; returns the count."""
-    walls = [(e, p) for e, p in edges if e["tags"].get("barrier") in ("wall", "retaining_wall")
-             and wall_height(e["tags"]) is not None]
-    grid = Grid([p for _, p in walls])
-    n = 0
-    for l in lines:
-        if l.get("k") != "wall":
-            continue
-        l.pop("h", None)
-        p = pairs(l["p"])
-        best = (0.6, None)
-        for i in grid.near(p[0]) | grid.near(p[-1]):
-            ds = [poly_dist(q, walls[i][1])[0] for q in dense(p, 1.0)]
-            m = sum(ds) / len(ds)
-            if m < best[0]:
-                best = (m, i)
-        if best[1] is not None:
-            l["h"] = wall_height(walls[best[1]][0]["tags"])
-            n += 1
-    return n
 
 
 def apply_tags(steps, ways):
@@ -415,11 +391,9 @@ def main(argv):
     ways, edges = load_osm(osm)
     if cmd == "tags":
         matched, tagged = apply_tags(d["steps"], ways)
-        heights = apply_wall_heights(d.get("lines", []), edges)
         with open(path, "w", encoding="utf-8") as f:
             json.dump(d, f, separators=(",", ":"), ensure_ascii=False)
-        print("stairs: %d flights, %d matched to OSM, %d tagged; %d walls with a mapped height"
-              % (len(d["steps"]), matched, tagged, heights))
+        print("stairs: %d flights, %d matched to OSM, %d tagged" % (len(d["steps"]), matched, tagged))
         return 0
     rows = report(d, ways, edges, opt.get("--out", os.path.join(ROOT, "build", "stairs")))
     print("stairs: %d flights reported" % len(rows))

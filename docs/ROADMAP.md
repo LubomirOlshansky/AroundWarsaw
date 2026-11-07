@@ -63,6 +63,9 @@ then the Launch gate.
 - [x] Stairs across the city: every OSM flight that drops over the ground is a stone flight with treads,
       risers, cheek walls, OSM's handrails and pram channels; walls across stairs opened, stairwell walls
       balustrades, fountain basins low rims, OSM wall heights (F, 2026-11-07; `tools/stairs.py`)
+- [x] Walls, fences and hedges from OSM's heights, materials and fence types (see-through railings, low
+      park walls, noise barriers), and the Old Town's city walls in brick (F, 2026-11-07; `tools/barrier_tags.py`)
+- [ ] City walls look check from photos (battlements, gates), photo-tag the untagged walls and fences
 - [ ] Stairs deeper than the 10 m ground shows (Skarpa, Karowa, Tamka, metro stairwells) cut into the
       ground from F's photos (photo list `stairs-photo-list.md`)
 - [x] Arkadka redesign, roof car park, BANK PEPEO sign and the Forest roof terrace (F, 2026-11-01; spec `arkadia.md`)

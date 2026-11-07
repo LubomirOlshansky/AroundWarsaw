@@ -596,6 +596,7 @@ func _build_parts(marks, roofs_only: bool) -> void:
 	_build_platforms(walls)
 	_build_barriers(walls)
 	_build_stair_flights(walls)
+	_build_city_walls(walls)
 	_build_bridge_structures(walls)
 	_build_walls(walls)
 	_build_portals(walls)
@@ -5918,7 +5919,7 @@ const BARRIER_STYLE := {
 ## An open railing along `poly`: an optional concrete upstand, then round-ish posts every 2 m and a
 ## top and a middle rail you can see through (Operation Unslop's tram railing and stair balustrade).
 ## It collides like a wall of the same height, so driving stays as it was.
-func _railing_along(st, poly: PackedVector2Array, height: float, upstand: float, up_col: Color, rail_col: Color, collide: bool) -> void:
+func _railing_along(st, poly: PackedVector2Array, height: float, upstand: float, up_col: Color, rail_col: Color, collide: bool, post_every := 2.0) -> void:
 	if upstand > 0.0:
 		_wall_along(st, poly, 0.2, upstand, up_col, false)
 	var run := 0.0
@@ -5948,7 +5949,7 @@ func _railing_along(st, poly: PackedVector2Array, height: float, upstand: float,
 			var bottom := maxf(upstand, 0.0)
 			_box_oriented(st, Vector3(p.x, y + (bottom + height) * 0.5, p.y), Basis(Vector3.UP, atan2(-dir.x, -dir.y)),
 					Vector3(0.06, height - bottom, 0.06), rail_col)
-			next_post += 2.0
+			next_post += post_every
 		run += length
 		if collide:
 			_wall_faces.append_array([Vector3(a.x, ga - 0.3, a.y), Vector3(b.x, gb - 0.3, b.y), Vector3(b.x, gb + height + 1.5, b.y),
@@ -6260,6 +6261,98 @@ func _stair_gaps(pts: PackedVector2Array) -> Array[PackedVector2Array]:
 	return out
 
 
+## Walls, fences and hedges from the map's own data (F, 2026-11-07: "what else can you improve in
+## the city environment?"; tools/barrier_tags.py). A wall's material (`m`) gives its colour (a
+## noise barrier with no height stands 4 m); a fence OSM calls a railing (`ft`: railing, bars,
+## balustrade, metal) is an open steel railing you see through, a chain-link one an open grey mesh,
+## a wooden one brown boards; a hedge or fence keeps its mapped height (`h`). A solid fence mapped
+## over FENCE_SOLID_MAX (the 6 m ball-stop nets round the pitches) is a mesh, not a 6 m grey band.
+## A style a rule above picked for its place (a basin rim, a garden ring, a stairwell) stays.
+const WALL_MATERIAL := {"brick": "#a8644b", "stone": "#b9b2a5", "concrete": "#a9a69f", "gabion": "#8f897e",
+		"glass": "#a9bcc0", "wood": "#7f6248", "metal": "#7b8085", "noise": "#7e8a84"}
+const FENCE_SOLID_MAX := 2.5
+
+
+func _mapped_style(l: Dictionary, style: Array) -> Array:
+	var k: String = l["k"]
+	var base: Variant = BARRIER_STYLE.get(k)
+	if base == null or style != base:
+		# Already a wall height (`h`, the stairs pass) or a placed style: only a colour for a wall.
+		if k == "wall" and l.has("m") and style.size() == 3 and style != GARDEN_RING and style != BASIN_RIM \
+				and style != LOW_WALL and style != ISLAND_EDGE:
+			return [WALL_MATERIAL.get(str(l["m"]), style[0]), style[1], style[2]]
+		return style
+	var h := float(l.get("h", -1.0))
+	match k:
+		"wall":
+			var col: String = WALL_MATERIAL.get(str(l.get("m", "")), style[0])
+			var wh := h if h > 0.0 else (4.0 if str(l.get("m", "")) == "noise" else float(style[2]))
+			return [col, style[1], wh]
+		"fence":
+			var ft := str(l.get("ft", ""))
+			if ft == "railing":
+				return ["#2a2e33", 0.05, clampf(h, 0.8, 2.5) if h > 0.0 else 1.2, [0.0, "#2a2e33"]]
+			if ft == "mesh" or h > FENCE_SOLID_MAX:
+				return ["#8b9196", 0.05, clampf(h, 1.0, 8.0) if h > 0.0 else 1.8, [0.0, "#8b9196"]]
+			if ft == "wood":
+				return ["#7f6248", 0.08, h if h > 0.0 else 1.5]
+			if h > 0.0:
+				return [style[0], style[1], clampf(h, 0.5, FENCE_SOLID_MAX)]
+		"hedge":
+			if h > 0.0:
+				return [style[0], style[1], clampf(h, 0.4, 3.0)]
+	return style
+
+
+## The Old Town's defence walls (OSM barrier=city_wall areas, `citywalls`, tools/barrier_tags.py):
+## they were not on the map at all, only the Barbakan and two towers. Brick, each its mapped height
+## (Baszta Rycerska 13.5 m; the rebuilt curtain walls 5-6 m; the ruins' stubs 1-1.5 m), the coping a
+## shade darker; from 1 m up they stop the car like any wall.
+const CITY_WALL := Color("#b8704f")
+
+
+func _build_city_walls(st) -> void:
+	_uv2 = Vector2(0.5, -1.0)
+	for w in data.get("citywalls", []):
+		var ring := _pts(w["p"])
+		if ring.size() < 3:
+			continue
+		var h := float(w.get("h", 5.0))
+		var tops := PackedFloat32Array()
+		var foot := INF
+		for q in ring:
+			foot = minf(foot, terrain_height(q.x, q.y))
+		for q in ring:
+			tops.append(maxf(terrain_height(q.x, q.y), foot) + h)
+		var idx := Geometry2D.triangulate_polygon(ring)
+		for i in range(0, idx.size(), 3):
+			var a := ring[idx[i]]
+			var b := ring[idx[i + 1]]
+			var c := ring[idx[i + 2]]
+			_tri(st, Vector3(a.x, tops[idx[i]], a.y), Vector3(b.x, tops[idx[i + 1]], b.y), Vector3(c.x, tops[idx[i + 2]], c.y),
+					Vector3.UP, CITY_WALL.darkened(0.12))
+		var ccw := 0.0
+		for i in ring.size():
+			ccw += ring[i].cross(ring[(i + 1) % ring.size()])
+		for i in ring.size():
+			var j := (i + 1) % ring.size()
+			var a := ring[i]
+			var b := ring[j]
+			var d := b - a
+			if d.length() < 0.02:
+				continue
+			# The outward normal (the ring's winding decides which side is out).
+			var n := Vector3(d.y, 0.0, -d.x).normalized() * (1.0 if ccw > 0.0 else -1.0)
+			var ga := terrain_height(a.x, a.y) - 0.3
+			var gb := terrain_height(b.x, b.y) - 0.3
+			var shade := CITY_WALL.darkened(0.04 * float(i % 3))
+			_quad(st, Vector3(a.x, ga, a.y), Vector3(b.x, gb, b.y), Vector3(b.x, tops[j], b.y), Vector3(a.x, tops[i], a.y), n, shade)
+			if h >= 1.0:
+				_wall_faces.append_array([Vector3(a.x, ga, a.y), Vector3(b.x, gb, b.y), Vector3(b.x, tops[j] + 1.5, b.y),
+						Vector3(a.x, ga, a.y), Vector3(b.x, tops[j] + 1.5, b.y), Vector3(a.x, tops[i] + 1.5, a.y)])
+	_uv2 = Vector2.ZERO
+
+
 func _build_barriers(st) -> void:
 	_uv2 = Vector2(0.5, -1.0)
 	_load_object_overrides()
@@ -6280,6 +6373,7 @@ func _build_barriers(st) -> void:
 				style = BASIN_RIM
 			elif _wraps_stairwell(_pts(l["p"])):
 				style = BARRIER_STYLE["balustrade_rail"]
+		style = _mapped_style(l, style)
 		if not _object_overrides.is_empty() and l["k"] != "platform":
 			var o: Variant = _object_overrides.get(barrier_id(l["k"], l["p"]))
 			if o is Array:
@@ -6290,7 +6384,9 @@ func _build_barriers(st) -> void:
 		var pts := _pts(l["p"])
 		if style.size() > 3:
 			var open: Array = style[3]
-			_railing_along(st, pts, float(style[2]), float(open[0]), Color(style[0]), Color(str(open[1])), true)
+			# A railing OSM maps (tools/barrier_tags.py) has a post every 3 m: 30 km of them.
+			_railing_along(st, pts, float(style[2]), float(open[0]), Color(style[0]), Color(str(open[1])), true,
+					3.0 if l.has("ft") or (l["k"] == "fence" and float(l.get("h", 0.0)) > FENCE_SOLID_MAX) else 2.0)
 			continue
 		# Loop 3b: a stop's platform is kerb height (0.25 m), not a wall: like the kerbs and
 		# islands, the car drives over it (check_drive.gd found buses brushing them).

@@ -167,7 +167,9 @@
 # Smooth roads (2026-11-05): `smooth` runs tools/road_smooth.py --check (the map is smoothed: the
 # width steps at the joins tapered, the lane lines stitched; its steps and jogs never grow).
 # Stairs across the city (2026-11-07): `stairs` runs tools/stairs.py --check (the map's flights carry
-# their OSM tags: step count, width, handrails, ramps; map_builder.gd builds the stone flights from them).
+# their OSM tags: step count, width, handrails, ramps; map_builder.gd builds the stone flights from them)
+# and tools/barrier_tags.py --check (walls, fences and hedges carry their mapped heights, materials and
+# fence types, and the Old Town's city walls are on the map).
 # Operation Unslop (2026-11-05): `streetpass` runs tools/street_pass.py --check (the street records in
 # docs/streets/ may never get worse), `models` runs tools/model_library.py --check (every model a
 # street record names is in the library or on its wanted list), `overrides` runs
@@ -738,11 +740,12 @@ for s in $want; do
 			esac ;;
 		stairs)
 			t0=$EPOCHREALTIME
-			python3 -I $ROOT/tools/stairs.py --check > $logs/stairs.log 2>&1
+			python3 -I $ROOT/tools/stairs.py --check > $logs/stairs.log 2>&1 && \
+				python3 -I $ROOT/tools/barrier_tags.py --check >> $logs/stairs.log 2>&1
 			code=$?
 			secs=$(printf '%.0f' $(( EPOCHREALTIME - t0 )))
 			case $code in
-				0) row PASS "stairs" $secs "$(grep '^stairs: ' $logs/stairs.log | tail -1)" ;;
+				0) row PASS "stairs" $secs "$(grep '^stairs: ' $logs/stairs.log | tail -1) · $(grep '^barrier_tags: ' $logs/stairs.log | tail -1)" ;;
 				*) row FAIL "stairs" $secs "$(grep '^stairs: ' $logs/stairs.log | tail -1) ($logs/stairs.log)" ;;
 			esac ;;
 		streetpass)
