@@ -103,6 +103,14 @@ const TOWERS := [
 	# dark band over the glazed ground floors.
 	{"key": "crowne", "at": Vector2(-2706.0, 512.0), "style": S_TILE, "glass": "#e8e4da", "roof": "#b8bcbf", "cool": true,
 			"band": "#3a3c40"},
+	# The Zachodnia offices by the tracks (F, 2026-11-06; street photos from Mapillary and Panoramax,
+	# refs/equator*, refs/brama): Brama Zachodnia is the terracotta tower with a green-glazed ground
+	# floor; Equator a graphite block in ribbon glazing over a perforated-metal car-park screen;
+	# Equator II graphite with blue-grey ribbon glass. The software house on Equator II's 9th floor
+	# gets the parody BLUZOFT on the roof edge.
+	{"key": "brama", "osm": "Brama Zachodnia", "style": S_PUNCHED, "glass": "#c99573", "roof": "#8d8a86", "h": 47.2},
+	{"key": "equator", "osm": "Equator", "style": S_RIBBON, "glass": "#4a5a6c", "roof": "#8a8f93", "h": 53.8},
+	{"key": "equator2", "osm": "Equator II", "style": S_RIBBON, "glass": "#5a7490", "roof": "#8a8f93", "h": 50.5, "sign": "BLUZOFT"},
 	{"key": "skysawa", "osm": "Skysawa", "style": S_BANDS, "glass": "#7e93a3", "roof": "#a7b0b6"},
 	# Błękitny Wieżowiec (Plac Bankowy 2, 1991): untinted reflective float glass that mirrors the
 	# sky, hence blue (its first cladding was copper, the "Golden Tower"; spec blekitny.md).
@@ -973,7 +981,9 @@ func _parts_in(poly: PackedVector2Array, test: Callable) -> Array[Dictionary]:
 		if q.size() < 3:
 			continue
 		var c := _centre(q)
-		if box.has_point(c) and Geometry2D.is_point_in_polygon(c, poly) and test.call(bld):
+		# A bent footprint (Equator II's curve) can have its centroid outside itself: the outline's own building still counts.
+		var own := q.size() == poly.size() and q[0].is_equal_approx(poly[0])
+		if (own or box.has_point(c) and Geometry2D.is_point_in_polygon(c, poly)) and test.call(bld):
 			out.append(bld)
 	return out
 
@@ -3369,6 +3379,13 @@ func _build_tower(site: Dictionary) -> void:
 	var roof := Color(spec["roof"])
 	var skin := M_SKIN + float(spec["style"]) / 16.0
 	var parts := _parts_in(zone, func(b: Dictionary) -> bool: return float(b["h"]) > float(b["mh"]) + 0.5)
+	if parts.is_empty() and spec.has("h"):
+		# An office the LoD2 data covers is no longer in the OSM building list: the outline itself, at `h`.
+		var flat: Array = []
+		for q in zone:
+			flat.append(q.x)
+			flat.append(q.y)
+		parts.append({"p": flat, "h": float(spec["h"]), "mh": 0.0, "c": "", "rc": "", "kind": "office", "name": str(spec.get("osm", ""))})
 	if parts.size() > 1:
 		parts = parts.filter(func(b: Dictionary) -> bool: return str(b.get("name", "")) != spec.get("osm", ""))
 	var boxes: Array[Rect2] = []

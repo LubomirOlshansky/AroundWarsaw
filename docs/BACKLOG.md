@@ -86,6 +86,11 @@ planters). Left:
 - The podium's Marszałkowska front has no photo: built as two glazed storeys under a lit fascia.
 
 
+## Zachodnia offices and BLUZOFT (F, 2026-11-06)
+
+Done: Brama Zachodnia, Equator and Equator II re-skinned from street photos (refs/brama, refs/equator, refs/equator2, gitignored), BLUZOFT on Equator II's roof edge, the jokes (the real firm's name is in brand_denylist.json; only the parody appears). Open:
+- Equator and Equator II keep the OSM footprints and heights (53.8 m and 50.5 m); the photos show stepped, curved faces, the perforated-metal car-park screen and the green-glazed Brama ground floor, none modelled yet. Needs a Mac photo pass from the tracks side (F's screenshot angle).
+- An office crowd site at the Equator doors (the jokes only reach the Rondo Daszyńskiego crowd now).
 ## Miodowa's palaces from F's photos (F, 2026-11-07; spec docs/landmarks/specs/miodowa.md)
 
 Built: seven palaces in photo-read skins (Branickich, Młodziejowskiego, Szaniawskich, Chodkiewiczów, Arcybiskupi,

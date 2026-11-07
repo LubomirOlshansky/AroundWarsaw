@@ -261,6 +261,54 @@
       }
     ],
     [
+      "Pozdrowienia dla BLUZOFTU z dziewiątego piętra Equatora II. Build przeszedł, kawa nie.",
+      "Greetings to BLUZOFT on the ninth floor of Equator II. The build passed, the coffee didn't."
+    ],
+    [
+      "Sztuczna inteligencja zastąpi programistów za pół roku. Mówią to od trzech lat. Prognoza stabilna.",
+      "AI will replace programmers in six months. They've been saying that for three years. Outlook: stable."
+    ],
+    [
+      "Vibe coding: nie czytam kodu, tylko go czuję. Po wdrożeniu kod też mnie czuje.",
+      "Vibe coding: I don't read the code, I feel it. After the deploy, the code feels me too."
+    ],
+    [
+      "Oferta pracy dla juniora: pięć lat doświadczenia w technologii z zeszłego tygodnia.",
+      "Job ad for a junior: five years of experience in a technology from last week."
+    ],
+    [
+      "Programista na Rondzie Daszyńskiego mówi: „u mnie działa”. Tramwaj mówi: „u mnie też, jadę”.",
+      "A developer at Rondo Daszyńskiego says: 'works on my machine'. The tram says: 'mine too, I'm off'."
+    ],
+    [
+      "Asystent AI napisał mi funkcję w sekundę. Szukam od dwóch godzin, czemu wywołuje samą siebie.",
+      "The AI assistant wrote me a function in a second. I've spent two hours finding out why it calls itself."
+    ],
+    [
+      "Agent AI przeprosił, że skasował bazę produkcyjną. Był bardzo uprzejmy. Baza nie wróciła.",
+      "The AI agent apologised for deleting the production database. Very polite. The database didn't come back."
+    ],
+    [
+      "Junior z asystentem napisał tysiąc linii przed obiadem. Seniorów prosimy nie czytać, tylko usiąść.",
+      "A junior with an assistant wrote a thousand lines before lunch. Seniors: please don't read it, just sit down."
+    ],
+    [
+      "Piątkowy deploy to jak Pasatini na lewym pasie: wszyscy wiedzą, że nie wolno, i wszyscy się modlą.",
+      "A Friday deploy is like a Pasatini in the left lane: everybody knows you mustn't, and everybody prays."
+    ],
+    [
+      "Szef prosi o „małą zmianę”. W programowaniu znaczy to: nie ruszaj, jeszcze działa.",
+      "The boss asks for 'a small change'. In programming that means: don't touch it, it still works."
+    ],
+    [
+      "Najpopularniejsza technika programowania w Polsce: Ctrl+C, Ctrl+V i modlitwa.",
+      "The most popular programming technique in Poland: Ctrl+C, Ctrl+V and a prayer."
+    ],
+    [
+      "Spotkanie, które mogło być mailem, spotkało się z mailem, który mógł być ciszą.",
+      "A meeting that could have been an email met an email that could have been silence."
+    ],
+    [
       "{street}: elektryk stoi z zerem na baterii. Kierowcy diesli pozdrawiają i trąbią.",
       "{street}: an electric car stands with a flat battery. Diesel drivers wave and honk.",
       {
@@ -354,6 +402,20 @@
       "To the mall car park: level −2, zone \"where did I park\".",
       {
         "only": "mall"
+      }
+    ],
+    [
+      "Equator II, dziewiąte piętro. W uwagach: „stand-up trwa, poczekaj”.",
+      "Equator II, ninth floor. Note: \"stand-up's still on, wait\".",
+      {
+        "only": "office"
+      }
+    ],
+    [
+      "Zamówienie z BLUZOFTU: „bez wdrożeń przed kebabem”.",
+      "Order from BLUZOFT: \"no deploys before the kebab\".",
+      {
+        "only": "office"
       }
     ]
   ],
@@ -542,6 +604,18 @@
     [
       "Deweloper: „klimatyczne wnętrze”. To była komórka lokatorska.",
       "Developer: \"atmospheric interior\". It was a storage cupboard."
+    ],
+    [
+      "Pracuję w BLUZOFCIE. Naprawiam to, co AI zepsuło w piątek.",
+      "I work at BLUZOFT. I fix what the AI broke on Friday."
+    ],
+    [
+      "Jestem programistą. Wierzę w Ctrl+Z i w to, że klient nie zerknie.",
+      "I'm a developer. I believe in Ctrl+Z and that the client won't look."
+    ],
+    [
+      "Tata pyta, czy AI zabierze mi pracę. Mówię: tak, ale najpierw spotkanie.",
+      "Dad asks if AI will take my job. I say yes, but first a meeting."
     ]
   ],
   "podwozka_request": [
@@ -4445,6 +4519,78 @@
     [
       "Nasz „value proposition” to proposition, którego nie ma.",
       "Our 'value proposition' is a proposition we don't have."
+    ],
+    [
+      "Zrobiłem to vibe codingiem. Nie wiem jak, nie dotykać.",
+      "Did it by vibe coding. No idea how. Don't touch."
+    ],
+    [
+      "AI napisało testy. Wszystkie zielone. Bo nic nie sprawdzają.",
+      "The AI wrote the tests. All green. They check nothing."
+    ],
+    [
+      "Wdrożenie w piątek? Odważnie. Kto jest twoim następcą?",
+      "A Friday deploy? Bold. Who's your successor?"
+    ],
+    [
+      "Code review: cztery tysiące linii. Zatwierdzam, ufam wibracjom.",
+      "Code review: four thousand lines. Approved, I trust the vibes."
+    ],
+    [
+      "W BLUZOFCIE stand-up jest na stojąco. Reszta też.",
+      "At BLUZOFT the stand-up is on your feet. So is the rest."
+    ],
+    [
+      "Działa u mnie. — To wyślemy twój laptop do klienta.",
+      "Works on mine. — Then we'll ship your laptop to the client."
+    ],
+    [
+      "Dług techniczny spłacimy w następnym kwartale. Od trzech lat.",
+      "We'll pay off the tech debt next quarter. For three years now."
+    ],
+    [
+      "Prompt inżynier: ktoś, kto prosi maszynę uprzejmie.",
+      "Prompt engineer: someone who asks a machine nicely."
+    ],
+    [
+      "AI zabierze mi pracę? Niech najpierw zabierze ten ticket.",
+      "AI will take my job? Let it take this ticket first."
+    ],
+    [
+      "Zapytałem AI o architekturę. Narysowało pudełka i strzałki. Jak ja.",
+      "Asked the AI about architecture. It drew boxes and arrows. Like me."
+    ],
+    [
+      "To nie bug, to feature. Dokumentacja: to bug.",
+      "It's not a bug, it's a feature. The docs: it's a bug."
+    ],
+    [
+      "Pierwsza kawa, druga kawa. Stand-up o dziewiątej, ja o dziesiątej.",
+      "First coffee, second coffee. Stand-up at nine, me at ten.",
+      {
+        "only": "morning"
+      }
+    ],
+    [
+      "Lunch: sałatka i dyskusja, tabulatory czy spacje.",
+      "Lunch: a salad and tabs-versus-spaces.",
+      {
+        "only": "lunch"
+      }
+    ],
+    [
+      "Wracam do domu. Laptop też. Obaj udajemy, że nie pracujemy.",
+      "Heading home. So's my laptop. We both pretend we're off.",
+      {
+        "only": "evening"
+      }
+    ],
+    [
+      "Na dworze chmura, w biurze też. Wdrożenie przesunięte.",
+      "Cloud outside, cloud in the office. Deploy postponed.",
+      {
+        "only": "rain"
+      }
     ]
   ],
   "radio_hello_morning": [
