@@ -160,13 +160,17 @@ const STYLES := [
 	{"name": "Clean", "lines": 240, "outline": 0.6, "levels": 0.0, "saturation": 1.1},
 	{"name": "Chunky", "lines": 170, "outline": 0.8, "levels": 9.0, "saturation": 1.2},
 ]
-var camera_pitch := -30.0
+## The camera's tilt in degrees (minus the angle over the ground): Settings → Obraz "Kąt kamery"
+## (settings.gd pitch, follow_camera.gd PITCHES) or --pitch=.
+var camera_pitch := -FollowCamera.DEFAULT_PITCH
 const CAMERA_DISTANCE := 500.0
 ## Height of the view in metres (orthographic size): wide enough to read the city.
 var base_size := FollowCamera.DEFAULT_SIZE
 ## The follow-camera loop: --size= was given (the saved zoom doesn't apply), and the pinch's span
 ## ratio since its last zoom step.
 var _flag_size := false
+## --pitch= was given: the saved camera angle (Settings → Obraz) doesn't override it.
+var _flag_pitch := false
 var _pinch_run := 1.0
 ## The helicopter's view is this much wider than the car's (as before loop 2a: 1.3 × 110 m).
 const HELI_VIEW := 1.3 * 110.0 / FollowCamera.DEFAULT_SIZE
@@ -2144,7 +2148,7 @@ func _start_phone_bench() -> void:
 	if busy != "":
 		hud.toast(Lang.split(busy))
 		return
-	_phone_saved = {"at": car.global_transform, "mask": car.collision_mask, "size": base_size,
+	_phone_saved = {"at": car.global_transform, "mask": car.collision_mask, "size": base_size, "pitch": camera_pitch,
 			"wallet": [wallet.zl, wallet.respect, wallet.jobs.duplicate(true), wallet.best.duplicate(true),
 					wallet.eggs.duplicate(true), wallet.district_jobs.duplicate(true), wallet.ladder.duplicate(true)], "persistent": wallet.persistent,
 			"calls": missions.paused}
@@ -2156,6 +2160,7 @@ func _start_phone_bench() -> void:
 	hud.hide_bench_card()
 	moments.stop()
 	base_size = FollowCamera.DEFAULT_SIZE
+	camera_pitch = -FollowCamera.DEFAULT_PITCH  # the bench's numbers at the game's look, whatever the player chose
 	car.global_transform = _spawn
 	car.vel = Vector3.ZERO
 	car.forward_speed = 0.0
@@ -2200,6 +2205,7 @@ func _end_phone_bench(done: bool) -> void:
 	car.reset_physics_interpolation()
 	cam_focus = car.global_position
 	base_size = _phone_saved["size"]
+	camera_pitch = _phone_saved["pitch"]
 	var w: Array = _phone_saved["wallet"]
 	wallet.zl = w[0]
 	wallet.respect = w[1]
@@ -4120,6 +4126,7 @@ func _parse_args() -> void:
 			start_heading = float(arg.trim_prefix("--heading="))
 		elif arg.begins_with("--pitch="):
 			camera_pitch = float(arg.trim_prefix("--pitch="))
+			_flag_pitch = true
 		elif arg.begins_with("--lines="):
 			lines_override = int(arg.trim_prefix("--lines="))
 		elif arg.begins_with("--sun="):
@@ -4637,6 +4644,8 @@ func _load_settings() -> void:
 		Access.color_safe = true
 	if not _flag_size:
 		base_size = settings.view
+	if not _flag_pitch:
+		camera_pitch = -settings.pitch
 	model_name = _flag_model if _flag_model != "" else OS.get_model_name()
 	auto_quality = Tiers.for_model(model_name)
 	quality_choice = _flag_quality if _flag_quality != -2 else settings.quality
@@ -5046,6 +5055,7 @@ func _settings_state() -> Dictionary:
 			"auto": auto_name,
 			"master": settings.master, "music": settings.music, "effects": settings.effects, "perf": int(show_perf),
 			"fps": maxi(0, Settings.FPS.find(settings.fps)), "style": style_index, "vhs": int(vhs),
+			"angle": maxi(0, FollowCamera.PITCHES.find(-camera_pitch)),
 			"weather": weather.state, "time": tod.mode, "wander": int(spacer != null and spacer.on), "zones": int(zone_cap_on), "handling": settings.handling, "chatter": settings.chatter, "sensitivity": settings.sensitivity,
 			"text_large": int(settings.text_large), "calm": int(settings.calm), "color_safe": int(settings.color_safe),
 			"vibration": int(settings.vibration), "stop_assist": int(settings.stop_assist),
@@ -5126,6 +5136,10 @@ func _on_setting(key: String, value: Variant) -> void:
 		"fps":
 			settings.fps = Settings.FPS[clampi(int(value), 0, Settings.FPS.size() - 1)]
 			_apply_fps()
+		"angle":
+			# F (2026-11-07): the camera's angle (follow_camera.gd PITCHES); the camera follows next frame.
+			settings.pitch = FollowCamera.PITCHES[clampi(int(value), 0, FollowCamera.PITCHES.size() - 1)]
+			camera_pitch = -settings.pitch
 		"bench":
 			_start_phone_bench.call_deferred()
 			return

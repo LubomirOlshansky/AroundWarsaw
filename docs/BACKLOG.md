@@ -4,6 +4,17 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Closer zoom and the camera angle (F, 2026-11-07)
+Done: + goes one step closer (40 m view, follow_camera.gd VIEWS) and Settings → Obraz → "Kąt kamery ·
+Camera angle" picks 30° (default), 40° or 50° (follow_camera.gd PITCHES, settings.gd `pitch`).
+- [ ] Phone check: does 40 m read well while driving fast (about 1.6 s of road ahead at 90 km/h), and
+  do the steeper angles look right on the iPhone (roof detail, street furniture, the dithered fades).
+- [ ] Parked: a lower angle than 30° (more horizon) was not added: it shows more ground per frame,
+  so more draw calls; needs a bench on the iPhone 11 first if F wants it.
+- [ ] Some tuning still assumes 30°: the helicopter's aim (main.gd AIM_*) and check_drape's
+  PITCH_SIN. Fine in the shots at 40° and 50°; revisit if something looks off on the phone.
+
+
 ## Miodowa's palaces from F's photos (F, 2026-11-07; spec docs/landmarks/specs/miodowa.md)
 
 Built: seven palaces in photo-read skins (Branickich, Młodziejowskiego, Szaniawskich, Chodkiewiczów, Arcybiskupi,
