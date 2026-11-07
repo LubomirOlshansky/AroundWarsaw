@@ -24,7 +24,8 @@ then the Launch gate.
 - [x] Landmark look-check fixes from F's answers: Hotel Warszawa's one stone base, portal and cornices; Poczta's recessed colonnade and canopy, PAST-a darker; MPW's pale bannered wing and deeper arches; Norblin's white workshops, copper base, finned storeys and glass passage; Browary's tree clumps, path and clearings; Wschodnia's eave, struts and suburban roofs; Bazar's patched stalls; Pasaż Wiecha's grey slabs and Y masts (2026-11-03, #403)
 - [x] Developer console (F, 2026-11-04): `tools/console.py` -> `build/console/index.html`: overview, city map with layers, sliders, area picker and counts (cafés, shops, roads km, bridges, trees…), content tables, approvals queue, renders; `--watch` keeps it current; deploy notes in `console/README.md`. Next: Mapillary/road-objects census layer once PR #429 lands, A/B pairs
 - [x] Status page, review sheet and resumable bake (2026-11-04, from the Isometric Istanbul docs): `tools/status_page.py` (map of ranked places by stage, clickable, % by tier and district), `tools/shot_sheet.py` (before/after sheet), `tools/bake_all.sh --resume`
-- [x] Closed source for now: MIT replaced by an all-rights-reserved `LICENSE`, CONTRIBUTING.md and the open-source/contribute lines removed from README, CREDITS, the in-game credits and the site (2026-11-03, PR pending; F makes the repo private and deploys the site; the design wiki is untouched)
+- [x] Source-available, non-commercial licence: PolyForm Noncommercial 1.0.0 for code (`LICENSE`), CC BY-NC 4.0 for art, sound and text (`LICENSE-ASSETS.md`); GitHub repo links removed from README run steps, wiki and console, site licence line updated (2026-11-06; F deploys the site and makes the repo private)
+- [x] Closed source for now (superseded by the line above): MIT replaced by an all-rights-reserved `LICENSE`, CONTRIBUTING.md and the open-source/contribute lines removed from README, CREDITS, the in-game credits and the site (2026-11-03, PR pending; F makes the repo private and deploys the site; the design wiki is untouched)
 - [x] Opening fly-over sound: the announcer line (Opening_line_a) plays once with the flight, radio dipped to -20 dB, then swells to full (2026-11-03, PR pending; phone listen check open)
 - [x] WTS DESKA tennis club (hall + one padel court), players, DESKA neon and a friend's "Czwarty" phone call that sends you there (2026-11-01, PR pending; phone check open)
 - [x] Map: the 21 km² demo box in streamed sectors, 1 m terrain, map north (3c, 3d-1, 3d-2, 3e)
@@ -215,6 +216,8 @@ then the Launch gate.
   - [x] Plac Bankowy's colonnades and the Bank Polski corner, Filharmonia, Teatr Polski from the Mac photo reports (2026-11-02, specs `bankowy.md`, `filharmonia.md`, `teatr_polski.md`)
   - [x] Poczta Główna and PAST-a from the Mac photo reports (2026-11-03, specs `poczta.md`, `pasta.md`)
   - [ ] Narodowy Bank Polski (waits on its photo report)
+  - [x] Miodowa's palaces from F's photos (2026-11-07, spec `miodowa.md`): Branickich's front modelled, six more palaces in photo-read skins
+  - [ ] Miodowa's palaces, the rest: Młodziejowskiego's pediment block and fence, Paca's gate court, Collegium Nobilium's tower block, Pałac Prymasowski and Pałac Blanka
 - [ ] **Warsaw modernism and brutalism, high priority** (F, 2026-11-03; docs/design/modernism-collection.md,
       CITY_INVENTORY 147-153, BACKLOG "Warsaw modernism and brutalism"): photo builds from the Mac's `refs/<slug>/`
   - [x] The plan: the buildings ranked M1-M17, the modelling recipe, the quest design (2026-11-03, docs only)
