@@ -113,6 +113,8 @@ ground and bend with the cutting's sub-cells (`map_builder._drape_edge`); check_
 ## Open-PR audit (F, 2026-11-07; docs/PR_AUDIT.md)
 
 - [x] 17 orphan PRs (owner thread gone, green, conflicting for 1-2 days) merged to main, 12 of them as one merge train
+- [x] Test flags: the coffee run moved to `--trend-job=9` (8 is Mrożulo's Dżemini call; both PRs had taken 8)
+- [ ] Map PRs left to their owners (they touch centrum.json and need a re-bake): #485, #511, #515, #517, #518
 - [ ] ~330 merged `claude/*` branches to delete: the cloud proxy blocks it; F runs `delete-merged-branches.sh` (project files, audit/) on the Mac
 - [ ] Closed #455 (bump to 1.0.2, Android code 9) never reached main; F decided to drop it (branch on the delete list)
 - [ ] Docs conflicts: many PRs edit CHANGELOG/BACKLOG/ROADMAP/CITY_INVENTORY and verify.sh's step lists at once, so every merge conflicts the next; a PR left 12 h with conflicts gets re-pinged
