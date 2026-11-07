@@ -121,7 +121,7 @@ const BUDGET := {
 	"jp2_21": 280,
 	"kopernik": 1720,
 	"legia": 700,
-	"lim": 300,
+	"lim": 1700,  # the podium from F's photos (2026-11-06): 1415 measured
 	"loretka": 1120,
 	"lucka": 850,  # 2026-11-06: rebuilt from F's photos (white stepped block, INTERBRUK board, masts)
 	"prosta28": 1400,  # 2026-11-06: X-braced base, stepped tree terraces, stone stack, annex
