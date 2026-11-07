@@ -353,6 +353,10 @@ func _check_sites(c: Crowds) -> void:
 			stops += 1
 			_expect(not (ss["slots"] as Array).is_empty(), "%s: no slots on its platform" % ss["id"])
 	_expect(stops >= 4, "Marszałkowska: only %d tram platforms with a crowd" % stops)
+	# F's LIM photos (2026-11-06): the Dworzec Centralny stop in front of Centrum LIM, busy at night too.
+	var centralny := c.sites.filter(func(ss: Dictionary) -> bool: return str(ss["id"]).begins_with("stop_centralny"))
+	_expect(centralny.size() >= 2 and centralny.all(func(ss: Dictionary) -> bool: return float(ss.get("floor", 0.0)) > 0.0),
+			"Dworzec Centralny: %d tram platforms with a night crowd (want 2)" % centralny.size())
 	_expect(Crowds.piure_queue(17.0, 5)[0] == 0 and Crowds.piure_queue(20.0, 2) == [10, "timber"]
 			and Crowds.piure_queue(20.0, 5)[0] == Crowds.PIURE_MAX and Crowds.piure_queue(0.5, 7)[0] == Crowds.PIURE_MAX
 			and Crowds.piure_queue(0.5, 1)[0] == 10 and Crowds.piure_queue(1.5, 6)[0] == 0, "HOTEL PIURE: its line by hour")

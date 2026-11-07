@@ -146,6 +146,14 @@ const STOP_STREET := "Marszałkowska"
 const STOP_REACH := 25.0
 const STOP_AREA := 22.0
 const STOP_MAX := 12
+## F's LIM photos (2026-11-06): the Dworzec Centralny tram stop on Aleje Jerozolimskie, in front
+## of Centrum LIM, is full at all hours (the station across the street). Its platforms (centres
+## within STOP_CENTRALNY_REACH m of the point) get `stop` sites too, up to STOP_CENTRALNY_MAX
+## people each, never under STOP_CENTRALNY_FLOOR of that even at night.
+const STOP_CENTRALNY := Vector2(-1410.0, 660.0)
+const STOP_CENTRALNY_REACH := 40.0
+const STOP_CENTRALNY_MAX := 16
+const STOP_CENTRALNY_FLOOR := 0.4
 const DAWN_MIN := 20
 const DAWN_MAX := 40
 ## The night's minute log (--night-log).
@@ -1125,6 +1133,9 @@ func _add_stops(data: Dictionary) -> void:
 				near = true
 				break
 		var cap := clampi(roundi(poly_area(flat) / STOP_AREA), 0, STOP_MAX)
+		var centralny := not near and c.distance_to(STOP_CENTRALNY) <= STOP_CENTRALNY_REACH
+		if centralny:
+			cap = clampi(roundi(poly_area(flat) / STOP_AREA), 3, STOP_CENTRALNY_MAX)
 		if cap < 3:
 			continue
 		# The platform's walking top (map_builder's slab: the outline's lowest ground + h + 0.1).
@@ -1133,12 +1144,18 @@ func _add_stops(data: Dictionary) -> void:
 			for v in poly:
 				top = minf(top, map.terrain_height(v.x, v.y))
 			top += float(pl.get("h", 0.25)) + 0.1
-		var site := {"id": ("stop_marsz_%d" % idx) if near else ("stop_%d" % other), "kind": "stop", "at": c,
-				"poly": poly, "max": cap}
+		var id := "stop_%d" % other
+		if near:
+			id = "stop_marsz_%d" % idx
+		elif centralny:
+			id = "stop_centralny_%d" % idx
+		var site := {"id": id, "kind": "stop", "at": c, "poly": poly, "max": cap}
+		if centralny:
+			site["floor"] = STOP_CENTRALNY_FLOOR
 		if top != INF:
 			site["top"] = top
 		_add_site(site)
-		if near:
+		if near or centralny:
 			idx += 1
 		else:
 			other += 1
@@ -1946,7 +1963,7 @@ func tick(step: float) -> void:
 					lvl = club_level(hour, weekday, month, rain)
 				want = roundi(int(s["max"]) * k * lvl)
 			"stop":
-				want = roundi(int(s["max"]) * k * stop_level(hour, weekday, rain))
+				want = roundi(int(s["max"]) * k * maxf(stop_level(hour, weekday, rain), float(s.get("floor", 0.0))))
 			"office":
 				want = office_count(int(s["max"]), hour, weekday, rain, k)
 			"meet":

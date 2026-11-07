@@ -22,6 +22,7 @@ then the Launch gate.
 - [x] Loading bar on the title screen (F, 2026-11-05: the start looked frozen, then the city popped in): the map files load on threads, the build yields between its steps, a neon bar with "building the city… 42 %" runs to "TAP TO DRIVE" (PR pending; phone timing check open)
 - [x] Crazy drivers in traffic (F, 2026-11-05; spec `crazy-drivers.md`): Szkoda Oktawia taxis, Szprynter couriers and one Pasatini 1.9 TDJ in the race rivals' racer mode with no route: fast, tailgating, passing, cutting in and blocking, a fresh red now and then; a horn and a line when one cuts you off, KEBAB FM's Pasatini sightings (`check_crazy_drivers`, verify step `crazy`; phone feel open)
 - [x] Readable messages (F, 2026-11-05): speech bubbles, toasts and the radio ticker stay up by text length (chatter.gd `read_time`, 3-11 s, more with large text), never shorter than before (PR pending; tap to dismiss/recall not built)
+- [ ] Trybunał Konstytucyjny (al. Szucha 12a): parked until the map grows south, photos gathered (F, 2026-11-06; BACKLOG "Trybunał Konstytucyjny")
 - [x] Landmark look-check fixes from F's answers: Hotel Warszawa's one stone base, portal and cornices; Poczta's recessed colonnade and canopy, PAST-a darker; MPW's pale bannered wing and deeper arches; Norblin's white workshops, copper base, finned storeys and glass passage; Browary's tree clumps, path and clearings; Wschodnia's eave, struts and suburban roofs; Bazar's patched stalls; Pasaż Wiecha's grey slabs and Y masts (2026-11-03, #403)
 - [x] Developer console (F, 2026-11-04): `tools/console.py` -> `build/console/index.html`: overview, city map with layers, sliders, area picker and counts (cafés, shops, roads km, bridges, trees…), content tables, approvals queue, renders; `--watch` keeps it current; deploy notes in `console/README.md`. Next: Mapillary/road-objects census layer once PR #429 lands, A/B pairs
 - [x] Status page, review sheet and resumable bake (2026-11-04, from the Isometric Istanbul docs): `tools/status_page.py` (map of ranked places by stage, clickable, % by tier and district), `tools/shot_sheet.py` (before/after sheet), `tools/bake_all.sh --resume`
@@ -45,6 +46,9 @@ then the Launch gate.
 - [x] Warsaw Spire rebuilt to the real shape (F's photos, 2026-11-02; spec `spire.md`): a shaft that widens
       upward over a lit glass lobby, a domed roof with a fin and two masts, the mirrored entrance canopy on
       V legs, the two curved 15-storey wings and the paved plaza; Mac look check parked (QUESTIONS)
+- [x] Centrum LIM's podium rebuilt from F's night photos (2026-11-06; spec `lim-podium.md`): panel bands, the
+      set-back gallery, the arcade, the tenants' parody signs (PEPEO ŻUBR's bison and more), three LED screens,
+      busy pavement and Dworzec Centralny tram stop; phone look check open
 - [x] Royal Castle pass 2 and its gardens (F, 2026-11-02; spec `zamek.md`): the Clock Tower and helm, corner
       turrets, the cream Vistula front with its dome, Kubicki's Arcades and the Upper and Lower Gardens from
       the Krajobraz project, photos and the orthophoto; Mac look check parked (QUESTIONS)
@@ -232,7 +236,7 @@ then the Launch gate.
   - [x] Every OSM monument, sculpture, talking bench and memorial plaque in the box as a generic piece, plaques on their walls with candles (2026-11-02, tools/bake_monuments.py)
   - [x] Plac Piłsudskiego from photos: the Smolensk memorial, Piłsudski, Kaczyński, the masts and the granite chequer (2026-11-02, refs/pilsudskiego/)
   - [x] Plac Piłsudskiego paving no longer reads as a chess board: half the panel contrast, thin dark bands, granite grain, panels fade out in wide views (2026-11-03, GAMEPLAY_PLAN Phase 0.5; phone look still open)
-  - [ ] Photo builds: Nike, Słowacki and Starzyński, Mały Powstaniec and Kiliński, the Eastern memorial, Umschlagplatz (reports in docs/landmarks/photo-reports/)
+  - [x] Photo builds from the Mac's photo reports: Nike, Słowacki and Starzyński, Mały Powstaniec and Kiliński, the Eastern memorial, Umschlagplatz (2026-11-02; F's look check parked)
 - [ ] Krajobraz places (F, 2026-11-02; docs/design/krajobraz-places.md, BACKLOG "Krajobraz places"): the newest public spaces as built
   - [x] K1 ul. Bracka's woonerf: its 22 missing young trees planted in the mapped beds (33 in all)
   - [x] K2 ul. Chmielna: 65 young elms and planes in its tree pits (85 in all), granite paving, Ali's stone and plate
