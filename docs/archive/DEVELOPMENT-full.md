@@ -5653,6 +5653,8 @@ Command-line options (after `--`):
 | `--ride=N` | loop 2d-1: Podwózka ride N's request, the car on the road 60 m before its passenger (the same N gives the same ride; with `--ride-quirk=river` or `zone` the passenger is picked near river spot / park N, so the leg fits); with `--autopilot` it is accepted after 2 s and driven |
 | `--ride-quirk=river\|zone\|oldtown\|rechotka\|reroute` | loop 2d-1: force the ride's quirk (`oldtown` becomes `zone` on today's map; `rechotka`, the Frogs turn: in the random pool since loop MW-2) |
 | `--passenger=normal\|believer\|hurry\|detour` | loop 2d-1: force the passenger type (loop MW-2: `detour` asks for a Frogs stop, +½ star once) |
+| `--ride-story=ID\|none` | 2026-11-07: that story passenger (`data/taxi_stories.json` id) on the rides, or `none` for the old chat |
+| `--ride-answer=0\|1` | 2026-11-07: the autopilot's answer to the story passenger's question (default 0) |
 | `--no-parodies` | loop MW-2: no storefronts (Frogs, venue neon, Leżaks, metro entrances, the new billboards) and no Pędzik couriers |
 | `--rechotka` | loop MW-2: the car on the lane by the nearest placed Frogs' door, stopped (the stamp in 2 s) |
 | `--stamps=K` | loop MW-2: the Frogs card starts at K stamps (9: the next stop is the free hot dog) |
@@ -5693,6 +5695,10 @@ Command-line options (after `--`):
 | `--fullmap` | F's asks (2026-10-30): open the full-screen map at the start (the game paused; screenshots) |
 | `--fullmap=M` | 2026-10-31: the same, M metres across the screen's height (the game map's shots) |
 | `--quest-pick=N` | G12 part 2 (2026-11-02): open the full map at the start and tap row N of the ZADANIA tab shown (the vehicle's); a place's pick closes the map and becomes the quest pin |
+| `--quest-tab=N` | quest map (2026-11-07): the full map's quest card opens on tab N (0 AUTO, 1 HELI, 2 WĄTKI) |
+| `--story=ID` | quest map: questline ID (`boat`, `rave`) starts from the WĄTKI list 1.5 s in (its friend phones) |
+| `--story-meet` | quest map: the friend's WCHODZĘ is pressed by itself a second after they walk up (the in-person start without a tap) |
+| `--stories-log` | quest map (`story_quests.gd`): the questlines, quest focus, the friend walking up |
 | `--map-jump=X,Z` | 2026-10-31: the full map's hold-to-teleport to X,Z at the start (prints the refusal, if any, and where the car went) |
 | `--settings-tab=N` | loop 2e: open the settings panel at tab N (0 Jazda · Driving, 1 Świat · World, 2 Obraz · Picture, 3 Dźwięk · Sound; loop MW-1: 4 Zeszyt · the notebook) |
 | `--notebook` / `--notebook=CHAPTER\|ID` | loop MW-1: open the settings card on MOJA WARSZAWA, the notebook (a chapter by id or number 1-9, or a place's card by its id; screenshots) |
@@ -5730,7 +5736,8 @@ Command-line options (after `--`):
 | `--life-log` | loop MW-4: print `life:` lines: the index, the minute's summary (riders, runners, Kolka, Hyrax, bells, the Zając), the bell, E28's follow, the Zając |
 | `--zajac` | loop MW-4: Live on Wednesday 2026-10-28 at 19:00 (`--clock=` and a Wednesday `--date=` change them), the car by Kolka's start (free roam, no title); with `--autopilot` the car paces the club 10 m to its side from 19:00 (the Zając: `life: zajac paid +40 respect (E29)`) |
 | `--trend-day=N` | loop MW-4: the Wiralek cycle's day number (0 = slot 1 on day 1, slot 2 on day 3, slot 3 on day 5; 88 = all three on day 1) instead of Live's date or the session's |
-| `--trend-job[=1\|2\|3\|4\|5\|6]` | loop MW-4: start by that Wiralek slot (1 Plac Zbawiciela, 2 Chmielna, 3 Tamka; 4: PISTACJA's "Limitka" drop job, whatever the clock; 5: PADELNIA's "Czwarty"; 6: Mrożulo's van parked by the car near KUKŁA on Nowy Świat with his "Mlask" request, docs/design/gaulle-and-food-hype.md G5) with its request offered; with `--autopilot` accepted and driven (Mlask: the review card closes by itself); implies `--trend-log` |
+| `--trend-job[=1\|2\|3\|4\|5\|6\|7\|8]` | loop MW-4: start by that Wiralek slot (1 Plac Zbawiciela, 2 Chmielna, 3 Tamka; 4: PISTACJA's "Limitka" drop job, whatever the clock; 5: PADELNIA's "Czwarty"; 6: Mrożulo's van parked by the car near KUKŁA on Nowy Świat with his "Mlask" request, docs/design/gaulle-and-food-hype.md G5; 7: the DESKA padel call; 8: Mrożulo's "Dżemini" call, the car by DŻEMINI KEBAB on Świętokrzyska, G5b) with its request offered; with `--autopilot` accepted and driven (Mlask: the review card closes by itself); implies `--trend-log` |
+| `--dzemini` | G5b: Mrożulo's MLASK already on DŻEMINI KEBAB (its queue for good, the sticker on its wall), the car by the shop; implies `--trend-log` (docs/design/gaulle-and-food-hype.md G5b) |
 | `--night-hub` | night-buses loop: a gathering of night buses at Dworzec Centralny now, whatever the time (with `--time=night`, the N signs too); its buses park at their bays at once |
 | `--train=X,Z[,K]` | railway T1 (docs/design/railway.md): a train put on the track nearest that point at the start, rolling on (shots); K picks its kind (trains.gd KINDS: 0 Koleje Mazowe, 1 SKiM, 2 the long-distance one) |
 | `--old-tram` / `--old-tram=follow` | vintage-tram loop: the old two-car set now, on the track nearest the car, whatever the time (it stays); `=follow`: and the car (no collisions) kept 22 m behind its tail, so the view goes with it and E39's 300 m count runs |
@@ -5752,8 +5759,15 @@ Command-line options (after `--`):
 | `--boat-race`, `--boat-race=call` | boat race (`boat_race.gd`): Szymek rings now, whatever the time |
 | `--boat-race=race` | boat race: the car at the start pontoon and straight onto the grid (3-2-1) |
 | `--boat-race=auto` | boat race: as `race`, with the player's boat driven by the rivals' driver (the shots and the full-race probe) |
+| `--boat-race=free`, `=free0`..`=free2` | free ride: the car at the start pontoon, out in a fleet boat (0 jet ski Rekin X, 1 electric Srebrna Strzała, the default, 2 offshore Czarna Pantera; no rings, no rivals) |
+| `--boat-race=marina` | the car at the start pontoon with the marina card up (REKIN X / STRZAŁA / PANTERA / WYŚCIG) |
 | `--boat-race=0` | no boat race (no call, no pontoon) |
 | `--boat-log` | boat race: `boat race:` lines (the call, the grid, misses, finishes, solid hits) |
+| `--kino-tour`, `--kino-tour=call` | cinema tour (`kino_tour.gd`): Wiktor rings now, whatever the time |
+| `--kino-tour=go` | cinema tour: the car at the pickup on Plac Zbawiciela and the tour started |
+| `--kino-tour=auto` | cinema tour: as `go`, its cards answered by themselves |
+| `--kino-tour=0` | no cinema tour |
+| `--kino-log` | cinema tour: `kino:` lines (the call, pickup, shots, scratches, pitches, the premiere's pay) |
 | `--rave-call` | secret rave (`rave.gd`): LEKTI's break-in on MORDOR FM now (with his voice) and Ziomek rings a second later, whatever the time |
 | `--rave-smola` | secret rave: Ziomek rings now for the club night at Smoła (the door's three questions, then the room) |
 | `--rave-club` | secret rave: straight into Smoła's cutaway room (option A: the jungle, the DJ, the dancers, the lights, TAŃCZ, PATIO and WYJDŹ) |
@@ -5761,6 +5775,10 @@ Command-line options (after `--`):
 | `--rave=on` / `--rave=day` / `--rave=0` | secret rave: the night rig on now (the lights in the lit look), the day rave's crowd now, or no raves and no calls |
 | `--rave-spot=ID` | secret rave: tonight's spot (`wiadukt`, `zajezdnia`, `hala`; `plaza` is the day spot) |
 | `--rave-log` | secret rave: print `rave:` lines (tease, the call, pickup, meeting point, door questions and answers, pay, the rig's mode, the room) |
+| `--meet-call` | night racing club (`street_meet.gd`): Darek „Bawarka" rings now, whatever the time |
+| `--meet=on` / `--meet=0` | night racing club: the night rules at any hour / none of it |
+| `--meet-at=meet\|raid\|race\|meet2\|drag\|stage` | night racing club: jump to that beat (the car moved to it; `stage` puts it on the drag's line with the tree running) |
+| `--meet-log` | night racing club: the call, meets, raids, race places and drag times in the log |
 | `--ev-call` / `--ev-tow` / `--ev-tow=carry` / `--ev-stranded` / `--ev=0` | dead electric cars (`ev_tow.gd`): Bartek's call rings a second in; `--ev-tow`: accepted, the helicopter over his car; `=carry`: his car already on the sling, the helicopter climbing to 22 m; `--ev-stranded`: a stranded TESŁO about 30 m ahead now; `0`: none (the call and the stranded cars run on their timers in a normal launch only) |
 | `--ev-log` | dead electric cars: print `ev:` lines: the chargers found, the timers, the call, the car's street and charger, the hook, Bartek's lines, the set-down and pay, each stranded car |
 | `--loud=N` | loud cars (`loud_cars.gd`, city-life satire #1): at most N loud supercars in traffic at once (default 3, up to 16 for shots); `0`: none, and no car meet at Browary nor its crowd |
