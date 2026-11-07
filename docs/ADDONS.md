@@ -20,6 +20,7 @@ export scripts refuse to run while it is on). **Our own, not an add-on:**
 export's manifest; docs/archive/DEVELOPMENT-full.md "Android (Google Play)"). Candidates when a loop
 needs them: Folder Import Rules, Lente photo mode, the In-app Review and Share plugins.
 
+Taxi ride stories (2026-11-07): Dialogue Manager not used, because the story is three lines said while driving (bubbles at distance marks, the chatter budget) and one two-button side card that times out; the police balloon is a stopped-car scene. Beehave not used (no agent behaviour).
 Zagłębie Kebabowe (2026-11-02): Dialogue Manager not used, because the craft shop's only choice is a two-button job card and the rest are single vendor lines (JSON bags); Beehave not used.
 
 When to use Beehave and Dialogue Manager (decision rules and build patterns): skills `beehave-trees` and `dialogue-scenes` in `.claude/skills/`.
