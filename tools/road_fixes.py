@@ -66,7 +66,7 @@ MOUTH_GAP = 12.0      # ...with at most this much road between its far edge and 
                       # ribbon (a crossing further out is mid-block: the lines carry on to the junction)...
 MOUTH_GAP_SIGNAL = 20.0  # ...or this much at a signalised crossing (a stop line and a zebra together)
 T_SLACK = 10.0        # m: a junction node this far past either end of a crossing still lies ahead of it
-PAIR_REACH = 10.0     # m: a stop line and a zebra this near, parallel and side by side, are one crossing
+PAIR_REACH = 14.0     # m: a stop line and a zebra this near, parallel and side by side, are one crossing
 NODE_STEP = 22.0      # m: the next junction node of the same crossing (a dual carriageway's other half)
 ALONG_COS = 0.7       # a line runs along the street (cut in a mouth) when this parallel to its axis
 CROSS_COS = 0.9       # another street's ribbon crosses a line when less parallel than this
@@ -160,7 +160,7 @@ def _rondo(out, ri):
 
 
 def mouths(out, nodes, ribbons):
-    """Every zebra's and stop line's mouth: (a, b, n, d0, d1, t0, t1, kind) where a->b is its chord,
+    """Every zebra's and stop line's mouth: (a, b, n, d0, d1, t0, t1, kind, stop) where a->b is its chord,
     n the unit normal towards the junction, the mouth the points P with t = (P-a).u in [t0, t1] and
     d = (P-a).n in (d0, d1]."""
     node_grid = defaultdict(list)
@@ -194,6 +194,7 @@ def mouths(out, nodes, ribbons):
         mid = ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)
         L = math.dist(a, b)
         vote = 0.0
+        stops = [0.0, 0.0]   # the farthest stop line behind it on the +n0 / -n0 side
         for i in (-1, 0, 1):
             for j in (-1, 0, 1):
                 for o in cgrid.get((int(mid[0] // 20) + i, int(mid[1] // 20) + j), ()):
@@ -213,7 +214,12 @@ def mouths(out, nodes, ribbons):
                         continue
                     # a stop line votes for the zebra's side; a zebra for the side away from its stop line
                     vote += math.copysign(1.0, off) * (1.0 if kind == "stop" else -1.0)
-        return 0 if vote == 0 else (1 if vote > 0 else -1)
+                    if okind == "stop":
+                        side_i = 0 if off > 0 else 1
+                        stops[side_i] = max(stops[side_i], abs(off))
+        side = 0 if vote == 0 else (1 if vote > 0 else -1)
+        # the stop line stands on the side away from the junction
+        return side, (stops[1] if side > 0 else stops[0]) if side else 0.0
 
     found = []
     for k, ((a, b), half, kind) in enumerate(crossings):
@@ -233,7 +239,7 @@ def mouths(out, nodes, ribbons):
             continue
         # (by name: the way under a crossing often ends at a join short of the junction)
         rnames = {out["roads"][ri]["name"] for ri in roads}
-        side = facing(k, a, b, u, n0, kind)
+        side, stop_back = facing(k, a, b, u, n0, kind)
         gap_max = MOUTH_GAP_SIGNAL if side else MOUTH_GAP
         # the junction it guards: the nearest node on that street ahead of it (on its side, if known)
         best = None
@@ -272,7 +278,7 @@ def mouths(out, nodes, ribbons):
             if nxt is None:
                 break
             reach, last = nxt
-        found.append((a, b, n, half, reach, -0.5, L + 0.5, kind))
+        found.append((a, b, n, half, reach, -0.5, L + 0.5, kind, stop_back))
     return found
 
 
@@ -280,7 +286,7 @@ class MouthIndex:
     def __init__(self, ms):
         self.ms = ms
         self.grid = defaultdict(list)
-        for k, (a, b, n, d0, d1, t0, t1, kind) in enumerate(ms):
+        for k, (a, b, n, d0, d1, t0, t1, kind, stop) in enumerate(ms):
             xs = [a[0], b[0], a[0] + n[0] * d1, b[0] + n[0] * d1]
             zs = [a[1], b[1], a[1] + n[1] * d1, b[1] + n[1] * d1]
             for cx in range(int(math.floor((min(xs) - 1) / 16)), int(math.floor((max(xs) + 1) / 16)) + 1):
@@ -291,7 +297,7 @@ class MouthIndex:
         """The mouth holding (x, z) (and, given `along`, whose street that direction runs along), or None.
         d_from overrides d0 (an arrow on the stripes counts too)."""
         for k in self.grid.get((int(math.floor(x / 16)), int(math.floor(z / 16))), ()):
-            a, b, n, d0, d1, t0, t1, kind = self.ms[k]
+            a, b, n, d0, d1, t0, t1, kind, stop = self.ms[k]
             L = math.dist(a, b)
             u = ((b[0] - a[0]) / L, (b[1] - a[1]) / L)
             t = (x - a[0]) * u[0] + (z - a[1]) * u[1]
@@ -463,20 +469,20 @@ def move_arrows(out, mi, asphalt, dry=False):
         k = mi.hit(s["x"], s["z"], d_from=-ZEBRA_HALF - 0.5)
         if k is None:
             continue
-        a, b, n, d0, d1, t0, t1, kind = mi.ms[k]
+        a, b, n, d0, d1, t0, t1, kind, stop = mi.ms[k]
         dx, dz = s["d"]
         cosn = dx * n[0] + dz * n[1]
         if cosn < 0.5:
             continue
         d = (s["x"] - a[0]) * n[0] + (s["z"] - a[1]) * n[1]
-        back = (d + d0 + ARROW_BACK) / cosn
+        back = (d + max(d0, stop + STOP_GAP) + ARROW_BACK) / cosn
         tx, tz = s["x"] - dx * back, s["z"] - dz * back
         # behind the stop line too, where it stands further back than the zebra's mouth reaches
         for _ in range(3):
             k2 = mi.hit(tx, tz, d_from=-ZEBRA_HALF - 0.5)
             if k2 is None:
                 break
-            a2, b2, n2, d02, d12, t02, t12, kind2 = mi.ms[k2]
+            a2, b2, n2, d02, d12, t02, t12, kind2, stop2 = mi.ms[k2]
             c2 = dx * n2[0] + dz * n2[1]
             if c2 < 0.5:
                 break
