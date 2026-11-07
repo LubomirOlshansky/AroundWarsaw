@@ -66,4 +66,4 @@ Hotspot files touched by many open PRs: `game/scripts/main.gd` (16 PRs), `game/s
 4. Decide on #455.
 5. A small rule: any PR open more than 12 hours with conflicts gets re-pinged by the coordinator.
 
-No PR or branch was changed. I did not open a PR for this report, to avoid adding another docs conflict.
+Snapshot at 14:00. Afterwards F approved the merges; the orphan PRs went to main (see ROADMAP and BACKLOG, 2026-11-07).
