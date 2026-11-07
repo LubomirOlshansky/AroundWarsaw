@@ -121,6 +121,7 @@ then the Launch gate.
 
 ### Left: the start of the game
 - [x] Metro entrances modelled at the real M1/M2 stairs: vaulted glass canopies, stairwells, passage mouths, red M posts, lifts (F, 2026-11-01; Mac look check parked in QUESTIONS)
+- [~] Metro entrances by station from photos (F, 2026-11-07): done Centrum, Świętokrzyska M2, Stadion Narodowy, Kopernik, Gdański, Nowy Świat, Rondo ONZ (Rondo Daszyńskiego in PR #479, Ratusz-Arsenał its own thread); left Politechnika, Centrum stairwells and passage mouths (shoot list for F)
 - [x] Merge PR #115 (start facing the first stand, short first order, BUW roof cassette), then
       PR #121 (the opening flyover) (both on main; ticked 2026-11-01)
 - [x] First-scene items 4-5, paving and kerbs (2026-11-02): grey pavements and paving round the

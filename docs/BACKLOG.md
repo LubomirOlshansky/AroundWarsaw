@@ -4,6 +4,20 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Metro entrances by station (F, 2026-11-07; photos: Mapillary street photos, shoot list /mnt/project-files/metro/metro-photos-needed.txt)
+
+Audit of the 84 mapped entrances (M1 + M2). Own look from photos: Centrum (blue tubes, glass barrels), Świętokrzyska M2 tents,
+Rondo Daszyńskiego (red butterfly, PR #479, not in main yet), and new here: Stadion Narodowy (teal glass crystal, `crystal`),
+Kopernik (pale aqua crystal, `crystal_aqua`), Dworzec Gdański (clear glass in dark steel, `crystal_clear`), Nowy Świat-Uniwersytet
+(violet glass box, `box`), Rondo ONZ (the A-frame `tent`, its 14 canopies). Ratusz-Arsenał is another thread's. Left:
+- Politechnika's canopies stay the generic vaulted glass (photos only far away; blue-tinted glass in them); Centrum's 3 canopy
+  entrances and 7 stairwells, Świętokrzyska's plain stairwells and every passage mouth (`footway`) have no photo: shoot list for F.
+- Rondo ONZ's tent is read from one street photo (a gabled glass pavilion with the roundel): close photos would confirm it.
+- The stairs thread (PR #517) lists metro stairwells the 10 m grid flattens (Rondo ONZ at -1805,110 / -1690,101 / -1798,48,
+  Jana Pawła II, Marszałkowska by Dmowskiego, Dworzec Gdański): each needs a SUNKEN entry after this PR.
+- Not done here: people crossing at Rondo Daszyńskiego and the real tram stops (F's same message): tram stops are PR #518.
+
+
 ## Night racing club: Darek, Lena, Tadek (F, 2026-11-06; docs/design/night-meet.md)
 
 Built: Darek's call, the meet on Plac Defilad with Lena's donuts, two police raids, the TYGRAM pin

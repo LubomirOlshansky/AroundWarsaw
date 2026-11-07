@@ -568,6 +568,10 @@ static func add_metro_entrance(st: SurfaceTool, xf: Transform3D, form := "canopy
 					_xbox(st, xf, Vector3(x, hgt * 0.5, -1.5 + j * 1.0), Vector3(0.24, hgt, 1.0), concrete)
 				_xbox(st, xf, Vector3(x * 0.9, 1.0, -0.1), Vector3(0.05, 0.05, 3.7), rail)
 			_xbox(st, xf, Vector3(0, 0.6, 2.05), Vector3(2.66, 1.2, 0.2), concrete)
+		"crystal", "crystal_aqua", "crystal_clear":
+			_metro_crystal(st, xf, form)
+		"box":
+			_metro_box(st, xf)
 		"tent":
 			_metro_tent(st, xf)
 		"wings":
@@ -719,6 +723,103 @@ static func _metro_wings(st: SurfaceTool, xf: Transform3D) -> void:
 			tri(st, xf * (rc + Vector3(0, 0, 0.04 * s)), xf * (rc + Vector3(0.45 * cos(a0), 0.45 * sin(a0), 0.04 * s)),
 					xf * (rc + Vector3(0.45 * cos(a1), 0.45 * sin(a1), 0.04 * s)), basis * Vector3(0, 0, s), Color("#f6c813"), LIT_SIGN)
 	_metro_m(st, xf, rc, 0.065, [-1.0], 0.08, Color("#d3202a"))
+
+
+## One glass pane (a quad, both faces) between four points of an entrance's local frame.
+static func _xpane(st: SurfaceTool, xf: Transform3D, a: Vector3, b: Vector3, c: Vector3, d: Vector3, colour: Color, part := FIXED) -> void:
+	var wa := xf * a
+	var wb := xf * b
+	var wc := xf * c
+	var wd := xf * d
+	var n := (wb - wa).cross(wc - wa).normalized()
+	for s: float in [1.0, -1.0]:
+		tri(st, wa, wb, wc, n * s, colour, part)
+		tri(st, wa, wc, wd, n * s, colour, part)
+
+
+## The "crystal" metro pavilions of Stadion Narodowy, Centrum Nauki Kopernik and Dworzec Gdanski
+## (street photos, Mapillary CC BY-SA, 2026-11-07): one big leaning glass prism over the escalators,
+## its front lip low over the mouth and the roof climbing to a 4.3 m ridge before a steep back pane
+## drops to the ground, glazed sides, a lattice of diagonal tubes on the roof, and low concrete
+## ramp walls each side. `form` picks the glass: "crystal" Stadion Narodowy's teal, "crystal_aqua"
+## Kopernik's pale aqua-green, "crystal_clear" Gdanski's clear glass in a dark steel frame.
+## Local frame as add_metro_entrance's (open front -z). ~120 triangles.
+static func _metro_crystal(st: SurfaceTool, xf: Transform3D, form: String) -> void:
+	var glass := Color("#46b3a3")
+	var frame := Color("#cfd6d8")
+	if form == "crystal_aqua":
+		glass = Color("#9fd2d0")
+		frame = Color("#e4e8ea")
+	elif form == "crystal_clear":
+		glass = Color("#bdd6df")
+		frame = Color("#3d4247")
+	var concrete := Color("#8f8d88")
+	var hw := 1.9
+	var z0 := -2.3
+	var z1 := 2.3
+	var zt := 1.0
+	var fl := Vector3(-hw, 1.7, z0)
+	var fr := Vector3(hw, 1.7, z0)
+	var tl := Vector3(-hw, 4.3, zt)
+	var tr := Vector3(hw, 4.3, zt)
+	var bl := Vector3(-hw, 0.5, z1)
+	var br := Vector3(hw, 0.5, z1)
+	# The concrete ramp walls beside the opening and the plinth behind the back pane.
+	for x in [-hw - 0.15, hw + 0.15]:
+		_xbox(st, xf, Vector3(x, 0.25, 0.0), Vector3(0.3, 0.5, z1 - z0 + 0.4), concrete)
+	_xbox(st, xf, Vector3(0, 0.25, z1 + 0.15), Vector3(2 * hw + 0.6, 0.5, 0.3), concrete)
+	# The panes: the roof, the back, and a side each (a trapezoid from the lip to the ridge to the plinth).
+	_xpane(st, xf, fl, fr, tr, tl, glass, LIT_WINDOW)
+	_xpane(st, xf, tl, tr, br, bl, glass, LIT_WINDOW)
+	for side: float in [-1.0, 1.0]:
+		var a := Vector3(side * hw, 0.5, z0)
+		var f := Vector3(side * hw, 1.7, z0)
+		var t := Vector3(side * hw, 4.3, zt)
+		var b := Vector3(side * hw, 0.5, z1)
+		_xpane(st, xf, a, f, t, b, glass, LIT_WINDOW)
+	# The tubes: the lip, the ridge, the edges, and an X over the roof and over each side.
+	_xbeam(st, xf, fl, fr, 0.12, 0.12, frame)
+	_xbeam(st, xf, tl, tr, 0.14, 0.14, frame)
+	_xbeam(st, xf, bl, br, 0.1, 0.1, frame)
+	for side: float in [-1.0, 1.0]:
+		var f := Vector3(side * hw, 1.7, z0)
+		var t := Vector3(side * hw, 4.3, zt)
+		var b := Vector3(side * hw, 0.5, z1)
+		var a := Vector3(side * hw, 0.5, z0)
+		_xbeam(st, xf, f, t, 0.12, 0.12, frame)
+		_xbeam(st, xf, t, b, 0.12, 0.12, frame)
+		_xbeam(st, xf, a, f, 0.12, 0.12, frame)
+		_xbeam(st, xf, a, t, 0.07, 0.07, frame)
+		_xbeam(st, xf, f, b, 0.07, 0.07, frame)
+	_xbeam(st, xf, fl, tr, 0.07, 0.07, frame)
+	_xbeam(st, xf, fr, tl, 0.07, 0.07, frame)
+	_xbeam(st, xf, tl, br, 0.07, 0.07, frame)
+	_xbeam(st, xf, tr, bl, 0.07, 0.07, frame)
+
+
+## Metro Nowy Swiat-Uniwersytet's entrances (street photos, Mapillary CC BY-SA, 2026-11-07): a
+## plain glass box on the pavement, violet-blue glass between slim steel mullions under a flat
+## roof with a deep fascia, open at the front over the stairs. 2.7 m high. Local frame as
+## add_metro_entrance's (open front -z). ~80 triangles.
+static func _metro_box(st: SurfaceTool, xf: Transform3D) -> void:
+	var glass := Color("#4b4a96")
+	var steel := Color("#34363c")
+	var hw := 1.6
+	var z0 := -2.2
+	var z1 := 2.2
+	var h := 2.7
+	# The side panes and the back pane, both faces, with a mullion every 1.1 m.
+	for side: float in [-1.0, 1.0]:
+		_xpane(st, xf, Vector3(side * hw, 0.3, z0), Vector3(side * hw, h, z0), Vector3(side * hw, h, z1), Vector3(side * hw, 0.3, z1), glass, LIT_WINDOW)
+		for z in [z0, -1.1, 0.0, 1.1, z1]:
+			_xbox(st, xf, Vector3(side * hw, h * 0.5 + 0.15, z), Vector3(0.08, h - 0.3, 0.08), steel)
+		_xbox(st, xf, Vector3(side * hw, 0.15, 0.0), Vector3(0.14, 0.3, z1 - z0), steel)
+	_xpane(st, xf, Vector3(-hw, 0.3, z1), Vector3(-hw, h, z1), Vector3(hw, h, z1), Vector3(hw, 0.3, z1), glass, LIT_WINDOW)
+	_xbox(st, xf, Vector3(0, 0.15, z1), Vector3(2 * hw, 0.3, 0.14), steel)
+	# The flat roof slab with its fascia, a lit band over the open mouth.
+	_xbox(st, xf, Vector3(0, h + 0.08, 0.0), Vector3(2 * hw + 0.3, 0.16, z1 - z0 + 0.3), steel)
+	_xbox(st, xf, Vector3(0, h - 0.18, z0 - 0.1), Vector3(2 * hw + 0.3, 0.36, 0.1), Color("#e9ecef"), LIT_SIGN)
+	_metro_m(st, xf, Vector3(0, h - 0.18, z0 - 0.16), 0.032, [-1.0], 0.04, Color("#d3202a"))
 
 
 ## A beam between two points of an entrance's local frame, `w` wide along its z, through `xf`.
