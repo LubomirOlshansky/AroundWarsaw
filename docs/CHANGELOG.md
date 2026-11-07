@@ -29,6 +29,7 @@ someone writes its lines.
 
 ## 2026-11-06
 - New side job: your bestie Zuzia phones for a coffee run in Powiśle. Swap the car for a city bike, race to four fancy cafés for stamps and very expensive coffee, and get it all back by BLIK if you make it in time.
+- Every open-air railway station now has shelters, benches, bins, lamps and blue name boards on its platforms, and people stand waiting and get on the next train.
 - The project's licence is now source-available for non-commercial use; the website says so.
 - Boat race on the Vistula: your mate Szymek calls and you race him, old Pan Zdzisiek in his Złota Rybka and Kamil on a jet ski from Port Czerniakowski down under four bridges to the Old Town, through rings in a slalom. Miss three and you're out, then go again or head back. Rings in a row speed you up, gold rings give a boost, and a sand barge going the other way throws waves you can jump.
 - The Bridge by Plac Europejski looks like itself now: its glass folds along long diagonal seams, the south corner steps down under a dark crown, ERZATZ (the bank's parody) glows blue at the top, and a tall timber lobby with leaning concrete columns sits under it. The brick and stone block at Grzybowska 77 in front got its stone piers, long balcony, framed windows and attic.
@@ -36,6 +37,7 @@ someone writes its lines.
 - Secret techno raves: lights and dancers under the viaduct, in Praga and by the tracks at night, a day rave on the Praga beach, LEKTI breaking into MORDOR FM with the password, and Ziomek calling you to drive him there, past a strict door with three questions and a cash-only ticket, into a jungle-filled club with a fairy-lit patio out the back.
 - The food blogger from the Mlask job is now called Mrożulo (was Cringulo), on his van, the signs, the fans and the news.
 
+- The four streets round the Palace of Culture look hand-made: lane lines stop at the zebras and carry on past bus bays and driveways, the pale ribbons across the medians on Świętokrzyska and Emilii Plater are now low granite kerbs round planted islands, and the edge lines sit inside the kerbs.
 - The Tides by the Vistula is a full model now: folded copper walls, irregular windows and a black roof.
 - 18 more houses got real street fronts from photos, including Pałac Karnickich, Hotel Indigo and Krucza 51.
 - Aleje Ujazdowskie 47 stands in its dark grey render, with balconies and the green pharmacy signs.
@@ -54,6 +56,9 @@ someone writes its lines.
 
 ## 2026-11-05
 
+- On every launch after the first, the KEBAB FM host now says hello, the weather and goodbye out loud.
+- Both radio stations now have their own jingles between songs: KEBAB FM in a warm woman's voice, MORDOR FM in a dry man's.
+- KEBAB FM and MORDOR FM now play real music: six vaporwave tracks and six minimal-techno tracks replace the first test loops.
 - On phones the roadworks at the map's edges were invisible walls; now you can see the barriers, signs and diggers that stop you.
 - Roads no longer jump sideways where they change width: the asphalt now narrows or widens smoothly over 20-30 m, the dark blobs at the kerb are gone, and lane lines curve across instead of breaking off; the widening asphalt follows the kerb instead of poking into the tram tracks or a driveway; streets now run straight up to the tram tracks, and driveways no longer show through the street as pale flags.
 - Crossings over the big streets look finished: zebras sit right beside the red cycle crossing and reach the far kerb, a paved walk joins them across the tram tracks, and drivers get a stop line, solid lane lines and traffic lights before them; stray wedges of pavement between driveways and streets are now asphalt or painted islands, and street lamps no longer stand in the widened road.
