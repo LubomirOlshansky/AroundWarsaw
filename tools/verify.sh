@@ -97,6 +97,13 @@
 # three shapes in one surface (the ambulance), the `crash_scene` and KEBAB FM lines, spots on the real
 # lane graph (main roads, 2+ lanes, no overlaps), the real traffic queueing and going round a scene,
 # the timer (first, life, gap); centrum.json only (CI too).
+# Sekretny rave (2026-11-06): `rave` runs game/tools/check_rave.gd: the cone, booth and club-room meshes,
+# LEKTI's, Ziomek's, the door's and the club's lines (no brand), the rave clock, the door's three
+# questions, the lights' poses, the spots and Smoła on the real lane graph; centrum.json only (CI too).
+# Boat race (2026-11-06): `boatrace` runs game/tools/check_boat_race.gd: the course from water.bin
+# (every ring in open water, in order, the finish last), the boat's pull, turn and banks, a whole race
+# with the four boats driven by the rivals' driver (all finish or drop out, the careful one with no
+# miss, times spread), three misses -> ODPADASZ -> JESZCZE RAZ / WYJDŹ, the rivals' lines; water.bin only (CI too).
 # Dead electric cars (2026-11-06): `evtow` runs game/tools/check_ev_tow.gd: the TESŁO's meshes, Bartek's
 # and the stranded drivers' lines (no brand), the sling's pendulum, hook and pay rules, the chargers and
 # car spots on the real lane graph; centrum.json only (CI too).
@@ -163,6 +170,9 @@
 # docs/streets/ may never get worse), `models` runs tools/model_library.py --check (every model a
 # street record names is in the library or on its wanted list), `overrides` runs
 # game/tools/check_object_overrides.gd (every id in game/data/road_objects.json names a barrier).
+# Road design (2026-11-06): `design` runs tools/road_design.py --check-all (every area applied to the
+# map, docs/roads/AREA.json, still builds with no problems: kerbs closed, lanes inside, crossings fit;
+# footways and cycle tracks continuous: every path end the new asphalt cut is on a crossing of its kind).
 # Street details (2026-11-01): `streetdetails` runs tools/check_street_details.py (the baked props along
 # the main line against the map: stale file, blocked spots, budget, kiosk spacing); `streetmesh` runs
 # game/tools/check_street_details.gd (every kind builds as one surface, a cell's triangle budget); CI too.
@@ -214,12 +224,12 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads smooth streets outline pois streetdetails streetpass models overrides stops streetmesh parkdetails parkmesh monuments monumentmesh spiremotion spec lod2 courts drape ground drive drive-prebuilt deckxray stuckspots stuckspots-prebuilt lanedrive finite steering laneassist stuckoffer handling stopassist questlines settings credits language tiers governor heliview hud places edge roadworks roadworks-prebuilt eggs tape crowds life buses zaglebie crashes evtow loud crazy oldtram trains packs wellness fans garage save districts syrenki cassettes ladder racecuts first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram teleport firstlife heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads smooth streets outline pois streetdetails streetpass models overrides stops streetmesh parkdetails parkmesh monuments monumentmesh spiremotion spec drape drive deckxray stuckspots finite steering laneassist stuckoffer handling stopassist questlines settings credits language tiers governor heliview hud places edge roadworks eggs tape crowds life buses zaglebie crashes evtow loud crazy oldtram trains packs wellness fans garage save districts syrenki cassettes ladder racecuts first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds police plain ram teleport firstlife prebuilt)
+STEPS_ALL=(map roads smooth streets outline pois streetdetails streetpass design models overrides stops streetmesh parkdetails parkmesh monuments monumentmesh spiremotion spec lod2 courts drape ground drive drive-prebuilt deckxray stuckspots stuckspots-prebuilt lanedrive finite steering laneassist stuckoffer handling stopassist questlines settings credits language tiers governor heliview hud places edge roadworks roadworks-prebuilt eggs tape crowds life buses zaglebie crashes rave boatrace evtow loud crazy oldtram trains packs wellness fans garage save districts syrenki cassettes ladder racecuts first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram teleport firstlife heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads smooth streets outline pois streetdetails streetpass design models overrides stops streetmesh parkdetails parkmesh monuments monumentmesh spiremotion spec drape drive deckxray stuckspots finite steering laneassist stuckoffer handling stopassist questlines settings credits language tiers governor heliview hud places edge roadworks eggs tape crowds life buses zaglebie crashes rave boatrace evtow loud crazy oldtram trains packs wellness fans garage save districts syrenki cassettes ladder racecuts first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds police plain ram teleport firstlife prebuilt)
 # Operation Unslop review (2026-11-05): the road loop ran the whole --quick (~100 steps, most start
 # the game) after every tweak. --roads keeps only the steps a road rule can break; steps not in
 # STEPS_ALL on this branch (e.g. `smooth` before the smooth-roads PR) are skipped.
-STEPS_ROADS=(map roads streets streetdetails streetpass models overrides smooth drive stuckspots)
+STEPS_ROADS=(map roads streets streetdetails streetpass design models overrides smooth drive stuckspots)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -737,6 +747,15 @@ for s in $want; do
 				0) row PASS "streetpass" $secs "$(grep '^street_pass: ' $logs/streetpass.log | tail -1)" ;;
 				*) row FAIL "streetpass" $secs "$(grep '^street_pass: ' $logs/streetpass.log | tail -1) ($logs/streetpass.log)" ;;
 			esac ;;
+		design)
+			t0=$EPOCHREALTIME
+			python3 -I $ROOT/tools/road_design.py --check-all > $logs/design.log 2>&1
+			code=$?
+			secs=$(printf '%.0f' $(( EPOCHREALTIME - t0 )))
+			case $code in
+				0) row PASS "design" $secs "$(grep '^road_design: ' $logs/design.log | tail -1)" ;;
+				*) row FAIL "design" $secs "$(grep '^road_design: ' $logs/design.log | tail -1) ($logs/design.log)" ;;
+			esac ;;
 		models)
 			t0=$EPOCHREALTIME
 			python3 -I $ROOT/tools/model_library.py --check > $logs/models.log 2>&1
@@ -884,6 +903,10 @@ for s in $want; do
 		# real lane graph, the pay twists and Szlak Szpili.
 		zaglebie) check zaglebie '^check_zaglebie:' --script res://tools/check_zaglebie.gd ;;
 		crashes) check crashes '^check_crash_scenes:' --script res://tools/check_crash_scenes.gd ;;
+		# Sekretny rave: LEKTI's lines, the door's questions, the rigs and the club's room, the spots on the real graph.
+		rave) check rave '^check_rave:' --script res://tools/check_rave.gd ;;
+		# Boat race: the course in open water, the boat, a whole race, the three-miss rule, the lines.
+		boatrace) check boatrace '^check_boat_race:' --script res://tools/check_boat_race.gd ;;
 		# Dead electric cars: the TESŁO, the lines, the sling, the chargers on the real graph.
 		evtow) check evtow '^check_ev_tow:' --script res://tools/check_ev_tow.gd ;;
 		# City-life satire #1: the loud cars and the Browary meet.
