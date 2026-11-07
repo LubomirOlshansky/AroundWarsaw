@@ -16,8 +16,8 @@ extends SceneTree
 ##  5. the words: the star text, every dialogue group and tag rides.gd and gps_moments.gd ask for
 ##     has a line, Polish and English, Polish bubbles at most 70 characters, card buttons at most
 ##     28;
-##  6. the story rides (scripts/taxi_stories.gd, data/taxi_stories.json): at least 15 stories with
-##     unique ids, each with a name, type, teaser, three lines, a question and two answers (button,
+##  6. the story rides (scripts/taxi_stories.gd, data/taxi_stories.json): at least 18 stories with
+##     unique ids, each with a name, type, teaser, a real place to go to, three lines, a question and two answers (button,
 ##     reply, tip, outro), every text Polish and English, bubbles at most 70 characters, buttons at
 ##     most 28, the question at most 90, no brand from data/brand_denylist.json; the rotation (every
 ##     story heard once before any comes back, the night one only at night, a forced id wins); the
@@ -239,7 +239,7 @@ func _words() -> void:
 
 func _stories() -> void:
 	var all: Array = Stories.load_all()
-	_expect("story count ≥ 15", all.size() >= 15, true)
+	_expect("story count ≥ 18", all.size() >= 18, true)
 	var deny: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/brand_denylist.json"))
 	var brands: Array = deny.get("names", []) + deny.get("rejected", [])
 	var ids := {}
@@ -264,6 +264,10 @@ func _stories() -> void:
 			texts.append([a.get("outro", []), 90])
 			_expect("%s: an answer's tip is a number" % id, typeof(a.get("tip")) in [TYPE_INT, TYPE_FLOAT], true)
 			_expect("%s: an answer's star is true or false" % id, typeof(a.get("star")) == TYPE_BOOL, true)
+		var to: Dictionary = st.get("to", {})
+		_expect("%s: a real place to go to (to.name, to.at, to.r)" % id, to.has("name") and (to.get("at", []) as Array).size() == 2
+				and float(to.get("r", 0)) > 0.0 and (to.get("drop", []) as Array).size() == 2, true)
+		texts.append([to.get("name", []), 28])
 		if st.has("silent"):
 			texts.append([st["silent"], 70])
 		for t in texts:

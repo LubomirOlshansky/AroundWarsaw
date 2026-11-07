@@ -808,12 +808,59 @@ func _make_ride(n: int, e: int, s: float, from: Vector2, lo: float, hi: float) -
 	var can: bool = kind != "club" and kind != "date" and not bool(r.get("hyrax", false))
 	if force_story != "none" and not _stories.is_empty() and ((can and sroll < Stories.SHARE) or force_story != ""):
 		var seen: Array = wallet.keep.get("podwozka_stories", []) if wallet != null else []
-		var st: Dictionary = Stories.pick(_stories, seen, rng, r["night"], force_story)
-		if not st.is_empty():
+		var skip: Array = []
+		# F (2026-11-07): each story goes to its real place (`to`); one whose place doesn't fit
+		# this pickup (too near, too far, no door) waits for another ride, and the next one is tried.
+		for attempt in 3:
+			var st: Dictionary = Stories.pick(_stories, seen + skip, rng, r["night"], force_story)
+			if st.is_empty() or skip.has(st["id"]):
+				break
+			var go := _story_place(r, st, rng, kerb)
+			if go.is_empty():
+				skip.append(st["id"])
+				_log("story %s: its place %s doesn't fit this ride" % [st["id"], st["to"]["name"][1]])
+				if force_story != "":
+					break
+				continue
 			r["story"] = st
 			r["name"] = String(st["name"])
 			r["note"] = ["%s · %s" % [st["who"][0], st["teaser"][0]], "%s · %s" % [st["who"][1], st["teaser"][1]]]
+			r["dest"] = String(st["to"]["name"][0])
+			r["ring"] = go["ring"]
+			r["road"] = float(go["road"])
+			r["finish"] = int(go["finish"])
+			r["eta"] = Rules.eta_for(r["road"], kind == "hurry")
+			break
 	return r
+
+
+## A story's real place: an address door within its `to.r` of `to.at`, 600 m to 6 km by road from
+## the pickup ({} when none is).
+func _story_place(r: Dictionary, st: Dictionary, rng: RandomNumberGenerator, kerb: Vector2) -> Dictionary:
+	var to: Dictionary = st.get("to", {})
+	if to.is_empty():
+		return {}
+	var at := Vector2(float(to["at"][0]), float(to["at"][1]))
+	var reach := float(to.get("r", 120.0))
+	var near := func(a: Dictionary) -> bool: return (a["door"] as Vector2).distance_to(at) < reach
+	var go: Dictionary = jobs._pick_address(r["p_e"], r["p_s"], kerb, RIDE_MIN, 6000.0, rng, near)
+	if not go.is_empty() and go["reached"]:
+		return go
+	# A big site with no address door near (the Palace of Culture, the Central Station, the
+	# Castle, the Stadium): the lane point `drop` by it (taxi_stories.json), reached from the
+	# junction before it.
+	var drop_at: Array = to.get("drop", [])
+	if drop_at.size() != 2:
+		return {}
+	var hit := graph.snap(Vector2(float(drop_at[0]), float(drop_at[1])), 30.0, Vector2.ZERO, true, true, true)
+	if hit.is_empty():
+		return {}
+	var dist := graph.distances_from(graph.e_b[r["p_e"]])
+	var road: float = graph.trip(dist, r["p_e"], r["p_s"], hit[0], hit[2])
+	if road < RIDE_MIN or road > 6000.0:
+		return {}
+	var p: Vector2 = graph.point_at(hit[0], hit[2])
+	return {"ring": Vector3(p.x, graph.surface(hit[0], p), p.y), "road": road, "finish": graph.e_a[hit[0]]}
 
 
 # --- pickup ---------------------------------------------------------------------------------

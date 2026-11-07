@@ -11,7 +11,7 @@ someone writes its lines.
 
 ## 2026-11-07
 
-- Podwózka taxi rides now come with stories: 15 passengers, from a Mordor office worker on a call to a film star in disguise, a granny matchmaking her granddaughter and a lady who may be a ghost, chat on the way and ask you a question; your answer changes the tip and a good talk earns half a star.
+- Podwózka taxi rides now come with stories: 18 passengers, from a Mordor office worker heading for Warsaw Spire to a film star off to the Palace of Culture, a saxophonist late for jazz under the Powiśle UFO and a beekeeper invited to the Presidential Palace, chat on the way to real places and ask you a question; your answer changes the tip and a good talk earns half a star.
 - Marszałkowska: 16 more houses got street fronts from real photos, from Hotel Saski to the long block at number 140.
 - Aleje Jerozolimskie: 21 more houses along the avenue got street fronts from real photos.
 - Świętokrzyska, Chmielna, Nowy Świat and Aleje Ujazdowskie: 25 more houses got street fronts from real photos.
