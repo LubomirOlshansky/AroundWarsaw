@@ -5763,6 +5763,11 @@ Command-line options (after `--`):
 | `--boat-race=marina` | the car at the start pontoon with the marina card up (REKIN X / STRZAŁA / PANTERA / WYŚCIG) |
 | `--boat-race=0` | no boat race (no call, no pontoon) |
 | `--boat-log` | boat race: `boat race:` lines (the call, the grid, misses, finishes, solid hits) |
+| `--kino-tour`, `--kino-tour=call` | cinema tour (`kino_tour.gd`): Wiktor rings now, whatever the time |
+| `--kino-tour=go` | cinema tour: the car at the pickup on Plac Zbawiciela and the tour started |
+| `--kino-tour=auto` | cinema tour: as `go`, its cards answered by themselves |
+| `--kino-tour=0` | no cinema tour |
+| `--kino-log` | cinema tour: `kino:` lines (the call, pickup, shots, scratches, pitches, the premiere's pay) |
 | `--rave-call` | secret rave (`rave.gd`): LEKTI's break-in on MORDOR FM now (with his voice) and Ziomek rings a second later, whatever the time |
 | `--rave-smola` | secret rave: Ziomek rings now for the club night at Smoła (the door's three questions, then the room) |
 | `--rave-club` | secret rave: straight into Smoła's cutaway room (option A: the jungle, the DJ, the dancers, the lights, TAŃCZ, PATIO and WYJDŹ) |

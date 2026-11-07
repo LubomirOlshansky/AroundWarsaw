@@ -185,7 +185,6 @@ const VENUES := {
 	"dzemini_kebab": [["DŻEMINI", "KEBAB 24H"], DZEMINI_TUBE, 2.8],
 	# Warsaw's classic and arthouse cinemas (F, 2026-11-02): the real independent halls under their
 	# own names (place names, not brands; the multiplex chains stay out), amber marquee tubes.
-	"kino_muranow": [["KINO", "MURANÓW"], CINEMA_TUBE, 3.2],
 	"kino_atlantic": [["KINO", "ATLANTIC"], CINEMA_TUBE_B, 3.2],
 	"kino_luna": [["KINO", "LUNA"], CINEMA_TUBE_C, 3.2],
 	"kino_kultura": [["KINO", "KULTURA"], CINEMA_TUBE, 3.2],
@@ -359,13 +358,12 @@ const HYPE := {
 	"dzemini_kebab": [52.23595, 21.0105],
 }
 ## Warsaw's classic and arthouse cinemas (F, 2026-11-02; BACKLOG "Lore: coffee raves and arthouse
-## cinemas"): Kino Muranów (Andersa 1), Atlantic (Chmielna 33), Luna (Marszałkowska 28), Kultura
+## cinemas"): (Kino Muranów's letters are its landmark model's since 2026-11-07, landmarks.gd) Atlantic (Chmielna 33), Luna (Marszałkowska 28), Kultura
 ## (Krakowskie Przedmieście 21/23), Elektronik (Czerwonego Krzyża 3/5) and the Kinoteka in the Palace
 ## (Kino Femina's fascia is zaglebie.gd's `zag_femina`). Like the cafés, not notebook places;
 ## same venue code, the nearest road snaps the sign. Iluzjon (Narbutta, Mokotów) is south of the map.
 const CINEMAS := {
-	"kino_muranow": [52.24620, 21.00030],
-	"kino_atlantic": [52.23180, 21.01400],
+	"kino_atlantic": [52.23158, 21.01253],
 	"kino_luna": [52.22830, 21.01360],
 	"kino_kultura": [52.24060, 21.01680],
 	"kino_elektronik": [52.23480, 21.02900],

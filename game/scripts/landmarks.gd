@@ -174,6 +174,9 @@ const HALL_METAL := Color("#8d9398")    # the Congress Hall's flat stepped metal
 
 ## The info cards: name, then Polish and English lines. Facts kept to what is certain.
 const INFO := {
+	"kino_muranow": ["Kino Muranów",
+			"Kino studyjne z 1951 roku. Przed nim fontanna z puttami.",
+			"An arthouse cinema since 1951. A fountain with putti in front."],
 	"palace": ["Pałac Kultury i Nauki",
 			"237 m razem z iglicą. Otwarty w 1955 roku.",
 			"237 m with its spire. Opened in 1955."],
@@ -1139,6 +1142,8 @@ func _find_sites() -> void:
 	_find_zelazna()
 	# Pokorna 2 (F, 2026-11-01): the 57 m residential block by Muranów, a model with balconies.
 	_find_pokorna2()
+	# Kino Muranów (F's photos, 2026-11-07): the cinema pavilion, its terrace, the arch, the fountain.
+	_find_kino_muranow()
 	# R5 of docs/design/start-area-real.md: the Cepelia pavilion and Zodiak.
 	_find_modern_pavilions()
 	# First scene items 4-5 (2026-11-02, the Mac photo report dt_pawilony): Pasaż Wiecha's pavilions.
@@ -1761,6 +1766,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 			"pokorna2":
 				_id = 0
 				_build_pokorna2(s)
+			"kino_muranow":
+				_build_kino_muranow(s)
 			"pawilony":
 				_build_pawilony(s)
 			"cepelia":
@@ -10905,6 +10912,387 @@ func _build_pokorna2(site: Dictionary) -> void:
 	_prism(_square(tank, 1.6), top, top + 2.4, Color("#9aa3a8"), Color("#7d8388"), M_STONE, M_STONE)
 	_collide(poly)
 	_mode = M_STONE
+
+
+# --- Kino Muranów: the cinema under the arcaded block on Andersa ---------------------------
+
+## F's four photos (2026-11-07, thread "Add arthouse cinema tour quest"; spec
+## docs/landmarks/specs/kino_muranow.md): the cream one-storey pavilion along the socialist-realist
+## block's front on Generała Andersa 5, its flat roof a paved terrace with a white balustrade and two
+## pillars with ball finials before the arch through the block above; red MURANÓW letters over the
+## doors with a white KINO either side; poster boards under little lamps; a grey plinth; the round
+## fountain with the putti on the square in front, on the arch's axis; at night festoons of bulbs and
+## paper lanterns over a café garden by the doors. OpenStreetMap maps the pavilion as one jagged
+## `commercial` outline; the model straightens its front (KM_FRONT) the way the photos show it.
+## In the frame: u along the front (towards Nowolipki, south-east), v out to the square.
+const KM_AT := Vector2(-1661.5, -1209.8)          # the OSM cinema point (inside the pavilion)
+const KM_O := Vector2(-1653.5, -1212.1)           # the front's middle (the doors)
+const KM_U := Vector2(0.481, 0.876)               # along the front
+const KM_V := Vector2(0.876, -0.481)              # out to the square
+const KM_FRONT := 15.0                            # the straight front's half length
+const KM_DEEP := 14.0                             # how deep the straightened block reaches back
+const KM_H := 4.8                                 # the pavilion's top over the square
+const KM_PLINTH := 0.9
+const KM_RAIL := 1.05                             # the balustrade over the terrace
+const KM_ARCH_U := -3.0                           # the arch's (and the fountain's) axis along u
+const KM_ARCH_V := -27.3                          # the block's front behind the terrace
+const KM_FOUNT := Vector2(-0.3, 19.2)             # the fountain's middle (u, v): OSM's basin ring
+const KM_FOUNT_R := 5.0                           # the basin
+const KM_STEP := 0.15                             # the round platform's steps (photo 4): rise,
+const KM_TREAD := 0.4                             # tread,
+const KM_STEPS := 3                               # count; the platform runs 1.6 m round the basin
+const KM_PLAT_R := KM_FOUNT_R + 1.6
+## The bench row by the metro parapet (map_builder BENCH_ROWS sets OSM's benches in it): its
+## middle and direction in game x/z; the site paves a strip under it (the street photo).
+const KM_BENCH_MID := Vector2(-1623.8, -1213.9)
+const KM_BENCH_DIR := Vector2(-0.49, 0.872)
+const KM_WALL := Color("#e7dcb6")
+const KM_CORNICE := Color("#efe7cc")
+const KM_GREY := Color("#8c8b86")
+const KM_TERRACE := Color("#bdb7aa")
+const KM_BALUSTER := Color("#ece8dc")
+const KM_STEP_STONE := Color("#c9c3b6")
+const KM_STONE := Color("#d2c5a3")                # the arch block's stone, a shade under the walls
+const KM_RED := Color(0.86, 0.13, 0.1)            # the letters (lit at night)
+const KM_WHITE := Color(0.96, 0.95, 0.9)
+const KM_GLASS := Color("#2e3539")
+const KM_FRAME := Color("#2a2a2a")
+const KM_PATINA := Color("#6f9a84")               # the fountain's green bronze
+const KM_WATER := Color("#58798a")
+## The poster boards (u from, u to) and each one's two parody posters' colours (no real films).
+const KM_POSTERS := [[-8.6, -3.1, [Color("#c8582a"), Color("#2f3f6a")]], [3.1, 8.6, [Color("#e9e4d6"), Color("#3f7a4a")]]]
+## The café garden's tables (u, v) by the left posters, and the festoon posts (u, v).
+const KM_TABLES := [Vector2(-10.6, 2.6), Vector2(-7.8, 4.2), Vector2(-5.2, 2.8), Vector2(-9.2, 6.0), Vector2(-12.6, 5.0)]
+const KM_POSTS := [Vector2(-12.0, 8.2), Vector2(-4.0, 8.6), Vector2(4.5, 8.4), Vector2(11.5, 7.8)]
+const KM_TABLE_TOP := Color("#d9d2c4")
+const KM_CHAIR := Color("#3a3d40")
+
+
+func _find_kino_muranow() -> void:
+	var q := _outline_at(KM_AT)
+	if q.size() < 3:
+		return
+	var front := PackedVector2Array([_km(-KM_FRONT, 0.0), _km(KM_FRONT, 0.0), _km(KM_FRONT, -KM_DEEP), _km(-KM_FRONT, -KM_DEEP)])
+	# Simplified again: the OSM corners left a hand's breadth off the straight front make slivers.
+	var body := _simplify(_largest(Geometry2D.merge_polygons(_simplify(q, 0.6), front)), 0.4)
+	if body.size() < 3:
+		return
+	var fc := _km(KM_FOUNT.x, KM_FOUNT.y)
+	_add_site("kino_muranow", [_largest(Geometry2D.offset_polygon(body, 0.5, Geometry2D.JOIN_MITER))])
+	if sites.is_empty() or sites[-1]["key"] != "kino_muranow":
+		return
+	sites[-1]["body"] = body
+	tree_free.append([fc, KM_PLAT_R + KM_TREAD * (KM_STEPS - 1) + 1.0])
+
+
+## A point in the cinema's frame.
+static func _km(u: float, v: float) -> Vector2:
+	return KM_O + KM_U * u + KM_V * v
+
+
+func _build_kino_muranow(site: Dictionary) -> void:
+	var body: PackedVector2Array = site["body"]
+	var g := float(map.terrain_height(_km(0.0, 3.0).x, _km(0.0, 3.0).y))
+	_g = g
+	var top := g + KM_H
+	# The pavilion: a grey plinth, the cream walls, a cornice slab whose top is the terrace.
+	_prism(body, g - 0.6, g + KM_PLINTH, KM_GREY, Color(0, 0, 0, 0), M_STONE)
+	_prism(body, g + KM_PLINTH, top - 0.35, KM_WALL, Color(0, 0, 0, 0), M_STONE)
+	var lip := _largest(Geometry2D.offset_polygon(body, 0.22, Geometry2D.JOIN_MITER))
+	_prism(lip, top - 0.35, top, KM_CORNICE, KM_TERRACE, M_STONE, M_STONE)
+	# The balustrade along every edge that faces the square (white, a darker coping on top).
+	for i in body.size():
+		var a := body[i]
+		var b := body[(i + 1) % body.size()]
+		var o := _out(body, a, b)
+		if o.dot(KM_V) < 0.3 or a.distance_to(b) < 1.0:
+			continue
+		var d := (b - a).normalized()
+		var mid := (a + b) * 0.5 + o * 0.05
+		_pow_box(mid, d, a.distance_to(b) * 0.5 + 0.1, 0.13, top, top + KM_RAIL - 0.12, KM_BALUSTER, KM_BALUSTER)
+		_pow_box(mid, d, a.distance_to(b) * 0.5 + 0.15, 0.2, top + KM_RAIL - 0.12, top + KM_RAIL, KM_CORNICE.darkened(0.06), KM_CORNICE)
+	_km_front(g, top)
+	_km_terrace(top)
+	_km_fountain()
+	_km_garden(g, top)
+	_collide(body)
+	_collide(_circle(_km(KM_FOUNT.x, KM_FOUNT.y), KM_PLAT_R + KM_TREAD * (KM_STEPS - 1), 16))
+	_mode = M_STONE
+
+
+## The front: the doors' glass bay, the poster boards with their lamps, the red MURANÓW and the
+## two white KINO words, all a hand's breadth proud of the wall.
+func _km_front(g: float, top: float) -> void:
+	var n3 := Vector3(KM_V.x, 0.0, KM_V.y)
+	var f := 0.06
+	# The doors: a warm-lit glass bay (M_PAVILION) with dark frames.
+	var keep := _mode
+	_mode = M_PAVILION
+	var d0 := _km(-2.4, f)
+	var d1 := _km(2.4, f)
+	_quad(Vector3(d0.x, g, d0.y), Vector3(d1.x, g, d1.y), Vector3(d1.x, g + 3.0, d1.y), Vector3(d0.x, g + 3.0, d0.y), n3, KM_GLASS,
+			Vector2(0, 0), Vector2(4.8, 0), Vector2(4.8, 3.0), Vector2(0, 3.0), 3.0)
+	_mode = M_STONE
+	for u: float in [-2.4, -1.2, 0.0, 1.2, 2.4]:
+		var p := _km(u, f + 0.1)
+		_beam(Vector3(p.x, g, p.y), Vector3(p.x, g + 3.05, p.y), 0.09, KM_FRAME)
+	var h0 := _km(-2.45, f + 0.1)
+	var h1 := _km(2.45, f + 0.1)
+	for y: float in [3.05, 2.2]:
+		_beam(Vector3(h0.x, g + y, h0.y), Vector3(h1.x, g + y, h1.y), 0.09, KM_FRAME)
+	# The poster boards: a dark frame, two posters each, a little lamp over each poster.
+	for board: Array in KM_POSTERS:
+		var u0: float = board[0]
+		var u1: float = board[1]
+		var a := _km(u0, f)
+		var b := _km(u1, f)
+		_quad(Vector3(a.x, g + 0.95, a.y), Vector3(b.x, g + 0.95, b.y), Vector3(b.x, g + 3.45, b.y), Vector3(a.x, g + 3.45, a.y), n3, KM_FRAME)
+		var cols: Array = board[2]
+		for k in 2:
+			var pu0 := lerpf(u0, u1, k * 0.5) + 0.12
+			var pu1 := lerpf(u0, u1, (k + 1) * 0.5) - 0.12
+			var p0 := _km(pu0, f + 0.05)
+			var p1 := _km(pu1, f + 0.05)
+			var col: Color = cols[k]
+			_quad(Vector3(p0.x, g + 1.07, p0.y), Vector3(p1.x, g + 1.07, p1.y), Vector3(p1.x, g + 3.33, p1.y), Vector3(p0.x, g + 3.33, p0.y), n3, col)
+			# A title band and a face-sized block on each (shapes only, no real film).
+			var t0 := _km(pu0 + 0.2, f + 0.1)
+			var t1 := _km(pu1 - 0.2, f + 0.1)
+			_quad(Vector3(t0.x, g + 1.35, t0.y), Vector3(t1.x, g + 1.35, t1.y), Vector3(t1.x, g + 1.65, t1.y), Vector3(t0.x, g + 1.65, t0.y), n3,
+					KM_WHITE if col.get_luminance() < 0.5 else KM_FRAME)
+			var c := (pu0 + pu1) * 0.5
+			var m0 := _km(c - 0.55, f + 0.1)
+			var m1 := _km(c + 0.55, f + 0.1)
+			_quad(Vector3(m0.x, g + 2.0, m0.y), Vector3(m1.x, g + 2.0, m1.y), Vector3(m1.x, g + 3.05, m1.y), Vector3(m0.x, g + 3.05, m0.y), n3,
+					col.lightened(0.35) if col.get_luminance() < 0.5 else col.darkened(0.45))
+			var lamp := _km(c, f + 0.35)
+			_mode = M_LAMP
+			_pow_box(lamp, KM_U, 0.14, 0.1, g + 3.62, g + 3.75, BARGE_BULB, BARGE_BULB, M_LAMP)
+			_mode = M_STONE
+			var arm := _km(c, f)
+			_beam(Vector3(arm.x, g + 3.7, arm.y), Vector3(lamp.x, g + 3.7, lamp.y), 0.04, KM_FRAME, false)
+	# The words: red MURANÓW over the doors, white KINO at each end (photo 2: KINO, MURANÓW, KINO).
+	_km_word("MURANÓW", -0.6, g + 3.75, 0.95, 0.28, KM_RED, f)
+	_km_word("KINO", -11.6, g + 3.95, 0.6, 0.15, KM_WHITE, f)
+	_km_word("KINO", 11.3, g + 3.95, 0.6, 0.15, KM_WHITE, f)
+	_mode = keep
+
+
+## A word in solid pixel blocks on the front, centred on u, its bottom at y, `h` tall; `sx` is a
+## pixel column's width (the real letters are wide). M_LAMP: its colour by day, lit at night.
+func _km_word(text: String, u: float, y: float, h: float, sx: float, col: Color, f: float) -> void:
+	var sy := h / 7.0
+	var width := 0.0
+	for ch in text:
+		width += (_pow_glyph_w(ch) + 1) * sx
+	width -= sx
+	var at := u - width * 0.5
+	var keep := _mode
+	_mode = M_LAMP
+	for ch in text:
+		var lit := {}
+		for q: Vector2i in _pow_glyph(ch):
+			lit[q] = true
+		# Horizontal runs, one block each.
+		for q: Vector2i in lit:
+			if lit.has(q - Vector2i(1, 0)):
+				continue
+			var e := q
+			while lit.has(e + Vector2i(1, 0)):
+				e += Vector2i(1, 0)
+			var row := PixelFont.BODY + 6 - q.y   # 0 at the body's bottom row, accents above
+			var u0 := at + q.x * sx
+			var u1 := at + (e.x + 1) * sx
+			# The reader faces -v: their left-to-right runs along -u, so the word is mirrored about u.
+			var p := _km(2.0 * u - (u0 + u1) * 0.5, f + 0.12)
+			_pow_box(p, KM_U, (u1 - u0) * 0.5, 0.1, y + row * sy, y + (row + 1) * sy, col, col.lightened(0.15), M_LAMP)
+		at += (_pow_glyph_w(ch) + 1) * sx
+	_mode = keep
+
+
+## The terrace on the roof: the two pillars with ball finials before the arch, and the arch block
+## in the residential front behind (piers, the round arch, a dark passage, the attic).
+func _km_terrace(top: float) -> void:
+	for side: float in [-1.0, 1.0]:
+		var p := _km(KM_ARCH_U + side * 5.6, -19.5)
+		_pow_box(p, KM_U, 0.48, 0.48, top, top + 0.6, KM_BALUSTER.darkened(0.04), KM_BALUSTER)
+		_pow_box(p, KM_U, 0.3, 0.3, top + 0.6, top + 4.6, KM_BALUSTER, KM_BALUSTER)
+		_pow_box(p, KM_U, 0.42, 0.42, top + 4.6, top + 4.9, KM_CORNICE, KM_CORNICE)
+		_pow_box(p, KM_U, 0.12, 0.12, top + 4.9, top + 5.05, KM_GREY.darkened(0.3), KM_GREY.darkened(0.3))
+		# The ball: an octagonal drum with pointed caps.
+		var ball := _circle(p, 0.3, 8)
+		_prism(ball, top + 5.17, top + 5.45, KM_GREY.darkened(0.35), Color(0, 0, 0, 0), M_STONE)
+		_pyramid(ball, top + 5.45, top + 5.62, KM_GREY.darkened(0.3))
+		var under := _circle(p, 0.3, 8)
+		under.reverse()
+		_pyramid(under, top + 5.17, top + 5.05, KM_GREY.darkened(0.4))
+	# The arch block: proud of the block's front, from the terrace to over the eaves.
+	var gb := float(map.terrain_height(_km(KM_ARCH_U, KM_ARCH_V - 6.0).x, _km(KM_ARCH_U, KM_ARCH_V - 6.0).y))
+	var crown := maxf(gb + 15.4, top + 12.0)
+	var v0 := KM_ARCH_V - 0.2
+	var v1 := KM_ARCH_V + 0.9
+	var half := 5.2      # the block's half width
+	var r := 2.6         # the arch's radius
+	var spring := top + 6.2
+	var piers := [[KM_ARCH_U - half, KM_ARCH_U - r], [KM_ARCH_U + r, KM_ARCH_U + half]]
+	for pr: Array in piers:
+		var c := (float(pr[0]) + float(pr[1])) * 0.5
+		_pow_box(_km(c, (v0 + v1) * 0.5), KM_U, (float(pr[1]) - float(pr[0])) * 0.5, (v1 - v0) * 0.5, top - 0.2, crown, KM_STONE, KM_STONE.darkened(0.1))
+	# Over the arch: the solid part from its crown up, then the arch's curve in steps.
+	_pow_box(_km(KM_ARCH_U, (v0 + v1) * 0.5), KM_U, r, (v1 - v0) * 0.5, spring + r, crown, KM_STONE, KM_STONE.darkened(0.1))
+	var steps := 6
+	for k in steps:
+		var a0 := PI * 0.5 * k / steps
+		var a1 := PI * 0.5 * (k + 1) / steps
+		var w := r * cos(a1)   # the opening's half width at this step's top
+		var y0 := spring + r * sin(a0)
+		var y1 := spring + r * sin(a1)
+		for side: float in [-1.0, 1.0]:
+			var cu := KM_ARCH_U + side * (w + (r - w) * 0.5)
+			_pow_box(_km(cu, (v0 + v1) * 0.5), KM_U, (r - w) * 0.5, (v1 - v0) * 0.5, y0, y1 + 0.02, KM_STONE, KM_STONE)
+	# The passage: dark behind the opening.
+	var n3 := Vector3(KM_V.x, 0.0, KM_V.y)
+	var a := _km(KM_ARCH_U - r, v0 + 0.05)
+	var b := _km(KM_ARCH_U + r, v0 + 0.05)
+	_quad(Vector3(a.x, top, a.y), Vector3(b.x, top, b.y), Vector3(b.x, spring + r, b.y), Vector3(a.x, spring + r, a.y), n3, Color("#3b3a36"))
+	# The cornice over the block and the attic's band.
+	_pow_box(_km(KM_ARCH_U, (v0 + v1) * 0.5 + 0.1), KM_U, half + 0.3, (v1 - v0) * 0.5 + 0.3, crown - 0.5, crown - 0.15, KM_CORNICE, KM_CORNICE)
+	_pow_box(_km(KM_ARCH_U, (v0 + v1) * 0.5 + 0.2), KM_U, half + 0.05, 0.12, spring + r + 1.2, spring + r + 1.45, KM_CORNICE, KM_CORNICE)
+
+
+## The fountain on the square: a round platform up three steps (photo 4; OSM's ring `wall` is
+## the basin, map_builder SITE_WALLS leaves it to this site), a round stone basin with water, a
+## square green-bronze pedestal, four putti round a column, and the wide upper bowl (photo 1).
+func _km_fountain() -> void:
+	var c := _km(KM_FOUNT.x, KM_FOUNT.y)
+	var g0 := float(map.terrain_height(c.x, c.y))
+	# The steps, on the half towards the cinema only (photo 4; the street photo from Andersa has the
+	# basin's paving ring level with the benches): outermost first, a riser from below the ground
+	# and a tread ring inside it. Round the other half the platform ends in one low stone kerb.
+	var unit := _circle(Vector2.ZERO, 1.0, 24)
+	var stepped: Array[bool] = []
+	for k in 24:
+		stepped.append(((unit[k] + unit[(k + 1) % 24]) * 0.5).dot(-KM_V) > 0.0)
+	for s in KM_STEPS:
+		var ro := KM_PLAT_R + KM_TREAD * (KM_STEPS - 1 - s)
+		var ri := ro - KM_TREAD if s < KM_STEPS - 1 else KM_FOUNT_R - 0.05
+		var y1 := g0 + KM_STEP * (s + 1)
+		var shade := KM_STEP_STONE.darkened(0.04 * (KM_STEPS - 1 - s))
+		for k in 24:
+			var top := s == KM_STEPS - 1
+			if not stepped[k] and not top:
+				continue
+			var y0 := g0 - 0.25 if s == 0 or not stepped[k] else g0 + KM_STEP * s
+			var a := c + unit[k] * ro
+			var b := c + unit[(k + 1) % 24] * ro
+			var o := ((a + b) * 0.5 - c).normalized()
+			_quad(Vector3(a.x, y0, a.y), Vector3(b.x, y0, b.y), Vector3(b.x, y1, b.y), Vector3(a.x, y1, a.y), Vector3(o.x, 0.0, o.y), shade.darkened(0.12))
+			var ia := c + unit[k] * ri
+			var ib := c + unit[(k + 1) % 24] * ri
+			_quad(Vector3(a.x, y1, a.y), Vector3(b.x, y1, b.y), Vector3(ib.x, y1, ib.y), Vector3(ia.x, y1, ia.y), Vector3.UP, shade)
+			# Where the flight ends, the side of this step's band.
+			if not top:
+				for side in 2:
+					var j := k + side
+					if stepped[(k + 2 * side - 1 + 24) % 24]:
+						continue
+					var e := unit[j % 24]
+					var t := Vector2(-e.y, e.x) * (1.0 if side == 1 else -1.0)
+					var p0 := c + e * (ro - KM_TREAD)
+					var p1 := c + e * ro
+					_quad(Vector3(p0.x, g0 - 0.25, p0.y), Vector3(p1.x, g0 - 0.25, p1.y), Vector3(p1.x, y1, p1.y), Vector3(p0.x, y1, p0.y), Vector3(t.x, 0.0, t.y), shade.darkened(0.08))
+	# The paved strip under the bench row, its front towards the fountain.
+	var bd := KM_BENCH_DIR.normalized()
+	var bf := Vector2(-bd.y, bd.x)
+	if bf.dot(c - KM_BENCH_MID) < 0.0:
+		bf = -bf
+	var gb := float(map.terrain_height(KM_BENCH_MID.x, KM_BENCH_MID.y))
+	var m := KM_BENCH_MID
+	var strip := PackedVector2Array([m - bd * 5.4 - bf * 1.0, m + bd * 5.4 - bf * 1.0, m + bd * 5.4 + bf * 1.7, m - bd * 5.4 + bf * 1.7])
+	_prism(strip, gb - 0.2, gb + 0.03, KM_STEP_STONE.darkened(0.15), KM_STEP_STONE.darkened(0.05), M_STONE, M_STONE)
+	var g := g0 + KM_STEP * KM_STEPS
+	var outer := _circle(c, KM_FOUNT_R, 20)
+	var inner := _circle(c, KM_FOUNT_R - 0.4, 20)
+	# The rim as 20 short wall pieces, inside and out, and its top.
+	for k in 20:
+		var a := outer[k]
+		var b := outer[(k + 1) % 20]
+		var ia := inner[k]
+		var ib := inner[(k + 1) % 20]
+		var o := ((a + b) * 0.5 - c).normalized()
+		var n := Vector3(o.x, 0.0, o.y)
+		_quad(Vector3(a.x, g - 0.02, a.y), Vector3(b.x, g - 0.02, b.y), Vector3(b.x, g + 0.55, b.y), Vector3(a.x, g + 0.55, a.y), n, KM_BALUSTER.darkened(0.08))
+		_quad(Vector3(ia.x, g + 0.2, ia.y), Vector3(ib.x, g + 0.2, ib.y), Vector3(ib.x, g + 0.55, ib.y), Vector3(ia.x, g + 0.55, ia.y), -n, KM_BALUSTER.darkened(0.2))
+		_quad(Vector3(a.x, g + 0.55, a.y), Vector3(b.x, g + 0.55, b.y), Vector3(ib.x, g + 0.55, ib.y), Vector3(ia.x, g + 0.55, ia.y), Vector3.UP, KM_BALUSTER)
+	_cap(inner, g + 0.2, KM_WATER)
+	# The pedestal (scrolled corners as a wider foot and a cornice), the putti, the column, the bowl.
+	_pow_box(c, KM_U, 0.95, 0.95, g + 0.15, g + 0.5, KM_PATINA.darkened(0.1), KM_PATINA)
+	_pow_box(c, KM_U, 0.75, 0.75, g + 0.5, g + 1.55, KM_PATINA, KM_PATINA)
+	_pow_box(c, KM_U, 0.9, 0.9, g + 1.55, g + 1.75, KM_PATINA.lightened(0.08), KM_PATINA.lightened(0.08))
+	for k in 4:
+		var d := Vector2.from_angle(KM_U.angle() + PI * 0.25 + PI * 0.5 * k)
+		var p := c + d * 0.48
+		_pow_box(p, d, 0.17, 0.2, g + 1.75, g + 2.55, KM_PATINA.lightened(0.04), KM_PATINA)
+		_pow_box(p + d * 0.02, d, 0.13, 0.13, g + 2.55, g + 2.85, KM_PATINA.lightened(0.1), KM_PATINA.lightened(0.1))
+	var col := _circle(c, 0.26, 8)
+	_prism(col, g + 1.75, g + 3.75, KM_PATINA, Color(0, 0, 0, 0), M_STONE)
+	# The bowl: a flared frustum from the column out to its rim, a flat top of water.
+	var lo := _circle(c, 0.4, 16)
+	var hi := _circle(c, 1.75, 16)
+	for k in 16:
+		var a := lo[k]
+		var b := lo[(k + 1) % 16]
+		var ha := hi[k]
+		var hb := hi[(k + 1) % 16]
+		var o := ((ha + hb) * 0.5 - c).normalized()
+		var n := (Vector3(o.x, 0.0, o.y) * 0.4 + Vector3.DOWN * 0.9).normalized()
+		_quad(Vector3(a.x, g + 3.6, a.y), Vector3(b.x, g + 3.6, b.y), Vector3(hb.x, g + 4.1, hb.y), Vector3(ha.x, g + 4.1, ha.y), n, KM_PATINA.darkened(0.08))
+		_quad(Vector3(ha.x, g + 4.1, ha.y), Vector3(hb.x, g + 4.1, hb.y), Vector3(hb.x, g + 4.3, hb.y), Vector3(ha.x, g + 4.3, ha.y), Vector3(o.x, 0.0, o.y), KM_PATINA)
+	_cap(hi, g + 4.3, KM_PATINA.lightened(0.12))
+
+
+## The café garden by the doors and its lights: small tables with folding chairs, festoons of warm
+## bulbs from the front's top out to four posts and along the front, paper lanterns under them.
+func _km_garden(g: float, top: float) -> void:
+	for t: Vector2 in KM_TABLES:
+		var p := _km(t.x, t.y)
+		var y := float(map.terrain_height(p.x, p.y))
+		_pow_box(p, KM_U, 0.36, 0.36, y + 0.71, y + 0.75, KM_TABLE_TOP.darkened(0.1), KM_TABLE_TOP)
+		_beam(Vector3(p.x, y, p.y), Vector3(p.x, y + 0.72, p.y), 0.07, KM_CHAIR, false)
+		for side: float in [-1.0, 1.0]:
+			var s := p + KM_U * (side * 0.62)
+			var to := -KM_U * side
+			_pow_box(s, to, 0.2, 0.2, y + 0.42, y + 0.46, KM_CHAIR, KM_CHAIR)
+			_pow_box(s - to * 0.2, to, 0.025, 0.2, y + 0.46, y + 0.86, KM_CHAIR, KM_CHAIR)
+			_beam(Vector3(s.x, y, s.y), Vector3(s.x, y + 0.43, s.y), 0.05, KM_CHAIR, false)
+	var hook_y := top - 0.75
+	var hooks: Array[Vector3] = []
+	for u: float in [-14.0, -7.0, 0.0, 7.0, 14.0]:
+		var h := _km(u, 0.3)
+		hooks.append(Vector3(h.x, hook_y, h.y))
+	for i in hooks.size() - 1:
+		_pow_festoon(hooks[i], hooks[i + 1], 0.35, 6)
+	for k in KM_POSTS.size():
+		var pp: Vector2 = KM_POSTS[k]
+		var foot := _km(pp.x, pp.y)
+		var y := float(map.terrain_height(foot.x, foot.y))
+		_beam(Vector3(foot.x, y - 0.3, foot.y), Vector3(foot.x, y + 3.6, foot.y), 0.1, KM_FRAME)
+		var from: Vector3 = hooks[mini(k + 1, hooks.size() - 1)]
+		_pow_festoon(from, Vector3(foot.x, y + 3.55, foot.y), 0.6, 7)
+		if k + 1 < KM_POSTS.size():
+			var nxt: Vector2 = KM_POSTS[k + 1]
+			var nf := _km(nxt.x, nxt.y)
+			var ny := float(map.terrain_height(nf.x, nf.y))
+			_pow_festoon(Vector3(foot.x, y + 3.55, foot.y), Vector3(nf.x, ny + 3.55, nf.y), 0.5, 7)
+	# The paper lanterns: bigger warm-white globes hung under the front's festoon.
+	var keep := _mode
+	_mode = M_LAMP
+	for u: float in [-12.5, -9.0, -5.5, 5.5, 9.0, 12.5]:
+		var p := _km(u, 1.4)
+		var ring := _circle(p, 0.24, 6)
+		_prism(ring, hook_y - 0.95, hook_y - 0.55, Color(1.0, 0.93, 0.78), Color(1.0, 0.93, 0.78), M_LAMP, M_LAMP)
+		_beam(Vector3(p.x, hook_y - 0.55, p.y), Vector3(p.x, hook_y - 0.3, p.y), 0.02, KM_FRAME, false)
+	_mode = keep
 
 
 # --- TR Warszawa's building site ----------------------------------------------------------

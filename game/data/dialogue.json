@@ -6542,5 +6542,164 @@
         "only": "kamil_finish"
       }
     ]
+  ],
+  "kino_wiktor": [
+    [
+      "Cześć! Uważaj na puszkę, to jedyna kopia. Kopia zapasowa jest w mojej głowie.",
+      "Hi! Mind the can, it's the only copy. The backup is in my head.",
+      {
+        "only": "hello"
+      }
+    ],
+    [
+      "Wsiadam. Jedź tak, jakby to był travelling, nie dostawa pizzy.",
+      "I'm in. Drive like it's a tracking shot, not a pizza run.",
+      {
+        "only": "hello"
+      }
+    ],
+    [
+      "Ała! Rysa! No dobra, Nojé by to nazwał fakturą.",
+      "Ouch! A scratch! Fine, Nojé would call it texture.",
+      {
+        "only": "bump"
+      }
+    ],
+    [
+      "Hamuj kadrem, nie zderzakiem!",
+      "Brake with the frame, not the bumper!",
+      {
+        "only": "bump"
+      }
+    ],
+    [
+      "Kolejna rysa. Mój operator płakałby. Gdybym miał operatora.",
+      "Another scratch. My cameraman would cry. If I had a cameraman.",
+      {
+        "only": "bump"
+      }
+    ],
+    [
+      "To była klatka z gołębiem. Najważniejsza klatka.",
+      "That was the pigeon frame. The key frame.",
+      {
+        "only": "bump"
+      }
+    ],
+    [
+      "Nie ma już czystej klatki. Teraz to kino eksperymentalne. Lepiej.",
+      "No clean frame left. Now it's experimental cinema. Better.",
+      {
+        "only": "ruined"
+      }
+    ],
+    [
+      "Piętnaście sekund bez cięcia. Béla Tartak by się popłakał. Ze szczęścia albo z nudów.",
+      "Fifteen seconds without a cut. Béla Tartak would weep. With joy or boredom.",
+      {
+        "only": "shot_long"
+      }
+    ],
+    [
+      "Stoimy. Miasto oddycha. Tak, to jest ujęcie.",
+      "We stand still. The city breathes. Yes, that's the shot.",
+      {
+        "only": "shot_static"
+      }
+    ],
+    [
+      "Wstecz! Koniec przed początkiem! Gaspar Nojé dzwonił, chce prawa.",
+      "Reverse! The end before the start! Gaspar Nojé called, he wants the rights.",
+      {
+        "only": "shot_reverse"
+      }
+    ],
+    [
+      "Pęd! Światła się rozmazują! Tak wygląda dusza nad Alejami.",
+      "The rush! The lights blur! That's what a soul over the Aleje looks like.",
+      {
+        "only": "shot_rush"
+      }
+    ],
+    [
+      "Gaspar Nojé nakręcił film o duszy, która lata nad Tokio. Ja o gołębiu nad rondem. Bliżej ludzi.",
+      "Gaspar Nojé made a film about a soul flying over Tokyo. I made one about a pigeon over a roundabout. Closer to the people."
+    ],
+    [
+      "U Nojé czołówka miga przez trzy minuty. U mnie miga sygnalizacja na Marszałkowskiej. Za darmo.",
+      "Nojé's opening titles strobe for three minutes. Mine strobe for free: the lights on Marszałkowska."
+    ],
+    [
+      "Paolo Sorrentello: piękni ludzie nudzą się na tarasie. Warszawa: piękni ludzie nudzą się w korku.",
+      "Paolo Sorrentello: beautiful people bored on a terrace. Warsaw: beautiful people bored in traffic."
+    ],
+    [
+      "Sorrentello ma Rzym i flamingi. Ja mam Pałac i gołębie. Wygrywam liczbą ptaków.",
+      "Sorrentello has Rome and flamingos. I have the Palace and pigeons. I win on bird count."
+    ],
+    [
+      "Béla Tartak kręcił siedem godzin krowę w deszczu. Ja trzy czterdzieści. Jestem komercyjny.",
+      "Béla Tartak shot a cow in the rain for seven hours. I did three forty. I'm commercial."
+    ],
+    [
+      "Lars von Tramwaj ma dogmat: bez muzyki, bez światła, bez scenariusza. U mnie też bez widzów.",
+      "Lars von Tramwaj has a dogma: no music, no light, no script. Mine has no audience either."
+    ],
+    [
+      "Wiesz, czemu kręcę na taśmie? Bo cyfra nie pachnie. Taśma pachnie octem i ambicją.",
+      "Know why I shoot on film? Digital doesn't smell. Film smells of vinegar and ambition."
+    ],
+    [
+      "Mój film nie ma bohatera. Ma rondo. Rondo to też charakter, tylko się nie rozwija.",
+      "My film has no hero. It has a roundabout. A roundabout is a character too, it just doesn't develop."
+    ],
+    [
+      "Festiwal w Gdyni odpisał: „Dziękujemy”. Bez wykrzyknika. To dobry znak.",
+      "The Gdynia festival wrote back: \"Thank you\". No exclamation mark. That's a good sign."
+    ],
+    [
+      "Krytyk z Mokotowa napisał, że mój poprzedni film to „dziewięćdziesiąt minut parkingu”. Był ze mnie dumny.",
+      "A Mokotów critic said my last film was \"ninety minutes of a car park\". He was proud of me."
+    ],
+    [
+      "Długie ujęcie to szacunek do widza. Krótkie to szacunek do jego pęcherza.",
+      "A long take is respect for the viewer. A short one is respect for his bladder."
+    ],
+    [
+      "W napisach końcowych dziękuję gołębiowi. Nie odpisał, ale to artysta.",
+      "In the credits I thank the pigeon. He didn't reply, but he's an artist."
+    ],
+    [
+      "Kino Muranów pamięta, kiedy ludzie palili na sali. Teraz palą tylko krytycy. Swoje mosty.",
+      "Kino Muranów remembers when people smoked in the hall. Now only critics burn. Their bridges."
+    ],
+    [
+      "Tu kiedyś na Złotej był Relax, pierwsze siedemdziesiąt milimetrów w Polsce. Mój film by się tam zmieścił. Wszerz.",
+      "Relax on Złota was once Poland's first 70 mm screen. My film would have fitted. Sideways."
+    ],
+    [
+      "Zobacz te światła. Wong Kar-Wajs dałby za to jedno zwolnione tempo.",
+      "Look at those lights. Wong Kar-Wajs would give a slow-motion for that."
+    ],
+    [
+      "Moja była też jest reżyserką. Jej film ma fabułę. Nie rozmawiamy.",
+      "My ex is a director too. Her film has a plot. We don't talk."
+    ],
+    [
+      "Jak nikt nie kupi, puszczę to na klatce schodowej na Pradze. Ludzie i tak tam stoją po trzy godziny.",
+      "If nobody takes it, I'll screen it in a stairwell in Praga. People stand there three hours anyway."
+    ],
+    [
+      "Muzyka? Tylko szum Alej. Dwanaście minut tramwaju numer 25. Hipnotyczne.",
+      "Music? Only the hum of the Aleje. Twelve minutes of the number 25 tram. Hypnotic."
+    ],
+    [
+      "Nie mów nikomu, ale w drugiej godzinie gołąb mruga. To jest mój zwrot akcji.",
+      "Don't tell anyone, but in the second hour the pigeon blinks. That's my plot twist."
+    ],
+    [
+      "Ludzie pytają, o czym jest film. Pytam ich, o czym jest rondo.",
+      "People ask what the film's about. I ask them what a roundabout is about."
+    ]
   ]
 }

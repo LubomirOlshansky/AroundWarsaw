@@ -208,6 +208,20 @@ strict three-question door, Smoła's cutaway room (option A). Left:
 - [ ] Opaski (wristbands) collected per spot, a card in the notebook
 - [ ] Option B: a walk-around room (a person controller inside), only if A plays well
 
+## Cinema tour "Kino objazdowe" (F, 2026-11-07; docs/design/kino-tour.md)
+
+Built: Wiktor's call, the pickup on Plac Zbawiciela, four cinemas (Amondo, Atlantic, Kinoteka,
+Muranów) with pitch cards, the reel's five frames, four optional shots, 30 lines of banter about
+niche cinema (parody names), the pay; Kino Muranów rebuilt from F's four photos (spec
+`docs/landmarks/specs/kino_muranow.md`); KINO ATLANTIC moved onto its OSM point.
+Left:
+- [ ] Photos from F: Kino Atlantic's front (Chmielna 33) and Kino Amondo's entrance (Żurawia 20), for poster facades like Muranów's; Amondo has no sign yet (a `Storefronts.CINEMAS` marquee there drops a Frogs shop below check_parodies' 80 % floor: give it a landmark sign instead)
+- [ ] Phone look at Muranów: the letters' size, the festoons at night, whether the default camera sees the front (it faces east-north-east)
+- [ ] The premiere as a scene: a queue in berets under the festoons at Muranów 20:30-21:00, a lasting evening crowd at its café garden (crowds.gd)
+- [ ] A voice for Wiktor (later, like the night racing club's); a notebook card for the cinemas
+- [ ] The Atlantic stop is on Widok, 70 m from the door (Chmielna is car-free there): a walk-round line, or a stop on Zgoda
+- [ ] Autopilot run of the whole tour on the Mac (`--kino-tour=go`)
+
 ## Padel call at WTS DESKA (coordinator, 2026-11-07; docs/design/padel.md)
 
 Built: the call opens like the boat race and the rave (ringing card with the caller's bio,

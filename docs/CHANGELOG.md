@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-07
+- Kino Muranów looks like the real one now: red MURANÓW letters over the doors, posters under little lamps, the terrace with its white balustrade and two pillars before the arch, the fountain with the putti, and at night warm festoons over a café garden. A new quest goes with it: your director friend Wiktor calls and you drive him and the only copy of his film round Amondo, Atlantic, the Kinoteka and Muranów to get it screened, while he jokes about arthouse cinema and asks for long takes and reverse shots. Every bump scratches the reel.
 - The padel call now rings first, with a word about who's calling, and when you make it to the DESKA court in time you actually play: three points, where you pick a lob, a shot off the glass or a smash. Win all three and the club hoodie is yours. Land the helicopter by the court and reception has something to say about it.
 - Zuzia now waits for you at the ROWERILO dock by Elektrownia as a start on the quest map: stop by and she walks up to start the coffee run in person.
 - Port Czerniakowski came alive. The tip of the spit has Majami Wawa: a timber terrace under the willows, red and beige tents, string lights, fire pits and a white pontoon on the Vistula. The rowing club WTW has its white boathouse under a blue roof, its gate with a hexagon sign and two big anchors. Boats are moored along both quays, and houseboats sit by the west bank.
