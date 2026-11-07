@@ -27,6 +27,7 @@ someone writes its lines.
 - 46 named buildings across the centre got street fronts from real photos.
 
 ## 2026-11-06
+- The low building under the Prezydent hotel tower opposite Centralna is rebuilt from photos: silver-white panel bands, a lit glass restaurant floor, shops behind columns, its tenants' signs (PEPEO ŻUBR with the orange bison, KASYNOS, LOD, LUZMED, MROSTA and more), three big LED screens on the roof and the tower, and crowds on the pavement and at the tram stop in front; the tower behind it now wears CZERY.
 - Every open-air railway station now has shelters, benches, bins, lamps and blue name boards on its platforms, and people stand waiting and get on the next train.
 - The project's licence is now source-available for non-commercial use; the website says so.
 - Boat race on the Vistula: your mate Szymek calls and you race him, old Pan Zdzisiek in his Złota Rybka and Kamil on a jet ski from Port Czerniakowski down under four bridges to the Old Town, through rings in a slalom. Miss three and you're out, then go again or head back. Rings in a row speed you up, gold rings give a boost, and a sand barge going the other way throws waves you can jump.

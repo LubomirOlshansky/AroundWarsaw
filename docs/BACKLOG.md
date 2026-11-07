@@ -27,6 +27,16 @@ Paca, Collegium Nobilium) and Pałac Branickich's modelled Miodowa front. Left, 
 - Pałac Szaniawskich's pediment and arched ground floor (M204); Pałac Prymasowski and Pałac Blanka on Senatorska have no ground photo yet.
 - Branickich: Mac look check of the storey count under the cornice and the end pavilions.
 
+## Centrum LIM's podium from F's night photos (F, 2026-11-06)
+
+Done 2026-11-06 (spec `docs/landmarks/specs/lim-podium.md`, site `lim`). Left:
+- **The tower's night look**: the photos show the hotel's name and the phone maker's name on all
+  four faces; the game has them on two (south and east), and the lit cells are random.
+- **A day look check**: only night photos so far; the panel colour and the signs by day are a guess.
+- **The screens are still pictures**: real ones cycle adverts; a moving screen would need a script
+  like Warsaw Spire's ticker.
+- **Phone**: look and bench by Centralna at night (the signs are in the landmark signs' MultiMesh,
+  the screens and marks a few hundred triangles in the building mesh).
 
 ## Street blocks across the city (F, 2026-11-06)
 
