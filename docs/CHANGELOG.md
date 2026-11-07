@@ -15,6 +15,7 @@ someone writes its lines.
 - Miodowa's palaces look like themselves: cream and pink plaster under tile-red roofs (Paca's are green copper), and Pałac Branickich's long front has pink pilaster strips, a cornice, an attic crowded with statues, three scrolled dormers and its balconied gate.
 
 
+- Junctions across the city look cleaner: lane lines now end at the zebra or the stop line instead of running on into the middle of the junction, turn arrows sit before the stop line instead of on or past the crossing, and a few crossings that stopped short now reach the kerb.
 - The map shows what matters: the main story's star glows gold, the big quests (the boat race, the secret rave) have their own "!" badges at their start spots, and while you're on a quest everything else hides. Drive up to a start and your friend comes out to talk in person, and a new STORIES tab on the map starts any big quest right away. Landmarks on the map are now quiet little drawings instead of big pins.
 - Podwózka taxi rides now come with stories: 18 passengers, from a Mordor office worker heading for Warsaw Spire to a film star off to the Palace of Culture, a saxophonist late for jazz under the Powiśle UFO and a beekeeper invited to the Presidential Palace, chat on the way to real places and ask you a question; your answer changes the tip and a good talk earns half a star.
 - Marszałkowska: 16 more houses got street fronts from real photos, from Hotel Saski to the long block at number 140.
@@ -28,6 +29,7 @@ someone writes its lines.
 
 ## 2026-11-06
 - A night racing club: Darek calls you to a meet on Plac Defilad, where tuned cars glow and Lena drifts donuts in the smoke until the police raid it. Escape, race everyone to the next meet by the National Stadium, survive a second raid, then line up for a drag on Aleja Zieleniecka: watch the lights, shift on time, hit the nitro and beat Tadek for the club's respect.
+- The low building under the Prezydent hotel tower opposite Centralna is rebuilt from photos: silver-white panel bands, a lit glass restaurant floor, shops behind columns, its tenants' signs (PEPEO ŻUBR with the orange bison, KASYNOS, LOD, LUZMED, MROSTA and more), three big LED screens on the roof and the tower, and crowds on the pavement and at the tram stop in front; the tower behind it now wears CZERY.
 - Every open-air railway station now has shelters, benches, bins, lamps and blue name boards on its platforms, and people stand waiting and get on the next train.
 - The project's licence is now source-available for non-commercial use; the website says so.
 - Boat race on the Vistula: your mate Szymek calls and you race him, old Pan Zdzisiek in his Złota Rybka and Kamil on a jet ski from Port Czerniakowski down under four bridges to the Old Town, through rings in a slalom. Miss three and you're out, then go again or head back. Rings in a row speed you up, gold rings give a boost, and a sand barge going the other way throws waves you can jump.
@@ -124,6 +126,7 @@ someone writes its lines.
 - Plac Bankowy's palaces look like the real ones: pale cream under green copper roofs, the city hall's wings end in white colonnades with the giant six-column portico at the back of its courtyard, and the old Bank Polski's rounded corner has its tier of arches and a green dome. On Jasna the Philharmonic shows its colonnade with a composer on every window sill and its green FN neon, and Teatr Polski on Karasia has its round corner bays and oval windows.
 
 ## 2026-11-02
+- Seven monuments stand as they really look: the Warsaw Nike with her sword on her granite pylon, Słowacki and Starzyński on Plac Bankowy, the Little Insurgent in his big helmet and Kiliński with his sabre on Podwale, the Umschlagplatz memorial on Stawki and the wagon of crosses on Muranowska.
 - The Supreme Court's colonnade on Plac Krasińskich is green as in Warsaw, not white: ribbed columns with dark lettering low down and rosettes in the capitals, under green beams.
 - The Vistula boulevards are dressed for summer: the concrete bar pavilions on the embankment have lawn roofs, glass fronts, umbrella terraces and string lights, colourful container bars and kiosks sell beer, lemonade and zapiekanki through lit hatches, and timber deck strips with striped deck chairs line the water from the Old Town to Tamka.
 - Fabryka Norblina stands on its real block between Łucka, Żelazna and Prosta, with its court of big candelabra plane trees open off the glass street and green roofs with garden terraces; Browary's Central Garden is a dense little wood of 22 young trees round a winding gravel path with café tables under dark-blue parasols, and the office blocks have green roofs.
