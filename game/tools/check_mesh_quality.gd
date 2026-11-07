@@ -234,7 +234,7 @@ const BUDGET := {
 	"varso": 2500,
 	"varso_place": 1100,
 	"wcf": 190,
-	"wszystkich": 950,
+	"wszystkich": 1300,
 	"wizytki": 690,
 	"branickich": 1500,
 	"archikatedra": 1100,
@@ -246,7 +246,7 @@ const BUDGET := {
 	"wtt": 1640,
 	"zacheta": 720,
 	"zlota44": 1800,
-	"zygmunt": 280,
+	"zygmunt": 320,
 	# Towarowa 22 built as finished (2026-11-03): seven towers and blocks, the hall's steel frame,
 	# the pavilion, the park, the drone port and the gilded crane.
 	"towarowa22": 5000,
