@@ -111,7 +111,10 @@ const TOWERS := [
 	# (-1308, 697)), so the one site is dressed as it: dark green-black glass in a fine grid,
 	# dark bands, a lattice mast and the names (_marriott).
 	{"key": "lim", "osm": "Centrum LIM", "style": S_GRID, "glass": "#24343a", "roof": "#6f777b", "sign": "PREZYDENT", "marriott": true},
-	{"key": "chalubinskiego8", "osm": "Chałubińskiego 8", "style": S_FINS, "glass": "#2f6f8f", "roof": "#c9cfd2", "mapped": true},
+	# Chałubińskiego 8 (Oxford Tower): the car maker's lit name on its crown (F's LIM photos,
+	# 2026-11-06), as the parody CZERY.
+	{"key": "chalubinskiego8", "osm": "Chałubińskiego 8", "style": S_FINS, "glass": "#2f6f8f", "roof": "#c9cfd2", "mapped": true,
+			"sign": "CZERY"},
 	{"key": "spektrum", "osm": "Spektrum Tower", "style": S_BANDS, "glass": "#2f5563", "roof": "#7c878c", "mapped": true},
 	# The Bridge is its own site now (_build_bridge, F's photos 2026-11-06).
 	# The second pass: the rest of the skyline over 80 m (the hotels by their addresses).
@@ -566,6 +569,27 @@ const INFO := {
 	"getto": ["Pomnik Bohaterów Getta",
 			"Natan Rapaport, 1948: pomnik bojowników powstania w getcie warszawskim z 1943 roku.",
 			"Nathan Rapoport, 1948: the memorial to the fighters of the 1943 Warsaw Ghetto Uprising."],
+	"nike": ["Pomnik Bohaterów Warszawy",
+			"Warszawska Nike Mariana Koniecznego, 1964: z mieczem w ręku, nad Trasą W-Z. Przeniesiona tu z placu Teatralnego w 1997 roku.",
+			"The Warsaw Nike by Marian Konieczny, 1964, sword in hand over Trasa W-Z. Moved here from Plac Teatralny in 1997."],
+	"slowacki": ["Pomnik Juliusza Słowackiego",
+			"Poeta w długim płaszczu, z pochyloną głową, na wysokim słupie przed pałacem Ministra Skarbu.",
+			"The poet in a long cloak, head bowed, on a tall pillar before the Treasury Minister's palace."],
+	"starzynski": ["Pomnik Stefana Starzyńskiego",
+			"Prezydent Warszawy, który we wrześniu 1939 roku poprowadził obronę miasta. Zapada się w wielki brązowy fotel.",
+			"The mayor who led the city's defence in September 1939, sinking into a huge bronze armchair."],
+	"maly_powstaniec": ["Pomnik Małego Powstańca",
+			"Chłopiec w za dużym hełmie, z pistoletem maszynowym: pamięć dzieci, które walczyły w Powstaniu Warszawskim. Jerzy Jarnuszkiewicz, 1983.",
+			"A boy in a helmet far too big, with a submachine gun: for the children who fought in the Warsaw Rising. Jerzy Jarnuszkiewicz, 1983."],
+	"kilinski": ["Pomnik Jana Kilińskiego",
+			"Szewc, który w 1794 roku poprowadził warszawiaków w insurekcji kościuszkowskiej. Stanisław Jackowski, 1936.",
+			"The shoemaker who led the people of Warsaw in the 1794 Kościuszko Rising. Stanisław Jackowski, 1936."],
+	"umschlagplatz": ["Umschlagplatz",
+			"Stąd w latach 1942–1943 Niemcy wywieźli setki tysięcy Żydów z warszawskiego getta do obozu zagłady w Treblince.",
+			"From here, in 1942–1943, the Germans deported hundreds of thousands of Jews from the Warsaw Ghetto to the Treblinka death camp."],
+	"pomnik_wschod": ["Pomnik Poległym i Pomordowanym na Wschodzie",
+			"Wagon pełen krzyży na torach, na podkładach nazwy miejsc kaźni. Pamięć ofiar sowieckiej napaści z 17 września 1939 roku.",
+			"A wagon full of crosses on a track whose sleepers name the places of killing: for the victims of the Soviet invasion of 17 September 1939."],
 	"vitkac": ["Vipkac",
 			"Luksusowy dom towarowy przy Brackiej: ciemny kamień, ogród na dachu.",
 			"A luxury store on Bracka: dark stone outside, a garden on the roof."],
@@ -1069,6 +1093,8 @@ func _find_sites() -> void:
 	_find_cedet()
 	# Muranów (2026-11-02, spec polin.md): POLIN and the Ghetto Heroes Monument before it.
 	_find_polin()
+	# The monuments pass, part 2 (2026-11-02): seven monuments from the Mac's photo reports.
+	_find_monuments()
 	# The railway (docs/design/railway.md, S1): Warszawa Ochota's hall and its saddle roof.
 	_find_ochota()
 	# S2: Warszawa Powiśle's two pavilions and the platform canopies.
@@ -1688,6 +1714,20 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_polin(s)
 			"getto":
 				_build_getto(s)
+			"nike":
+				_build_nike(s)
+			"slowacki":
+				_build_slowacki(s)
+			"starzynski":
+				_build_starzynski(s)
+			"maly_powstaniec":
+				_build_maly_powstaniec(s)
+			"kilinski":
+				_build_kilinski(s)
+			"umschlagplatz":
+				_build_umschlagplatz(s)
+			"pomnik_wschod":
+				_build_pomnik_wschod(s)
 			"ochota":
 				_build_ochota(s)
 			"powisle":
@@ -3240,6 +3280,10 @@ func _build_tower(site: Dictionary) -> void:
 	var roof := Color(spec["roof"])
 	var skin := M_SKIN + float(spec["style"]) / 16.0
 	var parts := _parts_in(zone, func(b: Dictionary) -> bool: return float(b["h"]) > float(b["mh"]) + 0.5)
+	if spec["key"] == "lim":
+		# Centrum LIM: the podium is built from F's photos (_lim_podium), not in the tower's glass
+		# (its ground floor is the part named like the outline, so before the filter below).
+		parts = _lim_parts(parts, g)
 	if parts.size() > 1:
 		parts = parts.filter(func(b: Dictionary) -> bool: return str(b.get("name", "")) != spec.get("osm", ""))
 	var boxes: Array[Rect2] = []
@@ -3530,6 +3574,314 @@ func _marriott(poly: PackedVector2Array, g: float, h: float) -> void:
 	_prism(_square(c, 3.0), roof + 14.0, roof + 14.6, steel.darkened(0.15), steel, M_STONE, M_STONE)
 	_prism(_square(c, 0.4), roof + 26.0, roof + 26.8, DUSK_RED, DUSK_RED, M_LAMP, M_LAMP)
 	_crown_signs(poly, mid, "SAMSONG", DUSK_WARM, 0.0, 0.75)
+
+
+# --- Centrum LIM's podium (F's night photos, 2026-11-06) ----------------------------------------
+
+## Centrum LIM's podium on Aleje Jerozolimskie 65/79 (1989), opposite Warszawa Centralna, rebuilt
+## from F's six night photos (docs/landmarks/specs/lim-podium.md). Until now it was the tower's
+## dark glass in three boxes. Base to top: the ground floor's shop glass behind an arcade of round
+## columns (the map's ground-floor part stands 5-9 m in from the upper floors); a band of
+## silver-white panels (LIM_GROUND to LIM_BAND_A); a glazed gallery floor 2 m in
+## (restaurants: warm, a pink-lit stretch west of the tower, green glass at the east end); a
+## second panel band with a dark ribbon window; the top band with the tenants' signs (parodies,
+## LIM_SIGNS); on the west roof the black louvred plant screen (the map's 15-18 m part). Two LED
+## screens stand on the roof and one hangs on the tower's north face (LIM_SCREENS).
+const LIM_PANEL := Color("#d9d8d1")
+const LIM_SHOP := Color("#8fa2a6")
+const LIM_GALLERY_GLASS := Color("#7f989a")
+const LIM_RIBBON_GLASS := Color("#1f262b")
+const LIM_LOUVRE := Color("#1b1d20")
+const LIM_ROOF := Color("#9a9c9c")
+const LIM_COLUMN := Color("#e4e2dc")
+const LIM_GROUND := 4.6     # the ground floor's top: the first panel band's underside
+const LIM_BAND_A := 7.6     # the first panel band's top: the gallery's floor
+const LIM_GALLERY := 10.6   # the gallery's top
+const LIM_RIBBON := Vector2(12.2, 13.1)  # the dark window strip under the top band
+const LIM_TOP := 15.0       # the roof (the map's upper part)
+const LIM_LOUVRE_TOP := 18.0
+## Colours of the parodied signs (lit at night; F's photos).
+const LIM_GOLD := Color(1.0, 0.8, 0.42)
+const LIM_WHITE := Color(1.0, 0.98, 0.94)
+const LIM_RED := Color(1.0, 0.12, 0.1)
+const LIM_ORANGE := Color(1.0, 0.42, 0.08)
+## The tenants' signs on the north (street) face, east to west in F's photos: the hotel's name
+## with its crown at both ends, the casino chain, the airline, the clinic, the bank with its bison,
+## the frozen-food maker, the small casino, then the shops' names lower down. Each row: word, u
+## (metres from the face's west end), band ("top" 13.1-15 m, "mid" the band under the ribbon,
+## "a" the first panel band, "gf" the shop glass), letter-row height (m), colour, extra.
+const LIM_SIGNS := [
+	["PREZYDENT", 16.0, "top", 1.5, LIM_GOLD, "crown"],
+	["WAWKA", 31.0, "top", 1.2, LIM_RED, "box"],
+	["KASYNKO", 41.0, "top", 1.3, LIM_WHITE, "redbox"],
+	["MROSTA", 57.0, "top", 1.5, Color(0.3, 0.42, 1.0), ""],
+	["PEPEO ŻUBR", 78.0, "top", 1.4, LIM_WHITE, "bison"],
+	["LINIE LODOWE", 93.0, "top", 0.9, LIM_WHITE, ""],
+	["LOD", 104.0, "top", 1.9, LIM_WHITE, ""],
+	["LUZMED", 97.0, "mid", 1.3, Color(0.3, 1.0, 0.35), "plus"],
+	["KASYNOS", 119.0, "top", 1.5, Color(0.25, 0.45, 1.0), "chip"],
+	["PREZYDENT", 138.0, "top", 1.5, LIM_GOLD, "crown"],
+	["TYGRYS", 70.0, "a", 1.3, LIM_WHITE, "kopenhaga"],
+	["ROSZMAN", 88.0, "gf", 0.9, LIM_RED, ""],
+	["MILENIUSZ", 116.0, "gf", 0.9, Color(0.9, 0.2, 0.45), ""],
+]
+## The LED screens: [u (m from the face's west end), metres back from the face, width, height,
+## panel colour, the advert's word, its colour, "louvre" (stands on the plant screen) / "roof" /
+## "tower" (hangs on the tower's north face)]. The adverts are the game's own parodies of those
+## in the photos (a fashion chain, a box of pretzel sticks, a car).
+const LIM_SCREENS := [
+	[48.0, 7.0, 12.0, 7.5, Color("#e8661a"), "PALUSZKI", LIM_WHITE, "louvre"],
+	[90.0, 8.0, 11.0, 7.5, Color("#6a3fc4"), "HYM", LIM_WHITE, "roof"],
+	[0.0, 0.0, 11.0, 8.5, Color("#c8284a"), "LEKSUS", LIM_WHITE, "tower"],
+]
+## The flat lit marks beside the words (x along the wall, y up, metres; drawn centred).
+const LIM_CROWN := [Vector2(-0.8, 0.0), Vector2(0.8, 0.0), Vector2(0.8, 0.9), Vector2(0.45, 0.45), Vector2(0.0, 1.1),
+		Vector2(-0.45, 0.45), Vector2(-0.8, 0.9)]
+## The clinic's plus, one outline (two crossed bars would overlap in one plane).
+const LIM_PLUS := [Vector2(-0.18, 0.0), Vector2(0.18, 0.0), Vector2(0.18, 0.42), Vector2(0.6, 0.42), Vector2(0.6, 0.78),
+		Vector2(0.18, 0.78), Vector2(0.18, 1.2), Vector2(-0.18, 1.2), Vector2(-0.18, 0.78), Vector2(-0.6, 0.78), Vector2(-0.6, 0.42),
+		Vector2(-0.18, 0.42)]
+## The bison, facing west (left, seen from the street): head low with its beard, the hump, a horn.
+const LIM_BISON := [Vector2(0.0, 0.3), Vector2(0.05, 0.2), Vector2(0.18, 0.12), Vector2(0.28, 0.25), Vector2(0.32, 0.03),
+		Vector2(0.4, 0.03), Vector2(0.43, 0.3), Vector2(1.03, 0.3), Vector2(1.07, 0.03), Vector2(1.15, 0.03), Vector2(1.2, 0.45),
+		Vector2(1.22, 0.62), Vector2(1.05, 0.72), Vector2(0.7, 0.8), Vector2(0.45, 0.98), Vector2(0.25, 0.88), Vector2(0.14, 0.72),
+		Vector2(0.1, 0.8), Vector2(0.07, 0.66), Vector2(0.02, 0.55)]
+
+
+## The podium (see LIM_PANEL): `outer` the upper floors' outline (5-15 m), `ground` the ground
+## floor's, `louvre` the plant screen's (15-18 m), `tower` the hotel tower's, from the map's parts.
+func _lim_podium(outer: PackedVector2Array, ground: PackedVector2Array, louvre: PackedVector2Array,
+		tower: PackedVector2Array, g: float) -> void:
+	var none := Color(0, 0, 0, 0)
+	var panels := M_STONE
+	_prism(ground, g - 0.4, g + LIM_GROUND, LIM_SHOP, none, M_PAVILION)
+	# The arcade's columns: 0.9 m round, about every 7.5 m, 1.1 m in from the panel bands' face,
+	# from the pavement up through the gallery floor.
+	for i in outer.size():
+		var a := outer[i]
+		var b := outer[(i + 1) % outer.size()]
+		var l := a.distance_to(b)
+		if l < 6.0:
+			continue
+		var o := _out(outer, a, b)
+		var n := maxi(1, roundi(l / 7.5))
+		for k in n:
+			var c := a.lerp(b, (k + 0.5) / n) - o * 1.1
+			if Geometry2D.is_point_in_polygon(c, ground) or Geometry2D.is_point_in_polygon(c, tower):
+				continue
+			_prism(_circle(c, 0.45, 8), g - 0.4, g + LIM_GALLERY, LIM_COLUMN, none, M_STONE)
+	_prism(outer, g + LIM_GROUND, g + LIM_BAND_A, LIM_PANEL, none, panels)
+	_mode = M_STONE
+	_cap(outer, g + LIM_BAND_A, LIM_PANEL.darkened(0.2))
+	var gallery := _largest(Geometry2D.offset_polygon(outer, -2.0, Geometry2D.JOIN_MITER))
+	_prism(gallery, g + LIM_BAND_A, g + LIM_GALLERY, LIM_GALLERY_GLASS, none, M_PAVILION)
+	_prism(outer, g + LIM_GALLERY, g + LIM_RIBBON.x, LIM_PANEL, none, panels)
+	_mode = M_STONE
+	_cap(outer, g + LIM_RIBBON.x, LIM_PANEL.darkened(0.2))
+	var ribbon := _largest(Geometry2D.offset_polygon(outer, -0.3, Geometry2D.JOIN_MITER))
+	_prism(ribbon, g + LIM_RIBBON.x, g + LIM_RIBBON.y, LIM_RIBBON_GLASS, none, M_SKIN + float(S_DARK) / 16.0)
+	_prism(outer, g + LIM_RIBBON.y, g + LIM_TOP, LIM_PANEL, LIM_ROOF, panels, M_STONE)
+	if louvre.size() >= 3:
+		_prism(louvre, g + LIM_TOP, g + LIM_LOUVRE_TOP, LIM_LOUVRE, Color("#5c5f62"), M_SKIN + float(S_FINS) / 16.0, M_STONE)
+	_collide(outer)
+	# The street face: the longest edge facing north-west to north (Aleje Jerozolimskie), measured
+	# from its west end.
+	var fi := _edge_facing(outer, Vector2(-0.33, -0.94), 40.0)
+	if fi < 0:
+		return
+	var fa := outer[fi]
+	var fb := outer[(fi + 1) % outer.size()]
+	var n := _out(outer, fa, fb)
+	var d := (fb - fa).normalized()
+	var west := fa
+	if d.x < 0.0:
+		d = -d
+		west = fb
+	var span := fa.distance_to(fb) + 6.0  # the short stretch round the corner runs on in line
+	_lim_gallery_tints(west, d, n, g)
+	for s: Array in LIM_SIGNS:
+		_lim_sign(s, west, d, n, minf(float(s[1]), span - 3.0), ground, g)
+	# The hotel's name on the east (Emilii Plater) face's top band too.
+	var ei := _edge_facing(outer, Vector2(0.94, -0.33), 30.0)
+	if ei >= 0 and ei != fi:
+		var ea := outer[ei]
+		var eb := outer[(ei + 1) % outer.size()]
+		var en := _out(outer, ea, eb)
+		# Near the corner with the street face (F's photo from the corner), the crown towards it.
+		var corner := west + d * span
+		var near := ea if ea.distance_to(corner) < eb.distance_to(corner) else eb
+		var far := eb if near == ea else ea
+		_lim_sign(["PREZYDENT", 0.0, "top", 1.5, LIM_GOLD, "crown"], near.lerp(far, 0.35), (near - far).normalized(), en, 0.0,
+				ground, g)
+	for sc: Array in LIM_SCREENS:
+		if sc[7] == "tower":
+			var ti := _edge_facing(tower, n, 15.0)
+			if ti < 0:
+				continue
+			var ta := tower[ti]
+			var tb := tower[(ti + 1) % tower.size()]
+			var tn := _out(tower, ta, tb)
+			var td := (tb - ta).normalized()
+			if td.dot(d) < 0.0:
+				td = -td
+			var at := (ta + tb) * 0.5 + td * 0.18 * ta.distance_to(tb) + tn * 0.65
+			_lim_screen(at, td, tn, float(sc[2]), float(sc[3]), g + LIM_TOP + 2.5, g + LIM_TOP + 2.5, sc[4], sc[5], sc[6])
+		else:
+			var foot := g + (LIM_LOUVRE_TOP if sc[7] == "louvre" else LIM_TOP)
+			var at := west + d * float(sc[0]) - n * float(sc[1])
+			_lim_screen(at, d, n, float(sc[2]), float(sc[3]), foot, foot + 0.8, sc[4], sc[5], sc[6])
+
+
+## Centrum LIM's parts: builds the podium from the upper floors' part (5-15 m), the ground
+## floor's and the plant screen's (15-18 m), and gives back the rest (the tower, the small boxes).
+func _lim_parts(parts: Array[Dictionary], g: float) -> Array[Dictionary]:
+	var outer := PackedVector2Array()
+	var ground := PackedVector2Array()
+	var louvre := PackedVector2Array()
+	var tower := PackedVector2Array()
+	var rest: Array[Dictionary] = []
+	for b in parts:
+		var q := _pts(b["p"])
+		var h := float(b["h"])
+		var mh := float(b["mh"])
+		var big := _box_of([q]).size.length() > 60.0
+		if big and mh > 3.0 and h < 17.0:
+			outer = q
+		elif big and mh < 0.5 and h < 10.0:
+			ground = q
+		elif big and mh > 13.0 and h < 25.0:
+			louvre = q
+		else:
+			if h > 100.0:
+				tower = q
+			rest.append(b)
+	if outer.size() < 3 or ground.size() < 3:
+		return parts
+	_lim_podium(outer, ground, louvre, tower, g)
+	return rest
+
+
+## The gallery's tints on the street face (F's photos): a pink-lit restaurant west of the tower
+## and green-grey glass at the east end, panels 6 cm out from the gallery glass.
+func _lim_gallery_tints(west: Vector2, d: Vector2, n: Vector2, g: float) -> void:
+	var keep := _mode
+	for t: Array in [[80.0, 103.0, Color("#8a5a72"), M_LAMP], [124.0, 146.0, Color("#5f7c74"), M_STONE]]:
+		var p0 := west + d * float(t[0]) - n * 1.94
+		var p1 := west + d * float(t[1]) - n * 1.94
+		_mode = float(t[3])
+		_quad(Vector3(p0.x, g + LIM_BAND_A + 0.3, p0.y), Vector3(p1.x, g + LIM_BAND_A + 0.3, p1.y),
+				Vector3(p1.x, g + LIM_GALLERY - 0.3, p1.y), Vector3(p0.x, g + LIM_GALLERY - 0.3, p0.y), Vector3(n.x, 0.0, n.y), t[2])
+	_mode = keep
+
+
+## One of LIM_SIGNS at `u` m along the face from `west` (direction `d`, outward `n`), with its mark.
+func _lim_sign(s: Array, west: Vector2, d: Vector2, n: Vector2, u: float, ground: PackedVector2Array, g: float) -> void:
+	var word := str(s[0])
+	var tall := float(s[3])
+	var col: Color = s[4]
+	var mark := str(s[5])
+	var at := west + d * u
+	var y := 0.0
+	match str(s[2]):
+		"top":
+			y = LIM_RIBBON.y + 0.5 * (LIM_TOP - LIM_RIBBON.y) - 0.5 * tall
+		"mid":
+			y = LIM_GALLERY + 0.5 * (LIM_RIBBON.x - LIM_GALLERY) - 0.5 * tall
+		"a":
+			y = LIM_GROUND + 0.62 * (LIM_BAND_A - LIM_GROUND) - 0.5 * tall
+		"gf":
+			# Over the shop doors on the glass, back under the arcade: walk in to the ground floor.
+			var best := INF
+			for i in ground.size():
+				var hit: Variant = Geometry2D.segment_intersects_segment(at, at - n * 15.0, ground[i], ground[(i + 1) % ground.size()])
+				if hit != null and at.distance_to(hit) < best:
+					best = at.distance_to(hit)
+			if best == INF:
+				return
+			at -= n * (best - 0.08)
+			y = LIM_GROUND - 0.35 - tall
+	var k := tall / (Neon.ROW_H * Neon.PIXEL)
+	var half := 0.5 * k * Neon.length_of(word)
+	var p := at + n * 0.08
+	if mark == "box" or mark == "redbox":
+		# A lit panel behind the word: white for the small casino's red name, red for its white one.
+		var box := LIM_WHITE if mark == "box" else LIM_RED.darkened(0.3)
+		_lim_flat(PackedVector2Array([Vector2(-half - 0.3, -0.1), Vector2(half + 0.3, -0.1), Vector2(half + 0.3, tall + 0.1),
+				Vector2(-half - 0.3, tall + 0.1)]), at, d, n, g + y, box, 0.05)
+		p = at + n * 0.12
+	signs.append([word, Vector3(p.x, g + y, p.y), Vector3(n.x, 0.0, n.y), k, col])
+	# Marks: on the east side of the word (larger u) unless said otherwise.
+	match mark:
+		"crown":
+			_lim_flat(_shape(LIM_CROWN, 0.9), at + d * (half + 1.0), d, n, g + y + 0.15 * tall, col)
+		"bison":
+			var bison := _shape(LIM_BISON, 1.25)
+			for i in bison.size():
+				bison[i] -= Vector2(0.75, 0.0)
+			_lim_flat(bison, at + d * (half + 1.2), d, n, g + y, LIM_ORANGE)
+			# The bank's red-orange rule under its name.
+			_lim_flat(PackedVector2Array([Vector2(-half, 0.0), Vector2(half + 2.0, 0.0), Vector2(half + 2.0, 0.14),
+					Vector2(-half, 0.14)]), at + d * 0.9, d, n, g + y - 0.3, LIM_RED)
+		"plus":
+			_lim_flat(_shape(LIM_PLUS, 1.0), at + d * (half + 0.9), d, n, g + y, Color(0.1, 0.8, 0.9))
+		"chip":
+			# The casino chain's red emblem: a disc with a light rim, to the word's east.
+			_lim_flat(_circle(Vector2(0.0, 0.75), 0.75, 12), at + d * (half + 1.1), d, n, g + y, LIM_RED)
+			_lim_flat(PackedVector2Array([Vector2(-half, -0.25), Vector2(half, -0.25), Vector2(half, -0.12), Vector2(-half, -0.12)]),
+					at, d, n, g + y, LIM_RED)
+		"kopenhaga":
+			var k2 := 0.55 / (Neon.ROW_H * Neon.PIXEL)
+			signs.append(["KOPENHAGA", Vector3(p.x, g + y - 0.6, p.y), Vector3(n.x, 0.0, n.y), k2, col])
+
+
+## `pts` scaled by `k`, as a polygon.
+func _shape(pts: Array, k: float) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	for q: Vector2 in pts:
+		out.append(q * k)
+	return out
+
+
+## A flat lit shape on a wall: `shape` (x along `d`, y up, metres) round `at`, `off` m out along
+## `n`, from height `y`. Drawn in M_LAMP: its colour by day, glowing at night.
+func _lim_flat(shape: PackedVector2Array, at: Vector2, d: Vector2, n: Vector2, y: float, col: Color, off := 0.08) -> void:
+	var tris := Geometry2D.triangulate_polygon(shape)
+	var n3 := Vector3(n.x, 0.0, n.y)
+	var keep := _mode
+	_mode = M_LAMP
+	var base := at + n * off
+	for i in range(0, tris.size(), 3):
+		var v: Array[Vector3] = []
+		for j in 3:
+			var q := shape[tris[i + j]]
+			var p := base + d * q.x
+			v.append(Vector3(p.x, y + q.y, p.y))
+		_tri(v[0], v[1], v[2], n3, col, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0, false)
+	_mode = keep
+
+
+## An LED screen: a dark box `w` × `h` × 0.6 m from `y0` with its lit face towards `n` and the
+## advert's word on it, on two legs down to `foot` when it stands above it.
+func _lim_screen(c: Vector2, d: Vector2, n: Vector2, w: float, h: float, foot: float, y0: float, panel: Color, word: String,
+		ink: Color) -> void:
+	var frame := Color("#1a1c1f")
+	var l := c - d * w * 0.5
+	var r := c + d * w * 0.5
+	_prism(PackedVector2Array([l, r, r - n * 0.6, l - n * 0.6]), y0, y0 + h, frame, frame, M_STONE, M_STONE)
+	if y0 > foot + 0.1:
+		for s: float in [-0.3, 0.3]:
+			_prism(_square(c + d * w * s - n * 0.3, 0.2), foot, y0, frame, frame, M_STONE, M_STONE)
+	var f0 := c - d * (w * 0.5 - 0.25) + n * 0.06
+	var f1 := c + d * (w * 0.5 - 0.25) + n * 0.06
+	var keep := _mode
+	_mode = M_LAMP
+	_quad(Vector3(f0.x, y0 + 0.25, f0.y), Vector3(f1.x, y0 + 0.25, f1.y), Vector3(f1.x, y0 + h - 0.25, f1.y),
+			Vector3(f0.x, y0 + h - 0.25, f0.y), Vector3(n.x, 0.0, n.y), panel)
+	_mode = keep
+	var k := minf(0.85 * (w - 0.5) / Neon.length_of(word), 0.6 * h / (Neon.ROW_H * Neon.PIXEL))
+	var rh := Neon.ROW_H * Neon.PIXEL * k
+	var p := c + n * 0.12
+	signs.append([word, Vector3(p.x, y0 + 0.5 * h - 0.5 * rh, p.y), Vector3(n.x, 0.0, n.y), k, ink])
 
 
 ## An axis-aligned square round `c`, half-width `r`.
@@ -9817,7 +10169,7 @@ static func loretka_plan(data: Dictionary) -> Dictionary:
 		for i in n:
 			if i == best:
 				continue
-			var hit = Geometry2D.segment_intersects_segment(from, from + b * 60.0, outline[i], outline[(i + 1) % n])
+			var hit: Variant = Geometry2D.segment_intersects_segment(from, from + b * 60.0, outline[i], outline[(i + 1) % n])
 			if hit != null:
 				depth = minf(depth, from.distance_to(hit) + 0.05)
 	if depth == INF or depth < 8.0:
@@ -10125,7 +10477,8 @@ func _build_metropolitan(site: Dictionary) -> void:
 	# The seventh storey, set back from the fins and from the courtyard.
 	var upper := _largest(Geometry2D.offset_polygon(ring, -METRO_SETBACK, Geometry2D.JOIN_MITER))
 	var court2 := _circle(METRO_COURT, METRO_COURT_R + METRO_SETBACK, 40)
-	var light := METRO_GLASS.lightened(0.1)
+	# the seventh storey and the plant rooms are silver metal over a glazed band (photo 2026-11-07)
+	var light := Color("#aab5ba")
 	if upper.size() >= 3:
 		_prism(upper, g + METRO_H, g + METRO_RING_H, light, none, M_GLASS)
 		_inside_wall(court2, g + METRO_H, g + METRO_RING_H, light, M_GLASS)
@@ -10683,6 +11036,10 @@ func _build_mirowska(site: Dictionary) -> void:
 	for k in 8:
 		var v := clampf(k * pitch, 0.25, hv - 0.25)
 		_lbox(hu + 0.15, v, 0.15, 0.25, g + 1.2, g + 9.0, MIROWSKA_TRIM, M_STONE, MIROWSKA_TRIM)
+	# the glazed gallery on the east front (photo 2026-11-07, `warsaw-needed-photos`): a dark glass
+	# band across the front over the market's ground floor, under a thin dark fascia
+	_lbox(hu + 0.9, nave_v, 0.9, hv * 0.5 - 3.0, g + 3.6, g + 8.8, MIROWSKA_GLASS, M_GLASS, none)
+	_lbox(hu + 0.95, nave_v, 1.0, hv * 0.5 - 2.9, g + 8.8, g + 9.5, Color("#4b2e29"), M_STONE, Color("#5a3a33"))
 	# the portal's steps
 	for k in 3:
 		_lbox(hu + 0.4 + (2 - k) * 0.4, nave_v, 0.4 + (2 - k) * 0.4, 2.6, g - 0.5, g + 0.4 * (k + 1), MIROWSKA_PLINTH, M_STONE,
@@ -22897,6 +23254,381 @@ func _menorah(p: Vector2, y: float, s: float) -> void:
 			_beam(elbow, foot + up * 1.9 + side * sd * r, 0.08 * s, GETTO_BRONZE)
 
 
+# --- The monuments pass, part 2 (photo builds, 2026-11-02) ---------------------------------------
+
+## Seven monuments built from the Mac's photo reports (docs/landmarks/photo-reports/: Commons
+## photos and the GUGiK ortho read in game coordinates). Until now each stood as a generic OSM
+## piece (tools/bake_monuments.py); they are in its SKIP list now. Each has its own frame
+## (_o, _a forward / the way it faces, _b = its right) and a small zone that drops the mapped
+## specks under it (Słowacki's OSM parts).
+const NIKE := Vector2(-1010.0, -1317.0)
+const NIKE_A := Vector2(0.7071, -0.7071)        # she lunges north-east, toward Trasa W-Z
+const NIKE_GRANITE := Color("#c8c0b0")
+const NIKE_BRONZE := Color("#2e302c")
+const SLOWACKI := Vector2(-1480.0, -978.0)
+const SLOWACKI_A := Vector2(1.0, 0.0)           # east, out to Plac Bankowy, his back to the palace
+const SLOWACKI_STONE := Color("#4a4a4c")
+const SLOWACKI_BRONZE := Color("#33342f")
+const STARZYNSKI := Vector2(-1499.0, -1101.0)
+const STARZYNSKI_A := Vector2(0.7071, 0.7071)   # south-east, the Blue Tower behind him
+const STARZYNSKI_BRONZE := Color("#3d3a33")
+const MALY := Vector2(-981.0, -1689.0)
+const MALY_A := Vector2(0.924, 0.383)           # away from the city wall (NNE-SSW) to Podwale
+const MALY_BRICK := Color("#b5573c")
+const MALY_BRONZE := Color("#4a4c48")
+const KILINSKI := Vector2(-896.0, -1573.0)
+const KILINSKI_A := Vector2(-0.7071, 0.7071)    # south-west, along Podwale
+const KILINSKI_GRANITE := Color("#2d2d2f")
+const KILINSKI_BRONZE := Color("#35362f")
+const UMSCHLAG := Vector2(-2382.0, -2020.0)
+const UMSCHLAG_A := Vector2(0.870, -0.493)      # along Stawki; +v (its right) is the street side
+const UMSCHLAG_MARBLE := Color("#dadad6")
+const UMSCHLAG_BLACK := Color("#26282a")
+const WSCHOD := Vector2(-1718.0, -2183.0)
+const WSCHOD_A := Vector2(0.991, -0.131)        # along Muranowska's median, east: the way the wagon faces
+const WSCHOD_STONE := Color("#8e8478")
+const WSCHOD_BRONZE := Color("#3e3f33")
+const MON_GREEN := Color("#4d6b3a")
+const MON_LANTERN := Color("#ffd9a0")
+
+
+func _mon_frame(c: Vector2, a: Vector2) -> void:
+	_o = c
+	_a = a.normalized()
+	_b = Vector2(-_a.y, _a.x)
+
+
+## A point of the frame at height y.
+func _mon_p(u: float, v: float, y: float) -> Vector3:
+	var p := _w(u, v)
+	return Vector3(p.x, y, p.y)
+
+
+func _find_monuments() -> void:
+	_mon_frame(NIKE, NIKE_A)
+	_add_site("nike", [_rect(0.0, 0.0, 3.2, 3.2)])
+	_mon_frame(SLOWACKI, SLOWACKI_A)
+	_add_site("slowacki", [_rect(0.0, 0.0, 6.2, 5.2)])
+	_mon_frame(STARZYNSKI, STARZYNSKI_A)
+	_add_site("starzynski", [_rect(-0.5, 0.0, 2.4, 2.8)])
+	_mon_frame(MALY, MALY_A)
+	_add_site("maly_powstaniec", [_rect(-1.0, 0.0, 2.2, 2.2)])
+	_mon_frame(KILINSKI, KILINSKI_A)
+	_add_site("kilinski", [_rect(0.0, 0.0, 2.3, 2.3)])
+	_mon_frame(UMSCHLAG, UMSCHLAG_A)
+	_add_site("umschlagplatz", [_rect(0.0, 0.0, 8.2, 5.2)])
+	_mon_frame(WSCHOD, WSCHOD_A)
+	_add_site("pomnik_wschod", [_rect(0.9, 0.0, 23.9, 4.6)])
+
+
+## A standing bronze figure `h` tall from y in the current frame (u forward, +v his right), the
+## same build as de Gaulle's: with `stride` > 0 the legs walk (that much step at 3.3 m), else a
+## cloak falls to the feet (`flare` widens its hem). `lh`/`rh` are the hands (u, v, height) at
+## the 3.3 m scale; `cap` a fur cap's height (0: bare head). Returns the right hand's point.
+func _mon_figure(y: float, h: float, col: Color, stride: float, lh: Vector3, rh: Vector3, flare := 1.0, cap := 0.0) -> Vector3:
+	var k := h / 3.3
+	var none := Color(0, 0, 0, 0)
+	var hem := y
+	if stride > 0.0:
+		hem = y + 1.0 * k
+		for side: float in [1.0, -1.0]:
+			var hip := _w(0.0, 0.14 * side * k)
+			var foot := _w(stride * 0.5 * side * k, 0.15 * side * k)
+			_beam(Vector3(hip.x, y + 1.62 * k, hip.y), Vector3(foot.x, y + 0.08 * k, foot.y), 0.24 * k, col)
+	_mode = M_STONE
+	_frustum(_rect(0.0, 0.0, 0.34 * k * flare, 0.33 * k * flare), hem, _rect(0.0, 0.0, 0.23 * k, 0.27 * k), y + 1.75 * k, col)
+	_prism(_rect(0.0, 0.0, 0.2 * k, 0.27 * k), y + 1.75 * k, y + 2.5 * k, col, none, M_STONE)
+	_frustum(_rect(0.0, 0.0, 0.2 * k, 0.29 * k), y + 2.5 * k, _rect(0.0, 0.0, 0.14 * k, 0.18 * k), y + 2.66 * k, col, col)
+	for arm: Array in [[-1.0, lh], [1.0, rh]]:
+		var hand: Vector3 = arm[1]
+		_beam(_mon_p(0.0, 0.31 * float(arm[0]) * k, y + 2.55 * k), _mon_p(hand.x * k, hand.y * k, y + hand.z * k), 0.13 * k, col)
+	_prism(_rect(0.0, 0.0, 0.06 * k, 0.06 * k), y + 2.62 * k, y + 2.72 * k, col, none, M_STONE)
+	_prism(_rect(0.02 * k, 0.0, 0.11 * k, 0.1 * k), y + 2.72 * k, y + 2.98 * k, col, col if cap <= 0.0 else none, M_STONE, M_STONE)
+	if cap > 0.0:
+		_frustum(_circle(_w(0.0, 0.0), 0.13 * k, 8), y + 2.98 * k, _circle(_w(0.0, 0.0), 0.15 * k, 8), y + (2.98 + cap) * k, col.darkened(0.1), col.darkened(0.15))
+	return _mon_p(rh.x * k, rh.y * k, y + rh.z * k)
+
+
+## A flat quad from its four corners, the normal from its own geometry (bronze cloaks, plates).
+func _mon_sheet(a: Vector3, b: Vector3, c: Vector3, d: Vector3, col: Color) -> void:
+	var n := (b - a).cross(d - a).normalized()
+	_quad(a, b, c, d, n, col)
+
+
+## A vertical half disc standing on y across the frame's u (centre cu, cv), radius r, depth d.
+func _mon_halfdisc(cu: float, cv: float, y: float, r: float, d: float, col: Color) -> void:
+	var n := 10
+	var nb := Vector3(_b.x, 0.0, _b.y)
+	for i in n:
+		var t0 := PI * i / n
+		var t1 := PI * (i + 1) / n
+		for side: float in [-1.0, 1.0]:
+			var v := cv + side * d * 0.5
+			_tri(_mon_p(cu, v, y), _mon_p(cu + r * cos(t0), v, y + r * sin(t0)), _mon_p(cu + r * cos(t1), v, y + r * sin(t1)),
+					nb * side, col, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+		var tm := (t0 + t1) * 0.5
+		var out := Vector3(_a.x * cos(tm), sin(tm), _a.y * cos(tm)).normalized()
+		_quad(_mon_p(cu + r * cos(t0), cv - d * 0.5, y + r * sin(t0)), _mon_p(cu + r * cos(t1), cv - d * 0.5, y + r * sin(t1)),
+				_mon_p(cu + r * cos(t1), cv + d * 0.5, y + r * sin(t1)), _mon_p(cu + r * cos(t0), cv + d * 0.5, y + r * sin(t0)), out, col)
+
+
+## Pomnik Bohaterów Warszawy, the Warsaw Nike (Marian Konieczny, 1964), from refs/nike/: a
+## light granite pylon 3 m square at the foot, tapering, 9 m tall, "BOHATEROM WARSZAWY
+## 1939-1945" low on its south-east face (the open side of the path loop); on it the dark
+## bronze Nike, about 5 m, lunging north-east, the left arm up, the sword swung up and back in
+## the right, her cloak flying. Shrub beds round the foot, open to the path on the south-east.
+func _build_nike(_site: Dictionary) -> void:
+	_mon_frame(NIKE, NIKE_A)
+	_g = _ground_under(_rect(0.0, 0.0, 2.2, 2.2))
+	var g := _g
+	_lbox(0.0, 0.0, 3.2, 3.2, g - 0.3, g + 0.1, Color("#a9a49a"), M_STONE, Color("#b4afa5"))
+	_lbox(0.0, 0.0, 2.1, 2.1, g + 0.1, g + 0.55, NIKE_GRANITE.darkened(0.06), M_STONE, NIKE_GRANITE)
+	_mode = M_STONE
+	_frustum(_rect(0.0, 0.0, 1.5, 1.5), g + 0.55, _rect(0.0, 0.0, 1.2, 1.2), g + 9.0, NIKE_GRANITE, NIKE_GRANITE.lightened(0.04))
+	_lbox(0.0, 1.47, 1.0, 0.05, g + 1.3, g + 2.1, Color("#3a3834"))
+	for bed: Array in [[-4.3, 0.0, 0.6, 2.6], [0.0, -4.3, 2.6, 0.6], [4.3, 0.0, 0.6, 2.6]]:
+		_lbox(float(bed[0]), float(bed[1]), float(bed[2]), float(bed[3]), g - 0.2, g + 0.7, MON_GREEN, M_STONE, MON_GREEN.lightened(0.1))
+	var y := g + 9.0
+	var bz := NIKE_BRONZE
+	_lbox(0.0, 0.0, 0.9, 0.7, y, y + 0.3, bz)
+	y += 0.3
+	# legs: the back one stretched, the front one bent at the knee
+	_beam(_mon_p(-0.15, 0.1, y + 2.2), _mon_p(-1.1, 0.2, y + 0.1), 0.38, bz)
+	_beam(_mon_p(0.15, -0.1, y + 2.2), _mon_p(0.8, -0.15, y + 1.3), 0.38, bz)
+	_beam(_mon_p(0.8, -0.15, y + 1.3), _mon_p(0.85, -0.2, y + 0.1), 0.36, bz)
+	# the skirt and the body, leaning into the lunge
+	_frustum(_rect(0.2, 0.0, 0.7, 0.5), y + 1.2, _rect(0.3, 0.0, 0.4, 0.4), y + 2.4, bz)
+	_frustum(_rect(0.3, 0.0, 0.4, 0.4), y + 2.4, _rect(0.6, 0.0, 0.32, 0.45), y + 3.6, bz, bz)
+	_beam(_mon_p(0.62, 0.0, y + 3.5), _mon_p(0.8, 0.0, y + 4.1), 0.38, bz)
+	# the left arm up and forward, the right with the sword up and back
+	_beam(_mon_p(0.6, -0.42, y + 3.45), _mon_p(1.6, -0.6, y + 4.7), 0.18, bz)
+	_beam(_mon_p(0.6, 0.42, y + 3.45), _mon_p(-0.1, 0.7, y + 4.6), 0.18, bz)
+	_beam(_mon_p(-0.1, 0.7, y + 4.6), _mon_p(-1.3, 0.8, y + 5.4), 0.1, bz.lightened(0.12))
+	_beam(_mon_p(-0.05, 0.45, y + 4.55), _mon_p(-0.15, 0.95, y + 4.65), 0.08, bz)
+	# the cloak flying back from her shoulders
+	_mon_sheet(_mon_p(0.45, -0.45, y + 3.5), _mon_p(0.45, 0.45, y + 3.5), _mon_p(-1.4, 0.7, y + 2.6), _mon_p(-1.4, -0.9, y + 2.9), bz.darkened(0.05))
+	_collide(_rect(0.0, 0.0, 2.1, 2.1))
+
+
+## Pomnik Juliusza Słowackiego on Plac Bankowy, from refs/slowacki/: a broad two-step dark
+## granite platform (12 x 10 m), a dark granite pillar 1.8 m square and 6 m tall with the name
+## cut in its face, the poet on it in a long cloak, head down, 4.5 m of dark bronze, looking
+## east over the square with Corazzi's arcaded palace behind; two-lantern lamps on the
+## platform's corners. The OSM parts under it (the platform and the pillar as boxes) go.
+func _build_slowacki(_site: Dictionary) -> void:
+	_mon_frame(SLOWACKI, SLOWACKI_A)
+	_g = _ground_under(_rect(0.0, 0.0, 6.0, 5.0))
+	var g := _g
+	var st := SLOWACKI_STONE
+	_lbox(0.0, 0.0, 6.0, 5.0, g - 0.3, g + 0.2, st.darkened(0.06), M_STONE, st.lightened(0.08))
+	_lbox(0.0, 0.0, 5.2, 4.2, g + 0.2, g + 0.45, st.darkened(0.04), M_STONE, st.lightened(0.05))
+	_lbox(0.0, 0.0, 1.15, 1.15, g + 0.45, g + 1.0, Color("#2e2e30"))
+	_lbox(0.0, 0.0, 0.9, 0.9, g + 1.0, g + 6.2, Color("#353537"))
+	_lbox(0.0, 0.0, 1.05, 1.05, g + 6.2, g + 6.45, Color("#2e2e30"), M_STONE, Color("#3a3a3c"))
+	_lbox(0.93, 0.0, 0.03, 0.55, g + 4.9, g + 5.25, Color("#9a968c"))
+	_mon_figure(g + 6.45, 4.4, SLOWACKI_BRONZE, 0.0, Vector3(0.25, -0.15, 1.95), Vector3(0.25, 0.12, 2.05), 1.3)
+	for corner: Vector2 in [Vector2(5.0, 4.0), Vector2(5.0, -4.0), Vector2(-5.0, 4.0), Vector2(-5.0, -4.0)]:
+		var top := g + 4.2
+		_beam(_mon_p(corner.x, corner.y, g + 0.45), _mon_p(corner.x, corner.y, top + 0.1), 0.14, Color("#2a2a2a"))
+		_beam(_mon_p(corner.x - 0.5, corner.y, top), _mon_p(corner.x + 0.5, corner.y, top), 0.08, Color("#2a2a2a"))
+		for du: float in [-0.45, 0.45]:
+			_prism(_square(_w(corner.x + du, corner.y), 0.15), top + 0.04, top + 0.5, MON_LANTERN, MON_LANTERN, M_LAMP, M_LAMP)
+	_collide(_rect(0.0, 0.0, 6.0, 5.0))
+
+
+## Pomnik Stefana Starzyńskiego on Plac Bankowy, from refs/starzynski/: the mayor of 1939
+## sinking into a huge faceted bronze armchair of folded plates, only his head and shoulders
+## and his hands on its edge above it, on a low rough granite block with STARZYŃSKI cut in it;
+## at the foot of the Blue Tower, facing south-east over the square.
+func _build_starzynski(_site: Dictionary) -> void:
+	_mon_frame(STARZYNSKI, STARZYNSKI_A)
+	_g = _ground_under(_rect(0.0, 0.0, 1.25, 2.0))
+	var g := _g
+	var bz := STARZYNSKI_BRONZE
+	_lbox(0.0, 0.0, 1.25, 2.0, g - 0.2, g + 1.2, Color("#8b8984"), M_STONE, Color("#9a9893"))
+	_lbox(1.27, 0.0, 0.03, 1.5, g + 0.45, g + 0.85, Color("#4a4844"))
+	_lbox(-2.3, 0.0, 0.45, 2.6, g - 0.2, g + 0.6, MON_GREEN, M_STONE, MON_GREEN.lightened(0.1))
+	_mode = M_STONE
+	# the chair: a mass leaning back, and its folded plates standing up behind like broken slabs
+	_frustum(_rect(-0.1, 0.0, 1.05, 1.9), g + 1.2, _rect(-0.55, 0.0, 0.45, 1.6), g + 3.6, bz, bz.lightened(0.06))
+	var plates := [[-1.35, 4.0, 0.05], [-0.5, 4.3, -0.04], [0.5, 4.15, 0.04], [1.35, 3.8, -0.05]]
+	for p: Array in plates:
+		var v := float(p[0])
+		_frustum(_rect(-0.55, v, 0.3, 0.42), g + 2.0, _rect(-0.95, v * (1.1 + float(p[2])), 0.12, 0.3), g + float(p[1]), bz.lightened(0.04), bz)
+	# the mayor: shoulders and head above the chair's front, his hands on its edge
+	_lbox(0.3, 0.0, 0.25, 0.48, g + 2.6, g + 3.05, bz.darkened(0.04))
+	_lbox(0.35, 0.0, 0.13, 0.12, g + 3.05, g + 3.4, bz.darkened(0.04))
+	for side: float in [-1.0, 1.0]:
+		_lbox(0.85, 0.55 * side, 0.12, 0.09, g + 2.2, g + 2.36, bz.lightened(0.05))
+	_collide(_rect(0.0, 0.0, 1.3, 2.05))
+
+
+## Pomnik Małego Powstańca on Podwale (Jerzy Jarnuszkiewicz, 1983), from refs/maly_powstaniec/:
+## a 1.4 m bronze boy in a far-too-big helmet with a white and red band, a submachine gun on
+## its strap, on a narrow dark stone post; behind him against the inner face of the city wall
+## a semicircular brick terrace with cobbles, a low brick wall, a black railing on its back
+## edge, a bronze plaque, red and white flowers and grave candles.
+func _build_maly_powstaniec(_site: Dictionary) -> void:
+	_mon_frame(MALY, MALY_A)
+	_g = _ground_under(_rect(-1.0, 0.0, 2.0, 2.0))
+	var g := _g
+	# the terrace floor: a half disc behind the post, opening forward
+	var floor := PackedVector2Array()
+	var arc: Array[Vector2] = []
+	for i in 9:
+		var t := PI * 0.5 + PI * i / 8.0
+		arc.append(Vector2(-1.0 + 2.1 * cos(t), 2.1 * sin(t)))
+	for q: Vector2 in arc:
+		floor.append(_w(q.x, q.y))
+	floor.append(_w(0.9, -2.1))
+	floor.append(_w(0.9, 2.1))
+	_prism(floor, g - 0.2, g + 0.08, MALY_BRICK.darkened(0.1), Color("#8d8a84"), M_STONE, M_STONE)
+	# the low brick wall round the arc, the railing along its back
+	for i in 8:
+		var a0: Vector2 = arc[i]
+		var a1: Vector2 = arc[i + 1]
+		var c0 := Vector2(-1.0, 0.0)
+		var seg := PackedVector2Array([_w(a0.x, a0.y), _w(a1.x, a1.y), _wl(c0 + (a1 - c0) * 0.85), _wl(c0 + (a0 - c0) * 0.85)])
+		_prism(seg, g + 0.08, g + 0.65, MALY_BRICK, MALY_BRICK.lightened(0.08), M_STONE, M_STONE)
+	for i in range(2, 7):
+		var a0: Vector2 = arc[i]
+		var a1: Vector2 = arc[i + 1]
+		_beam(Vector3(_wl(a0).x, g + 0.65, _wl(a0).y), Vector3(_wl(a0).x, g + 1.5, _wl(a0).y), 0.05, Color("#1f1f20"))
+		_beam(Vector3(_wl(a0).x, g + 1.45, _wl(a0).y), Vector3(_wl(a1).x, g + 1.45, _wl(a1).y), 0.05, Color("#1f1f20"))
+	_beam(Vector3(_wl(arc[7]).x, g + 0.65, _wl(arc[7]).y), Vector3(_wl(arc[7]).x, g + 1.5, _wl(arc[7]).y), 0.05, Color("#1f1f20"))
+	_lbox(-2.9, 0.0, 0.04, 0.45, g + 0.6, g + 1.25, Color("#6b5a3e"))
+	# flowers (red and white) and candles on the terrace
+	var beds := [[-2.3, -1.0, Color("#c0392b")], [-2.5, 0.0, Color("#eeeeea")], [-2.3, 1.0, Color("#c0392b")]]
+	for b: Array in beds:
+		_lbox(float(b[0]), float(b[1]), 0.3, 0.32, g + 0.08, g + 0.36, b[2], M_STONE, b[2])
+	for cv: float in [-0.6, -0.3, 0.3, 0.6]:
+		_prism(_square(_w(-0.2, cv), 0.06), g + 0.08, g + 0.26, Color("#d9442f"), Color("#ffb347"), M_LAMP, M_LAMP)
+	# the post and the boy on it
+	_lbox(0.6, 0.0, 0.25, 0.25, g + 0.08, g + 1.38, Color("#3b3b3c"))
+	_o = _w(0.6, 0.0)
+	var y := g + 1.38
+	var h := 1.45
+	var k := h / 3.3
+	_mon_figure(y, h, MALY_BRONZE, 0.3, Vector3(0.35, -0.1, 1.95), Vector3(0.3, 0.2, 1.75), 1.15)
+	# the helmet, far too big, with its white and red band
+	var head := _w(0.02 * k, 0.0)
+	_mode = M_STONE
+	_frustum(_circle(head, 0.2, 8), y + 2.86 * k, _circle(head, 0.1, 8), y + 3.3 * k, MALY_BRONZE.darkened(0.05), MALY_BRONZE.darkened(0.05))
+	_prism(_circle(head, 0.205, 8), y + 2.86 * k, y + 2.92 * k, Color("#eeeeea"), Color(0, 0, 0, 0), M_STONE)
+	_prism(_circle(head, 0.205, 8), y + 2.92 * k, y + 2.98 * k, Color("#c0392b"), Color(0, 0, 0, 0), M_STONE)
+	_beam(_mon_p(0.42 * k, 0.28 * k, y + 1.55 * k), _mon_p(0.48 * k, -0.25 * k, y + 2.1 * k), 0.06, Color("#2a2a2a"))
+	_o = MALY
+	_collide(_rect(-1.0, 0.0, 2.2, 2.2))
+
+
+## Pomnik Jana Kilińskiego on Podwale (Stanisław Jackowski, 1936; here since 1959), from
+## refs/kilinski/: a polished dark granite pedestal 2 m square and 4.5 m tall with a bronze
+## plaque, on two steps; on it the shoemaker of the 1794 Rising striding south-west along
+## Podwale in his long kontusz and fur cap, the sabre raised high in his right hand, the left
+## at his belt.
+func _build_kilinski(_site: Dictionary) -> void:
+	_mon_frame(KILINSKI, KILINSKI_A)
+	_g = _ground_under(_rect(0.0, 0.0, 2.2, 2.2))
+	var g := _g
+	var gr := KILINSKI_GRANITE
+	_lbox(0.0, 0.0, 2.2, 2.2, g - 0.3, g + 0.3, Color("#6f6e6b"), M_STONE, Color("#7d7c79"))
+	_lbox(0.0, 0.0, 1.75, 1.75, g + 0.3, g + 0.6, Color("#5f5e5b"), M_STONE, Color("#6d6c69"))
+	_lbox(0.0, 0.0, 1.15, 1.15, g + 0.6, g + 1.0, gr, M_STONE, gr.lightened(0.06))
+	_lbox(0.0, 0.0, 1.0, 1.0, g + 1.0, g + 4.1, gr.lightened(0.03))
+	_lbox(0.0, 0.0, 1.15, 1.15, g + 4.1, g + 4.5, gr, M_STONE, gr.lightened(0.06))
+	_lbox(1.03, 0.0, 0.03, 0.5, g + 2.2, g + 3.0, Color("#5d5440"))
+	var bz := KILINSKI_BRONZE
+	var hand := _mon_figure(g + 4.5, 3.5, bz, 0.9, Vector3(0.05, -0.38, 1.6), Vector3(0.1, 0.45, 3.55), 1.15, 0.24)
+	var k := 3.5 / 3.3
+	var tip := hand + Vector3(_a.x, 0.0, _a.y) * 0.3 * k + Vector3.UP * 1.0 * k
+	_beam(hand, tip, 0.06 * k, bz.lightened(0.15))
+	_collide(_rect(0.0, 0.0, 2.2, 2.2))
+
+
+## Pomnik Umschlagplatz (Hanna Szmalenberg and Władysław Klamerus, 1988), from
+## refs/umschlagplatz/: an open-topped enclosure of white-grey marble slabs, 16 m along Stawki,
+## 10 m deep and 4 m high; in the middle of the street side a tall narrow gate under a black
+## stone semicircle; a black band round the outside at two thirds of the height with the name
+## cut in it; the names on the walls inside. A quiet place: no props, no gags.
+func _build_umschlagplatz(_site: Dictionary) -> void:
+	_mon_frame(UMSCHLAG, UMSCHLAG_A)
+	_g = _ground_under(_rect(0.0, 0.0, 8.0, 5.0))
+	var g := _g
+	var m := UMSCHLAG_MARBLE
+	var bk := UMSCHLAG_BLACK
+	var top := g + 4.0
+	_mode = M_STONE
+	_cap(_rect(0.0, 0.0, 7.6, 4.6), g + 0.06, Color("#bdbdb8"))
+	_lbox(0.0, -4.8, 8.0, 0.2, g - 0.3, top, m, M_STONE, m.lightened(0.04))
+	for s: float in [-1.0, 1.0]:
+		_lbox(7.8 * s, 0.0, 0.2, 4.6, g - 0.3, top, m, M_STONE, m.lightened(0.04))
+		_lbox(4.7 * s, 4.8, 3.3, 0.2, g - 0.3, top, m, M_STONE, m.lightened(0.04))
+		_lbox(1.1 * s, 4.8, 0.3, 0.3, g - 0.3, g + 4.6, m.darkened(0.03), M_STONE, m)
+		# the black band outside, at two thirds of the height
+		_lbox(8.03 * s, 0.0, 0.03, 5.0, g + 2.6, g + 3.1, bk)
+		_lbox(4.7 * s, 5.03, 3.3, 0.03, g + 2.6, g + 3.1, bk)
+		# the names: a slightly darker field on the side walls inside
+		_lbox(7.57 * s, 0.0, 0.03, 3.8, g + 0.8, g + 3.4, m.darkened(0.08))
+	_lbox(0.0, -5.03, 8.06, 0.03, g + 2.6, g + 3.1, bk)
+	_lbox(0.0, -4.57, 6.5, 0.03, g + 0.8, g + 3.4, m.darkened(0.08))
+	# the gate: a lintel over the narrow opening, the black semicircle on it
+	_lbox(0.0, 4.8, 0.8, 0.3, g + 3.9, g + 4.6, bk)
+	_mon_halfdisc(0.0, 4.8, g + 4.6, 1.4, 0.4, bk)
+	_collide(_rect(0.0, 0.0, 8.1, 5.1))
+
+
+## Pomnik Poległym i Pomordowanym na Wschodzie (Maksymilian Biskupski, 1995), from
+## refs/pomnik_wschod/: in Muranowska's wide median a bronze railway flatcar piled with crosses
+## (Latin and Orthodox, a matzevah and a Muslim tombstone among them), up to 6 m over the
+## street, at the east end of a track of 41 bronze sleepers with the places' names, laid on a
+## low mound of rounded field stones 37 m long. Respectful, like Umschlagplatz.
+func _build_pomnik_wschod(_site: Dictionary) -> void:
+	_mon_frame(WSCHOD, WSCHOD_A)
+	_g = _ground_under(_rect(0.0, 0.0, 22.0, 2.0))
+	var g := _g
+	var bz := WSCHOD_BRONZE
+	_lbox(0.9, 0.0, 23.9, 4.6, g - 0.3, g + 0.05, Color("#77746f"), M_STONE, Color("#827f79"))
+	_mode = M_STONE
+	_frustum(_rect(0.0, 0.0, 22.2, 2.0), g + 0.05, _rect(0.0, 0.0, 22.0, 1.5), g + 0.45, WSCHOD_STONE, WSCHOD_STONE.lightened(0.05))
+	# the 41 named sleepers west of the wagon, and the plain ones under it
+	for i in 48:
+		var u := -21.6 + 0.9 * i
+		_lbox(u, 0.0, 0.13, 1.3, g + 0.45, g + 0.6, bz.lightened(0.04 * (i % 3)), M_STONE, bz.lightened(0.08))
+	for s: float in [-1.0, 1.0]:
+		_lbox(0.0, 0.72 * s, 21.9, 0.04, g + 0.6, g + 0.72, bz.lightened(0.12))
+	# the flatcar on its two bogies at the track's east end
+	for u: float in [16.4, 20.6]:
+		_lbox(u, 0.0, 0.9, 0.85, g + 0.72, g + 1.1, bz.darkened(0.15))
+	_lbox(18.5, 0.0, 3.5, 1.25, g + 1.1, g + 1.4, bz.darkened(0.08), M_STONE, bz)
+	# the crosses, packed and leaning a little; every fourth Orthodox
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 1795
+	var deck := g + 1.4
+	for i in 24:
+		var cu := rng.randf_range(15.4, 21.6)
+		var cv := rng.randf_range(-0.95, 0.95)
+		var hh := rng.randf_range(2.2, 4.6)
+		var lean := Vector3(rng.randf_range(-0.25, 0.25), 0.0, rng.randf_range(-0.25, 0.25))
+		var foot := _mon_p(cu, cv, deck)
+		var head := foot + Vector3.UP * hh + lean
+		var col := bz.lightened(rng.randf_range(0.0, 0.12))
+		_beam(foot, head, 0.14, col)
+		var arm := 0.28 * hh
+		var at := foot.lerp(head, 0.74)
+		var across := Vector3(_b.x, 0.0, _b.y) * arm * 0.5 if i % 2 == 0 else Vector3(_a.x, 0.0, _a.y) * arm * 0.5
+		_beam(at - across, at + across, 0.12, col)
+		if i % 4 == 1:
+			var top := foot.lerp(head, 0.88)
+			_beam(top - across * 0.5, top + across * 0.5, 0.1, col)
+			var low := foot.lerp(head, 0.4)
+			_beam(low - across * 0.5 - Vector3.UP * 0.12, low + across * 0.5 + Vector3.UP * 0.12, 0.1, col)
+	# the matzevah (a round-topped slab) and the Muslim tombstone (a pointed one)
+	_lbox(16.0, -0.6, 0.08, 0.35, deck, deck + 1.2, bz.lightened(0.1))
+	_frustum(_rect(16.0, -0.6, 0.08, 0.35), deck + 1.2, _rect(16.0, -0.6, 0.08, 0.18), deck + 1.42, bz.lightened(0.1), bz.lightened(0.1))
+	_lbox(21.2, 0.55, 0.08, 0.25, deck, deck + 1.0, bz.lightened(0.06))
+	_pyramid(_rect(21.2, 0.55, 0.08, 0.25), deck + 1.0, deck + 1.4, bz.lightened(0.06))
+	# the cobbled apron round it (4.6 m each side, 2 m past the buffers): the kerb a car meets
+	_collide(_rect(0.9, 0.0, 23.9, 4.6))
 ## Sąd Najwyższy's colonnade (Marek Budzyński and Zbigniew Badowski, 1999; spec
 ## docs/landmarks/specs/sad_najwyzszy.md, from the Mac's Plac Krasińskich photo reports, 2026-11-02).
 ## OpenStreetMap maps the court's columns as 2 m boxes 12 m tall under 2 m beams (12-14 m) in

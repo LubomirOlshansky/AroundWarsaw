@@ -121,7 +121,7 @@ const BUDGET := {
 	"jp2_21": 280,
 	"kopernik": 1720,
 	"legia": 700,
-	"lim": 300,
+	"lim": 1700,  # the podium from F's photos (2026-11-06): 1415 measured
 	"loretka": 1120,
 	"lucka": 470,
 	"marszalkowska94": 590,  # rebuilt from F's photos (2026-11-07): 402 -> 490 tris
@@ -181,6 +181,13 @@ const BUDGET := {
 	"plac_centralny": 1400,
 	"plac_centralny_lamps": 700,
 	"getto": 650,
+	"nike": 200,
+	"slowacki": 320,
+	"starzynski": 150,
+	"maly_powstaniec": 520,
+	"kilinski": 200,
+	"umschlagplatz": 250,
+	"pomnik_wschod": 1280,
 	"ochota": 1420,
 	"powisle": 6800,
 	"barka_wieczor": 1820,
