@@ -72,6 +72,13 @@ history at 0cfc1ff). Areas and progress: docs/plan/road-areas.json, `python3 -I 
   cycle paths and crossings, islands, slip lanes, lay-bys) and compare each scene with main before
   calling it better.
 - Apply the Palace design (areas 1-2) to the shipped map after a phone bench.
+- Main's real bugs, seen on the photo vs main at Marszałkowska × Królewska, Świętokrzyska ×
+  Mazowiecka and × Jasna (2026-11-07), the same across the map, so they are fixed once in the bake,
+  not per area: (1) zebras cover only part of the carriageway (often one lane or one direction);
+  they should run kerb to kerb, or kerb to median; (2) cycle crossings are short red bars across a
+  single lane, not the band across the street beside the zebra; (3) lane lines run on through the
+  junction box; they should stop at the stop line or the zebra; (4) overlapping ribbons show darker
+  patches in the junction boxes. Each fix keeps main's medians, arrows, islands and cycle paths.
 
 ## Road design system: round 2 (F, 2026-11-06; docs/design/road-design-palace-results.md)
 
