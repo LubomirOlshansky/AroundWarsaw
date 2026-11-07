@@ -4,6 +4,20 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Kieślowski tour and the Dekalog estate (F, 2026-11-07; docs/design/dekalog-tour.md)
+
+Built: "Dekalog na kółkach", Claire from Lyon from Centralna to six Dekalog places and the Inflancka
+estate (`dekalog_tour.gd`, check `dekalog`). Left:
+- **The estate from F's photos** (K01-K08): Dzika 6, Inflancka 11/15/19, Dzika 19/23, Stawki 6/8,
+  Dzika 4A, Stawki 4A and the yards are plain OSM boxes; the sightline from Dzika 6 to Inflancka 15.
+- **The Inflancka pools** (K09): Ośrodek Sportowy Inflancka 8 is missing from the game: summer basins,
+  paddling pool, slides, the indoor hall. Needs OSM pool outlines in the bake or a site; photos first.
+- **The stops' fronts** (K12-K19): Noakowskiego 12's courtyard shrine, the café at Krakowskie
+  Przedmieście 27, St Alexander's portico, the W-Z tunnel portals.
+- **Quest map**: the `stories.add` entry once PR #504 is in.
+- **Muranów around it** (K11): the rubble-brick blocks on Andersa, Nowolipki yards, the POLIN park.
+
+
 ## Miodowa's palaces from F's photos (F, 2026-11-07; spec docs/landmarks/specs/miodowa.md)
 
 Built: seven palaces in photo-read skins (Branickich, Młodziejowskiego, Szaniawskich, Chodkiewiczów, Arcybiskupi,

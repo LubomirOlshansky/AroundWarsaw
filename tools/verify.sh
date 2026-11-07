@@ -100,6 +100,9 @@
 # Sekretny rave (2026-11-06): `rave` runs game/tools/check_rave.gd: the cone, booth and club-room meshes,
 # LEKTI's, Ziomek's, the door's and the club's lines (no brand), the rave clock, the door's three
 # questions, the lights' poses, the spots and Smoła on the real lane graph; centrum.json only (CI too).
+# Kieślowski tour (2026-11-07): `dekalog` runs game/tools/check_dekalog_tour.gd: Claire's pickup and
+# six Dekalog stops stand on drivable roads near their real places, the call, legs, shots, hits, the
+# last question and the pay (docs/design/dekalog-tour.md).
 # Boat race (2026-11-06): `boatrace` runs game/tools/check_boat_race.gd: the course from water.bin
 # (every ring in open water, in order, the finish last), the boat's pull, turn and banks, a whole race
 # with the four boats driven by the rivals' driver (all finish or drop out, the careful one with no
@@ -223,8 +226,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads smooth streets outline pois streetdetails streetpass design models overrides stops streetmesh parkdetails parkmesh monuments monumentmesh spec lod2 courts drape ground drive drive-prebuilt deckxray stuckspots stuckspots-prebuilt lanedrive finite steering laneassist stuckoffer handling stopassist questlines settings credits language tiers governor heliview hud places edge roadworks roadworks-prebuilt eggs tape crowds life buses zaglebie crashes rave boatrace evtow loud crazy oldtram trains packs wellness fans garage save districts syrenki cassettes ladder racecuts first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram teleport firstlife heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads smooth streets outline pois streetdetails streetpass design models overrides stops streetmesh parkdetails parkmesh monuments monumentmesh spec drape drive deckxray stuckspots finite steering laneassist stuckoffer handling stopassist questlines settings credits language tiers governor heliview hud places edge roadworks eggs tape crowds life buses zaglebie crashes rave boatrace evtow loud crazy oldtram trains packs wellness fans garage save districts syrenki cassettes ladder racecuts first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds police plain ram teleport firstlife prebuilt)
+STEPS_ALL=(map roads smooth streets outline pois streetdetails streetpass design models overrides stops streetmesh parkdetails parkmesh monuments monumentmesh spec lod2 courts drape ground drive drive-prebuilt deckxray stuckspots stuckspots-prebuilt lanedrive finite steering laneassist stuckoffer handling stopassist questlines settings credits language tiers governor heliview hud places edge roadworks roadworks-prebuilt eggs tape crowds life buses zaglebie crashes rave boatrace dekalog evtow loud crazy oldtram trains packs wellness fans garage save districts syrenki cassettes ladder racecuts first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram teleport firstlife heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads smooth streets outline pois streetdetails streetpass design models overrides stops streetmesh parkdetails parkmesh monuments monumentmesh spec drape drive deckxray stuckspots finite steering laneassist stuckoffer handling stopassist questlines settings credits language tiers governor heliview hud places edge roadworks eggs tape crowds life buses zaglebie crashes rave boatrace dekalog evtow loud crazy oldtram trains packs wellness fans garage save districts syrenki cassettes ladder racecuts first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds police plain ram teleport firstlife prebuilt)
 # Operation Unslop review (2026-11-05): the road loop ran the whole --quick (~100 steps, most start
 # the game) after every tweak. --roads keeps only the steps a road rule can break; steps not in
 # STEPS_ALL on this branch (e.g. `smooth` before the smooth-roads PR) are skipped.
@@ -905,6 +908,7 @@ for s in $want; do
 		rave) check rave '^check_rave:' --script res://tools/check_rave.gd ;;
 		# Boat race: the course in open water, the boat, a whole race, the three-miss rule, the lines.
 		boatrace) check boatrace '^check_boat_race:' --script res://tools/check_boat_race.gd ;;
+		dekalog) check dekalog '^check_dekalog_tour:' --script res://tools/check_dekalog_tour.gd ;;
 		# Dead electric cars: the TESŁO, the lines, the sling, the chargers on the real graph.
 		evtow) check evtow '^check_ev_tow:' --script res://tools/check_ev_tow.gd ;;
 		# City-life satire #1: the loud cars and the Browary meet.

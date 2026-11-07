@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-07
+- A new ride, "Dekalog na kółkach": Claire, a film student from Lyon, wants to see where Kieślowski shot the Dekalog. Pick her up at Centralna and drive her through six real filming places to the Muranów estate on Inflancka.
 - Miodowa's palaces look like themselves: cream and pink plaster under tile-red roofs (Paca's are green copper), and Pałac Branickich's long front has pink pilaster strips, a cornice, an attic crowded with statues, three scrolled dormers and its balconied gate.
 
 
