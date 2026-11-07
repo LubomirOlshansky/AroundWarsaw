@@ -5800,6 +5800,10 @@ func _process(dt: float) -> void:
 		# Loop 2d-1: no ride is offered from the helicopter, on the title screen or the bench.
 		rides.flying = flying
 		rides.away = title != null or _bench_ghost != null or _phone_bench
+		# 2026-11-07 (BACKLOG "Secret rave"): no ride or "Na czasie" card while Ziomek's rave run,
+		# the club or Bartek's tow is on (their calls already held the rescue calls).
+		rides.away = rides.away or (rave != null and rave.busy()) or (club != null and club.inside) \
+				or (ev_tow != null and ev_tow.busy())
 		if trend_job != null:
 			trend_job.flying = flying
 			trend_job.player_pos = pos
