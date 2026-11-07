@@ -9,6 +9,9 @@ that day here, in plain words a player would understand (no file names, no spoil
 rows in the progress log but no section here is listed automatically from the log's labels until
 someone writes its lines.
 
+## 2026-11-07
+- Kino Muranów looks like the real one now: red MURANÓW letters over the doors, posters under little lamps, the terrace with its white balustrade and two pillars before the arch, the fountain with the putti, and at night warm festoons over a café garden. A new quest goes with it: your director friend Wiktor calls and you drive him and the only copy of his film round Amondo, Atlantic, the Kinoteka and Muranów to get it screened, while he jokes about arthouse cinema and asks for long takes and reverse shots. Every bump scratches the reel.
+
 ## 2026-11-06
 - Boat race on the Vistula: your mate Szymek calls and you race him, old Pan Zdzisiek in his Złota Rybka and Kamil on a jet ski from Port Czerniakowski down under four bridges to the Old Town, through rings in a slalom. Miss three and you're out, then go again or head back. Rings in a row speed you up, gold rings give a boost, and a sand barge going the other way throws waves you can jump.
 - The Bridge by Plac Europejski looks like itself now: its glass folds along long diagonal seams, the south corner steps down under a dark crown, ERZATZ (the bank's parody) glows blue at the top, and a tall timber lobby with leaning concrete columns sits under it. The brick and stone block at Grzybowska 77 in front got its stone piers, long balcony, framed windows and attic.

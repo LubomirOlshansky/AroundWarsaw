@@ -133,6 +133,8 @@ const CrashScenes := preload("res://scripts/crash_scenes.gd")
 const Rave := preload("res://scripts/rave.gd")
 ## "Wiślana Szprotka", the boat race down the Vistula (boat_race.gd, F's ask 2026-11-06).
 const BoatRace := preload("res://scripts/boat_race.gd")
+## "Kino objazdowe", the director friend's cinema tour (kino_tour.gd, F's ask 2026-11-07).
+const KinoTour := preload("res://scripts/kino_tour.gd")
 ## Inside the club after the door (club.gd): the cutaway room.
 const Club := preload("res://scripts/club.gd")
 const EvTow := preload("res://scripts/ev_tow.gd")
@@ -526,6 +528,11 @@ var boat_flag := ""
 var boat_log := false
 var _boat_mask := Vector2i.ZERO
 var _boat_paused := false
+## The cinema tour (kino_tour.gd): --kino-tour=call (Wiktor phones now), =go (the tour starts with
+## the car at the pickup), =auto (that, the cards answered by themselves), =0 (none); --kino-log.
+var kino_tour: KinoTour
+var kino_flag := ""
+var kino_log := false
 var old_tram_flag := ""
 var tram_log := false
 ## Packs (packs.gd): running clubs, cycling packs, coffee raves; flags --packs=0 (none), --packs-now
@@ -1570,6 +1577,7 @@ func _build_world() -> void:
 	_build_crash_scenes()
 	_build_rave(data, world)
 	_build_boat_race(world)
+	_build_kino_tour(world)
 	_build_ev_tow(world)
 	_build_storefronts(data, world)
 	_build_packs(data, world)
@@ -2758,6 +2766,47 @@ func _build_boat_race(world: Node3D) -> void:
 		get_tree().create_timer(1.0).timeout.connect(func() -> void: boat_race.ring())
 
 
+# --- the cinema tour ---------------------------------------------------------------------------
+
+## Wiktor's call and the drive round the cinemas (kino_tour.gd). None with --kino-tour=0.
+func _build_kino_tour(world: Node3D) -> void:
+	if kino_flag == "0":
+		return
+	kino_tour = KinoTour.new()
+	kino_tour.name = "KinoTour"
+	kino_tour.hud = hud
+	kino_tour.dialogue = dialogue
+	kino_tour.wallet = wallet
+	kino_tour.map = map
+	kino_tour.car = car
+	kino_tour.log_on = kino_log
+	kino_tour.autopilot = autopilot or kino_flag == "auto"
+	kino_tour.force_hours = kino_flag != ""
+	kino_tour.vehicle = func() -> Array:
+		if flying:
+			return [heli.global_position, heli.speed() * 3.6, true, 0.0]
+		return [car.global_position, car.vel.length() * 3.6, false, float(car.forward_speed)]
+	kino_tour.clock = func() -> float: return life.hour_now() if life != null else 12.0
+	kino_tour.free_now = _kino_free
+	world.add_child(kino_tour)
+	kino_tour.setup(world)
+	if kino_flag in ["go", "auto"]:
+		get_tree().create_timer(1.0).timeout.connect(func() -> void:
+			var at: Vector2 = KinoTour.PICKUP["at"]
+			car.global_position = Vector3(at.x, map.ground_height(at.x, at.y), at.y)
+			car.reset_physics_interpolation()
+			kino_tour.start())
+	elif kino_flag == "call":
+		get_tree().create_timer(1.0).timeout.connect(func() -> void: kino_tour.ring())
+
+
+## Nothing else on, on the ground (the rave's test, no rave and no boat race either).
+func _kino_free() -> bool:
+	if boat_race != null and boat_race.busy():
+		return false
+	return _boat_free()
+
+
 ## Nothing else on, on the ground (the rave's test, and no rave either).
 func _boat_free() -> bool:
 	if rave != null and rave.busy():
@@ -2911,6 +2960,8 @@ func _rave_free() -> bool:
 		return false
 	if boat_race != null and boat_race.busy():
 		return false
+	if kino_tour != null and kino_tour.busy():
+		return false
 	return not flying and not car.in_water
 
 
@@ -2960,6 +3011,8 @@ func _ev_free() -> bool:
 	if rivals != null and rivals.busy():
 		return false
 	if boat_race != null and boat_race.busy():
+		return false
+	if kino_tour != null and kino_tour.busy():
 		return false
 	return flying or not car.in_water
 
@@ -4390,6 +4443,10 @@ func _parse_args() -> void:
 			boat_flag = arg.trim_prefix("--boat-race=") if arg.contains("=") else "call"
 		elif arg == "--boat-log":
 			boat_log = true
+		elif arg.begins_with("--kino-tour"):
+			kino_flag = arg.trim_prefix("--kino-tour=") if arg.contains("=") else "call"
+		elif arg == "--kino-log":
+			kino_log = true
 		elif arg == "--ev-call" or arg == "--ev-tow" or arg == "--ev-stranded":
 			ev_flag = arg.trim_prefix("--ev-")
 		elif arg.begins_with("--ev-tow="):
@@ -5890,18 +5947,20 @@ func _process(dt: float) -> void:
 			print("zone: scooter %s (12 km/h for scooters)" % sz)
 	_feed_life(pos)
 	var boating := boat_race != null and boat_race.busy()
+	# The cinema tour: no side job is offered while Wiktor rides along (the jobs read it as flying).
+	var touring := kino_tour != null and kino_tour.busy()
 	if police != null:
 		police.flying = flying or boating  # loop 3g-1: the police ignore the helicopter (and the boat race)
 		police.zone = zone  # loop 3g-2: the city guards' zone pill and whistle
 		police.zone_cap = zone_cap_on  # F's asks: the pill and the whistle only with the cap on
 	if jobs != null:
 		# Loop 2b: no side job starts on the bench route (the ghost stops at red lights).
-		jobs.flying = flying or _bench_ghost != null or boating
+		jobs.flying = flying or _bench_ghost != null or boating or touring
 		# Loop 2d-1: no ride is offered from the helicopter, on the title screen or the bench.
-		rides.flying = flying or boating
+		rides.flying = flying or boating or touring
 		rides.away = title != null or _bench_ghost != null or _phone_bench
 		if trend_job != null:
-			trend_job.flying = flying or boating
+			trend_job.flying = flying or boating or touring
 			trend_job.player_pos = pos
 			trend_job.away = rides.away
 		eggs.player = pos
@@ -6351,6 +6410,8 @@ func _stop_assist() -> void:
 	var at := Vector3.INF
 	if flying or (rivals != null and rivals.has_target()):
 		pass
+	elif kino_tour != null and kino_tour.has_target():
+		at = kino_tour.stop_spot()
 	elif trend_job != null and trend_job.has_target():
 		at = trend_job.stop_spot()
 	elif rides != null and rides.has_target():
@@ -6437,6 +6498,15 @@ func _show_target() -> void:
 		hud.set_target(on_b, "%d m" % mb, boat_race.target_colour(), mb > 12 and not boat_race.boating())
 		_put_target(Vector2(bp.x, bp.z), boat_race.target_colour(), false)
 		_new_target("job", bp)
+		return
+	if kino_tour != null and kino_tour.has_target() and not flying:
+		var kp: Vector3 = kino_tour.target_position()
+		var at_k := _vehicle_position()
+		var mk := roundi(Vector2(kp.x - at_k.x, kp.z - at_k.z).length())
+		var on_k := cam.unproject_position(kp + Vector3(0, 3.5, 0)) * float(view.stretch_shrink)
+		hud.set_target(on_k, "%d m" % mk, kino_tour.target_colour(), mk > 12)
+		_put_target(Vector2(kp.x, kp.z), kino_tour.target_colour(), false)
+		_new_target("job", kp)
 		return
 	if rave != null and rave.has_target() and not flying:
 		var vp: Vector3 = rave.target_position()
@@ -6817,6 +6887,9 @@ func _toggle_vehicle() -> void:
 		return
 	if boat_race != null and boat_race.busy():
 		hud.toast("Najpierw dokończ wyścig łodzi (albo ✕)", "Finish the boat race first (or ✕)")
+		return
+	if kino_tour != null and kino_tour.busy():
+		hud.toast("Wiktor nie lata: najpierw kina (albo ✕)", "Wiktor doesn't fly: the cinemas first (or ✕)")
 		return
 	if jobs != null and jobs.busy() and not flying:
 		hud.toast("Najpierw dokończ kurs: zamówienie jedzie autem", "Finish the job first: it rides in the car")
