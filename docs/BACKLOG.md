@@ -208,6 +208,25 @@ strict three-question door, Smoła's cutaway room (option A). Left:
 - [ ] Opaski (wristbands) collected per spot, a card in the notebook
 - [ ] Option B: a walk-around room (a person controller inside), only if A plays well
 
+## Padel call at WTS DESKA (coordinator, 2026-11-07; docs/design/padel.md)
+
+Built: the call opens like the boat race and the rave (ringing card with the caller's bio,
+ODBIERZ / ODRZUĆ, a buzz, then the ask), a three-point match on arrival (LOB / ZE ŚCIANY / SMECZ,
+five rallies), the helicopter landing remark, English on the call's buttons; fixed the late line
+at DESKA (the generic three-a-side line overwrote it). Left:
+- [ ] Phone check: the three-shot card fits beside the car at 2532x1170 with large text, the ring buzz
+- [ ] hud.gd: a card with no spot that fits (a side card wider or taller than the room beside the car, a centred one taller than the screen) is never placed and stays hidden, so a quest waits on an invisible card (PT-30, 2026-11-07). Fall back to any spot, or log it
+- [ ] PT-31 (map lane): the Solec-Zaruskiego service road is mapped as a bridge the car can't drive onto, so DESKA is reachable by car only from Czerniakowska (or by helicopter); Mac Autopilot 2026-11-07
+- [ ] PT-32 (suspect): a district discovery card during the ringing call may end the call
+- [ ] Hook the call into the quest map (PR #504's `stories.add`, docs/design/quest-map.md "Adding a questline") once it is on main
+- [ ] A racket detour: the friend calls back mid-drive ("masz rakietę?"), a stop at a pro shop "Rakieta w Cenie" for +1 point's head start
+- [ ] The court booked till the hour: the 8 min limit becomes the minutes to the full hour (at least 5), shown as "KORT DO 18:00"
+- [ ] Ściana Płaczu, the rooftop glass court (padel.md idea), as a second venue for the call
+- [ ] The DESKA players animate (a racket swing loop) while a match is on; now they stand
+- [ ] PADELNIA's "Czwarty" (the proximity job) could open with a call too; it stays a queue offer for now, since the queue is the joke
+- [ ] A match record in the notebook (won / played) and the hoodie as a cosmetic after 3/3
+- [ ] Portraits for the callers on the ringing card (PixelLab, with the other call cards' portraits)
+
 ## Boat race "Wiślana Szprotka" (F, 2026-11-06; docs/design/boat-race.md)
 
 Built: Szymek's call, the start pontoon at the mouth of Port Czerniakowski, the 3.2 km course of 26
