@@ -5760,6 +5760,11 @@ Command-line options (after `--`):
 | `--bus-log` | night-buses loop: print `buses:` lines: the hub's bays and stops, each gathering and ring bus, the car at the ring, the race to the Palm, each honk and called bus, the stop lines, a summary every 20 s |
 | `--crash=now` / `--crash=X,Z` / `--crash=on` / `--crash=0` | crash scenes (`crash_scenes.gd`): a scene now 45-130 m ahead of the car (shots; it may be in view), or on the fitting road nearest X,Z; `on`: the 3-5 minute timer in a test run too (it runs in a normal launch only); `0`: none |
 | `--crash-log` | crash scenes: print `crash:` lines: the first scene's wait, each scene (where, street, lane, vehicles, distance, life), the radio line, every bubble line, each clear and the next wait |
+| `--boat-race`, `--boat-race=call` | boat race (`boat_race.gd`): Szymek rings now, whatever the time |
+| `--boat-race=race` | boat race: the car at the start pontoon and straight onto the grid (3-2-1) |
+| `--boat-race=auto` | boat race: as `race`, with the player's boat driven by the rivals' driver (the shots and the full-race probe) |
+| `--boat-race=0` | no boat race (no call, no pontoon) |
+| `--boat-log` | boat race: `boat race:` lines (the call, the grid, misses, finishes, solid hits) |
 | `--rave-call` | secret rave (`rave.gd`): LEKTI's break-in on MORDOR FM now (with his voice) and Ziomek rings a second later, whatever the time |
 | `--rave-smola` | secret rave: Ziomek rings now for the club night at Smoła (the door's three questions, then the room) |
 | `--rave-club` | secret rave: straight into Smoła's cutaway room (option A: the jungle, the DJ, the dancers, the lights, TAŃCZ, PATIO and WYJDŹ) |
