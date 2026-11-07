@@ -108,14 +108,20 @@ Built: three boats from F's photos moored by the start pontoon, each with its ow
 "Rekin X", electric "Srebrna Strzała", offshore "Czarna Pantera"), the PRZYSTAŃ pill and the marina
 card (pick one or WYŚCIG), the free ride (no rings, clock or rivals; the barge passes for its wake)
 with ✕ back to the car, the boat mark on the minimap and the full map. Left:
-- [ ] **F's photos** of the real place before any rebuild (landmarks-photos rule): the pontoon area at
-  the tip of Cypel Czerniakowski from the promenade and from the water side; the drive in from Solec
-  along Zaruskiego (the gate or barrier, the car park, the kerbs and surface); the promenade from the
-  gangway both ways; the harbour mouth and the club house from the spit; any real rental or
-  motorboat jetty on the Port Czerniakowski side. Then rebuild the pontoon, its gangway and the access
-  road from them
-- [ ] The access now: the car reaches the stop over the grass of the spit from the service road (no
-  mapped road reaches the promenade); keep it until the photos say what is really there
+- [x] F's photos came in on 2026-11-07: 53 photos, kept in /mnt/project-files/port-czerniakowski/photos. From them the spit and the basin were rebuilt (sites `port_majami`, `port_wtw`, `port_halls`, `port_basin`):
+  - MAJAMI WAWA, the parody of the open-air club at the tip: a timber terrace, two tents, festoons, fire pits and its white pontoon;
+  - WTW's boathouse with its blue roof, gate, hexagon sign and anchors;
+  - low halls in place of the 14 m blocks;
+  - boats moored stern-to along both quays, with houseboats.
+- [ ] The rest of F's port photos, still to build:
+  - the mouth footbridge's green steel edges;
+  - Pomnik Saperów's bar deck at the mouth;
+  - the new arched footbridge over the basin;
+  - the rental pier with its blue solar cabin;
+  - the HERBATNIK barge on the slipway;
+  - Przystań Warszawa's timber pavilions;
+  - Monkey Love (Bulwar Flotylli Pińskiej 1A, south of Most Łazienkowski). Only interior photos exist; an exterior photo is needed.
+- [ ] The MAJAMI WAWA and WTW neon signs did not show in the cloud's night frames. Check them on the Mac.
 - [ ] The PRZYSTAŃ pill is up (logged, on screen at the top centre) but missing from the cloud's
   `--shots` frames; check on the Mac that it shows when the car stops by the pontoon
 - [ ] Phone feel of the three (jet steering off the gas, the offshore's slow start), a way back to

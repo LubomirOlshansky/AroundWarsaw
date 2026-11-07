@@ -379,6 +379,8 @@ then the Launch gate.
 - [x] The sailing marina in Port Czerniakowski (2026-11-02): club house on piles, 18 sailboats,
   pier lamps (site `marina`); Marinka as the two-deck white party barge of F's photo
 - [ ] Mac photo check of the marina (club house colours and storeys, berth count)
+- [x] Port Czerniakowski's spit and basin from F's photos (2026-11-07): MAJAMI WAWA (terrace, tents, fire pits,
+  white pontoon), WTW's boathouse and gate, low halls instead of 14 m blocks, boats along both quays, houseboats
 - [ ] Mac photo check of the barges (hull colours, deckhouse length and place, the terraces)
 - [ ] Mariensztat and Krakowskie Przedmieście review (F, 2026-11-01; BACKLOG section):
   - [x] M1 Mariensztat's houses in pastel with red tile roofs and dormers, 2026-11-01
