@@ -412,18 +412,51 @@ vec3 skin(int s, vec3 col, float u, float h, float top, out vec3 glow, out bool 
 		c = mix(c, sky * mix(0.4, 1.0, daylight), 0.28);
 		c *= 0.9 + 0.2 * value_noise(vec2(u * 0.11, h * 0.025));
 	} else if (s == S_TILE) {
-		// Novotel's shaft (the Rondo photos, 2026-10-31): white tiled panels, a hairline grid
-		// every 3.4 m by one floor, floodlit white at night, a window slit now and then.
-		float gx = fract(u / 3.4);
-		float gy = fract(h / fh);
-		bool seam = gx < 0.035 || gy < 0.03;
+		// White tiled panels, floodlit at night. The wall colour picks the face:
+		// warm (red over blue: the HUB's hotel, the Rondo photos' first Novotel, 2026-10-31): a
+		// hairline grid every 3.4 m by one floor, a window slit lit now and then;
+		// cool or neutral: the Novotel from F's five photos (2026-11-07), seams every 1.55 m and at
+		// every floor (2.95 m), the faces cooler white under the floodlights; a cool one (blue over
+		// red: the long faces) adds the punched windows, small dark squares 1.25 x 1.1 m in pairs
+		// in every 6.2 m bay, a share of them warm at night; a neutral one (the blank narrow ends
+		// and the lift core's strip) stays plain.
 		float flood = mix(0.3, 1.0, daylight);
-		vec3 tile = white * (seam ? 0.72 : 1.0) * flood;
-		if (lights_on > 0.001) {
-			glow = srgb_to_linear(vec3(0.62, 0.66, 0.74)) * (seam ? 0.3 : 0.62) * lights_on;
-			if (gx > 0.3 && gx < 0.62 && gy > 0.35 && gy < 0.62 && hash12(vec2(floor(u / 3.4), level) + 7.7) < 0.12 * lights_on) {
-				glow = WARM_PALE * 0.9;
+		if (col.r > col.b + 0.004) {
+			float gx = fract(u / 3.4);
+			float gy = fract(h / fh);
+			bool seam = gx < 0.035 || gy < 0.03;
+			vec3 tile = white * (seam ? 0.72 : 1.0) * flood;
+			if (lights_on > 0.001) {
+				glow = srgb_to_linear(vec3(0.62, 0.66, 0.74)) * (seam ? 0.3 : 0.62) * lights_on;
+				if (gx > 0.3 && gx < 0.62 && gy > 0.35 && gy < 0.62 && hash12(vec2(floor(u / 3.4), level) + 7.7) < 0.12 * lights_on) {
+					glow = WARM_PALE * 0.9;
+				}
 			}
+			return tile;
+		}
+		float pf = 2.95;
+		float lvl = floor(h / pf);
+		float gx = fract(u / 1.55);
+		float gy = fract(h / pf);
+		bool seam = gx < 0.02 || gy < 0.025;
+		vec3 tile = white * (seam ? 0.8 : 1.0) * flood;
+		if (col.b > col.r + 0.004) {
+			float bay = fract(u / 6.2) * 6.2;
+			float fy = gy * pf;
+			float x = bay - (bay < 3.1 ? 1.9 : 4.3);
+			if (abs(x) < 0.625 && fy > 0.95 && fy < 2.05) {
+				if (lights_on > 0.001 && hash12(vec2(floor(u / 3.1), lvl) + 5.3) < 0.3 * lights_on) {
+					glow = WARM_PALE * (0.8 + 0.3 * hash12(vec2(floor(u / 3.1), lvl) + 1.1));
+					return c * 0.3;
+				}
+				return mix(srgb_to_linear(vec3(0.13, 0.15, 0.18)), sky * 0.45, refl) * mix(0.35, 1.0, daylight);
+			}
+			if (abs(x) < 0.7 && fy > 0.88 && fy < 2.12) {
+				return tile * 0.86;
+			}
+		}
+		if (lights_on > 0.001) {
+			glow = srgb_to_linear(vec3(0.6, 0.68, 0.82)) * (seam ? 0.3 : 0.6) * lights_on;
 		}
 		return tile;
 	} else if (s == S_EASTWALL) {

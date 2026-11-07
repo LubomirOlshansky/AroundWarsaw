@@ -4,6 +4,20 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Novotel Warszawa Centrum from F's photos (F, 2026-11-07; docs/landmarks/novotel.md)
+
+Built: the white tiled slab with its paired windows and the lift core's blank strip, the blank narrow ends round
+their core bays with NOWOTEL in blue neon letter over letter, the orange rule and ACORN HOTELS, the top storey's
+blue band, the plant room and the two white light boxes with the name on the roof, the glazed podium with its lit
+fascia and canopies, and the east entrance (bowed cream bay, revolving door, blue NOWOTEL board, stone pier,
+planters). Left:
+- Which face the entrance is on: built on the east face (the mapped canopy is there); F's entrance photo does not show
+  the street. Check on the Mac or with one more photo of the corner.
+- The window rhythm (pairs in 6.2 m bays, 31 floors of 2.95 m) is read from one daytime photo; the lift core strip's
+  place along the face is a guess (the middle bay).
+- The podium's Marszałkowska front has no photo: built as two glazed storeys under a lit fascia.
+
+
 ## Miodowa's palaces from F's photos (F, 2026-11-07; spec docs/landmarks/specs/miodowa.md)
 
 Built: seven palaces in photo-read skins (Branickich, Młodziejowskiego, Szaniawskich, Chodkiewiczów, Arcybiskupi,
@@ -652,7 +666,7 @@ short `bar-crawl.md`), then build on the Podwózka rides (`rides.gd`, `ride_rule
 F asked for two things; both are plan only, nothing is built (Sonnet for the lines, Opus for the quest design; docs/design/ gets the plan first).
 
 - **Vitkac quests.** Quests that start or end at the Vitkac block on Bracka (the photo-built landmark, PR #385; CITY_INVENTORY #80). Ideas to design: a personal-shopper job (carry bags from the door to a car or hotel on time), a "queue for the drop" gag outside the doors, a Podwózka stop with its own result card. Hook into the ZADANIA list (`main.gd` `_quest_entries`, quest-lists) and `StopAssist`. The name on screen: Vitkac is a real place name and fine; any shop or label inside is a parody (warsaw-tone, never a real brand). Add-ons check at build time (NPC talk: Dialogue Manager or not).
-- **Every ride has its own passenger story.** Today `rides.gd` has a handful of passenger types with one request line and one result line. Make each ride a short story told in the car: a named passenger or group, a request line, 2-4 lines spoken at set points during the drive (distance or street triggers, Nawigacja style), and a drop-off line. F's example: a fancy couple living in Wilanów going to Vitkac to shop, who bicker about the budget and the dog's outfit on the way. Needs: a story table (passenger, from, to, lines), a pick that fits the route (Wilanów pickups need a far start or a spawn "from" label), polish in Polish with English (warsaw-tone), parody names only, no line over two HUD rows on a phone. Check: `--ride-quirk` / `--passenger` flags and the `ride:` log lines; extend the rides check.
+- **Ride stories: what's left** (the stories themselves were built 2026-11-07: `data/taxi_stories.json`, `scripts/taxi_stories.gd`, 15 passengers, 3 lines + a two-answer question each, `--ride-story=ID --ride-answer=0|1`). Each story has its real destination (`to`, 2026-11-07); the big sites with no address door (Pałac Kultury, Dworzec Centralny, the Castle, the Stadium) end at the junction nearest them, not a modelled drop-off bay. Left: drop-off bays at those four; F's example couple from Wilanów to Vitkac (needs a pickup `from` too); a story told by two passengers (the couple bickering); recorded voices for the question line; more stories past 15 so the rotation is longer (the format is in the file's `_about`); the phone look of the question card while driving (stacked buttons beside the car).
 
 ## Loud cars at Browary (F, 2026-11-02)
 

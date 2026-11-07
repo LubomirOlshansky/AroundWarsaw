@@ -11,9 +11,11 @@ someone writes its lines.
 
 ## 2026-11-07
 - Under Trasa Łazienkowska, the bridges and the viaducts, the see-through circle now opens the deck over you, so you see your car and the traffic around it instead of a glowing outline.
+- The Novotel by Rondo Dmowskiego looks like itself: a white tower with rows of small paired windows, its name in blue neon down both narrow ends and in light boxes on the roof, a glazed podium with a lit edge, and a curved cream entrance canopy under a blue sign.
 - Miodowa's palaces look like themselves: cream and pink plaster under tile-red roofs (Paca's are green copper), and Pałac Branickich's long front has pink pilaster strips, a cornice, an attic crowded with statues, three scrolled dormers and its balconied gate.
 
 
+- Podwózka taxi rides now come with stories: 18 passengers, from a Mordor office worker heading for Warsaw Spire to a film star off to the Palace of Culture, a saxophonist late for jazz under the Powiśle UFO and a beekeeper invited to the Presidential Palace, chat on the way to real places and ask you a question; your answer changes the tip and a good talk earns half a star.
 - Marszałkowska: 16 more houses got street fronts from real photos, from Hotel Saski to the long block at number 140.
 - Aleje Jerozolimskie: 21 more houses along the avenue got street fronts from real photos.
 - Świętokrzyska, Chmielna, Nowy Świat and Aleje Ujazdowskie: 25 more houses got street fronts from real photos.
