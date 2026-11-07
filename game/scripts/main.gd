@@ -132,6 +132,8 @@ const OldTram := preload("res://scripts/old_tram.gd")
 const CrashScenes := preload("res://scripts/crash_scenes.gd")
 ## Sekretny rave (rave.gd, F's ask 2026-11-06): LEKTI on MORDOR FM, Ziomek's call, the raves' rigs.
 const Rave := preload("res://scripts/rave.gd")
+## "Wiślana Szprotka", the boat race down the Vistula (boat_race.gd, F's ask 2026-11-06).
+const BoatRace := preload("res://scripts/boat_race.gd")
 ## Inside the club after the door (club.gd): the cutaway room.
 const Club := preload("res://scripts/club.gd")
 const EvTow := preload("res://scripts/ev_tow.gd")
@@ -517,6 +519,14 @@ var rave_flag := ""
 var rave_spot := ""
 var rave_log := false
 var _rave_auto := false
+## The boat race (boat_race.gd): --boat-race=call (Szymek phones now), =race (the car at the
+## pontoon, straight onto the grid), =auto (that, with the player's boat driven by the rivals'
+## driver), =0 (none); --boat-log.
+var boat_race: BoatRace
+var boat_flag := ""
+var boat_log := false
+var _boat_mask := Vector2i.ZERO
+var _boat_paused := false
 var old_tram_flag := ""
 var tram_log := false
 ## Packs (packs.gd): running clubs, cycling packs, coffee raves; flags --packs=0 (none), --packs-now
@@ -598,10 +608,13 @@ var rides: Rides
 var quest_pin: Dictionary = {}
 ## --ride=N: ride N's request, the car by its passenger; --ride-quirk=, --passenger=, --stars=X
 ## (the live rating's start), --ignore-app (the autopilot drives the shortest road, not the
-## app's), --parody-log (`ride:` and `gps:` lines).
+## app's), --parody-log (`ride:` and `gps:` lines). Story rides (taxi_stories.json): --ride-story=ID
+## (that passenger, "none" for no story), --ride-answer=0|1 (the autopilot's answer to the question).
 var start_ride := -1
 var ride_quirk := ""
 var ride_passenger := ""
+var ride_story := ""
+var ride_answer := -1
 var ride_stars := -1.0
 var ignore_app := false
 var parody_log := false
@@ -1560,6 +1573,7 @@ func _build_world() -> void:
 	_build_old_tram(world)
 	_build_crash_scenes()
 	_build_rave(data, world)
+	_build_boat_race(world)
 	_build_ev_tow(world)
 	_build_storefronts(data, world)
 	_build_packs(data, world)
@@ -2236,6 +2250,8 @@ func _build_side_jobs(data: Dictionary, world: Node3D) -> void:
 	rides.log_on = parody_log
 	rides.force_quirk = ride_quirk
 	rides.force_passenger = ride_passenger
+	rides.force_story = ride_story
+	rides.force_answer = ride_answer
 	rides.start_stars = ride_stars
 	rides.gps_first = gps_in
 	add_child(rides)
@@ -2711,6 +2727,103 @@ func _build_crash_scenes() -> void:
 		crash_scenes.place(Vector2(p.x, p.z), Vector2(f.x, f.z).normalized(), true, at)
 
 
+# --- the boat race ---------------------------------------------------------------------------
+
+## Szymek's call, the start pontoon and the race down the river (boat_race.gd). None with --boat-race=0.
+func _build_boat_race(world: Node3D) -> void:
+	if boat_flag == "0":
+		return
+	boat_race = BoatRace.new()
+	boat_race.name = "BoatRace"
+	boat_race.hud = hud
+	boat_race.dialogue = dialogue
+	boat_race.wallet = wallet
+	boat_race.map = map
+	boat_race.car = car
+	boat_race.log_on = boat_log
+	boat_race.autopilot = autopilot or boat_flag == "auto"
+	boat_race.force_hours = boat_flag != ""
+	boat_race.vehicle = func() -> Array:
+		if flying:
+			return [heli.global_position, heli.speed() * 3.6, true]
+		return [car.global_position, car.vel.length() * 3.6, false]
+	boat_race.seen = func(p: Vector3) -> bool: return cam.is_position_in_frustum(p)
+	boat_race.clock = func() -> float: return life.hour_now() if life != null else 12.0
+	boat_race.free_now = _boat_free
+	world.add_child(boat_race)
+	boat_race.setup(world)
+	boat_race.boarded.connect(_on_boat_boarded)
+	boat_race.left_boat.connect(_on_boat_left)
+	if boat_flag in ["race", "auto"]:
+		get_tree().create_timer(1.0).timeout.connect(func() -> void:
+			var at := BoatRace.CAR_SPOT
+			car.global_position = Vector3(at.x, map.ground_height(at.x, at.y), at.y)
+			car.reset_physics_interpolation()
+			boat_race._board())
+	elif boat_flag == "call":
+		get_tree().create_timer(1.0).timeout.connect(func() -> void: boat_race.ring())
+
+
+## Nothing else on, on the ground (the rave's test, and no rave either).
+func _boat_free() -> bool:
+	if rave != null and rave.busy():
+		return false
+	return _rave_free()
+
+
+## The boat race's share of the car's speed zoom (the river is open: the rest of the zoom only
+## shrank the boats).
+const BOAT_ZOOM := 0.45
+
+
+## The player takes the boat: the car waits on the bank, out of the world (no process, no
+## collisions, hidden); every frame the car's spot follows the boat (`_boat_frame`) so the camera,
+## the streamer, the minimap and the speed read it as they read the car.
+func _on_boat_boarded() -> void:
+	_boat_mask = Vector2i(car.collision_layer, car.collision_mask)
+	car.collision_layer = 0
+	car.collision_mask = 0
+	car.vel = Vector3.ZERO
+	car.forward_speed = 0.0
+	car.process_mode = Node.PROCESS_MODE_DISABLED
+	car.visible = false
+	_boat_paused = not missions.paused
+	missions.paused = true
+	missions.close()
+	hud.hide_pill()
+	_boat_frame()
+	car.reset_physics_interpolation()
+	_cut_camera()
+
+
+## Back on the bank where the car was left.
+func _on_boat_left() -> void:
+	var at: Vector3 = boat_race._car_spot
+	car.global_position = Vector3(at.x, map.ground_height(at.x, at.z), at.z)
+	car.rotation.y = boat_race._car_yaw
+	car.collision_layer = _boat_mask.x
+	car.collision_mask = _boat_mask.y
+	car.process_mode = Node.PROCESS_MODE_INHERIT
+	car.visible = true
+	car.reset_motion()
+	car.reset_physics_interpolation()
+	if _boat_paused:
+		missions.paused = false
+	_cut_camera()
+
+
+## While boating: the car's spot, heading and speed are the boat's.
+func _boat_frame() -> void:
+	if boat_race == null or not boat_race.boating():
+		return
+	var b: Node3D = boat_race.player
+	car.global_position = b.global_position
+	car.rotation.y = float(b.yaw) + PI
+	var v: Vector2 = b.vel
+	car.vel = Vector3(v.x, 0.0, v.y)
+	car.forward_speed = float(b.forward_speed())
+
+
 # --- the secret raves ---------------------------------------------------------------------------
 
 ## LEKTI's invites, Ziomek's calls and the raves' rigs (rave.gd). None with --no-traffic or --rave=0.
@@ -2802,6 +2915,8 @@ func _rave_free() -> bool:
 		return false
 	if rivals != null and rivals.busy():
 		return false
+	if boat_race != null and boat_race.busy():
+		return false
 	return not flying and not car.in_water
 
 
@@ -2849,6 +2964,8 @@ func _ev_free() -> bool:
 	if (rides != null and rides.busy()) or (jobs != null and jobs.busy()) or (trend_job != null and trend_job.busy()):
 		return false
 	if rivals != null and rivals.busy():
+		return false
+	if boat_race != null and boat_race.busy():
 		return false
 	return flying or not car.in_water
 
@@ -4013,6 +4130,8 @@ func _parse_args() -> void:
 					start_heading = shot_spots[0][2]
 		elif arg.begins_with("--style="):
 			_flag_style = posmod(int(arg.trim_prefix("--style=")), STYLES.size())
+		elif arg.begins_with("--stops="):
+			stops = JSON.parse_string(FileAccess.get_file_as_string(arg.trim_prefix("--stops=")))
 		elif arg.begins_with("--at="):
 			var xz := arg.trim_prefix("--at=").split(",")
 			start_at = Vector3(float(xz[0]), 0.0, float(xz[1]))
@@ -4169,6 +4288,10 @@ func _parse_args() -> void:
 			ride_quirk = arg.trim_prefix("--ride-quirk=").to_lower()
 		elif arg.begins_with("--passenger="):
 			ride_passenger = arg.trim_prefix("--passenger=").to_lower()
+		elif arg.begins_with("--ride-story="):
+			ride_story = arg.trim_prefix("--ride-story=").to_lower()
+		elif arg.begins_with("--ride-answer="):
+			ride_answer = clampi(int(arg.trim_prefix("--ride-answer=")), 0, 1)
 		elif arg.begins_with("--stars="):
 			ride_stars = clampf(float(arg.trim_prefix("--stars=")), 1.0, 5.0)
 		elif arg == "--ignore-app":
@@ -4288,6 +4411,10 @@ func _parse_args() -> void:
 			rave_flag = arg.trim_prefix("--rave=")
 		elif arg == "--rave-log":
 			rave_log = true
+		elif arg.begins_with("--boat-race"):
+			boat_flag = arg.trim_prefix("--boat-race=") if arg.contains("=") else "call"
+		elif arg == "--boat-log":
+			boat_log = true
 		elif arg == "--ev-call" or arg == "--ev-tow" or arg == "--ev-stranded":
 			ev_flag = arg.trim_prefix("--ev-")
 		elif arg.begins_with("--ev-tow="):
@@ -5755,6 +5882,7 @@ func _process(dt: float) -> void:
 	Haptics.tick(dt, not flying and absf(car.forward_speed) > 3.0)
 	if autopilot or _bench_ghost != null:
 		_autopilot(dt)
+	_boat_frame()
 	_update_camera(dt)
 	_stream_frame(dt)  # loop 3c: the sectors round the camera
 	_title_frame()  # the loading fix: the title's prompt once the start is in
@@ -5786,18 +5914,19 @@ func _process(dt: float) -> void:
 			hud.ambient_toast(str(tw[0]), str(tw[1]))
 			print("zone: scooter %s (12 km/h for scooters)" % sz)
 	_feed_life(pos)
+	var boating := boat_race != null and boat_race.busy()
 	if police != null:
-		police.flying = flying  # loop 3g-1: the police ignore the helicopter
+		police.flying = flying or boating  # loop 3g-1: the police ignore the helicopter (and the boat race)
 		police.zone = zone  # loop 3g-2: the city guards' zone pill and whistle
 		police.zone_cap = zone_cap_on  # F's asks: the pill and the whistle only with the cap on
 	if jobs != null:
 		# Loop 2b: no side job starts on the bench route (the ghost stops at red lights).
-		jobs.flying = flying or _bench_ghost != null
+		jobs.flying = flying or _bench_ghost != null or boating
 		# Loop 2d-1: no ride is offered from the helicopter, on the title screen or the bench.
-		rides.flying = flying
+		rides.flying = flying or boating
 		rides.away = title != null or _bench_ghost != null or _phone_bench
 		if trend_job != null:
-			trend_job.flying = flying
+			trend_job.flying = flying or boating
 			trend_job.player_pos = pos
 			trend_job.away = rides.away
 		eggs.player = pos
@@ -5862,6 +5991,7 @@ func _process(dt: float) -> void:
 	hud.set_car_marker(marker, cam.size > 55.0)
 
 	frame += 1
+	_stop_step()
 	_inject_clicks()
 	if frame == 60 and tap_at != Vector2.INF:
 		_on_tap(tap_at)
@@ -6323,6 +6453,17 @@ func _main_line_tick(dt: float) -> void:
 ## The arrow and minimap dot for the mission target.
 func _show_target() -> void:
 	_free_now = false
+	if boat_race != null and boat_race.has_target():
+		var bp: Vector3 = boat_race.target_position()
+		var at_b := _vehicle_position()
+		var mb := roundi(Vector2(bp.x - at_b.x, bp.z - at_b.z).length())
+		var on_b := cam.unproject_position(bp + Vector3(0, 3.5, 0)) * float(view.stretch_shrink)
+		# The next ring stands bright in view: the arrow only when it is off screen.
+		# On the water the rings themselves lead (the next three stand in view): no arrow over the boat.
+		hud.set_target(on_b, "%d m" % mb, boat_race.target_colour(), mb > 12 and not boat_race.boating())
+		_put_target(Vector2(bp.x, bp.z), boat_race.target_colour(), false)
+		_new_target("job", bp)
+		return
 	if rave != null and rave.has_target() and not flying:
 		var vp: Vector3 = rave.target_position()
 		var at_v := _vehicle_position()
@@ -6532,6 +6673,18 @@ func _read_input(dt: float) -> void:
 	if Input.is_action_just_pressed("ui_page_up"):
 		cam_yaw_target -= 90.0
 
+	if boat_race != null and boat_race.boating():
+		# The boat race: the stick, keys and pedals drive the boat as they drive the car.
+		controls.release()
+		if not boat_race.autopilot:
+			var bkeys := {"left": left, "right": right, "up": gas, "down": down, "brake": space}
+			var bstick: Vector2 = hud.stick
+			var bon: bool = hud.stick_active()
+			if not bon and Gamepad.stick() != Vector2.ZERO:
+				bstick = Gamepad.stick()
+				bon = true
+			controls.drive(boat_race.player, bstick, bon, bkeys, hud.gas or Gamepad.gas(), hud.brake or Gamepad.brake(), cam_yaw, dt)
+		return
 	if flying:
 		# The car waits where it was left.
 		car.target_dir = Vector3.ZERO
@@ -6687,6 +6840,9 @@ func _toggle_vehicle() -> void:
 		return
 	if rivals != null and rivals.racing():
 		hud.toast("Najpierw dokończ wyścig", "Finish the race first")
+		return
+	if boat_race != null and boat_race.busy():
+		hud.toast("Najpierw dokończ wyścig łodzi (albo ✕)", "Finish the boat race first (or ✕)")
 		return
 	if jobs != null and jobs.busy() and not flying:
 		hud.toast("Najpierw dokończ kurs: zamówienie jedzie autem", "Finish the job first: it rides in the car")
@@ -7070,6 +7226,8 @@ func _update_camera(dt: float) -> void:
 		focus_rate = 3.5
 	else:
 		var zoom := base_size * FollowCamera.SPEED_ZOOM * clampf(speed / (car.max_speed * car.top_mult), 0.0, 1.0)
+		if boat_race != null and boat_race.boating():
+			zoom *= BOAT_ZOOM  # the boat race: the rings and the rivals stay big enough to read
 		size = base_size + zoom
 		_view_size = fcam.zoom_step(_view_size, base_size, zoom, dt)
 	# The look-ahead along the way it goes, and the dead zone's window (follow_camera.gd).
@@ -7148,6 +7306,39 @@ func _camera_far(distance: float, size: float) -> float:
 	var need: float = distance + 0.5 * cam.size * t + low
 	var depth := sqrt(maxf(diagonal - cam.size * cam.size * (aspect * aspect + 1.0), need * need))
 	return cam.near + depth
+
+
+## --stops=FILE (with --shots= far ahead): the camera stops at each [x, z, yaw, pitch, size, name]
+## of the JSON list and saves <name>.png in --out, so one run shoots a whole street.
+var stops: Array = []
+var _stop_at := 0
+var _stop_busy := false
+const STOP_DRAWS := 24
+
+
+func _stop_step() -> void:
+	if stops.is_empty() or frame < 120 or _stop_busy or _stop_at >= stops.size():
+		return
+	_stop_busy = true
+	var s: Array = stops[_stop_at]
+	car.global_position = Vector3(s[0], map.ground_height(s[0], s[1]), s[1])
+	car.vel = Vector3.ZERO
+	cam_yaw = s[2]
+	cam_yaw_target = s[2]
+	camera_pitch = s[3]
+	base_size = s[4]
+	_view_size = s[4]
+	cam.size = s[4]
+	cam_focus = car.global_position
+	# Count drawn frames, not game frames: a hidden window can draw far less often than it runs.
+	for i in STOP_DRAWS:
+		await RenderingServer.frame_post_draw
+	get_viewport().get_texture().get_image().save_png(out_dir.path_join("%s.png" % s[5]))
+	_stop_at += 1
+	_stop_busy = false
+	print("stops: %d / %d %s at %.0f,%.0f" % [_stop_at, stops.size(), s[5], car.global_position.x, car.global_position.z])
+	if _stop_at >= stops.size():
+		_quit_quietly()
 
 
 func _capture(n: int) -> void:

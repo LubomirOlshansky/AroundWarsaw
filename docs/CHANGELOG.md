@@ -9,12 +9,39 @@ that day here, in plain words a player would understand (no file names, no spoil
 rows in the progress log but no section here is listed automatically from the log's labels until
 someone writes its lines.
 
+## 2026-11-07
+- The Novotel by Rondo Dmowskiego looks like itself: a white tower with rows of small paired windows, its name in blue neon down both narrow ends and in light boxes on the roof, a glazed podium with a lit edge, and a curved cream entrance canopy under a blue sign.
+- Miodowa's palaces look like themselves: cream and pink plaster under tile-red roofs (Paca's are green copper), and Pałac Branickich's long front has pink pilaster strips, a cornice, an attic crowded with statues, three scrolled dormers and its balconied gate.
+
+
+- Podwózka taxi rides now come with stories: 18 passengers, from a Mordor office worker heading for Warsaw Spire to a film star off to the Palace of Culture, a saxophonist late for jazz under the Powiśle UFO and a beekeeper invited to the Presidential Palace, chat on the way to real places and ask you a question; your answer changes the tip and a good talk earns half a star.
+- Marszałkowska: 16 more houses got street fronts from real photos, from Hotel Saski to the long block at number 140.
+- Aleje Jerozolimskie: 21 more houses along the avenue got street fronts from real photos.
+- Świętokrzyska, Chmielna, Nowy Świat and Aleje Ujazdowskie: 25 more houses got street fronts from real photos.
+- Krakowskie Przedmieście, Senatorska and Miodowa: 41 more houses got their real colours and fronts.
+- Długa, Aleja Jana Pawła II and Krucza: 41 more houses got street fronts from real photos.
+- Mokotowska and Hoża: 61 more houses got street fronts from real photos.
+- Wilcza, Piękna and Targowa: 83 more houses got street fronts from real photos.
+- 46 named buildings across the centre got street fronts from real photos.
+
 ## 2026-11-06
+- The project's licence is now source-available for non-commercial use; the website says so.
+- Boat race on the Vistula: your mate Szymek calls and you race him, old Pan Zdzisiek in his Złota Rybka and Kamil on a jet ski from Port Czerniakowski down under four bridges to the Old Town, through rings in a slalom. Miss three and you're out, then go again or head back. Rings in a row speed you up, gold rings give a boost, and a sand barge going the other way throws waves you can jump.
 - The Bridge by Plac Europejski looks like itself now: its glass folds along long diagonal seams, the south corner steps down under a dark crown, ERZATZ (the bank's parody) glows blue at the top, and a tall timber lobby with leaning concrete columns sits under it. The brick and stone block at Grzybowska 77 in front got its stone piers, long balcony, framed windows and attic.
 - Warszawa Powiśle's "UFO" pavilion looks like the real one now: the yellow WARSZAWA POWIŚLE letters in their dark boxes on the rim, warm bulbs all round it, orange deck chairs and café tables, and every evening from 18:30 a jazz band plays on a little stage under the saucer, with people listening and music you can hear as you drive by.
 - Secret techno raves: lights and dancers under the viaduct, in Praga and by the tracks at night, a day rave on the Praga beach, LEKTI breaking into MORDOR FM with the password, and Ziomek calling you to drive him there, past a strict door with three questions and a cash-only ticket, into a jungle-filled club with a fairy-lit patio out the back.
 - The food blogger from the Mlask job is now called Mrożulo (was Cringulo), on his van, the signs, the fans and the news.
 
+- The Tides by the Vistula is a full model now: folded copper walls, irregular windows and a black roof.
+- 18 more houses got real street fronts from photos, including Pałac Karnickich, Hotel Indigo and Krucza 51.
+- Aleje Ujazdowskie 47 stands in its dark grey render, with balconies and the green pharmacy signs.
+- The garden in front of Pałac Krasińskich has its flower ring, gravel cross and clipped hedges.
+- Kamienica Ławrynowicza on Aleje Ujazdowskie is back in its striped yellow and red brick, with arcades and stepped gables.
+- Kamienica Wedla is white and ornate now, with its zinc corner roof and a neon zebra that glows at night.
+- Szpitalna 5 is a real corner tenement now, in peach plaster with iron balconies and its blind arch.
+- Kamienica Pod Gigantami stands on Aleje Ujazdowskie with its two stone giants, and some passengers now need a fast ride to a date there.
+- Stacja Filtrów has its brick water tower, raised lawns and a history card, plus new radio lines about its past.
+- More than 500 plain blocks across the city now have their real shapes, and Nowy Świat's houses have real windows, cornices and dormers that light up one by one at night.
 - Your mate Bartek calls: his electric TESŁO died at 0 %. Answer, and you take the helicopter, hook his car on a rope and carry it, swinging, to a charger while he jokes about winter range, free parking with green plates and the diesel parked at the charger. Dead TESŁOs with hazard lights now and then block a lane, and you can lift those to a charger too, for a tip.
 - A cobalt-blue motorboat now sits on the roof of the Forest tower, next to the PEPEO ŻUBR crown.
 - The underpass entrances at Emilii Plater and Aleje Jerozolimskie are real stairs going down now instead of walled boxes: granite parapets round the two wells, steel canopies over the pavement stairs (Śródmieście's green ones with posters on the south side), and people walking down into the passage and coming up out of it.
