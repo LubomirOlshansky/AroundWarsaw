@@ -4,6 +4,25 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Tram tracks and tram stops (F, 2026-11-07)
+
+Built (tools/tram_stops.py, map_builder.gd `_tram_island` and `_build_tram_catenary`, street details'
+`tram_island_kits`, trams.gd `tram_halts`): the 126 tram islands at 0.3 m (they stood 0.9 m, a train's
+platform, with shelters, benches and people sunk in), the light edge band and the tactile strip on the
+boarding edge, the black railing along the road, a stop post and a ticket machine on every island (a
+bench where no shelter is mapped), shelters and benches standing on the slab; the overhead line over
+all 68 km of track (contact wire 5.6 m, poles every ~36 m on the median or the pavement, span wires
+or arms); 5 stops OpenStreetMap has no island for (Muranowska's tracks ran 2 km without a stop) now
+stop the trams. Left:
+- Photo/Mac look check: pole positions on Marszałkowska (span wires pavement to pavement where the
+  median is narrow) and Jerozolimskie, wire thickness at the phone's zoom (dotted at camera size 40).
+- Real stop names on the islands' posts (OpenStreetMap `name`; the bake does not keep it yet), the
+  passenger info displays (SIP boards) at the big stops.
+- Tram pole rows inside junctions are skipped (wires there hang from the rows before and after);
+  junctions' own span wires and the Most Poniatowskiego deck poles (bridge rows have no pole now).
+- Gaps the bake still shows (stops OSM maps only as nodes): around Muranowska x Andersa (-868,-1394,
+  shelter 11.7 m off the track) and on Most Śląsko-Dąbrowski's approach (311,71).
+
 ## Miodowa's palaces from F's photos (F, 2026-11-07; spec docs/landmarks/specs/miodowa.md)
 
 Built: seven palaces in photo-read skins (Branickich, Młodziejowskiego, Szaniawskich, Chodkiewiczów, Arcybiskupi,
