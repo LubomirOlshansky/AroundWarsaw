@@ -33,6 +33,13 @@ runs on a baked map, as the cloud has no OpenStreetMap download):
    painted one (OpenStreetMap has no platform outline there: Muranowska's and Sanguszki's tracks
    ran 2 km without a stop). trams.gd stops at them as at the islands.
 
+5. The real stops (F, 2026-11-07, "real tram stops all over the map"): game/data/tram_stops_osm.json
+   holds every tram stop position and platform OpenStreetMap has inside the map box (taken from the
+   full download on F's Mac, data/raw/demo/osm/osm_demo.json, with the stops mapped only as a point).
+   Each island takes the name of the nearest one within NAME_REACH m (`name`, the stop's number cut
+   off), and a stop position on a track with no island or halt within HALT_ISLAND m becomes a halt
+   too (Rondo ONZ's, Raszyńska's and Dworzec Centralny's that had none).
+
 Standard library only.
 """
 import json
@@ -41,7 +48,10 @@ import os
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-VERSION = 1
+VERSION = 2
+OSM_STOPS = os.path.join(ROOT, "game", "data", "tram_stops_osm.json")
+NAME_REACH = 40.0     # an island takes the name of an OSM stop this near its middle
+STOP_ON_TRACK = 12.0  # an OSM stop position this near a track is on it
 TRAM_H = 0.3          # a Warsaw tram island's height over the street (0.25-0.30 m)
 TRAM_REACH = 7.5      # trams.gd _find_halts: a platform this near a track is a stop
 RAIL_CLEAR = 12.0     # a railway track this near makes it a train's platform (0.9 m) after all
@@ -224,13 +234,49 @@ def halts(out, found):
         if any(math.dist(p, c) < HALT_ISLAND for c in centres) or any(math.dist(p, g) < HALT_MERGE for g in got):
             continue
         got.append(p)
+    # 5.: the real stop positions with no island or halt near.
+    for kind, _, x, z in osm_stops():
+        p = (x, z)
+        if kind != "stop" or trams.dist(p, STOP_ON_TRACK) >= STOP_ON_TRACK:
+            continue
+        if any(math.dist(p, c) < HALT_ISLAND for c in centres) or any(math.dist(p, g) < HALT_MERGE for g in got):
+            continue
+        got.append(p)
     return got
+
+
+def osm_stops():
+    """[kind, name, x, z] of tools/../game/data/tram_stops_osm.json, [] without it."""
+    if not os.path.exists(OSM_STOPS):
+        return []
+    with open(OSM_STOPS, encoding="utf-8") as f:
+        return json.load(f).get("stops", [])
+
+
+def stop_name(name):
+    """'Rondo ONZ 03' -> 'Rondo ONZ' (the stop's number off)."""
+    parts = name.rsplit(" ", 1)
+    return parts[0] if len(parts) == 2 and parts[1].isdigit() else name
+
+
+def name_islands(found):
+    stops = [s for s in osm_stops() if s[1]]
+    named = 0
+    for plat, _, _ in found:
+        q = pairs(plat["p"])
+        c = (sum(a[0] for a in q) / len(q), sum(a[1] for a in q) / len(q))
+        best = min(stops, key=lambda s: math.dist(c, (s[2], s[3])), default=None)
+        if best is not None and math.dist(c, (best[2], best[3])) < NAME_REACH:
+            plat["name"] = stop_name(best[1])
+            named += 1
+    return named
 
 
 def apply(out):
     """Tags the finished map data in place; returns a one-line summary."""
     if int(out.get("tram_stops", 0)) >= VERSION:
         return "already tagged"
+    # An older tagging is redone whole (it only reads the outlines, tracks and roads).
     found = classify(out)
     edges = rails_n = 0
     for plat, te, re in found:
@@ -240,11 +286,12 @@ def apply(out):
         plat["re"] = [flat(r) for r in re]
         edges += len(te)
         rails_n += len(re)
+    named = name_islands(found)
     extra = halts(out, found)
     out["tram_halts"] = flat(extra)
     out["tram_stops"] = VERSION
-    return "%d tram islands at %.2f m, %d track edges, %d railings, %d stops with no island" % (
-        len(found), TRAM_H, edges, rails_n, len(extra))
+    return "%d tram islands at %.2f m (%d named), %d track edges, %d railings, %d stops with no island" % (
+        len(found), TRAM_H, named, edges, rails_n, len(extra))
 
 
 def check(out):
@@ -257,6 +304,9 @@ def check(out):
     for p in islands:
         if float(p["h"]) > 0.35:
             problems.append("a tram island %.2f m high at %s" % (float(p["h"]), p["p"][:2]))
+    named = sum(1 for p in islands if p.get("name"))
+    if named < len(islands) * 9 // 10:
+        problems.append("only %d of %d tram islands have their stop's name" % (named, len(islands)))
     bare = sum(1 for p in islands if not p.get("te"))
     if bare > len(islands) // 10:
         problems.append("%d of %d tram islands have no track edge" % (bare, len(islands)))

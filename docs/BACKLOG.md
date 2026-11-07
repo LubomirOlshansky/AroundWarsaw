@@ -20,8 +20,10 @@ stop the trams. Left:
   passenger info displays (SIP boards) at the big stops.
 - Tram pole rows inside junctions are skipped (wires there hang from the rows before and after);
   junctions' own span wires and the Most Poniatowskiego deck poles (bridge rows have no pole now).
-- Gaps the bake still shows (stops OSM maps only as nodes): around Muranowska x Andersa (-868,-1394,
-  shelter 11.7 m off the track) and on Most Śląsko-Dąbrowski's approach (311,71).
+- Real stops checked against the full OpenStreetMap download on F's Mac (game/data/tram_stops_osm.json,
+  417 stop positions and platforms): 124 of 126 islands carry their stop's name, 3 more stop positions
+  with no island (Rondo ONZ x2, Raszyńska) halt the trams. Left: show the names (a plate on the stop
+  post, the minimap), the long track runs with no real stop (the way up to Most Gdański, Wybrzeże).
 ## Novotel Warszawa Centrum from F's photos (F, 2026-11-07; docs/landmarks/novotel.md)
 
 Built: the white tiled slab with its paired windows and the lift core's blank strip, the blank narrow ends round
