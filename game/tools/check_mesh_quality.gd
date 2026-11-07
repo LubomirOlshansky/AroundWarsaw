@@ -244,6 +244,12 @@ const BUDGET := {
 	"noho": 12700,
 	"d19": 9000,
 	"asbud": 3900,
+	# Stacja Muzeum (the Mac's Commons photos, 2026-11-07): the arched hall, its wings, 17 engines
+	# and coaches on the four sidings; Nocny Targ's two platform canopies (F's photos).
+	"stacja_muzeum": 9000,
+	"nocny": 7000,
+	# Kolejowa's old railway warehouses, the pinball museum and the teal club (F's photos).
+	"kolejowa": 2500,
 }
 ## Known defects per site: {"zfight": n, "degenerate": n, "badnormal": n, "float": n}.
 ## Towarowa 22's drone taxi hovers 7 m over its pad by design (the "Warsaw of the future").

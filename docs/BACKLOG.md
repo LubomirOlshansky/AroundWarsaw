@@ -4,6 +4,20 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Stacja Muzeum, Nocny Targ and Kolejowa (F, 2026-11-07; spec docs/landmarks/specs/stacja_muzeum.md)
+
+- **Built** (sites `stacja_muzeum`, `nocny`, `kolejowa`): the old Warszawa Główna hall (barrel roof, arched
+  cream front, eight pilasters, gold WARSZAWA GŁÓWNA, red-brown canopy, steps), its Towarowa wing and yard
+  arm; 17 engines and coaches on the museum's four sidings (Trains.MUSEUM_ENDS, PR #521 keeps them free
+  of trains); Nocny Targ's two canopies on the old platforms; Kolejowa 8/10's brick warehouses, the pinball
+  museum at 8a (FLIPEROWNIA) and the teal club (ODESSKA).
+- **SM-1** the order of the engines on the sidings is a default (the photos show kinds, not the order).
+- **SM-2** which Kolejowa outline is the pinball museum (8a) and which is 8/10 is read from the photos and
+  the one address point (Kolejowa 8); check on the Mac with GUGiK's ortho.
+- **SM-3** Space Club (Kolejowa 37/39, the 1912 foundry with arched windows): no address point in the map;
+  likely at or past the west edge. Smok Lounge (Kolejowa 43) not built: no front photo.
+- **SM-4** Splot Słoneczny (Tunelowa 2A) is past the map's west edge: build when the map grows west.
+
 ## Wola's 19. Dzielnica, Asbud's towers and the drug works' building site (F, 2026-11-07; spec docs/landmarks/specs/dzielnica19.md)
 
 - **Built from F's 11 photos** (sites `noho`, `d19`, `asbud`): the old Polfa plot on Kasprzaka as NOHO

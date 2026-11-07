@@ -449,6 +449,15 @@ const INFO := {
 	"noho": ["OHO ONE (budowa)",
 			"Tu robiono leki. Teraz rosną tarasowe kaskady apartamentów, a trzy żurawie liczą piętra.",
 			"Medicines were made here. Now terraced cascades of flats are rising, and three cranes count the floors."],
+	"stacja_muzeum": ["Stacja Muzeum",
+			"Dawny dworzec Warszawa Główna. Na bocznicach śpią parowozy na czerwonych kołach; jeżdżą już tylko w pamięci.",
+			"The old Warszawa Główna station. Steam engines on red wheels sleep on its sidings; they only run in memory now."],
+	"nocny": ["Nocny Targ",
+			"Stary peron pod graffiti. W weekend pachnie tu ramenem, pizzą i frytkami do świtu.",
+			"An old platform under graffiti. At weekends it smells of ramen, pizza and chips until dawn."],
+	"kolejowa": ["Kolejowa",
+			"Stare magazyny kolejowe: w jednym grają flippery, w turkusowym klubie gra muzyka do rana.",
+			"The old railway warehouses: pinball machines play in one, music plays till morning in the teal club."],
 	"d19": ["19. Dzielnica",
 			"Warszawa ma osiemnaście dzielnic. To osiedle przy Kolejowej uważa się za dziewiętnastą.",
 			"Warsaw has eighteen districts. This estate on Kolejowa counts itself as the nineteenth."],
@@ -1032,6 +1041,8 @@ func _find_sites() -> void:
 	_find_towarowa22()
 	# F's photos (2026-11-07): the Kolejowa estate, Asbud's towers, the drug works' building site.
 	_find_dzielnica19()
+	_find_stacja_muzeum()
+	_find_kolejowa()
 	_find_gbc()
 	_find_bridge()
 	_find_flag()
@@ -1493,6 +1504,12 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_towarowa22(s)
 			"noho":
 				_build_noho(s)
+			"stacja_muzeum":
+				_build_stacja_muzeum(s)
+			"nocny":
+				_build_nocny(s)
+			"kolejowa":
+				_build_kolejowa(s)
 			"d19":
 				_build_d19(s)
 			"asbud":
@@ -26316,3 +26333,714 @@ func _asbud_tower(raw: PackedVector2Array, g: float, y1: float) -> void:
 				y += 12.8
 			_d19_fin(p, d, o, 0.22, y1, crown, 0.3, ASBUD_GOLD)
 	_crown_signs(ring, crown + 1.0, "ASBUDKA", ASBUD_SIGN, 3.6, 0.45)
+
+
+# --- Stacja Muzeum (Warszawa Główna's railway museum, Towarowa 3) and Nocny Targ on its old platform ---
+## From the Mac's 19 Commons photos (~/Documents/warsaw-needed-photos/stacja-muzeum{,-claude}/,
+## spec docs/landmarks/specs/stacja_muzeum.md). The hall is OpenStreetMap's L at Towarowa: the
+## barrel-roofed hall at its north end shows Towarowa a cream gable with a segmental-arch top,
+## eight pilasters and gold WARSZAWA GŁÓWNA letters over a red-brown canopy and wide steps; a long
+## low wing under a dark hipped roof runs south along the street. The museum's four sidings hold
+## its locomotives: black steam engines on red wheels, green tank engines, the streamlined green
+## Pm3, a green electric and a row of grey coaches; a water crane and lamps on the platform.
+## Frame: u along Towarowa from the hall's north corner (south), v into the yard (west).
+const SM_O := Vector2(-2508.0, 832.0)
+const SM_A := Vector2(0.419, 0.908)
+const SM_B := Vector2(-0.908, 0.419)
+## The four sidings from their museum ends (Trains.MUSEUM_ENDS) west, in world metres.
+const SM_SIDINGS := [
+	[Vector2(-2531.6, 870.1), Vector2(-2635.1, 916.3)],
+	[Vector2(-2529.9, 874.5), Vector2(-2633.5, 920.5)],
+	[Vector2(-2638.9, 933.1), Vector2(-2736.2, 977.1)],
+	[Vector2(-2636.8, 936.9), Vector2(-2699.9, 965.5), Vector2(-2739.7, 983.4)],
+]
+## What stands on each siding, from its end: kinds of SM_STOCK, in order.
+const SM_TRAINS := [
+	["eu20", "tank", "ty2", "tank", "ol49"],
+	["tank", "coach", "coach", "coach"],
+	["ty2", "ol49", "tank", "ty2"],
+	["pm3", "ty2", "tank", "eu20"],
+]
+## Kinds: [engine length, tender length (0 none), body colour, cab colour].
+const SM_STOCK := {
+	"ty2": [13.0, 9.0, "#1c1e20", "#1c1e20"],
+	"ol49": [12.0, 8.0, "#202224", "#2b4a3c"],
+	"tank": [10.0, 0.0, "#1c1e20", "#3f8a6a"],
+	"pm3": [14.0, 9.0, "#2f6b4f", "#2f6b4f"],
+	"eu20": [15.5, 0.0, "#4d7f6c", "#4d7f6c"],
+	"coach": [24.0, 0.0, "#d6d1c3", "#d6d1c3"],
+}
+const SM_CREAM := Color("#e6dcbf")
+const SM_CREAM_DARK := Color("#d3c8a6")
+const SM_ROOF := Color("#55595d")
+const SM_GLASS := Color("#353c40")
+const SM_CANOPY := Color("#6e3026")
+const SM_RED := Color("#a8312a")
+const SM_FENCE := Color("#e9e9e4")
+const SM_IRON := Color("#3a3f3c")
+const SM_GOLD := Color(1.0, 0.78, 0.32)
+## The hall: barrel over u 0..19, v -1..25; walls to 9 m, the arch rises 3.5 m more.
+const SM_HALL_U := 19.0
+const SM_HALL_V := Vector2(-1.0, 25.0)
+const SM_HALL_WALL := 9.0
+const SM_HALL_RISE := 3.5
+## Nocny Targ (F's 11 photos, 2026-11-07): the old Główna platforms west of the hall, two long
+## canopies of rusty corrugated roofing with the old track bed between them as the court. The south
+## one (OpenStreetMap's strip off the hall) leans its single pitch over a back wall of kiosks; the
+## north one (the `warehouse` outlines) has two gables side by side on two rows of posts, stalls down
+## its middle. Coloured tubes under both roofs, painted benches, tables, a food truck.
+## Frame: u west along the platforms from the hall's end, v north across them.
+const NT_O := Vector2(-2551.0, 856.0)
+const NT_A := Vector2(-0.8924, 0.4512)
+const NT_B := Vector2(-0.4512, -0.8924)
+const NT_RING := [Vector2(-2555.0, 847.0), Vector2(-2547.0, 865.0), Vector2(-2632.0, 903.0), Vector2(-2637.0, 892.0),
+		Vector2(-2624.0, 886.0), Vector2(-2626.0, 880.0)]
+## The north canopy's span and rows (local metres).
+const NT_NORTH := Vector2(62.0, 226.0)
+const NT_NORTH_V := Vector2(31.0, 59.0)
+## The south canopy's span (u) and its back wall (v).
+const NT_SOUTH := Vector2(1.0, 92.0)
+const NT_SOUTH_V := Vector2(-7.0, 10.0)
+const NT_RUST := Color("#86492f")
+const NT_RUST_UNDER := Color("#4a3a32")
+const NT_TUBES := [Color(0.2, 0.5, 1.0), Color(0.2, 1.0, 0.5), Color(1.0, 0.45, 0.15), Color(1.0, 0.25, 0.6), Color(0.95, 0.95, 1.0)]
+const NT_GRAFFITI := ["#e8407a", "#2fb5c9", "#f2c230", "#7a4fc9", "#3fae5a", "#ef7a2c", "#d9d9d9", "#2b6fd6"]
+const NT_STALLS := ["#c8432f", "#2f6f8f", "#e0a02a", "#3d8a4f", "#8a3f8a", "#d9d2c0"]
+
+
+func _sm_frame() -> void:
+	_o = SM_O
+	_a = SM_A
+	_b = SM_B
+
+
+func _sm_local_ring(pts: Array) -> PackedVector2Array:
+	var r := PackedVector2Array()
+	for q: Vector2 in pts:
+		r.append(_o + _a * q.x + _b * q.y)
+	return r
+
+
+func _find_stacja_muzeum() -> void:
+	_sm_frame()
+	# The hall's L (front block and the yard arm) is replaced; the yard and its sidings are the site.
+	var hall := _sm_local_ring([Vector2(-7, -6), Vector2(60, -6), Vector2(60, 27), Vector2(14, 27), Vector2(14, 49.5), Vector2(-7, 49.5)])
+	var yard := _sm_local_ring([Vector2(18, 28), Vector2(36, 28), Vector2(36, 150), Vector2(46, 150), Vector2(46, 275), Vector2(31, 275), Vector2(31, 158), Vector2(18, 158)])
+	_add_site("stacja_muzeum", [hall, yard])
+	tree_free.append([yard, 0.0, _box_of([yard])])
+	# One zone over both canopies and the court (LoD2's old sheds there go too); the waiting room
+	# building in the middle stays.
+	_nt_frame()
+	var zone := _nt_ring(-3.0, 230.0, -10.0, 64.0)
+	var keep: Array = []
+	for bld in data["buildings"]:
+		var q := _pts(bld["p"])
+		if q.size() < 3:
+			continue
+		var c := _centre(q)
+		if Geometry2D.is_point_in_polygon(c, zone) and float(bld["h"]) > 5.0:
+			keep.append(q)
+	var rings: Array = [zone]
+	_add_site("nocny", rings, keep)
+
+
+## A round bar from a to b (a boiler, a pipe), `sides` faces round.
+func _sm_tube(a: Vector3, b: Vector3, r: float, sides: int, col: Color) -> void:
+	var z := (b - a).normalized()
+	var x := Vector3.UP.cross(z)
+	if x.length_squared() < 0.001:
+		x = Vector3.RIGHT
+	x = x.normalized()
+	var y := z.cross(x).normalized()
+	for k in sides:
+		var a0 := TAU * k / sides
+		var a1 := TAU * (k + 1) / sides
+		var d0 := x * cos(a0) + y * sin(a0)
+		var d1 := x * cos(a1) + y * sin(a1)
+		var n := (d0 + d1).normalized()
+		_quad(a + d0 * r, a + d1 * r, b + d1 * r, b + d0 * r, n, col)
+
+
+func _build_stacja_muzeum(_site: Dictionary) -> void:
+	_sm_frame()
+	_g = map.terrain_height(SM_O.x + SM_A.x * 10.0, SM_O.y + SM_A.y * 10.0)
+	var g := _g
+	_sm_hall(g)
+	# The long wing south along Towarowa: cream walls, a row of shop windows, a dark hipped roof.
+	_sm_frame()
+	_lbox(38.6, 12.5, 19.4, 12.5, g - 0.3, g + 5.6, SM_CREAM, M_STONE)
+	_hip(38.6, 12.5, 19.6, 12.7, g + 5.6, 3.0, SM_ROOF)
+	_mode = M_STONE
+	var u := 21.0
+	while u < 56.5:
+		_sm_window(u, -0.05, 0.75, g + 1.0, g + 3.0, -1.0)
+		_sm_window(u, -0.05, 0.6, g + 3.9, g + 4.9, -1.0)
+		u += 3.3
+	# The yard arm behind the hall (the photo of the courtyard: cream walls, a dark roof on
+	# brackets, red-framed windows).
+	_lbox(3.5, 37.3, 10.5, 12.2, g - 0.3, g + 4.6, SM_CREAM_DARK, M_STONE)
+	_hip(3.5, 37.3, 11.0, 12.6, g + 4.6, 2.2, SM_ROOF)
+	_mode = M_STONE
+	var v := 28.0
+	while v < 48.0:
+		_sm_window_v(14.05, v, 0.8, g + 1.0, g + 2.9)
+		v += 4.0
+	var hall := _sm_local_ring([Vector2(0, -1), Vector2(58, -1), Vector2(58, 25), Vector2(14, 25), Vector2(14, 49.5), Vector2(-6.8, 49.5), Vector2(-6.8, 25), Vector2(0, 25)])
+	_collide(hall)
+	pocket_rings.append(hall)
+	# The rolling stock on the sidings.
+	for i in SM_SIDINGS.size():
+		_sm_siding(SM_SIDINGS[i], SM_TRAINS[i])
+	_sm_frame()
+	# The water crane at the far platform's end, lamps along the platform between the rows, a white
+	# fence between the museum and the live line.
+	var wc := _w(33.5, 164.0)
+	var gw: float = map.terrain_height(wc.x, wc.y)
+	_mode = M_STONE
+	_sm_tube(Vector3(wc.x, gw, wc.y), Vector3(wc.x, gw + 4.2, wc.y), 0.28, 8, SM_IRON)
+	var arm := _w(33.5, 164.0) + _a * 3.2
+	_sm_tube(Vector3(wc.x, gw + 3.9, wc.y), Vector3(arm.x, gw + 3.6, arm.y), 0.16, 6, SM_IRON)
+	_sm_tube(Vector3(arm.x, gw + 3.6, arm.y), Vector3(arm.x, gw + 2.6, arm.y), 0.12, 6, SM_IRON)
+	v = 170.0
+	while v < 268.0:
+		var lp := _w(33.6, v)
+		var gl: float = map.terrain_height(lp.x, lp.y)
+		_beam(Vector3(lp.x, gl, lp.y), Vector3(lp.x, gl + 4.6, lp.y), 0.14, SM_IRON)
+		_mode = M_LAMP
+		_prism(_square(lp, 0.22), gl + 4.6, gl + 4.9, Color(1.0, 0.92, 0.7), Color(1.0, 0.92, 0.7), M_LAMP, M_LAMP)
+		_mode = M_STONE
+		v += 16.0
+	var d_pts: Array = SM_SIDINGS[3]
+	for k in d_pts.size() - 1:
+		var p0: Vector2 = d_pts[k]
+		var p1: Vector2 = d_pts[k + 1]
+		var dir := (p1 - p0).normalized()
+		var side := Vector2(-dir.y, dir.x)
+		if side.dot(_a) < 0.0:
+			side = -side
+		var f0 := p0 + side * 3.0
+		var f1 := p1 + side * 3.0
+		var gf := minf(map.terrain_height(f0.x, f0.y), map.terrain_height(f1.x, f1.y))
+		_wall(f0, f1, gf - 0.2, gf + 1.9, side, SM_FENCE)
+		_wall(f1, f0, gf - 0.2, gf + 1.9, -side, SM_FENCE)
+	_sm_frame()
+	_mode = M_STONE
+
+
+## The barrel hall and its arched front on Towarowa.
+func _sm_hall(g: float) -> void:
+	var v0 := SM_HALL_V.x
+	var v1 := SM_HALL_V.y
+	var top := g + SM_HALL_WALL
+	_mode = M_STONE
+	# Side walls and the plain lower front and back.
+	_wall(_w(0, v0), _w(0, v1), g - 0.3, top, -_a, SM_CREAM)
+	_wall(_w(SM_HALL_U, v1), _w(SM_HALL_U, v0), g - 0.3, top, _a, SM_CREAM)
+	_wall(_w(SM_HALL_U, v0), _w(0, v0), g - 0.3, top, -_b, SM_CREAM)
+	_wall(_w(0, v1), _w(SM_HALL_U, v1), g - 0.3, top, _b, SM_CREAM)
+	# The segmental arch: chord 19 m, rise 3.5 m.
+	var c := SM_HALL_U * 0.5
+	var rr := (c * c + SM_HALL_RISE * SM_HALL_RISE) / (2.0 * SM_HALL_RISE)
+	var cy := top + SM_HALL_RISE - rr
+	var steps := 10
+	var arc: Array[Vector2] = []
+	for k in steps + 1:
+		var uu := SM_HALL_U * k / steps
+		arc.append(Vector2(uu, cy + sqrt(maxf(rr * rr - (uu - c) * (uu - c), 0.0))))
+	for side: Array in [[v0, -_b], [v1, _b]]:
+		var vv: float = side[0]
+		var o2: Vector2 = side[1]
+		var n := Vector3(o2.x, 0.0, o2.y)
+		var mid := _w(c, vv)
+		for k in steps:
+			var p0 := _w(arc[k].x, vv)
+			var p1 := _w(arc[k + 1].x, vv)
+			_tri(Vector3(mid.x, top, mid.y), Vector3(p0.x, arc[k].y, p0.y), Vector3(p1.x, arc[k + 1].y, p1.y), n, SM_CREAM,
+					Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+	# The barrel roof, a little over the walls.
+	for k in steps:
+		var a0 := arc[k]
+		var a1 := arc[k + 1]
+		var nn := Vector2(((a0.x + a1.x) * 0.5) - c, ((a0.y + a1.y) * 0.5) - cy).normalized()
+		var n3 := Vector3(_a.x * nn.x, nn.y, _a.y * nn.x)
+		var q0 := _w(a0.x, v0 - 0.3)
+		var q1 := _w(a1.x, v0 - 0.3)
+		var q2 := _w(a1.x, v1 + 0.3)
+		var q3 := _w(a0.x, v1 + 0.3)
+		_quad(Vector3(q0.x, a0.y + 0.05, q0.y), Vector3(q1.x, a1.y + 0.05, q1.y), Vector3(q2.x, a1.y + 0.05, q2.y),
+				Vector3(q3.x, a0.y + 0.05, q3.y), n3, SM_ROOF)
+	# The front: pilasters (the outer two from the ground, the rest above the canopy), the upper
+	# windows, the ground floor's windows and door, the canopy, the letters, the steps.
+	for k in 8:
+		var pu := 0.7 + k * 2.51
+		var h := cy + sqrt(maxf(rr * rr - (pu - c) * (pu - c), 0.0)) - 0.25
+		var y0 := g if k == 0 or k == 7 else g + 4.5
+		_lbox(pu, v0 - 0.18, 0.3, 0.18, y0, h, SM_CREAM.lightened(0.06), M_STONE)
+	_mode = M_STONE
+	for uu: float in [7.2, 9.5, 11.8]:
+		_sm_window(uu, v0 - 0.04, 0.9, g + 6.0, g + 7.7, -1.0)
+	for uu: float in [2.6, 5.0, 14.0, 16.4]:
+		_sm_window(uu, v0 - 0.04, 0.9, g + 1.2, g + 3.3, -1.0)
+	_sm_window(9.5, v0 - 0.04, 1.0, g + 0.7, g + 3.2, -1.0)
+	_lbox(9.5, v0 - 2.0, 6.6, 2.0, g + 4.0, g + 4.45, SM_CANOPY, M_STONE, SM_CREAM_DARK)
+	for s in 4:
+		_lbox(9.5, v0 - 2.4 - (3 - s) * 0.45 + 0.45 * 1.5, 7.2 - s * 0.3, 0.45 * (4 - s) * 0.5 + 0.35, g - 0.3, g + 0.17 * (s + 1),
+				Color("#c9c4b8"), M_STONE)
+	var k_sign := 0.95 / (Neon.ROW_H * Neon.PIXEL)
+	var sp := _w(9.5, v0 - 0.45)
+	signs.append(["WARSZAWA GŁÓWNA", Vector3(sp.x, g + 4.95, sp.y), Vector3(-_b.x, 0.0, -_b.y), k_sign, SM_GOLD])
+
+
+## A dark window on a face of constant v (the hall's front: `facing` -1 looks out of the yard).
+func _sm_window(cu: float, v: float, hw: float, y0: float, y1: float, facing: float) -> void:
+	var n2 := _b * facing
+	var a := _w(cu - hw, v)
+	var b := _w(cu + hw, v)
+	_mode = M_STONE
+	_quad(Vector3(a.x, y0, a.y), Vector3(b.x, y0, b.y), Vector3(b.x, y1, b.y), Vector3(a.x, y1, a.y), Vector3(n2.x, 0.0, n2.y), SM_GLASS)
+
+
+## A red-framed window on a face of constant u facing +u (the yard arm's courtyard side).
+func _sm_window_v(u: float, cv: float, hw: float, y0: float, y1: float) -> void:
+	var a := _w(u, cv - hw - 0.12)
+	var b := _w(u, cv + hw + 0.12)
+	var n := Vector3(_a.x, 0.0, _a.y)
+	_quad(Vector3(a.x, y0 - 0.12, a.y), Vector3(b.x, y0 - 0.12, b.y), Vector3(b.x, y1 + 0.12, b.y), Vector3(a.x, y1 + 0.12, a.y), n, SM_CANOPY)
+	var a2 := _w(u + 0.04, cv - hw)
+	var b2 := _w(u + 0.04, cv + hw)
+	_quad(Vector3(a2.x, y0, a2.y), Vector3(b2.x, y0, b2.y), Vector3(b2.x, y1, b2.y), Vector3(a2.x, y1, a2.y), n, SM_GLASS)
+
+
+## The vehicles on one siding, from its museum end west, 1.5 m apart.
+func _sm_siding(pts: Array, kinds: Array) -> void:
+	var line := PackedVector2Array(pts)
+	var at := 2.0
+	for kind: String in kinds:
+		var spec: Array = SM_STOCK[kind]
+		var length: float = spec[0] + (spec[1] + 0.6 if spec[1] > 0.0 else 0.0)
+		var p0 := _sm_along(line, at)
+		var p1 := _sm_along(line, at + length)
+		if p0.distance_to(p1) < length * 0.5:
+			break
+		var dir := (p1 - p0).normalized()
+		var y: float = minf(map.terrain_height(p0.x, p0.y), map.terrain_height(p1.x, p1.y)) + 0.05
+		_sm_vehicle(kind, p0, dir, y)
+		at += length + 1.5
+
+
+func _sm_along(line: PackedVector2Array, s: float) -> Vector2:
+	var left := s
+	for i in line.size() - 1:
+		var seg := line[i].distance_to(line[i + 1])
+		if left <= seg:
+			return line[i].lerp(line[i + 1], left / seg)
+		left -= seg
+	var last := line[line.size() - 1]
+	return last + (last - line[line.size() - 2]).normalized() * left
+
+
+## One engine (with its tender) or coach, its front at p, its length along dir, on rails at y.
+func _sm_vehicle(kind: String, p: Vector2, dir: Vector2, y: float) -> void:
+	_o = p
+	_a = dir
+	_b = Vector2(-dir.y, dir.x)
+	var spec: Array = SM_STOCK[kind]
+	var ln: float = spec[0]
+	var body := Color(spec[2])
+	var cab := Color(spec[3])
+	var black := Color("#1c1e20")
+	_mode = M_STONE
+	if kind == "coach":
+		_lbox(ln * 0.5, 0.0, ln * 0.5 - 0.3, 1.45, y + 1.1, y + 3.9, body, M_STONE, Color("#9a9c9a"))
+		var u := 2.0
+		while u < ln - 2.0:
+			for s: float in [-1.0, 1.0]:
+				var a := _w(u, s * 1.5)
+				var b := _w(u + 1.3, s * 1.5)
+				_quad(Vector3(a.x, y + 2.3, a.y), Vector3(b.x, y + 2.3, b.y), Vector3(b.x, y + 3.3, b.y), Vector3(a.x, y + 3.3, a.y),
+						Vector3(_b.x * s, 0.0, _b.y * s), SM_GLASS)
+			u += 2.0
+		for bu: float in [3.0, ln - 3.0]:
+			_lbox(bu, 0.0, 1.4, 1.1, y + 0.15, y + 1.1, black, M_STONE)
+		return
+	if kind == "eu20":
+		_lbox(ln * 0.5, 0.0, ln * 0.5, 1.45, y + 1.3, y + 4.1, body, M_STONE, Color("#8a6a52"))
+		for s: float in [-1.0, 1.0]:
+			var e := 0.0 if s < 0.0 else ln
+			var a := _w(e + s * 0.05, -1.1)
+			var b := _w(e + s * 0.05, 1.1)
+			_quad(Vector3(a.x, y + 2.9, a.y), Vector3(b.x, y + 2.9, b.y), Vector3(b.x, y + 3.6, b.y), Vector3(a.x, y + 3.6, a.y),
+					Vector3(_a.x * s, 0.0, _a.y * s), SM_GLASS)
+		for bu: float in [3.2, ln - 3.2]:
+			_lbox(bu, 0.0, 1.6, 1.15, y + 0.15, y + 1.3, black, M_STONE)
+		var p0 := _w(ln * 0.35, 0.0)
+		var p1 := _w(ln * 0.5, 0.0)
+		_beam(Vector3(p0.x, y + 4.1, p0.y), Vector3(p1.x, y + 5.1, p1.y), 0.1, SM_IRON)
+		return
+	# A steam engine: red frame and wheels, a black boiler, a chimney and a dome, the cab; a tender.
+	_lbox(ln * 0.5, 0.0, ln * 0.5, 1.1, y + 0.9, y + 1.45, SM_RED, M_STONE, black)
+	var wheels := 4 if ln >= 12.0 else 3
+	for k in wheels:
+		var wu := 3.0 + k * (ln - 5.0) / maxf(wheels - 1, 1)
+		for s: float in [-1.0, 1.0]:
+			var c := _w(wu, s * 1.16)
+			_disc(Vector3(c.x, y + 0.85, c.y), Vector3(_b.x * s, 0.0, _b.y * s), 0.78, 10, SM_RED)
+	var b0 := _w(0.4, 0.0)
+	var b1 := _w(ln * 0.7, 0.0)
+	if kind == "pm3":
+		# The streamlined casing over everything: a green box with a sloping nose.
+		_lbox(ln * 0.5 + 1.2, 0.0, ln * 0.5 - 1.2, 1.4, y + 1.45, y + 4.2, body, M_STONE)
+		_lbox(1.2, 0.0, 1.2, 1.3, y + 1.45, y + 2.9, body.darkened(0.08), M_STONE)
+		var n0 := _w(0.0, -1.3)
+		var n1 := _w(0.0, 1.3)
+		var t0 := _w(2.4, -1.3)
+		var t1 := _w(2.4, 1.3)
+		var nrm := Vector3(-_a.x, 1.0, -_a.y).normalized()
+		_quad(Vector3(n0.x, y + 2.9, n0.y), Vector3(n1.x, y + 2.9, n1.y), Vector3(t1.x, y + 4.2, t1.y), Vector3(t0.x, y + 4.2, t0.y), nrm, body.lightened(0.05))
+	else:
+		_sm_tube(Vector3(b0.x, y + 2.5, b0.y), Vector3(b1.x, y + 2.5, b1.y), 0.92, 8, body)
+		_disc(Vector3(b0.x, y + 2.5, b0.y) - Vector3(_a.x, 0.0, _a.y) * 0.02, Vector3(-_a.x, 0.0, -_a.y), 0.9, 8, black.lightened(0.05))
+		var ch := _w(1.6, 0.0)
+		_prism(_circle(ch, 0.3, 8), y + 3.3, y + 4.4, black, black, M_STONE, M_STONE)
+		var dm := _w(ln * 0.4, 0.0)
+		_prism(_circle(dm, 0.42, 8), y + 3.3, y + 3.85, black, black, M_STONE, M_STONE)
+		if kind == "tank":
+			_lbox(ln * 0.42, 0.0, ln * 0.24, 1.35, y + 1.45, y + 2.9, cab, M_STONE)
+		_lbox(ln * 0.84, 0.0, ln * 0.16, 1.4, y + 1.45, y + 4.15, cab, M_STONE)
+		_lbox(ln * 0.84, 0.0, ln * 0.16 + 0.15, 1.5, y + 4.15, y + 4.3, black, M_STONE)
+	for s: float in [-1.0, 1.0]:
+		_lbox(-0.25, s * 0.85, 0.25, 0.18, y + 1.0, y + 1.35, black, M_STONE)
+	var tl: float = spec[1]
+	if tl > 0.0:
+		var t0u := ln + 0.6
+		_lbox(t0u + tl * 0.5, 0.0, tl * 0.5, 1.4, y + 0.95, y + 3.5, body if kind == "pm3" else black, M_STONE)
+		for k in 3:
+			var wu := t0u + 1.6 + k * (tl - 3.2) * 0.5
+			for s: float in [-1.0, 1.0]:
+				var c := _w(wu, s * 1.46)
+				_disc(Vector3(c.x, y + 0.55, c.y), Vector3(_b.x * s, 0.0, _b.y * s), 0.5, 8, SM_RED.darkened(0.25))
+
+
+# --- Nocny Targ: the old platforms' two canopies and the court between them ---
+
+func _nt_frame() -> void:
+	_o = NT_O
+	_a = NT_A
+	_b = NT_B
+
+
+func _nt_gy(u: float, v: float) -> float:
+	var p := NT_O + NT_A * u + NT_B * v
+	return map.terrain_height(p.x, p.y)
+
+
+## A coloured tube light across under a roof: a thin lit bar from v0 to v1 at u, height y.
+func _nt_tube(u: float, v0: float, v1: float, y: float, col: Color) -> void:
+	_mode = M_LAMP
+	var a := _w(u, v0)
+	var b := _w(u, v1)
+	_beam(Vector3(a.x, y, a.y), Vector3(b.x, y, b.y), 0.12, col, true, M_LAMP)
+	_mode = M_STONE
+
+
+func _build_nocny(_site: Dictionary) -> void:
+	_nt_frame()
+	var ring := PackedVector2Array(NT_RING)
+	_g = _ground_under(ring)
+	_mode = M_STONE
+	_nt_south()
+	_nt_north()
+	_nt_court()
+	_collide(_nt_ring(NT_SOUTH.x, NT_SOUTH.y, NT_SOUTH_V.x, NT_SOUTH_V.x + 3.0))
+	_collide(_nt_ring(NT_NORTH.x, NT_NORTH.y, 43.5, 46.5))
+	var k_sign := 0.9 / (Neon.ROW_H * Neon.PIXEL)
+	var sp := _w(-0.6, 5.5)
+	var gs := _nt_gy(-0.6, 5.5)
+	_beam(Vector3(sp.x, gs, sp.y), Vector3(sp.x, gs + 3.2, sp.y), 0.25, SM_IRON)
+	signs.append(["NOCNY TARG", Vector3(sp.x, gs + 3.9, sp.y), Vector3(-_a.x, 0.0, -_a.y), k_sign, Color(0.4, 0.75, 1.0)])
+	_sm_frame()
+	_mode = M_STONE
+
+
+func _nt_ring(u0: float, u1: float, v0: float, v1: float) -> PackedVector2Array:
+	return PackedVector2Array([_w(u0, v0), _w(u1, v0), _w(u1, v1), _w(u0, v1)])
+
+
+## The south canopy: a back wall of kiosks (graffiti outside), posts, one pitch falling to the court.
+func _nt_south() -> void:
+	var u0 := NT_SOUTH.x
+	var u1 := NT_SOUTH.y
+	var vb := NT_SOUTH_V.x
+	var vf := NT_SOUTH_V.y
+	var gi := 0
+	var u := u0
+	while u < u1 - 0.5:
+		var w := minf(4.0, u1 - u)
+		var g := _nt_gy(u + w * 0.5, vb + 1.5)
+		# The kiosk: graffiti on its back, a lit hatch on the court side.
+		var col := Color(NT_GRAFFITI[gi % NT_GRAFFITI.size()])
+		_lbox(u + w * 0.5, vb + 1.5, w * 0.5, 1.5, g - 0.3, g + 3.0, col, M_STONE, Color("#3a3a3a"))
+		if gi % 4 != 3:
+			var ha := _w(u + 0.6, vb + 3.05)
+			var hb := _w(u + w - 0.6, vb + 3.05)
+			_mode = M_LAMP
+			_quad(Vector3(ha.x, g + 1.1, ha.y), Vector3(hb.x, g + 1.1, hb.y), Vector3(hb.x, g + 2.4, hb.y), Vector3(ha.x, g + 2.4, ha.y),
+					Vector3(_b.x, 0.0, _b.y), Color(1.0, 0.86, 0.6))
+			_mode = M_STONE
+		gi += 3
+		u += w
+	u = u0 + 1.0
+	var ti := 0
+	while u < u1:
+		var g := _nt_gy(u, 1.0)
+		for v: float in [vb + 3.4, 5.0]:
+			var p := _w(u, v)
+			_beam(Vector3(p.x, g - 0.2, p.y), Vector3(p.x, g + 4.3 - (v - vb) * 0.06, p.y), 0.26, SM_IRON)
+		_nt_tube(u + 3.0, vb + 3.6, vf - 1.0, g + 3.55, NT_TUBES[ti % NT_TUBES.size()])
+		ti += 1
+		u += 6.0
+	# The pitch: from the back (4.5 m) to the court's edge (3.6 m), rusty above, dark below; a
+	# string of coloured tubes along the edge over the court.
+	var g0 := _nt_gy((u0 + u1) * 0.5, 1.0)
+	_nt_roof(u0 - 0.5, u1 + 0.5, vb - 0.5, g0 + 4.5, vf, g0 + 3.5)
+	_nt_edge(u0, u1, vf + 0.1, g0 + 3.35)
+
+
+## A flat pitched sheet from v0 (height y0) to v1 (height y1), u0..u1: a top and an underside.
+func _nt_roof(u0: float, u1: float, v0: float, y0: float, v1: float, y1: float, edges := true) -> void:
+	var a0 := _w(u0, v0)
+	var a1 := _w(u1, v0)
+	var b1 := _w(u1, v1)
+	var b0 := _w(u0, v1)
+	var slope := (y1 - y0) / (v1 - v0)
+	var up := Vector3(-_b.x * slope, 1.0, -_b.y * slope).normalized()
+	_mode = M_STONE
+	_quad(Vector3(a0.x, y0 + 0.12, a0.y), Vector3(a1.x, y0 + 0.12, a1.y), Vector3(b1.x, y1 + 0.12, b1.y), Vector3(b0.x, y1 + 0.12, b0.y), up, NT_RUST)
+	_quad(Vector3(a0.x, y0, a0.y), Vector3(a1.x, y0, a1.y), Vector3(b1.x, y1, b1.y), Vector3(b0.x, y1, b0.y), -up, NT_RUST_UNDER)
+	if not edges:
+		return
+	# The edges, so the sheet has a thickness from the side.
+	var e := Vector3(-_b.x, 0.0, -_b.y)
+	_quad(Vector3(a0.x, y0, a0.y), Vector3(a1.x, y0, a1.y), Vector3(a1.x, y0 + 0.12, a1.y), Vector3(a0.x, y0 + 0.12, a0.y), e, NT_RUST_UNDER)
+	_quad(Vector3(b0.x, y1, b0.y), Vector3(b1.x, y1, b1.y), Vector3(b1.x, y1 + 0.12, b1.y), Vector3(b0.x, y1 + 0.12, b0.y), -e, NT_RUST_UNDER)
+
+
+## A canopy's edge lit in coloured tubes, 6 m each, along u at v.
+func _nt_edge(u0: float, u1: float, v: float, y: float) -> void:
+	var u := u0
+	var k := 0
+	while u < u1 - 0.5:
+		var e := minf(u + 6.0, u1)
+		var a := _w(u + 0.3, v)
+		var b := _w(e - 0.3, v)
+		_beam(Vector3(a.x, y, a.y), Vector3(b.x, y, b.y), 0.16, NT_TUBES[k % NT_TUBES.size()], true, M_LAMP)
+		k += 1
+		u = e
+
+
+## The north canopy: two gables side by side on two rows of posts, stalls down the middle.
+func _nt_north() -> void:
+	var u0 := NT_NORTH.x
+	var u1 := NT_NORTH.y
+	var v0 := NT_NORTH_V.x
+	var v1 := NT_NORTH_V.y
+	var vm := (v0 + v1) * 0.5
+	var g := _nt_gy((u0 + u1) * 0.5, vm)
+	var ridge1 := (v0 + vm) * 0.5
+	var ridge2 := (vm + v1) * 0.5
+	for k in 2:
+		var ra: float = [v0, vm][k]
+		var rr: float = [ridge1, ridge2][k]
+		var rb: float = [vm, v1][k]
+		_nt_roof(u0, u1, ra, g + 3.7, rr, g + 5.4, false)
+		_nt_roof(u0, u1, rb, g + 3.7, rr, g + 5.4, false)
+	var u := u0 + 2.0
+	var ti := 0
+	while u < u1 - 1.0:
+		var gp := _nt_gy(u, vm)
+		for v: float in [ridge1, ridge2]:
+			var p := _w(u, v)
+			_beam(Vector3(p.x, gp - 0.2, p.y), Vector3(p.x, g + 5.4, p.y), 0.26, SM_IRON)
+		_nt_tube(u + 3.0, v0 + 1.0, vm - 0.5, g + 3.6, NT_TUBES[ti % NT_TUBES.size()])
+		_nt_tube(u + 3.0, vm + 0.5, v1 - 1.0, g + 3.6, NT_TUBES[(ti + 2) % NT_TUBES.size()])
+		ti += 1
+		u += 6.0
+	_nt_edge(u0, u1, v0 - 0.1, g + 3.55)
+	_nt_edge(u0, u1, v1 + 0.1, g + 3.55)
+	# Bulb strings across the court to the south canopy's edge.
+	var gs0 := _nt_gy(70.0, 20.0)
+	u = u0 + 2.0
+	while u < NT_SOUTH.y - 2.0:
+		var a := _w(u, NT_SOUTH_V.y + 0.1)
+		var b := _w(u, v0 - 0.1)
+		var ya := gs0 + 3.3
+		var yb := g + 3.55
+		_beam(Vector3(a.x, ya, a.y), Vector3(b.x, yb, b.y), 0.04, SM_IRON)
+		_mode = M_LAMP
+		for k in range(1, 12):
+			var f := k / 12.0
+			var q := a.lerp(b, f)
+			var y := lerpf(ya, yb, f) - 0.09
+			_prism(_square(q, 0.08), y, y + 0.12, Color(1.0, 0.85, 0.5), Color(1.0, 0.85, 0.5), M_LAMP, M_LAMP)
+		_mode = M_STONE
+		u += 6.0
+	# Stalls along the middle, back to back, hatches out to both sides.
+	var si := 0
+	u = u0 + 4.0
+	while u < u1 - 4.0:
+		if si % 6 != 5:
+			var gs := _nt_gy(u, vm)
+			var col := Color(NT_STALLS[si % NT_STALLS.size()])
+			_lbox(u, vm, 2.0, 1.5, gs - 0.3, gs + 2.8, col, M_STONE, col.darkened(0.25))
+			for s: float in [-1.0, 1.0]:
+				var ha := _w(u - 1.4, vm + s * 1.53)
+				var hb := _w(u + 1.4, vm + s * 1.53)
+				var n := _b * s
+				_mode = M_LAMP
+				_quad(Vector3(ha.x, gs + 1.1, ha.y), Vector3(hb.x, gs + 1.1, hb.y), Vector3(hb.x, gs + 2.3, hb.y), Vector3(ha.x, gs + 2.3, ha.y),
+						Vector3(n.x, 0.0, n.y), Color(1.0, 0.86, 0.6))
+				_mode = M_STONE
+		si += 1
+		u += 6.0
+
+
+## The court on the old track bed: painted benches along it, tables, a food truck at the gate.
+func _nt_court() -> void:
+	var bench := ["#e8407a", "#2fb5c9", "#f2c230", "#3fae5a", "#7a4fc9", "#ef7a2c"]
+	var k := 0
+	var u := 6.0
+	while u < 90.0:
+		var g := _nt_gy(u, 12.0)
+		_lbox(u, 12.0, 1.6, 0.45, g - 0.2, g + 0.85, Color(bench[k % bench.size()]), M_STONE)
+		var gt := _nt_gy(u + 4.0, 20.0)
+		_lbox(u + 4.0, 20.0, 0.7, 0.7, gt - 0.2, gt + 0.75, Color("#2e3235"), M_STONE)
+		k += 1
+		u += 8.0
+	var gf := _nt_gy(4.0, 22.0)
+	_lbox(4.0, 22.0, 3.2, 1.2, gf + 0.3, gf + 3.0, Color("#eeeeea"), M_STONE)
+	for wu: float in [2.0, 6.2]:
+		_lbox(wu, 22.0, 0.45, 1.25, gf - 0.1, gf + 0.6, Color("#1c1e20"), M_STONE)
+	var ha := _w(2.6, 20.78)
+	var hb := _w(5.4, 20.78)
+	_mode = M_LAMP
+	_quad(Vector3(ha.x, gf + 1.5, ha.y), Vector3(hb.x, gf + 1.5, hb.y), Vector3(hb.x, gf + 2.5, hb.y), Vector3(ha.x, gf + 2.5, ha.y),
+			Vector3(-_b.x, 0.0, -_b.y), Color(1.0, 0.86, 0.6))
+	_mode = M_STONE
+
+
+# --- Kolejowa: the old railway warehouses at 8/10, the pinball museum at 8a, the teal club ---
+## From F's photos (2026-11-07, ~/Documents/warsaw-needed-photos/kolejowa/): long low warehouses
+## of dark brick under grey roofs on brackets along the street (KOLEJOWA 8/10 on the front); the
+## grey plastered one with blind arches where the pinball museum is (parody FLIPEROWNIA); the teal
+## club box with a black banner (parody ODESSKA). Found by their OpenStreetMap outlines' middles.
+const KJ_PARTS := [
+	[Vector2(-3002.0, 964.0), "brick"],
+	[Vector2(-3037.0, 1014.0), "brick"],
+	[Vector2(-3043.0, 983.0), "pinball"],
+	[Vector2(-3093.0, 997.0), "club"],
+]
+## Kolejowa's line here, for which side of each warehouse looks at the street.
+const KJ_STREET := [Vector2(-3136.0, 986.0), Vector2(-3059.0, 961.0), Vector2(-3023.0, 949.0), Vector2(-2915.0, 912.0)]
+const KJ_BRICK := Color("#6e3d2e")
+const KJ_PLASTER := Color("#a6a49e")
+const KJ_TEAL := Color("#1d9da3")
+const KJ_ROOF := Color("#5d6164")
+const KJ_DOOR := Color("#3a2c26")
+
+
+func _find_kolejowa() -> void:
+	var rings: Array = []
+	var parts: Array = []
+	for bld in data["buildings"]:
+		var q := _pts(bld["p"])
+		if q.size() < 3:
+			continue
+		var c := _centre(q)
+		for kp: Array in KJ_PARTS:
+			if c.distance_to(kp[0]) < 3.0:
+				rings.append(q)
+				parts.append([q, kp[1]])
+	if rings.is_empty():
+		return
+	_add_site("kolejowa", rings)
+	if not sites.is_empty() and sites[-1]["key"] == "kolejowa":
+		sites[-1]["parts"] = parts
+
+
+func _kj_street_side(ring: PackedVector2Array) -> int:
+	var best := 0
+	var bd := INF
+	for i in ring.size():
+		var a := ring[i]
+		var b := ring[(i + 1) % ring.size()]
+		if a.distance_to(b) < 6.0:
+			continue
+		var m := (a + b) * 0.5 + _out(ring, a, b) * 2.0
+		var d := INF
+		for k in KJ_STREET.size() - 1:
+			d = minf(d, Geometry2D.get_closest_point_to_segment(m, KJ_STREET[k], KJ_STREET[k + 1]).distance_to(m))
+		var d_in := INF
+		for k in KJ_STREET.size() - 1:
+			d_in = minf(d_in, Geometry2D.get_closest_point_to_segment((a + b) * 0.5, KJ_STREET[k], KJ_STREET[k + 1]).distance_to((a + b) * 0.5))
+		if d < d_in and d < bd:
+			bd = d
+			best = i
+	return best
+
+
+func _build_kolejowa(site: Dictionary) -> void:
+	for part: Array in site.get("parts", []):
+		var raw: PackedVector2Array = part[0]
+		var ring := _simplify(raw, 0.6)
+		if ring.size() < 3:
+			ring = raw
+		_g = _ground_under(ring)
+		var g := _g
+		var kind: String = part[1]
+		var wall := KJ_BRICK if kind == "brick" else (KJ_PLASTER if kind == "pinball" else KJ_TEAL)
+		var h := 4.6 if kind != "club" else 4.2
+		_mode = M_STONE
+		_prism(ring, g - 0.3, g + h, wall, KJ_ROOF, M_STONE, M_STONE)
+		# The roof standing out over the walls (on brackets, in the photos), a shallow ridge cap.
+		var eave: Array = Geometry2D.offset_polygon(ring, 0.7 if kind != "club" else 0.35)
+		if not eave.is_empty():
+			var er: PackedVector2Array = eave[0]
+			_prism(er, g + h, g + h + 0.25, KJ_ROOF.darkened(0.1), KJ_ROOF, M_STONE, M_STONE)
+		_collide(ring)
+		var si := _kj_street_side(ring)
+		var a := ring[si]
+		var b := ring[(si + 1) % ring.size()]
+		var d := (b - a).normalized()
+		var o := _out(ring, a, b)
+		var ln := a.distance_to(b)
+		var n3 := Vector3(o.x, 0.0, o.y)
+		if kind == "brick":
+			var t := 4.0
+			while t < ln - 3.0:
+				var p0 := a + d * (t - 1.4) + o * 0.05
+				var p1 := a + d * (t + 1.4) + o * 0.05
+				_quad(Vector3(p0.x, g, p0.y), Vector3(p1.x, g, p1.y), Vector3(p1.x, g + 3.0, p1.y), Vector3(p0.x, g + 3.0, p0.y), n3, KJ_DOOR)
+				t += 9.0
+		elif kind == "pinball":
+			var t := 3.0
+			var k := 0
+			while t < ln - 2.0:
+				var at := a + d * t
+				if k % 3 == 1:
+					_arch_panel(at, d, o, 0.9, g, g + 2.2, Color("#2f3a40"), 0.06, M_STONE)
+				else:
+					_arch_panel(at, d, o, 1.1, g + 0.9, g + 2.6, KJ_PLASTER.darkened(0.12), 0.04, M_STONE)
+				k += 1
+				t += 3.6
+			var sp := a + d * (ln * 0.5) + o * 0.3
+			var ks := 0.6 / (Neon.ROW_H * Neon.PIXEL)
+			signs.append(["FLIPEROWNIA", Vector3(sp.x, g + 3.6, sp.y), n3, ks, Color(1.0, 0.3, 0.75)])
+		else:
+			# The black banner over most of the street side, the name on it.
+			var p0 := a + d * (ln * 0.15) + o * 0.06
+			var p1 := a + d * (ln * 0.85) + o * 0.06
+			_quad(Vector3(p0.x, g + 0.6, p0.y), Vector3(p1.x, g + 0.6, p1.y), Vector3(p1.x, g + 3.7, p1.y), Vector3(p0.x, g + 3.7, p0.y), n3, Color("#1a1c1d"))
+			var sp := a + d * (ln * 0.5) + o * 0.3
+			var ks := 0.7 / (Neon.ROW_H * Neon.PIXEL)
+			signs.append(["ODESSKA", Vector3(sp.x, g + 2.2, sp.y), n3, ks, Color(0.45, 1.0, 0.75)])
+	_mode = M_STONE
