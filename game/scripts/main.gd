@@ -5872,7 +5872,10 @@ func _process(dt: float) -> void:
 	# (Trasa Łazienkowska over the streets under it).
 	if Engine.get_process_frames() % DECK_XRAY_EVERY == 0:
 		_deck_hid = not flying and map.deck_hides(pos + Vector3.UP * 0.8, cam.global_transform.basis.z)
-	_xray.show_through(not flying and (map.in_tunnel(pos.x, pos.z, pos.y) or _deck_hid))
+	# F (2026-11-07): under a deck the occlusion ghost now cuts the deck itself (ground.gdshader's
+	# deck ghost, building.gdshader for its slab), so the car and the traffic round it show as
+	# they are; the silhouette stays for the tunnels, and for decks with --no-ghost.
+	_xray.show_through(not flying and (map.in_tunnel(pos.x, pos.z, pos.y) or (_deck_hid and no_ghost)))
 	# Loop 3d-1: the pedestrian zones cap the player's car (police.md 5.6); the log says when.
 	# F's asks (2026-10-30): only with the Settings switch on (off by default).
 	var zone: String = ped_zones.at(car.global_position.x, car.global_position.z) if ped_zones != null and not flying else ""
@@ -6012,6 +6015,8 @@ func _update_ghost(pos: Vector3, car_view: Vector3) -> void:
 	var lc := sun.light_color.srgb_to_linear()
 	map.flat_material.set_shader_parameter("ghost_sun", Vector3(lc.r, lc.g, lc.b) * sun.light_energy * give * GHOST_SUN_SCALE)
 	map.flat_material.set_shader_parameter("ghost_sun_dir", to_sun)
+	# The deck ghost (ground.gdshader): the car's ground height; off for the helicopter.
+	map.flat_material.set_shader_parameter("ghost_car_y", -10000.0 if flying else pos.y)
 	if ghost_debug > 0:
 		building_mat.set_shader_parameter("ghost_debug", ghost_debug)
 		var ppm := float(sv.size.y) / cam.size * float(view.stretch_shrink)

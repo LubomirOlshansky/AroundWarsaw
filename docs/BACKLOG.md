@@ -423,7 +423,13 @@ experience". The plan, the road audit and the causes are in docs/GAMEPLAY_PLAN.m
   feel parked (QUESTIONS)
 - [x] 0.3 The car shows through Trasa Łazienkowska and other decks (2026-11-03): the tunnel x-ray
   whenever a deck stands between the car and the camera (`map_builder.gd` `deck_hides`,
-  `check_deck_xray`); phone look open, the deck cut stays 3.x
+  `check_deck_xray`); phone look open. 2026-11-07 (F: "only a halo under the bridges"): the
+  occlusion ghost now cuts the decks too, the same dithered circle as behind buildings, so the car
+  and the traffic under the Trasa, Most Łazienkowski's land spans and the viaducts show as they
+  are (`ground.gdshader` deck ghost: a deck's surface 2.5 m or more over the car's ground, from the
+  surface map's deck height; the slab, piers and rails were already ghosted by `building.gdshader`).
+  The silhouette stays for tunnels (and decks with --no-ghost). Open: the phone's look and its cost
+  (the ground shader now has a discard; iPhone 11 bench needs F's device run)
 - [ ] 0.4 Helicopter high up: heli framed at the top, far plane clips the ground (floating buildings,
   blue sky), height cap, horizon haze
 - [ ] 0.5 Plac Piłsudskiego's paving reads as a chessboard: lower the panel contrast, speckle
@@ -453,7 +459,7 @@ experience". The plan, the road audit and the causes are in docs/GAMEPLAY_PLAN.m
   Mac: a harness that follows a route (P15 flights to Varso and x 2100, P16 frames at race speed)
   and the map hold at -700,900 that left the car in place twice (PT-19, intermittent)
 - [ ] 2.x Road fixes by street, forgiveness bevels, trap dead ends gated, score baseline in CI
-- [ ] 3.x ~~Lane assist~~ (built 2026-11-04 behind a switch, see "Beta values"), wall look-ahead, junction pick, deck cut in the ghost, F's phone run
+- [ ] 3.x ~~Lane assist~~ (built 2026-11-04 behind a switch, see "Beta values"), wall look-ahead, junction pick, ~~deck cut in the ghost~~ (done 2026-11-07, see 0.3), F's phone run
 - [ ] 4.1 Running clubs read as a blue blob at crossings: mixed kit, pairs, spread out
 - [ ] 4.2 Varso Place masses from photos (the gap between the tower and Varso 1/2)
 
