@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-07
+- The railway got its signals: green and red lights at every platform's end and both tunnel mouths, trains rumble past (louder on the bridge), sound their horn out of the tunnel and get a platform gong, and show red lamps at the back.
 - The Palace of Culture's grounds are tidier: knee-high planters instead of grey walls, real shrub beds, a proper car park with painted bays, and the Palace's venues lit at their doors: Kinoteka, the theatres, Sala Kongresowa, the technology museum, the 30th-floor terrace. Teatr Studio has its columned portico with steps, banners and neon, Bar Studio's tables under umbrellas and palms on a granite square with corten planters and trees, busy on summer evenings.
 - Ratusz Arsenał got its real tram stop: white arched canopies that glow at night, departure boards, Gruba Kaśka with its green copper spire between the tracks, the glass escalator pavilion and stone metro entrances. Trams now carry passengers, and people wait on tram platforms all over the city.
 - Metro stations look like themselves: Stadion Narodowy, Kopernik and Gdański get leaning glass pavilions, Nowy Świat-Uniwersytet a violet glass box, Rondo ONZ the glass A-frames.
