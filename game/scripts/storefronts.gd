@@ -1464,14 +1464,24 @@ func _load_metros(pois: Array) -> void:
 				"lift": (int(absf(x * 7.0 + z * 13.0)) % 5) < 3})
 
 
+## The Ratusz-Arsenał station (OSM's name on its entrances).
+const RATUSZ := "Ratusz-Arsenał"
+
+
 ## The entrance's look by station: Centrum's 1990s tubes (F, 2026-11-02); Świętokrzyska's mapped
 ## canopies are M2's steel-and-glass triangle tents (F's photo, Feb 2026), its plain stairs stay
-## stairs; elsewhere the bake's `f`.
+## stairs; Ratusz-Arsenał's are its own (Props._metro_ratusz); elsewhere the bake's `f`.
 static func metro_form(station: String, f: String) -> String:
 	if station == "Centrum":
 		return "tube"
 	if station == "Świętokrzyska" and f == "canopy":
 		return "tent"
+	if station == RATUSZ:
+		# F's photos (2026-11-07): the glass escalator pavilion by the tram stop, stone M1 entrances
+		# with a white canopy where OSM maps a canopy, stone stairwells elsewhere.
+		if f == "footway":
+			return "pavilion"
+		return "stone" if f == "canopy" else "stone_steps"
 	return f
 
 

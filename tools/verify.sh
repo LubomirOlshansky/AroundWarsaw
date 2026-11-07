@@ -176,6 +176,8 @@
 # Street details (2026-11-01): `streetdetails` runs tools/check_street_details.py (the baked props along
 # the main line against the map: stale file, blocked spots, budget, kiosk spacing); `streetmesh` runs
 # game/tools/check_street_details.gd (every kind builds as one surface, a cell's triangle budget); CI too.
+# Ratusz Arsenał (2026-11-07): `ratuszhub` runs game/tools/check_ratusz_hub.gd (the hub's canopies, tower and
+# railings against the committed map, its one mesh's budget, the station's entrance forms, tram passengers); CI too.
 # Park details (2026-11-01): `parkdetails` runs tools/check_park_details.py (the baked park pieces against the map: stale file,
 # blocked spots, budget); `parkmesh` runs game/tools/check_park_details.gd (every kind builds as one surface); CI too.
 # Monuments (2026-11-02): `monuments` runs tools/check_monuments.py (the OSM monuments and wall plaques against
@@ -223,8 +225,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads smooth streets outline pois streetdetails streetpass design models overrides stops streetmesh parkdetails parkmesh monuments monumentmesh spec lod2 courts drape ground drive drive-prebuilt deckxray stuckspots stuckspots-prebuilt lanedrive finite steering laneassist stuckoffer handling stopassist questlines settings credits language tiers governor heliview hud places edge roadworks roadworks-prebuilt eggs tape crowds life buses zaglebie crashes rave boatrace evtow loud crazy oldtram trains packs wellness fans garage save districts syrenki cassettes ladder racecuts first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram teleport firstlife heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads smooth streets outline pois streetdetails streetpass design models overrides stops streetmesh parkdetails parkmesh monuments monumentmesh spec drape drive deckxray stuckspots finite steering laneassist stuckoffer handling stopassist questlines settings credits language tiers governor heliview hud places edge roadworks eggs tape crowds life buses zaglebie crashes rave boatrace evtow loud crazy oldtram trains packs wellness fans garage save districts syrenki cassettes ladder racecuts first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds police plain ram teleport firstlife prebuilt)
+STEPS_ALL=(map roads smooth streets outline pois streetdetails streetpass design models overrides stops streetmesh ratuszhub parkdetails parkmesh monuments monumentmesh spec lod2 courts drape ground drive drive-prebuilt deckxray stuckspots stuckspots-prebuilt lanedrive finite steering laneassist stuckoffer handling stopassist questlines settings credits language tiers governor heliview hud places edge roadworks roadworks-prebuilt eggs tape crowds life buses zaglebie crashes rave boatrace evtow loud crazy oldtram trains packs wellness fans garage save districts syrenki cassettes ladder racecuts first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram teleport firstlife heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads smooth streets outline pois streetdetails streetpass design models overrides stops streetmesh ratuszhub parkdetails parkmesh monuments monumentmesh spec drape drive deckxray stuckspots finite steering laneassist stuckoffer handling stopassist questlines settings credits language tiers governor heliview hud places edge roadworks eggs tape crowds life buses zaglebie crashes rave boatrace evtow loud crazy oldtram trains packs wellness fans garage save districts syrenki cassettes ladder racecuts first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds police plain ram teleport firstlife prebuilt)
 # Operation Unslop review (2026-11-05): the road loop ran the whole --quick (~100 steps, most start
 # the game) after every tweak. --roads keeps only the steps a road rule can break; steps not in
 # STEPS_ALL on this branch (e.g. `smooth` before the smooth-roads PR) are skipped.
@@ -799,6 +801,7 @@ for s in $want; do
 				*) row FAIL "stops" $secs "$(grep '^check_stops: ' $logs/stops.log | tail -1) · $counts ($logs/stops.log)" ;;
 			esac ;;
 		streetmesh) check streetmesh '^street_details:' --script res://tools/check_street_details.gd ;;
+		ratuszhub) check ratuszhub '^ratusz_hub:' --script res://tools/check_ratusz_hub.gd ;;
 		# Landmark specs (LANDMARKS 0.4): every docs/landmarks/specs/*.md has all eight sections, a
 		# detail level, a triangle budget and a filled parts table (tools/check_spec.py; ~0.1 s).
 		spec)

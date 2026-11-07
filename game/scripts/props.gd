@@ -570,6 +570,9 @@ static func add_metro_entrance(st: SurfaceTool, xf: Transform3D, form := "canopy
 			_xbox(st, xf, Vector3(0, 0.6, 2.05), Vector3(2.66, 1.2, 0.2), concrete)
 		"tent":
 			_metro_tent(st, xf)
+		"pavilion", "stone", "stone_steps":
+			_metro_ratusz(st, xf, form)
+			return
 		_:
 			# The canopy: steel sill and posts, glass sides and back, a vaulted glass roof on three
 			# ribs (seven points on an ellipse 1.35 m out and 0.7 m up from the 2.2 m springing).
@@ -607,6 +610,80 @@ static func add_metro_entrance(st: SurfaceTool, xf: Transform3D, form := "canopy
 				_xbox(st, xf, c + Vector3(x, 1.35, z), Vector3(0.1, 2.7, 0.1), steel)
 		_xbox(st, xf, c + Vector3(0, 2.72, 0), Vector3(1.5, 0.12, 1.5), steel)
 		_xbox(st, xf, c + Vector3(0, 0.95, -0.67), Vector3(0.9, 1.9, 0.04), Color("#3a3e45"))
+
+
+## Metro Ratusz-Arsenał's entrances (F's photos, 2026-11-07), local frame as add_metro_entrance's
+## (open front -z, the stairs down towards +z; the treads and the handrail are already drawn):
+##  - "pavilion": the glass escalator pavilion by the tram stop: a 9.6 m glass box on a pale stone
+##    base, steel mullions every 1.2 m, a flat white roof with a thin overhang, the glazing lit at
+##    night, the escalator's dark band and rails down the middle, stone cheek walls at the open
+##    mouth, three white globe lamps on posts along its side and the roundel on a pole;
+##  - "stone": an M1 entrance: a tall block of pale travertine on the right of the stairs, low stone
+##    parapets with a steel rail, and a white cantilevered canopy over the mouth with the yellow
+##    roundel on its front;
+##  - "stone_steps": an open stairwell between stone walls with a steel rail on top, a stone pylon at
+##    the front corner carrying a station plan and the roundel on its pole.
+## These forms carry no red M post (the roundel is their sign). Stays in the sector's one mesh.
+## 250-700 triangles.
+static func _metro_ratusz(st: SurfaceTool, xf: Transform3D, form: String) -> void:
+	var stone := Color("#bfb39c")
+	var stone_dark := Color("#a49884")
+	var steel := Color("#8e949a")
+	var white := Color("#ecebe6")
+	var glass := Color("#a9c6d4")
+	match form:
+		"pavilion":
+			# The base: stone walls along both sides of the stairs, a step of stone at the mouth.
+			for x: float in [-1.75, 1.75]:
+				_xbox(st, xf, Vector3(x, 0.45, 2.2), Vector3(0.35, 0.9, 9.6), stone)
+			_xbox(st, xf, Vector3(0, 0.45, 6.95), Vector3(3.85, 0.9, 0.3), stone)
+			for x: float in [-1.2, 1.2]:
+				_xbox(st, xf, Vector3(x, 0.5, -2.75), Vector3(0.5, 1.0, 0.5), stone_dark)
+			# The glass box on the base: both sides and the back, lit at night, mullions every 1.2 m.
+			for x: float in [-1.75, 1.75]:
+				_xbox(st, xf, Vector3(x, 2.05, 2.2), Vector3(0.04, 2.3, 9.4), glass, LIT_WINDOW)
+				for k in 9:
+					_xbox(st, xf, Vector3(x * 1.01, 2.05, -2.6 + k * 1.2), Vector3(0.07, 2.3, 0.07), steel)
+				_xbox(st, xf, Vector3(x * 1.01, 1.4, 2.2), Vector3(0.06, 0.06, 9.6), steel)
+			_xbox(st, xf, Vector3(0, 2.05, 6.95), Vector3(3.5, 2.3, 0.04), glass, LIT_WINDOW)
+			# The front's frame and the flat white roof over everything.
+			_xbox(st, xf, Vector3(0, 3.05, -2.6), Vector3(3.6, 0.3, 0.1), steel)
+			_xbox(st, xf, Vector3(0, 3.35, 2.2), Vector3(4.0, 0.22, 10.2), white)
+			_xbox(st, xf, Vector3(0, 3.22, 2.2), Vector3(3.7, 0.06, 9.9), Color("#d8dadc"), LIT_WINDOW)
+			# The escalator: a dark band and two rails down the middle, under the treads' handrail.
+			_xbox(st, xf, Vector3(0.55, 0.05, 1.0), Vector3(0.9, 0.04, 6.0), Color("#26282c"))
+			for x: float in [0.1, 1.0]:
+				_xbox(st, xf, Vector3(x, 0.95, 1.0), Vector3(0.08, 0.08, 6.0), Color("#1d1e21"))
+			# The globe lamps along the open side (+x), the roundel's pole at the mouth.
+			for z: float in [-1.5, 2.2, 5.9]:
+				_xbox(st, xf, Vector3(2.6, 1.75, z), Vector3(0.12, 3.5, 0.12), steel)
+				_xbox(st, xf, Vector3(2.6, 3.7, z), Vector3(0.4, 0.4, 0.4), Color("#f6f3e8"), LIT_SIGN)
+			_xbox(st, xf, Vector3(-2.4, 1.7, -2.9), Vector3(0.1, 3.4, 0.1), steel)
+			_metro_roundel(st, xf, Vector3(-2.4, 3.3, -2.9), 0.42, [-1.0, 1.0])
+		"stone":
+			# The travertine block on the right, the parapets, the white canopy with the roundel.
+			_xbox(st, xf, Vector3(1.9, 1.6, 0.4), Vector3(1.4, 3.2, 3.6), stone)
+			for k in 5:
+				_xbox(st, xf, Vector3(1.9, 0.5 + k * 0.6, 0.4), Vector3(1.42, 0.03, 3.62), stone_dark)
+			_xbox(st, xf, Vector3(-1.2, 0.5, 0.2), Vector3(0.3, 1.0, 4.4), stone)
+			_xbox(st, xf, Vector3(0, 0.5, 2.25), Vector3(2.7, 1.0, 0.3), stone)
+			_xbox(st, xf, Vector3(-1.2, 1.05, 0.2), Vector3(0.36, 0.06, 4.4), stone_dark)
+			_xbox(st, xf, Vector3(-1.2, 1.25, 0.2), Vector3(0.05, 0.05, 4.2), steel)
+			_xbox(st, xf, Vector3(0.0, 2.85, -1.0), Vector3(3.4, 0.45, 2.6), white)
+			_xbox(st, xf, Vector3(0.0, 2.6, -1.0), Vector3(3.2, 0.04, 2.4), Color("#f2f0e6"), LIT_WINDOW)
+			_metro_roundel(st, xf, Vector3(0.2, 2.85, -2.34), 0.3, [-1.0])
+		_:
+			# The stairwell's stone walls on three sides, a rail on top.
+			for x: float in [-1.25, 1.25]:
+				_xbox(st, xf, Vector3(x, 0.55, 0.0), Vector3(0.32, 1.1, 4.3), stone)
+				_xbox(st, xf, Vector3(x, 1.12, 0.0), Vector3(0.36, 0.05, 4.3), stone_dark)
+				_xbox(st, xf, Vector3(x * 0.92, 1.0, 0.0), Vector3(0.05, 0.05, 4.1), steel)
+			_xbox(st, xf, Vector3(0, 0.55, 2.1), Vector3(2.82, 1.1, 0.32), stone)
+			# The pylon at the front corner with the plan, the roundel on its pole.
+			_xbox(st, xf, Vector3(1.55, 1.1, -2.3), Vector3(0.7, 2.2, 0.45), stone)
+			_xbox(st, xf, Vector3(1.55, 1.3, -2.53), Vector3(0.5, 0.8, 0.02), Color("#e8e4d6"), LIT_WINDOW)
+			_xbox(st, xf, Vector3(1.55, 3.0, -2.3), Vector3(0.1, 1.6, 0.1), steel)
+			_metro_roundel(st, xf, Vector3(1.55, 3.5, -2.3), 0.4, [-1.0, 1.0])
 
 
 ## Metro Świętokrzyska's M2 entrances (F's photo, Feb 2026): a steel-and-glass triangle "tent"
@@ -662,15 +739,22 @@ static func _metro_tent(st: SurfaceTool, xf: Transform3D) -> void:
 	_xbox(st, xf, Vector3(-0.55, 2.05, z0 - 0.07), Vector3(0.24, 0.24, 0.03), Color("#d3202a"), LIT_SIGN)
 	_xbox(st, xf, Vector3(0.35, 2.05, z0 - 0.07), Vector3(1.1, 0.08, 0.03), Color("#2a5ea8"), LIT_SIGN)
 	# The roundel high on the gable: a yellow octagon (0.95 m) with the red M.
-	var rc := Vector3(0, 4.25, z0 - 0.12)
+	_metro_roundel(st, xf, Vector3(0, 4.25, z0 - 0.12), 0.48, [-1.0])
+
+
+## The station roundel: a yellow octagon of radius `r` (0.08 m thick) centred at `rc` in the
+## entrance's frame, facing ±z, the red pixel M on the faces `sides` (-1 the -z face, 1 the +z).
+## Lit at night. ~60 triangles a face.
+static func _metro_roundel(st: SurfaceTool, xf: Transform3D, rc: Vector3, r: float, sides: Array) -> void:
+	var basis := xf.basis.orthonormalized()
 	var ring := 8
 	for i in ring:
 		var a0 := TAU * (i + 0.5) / ring
 		var a1 := TAU * (i + 1.5) / ring
 		for s: float in [-1.0, 1.0]:
-			tri(st, xf * (rc + Vector3(0, 0, 0.04 * s)), xf * (rc + Vector3(0.48 * cos(a0), 0.48 * sin(a0), 0.04 * s)),
-					xf * (rc + Vector3(0.48 * cos(a1), 0.48 * sin(a1), 0.04 * s)), basis * Vector3(0, 0, s), Color("#f6c813"), LIT_SIGN)
-	_metro_m(st, xf, rc, 0.07, [-1.0], 0.08, Color("#d3202a"))
+			tri(st, xf * (rc + Vector3(0, 0, 0.04 * s)), xf * (rc + Vector3(r * cos(a0), r * sin(a0), 0.04 * s)),
+					xf * (rc + Vector3(r * cos(a1), r * sin(a1), 0.04 * s)), basis * Vector3(0, 0, s), Color("#f6c813"), LIT_SIGN)
+	_metro_m(st, xf, rc, 0.07 * r / 0.48, sides, 0.08, Color("#d3202a"))
 
 
 ## A beam between two points of an entrance's local frame, `w` wide along its z, through `xf`.

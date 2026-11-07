@@ -94,6 +94,8 @@ const FirstScene := preload("res://scripts/first_scene.gd")
 const SkwerZlota := preload("res://scripts/skwer_zlota.gd")
 ## Street details along the main line (street_details.gd, tools/bake_street_details.py).
 const StreetDetails := preload("res://scripts/street_details.gd")
+## The Ratusz Arsenał interchange's canopies, tower and railings (ratusz_hub.gd).
+const RatuszHub := preload("res://scripts/ratusz_hub.gd")
 ## Park details: statues, a carousel, ducks, people on the benches (park_details.gd, tools/bake_park_details.py).
 const ParkDetails := preload("res://scripts/park_details.gd")
 ## Loop 3h slice 3: the final race's route (the start's hint for --trzy-mosty).
@@ -1506,6 +1508,7 @@ func _build_world() -> void:
 	_build_first_scene(world)
 	_build_skwer_zlota(world)
 	_build_street_details(world)
+	_build_ratusz_hub(data, world)
 	_build_park_details(world)
 	_build_garage(world)
 	await _load_mark(0.66)
@@ -1750,6 +1753,18 @@ func _build_street_details(world: Node3D) -> void:
 	sd.map = map
 	world.add_child(sd)
 	sd.build()
+
+
+## The Ratusz Arsenał interchange (ratusz_hub.gd, F's photos 2026-11-07): the arched tram canopies,
+## their benches and boards, the round stone tower and its railings, on both city paths.
+func _build_ratusz_hub(d: Dictionary, world: Node3D) -> void:
+	if solo_site != "":
+		return
+	var hub := RatuszHub.new()
+	hub.name = "RatuszHub"
+	hub.map = map
+	world.add_child(hub)
+	hub.build(d)
 
 
 ## Park details (park_details.gd): the pieces of Ogród Saski, Ogród Krasińskich and Park

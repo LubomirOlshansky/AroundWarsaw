@@ -137,6 +137,11 @@ const OFFICE_SHIRTS := ["#f2efe8", "#bcd3e6", "#8c9199", "#1c2a45", "#d9c9ad", "
 ## F's ask (2026-11-01, Marszałkowska street by street): people waiting on the tram platforms of
 ## Marszałkowska. A platform (centrum.json `platforms`) within STOP_REACH m of a road named
 ## `STOP_STREET` gets a site; its most people = area / STOP_AREA, at most STOP_MAX.
+## F's ask (2026-11-07, "people at tram and bus stops and so on"): every tram platform in the city
+## gets one (ids `stop_N`; Marszałkowska's keep `stop_marsz_N`), standing on the platform's top
+## (not sunk into a 0.9 m slab). Only crowds within ACTIVE_R of the view have figures, so the
+## city-wide sites cost a distance check each per tick. The bus stops' people are buses.gd's own
+## (they board the buses).
 const STOP_STREET := "Marszałkowska"
 const STOP_REACH := 25.0
 const STOP_AREA := 22.0
@@ -1091,7 +1096,7 @@ static func first_scene_at(s: float, t: float) -> Vector2:
 	return FirstScene.FRAME_O + FirstScene.FRAME_S * s + FirstScene.FRAME_T * t
 
 
-## The tram platforms beside STOP_STREET: one `stop` site each (poly, centre, most people).
+## Every tram platform (poly, centre, most people, its top): one `stop` site each.
 func _add_stops(data: Dictionary) -> void:
 	var segs: Array = []
 	for r: Dictionary in data.get("roads", []):
@@ -1101,6 +1106,7 @@ func _add_stops(data: Dictionary) -> void:
 		for i in range(0, p.size() - 3, 2):
 			segs.append([Vector2(float(p[i]), float(p[i + 1])), Vector2(float(p[i + 2]), float(p[i + 3]))])
 	var idx := 0
+	var other := 0
 	for pl: Dictionary in data.get("platforms", []):
 		var flat: Array = pl.get("p", [])
 		if flat.size() < 6:
@@ -1119,9 +1125,23 @@ func _add_stops(data: Dictionary) -> void:
 				near = true
 				break
 		var cap := clampi(roundi(poly_area(flat) / STOP_AREA), 0, STOP_MAX)
-		if near and cap >= 3:
-			_add_site({"id": "stop_marsz_%d" % idx, "kind": "stop", "at": c, "poly": poly, "max": cap})
+		if cap < 3:
+			continue
+		# The platform's walking top (map_builder's slab: the outline's lowest ground + h + 0.1).
+		var top := INF
+		if map != null:
+			for v in poly:
+				top = minf(top, map.terrain_height(v.x, v.y))
+			top += float(pl.get("h", 0.25)) + 0.1
+		var site := {"id": ("stop_marsz_%d" % idx) if near else ("stop_%d" % other), "kind": "stop", "at": c,
+				"poly": poly, "max": cap}
+		if top != INF:
+			site["top"] = top
+		_add_site(site)
+		if near:
 			idx += 1
+		else:
+			other += 1
 
 
 func _add_site(s: Dictionary) -> void:
@@ -1419,7 +1439,10 @@ func _place_stop(s: Dictionary) -> void:
 		for i in g:
 			var p := mid + Vector2.from_angle(TAU * i / g + yaw) * 0.5
 			if slots.size() < cap * 2 and Geometry2D.is_point_in_polygon(p, poly):
-				slots.append({"p": p, "yaw": yaw + rng.randf_range(-0.6, 0.6), "shirt": BRIGHT[rng.randi() % BRIGHT.size()]})
+				var slot := {"p": p, "yaw": yaw + rng.randf_range(-0.6, 0.6), "shirt": BRIGHT[rng.randi() % BRIGHT.size()]}
+				if s.has("top"):
+					slot["y"] = float(s["top"])
+				slots.append(slot)
 		if slots.size() >= cap * 2:
 			break
 	s["slots"] = slots
