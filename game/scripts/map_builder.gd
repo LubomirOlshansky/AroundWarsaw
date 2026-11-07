@@ -4229,8 +4229,10 @@ func _strip(st, poly: PackedVector2Array, width: float, y: float, col: Color, ex
 		# Draped: cut into pieces no longer than the terrain grid, so a long thin strip
 		# costs two triangles per piece instead of a fan of slivers.
 		var pieces := maxi(1, ceili(a.distance_to(b) / 10.0)) if _drape_bias >= 0.0 else 1
-		# The railway's layers: their corners never under the drawn ground (`_emit_draped`).
-		_on_grid = _exact_strip and _dk < 0 and _tn < 0
+		# The railway's layers in the cutting: their corners never under the drawn ground
+		# (`_emit_draped`). Only there: the drawn ground's height costs the cut's own lookups, and
+		# map-wide it made the build (and check_drape) minutes slower for a few hundred m2.
+		_on_grid = _exact_strip and _dk < 0 and _tn < 0 and _cut.box.grow(hw).intersects(Rect2(a, Vector2.ZERO).expand(b))
 		for k in pieces:
 			var p := a.lerp(b, float(k) / pieces)
 			var q := a.lerp(b, float(k + 1) / pieces)
@@ -4387,6 +4389,7 @@ func _fine_index() -> void:
 		return
 	_fine_ready = true
 	_fine_cells.clear()
+	_corner_cache.clear()
 	if _t_h.is_empty():
 		return
 	var step := float(_terrain["step"])
@@ -4452,6 +4455,22 @@ func _set_lowers(a: Vector2, b: Vector2, h: float, reach: float) -> bool:
 ## The drawn ground's height at a sub-cell corner: the grid, or terrain_height where an apron
 ## holds the ground under it.
 func _drawn_corner(x: float, z: float) -> float:
+	# The same sub-cell corners are asked for again and again (every flat layer's vertex in an
+	# apron or the cutting, check_drape's samples), and each costs the cut's and aprons' lookups:
+	# kept by the centimetre, for the fine index's lifetime (its inputs don't change after it).
+	var key := Vector2i(roundi(x * 100.0), roundi(z * 100.0))
+	var known: Variant = _corner_cache.get(key)
+	if known != null:
+		return float(known)
+	var h := _drawn_corner_raw(x, z)
+	_corner_cache[key] = h
+	return h
+
+
+var _corner_cache := {}
+
+
+func _drawn_corner_raw(x: float, z: float) -> float:
 	var g := _grid_height(x, z)
 	var t := terrain_height(x, z)
 	# Loop 3e: under a ground profile that lowers the ground, SET_SINK lower still (the 1 m
