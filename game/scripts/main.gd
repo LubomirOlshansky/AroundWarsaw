@@ -4111,6 +4111,8 @@ func _parse_args() -> void:
 					start_heading = shot_spots[0][2]
 		elif arg.begins_with("--style="):
 			_flag_style = posmod(int(arg.trim_prefix("--style=")), STYLES.size())
+		elif arg.begins_with("--stops="):
+			stops = JSON.parse_string(FileAccess.get_file_as_string(arg.trim_prefix("--stops=")))
 		elif arg.begins_with("--at="):
 			var xz := arg.trim_prefix("--at=").split(",")
 			start_at = Vector3(float(xz[0]), 0.0, float(xz[1]))
@@ -5966,6 +5968,7 @@ func _process(dt: float) -> void:
 	hud.set_car_marker(marker, cam.size > 55.0)
 
 	frame += 1
+	_stop_step()
 	_inject_clicks()
 	if frame == 60 and tap_at != Vector2.INF:
 		_on_tap(tap_at)
@@ -7280,6 +7283,39 @@ func _camera_far(distance: float, size: float) -> float:
 	var need: float = distance + 0.5 * cam.size * t + low
 	var depth := sqrt(maxf(diagonal - cam.size * cam.size * (aspect * aspect + 1.0), need * need))
 	return cam.near + depth
+
+
+## --stops=FILE (with --shots= far ahead): the camera stops at each [x, z, yaw, pitch, size, name]
+## of the JSON list and saves <name>.png in --out, so one run shoots a whole street.
+var stops: Array = []
+var _stop_at := 0
+var _stop_busy := false
+const STOP_DRAWS := 24
+
+
+func _stop_step() -> void:
+	if stops.is_empty() or frame < 120 or _stop_busy or _stop_at >= stops.size():
+		return
+	_stop_busy = true
+	var s: Array = stops[_stop_at]
+	car.global_position = Vector3(s[0], map.ground_height(s[0], s[1]), s[1])
+	car.vel = Vector3.ZERO
+	cam_yaw = s[2]
+	cam_yaw_target = s[2]
+	camera_pitch = s[3]
+	base_size = s[4]
+	_view_size = s[4]
+	cam.size = s[4]
+	cam_focus = car.global_position
+	# Count drawn frames, not game frames: a hidden window can draw far less often than it runs.
+	for i in STOP_DRAWS:
+		await RenderingServer.frame_post_draw
+	get_viewport().get_texture().get_image().save_png(out_dir.path_join("%s.png" % s[5]))
+	_stop_at += 1
+	_stop_busy = false
+	print("stops: %d / %d %s at %.0f,%.0f" % [_stop_at, stops.size(), s[5], car.global_position.x, car.global_position.z])
+	if _stop_at >= stops.size():
+		_quit_quietly()
 
 
 func _capture(n: int) -> void:
