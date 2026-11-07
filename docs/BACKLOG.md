@@ -4,6 +4,17 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Thin towers across the map (F, 2026-11-07)
+Fixed: 469 small OpenStreetMap buildings with no height tag stood at the bake's flat 14 m guess and
+showed as thin windowed towers (F's crop: two metro lift housings by the Ratusz-Arsenał tram stop).
+`tools/building_heights.py` guesses by kind (kiosk, shed, lift housing, booth, boat ...) and
+footprint; bake_osm uses it, verify step `heights` keeps the old guess off small buildings. The thin
+blocks left have real OSM heights (pillars under raised floors, chimneys, BUW's round towers) or
+stand inside a landmark or LoD2 building. Left:
+- Ratusz-Arsenał tram stop: the long glass canopies over both platforms (F's photo, 2026-11-07); the
+  Ratusz hub thread's area.
+- Courtyard outbuildings over 150 m² with no height tags still get 14 m (fair for a tenement).
+
 ## Novotel Warszawa Centrum from F's photos (F, 2026-11-07; docs/landmarks/novotel.md)
 
 Built: the white tiled slab with its paired windows and the lift core's blank strip, the blank narrow ends round

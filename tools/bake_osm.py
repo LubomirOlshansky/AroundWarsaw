@@ -764,7 +764,11 @@ def make_building(t, pts, is_part):
     if height is None and levels is not None:
         height = levels * 3.3 + 1.0
     if height is None:
-        height = 14.0
+        # No height tags: a guess by kind and footprint (tools/building_heights.py; a flat
+        # 14 m stood kiosks and metro lift housings up as thin towers, F 2026-11-07).
+        import building_heights
+        height = building_heights.default_height(t.get("building") or t.get("building:part") or "",
+                                                 abs(ring_area(pts)))
     min_height = num(t.get("min_height"))
     if min_height is None and num(t.get("building:min_level")) is not None:
         min_height = num(t.get("building:min_level")) * 3.3
