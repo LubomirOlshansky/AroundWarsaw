@@ -45,6 +45,9 @@ then the Launch gate.
 - [x] Warsaw Spire rebuilt to the real shape (F's photos, 2026-11-02; spec `spire.md`): a shaft that widens
       upward over a lit glass lobby, a domed roof with a fin and two masts, the mirrored entrance canopy on
       V legs, the two curved 15-storey wings and the paved plaza; Mac look check parked (QUESTIONS)
+- [x] Centrum LIM's podium rebuilt from F's night photos (2026-11-06; spec `lim-podium.md`): panel bands, the
+      set-back gallery, the arcade, the tenants' parody signs (PEPEO ŻUBR's bison and more), three LED screens,
+      busy pavement and Dworzec Centralny tram stop; phone look check open
 - [x] Royal Castle pass 2 and its gardens (F, 2026-11-02; spec `zamek.md`): the Clock Tower and helm, corner
       turrets, the cream Vistula front with its dome, Kubicki's Arcades and the Upper and Lower Gardens from
       the Krajobraz project, photos and the orthophoto; Mac look check parked (QUESTIONS)
@@ -587,6 +590,7 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [x] Unslop progress on the console's City map: each street pass block coloured by its score (green 90+, light green 80+, amber 65+, red), with the baseline in the label; "Show on map" in the Streets tab (2026-11-05)
 - [x] Faster street-pass loop, same gates: `street_pass.py --dump` (block probe) and `--photos` (one evidence pack), the rule-bug alarm with a cause map, `--spots=` (all cameras in one game run; a missing `--out` is made, a failed PNG exits 1), `bake_all.sh --roads` with step timings, agent `street-scout` (Haiku) before `street-unslopper` (Opus) (2026-11-05)
 - [x] Road loop from the smooth-roads review: `verify.sh --roads`, fixed cameras per street (`street_pass.py --spots`), target image step (Codex), rounds with a handoff note (2026-11-05)
+- [x] Main's real road bugs, whole map (F 2026-11-07, main as base): lane lines cut between each junction's zebra or stop line and the junction (7.7 km in 1,682 mouths), 406 turn arrows moved behind the stop line, 61 dot zebras dropped, zebra ends run on to the kerb (`tools/road_fixes.py`, verify `fixes`), 2026-11-07
 - [ ] One road layout per street chain plus junction templates, replacing the road_smooth repair passes
 - [ ] Next wanted models, most-asked first (canopy on posts, Jersey barrier, yard gate, park fence)
 - [x] The four streets round the Palace of Culture (F, 2026-11-05): Marszałkowska 83, Świętokrzyska 92/82, Emilii Plater 93, Jerozolimskie 91, before/after pairs (2026-11-06, #441 #461 #462 #463)
