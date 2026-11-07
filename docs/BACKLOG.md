@@ -863,6 +863,7 @@ be modelled, (Norblin, Browary, Koszyki and Elektrownia are the next section). D
   stacks), blank end walls with a stair slot, entrances with canopies, lift houses, a card. 855 tris.
 - **Hala Mirowska**: it was already a model; added ten market stalls with awnings on the square
   side of the east front.
+  Photo pass 2026-11-07 added the glazed east gallery. Left: the lattice-glazed gable arch, the HALA MIROWSKA letters (a neon atlas word), Hala Gwardii.
 - **Aleja Jana Pawła II**: every plain LoD2 building within 42 m of the boulevard takes a mid-century
   plaster by its position (`map_builder._boulevard_dress`, both city paths). Towers and the
   landmarks along it keep their own models.
