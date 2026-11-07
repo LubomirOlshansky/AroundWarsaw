@@ -538,7 +538,8 @@ then the Launch gate.
 Beta goal: a visitor explores the city with everything open, an easy city drive, a calm street.
 - [x] G1 Heli and map teleport open from the first second (the guide no longer gates them)
 - [x] G2 Calmer default traffic: Low is the default and Settings → Świat → Ruch uliczny is a stepped slider with a live label (default 2026-11-01, slider with G16; `check_settings`)
-- [x] G3 +/- zoom buttons on the driving screen (5 steps, saved)
+- [x] G3 +/- zoom buttons on the driving screen (6 steps since 2026-11-07: + goes one step closer, to 40 m; saved)
+- [x] Camera angle in Settings → Obraz: 30° (the default), 40°, 50°, saved; the bench always runs at 30° (F, 2026-11-07, `check_settings`). Phone feel open (BACKLOG)
 - [x] G4 Easy city drive: Cruise handling by default, Sport in Settings → Jazda → Prowadzenie, check_handling, 2026-11-01 (the phone feel check is parked in QUESTIONS)
 - [x] G5 Flicker and "lag wall" audit: the dithered fade patches, wall-like props, the metro
       entrances (what stays, what stops colliding, what goes) (Opus)
