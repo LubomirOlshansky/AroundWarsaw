@@ -788,6 +788,10 @@ func _layout() -> void:
 			_taken.append(Rect2(c.position, c.size))
 	_taken.append(_speed_rect())
 	_taken.append_array(_pedal_rects())
+	if _finger:
+		# PT-26 (2026-11-07): the ghost finger's two-line hint is room taken too, so a bubble
+		# (the Marszałkowska roadworks sign by the start) keeps off the words that teach steering.
+		_taken.append(finger_hint_rect())
 	var car_zone_added := false
 	for c in _floating:
 		if not car_zone_added and not c in [_status, _police_pill, _card, _challenge] and not _panel_spots.has(c):
@@ -3124,11 +3128,57 @@ func ghost_finger(on: bool) -> void:
 		return
 	_finger = on
 	_finger_t = 0.0
+	_dirty = true  # PT-26: the hint's room (panel_rects) comes and goes with it
 	_pad.queue_redraw()
 
 
 func finger_shown() -> bool:
 	return _finger
+
+
+## The ghost finger's two-line hint for the scheme and input now: {"lines", "at" (the first
+## line's baseline), "w"}; both _draw_finger and _draw_finger_classic draw it from here.
+func _finger_hint() -> Dictionary:
+	var font := ThemeDB.fallback_font
+	var fs := _px(T_BODY)
+	var fs2 := _px(T_SUB)
+	var lines: Array
+	if scheme == CLASSIC:
+		lines = ["Przesuń w lewo / prawo i trzymaj GAZ", "Slide left / right to steer, hold GAS to go"]
+		if pad_mode:
+			lines = [Gamepad.fmt("Lewa gałka: skręt · {rt}: gaz · {lt}: hamulec"), Gamepad.fmt("Left stick steers, {rt} gas, {lt} brake")]
+		elif touch_off:
+			lines = ["A / D: skręt · W: gaz · S: hamulec", "A / D steer, W gas, S brake"]
+	else:
+		lines = ["Połóż palec i wskaż, dokąd jechać", "Put a finger down and point the way"]
+		if pad_mode:
+			lines = ["Lewa gałka: wskaż, dokąd jechać", "Left stick: point the way"]
+		elif touch_off:
+			lines = ["W A S D albo strzałki: jazda", "W A S D or the arrow keys to drive"]
+	var w := maxf(font.get_string_size(lines[0], HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x, font.get_string_size(lines[1], HORIZONTAL_ALIGNMENT_LEFT, -1, fs2).x)
+	var at: Vector2
+	if scheme == CLASSIC:
+		# Above the strip's plate (and its thumb), starting at the plate's outer end.
+		var strip := _strip_hint_centre()
+		at = Vector2(strip.x - 52.0 * pt if not left_handed else strip.x + 52.0 * pt - w, strip.y - 30.0 * pt - fs2 - 6.0 * pt)
+	else:
+		# Right of the stick's circle, level with it: above it the wallet and the minimap sit, below
+		# it the credit line (the first shots had the hint under the wallet).
+		at = _finger_origin() + Vector2(STICK_R * pt * 1.25 + 18.0 * pt, -(fs2 + 6.0 * pt) * 0.5)
+	at.x = clampf(at.x, _safe.position.x + EDGE * pt, _safe.end.x - EDGE * pt - w)
+	return {"lines": lines, "at": at, "w": w}
+
+
+## PT-26: the box the ghost finger's hint takes on screen (both lines, a little margin).
+func finger_hint_rect() -> Rect2:
+	var font := ThemeDB.fallback_font
+	var h := _finger_hint()
+	var at: Vector2 = h["at"]
+	var fs := _px(T_BODY)
+	var fs2 := _px(T_SUB)
+	var top := at.y - font.get_ascent(fs)
+	var bottom := at.y + fs2 + 6.0 * pt + font.get_descent(fs2)
+	return Rect2(at.x, top, float(h["w"]), bottom - top).grow(4.0 * pt)
 
 
 ## Where the ghost finger presses: the stick's side of the screen (main.gd's --stick spot).
@@ -3149,12 +3199,9 @@ func _draw_finger() -> void:
 	var o := _finger_origin()
 	var font := ThemeDB.fallback_font
 	var k := fmod(_finger_t, FINGER_LOOP) / FINGER_LOOP
-	var lines := ["Połóż palec i wskaż, dokąd jechać", "Put a finger down and point the way"]
-	if pad_mode:
-		lines = ["Lewa gałka: wskaż, dokąd jechać", "Left stick: point the way"]
-	elif touch_off:
-		lines = ["W A S D albo strzałki: jazda", "W A S D or the arrow keys to drive"]
-	else:
+	var hint := _finger_hint()
+	var lines: Array = hint["lines"]
+	if not (pad_mode or touch_off):
 		var press := clampf(k / 0.15, 0.0, 1.0) * clampf((1.0 - k) / 0.15, 0.0, 1.0)
 		var drag := clampf((k - 0.2) / 0.55, 0.0, 1.0)
 		drag = drag * drag * (3.0 - 2.0 * drag)
@@ -3167,11 +3214,7 @@ func _draw_finger() -> void:
 		_pad.draw_circle(tip, 16.0 * pt, Color(INK, 0.8 * press))
 	var fs := _px(T_BODY)
 	var fs2 := _px(T_SUB)
-	# Right of the stick's circle, level with it: above it the wallet and the minimap sit, below
-	# it the credit line (the first shots had the hint under the wallet).
-	var at := o + Vector2(STICK_R * pt * 1.25 + 18.0 * pt, -(fs2 + 6.0 * pt) * 0.5)
-	var w := maxf(font.get_string_size(lines[0], HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x, font.get_string_size(lines[1], HORIZONTAL_ALIGNMENT_LEFT, -1, fs2).x)
-	at.x = clampf(at.x, _safe.position.x + EDGE * pt, _safe.end.x - EDGE * pt - w)
+	var at: Vector2 = hint["at"]
 	var outline := _px(3.0)
 	_pad.draw_string_outline(font, at, lines[0], HORIZONTAL_ALIGNMENT_LEFT, -1, fs, outline, OUTLINE)
 	_pad.draw_string(font, at, lines[0], HORIZONTAL_ALIGNMENT_LEFT, -1, fs, INK)
@@ -3187,12 +3230,9 @@ func _draw_finger_classic() -> void:
 	var font := ThemeDB.fallback_font
 	var k := fmod(_finger_t, FINGER_LOOP) / FINGER_LOOP
 	var strip := _strip_hint_centre()
-	var lines := ["Przesuń w lewo / prawo i trzymaj GAZ", "Slide left / right to steer, hold GAS to go"]
-	if pad_mode:
-		lines = [Gamepad.fmt("Lewa gałka: skręt · {rt}: gaz · {lt}: hamulec"), Gamepad.fmt("Left stick steers, {rt} gas, {lt} brake")]
-	elif touch_off:
-		lines = ["A / D: skręt · W: gaz · S: hamulec", "A / D steer, W gas, S brake"]
-	else:
+	var hint := _finger_hint()
+	var lines: Array = hint["lines"]
+	if not (pad_mode or touch_off):
 		var press := clampf(k / 0.12, 0.0, 1.0) * clampf((1.0 - k) / 0.12, 0.0, 1.0)
 		# GAZ: held down for the whole loop (a soft ring pulses round it).
 		var gc := _gas_centre()
@@ -3206,10 +3246,7 @@ func _draw_finger_classic() -> void:
 		_pad.draw_circle(tip, 16.0 * pt, Color(INK, 0.8 * press))
 	var fs := _px(T_BODY)
 	var fs2 := _px(T_SUB)
-	var w := maxf(font.get_string_size(lines[0], HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x, font.get_string_size(lines[1], HORIZONTAL_ALIGNMENT_LEFT, -1, fs2).x)
-	# Above the strip's plate (and its thumb), starting at the plate's outer end.
-	var at := Vector2(strip.x - 52.0 * pt if not left_handed else strip.x + 52.0 * pt - w, strip.y - 30.0 * pt - fs2 - 6.0 * pt)
-	at.x = clampf(at.x, _safe.position.x + EDGE * pt, _safe.end.x - EDGE * pt - w)
+	var at: Vector2 = hint["at"]
 	var outline := _px(3.0)
 	_pad.draw_string_outline(font, at, lines[0], HORIZONTAL_ALIGNMENT_LEFT, -1, fs, outline, OUTLINE)
 	_pad.draw_string(font, at, lines[0], HORIZONTAL_ALIGNMENT_LEFT, -1, fs, INK)
@@ -3502,28 +3539,40 @@ func _edge_box(tip: Vector2, w: float, h: float, a: float) -> Rect2:
 
 ## PT-10: the edge arrow's tip, moved along the edge of `inside` to the nearest spot where the
 ## arrow and its distance are clear of the floating panels (cards, banner, toast, ticker) and the
-## speech bubbles; with no clear spot within reach it stays where it pointed.
+## speech bubbles. PT-27 (2026-11-07): with no clear spot within reach it no longer stays where it
+## pointed (a job's long "KEBAB 1948 m" sat on BRAKE): it takes the spot that covers least, and
+## never one on a pedal or button the thumb needs while another spot keeps off them.
 func _edge_spot(tip: Vector2, inside: Rect2, w: float, h: float, a: float) -> Vector2:
 	var blocks := _blocks(false)
 	if blocks.is_empty():
 		return tip
+	var hard := _pedal_rects()
 	# Along the left and right edges the tip moves up and down; along the top and bottom, sideways.
 	var along := Vector2(0, 1) if absf(tip.x - inside.position.x) < 0.5 or absf(tip.x - inside.end.x) < 0.5 else Vector2(1, 0)
 	var step := 12.0 * pt
+	var best := tip
+	var best_cost := INF
 	for k in 25:
 		for sgn: float in ([1.0] if k == 0 else [1.0, -1.0]):
 			var p := tip + along * step * k * sgn
 			if not inside.grow(0.5).has_point(p):
 				continue
 			var box := _edge_box(p, w, h, a)
-			var clear := true
+			var cost := 0.0
 			for r in blocks:
 				if r.intersects(box):
-					clear = false
-					break
-			if clear:
+					cost += r.intersection(box).get_area() + 1.0
+			if cost == 0.0:
 				return p
-	return tip
+			for r in hard:
+				if r.intersects(box):
+					cost += 1e9
+			# Nearer spots win a tie, so the arrow still points roughly the right way.
+			cost += k * 0.01
+			if cost < best_cost:
+				best_cost = cost
+				best = p
+	return best
 
 
 # --- loop 3g-1: the police -----------------------------------------------------------------------

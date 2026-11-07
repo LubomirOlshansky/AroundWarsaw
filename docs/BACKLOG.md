@@ -68,7 +68,7 @@ strict three-question door, Smoła's cutaway room (option A). Left:
 - [ ] Portraits and icons in one style (PixelLab, on the Mac with F's OK, about 50 generations): Ziomek, Bartek, LEKTI, Pan Kołek and the doorman on the call cards, icons for the door's questions
 - [ ] Techno tracks for MORDOR FM (it has one mall track, so "pick a track" in the room is not built yet); ElevenLabs Music on F's Creator plan, then a track button in the room
 - [ ] Phone check: the rig's beams and strobe at night, the room's look and the TAŃCZ timing on the iPhone; bench by an active spot (4 draw calls expected) and inside the room (3-4)
-- [ ] Other cards (rides, jobs) can still pop up during the quest; hold them while it runs
+- [x] Other cards held during the quest (2026-11-07): no Podwózka request or "Na czasie" card while the rave run, the club or Bartek's tow is on (`main.gd`, `rides.away`); the calls were already held
 - [ ] The dawn after: leaving at 05:00-06:00, Ziomek's last line, the city in the dawn look
 - [ ] Opaski (wristbands) collected per spot, a card in the notebook
 - [ ] Option B: a walk-around room (a person controller inside), only if A plays well
@@ -139,8 +139,10 @@ Left:
 
 - PT-23 (S2): the tow offer never comes while the ride button is up; a pinned car gets no help.
 - PT-24 (suspect): backing off a wall resets the stall timer, so the offer may never come.
-- PT-25 (suspect): crazy drivers honk but said no line in 5 cut-ins.
-- PT-26, PT-27 (S3): a bubble over the steering hint; the KEBAB label over BRAKE.
+- Found 2026-11-07: `check_edge_roadworks` W3 reports lane 0 of edge 4520 (Bonifraterska) running off the
+  map at -1727,-2317 past the barriers, on plain main too with the cloud's map pack (CI's map job skips it).
+- Found 2026-11-07: at 1266x585 (the Autopilot's window) Settings' 'Średnio' fills its button to the
+  pixel (check_hud flags it if that size joins SCREENS); desktop only, phones pass.
 
 ## Road design rollout: every street on the map (F, 2026-11-06; docs/design/road-design-rollout.md)
 

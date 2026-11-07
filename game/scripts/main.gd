@@ -765,6 +765,7 @@ const TELEPORT_TESTS := [
 	[1700.0, 973.0, "over the river by Most Łazienkowski"],
 	[-1013.0, -45.0, "Marszałkowska at the start"],
 	[-387.0, -187.0, "Nowy Świat"],
+	[-700.0, 900.0, "PT-19: the hold that twice left the car in place"],
 ]
 var hold_stick := Vector2.INF
 var hold_pedal := ""
@@ -4955,10 +4956,7 @@ func _open_full_map() -> void:
 	if quest_tab_flag >= 0:
 		hud.full_map.show_line(quest_tab_flag)
 		quest_tab_flag = -1
-	if not hud.full_map.closed.is_connected(_close_full_map):
-		hud.full_map.closed.connect(_close_full_map)
-		hud.full_map.teleport.connect(_teleport_from_map)
-		hud.full_map.quest_picked.connect(_on_quest_picked)
+	_wire_full_map()
 	if quest_pick_flag >= 0:
 		var rows: Array = hud.full_map.quest_rows
 		print("quest list: %d rows on the %s tab: %s" % [rows.size(), "HELI" if flying else "AUTO",
@@ -4967,7 +4965,18 @@ func _open_full_map() -> void:
 		quest_pick_flag = -1
 		if hud.full_map.is_open():
 			hud.full_map.close()
-		hud.full_map.can_teleport = _teleport_refusal
+
+
+## The full map's signals and its refusal, once. PT-19 (2026-11-07): `can_teleport` sat under
+## the quest-pick test flag since G12 part 2, so in play a hold teleported mid-race, mid-job or
+## mid-chase with no "not now".
+func _wire_full_map() -> void:
+	if hud.full_map.closed.is_connected(_close_full_map):
+		return
+	hud.full_map.closed.connect(_close_full_map)
+	hud.full_map.teleport.connect(_teleport_from_map)
+	hud.full_map.quest_picked.connect(_on_quest_picked)
+	hud.full_map.can_teleport = _teleport_refusal
 
 
 ## G12 part 2: what the ZADANIA card lists now (quest_lines.gd entries). AUTO: the kebab stands,
@@ -5147,6 +5156,15 @@ func _teleport_from_map(p: Vector2) -> void:
 ## GAMEPLAY_PLAN 0.1: --teleport-test (see TELEPORT_TESTS).
 func _teleport_test() -> void:
 	var bad := 0
+	# PT-19: the map's hold asks main.gd first (a race, a job, a rescue, a chase say no).
+	if hud.full_map == null:
+		hud.open_full_map(Vector2.ZERO, 0.0, PackedVector2Array())  # makes the map (the title may be up)
+	_wire_full_map()
+	if hud.full_map == null or not hud.full_map.can_teleport.is_valid():
+		bad += 1
+		push_error("teleport test: the full map has no refusal (can_teleport), so a hold teleports mid-race")
+	if hud.full_map != null and hud.full_map.is_open():
+		hud.full_map.close()
 	for t: Array in TELEPORT_TESTS:
 		var asked := Vector2(t[0], t[1])
 		_teleport_from_map(asked)
@@ -6045,6 +6063,10 @@ func _process(dt: float) -> void:
 		# Loop 2d-1: no ride is offered from the helicopter, on the title screen or the bench.
 		rides.flying = flying or boating
 		rides.away = title != null or _bench_ghost != null or _phone_bench
+		# 2026-11-07 (BACKLOG "Secret rave"): no ride or "Na czasie" card while Ziomek's rave run,
+		# the club or Bartek's tow is on (their calls already held the rescue calls).
+		rides.away = rides.away or (rave != null and rave.busy()) or (club != null and club.inside) \
+				or (ev_tow != null and ev_tow.busy())
 		if trend_job != null:
 			trend_job.flying = flying or boating
 			trend_job.player_pos = pos
