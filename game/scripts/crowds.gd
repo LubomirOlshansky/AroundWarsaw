@@ -369,6 +369,14 @@ const FIRST_SCENE := {
 	# Chmielna lies past the start box's edge).
 	"street_wiecha_north": [90.0, 69.0, 8, 8.0, true],
 }
+## The Palace of Culture's venues (F, 2026-11-07): Bar Studio's garden (landmarks.gd
+## pkin_studio_plan, sitters in its deck chairs on the jazz café's curve: a summer evening's
+## garden) and the evening audiences outside the Palace's stages (Landmarks.pkin_theatre_doors):
+## id -> most people. Same machinery as CHILL on the `theatre` curve (theatre_level).
+const STUDIO_ID := "bar_studio"
+const THEATRES := {"theatre_dramatyczny": 16, "theatre_studio": 12, "theatre_kinoteka": 14, "theatre_kongresowa": 22}
+## The stages' weekday factor *guess*, Monday first: most are dark on Mondays, full at weekends.
+const THEATRE_WEEKDAY := [0.15, 0.7, 0.75, 0.8, 1.0, 1.0, 0.85]
 ## The boulevard's reach (m) round a BULWARY spot: the view this near it is "on the boulevards".
 const BULWARY_R := 90.0
 ## KROWA 2.0, the milk bar in Norblin (our parody; a bar mleczny rebuilt as a start-up): it opens
@@ -439,6 +447,9 @@ const CURVES := {
 			3: 0.25},
 	# *guess*: 20 walkers at the edges of 05-09, 40 at the peak
 	"dawn": {5: 0.5, 6: 1.0, 7: 1.0, 8: 0.4},
+	# *guess*: the Palace's stages (THEATRES): the audience gathers from 18:30 for a 19:00 curtain,
+	# smokes at the interval near 20:30 and pours out at 21:30-22:00
+	"theatre": {17: 0.1, 18: 0.55, 19: 0.9, 20: 0.35, 21: 0.6, 22: 0.8, 23: 0.15},
 }
 ## vision 4.5's weekday factor *guess*, Monday first, by the night's day (01:00 Saturday is
 ## Friday's night).
@@ -774,6 +785,13 @@ static func club_level(hour: float, weekday: int, month: int, rain: bool) -> flo
 			* (0.3 if rain else 1.0), 1.0)
 
 
+## The Palace stages' audience level 0..1: the `theatre` curve x THEATRE_WEEKDAY (no night-day
+## shift: the last show ends before midnight); the season runs all year, rain keeps a half under
+## the porticoes *guess*.
+static func theatre_level(hour: float, weekday: int, rain: bool) -> float:
+	return curve_at("theatre", hour) * float(THEATRE_WEEKDAY[clampi(weekday, 1, 7) - 1]) * (0.5 if rain else 1.0)
+
+
 ## First scene item 6: the start's street level 0..1 (FIRST_SCENE): the `street` curve, winter keeps
 ## 60 % (people still buy papers and coffee), rain a third *guess*.
 static func street_level(hour: float, month: int, rain: bool) -> float:
@@ -1056,6 +1074,11 @@ func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
 		var ss: Array = SOWA[sid]
 		_add_site({"id": sid, "kind": "chill", "club": true, "sit": false, "at": ss[0], "max": int(ss[1]), "radius": float(ss[2]),
 				"talk": "sowa_club"})
+	var studio := Landmarks.pkin_studio_plan()
+	_add_site({"id": STUDIO_ID, "kind": "jazz_cafe", "at": studio["centre"], "max": (studio["seats"] as Array).size(), "plan": studio})
+	var doors := Landmarks.pkin_theatre_doors()
+	for tid: String in THEATRES:
+		_add_site({"id": tid, "kind": "chill", "theatre": true, "sit": false, "at": doors[tid], "max": int(THEATRES[tid]), "radius": 10.0})
 	for fid: String in FIRST_SCENE:
 		var fs: Array = FIRST_SCENE[fid]
 		_add_site({"id": fid, "kind": "chill", "street": true, "sit": bool(fs[4]), "at": first_scene_at(float(fs[0]), float(fs[1])),
@@ -2028,6 +2051,8 @@ func tick(step: float) -> void:
 					lvl = pub_level(hour, weekday, month, rain)
 				if bool(s.get("club", false)):
 					lvl = club_level(hour, weekday, month, rain)
+				if bool(s.get("theatre", false)):
+					lvl = theatre_level(hour, weekday, rain)
 				want = roundi(int(s["max"]) * k * lvl)
 			"stop":
 				want = roundi(int(s["max"]) * k * maxf(stop_level(hour, weekday, rain), float(s.get("floor", 0.0))))

@@ -2666,6 +2666,259 @@ func _build_palace(site: Dictionary) -> void:
 	# Two rings on the spire.
 	_prism(_rect(0.0, 0.0, 1.3, 1.3), g + 214.0, g + 215.0, SPIRE_GOLD, SPIRE_GOLD, M_GOLD, M_GOLD)
 	_prism(_rect(0.0, 0.0, 1.0, 1.0), g + 225.0, g + 225.8, SPIRE_GOLD, SPIRE_GOLD, M_GOLD, M_GOLD)
+	_palace_venues(g)
+
+
+# --- The Palace's venues (F, 2026-11-07: "add the entertainment the Palace has, Bar Studio and the others")
+
+## The Palace's frame as _palace_frame's fallback measures it, for the static plans crowds.gd
+## reads (the model and the crowd must agree without a built map).
+const PKIN_O := Vector2(-1214.25, 247.3)
+const PKIN_A := Vector2(0.9403, -0.3404)
+const PKIN_B := Vector2(0.3404, 0.9403)
+## The venues' lit names on the faces the camera sees (+v, BEHIND_FACE), over their real doors
+## (OSM's amenity points, docs/inventory/osm_candidates.json): [lines, u, v (the face), y0, y1
+## over the ground, most width, tube]. Kinoteka over the south block's door, the bar Kulturalna
+## beside it, Teatr Dramatyczny on the south-east pavilion's end, Muzeum Techniki on the
+## south-west one's, Sala Kongresowa on the hall's south front over the base's roof and the
+## 30th-floor terrace's name under its ledge (Teatr Studio's name is cut in its portico, below). Real names: they are public stages and museums (place names).
+const PKIN_SIGNS := [
+	[["KINOTEKA"], 0.0, 69.25, 7.0, 10.0, 12.5, Color(1.0, 0.72, 0.25)],
+	[["KULTURALNA"], 14.7, 60.25, 3.6, 5.0, 4.6, Color(1.0, 0.45, 0.35)],
+	[["TEATR", "DRAMATYCZNY"], 68.2, 132.45, 15.5, 21.0, 12.5, Color(1.0, 0.9, 0.7)],
+	[["MUZEUM", "TECHNIKI"], -66.0, 132.55, 15.5, 21.0, 11.5, Color(0.75, 0.9, 1.0)],
+	[["SALA", "KONGRESOWA"], -72.6, 33.45, 18.4, 22.3, 14.0, Color(1.0, 0.86, 0.55)],
+	[["TARAS", "30 PIĘTRO"], 0.0, 21.75, 103.5, 110.5, 18.0, Color(1.0, 0.86, 0.55)],
+]
+## Teatr Studio's portico and Bar Studio (F's photos 2026-11-07: the portico by day and at dusk,
+## the bar in the colonnade, the forecourt's corten planters). The portico fills the recess in
+## the north-east wing's east front (u 84.2 back wall, the bays' fronts at u 89.3, v -110.9 to
+## -79.1): six columns on a platform with four steps down to the square, the entablature with
+## TEATR STUDIO cut in it, THE FUTURE SHOULD ALWAYS BE BETTER in neon on the band over it,
+## pale-blue poster banners in the middle bays and orange ones in the outer two, warm lights
+## strung between the columns, the bar's glazed doors lit at the back. Bar Studio's tables
+## stand in the colonnade and under pale-blue umbrellas on the square at the steps' foot, with
+## potted palms between them and the lit BAR letters on the north cheek of the steps.
+const PKIN_PORT_U := Vector2(84.2, 89.3)
+const PKIN_PORT_V := Vector2(-110.9, -79.1)
+const PKIN_COL_U := 87.9
+const PKIN_COL_R := 0.8
+const PKIN_PLATFORM := 0.9
+const PKIN_STEP_DEEP := 0.5
+const PKIN_UMBRELLA := Color("#9db3bd")
+const PKIN_BANNERS := [Color("#d0613a"), Color("#b9cfd6"), Color("#a7bfcb"), Color("#b9cfd6"), Color("#d0613a")]
+## The umbrella tables on the square: [u, v] in two rows at the steps' foot.
+const PKIN_UMBRELLAS := [[94.6, -106.0], [94.6, -100.0], [94.6, -94.0], [94.6, -88.0], [94.6, -82.0],
+		[99.6, -103.0], [99.6, -97.0], [99.6, -91.0], [99.6, -85.0]]
+const PKIN_PALMS := [[92.3, -103.0], [92.3, -97.0], [92.3, -91.0], [92.3, -85.0], [92.3, -109.0], [92.3, -80.5]]
+## Plac Nowego Sąsiedztwa's corten planters (Teatr Studio's square, 2024): [u, v, kind] on the
+## forecourt beyond the tables; kind 0 a round-crowned tree, 1 a spiral topiary. Wooden bench
+## tops on their west and south sides.
+const PKIN_PLANTERS := [[107.0, -107.0, 0], [107.0, -93.0, 1], [107.0, -79.0, 0], [115.0, -100.0, 0],
+		[115.0, -86.0, 0], [123.0, -107.0, 1], [123.0, -79.0, 0]]
+const PKIN_CORTEN := Color("#8b4a26")
+const PKIN_WOOD := Color("#b98552")
+## "Zieleń nad betonem" (Teatr Studio, 2022): the 40 m² bed cut into the slab, a ginkgo in the
+## middle among sage, verbena, cranesbill, coneflowers and white anemones. [u0, v0, u1, v1].
+const PKIN_BED := [112.0, -71.0, 120.0, -66.0]
+
+
+## The columns' v, evenly across the recess.
+static func pkin_columns() -> Array:
+	var out: Array = []
+	for i in 6:
+		out.append(lerpf(PKIN_PORT_V.x + 2.6, PKIN_PORT_V.y - 2.6, i / 5.0))
+	return out
+
+
+## Bar Studio's plan (model and crowds.gd): umbrella tables [p, yaw] (yaw for _umbrella, its
+## square on the Palace's grid) and seats [p, sitter's yaw], two per table facing it.
+static func pkin_studio_plan() -> Dictionary:
+	var tables: Array = []
+	var seats: Array = []
+	var yaw := atan2(PKIN_A.x, PKIN_A.y)
+	var mid := Vector2.ZERO
+	for t: Array in PKIN_UMBRELLAS:
+		var p := PKIN_O + PKIN_A * float(t[0]) + PKIN_B * float(t[1])
+		tables.append([p, yaw])
+		seats.append([p + PKIN_B * 0.8, atan2(PKIN_B.x, PKIN_B.y)])
+		seats.append([p - PKIN_B * 0.8, atan2(-PKIN_B.x, -PKIN_B.y)])
+		mid += p
+	return {"tables": tables, "seats": seats, "centre": mid / float(PKIN_UMBRELLAS.size())}
+
+
+## Where the evening audiences gather (crowds.gd THEATRES reads it): before the doors of Teatr
+## Dramatyczny, Teatr Studio (on the square past Bar Studio's tables), the Kinoteka and Sala
+## Kongresowa, 2-4 m out of their faces.
+static func pkin_theatre_doors() -> Dictionary:
+	return {
+		"theatre_dramatyczny": PKIN_O + PKIN_A * 68.0 + PKIN_B * 136.0,
+		"theatre_studio": PKIN_O + PKIN_A * 103.5 + PKIN_B * -95.0,
+		"theatre_kinoteka": PKIN_O + PKIN_A * 0.0 + PKIN_B * 73.0,
+		"theatre_kongresowa": PKIN_O + PKIN_A * -72.0 + PKIN_B * 37.0,
+	}
+
+
+func _palace_venues(g: float) -> void:
+	for s: Array in PKIN_SIGNS:
+		var at := _w(float(s[1]), float(s[2]))
+		_dtc_words(s[0], at, _b, g + float(s[3]), g + float(s[4]), float(s[5]), 4.0, s[6])
+	_pkin_portico(g)
+	_pkin_bar()
+	_pkin_square()
+
+
+func _pkin_portico(g: float) -> void:
+	var u0 := PKIN_PORT_U.x
+	var u1 := PKIN_PORT_U.y
+	var v0 := PKIN_PORT_V.x
+	var v1 := PKIN_PORT_V.y
+	var vc := (v0 + v1) * 0.5
+	var hv := (v1 - v0) * 0.5
+	var front := _w(u1, vc)
+	var gp: float = map.terrain_height(front.x, front.y)
+	var top := gp + PKIN_PLATFORM
+	_mode = M_STONE
+	# The platform and the four steps down to the square.
+	_prism(_rect((u0 + u1) * 0.5, vc, (u1 - u0) * 0.5, hv), gp - 0.3, top, SANDSTONE.darkened(0.05), SANDSTONE_LIGHT, M_STONE, M_STONE)
+	for k in 4:
+		var su := u1 + PKIN_STEP_DEEP * (k + 0.5)
+		var sy := top - PKIN_PLATFORM * (k + 1) / 5.0
+		_prism(_rect(su, vc, PKIN_STEP_DEEP * 0.5, hv), gp - 0.3, sy, SANDSTONE.darkened(0.08), SANDSTONE_LIGHT.darkened(0.03), M_STONE, M_STONE)
+	# The cheeks at the steps' ends (BAR stands on the north one).
+	var cheek_u := u1 + PKIN_STEP_DEEP * 2.0
+	for cv: float in [v0 - 1.0, v1 + 1.0]:
+		_prism(_rect(cheek_u, cv, PKIN_STEP_DEEP * 2.0 + 0.1, 1.0), gp - 0.3, top + 0.2, SANDSTONE.darkened(0.06), SANDSTONE_LIGHT, M_STONE, M_STONE)
+	_collide(_rect((u0 + u1 + PKIN_STEP_DEEP * 4.0) * 0.5, vc, (u1 - u0 + PKIN_STEP_DEEP * 4.0) * 0.5, hv + 2.0))
+	# The bar's doors at the back of the colonnade: a tall lit door on the axis, two lower beside it.
+	_mode = M_PAVILION
+	for d: Array in [[vc, 2.0, 5.2], [vc - 6.6, 1.5, 4.2], [vc + 6.6, 1.5, 4.2]]:
+		_wall(_w(u0 + 0.05, float(d[0]) - float(d[1])), _w(u0 + 0.05, float(d[0]) + float(d[1])), top, top + float(d[2]), _a, Color("#c9a35f"))
+	_mode = M_STONE
+	# The columns, and the entablature over them to the base's top.
+	var cols := pkin_columns()
+	for cv: float in cols:
+		_column(PKIN_COL_U, cv, PKIN_COL_R, top, g + 11.8, SANDSTONE_LIGHT)
+	_prism(_rect((u0 + u1) * 0.5, vc, (u1 - u0) * 0.5, hv), g + 11.8, g + 18.0, SANDSTONE_LIGHT, SANDSTONE.darkened(0.12), M_STONE, M_STONE)
+	_prism(_rect((u0 + u1 + 0.6) * 0.5, vc, (u1 - u0 + 0.6) * 0.5, hv), g + 14.6, g + 15.0, SANDSTONE_LIGHT.lightened(0.05), SANDSTONE_LIGHT, M_STONE, M_STONE)
+	# The banners between the columns, a little behind their faces.
+	for i in 5:
+		var a: float = cols[i] + PKIN_COL_R + 0.3
+		var b: float = cols[i + 1] - PKIN_COL_R - 0.3
+		var w := (b - a) if i in [1, 2, 3] else 1.2
+		var mv := (a + b) * 0.5
+		var p0 := _w(PKIN_COL_U - 0.1, mv - w * 0.5)
+		var p1 := _w(PKIN_COL_U - 0.1, mv + w * 0.5)
+		var y0 := top + (2.6 if i in [1, 2, 3] else 3.2)
+		var y1 := top + 8.6
+		_quad(Vector3(p0.x, y0, p0.y), Vector3(p1.x, y0, p1.y), Vector3(p1.x, y1, p1.y), Vector3(p0.x, y1, p0.y), Vector3(_a.x, 0, _a.y), PKIN_BANNERS[i])
+	# Warm lights strung between the columns' fronts.
+	for i in 5:
+		var a := _w(PKIN_COL_U + PKIN_COL_R, cols[i])
+		var b := _w(PKIN_COL_U + PKIN_COL_R, cols[i + 1])
+		_pow_festoon(Vector3(a.x, top + 2.6, a.y), Vector3(b.x, top + 2.6, b.y), 0.35, 6)
+	# The lettering: TEATR STUDIO cut in the entablature, lit warm white at night; the neon line
+	# on the band over the cornice, in its four pieces left to right (towards -v).
+	var face := u1 + 0.05
+	_pkin_row(["TEATR", "STUDIO"], face, vc, g + 12.6, 1.5, 2.5, Color(1.0, 0.95, 0.85))
+	_pkin_row(["THE FUTURE", "SHOULD", "ALWAYS BE", "BETTER"], face, vc, g + 15.6, 0.95, 0.6, Color(0.8, 0.95, 1.0))
+
+
+## A row of lit words on a +u face at u, centred on v = vc, bottom y, letters `tall` metres high,
+## `gap` between them; read left to right as someone facing the face sees it (towards -v).
+func _pkin_row(words: Array, u: float, vc: float, y: float, tall: float, gap: float, ink: Color) -> void:
+	var k := tall / (Neon.ROW_H * Neon.PIXEL)
+	var total := -gap
+	for wd: String in words:
+		total += Neon.length_of(wd) * k + gap
+	var v := vc + total * 0.5
+	for wd: String in words:
+		var wl := Neon.length_of(wd) * k
+		var at := _w(u, v - wl * 0.5)
+		signs.append([wd, Vector3(at.x, y, at.y), Vector3(_a.x, 0.0, _a.y), k, ink])
+		v -= wl + gap
+
+
+## Bar Studio: bistro tables in the colonnade, the umbrella tables and palms on the square, the
+## lit BAR letters on the steps' north cheek.
+func _pkin_bar() -> void:
+	var front := _w(PKIN_PORT_U.y, (PKIN_PORT_V.x + PKIN_PORT_V.y) * 0.5)
+	var gp: float = map.terrain_height(front.x, front.y)
+	var top := gp + PKIN_PLATFORM
+	var cols := pkin_columns()
+	_mode = M_STONE
+	for i in 5:
+		var mv: float = (cols[i] + cols[i + 1]) * 0.5
+		for tu: float in [85.6, 87.4]:
+			_lbox(tu, mv, 0.04, 0.04, top, top + 0.74, POW_DARK, M_STONE)
+			_lbox(tu, mv, 0.36, 0.36, top + 0.72, top + 0.76, RYNEK_TABLE, M_STONE)
+			for s: float in [-0.75, 0.75]:
+				_lbox(tu, mv + s, 0.2, 0.2, top, top + 0.45, POW_DARK, M_STONE)
+	# BAR on the north cheek, facing the square.
+	var cheek := _w(PKIN_PORT_U.y + PKIN_STEP_DEEP * 2.0, PKIN_PORT_V.x - 1.0)
+	_dtc_words(["BAR"], cheek + _a * (PKIN_STEP_DEEP * 2.0 + 0.15), _a, top + 0.25, top + 1.5, 2.6, 1.2, Color(1.0, 0.93, 0.78))
+	# The palms in tubs.
+	for pl: Array in PKIN_PALMS:
+		var p := _w(float(pl[0]), float(pl[1]))
+		var y: float = map.terrain_height(p.x, p.y)
+		_prism(_square(p, 0.38), y, y + 0.65, Color("#3b3d40"), Color("#4a3a2c"), M_STONE, M_STONE)
+		var crown := Vector3(p.x, y + 2.7, p.y)
+		_beam(Vector3(p.x, y + 0.6, p.y), crown, 0.16, Color("#7a6248"))
+		for f in 7:
+			var t := TAU * f / 7.0 + float(pl[1]) * 0.37
+			var tip := crown + Vector3(cos(t) * 1.3, -0.55, sin(t) * 1.3)
+			_beam(crown, tip, 0.34, Color("#4f7a3a").lightened(0.06 * (f % 3)))
+	# The umbrella tables (_umbrella moves the frame: put the Palace's back after).
+	var plan := pkin_studio_plan()
+	for t: Array in plan["tables"]:
+		var p: Vector2 = t[0]
+		_umbrella(p, float(t[1]), map.terrain_height(p.x, p.y), PKIN_UMBRELLA)
+	_palace_frame()
+
+
+## The forecourt's furniture: Plac Nowego Sąsiedztwa's corten planters with bench tops and their
+## trees, the ginkgo's flower bed.
+func _pkin_square() -> void:
+	_mode = M_STONE
+	for pl: Array in PKIN_PLANTERS:
+		var cu := float(pl[0])
+		var cv := float(pl[1])
+		var c := _w(cu, cv)
+		var y: float = map.terrain_height(c.x, c.y)
+		_lbox(cu, cv, 1.2, 1.2, y - 0.2, y + 0.9, PKIN_CORTEN, M_STONE, Color("#4a3a2c"))
+		_lbox(cu - 1.5, cv, 0.3, 1.2, y - 0.2, y + 0.46, PKIN_WOOD, M_STONE)
+		_lbox(cu, cv + 1.5, 1.5, 0.3, y - 0.2, y + 0.46, PKIN_WOOD, M_STONE)
+		_collide(_rect(cu - 0.15, cv + 0.15, 1.5, 1.5))
+		if int(pl[2]) == 1:
+			# A spiral topiary: stacked collars narrowing to the top.
+			for k in 6:
+				var r := 0.75 - 0.1 * k
+				_frustum(_circle(c, r * 0.6, 6), y + 0.9 + 0.42 * k, _circle(c, r, 6), y + 1.1 + 0.42 * k, Color("#4e7a36"))
+				_frustum(_circle(c, r, 6), y + 1.1 + 0.42 * k, _circle(c, r * 0.6, 6), y + 1.32 + 0.42 * k, Color("#5d8c40"))
+		else:
+			_prism(_square(c, 0.09), y + 0.9, y + 3.0, Color("#5a4636"), Color(0, 0, 0, 0), M_STONE)
+			_frustum(_circle(c, 0.5, 7), y + 2.7, _circle(c, 1.35, 7), y + 3.4, Color("#55853a"))
+			_frustum(_circle(c, 1.35, 7), y + 3.4, _circle(c, 0.45, 7), y + 4.3, Color("#62943f"), Color("#6ea047"))
+	# The flower bed: a granite kerb, dark soil, clumps in purple, blue, red and white, the ginkgo.
+	var b: Array = PKIN_BED
+	var bc := _w((b[0] + b[2]) * 0.5, (b[1] + b[3]) * 0.5)
+	var by: float = map.terrain_height(bc.x, bc.y)
+	_lbox((b[0] + b[2]) * 0.5, (b[1] + b[3]) * 0.5, (b[2] - b[0]) * 0.5, (b[3] - b[1]) * 0.5, by - 0.2, by + 0.22, Color("#a8a49c"), M_STONE, Color("#3d3128"))
+	var tones := [Color("#7a5aa6"), Color("#5a6fb0"), Color("#b0403a"), Color("#e8e6e0"), Color("#4e7a3a"), Color("#8a62b0")]
+	var n := 0
+	var u := float(b[0]) + 0.8
+	while u < float(b[2]) - 0.5:
+		var v := float(b[1]) + 0.7
+		while v < float(b[3]) - 0.4:
+			var q := _w(u + 0.3 * sin(v * 3.1), v)
+			var r := 0.45 + 0.12 * ((n * 7) % 3)
+			_frustum(_circle(q, r, 6), by + 0.22, _circle(q, r * 0.5, 6), by + 0.75 + 0.1 * (n % 3), tones[n % tones.size()])
+			n += 1
+			v += 1.3
+		u += 1.5
+	_prism(_square(bc, 0.12), by + 0.22, by + 2.2, Color("#5a4636"), Color(0, 0, 0, 0), M_STONE)
+	_frustum(_circle(bc, 0.9, 7), by + 1.8, _circle(bc, 0.2, 7), by + 5.4, Color("#9bbb4a"))
+	_collide(_rect((b[0] + b[2]) * 0.5, (b[1] + b[3]) * 0.5, (b[2] - b[0]) * 0.5, (b[3] - b[1]) * 0.5))
 
 
 ## A clock dial facing `n` (plan, unit) centred at plan point c, height y: a cream disc

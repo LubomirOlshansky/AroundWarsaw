@@ -4,6 +4,33 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## The Palace of Culture's grounds and venues (F, 2026-11-07, with F's aerial photo)
+
+Built: the walls OSM maps round the Palace's beds and raised lawns (59 retaining walls, planters)
+are knee-high granite planters (0.65 m, 1 m balustrade at steps) instead of 1.9 m grey walls; the
+five shrub beds (natural=scrub, folded into lawn by the bake) are clipped bushes on dark soil; the
+Plac Defilad lot is asphalt with its 168 mapped bays painted, the 43 kerbside lots along the
+service roads are grey pavers (game/data/pkin_grounds.json, `tools/bake_pkin_grounds.py` from the
+raw OSM, Mac only). The venues at their OSM doors: KINOTEKA (its storefront sign stood 130 m west,
+across Emilii Plater; moved to the Palace's own), KULTURALNA, TEATR DRAMATYCZNY, MUZEUM TECHNIKI,
+SALA KONGRESOWA, TARAS 30 PIĘTRO under the terrace ledge. Teatr Studio's front from F's six photos
+(the portico by day and at dusk, Bar Studio in the colonnade, the corten planters): the six-column
+portico in the north-east wing's east recess with its steps, TEATR STUDIO cut in the entablature and
+the neon THE FUTURE SHOULD ALWAYS BE BETTER over it, poster banners, lights between the columns;
+Bar Studio's tables in the colonnade and under nine pale-blue umbrellas at the steps' foot with
+potted palms and the lit BAR on the north cheek; the forecourt in light granite with Plac Defilad's
+dark bands every 6 m (OSM's old TR Warszawa fence along the Palace dropped there, the 2025 photos
+show the square open), seven corten planters with bench tops and round-crowned trees or spiral
+topiary, and the 40 m² flower bed with its ginkgo ("Zieleń nad betonem", Teatr Studio 2022).
+Sitters at the tables (jazz café curve) and the evening audiences outside four stages (crowds.gd
+THEATRES, `theatre` curve, dark on Mondays). Left:
+- Mac/phone look check: the planters' height and colour against the real granite, the signs' size;
+  the planters' and the flower bed's exact spots (from photos, not a plan).
+- The north courtyard's car park and the Muzeum Ewolucji / Pałac Młodzieży doors (north side, faces
+  the camera never sees) have no sign; the terrace has no ticket queue at the east portico yet.
+- Joke billboard "UWAGA:" by the pigeons on Plac Defilad shows the camera its dark back.
+- The bake still turns scrub into plain lawn city-wide; only the Palace's beds are bushes.
+
 ## Ratusz Arsenał interchange and passengers (F, 2026-11-07, six photos)
 
 Built: `ratusz_hub.gd` (the arched tram canopies on the two Solidarności platforms, stops 09 and 10, lit arches at

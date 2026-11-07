@@ -99,7 +99,10 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		# design shop, the chemist, the bank), the roof screens' adverts and the car maker's name
 		# on the Chałubińskiego 8 tower behind.
 		"KASYNOS", "WAWKA", "KASYNKO", "LOD", "LINIE LODOWE", "LUZMED", "MROSTA", "TYGRYS", "KOPENHAGA",
-		"ROSZMAN", "MILENIUSZ", "PALUSZKI", "HYM", "LEKSUS", "CZERY"]
+		"ROSZMAN", "MILENIUSZ", "PALUSZKI", "HYM", "LEKSUS", "CZERY",
+		# The Palace of Culture's venues (F, 2026-11-07): its stages, cinema, bars, museum and terrace.
+		"KINOTEKA", "KULTURALNA", "TEATR", "DRAMATYCZNY", "MUZEUM", "TECHNIKI", "KONGRESOWA", "STUDIO",
+		"TARAS", "30 PIĘTRO", "LALKA", "THE FUTURE", "SHOULD", "ALWAYS BE", "BETTER"]
 ## Tube colours (linear, bright): pink, cyan, violet, and a few words' usual colours.
 const PINK := Color(1.0, 0.1, 0.55)
 const CYAN := Color(0.1, 0.9, 1.0)
