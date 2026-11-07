@@ -974,6 +974,8 @@ static func renew_parked(nodes: Array[Node]) -> bool:
 ## spoiler, round head lamps and light hub caps make it the one retro hot hatch in town.
 ## G13: `kind` "player" (the hatch) or "player_tt" (the shop's coupe, no roof spoiler).
 static func player_meshes(paint: Array, stripes: Array, kind := "player") -> Array[ArrayMesh]:
+	if kind == "player_bike":
+		return player_bike_meshes(paint, stripes)
 	var s := Shape.new()
 	var p := spec(kind)
 	_vehicle(s, p, paint, [], fin(Color("#2f3f52")), false)
@@ -1045,6 +1047,49 @@ static func player_meshes(paint: Array, stripes: Array, kind := "player") -> Arr
 	var deck := tails.edge_face(lower, lw, 4)
 	tails.pane(deck, 0.03, 0.26, 0.72, 1.0, fin(Color.WHITE), 0.02)
 	tails.pane(deck, 0.74, 0.97, 0.72, 1.0, fin(Color.WHITE), 0.02)
+	return [body, heads.mesh(), tails.mesh()]
+
+
+## The coffee run (coffee_run.gd): the player on a ROWERILO city bike, [body, head lamp, tail
+## lamp] like the cars (three draw calls, the same material). Facing -Z, the rider's shirt is the
+## hero paint (lit from within at night like the car), the helmet the stripes. The bike is drawn
+## 1.6x life size: at the 80 m view a true 1.8 m bike is a few pixels, and the joke needs reading.
+static func player_bike_meshes(paint: Array, stripes: Array) -> Array[ArrayMesh]:
+	var k := 1.6
+	var s := Shape.new()
+	var tyre := fin(TYRE)
+	var cream := fin(Color("#efe6cf"))
+	var grey := fin(Color("#8a8d91"))
+	var skin := fin(Color("#e2b48c"))
+	var jeans := fin(Color("#33415c"))
+	var black := fin(Color("#202024"))
+	# Wheels: dark discs with light hubs, the cream step-through frame, mudguards, the basket.
+	for z: float in [-0.55, 0.55]:
+		s.box(Vector3(0, 0.34, z) * k, Vector3(0.07, 0.68, 0.68) * k, tyre)
+		s.box(Vector3(0, 0.34, z) * k, Vector3(0.09, 0.18, 0.18) * k, grey)
+		s.box(Vector3(0, 0.7, z) * k, Vector3(0.12, 0.04, 0.5) * k, cream)
+	s.box(Vector3(0, 0.45, 0.0) * k, Vector3(0.07, 0.07, 1.0) * k, cream)
+	s.box(Vector3(0, 0.62, -0.42) * k, Vector3(0.07, 0.5, 0.07) * k, cream)
+	s.box(Vector3(0, 0.62, 0.2) * k, Vector3(0.07, 0.42, 0.07) * k, cream)
+	s.box(Vector3(0, 0.88, -0.66) * k, Vector3(0.4, 0.26, 0.32) * k, grey)
+	# A paper cup in the basket (the run's whole point) and the handlebar.
+	s.box(Vector3(0.06, 1.06, -0.66) * k, Vector3(0.1, 0.14, 0.1) * k, fin(Color("#f4efe4")))
+	s.box(Vector3(0.06, 1.14, -0.66) * k, Vector3(0.11, 0.03, 0.11) * k, fin(Color("#6b4a32")))
+	s.box(Vector3(0, 1.02, -0.46) * k, Vector3(0.56, 0.04, 0.05) * k, black)
+	s.box(Vector3(0, 0.9, 0.24) * k, Vector3(0.14, 0.05, 0.22) * k, black)
+	# The rider: legs on the pedals, the shirt in the car's paint, arms to the bar, a helmet.
+	s.box(Vector3(-0.11, 0.66, 0.06) * k, Vector3(0.14, 0.5, 0.16) * k, jeans)
+	s.box(Vector3(0.11, 0.62, -0.04) * k, Vector3(0.14, 0.5, 0.16) * k, jeans)
+	s.box(Vector3(0, 1.24, 0.12) * k, Vector3(0.44, 0.56, 0.28) * k, paint)
+	for x: float in [-0.24, 0.24]:
+		s.box(Vector3(x, 1.12, -0.17) * k, Vector3(0.1, 0.1, 0.5) * k, paint)
+	s.box(Vector3(0, 1.64, 0.02) * k, Vector3(0.24, 0.24, 0.24) * k, skin)
+	s.box(Vector3(0, 1.79, 0.04) * k, Vector3(0.3, 0.12, 0.34) * k, stripes)
+	var body := s.mesh()
+	var heads := Shape.new()
+	heads.box(Vector3(0, 0.92, -0.83) * k, Vector3(0.12, 0.1, 0.04) * k, fin(Color.WHITE))
+	var tails := Shape.new()
+	tails.box(Vector3(0, 0.74, 0.82) * k, Vector3(0.12, 0.08, 0.04) * k, fin(Color.WHITE))
 	return [body, heads.mesh(), tails.mesh()]
 
 

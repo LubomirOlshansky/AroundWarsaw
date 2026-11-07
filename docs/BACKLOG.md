@@ -4,6 +4,17 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Coffee run (F, 2026-11-06)
+
+Built 2026-11-06 (docs/design/coffee-run.md): Zuzia's call, the ROWERILO dock by Elektrownia, the
+player's bike, four café stamps against the clock, the BLIK back. Left:
+- **Phone check**: the bike's readability at the 80 m view, the clock, the hint lines.
+- **Café signs**: the four doors are beacons only; signs on existing shells or from photos.
+- **Zuzia on screen**: she is a phone voice and a hint line; no figure rides along.
+- **Bike sound**: the engine loop still plays on the bike; a bell and pedalling instead.
+- **Free ROWERILO**: taking a bike at any dock outside the run.
+- **Zuzia's own look at the dock**: the quest map's in-person start uses the beacon's generic figure.
+- **Garage while biking**: entering the garage mid-run turns the bike back into the car's model.
 ## Closer zoom and the camera angle (F, 2026-11-07)
 Done: + goes one step closer (40 m view, follow_camera.gd VIEWS) and Settings → Obraz → "Kąt kamery ·
 Camera angle" picks 30° (default), 40° or 50° (follow_camera.gd PITCHES, settings.gd `pitch`).
@@ -167,8 +178,8 @@ to 185 MB. Left:
 
 Built: three map tiers (the main star's glow, questline "!" badges, street job icons), quest focus
 (the map goes quiet while anything runs), the friend in person at a questline's start, and the
-full map's WĄTKI tab that starts any questline now. Boat race and rave are in. Left:
-- [ ] Padel, cinema tour, coffee run and night meet: one `stories.add` each in `main.gd` `_build_stories` (their own threads)
+full map's WĄTKI tab that starts any questline now. Boat race, rave and the coffee run are in. Left:
+- [ ] Padel, cinema tour and night meet: one `stories.add` each in `main.gd` `_build_stories` (their own threads)
 - [ ] Phone look: the badge's "!" at minimap size, the glow under the main star, the WĄTKI tab with ten rows scrolling
 - [ ] The friend at the start is the beacon's generic waving figure; give each friend their own look (Szymek's shirt, Ziomek in black)
 - [ ] A speech bubble over the friend as they walk up, besides the card

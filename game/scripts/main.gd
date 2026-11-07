@@ -114,6 +114,7 @@ const CityLife := preload("res://scripts/city_life.gd")
 ## Loop MW-2: storefronts and parodies (Frogs, the venues' neon, Leżak, the metro entrances).
 const Storefronts := preload("res://scripts/storefronts.gd")
 const TrendJob := preload("res://scripts/trend_job.gd")
+const CoffeeRun := preload("res://scripts/coffee_run.gd")
 const RoundupJob := preload("res://scripts/roundup_job.gd")
 const Weather := preload("res://scripts/weather.gd")
 const Controls := preload("res://scripts/drive_controls.gd")
@@ -491,7 +492,7 @@ var _sunsets := {}
 ## --life=0|1|2 (none, normal, double; the Low tier halves it), --dogs-log, --trend-log,
 ## --life-log, --life-soak (the car driven at the dogs and riders, overlaps counted), --zajac
 ## (Live, Wednesday 28 October 2026 at 18:59, the car by Kolka's start; with --autopilot it paces
-## the club), --trend-day=N (the trend cycle's day number), --trend-job[=slot, 5 padel court, 6 van, 7 the DeSki call] (the request at a
+## the club), --trend-day=N (the trend cycle's day number), --trend-job[=slot, 5 padel court, 6 van, 7 the DeSki call, 8 Mrożulo's Dżemini call, 9 Zuzia's coffee run with the car by its ROWERILO dock] (the request at a
 ## Wiralek slot, 1-3).
 var life: CityLife
 var trend_job: TrendJob
@@ -2887,6 +2888,11 @@ func _build_stories(world: Node3D) -> void:
 						"\"A rave? Nothing tonight. Lekti plays Thursday to Saturday, come by in the evening\""],
 				"at": Vector2(h.x, h.z), "colour": Rave.COLOUR, "hours": Rave.TEASE_HOURS, "days": Rave.NIGHT_DAYS,
 				"call": func() -> bool: return rave.ring(), "meet": rave.meet_in_person, "busy": rave.busy, "idle": rave.idle})
+	if trend_job != null:
+		stories.add({"id": "kawa", "pl": "Kawowy rajd", "en": "Coffee run", "who": [CoffeeRun.CALLER, CoffeeRun.CALLER],
+				"hello": CoffeeRun.HELLO, "closed": CoffeeRun.CLOSED,
+				"at": CoffeeRun.DOCK, "colour": CoffeeRun.COLOUR, "hours": Vector2(CoffeeRun.HOURS[0], CoffeeRun.HOURS[1]), "days": [],
+				"call": trend_job.kawa_ring, "meet": trend_job.kawa_meet, "busy": trend_job.kawa_busy, "idle": trend_job.kawa_idle})
 	if story_flag != "":
 		get_tree().create_timer(1.5).timeout.connect(func() -> void: stories.start(story_flag))
 	print("stories: %d questlines (%s)" % [stories.defs.size(), ", ".join(stories.defs.map(func(d: Dictionary) -> String:
@@ -3366,6 +3372,13 @@ func _life_start() -> void:
 			await get_tree().create_timer(1.0).timeout
 			if not trend_job.offer_dzemini(true):
 				print("trend job: --trend-job=8: no request (no shop door, kerb or van spot)")
+			return
+		if trend_job_flag == 9:
+			# "Kawowy rajd" (coffee_run.gd): the car near the ROWERILO dock in Powiśle, Zuzia's call at once.
+			_put_car_near(CoffeeRun.DOCK, 80.0)
+			life.tick(0.0)
+			if not trend_job.offer_kawa_call(true):
+				print("trend job: --trend-job=9: no request (a café has no position)")
 			return
 		if trend_job_flag == 7:
 			# "Czwarty" at WTS DeSki's padel courts (landmarks.gd DESKI), whatever the clock.
@@ -4681,7 +4694,7 @@ func _parse_args() -> void:
 		elif arg.begins_with("--trend-day="):
 			trend_day_flag = maxi(0, int(arg.trim_prefix("--trend-day=")))
 		elif arg == "--trend-job" or arg.begins_with("--trend-job="):
-			trend_job_flag = clampi(int(arg.trim_prefix("--trend-job=")) if arg.contains("=") else 1, 1, 8)
+			trend_job_flag = clampi(int(arg.trim_prefix("--trend-job=")) if arg.contains("=") else 1, 1, 9)
 			trend_log = true
 		elif arg.begins_with("--club="):
 			# Loop MW-3: the car at a club's door (places.json id or name), no title.
@@ -7474,8 +7487,12 @@ func _update_camera(dt: float) -> void:
 		_view_size = fcam.zoom_step(_view_size, heli_view, heli_zoom, dt)
 		focus_rate = 3.5
 	else:
-		var zoom := base_size * FollowCamera.SPEED_ZOOM * clampf(speed / (car.max_speed * car.top_mult), 0.0, 1.0)
-		var view := base_size
+		# The coffee run's bike (car.gd model "bike", Autopilot playtest 2026-11-06: at the car's view
+		# it could not be told from a car): the view closes in to BIKE_VIEW of the player's, eased
+		# by zoom_step like the speed zoom, and back out when the car returns.
+		var bike: bool = car.model == "bike"
+		var view := base_size * (CoffeeRun.BIKE_VIEW if bike else 1.0)
+		var zoom := view * FollowCamera.SPEED_ZOOM * clampf(speed / (car.top_speed() if bike else car.max_speed * car.top_mult), 0.0, 1.0)
 		if boat_race != null and boat_race.boating():
 			zoom *= BOAT_ZOOM  # the boat race: the rings and the rivals stay big enough to read
 			if boat_race.state == BoatRace.State.FREE:

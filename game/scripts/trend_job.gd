@@ -41,6 +41,7 @@ const Missions := preload("res://scripts/missions.gd")
 const CityLife := preload("res://scripts/city_life.gd")
 const Crowds := preload("res://scripts/crowds.gd")
 const LaneGraph := preload("res://scripts/lane_graph.gd")
+const CoffeeRun := preload("res://scripts/coffee_run.gd")
 
 ## Wiralek's pink (not the kebab's orange, not the passengers' teal).
 const COLOUR := Color("#ff7ac8")
@@ -189,6 +190,17 @@ var _world: Node3D
 var player_pos := Vector3.ZERO
 ## When the DESKA call may ring next (_session seconds).
 var _deski_at := DESKI_FIRST
+## The coffee run (coffee_run.gd, order kind "kawa"): when Zuzia calls next (s of play), the car
+## left at the ROWERILO dock while the player rides, the world it stands in, the joke's clock.
+var _kawa_at := CoffeeRun.FIRST
+## Session time before which Zuzia doesn't walk up again (set when a run ends: no fresh offer the
+## moment you hand the bike back at the dock).
+var _kawa_rest := 0.0
+var _parked: Node3D
+var _world: Node3D
+var _line_t := 0.0
+## The call comes only within this many metres of the dock (a coffee run, not a road trip).
+const KAWA_CALL_R := 1800.0
 ## "Mlask": the places' points (setup), the van {spot, at: Vector3, ring: Vector3, yaw} or {}, its node.
 var _places := {}
 var van := {}
@@ -258,6 +270,7 @@ func setup(nodes: Dictionary, places: Dictionary, world: Node3D) -> void:
 	_rng.randomize()
 	_dest = places.get(DEST_ID, Vector2.INF)
 	_places = places
+	_world = world
 	_beacon = Beacon.new()
 	world.add_child(_beacon)
 	_beacon.setup(COLOUR, Color("#2f6fb5"))
@@ -296,7 +309,7 @@ func stop_spot() -> Vector3:
 
 
 func target_colour() -> Color:
-	return COLOUR
+	return CoffeeRun.COLOUR if _is_kawa() else COLOUR
 
 
 func primary() -> bool:
@@ -383,6 +396,11 @@ func _look() -> void:
 			_cool[-1] = _session + SLOT_COOL
 			if offer_drop():
 				return
+	if hour >= CoffeeRun.HOURS[0] and hour < CoffeeRun.HOURS[1] and _session >= _kawa_at \
+			and p.distance_to(CoffeeRun.DOCK) <= KAWA_CALL_R:
+		_kawa_at = _session + CoffeeRun.COOL
+		if offer_kawa_call():
+			return
 	if hour >= DESKI_HOURS[0] and hour < DESKI_HOURS[1] and _session >= _deski_at:
 		_deski_at = _session + DESKI_COOL
 		if offer_deski_call():
@@ -1024,6 +1042,9 @@ func _on_card(index: int) -> void:
 
 
 func _accept() -> void:
+	if _is_kawa():
+		_accept_kawa()
+		return
 	if bool(order.get("call", false)):
 		_accept_call()
 		return
@@ -1120,6 +1141,9 @@ func _pickup_tick(dt: float) -> void:
 
 
 func _deliver_tick(dt: float) -> void:
+	if _is_kawa():
+		_kawa_tick(dt)
+		return
 	_clock += dt
 	var is_call := bool(order.get("call", false))
 	var d := _flat(player_pos if is_call else car.global_position, order["door_ring"])
@@ -1254,6 +1278,7 @@ func _fail(words: Array) -> void:
 
 
 func _release() -> void:
+	_kawa_car_back()
 	state = State.IDLE
 	_t = 0.0
 	_beacon.visible = false
@@ -1262,6 +1287,227 @@ func _release() -> void:
 	missions.paused = false
 	missions.close()
 	order = {}
+
+
+# --- "Kawowy rajd": the coffee run on a ROWERILO bike (coffee_run.gd) ---------------------------
+
+func _is_kawa() -> bool:
+	return str(order.get("kind", "")) == "kawa"
+
+
+## Zuzia calls: the coffee run's card (stage "dock": first to the ROWERILO dock by car).
+func offer_kawa_call(force := false) -> bool:
+	if not force and not _free():
+		return false
+	for i in CoffeeRun.STOPS.size():
+		if CoffeeRun.stop_at(i, _places) == Vector2.INF:
+			if log_on:
+				print("trend job: coffee run: stop %d has no position" % i)
+			return false
+	var dock := _ring_at(CoffeeRun.DOCK)
+	order = {"kind": "kawa", "call": true, "slot": -1, "word": "KAWA", "day": 0, "stage": "dock", "i": 0,
+			"ring": dock, "door_ring": dock, "name": "ROWERILO", "customer": CoffeeRun.CALLER, "paid": 0, "road": 0.0,
+			"prev": "hatch"}
+	state = State.OFFER
+	_t = 0.0
+	var txt := CoffeeRun.call_text()
+	hud.show_side_card(str(txt[0]), str(txt[1]), PackedStringArray(["JADĘ", "NIE TERAZ"]), CoffeeRun.COLOUR,
+			"%s is calling" % CoffeeRun.CALLER, str(txt[2]))
+	hud.ticker_out()
+	if log_on:
+		print("trend job: coffee run call from %s, dock %.0f m away" % [CoffeeRun.CALLER,
+				Vector2(player_pos.x, player_pos.z).distance_to(CoffeeRun.DOCK)])
+	return true
+
+
+## The quest map's hooks (main.gd `_build_stories`, story_quests.gd). Zuzia phones from the list:
+## never over another job.
+func kawa_ring() -> bool:
+	return state == State.IDLE and offer_kawa_call(true)
+
+
+## Zuzia met in person at the ROWERILO dock (she walks up, the player said WCHODZĘ): no call card,
+## straight to the run (the car is already at the dock, so the bike comes next). False unless idle.
+func kawa_meet() -> bool:
+	if state != State.IDLE or not offer_kawa_call(true):
+		return false
+	_accept_kawa()
+	return true
+
+
+## True while the coffee run runs (quest focus).
+func kawa_busy() -> bool:
+	return _is_kawa() and busy()
+
+
+## Idle: no job, no call, and not just after a run (the coffee run may start now).
+func kawa_idle() -> bool:
+	return state == State.IDLE and _session >= _kawa_rest
+
+
+func _ring_at(at: Vector2) -> Vector3:
+	return Vector3(at.x, map.terrain_height(at.x, at.y), at.y)
+
+
+func _accept_kawa() -> void:
+	state = State.DELIVER
+	_clock = 0.0
+	_t = 0.0
+	_hold = 0.0
+	hud.hide_card()
+	missions.close()
+	missions.paused = true
+	hud.hide_pill()
+	hud.hide_challenge()
+	_beacon.recolour(CoffeeRun.COLOUR)
+	_beacon.waving = true
+	_beacon.place(order["door_ring"], ARRIVE - 0.5)
+	hud.toast("Kawowy rajd: jedź do stacji ROWERILO przy Elektrowni", "Coffee run: drive to the ROWERILO dock by Elektrownia")
+	if log_on:
+		print("trend job: coffee run accepted")
+
+
+## The run: the dock (by car, no clock), the four cafés (on the bike, the clock on), the dock again.
+func _kawa_tick(dt: float) -> void:
+	var stage := str(order.get("stage", ""))
+	var biking := stage == "stop" or stage == "return"
+	if biking and flying:
+		_fail(["Rower nie lata. Rajd przerwany.", "Bikes don't fly. The run is off."])
+		return
+	if stage == "stop":
+		_clock += dt
+		_line_t += dt
+	var d := _flat(car.global_position, order["door_ring"])
+	var still: bool = d < ARRIVE and car.vel.length() < ARRIVE_SPEED and not flying
+	if still:
+		_hold += dt
+	else:
+		_hold = 0.0
+	var need := CoffeeRun.STAMP_HOLD if stage == "stop" else 0.5
+	if still and _hold >= need:
+		_hold = 0.0
+		match stage:
+			"dock":
+				_kawa_take_bike()
+			"stop":
+				_kawa_stamp()
+			"return":
+				_kawa_finish()
+		return
+	_kawa_status(d)
+
+
+func _kawa_status(d: float) -> void:
+	var stage := str(order.get("stage", ""))
+	if stage == "dock":
+		var hint := ["Jedź do brązowego światła: stacja ROWERILO", "Head for the brown beacon: the ROWERILO dock"] if d > 40.0 \
+				else ["Stań przy stacji, weź rower", "Stop by the dock, take a bike"]
+		hud.show_status("KAWOWY RAJD → ROWERILO", "", "%d m" % roundi(d), hint[0], 0.0, CoffeeRun.COLOUR, "", {}, hint[1])
+		return
+	if stage == "return":
+		hud.show_status("KAWOWY RAJD → ROWERILO", "", "%d m" % roundi(d), "Odstaw rower, auto czeka", 0.0, CoffeeRun.COLOUR, "", {},
+				"Return the bike, the car's waiting")
+		return
+	var i := int(order["i"])
+	var left := CoffeeRun.COFFEE_LIMIT - _clock
+	var clock := ("%d:%02d" % [int(left) / 60, int(left) % 60]) if left > 0.0 else "+%d:%02d" % [int(-left) / 60, int(-left) % 60]
+	var line: Array = CoffeeRun.RIDE_LINES[int(_line_t / CoffeeRun.LINE_EVERY) % CoffeeRun.RIDE_LINES.size()]
+	if d <= 40.0:
+		line = ["Stań przy drzwiach po pieczątkę", "Stop at the door for the stamp"]
+	elif left <= 0.0:
+		line = ["Zuzia: „Moja kawa stygnie!”", "Zuzia: \"My coffee's going cold!\""]
+	hud.show_status("KAWA %s → %s" % [CoffeeRun.stamps(i), CoffeeRun.STOPS[i]["name"]], clock, "%d m" % roundi(d), str(line[0]),
+			clampf(_clock / CoffeeRun.COFFEE_LIMIT, 0.0, 1.0), CoffeeRun.COLOUR if left > 0.0 else FAIL_COLOUR, "", {}, str(line[1]))
+
+
+## At the dock: the car stays (a still copy), the player rides on (car.gd model "bike").
+func _kawa_take_bike() -> void:
+	order["prev"] = car.model
+	if _parked != null:
+		_parked.queue_free()
+	_parked = car.parked_copy()
+	_world.add_child(_parked)
+	_parked.global_transform = car.global_transform
+	car.set_model("bike")
+	car.reset_motion()
+	_kawa_next(0)
+	_clock = 0.0
+	_line_t = 0.0
+	hud.toast("Rower z ROWERILO! Zuzia czeka w KROPCE.", "A ROWERILO bike! Zuzia's waiting at KROPKA.")
+	if log_on:
+		print("trend job: coffee run: on the bike at the dock")
+
+
+func _kawa_next(i: int) -> void:
+	order["stage"] = "stop"
+	order["i"] = i
+	order["name"] = CoffeeRun.STOPS[i]["name"]
+	order["door_ring"] = _ring_at(CoffeeRun.stop_at(i, _places))
+	_beacon.waving = true
+	_beacon.place(order["door_ring"], ARRIVE - 0.5)
+
+
+## A stamp: pay the coffee (or Zuzia does), then the next café or, after the fourth, back to the dock.
+func _kawa_stamp() -> void:
+	var i := int(order["i"])
+	var st: Dictionary = CoffeeRun.STOPS[i]
+	var price := int(st["price"])
+	var own: bool = wallet.spend(price)
+	if own:
+		order["paid"] = int(order["paid"]) + price
+	var drink: Array = st["drink"]
+	var line: Array = st["line"]
+	hud.toast("Pieczątka %s! %s, %s: %s. %s" % [CoffeeRun.stamps(i + 1), st["name"], drink[0],
+			("-%d zł" % price) if own else "na koszt Zuzi", line[0]],
+			"Stamp %s! %s, %s: %s. %s" % [CoffeeRun.stamps(i + 1), st["name"], drink[1],
+			("-%d zł" % price) if own else "Zuzia's treat", line[1]])
+	if log_on:
+		print("trend job: coffee run: stamp %d at %s after %.0f s (%s)" % [i + 1, st["name"], _clock, "paid %d zł" % price if own else "Zuzia paid"])
+	if i + 1 < CoffeeRun.STOPS.size():
+		_kawa_next(i + 1)
+		return
+	order["on_time"] = _clock <= CoffeeRun.COFFEE_LIMIT
+	order["time"] = _clock
+	order["stage"] = "return"
+	order["name"] = "ROWERILO"
+	order["door_ring"] = _ring_at(CoffeeRun.DOCK)
+	_beacon.place(order["door_ring"], ARRIVE - 0.5)
+
+
+## Back at the dock: the car again, Zuzia's BLIK and the card.
+func _kawa_finish() -> void:
+	_kawa_car_back()
+	var on_time := bool(order.get("on_time", false))
+	var r := CoffeeRun.pay(int(order["paid"]), on_time)
+	wallet.pay(int(r["zl"]), int(r["respect"]), "trend")
+	done += 1
+	state = State.RESULT
+	_t = 0.0
+	hud.hide_status()
+	_beacon.waving = false
+	_beacon.place(order["door_ring"], ARRIVE - 0.5, false, true)
+	var line := ["Pełny paszport! Dziesiąta kawa gratis… w dni robocze 6:00-6:05.", "Full passport! Tenth coffee free… weekdays 6:00-6:05."]
+	if not on_time:
+		line = ["Twoja kawa wystygła, to ją wypiłam. Oddaję połowę.", "Your coffee went cold, so I drank it. Here's half back."]
+	var head := "KAWOWY RAJD · +%d zł" % int(r["zl"])
+	var body := "„%s” · %s\nPASZPORT KAWOWY %s w %d:%02d\n+%d zł BLIKiem (zwrot %d zł), +%d szacunku" % [line[0], CoffeeRun.CALLER,
+			CoffeeRun.stamps(CoffeeRun.STOPS.size()), int(order["time"]) / 60, int(order["time"]) % 60, int(r["zl"]), int(r["back"]), int(r["respect"])]
+	var body_en := "\"%s\"\nCOFFEE PASSPORT in %d:%02d\n+%d zł by BLIK (%d zł back), +%d respect" % [line[1], int(order["time"]) / 60,
+			int(order["time"]) % 60, int(r["zl"]), int(r["back"]), int(r["respect"])]
+	hud.show_side_card(head, body, PackedStringArray(["OK"]), CoffeeRun.COLOUR, "Coffee run · +%d zł" % int(r["zl"]), body_en)
+	print("trend job: coffee run done in %.0f s (%s): paid %d zł for coffee, +%d zł back, +%d respect" % [float(order["time"]),
+			"on time" if on_time else "late", int(order["paid"]), int(r["zl"]), int(r["respect"])])
+
+
+## Off the bike and into the car (the run ended, failed or was cancelled); the still copy goes.
+func _kawa_car_back() -> void:
+	if _is_kawa():
+		_kawa_rest = _session + CoffeeRun.REST
+	if car != null and car.model == "bike":
+		car.set_model(str(order.get("prev", "hatch")))
+	if _parked != null:
+		_parked.queue_free()
+		_parked = null
 
 
 ## --autopilot: the car slides straight to the pickup, then the door (as the missions' autopilot).

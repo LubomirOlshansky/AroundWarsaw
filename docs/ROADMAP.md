@@ -15,6 +15,7 @@ item. Updated 2026-11-01 from the audit. v1.0 = the Demo and TestFlight gates in
 then the Launch gate.
 
 ### Done (built and checked headless)
+- [x] Kawowy rajd, the coffee run on a ROWERILO bike (F, 2026-11-06; spec `coffee-run.md`): Zuzia calls, you swap the car for a city bike at the dock by Elektrownia Powiśle, ride to four specialty-café parodies (KROPKA., GLON, STORCZYK, MANTRA) for stamps and overpriced coffee against a 5:00 clock, third-wave jokes on the way, Zuzia BLIKs you back; on the quest map she waits at the dock and starts the run in person (`check_coffee_run`, verify steps `coffeerun` and `coffee`; phone look open)
 - [x] Credits off the main screen: the OSM/GUGiK line left the HUD; the data credits live on their own page (Settings → DŹWIĘK → LICENCJE) (2026-11-07, F; Godot not run in the cloud session, `check_hud` and `check_credits` for CI)
 - [x] Flicker over the railway from the helicopter (F, 2026-11-07, phone videos): the cutting's floor no longer z-fights the gravel, and the railway's ballast and rails no longer sink under the ground of the cutting by Główna and Ochota (`check_drape` rail pass; phone look open)
 - [x] Open-PR audit and merge train (F, 2026-11-07; `docs/PR_AUDIT.md`): 12 orphan PRs whose threads had ended merged to main together (#456 #473 #477 #478 #479 #482 #484 #487 #489 #490 #493 #496), plus #371 #467 #486 #488 on their own; no work lost

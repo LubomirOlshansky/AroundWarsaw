@@ -130,6 +130,11 @@
 # synthetic clocks, the formation, the out-and-back loops on a grid and on the real footways and
 # cycle paths, the meshes' budgets, the lines (no real brand), a node drawing the packs only near
 # the view and its cost, the big guys with tiny dogs; centrum.json only (CI too).
+# Kawowy rajd (docs/design/coffee-run.md): `coffeerun` runs game/tools/check_coffee_run.gd: no real
+# brand in the run's words, the Polish lines ≤ 70, the dock and café doors real map points near a
+# road, the stops close and the clock fair, the pay, the bike's speed cap and meshes; centrum.json
+# only (CI too). `coffee` plays the whole run with the autopilot (--trend-job=9): Zuzia's call, the
+# ROWERILO dock, the four stamps, the bike back and the BLIK.
 # Kibice (docs/design/city-life-satire.md 7): `fans` runs game/tools/check_fans.gd: the match
 # evenings, the chant's jump and the smoke, the three groups' room on the real pavements (off the
 # roads, out of the buildings), the meshes' budgets, the lines (no brand, no club, no rivals), a
@@ -230,8 +235,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads smooth fixes streets outline pois streetdetails streetpass design models overrides stops streetmesh parkdetails parkmesh monuments monumentmesh spiremotion tarasyscreen spec lod2 courts drape ground drive drive-prebuilt deckxray stuckspots stuckspots-prebuilt lanedrive finite steering laneassist stuckoffer handling stopassist questlines stories settings credits language tiers governor heliview hud places edge roadworks roadworks-prebuilt eggs tape crowds life buses zaglebie crashes rave boatrace evtow loud crazy oldtram tramfleet trains packs wellness fans garage save districts syrenki cassettes ladder racecuts first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram teleport firstlife heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads smooth fixes streets outline pois streetdetails streetpass design models overrides stops streetmesh parkdetails parkmesh monuments monumentmesh spiremotion tarasyscreen spec drape drive deckxray stuckspots finite steering laneassist stuckoffer handling stopassist questlines stories settings credits language tiers governor heliview hud places edge roadworks eggs tape crowds life buses zaglebie crashes rave boatrace evtow loud crazy oldtram tramfleet trains packs wellness fans garage save districts syrenki cassettes ladder racecuts first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds police plain ram teleport firstlife prebuilt)
+STEPS_ALL=(map roads smooth fixes streets outline pois streetdetails streetpass design models overrides stops streetmesh parkdetails parkmesh monuments monumentmesh spiremotion tarasyscreen spec lod2 courts drape ground drive drive-prebuilt deckxray stuckspots stuckspots-prebuilt lanedrive finite steering laneassist stuckoffer handling stopassist questlines stories settings credits language tiers governor heliview hud places edge roadworks roadworks-prebuilt eggs tape crowds life buses zaglebie crashes rave boatrace evtow loud crazy oldtram tramfleet trains packs wellness fans coffeerun garage save districts syrenki cassettes ladder racecuts first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram teleport firstlife heli race trzy-mosty first10-run kebab coffee ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads smooth fixes streets outline pois streetdetails streetpass design models overrides stops streetmesh parkdetails parkmesh monuments monumentmesh spiremotion tarasyscreen spec drape drive deckxray stuckspots finite steering laneassist stuckoffer handling stopassist questlines stories settings credits language tiers governor heliview hud places edge roadworks eggs tape crowds life buses zaglebie crashes rave boatrace evtow loud crazy oldtram tramfleet trains packs wellness fans coffeerun garage save districts syrenki cassettes ladder racecuts first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds police plain ram teleport firstlife prebuilt)
 # Operation Unslop review (2026-11-05): the road loop ran the whole --quick (~100 steps, most start
 # the game) after every tweak. --roads keeps only the steps a road rule can break; steps not in
 # STEPS_ALL on this branch (e.g. `smooth` before the smooth-roads PR) are skipped.
@@ -941,6 +946,8 @@ for s in $want; do
 		packs) check packs '^check_packs:' --script res://tools/check_packs.gd ;;
 		# Kibice: the friendly fans by Stadion Leguminy on match evenings.
 		fans) check fans '^check_fans:' --script res://tools/check_fans.gd ;;
+		# Kawowy rajd: Zuzia's coffee run on a ROWERILO bike (the data, the places, the bike).
+		coffeerun) check coffeerun '^check_coffee_run:' --script res://tools/check_coffee_run.gd ;;
 		# Wellness circles (docs/design/city-life-satire.md): sound healing, techno yoga, the 40+ club, park kung-fu.
 		wellness) check wellness '^check_wellness:' --script res://tools/check_wellness.gd ;;
 		garage) check garage '^check_garage:' --script res://tools/check_garage.gd ;;
@@ -993,6 +1000,8 @@ for s in $want; do
 		heli) game heli 6000 '^rescue (done|failed):' --mission=1 --heli --autopilot ;;
 		race) game race 8000 '^race (won|lost):' --race=0 --autopilot ;;
 		# Loop 3h slice 3: the final "Trzy mosty" from its last bridge (the whole race is ~14 min of play).
+		# Kawowy rajd: the whole coffee run with the autopilot, ~60 s of play.
+		coffee) game coffee 6000 '^trend job: coffee run done in' --trend-job=9 --autopilot ;;
 		trzy-mosty) game trzy-mosty 9000 '^trzy mosty (won|lost):' --trzy-mosty=3 --autopilot ;;
 		# Loop 3h slice 4: the first 10 minutes replayed (the director quits after the garage, ~575 s).
 		first10-run) STEP_LIMIT=$(( STEP_LIMIT > 1500 ? STEP_LIMIT : 1500 )) game first10-run 48000 '^first10: OK' --first10 --autopilot ;;
