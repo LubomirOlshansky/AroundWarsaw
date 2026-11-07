@@ -71,11 +71,11 @@ jobs:
           path: ${{ runner.temp }}/verify
           retention-days: 14
 
-  # Two halves in parallel (~15 min each on a runner, the setup included; serial they take ~30).
+  # Two halves in parallel. "data and roads" grew to ~45 min on a runner with the prebuilt city (2026-11-07), so 75.
   map:
     name: map (${{ matrix.part }})
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 75
     strategy:
       fail-fast: false
       matrix:
