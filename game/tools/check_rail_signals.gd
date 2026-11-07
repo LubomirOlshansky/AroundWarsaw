@@ -1,8 +1,9 @@
 extends SceneTree
 ## The railway's light signals (the railway audit, F 2026-11-07; map_builder.gd
 ## `rail_signal_spots`, `_build_rail_signals`), from the map index (map/index.json):
-##   1. there are signals, and each station with open-air platforms (Ochota, Powiśle, Stadion,
-##      Wschodnia, Główna) has at least two near it, each tunnel mouth at least one;
+##   1. there are signals, and each station with open-air railway platforms (Ochota, Powiśle,
+##      Stadion, Wschodnia) has at least two near it, each tunnel mouth at least one; none stands
+##      on Stacja Muzeum's sidings (no trains run there: Trains.service_rails);
 ##   2. every signal stands clear of every track (a train's body is 1.45 m either side of its
 ##      track: nothing within MIN_CLEAR m of a track's centre line) and at a finite height;
 ##   3. the list is the same when a sector's build asks for it (both city paths read one list).
@@ -12,7 +13,8 @@ extends SceneTree
 const MapBuilder := preload("res://scripts/map_builder.gd")
 const Trains := preload("res://scripts/trains.gd")
 const INDEX_JSON := "res://map/index.json"
-const STATIONS := {"Główna": Vector2(-2680.0, 990.0), "Ochota": Vector2(-2313.0, 929.0), "Powiśle": Vector2(290.0, 25.0),
+## (Główna's islands are footways in OSM, rail_yard.gd's: no signals there yet, BACKLOG.)
+const STATIONS := {"Ochota": Vector2(-2313.0, 929.0), "Powiśle": Vector2(290.0, 25.0),
 		"Stadion": Vector2(1391.0, -1328.0), "Wschodnia": Vector2(1930.0, -1960.0)}
 const MIN_CLEAR := 1.8
 
@@ -37,6 +39,13 @@ func _initialize() -> void:
 		near[name] = 0
 	var mouths := [0, 0]
 	var rails: Array = Trains.trim_rails(map.index_data.get("rails", []))
+	var museum: Array = []
+	for r in rails:
+		var f: Array = r["p"]
+		for e: Vector2 in Trains.MUSEUM_ENDS:
+			if Vector2(f[0], f[1]).distance_to(e) < 0.5 or Vector2(f[f.size() - 2], f[f.size() - 1]).distance_to(e) < 0.5:
+				museum.append(r)
+				break
 	for sp: Array in spots:
 		var at: Vector2 = sp[0]
 		dwarfs += int(sp[3])
@@ -49,6 +58,8 @@ func _initialize() -> void:
 		for k in Trains.PORTALS.size():
 			if at.distance_to(Trains.PORTALS[k]) < 70.0:
 				mouths[k] += 1
+		if at.x > Trains.MUSEUM_X and at.distance_to(Vector2(-2700.0, 960.0)) < 220.0 and _clear(museum, at) < 6.0:
+			problems.append("a signal at %.0f, %.0f stands on Stacja Muzeum's sidings" % [at.x, at.y])
 		var clear := _clear(rails, at)
 		if clear < MIN_CLEAR:
 			problems.append("the signal at %.0f, %.0f stands %.2f m from a track" % [at.x, at.y, clear])

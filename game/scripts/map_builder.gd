@@ -2558,7 +2558,7 @@ const WIRE_COL := Color("#2a2c2f")
 
 
 func _build_catenary(st) -> void:
-	var rails: Array = Trains.trim_rails(data.get("rails", []))
+	var rails: Array = Trains.service_rails(data.get("rails", []))
 	if rails.is_empty():
 		return
 	_uv2 = Vector2(0.5, -1.0)
@@ -2669,7 +2669,7 @@ func rail_signal_spots() -> Array:
 	# The whole map's rails and platforms (a sector's file holds only its own; the index keeps
 	# them all for trains.gd), found once per map: every sector's build asks for the same list.
 	var whole: Dictionary = index_data if _in_sector and index_data.has("rails") else data
-	var rails: Array = Trains.trim_rails(whole.get("rails", []))
+	var rails: Array = Trains.service_rails(whole.get("rails", []))
 	if rails.is_empty():
 		return []
 	var key: int = rails.size() * 1000 + (whole.get("platforms", []) as Array).size()

@@ -126,6 +126,42 @@ var _rng := RandomNumberGenerator.new()
 
 ## The rails with the stretch under Plac Zawiszy (TUNNEL_ZAWISZY) cut away: each polyline that
 ## touches it comes back as its pieces outside. Others are returned as they are.
+## Stacja Muzeum (the railway museum at Warszawa Główna, 2026-11-07): its four sidings (found by
+## their ends at the museum's hall and its platform) hold the locomotives on show, so east of
+## MUSEUM_X no train runs on them, and they get no wires and no signals. The tracks stay drawn.
+const MUSEUM_ENDS := [Vector2(-2531.6, 870.1), Vector2(-2529.9, 874.5), Vector2(-2638.9, 933.1), Vector2(-2636.8, 936.9)]
+const MUSEUM_X := -2895.0
+
+
+## The rails trains run on (trim_rails without the museum's sidings east of MUSEUM_X).
+static func service_rails(rails: Array) -> Array:
+	var out: Array = []
+	for r in trim_rails(rails):
+		var f: Array = r["p"]
+		var n := f.size()
+		var museum := false
+		for e: Vector2 in MUSEUM_ENDS:
+			museum = museum or Vector2(f[0], f[1]).distance_to(e) < 0.5 or Vector2(f[n - 2], f[n - 1]).distance_to(e) < 0.5
+		if not museum:
+			out.append(r)
+			continue
+		var pts := PackedVector2Array()
+		for i in range(0, n - 1, 2):
+			pts.append(Vector2(f[i], f[i + 1]))
+		var west := PackedVector2Array([Vector2(MUSEUM_X, -1e5), Vector2(MUSEUM_X, 1e5), Vector2(-1e5, 1e5), Vector2(-1e5, -1e5)])
+		for piece: PackedVector2Array in Geometry2D.intersect_polyline_with_polygon(pts, west):
+			if piece.size() < 2 or piece[0].distance_to(piece[piece.size() - 1]) < 0.5:
+				continue
+			var np: Dictionary = r.duplicate()
+			var g: Array = []
+			for q in piece:
+				g.append(q.x)
+				g.append(q.y)
+			np["p"] = g
+			out.append(np)
+	return out
+
+
 static func trim_rails(rails: Array) -> Array:
 	var poly := PackedVector2Array(TUNNEL_ZAWISZY)
 	var box := Rect2(poly[0], Vector2.ZERO)
@@ -163,7 +199,7 @@ func setup(map_node: Node3D, data: Dictionary) -> void:
 	_bounds = Rect2(float(b[0]), float(b[1]), float(b[2]) - float(b[0]), float(b[3]) - float(b[1]))
 	var lines: Array[PackedVector2Array] = []
 	var decks := PackedInt32Array()
-	for r in trim_rails(data.get("rails", [])):
+	for r in service_rails(data.get("rails", [])):
 		var flat: Array = r["p"]
 		var p := PackedVector2Array()
 		for i in range(0, flat.size() - 1, 2):
