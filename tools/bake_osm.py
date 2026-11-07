@@ -16,6 +16,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import cycleways  # noqa: E402  (cycle paths: gaps closed, split ways joined, corners smoothed)
 import bake_roads  # noqa: E402  (v0.75: carriageways, decks, markings, kerbs)
 from map_shape import Shape  # noqa: E402  (map north: the box with its north extension)
+import stairs  # noqa: E402  (stairs across the city: OSM stair tags and wall heights)
 
 # Loop 3d-1: the demo box (docs/DEMO.md 2.1, the user's decision 2026-10-29): Rondo Daszyńskiego
 # to past the stadium and Most Łazienkowski, MDM to just past the Barbakan, 5,318 × 3,782 m =
@@ -1026,9 +1027,15 @@ def bake_details(els, nodes, ways, more_src, roads, rect):
             out["surfaces"].append({"k": "paving", "p": flat(pts[:-1])})
         elif t.get("barrier") in ("hedge", "fence", "wall", "retaining_wall"):
             kind = {"retaining_wall": "wall"}.get(t["barrier"], t["barrier"])
-            out["lines"].append({"k": kind, "p": flat(pts)})
+            item = {"k": kind, "p": flat(pts)}
+            # Stairs across the city (2026-11-07): a wall's mapped height (0.3-1 m planter and
+            # basin edges, most of them) instead of the 1.9 m every wall stood at.
+            wh = stairs.wall_height(t)
+            if kind == "wall" and wh is not None:
+                item["h"] = wh
+            out["lines"].append(item)
         elif t.get("highway") == "steps":
-            out["steps"].append({"p": flat(pts)})
+            out["steps"].append(dict({"p": flat(pts)}, **stairs.stair_tags(t)))
         elif closed and (t.get("landuse") in ("railway", "flowerbed", "construction", "brownfield")
                          or t.get("leisure") in ("playground", "fountain") or t.get("amenity") == "fountain"
                          or t.get("man_made") == "planter"):
