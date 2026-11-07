@@ -5724,8 +5724,9 @@ func _garden_ring(flat: Array) -> bool:
 ## planter edge along Wars's south front on Widok (it stood as a grey slab before the shop
 ## windows), and the planters round the Rotunda's stair down to the underpass (with the stair
 ## sunk, SUNKEN, a 1.9 m loop of wall round it read as a walled pit). Each is the line's first
-## point.
-const LOW_WALLS := [Vector2(-820.1, 345.4), Vector2(-807.1, 378.0)]
+## point. Also the straight wall beside Kino Muranów's fountain steps (F, 2026-11-07: a barrier
+## where the square has steps).
+const LOW_WALLS := [Vector2(-820.1, 345.4), Vector2(-807.1, 378.0), Vector2(-1627.1, -1219.5)]
 const LOW_WALL := ["#b3ada3", 0.4, 0.55]
 
 
@@ -5777,10 +5778,28 @@ func _in_island(flat: Array) -> bool:
 	return false
 
 
+## Walls a landmark site builds itself, by the line's first point: Kino Muranów's fountain basin
+## (OSM draws it as a ring `wall`; at 1.9 m it stood as a grey drum where photo 4 has steps up to
+## the basin, F 2026-11-07).
+const SITE_WALLS := [Vector2(-1639.7, -1217.3)]
+
+
+func _site_wall(flat: Array) -> bool:
+	if flat.size() < 4:
+		return false
+	var first := Vector2(flat[0], flat[1])
+	for at: Vector2 in SITE_WALLS:
+		if first.distance_to(at) < 0.5:
+			return true
+	return false
+
+
 func _build_barriers(st) -> void:
 	_uv2 = Vector2(0.5, -1.0)
 	_load_object_overrides()
 	for l in data.get("lines", []):
+		if l["k"] == "wall" and _site_wall(l["p"]):
+			continue
 		var style: Array = BARRIER_STYLE.get(l["k"], ["#999999", 0.3, 1.0])
 		if l["k"] == "wall":
 			if _garden_ring(l["p"]):

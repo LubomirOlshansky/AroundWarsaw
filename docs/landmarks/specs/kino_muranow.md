@@ -12,9 +12,9 @@ cinema is the quest stop of "Kino objazdowe" (docs/design/kino-tour.md).
 1. The red MURANÓW letters over the doors, a white KINO at each end of the front.
 2. The cream one-storey pavilion with a grey plinth and poster boards under little lamps.
 3. The terrace on its roof: a white balustrade and two tall pillars with dark ball finials.
-4. The arch through the socialist-realist block behind, on the same axis as the fountain.
-5. The round fountain with the green-bronze putti and the wide upper bowl on the square in front,
-   and at night festoons of warm bulbs and paper lanterns over the café garden.
+4. The arch through the socialist-realist block behind, over the fountain.
+5. The round fountain up three steps, with the green-bronze putti and the wide upper bowl, on
+   the square in front, and at night festoons of warm bulbs and paper lanterns over the café garden.
 
 ## Massing
 
@@ -53,9 +53,11 @@ lamps (M_LAMP: their colour by day, lit at night).
 
 ## Ground and night
 
-- The fountain at (u -2.75, v 19) on the arch's axis: a 4.2 m stone basin with water, a pedestal,
-  four putti round a column, the bowl at 4.1-4.3 m. Trees are kept 1.5 m clear of the basin. The
-  steps to the square are the map's (OSM `steps`).
+- The fountain at (u -0.3, v 19.2), on OSM's ring `wall` (the basin; map_builder SITE_WALLS keeps
+  it from standing as a 1.9 m drum): a round platform up three steps (0.15 m rise, 0.4 m tread,
+  photo 4) running 1.6 m round a 5.0 m stone basin with water, a pedestal, four putti round a
+  column, the bowl at 4.1-4.3 m over the platform. Trees are kept 1 m clear of the bottom step.
+  The steps to the square are the map's (OSM `steps`).
 - The café garden by the left posters: five small tables with two folding chairs each.
 - Night (photo 3): a festoon along the front's top between five hooks, festoons from it out to
   four posts and between the posts, six paper lanterns under the front festoon.
@@ -79,6 +81,6 @@ the shared building material: no new draw call, material or light.
 | km_kino | pixel blocks | 2.4 m x 0.6 m | u -11.6, 11.3 | M_LAMP | 1 |
 | km_pillars | base, shaft, cap, ball | 0.6 m x 5.6 m | u -8.6, 2.6, v -19.5 | M_STONE | 3 |
 | km_arch | piers, stepped arch, attic | 10.4 m x 15.4 m | u -3, v -27.3 | M_STONE | 4 |
-| km_fountain | basin, pedestal, putti, bowl | r 4.2 m, 4.3 m | u -2.75, v 19 | M_STONE | 5 |
+| km_fountain | steps, basin, pedestal, putti, bowl | r 7.4 m, 4.75 m | u -0.3, v 19.2 | M_STONE | 5 |
 | km_garden | tables, chairs | 5 tables | u -12.6..-5.2, v 2.6..6 | M_STONE | 5 |
 | km_lights | festoons, posts, lanterns | 4 posts 3.6 m | front and v ~8 | M_LAMP | 5 |

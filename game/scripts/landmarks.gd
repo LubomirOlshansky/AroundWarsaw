@@ -9451,13 +9451,18 @@ const KM_PLINTH := 0.9
 const KM_RAIL := 1.05                             # the balustrade over the terrace
 const KM_ARCH_U := -3.0                           # the arch's (and the fountain's) axis along u
 const KM_ARCH_V := -27.3                          # the block's front behind the terrace
-const KM_FOUNT := Vector2(-2.75, 19.0)            # the fountain's middle (u, v)
-const KM_FOUNT_R := 4.2
+const KM_FOUNT := Vector2(-0.3, 19.2)             # the fountain's middle (u, v): OSM's basin ring
+const KM_FOUNT_R := 5.0                           # the basin
+const KM_STEP := 0.15                             # the round platform's steps (photo 4): rise,
+const KM_TREAD := 0.4                             # tread,
+const KM_STEPS := 3                               # count; the platform runs 1.6 m round the basin
+const KM_PLAT_R := KM_FOUNT_R + 1.6
 const KM_WALL := Color("#e7dcb6")
 const KM_CORNICE := Color("#efe7cc")
 const KM_GREY := Color("#8c8b86")
 const KM_TERRACE := Color("#bdb7aa")
 const KM_BALUSTER := Color("#ece8dc")
+const KM_STEP_STONE := Color("#c9c3b6")
 const KM_STONE := Color("#d2c5a3")                # the arch block's stone, a shade under the walls
 const KM_RED := Color(0.86, 0.13, 0.1)            # the letters (lit at night)
 const KM_WHITE := Color(0.96, 0.95, 0.9)
@@ -9488,7 +9493,7 @@ func _find_kino_muranow() -> void:
 	if sites.is_empty() or sites[-1]["key"] != "kino_muranow":
 		return
 	sites[-1]["body"] = body
-	tree_free.append([fc, KM_FOUNT_R + 1.5])
+	tree_free.append([fc, KM_PLAT_R + KM_TREAD * (KM_STEPS - 1) + 1.0])
 
 
 ## A point in the cinema's frame.
@@ -9522,7 +9527,7 @@ func _build_kino_muranow(site: Dictionary) -> void:
 	_km_fountain()
 	_km_garden(g, top)
 	_collide(body)
-	_collide(_circle(_km(KM_FOUNT.x, KM_FOUNT.y), KM_FOUNT_R + 0.1, 12))
+	_collide(_circle(_km(KM_FOUNT.x, KM_FOUNT.y), KM_PLAT_R + KM_TREAD * (KM_STEPS - 1), 16))
 	_mode = M_STONE
 
 
@@ -9666,11 +9671,30 @@ func _km_terrace(top: float) -> void:
 	_pow_box(_km(KM_ARCH_U, (v0 + v1) * 0.5 + 0.2), KM_U, half + 0.05, 0.12, spring + r + 1.2, spring + r + 1.45, KM_CORNICE, KM_CORNICE)
 
 
-## The fountain on the square: a round stone basin with water, a square green-bronze pedestal, four
-## putti round a column, and the wide upper bowl (photo 1).
+## The fountain on the square: a round platform up three steps (photo 4; OSM's ring `wall` is
+## the basin, map_builder SITE_WALLS leaves it to this site), a round stone basin with water, a
+## square green-bronze pedestal, four putti round a column, and the wide upper bowl (photo 1).
 func _km_fountain() -> void:
 	var c := _km(KM_FOUNT.x, KM_FOUNT.y)
-	var g := float(map.terrain_height(c.x, c.y))
+	var g0 := float(map.terrain_height(c.x, c.y))
+	# The steps, outermost first: a riser from below the ground and a tread ring inside it.
+	for s in KM_STEPS:
+		var ro := KM_PLAT_R + KM_TREAD * (KM_STEPS - 1 - s)
+		var ri := ro - KM_TREAD if s < KM_STEPS - 1 else KM_FOUNT_R - 0.05
+		var y0 := g0 + KM_STEP * s - (0.25 if s == 0 else 0.0)
+		var y1 := g0 + KM_STEP * (s + 1)
+		var o_ring := _circle(c, ro, 24)
+		var i_ring := _circle(c, ri, 24)
+		var shade := KM_STEP_STONE.darkened(0.04 * (KM_STEPS - 1 - s))
+		for k in 24:
+			var a := o_ring[k]
+			var b := o_ring[(k + 1) % 24]
+			var o := ((a + b) * 0.5 - c).normalized()
+			_quad(Vector3(a.x, y0, a.y), Vector3(b.x, y0, b.y), Vector3(b.x, y1, b.y), Vector3(a.x, y1, a.y), Vector3(o.x, 0.0, o.y), shade.darkened(0.12))
+			var ia := i_ring[k]
+			var ib := i_ring[(k + 1) % 24]
+			_quad(Vector3(a.x, y1, a.y), Vector3(b.x, y1, b.y), Vector3(ib.x, y1, ib.y), Vector3(ia.x, y1, ia.y), Vector3.UP, shade)
+	var g := g0 + KM_STEP * KM_STEPS
 	var outer := _circle(c, KM_FOUNT_R, 20)
 	var inner := _circle(c, KM_FOUNT_R - 0.4, 20)
 	# The rim as 20 short wall pieces, inside and out, and its top.
@@ -9681,7 +9705,7 @@ func _km_fountain() -> void:
 		var ib := inner[(k + 1) % 20]
 		var o := ((a + b) * 0.5 - c).normalized()
 		var n := Vector3(o.x, 0.0, o.y)
-		_quad(Vector3(a.x, g - 0.2, a.y), Vector3(b.x, g - 0.2, b.y), Vector3(b.x, g + 0.55, b.y), Vector3(a.x, g + 0.55, a.y), n, KM_BALUSTER.darkened(0.08))
+		_quad(Vector3(a.x, g - 0.02, a.y), Vector3(b.x, g - 0.02, b.y), Vector3(b.x, g + 0.55, b.y), Vector3(a.x, g + 0.55, a.y), n, KM_BALUSTER.darkened(0.08))
 		_quad(Vector3(ia.x, g + 0.2, ia.y), Vector3(ib.x, g + 0.2, ib.y), Vector3(ib.x, g + 0.55, ib.y), Vector3(ia.x, g + 0.55, ia.y), -n, KM_BALUSTER.darkened(0.2))
 		_quad(Vector3(a.x, g + 0.55, a.y), Vector3(b.x, g + 0.55, b.y), Vector3(ib.x, g + 0.55, ib.y), Vector3(ia.x, g + 0.55, ia.y), Vector3.UP, KM_BALUSTER)
 	_cap(inner, g + 0.2, KM_WATER)
