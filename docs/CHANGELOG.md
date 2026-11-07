@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-07
+- The bottom of the screen is clear: the data credit line is gone from the game view. Where the map and photo data come from now has its own page, Settings → Dźwięk → Licencje.
 - Rondo Daszyńskiego is full of people on working days: crowds at all seven metro entrances, many more office workers, and they wait at the kerb for the green and cross the zebras together in waves.
 - Under Trasa Łazienkowska, the bridges and the viaducts, the see-through circle now opens the deck over you, so you see your car and the traffic around it instead of a glowing outline.
 - The railway by Warszawa Główna no longer flickers from the helicopter: the ground stops tearing through the ballast and the rails stay whole.
