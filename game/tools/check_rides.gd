@@ -23,10 +23,10 @@ const Rules := preload("res://scripts/ride_rules.gd")
 
 ## The groups and tags the ride code asks dialogue.gd for ("" = an untagged line).
 const NEEDED := {
-	"podwozka_request": ["", "timber"],
+	"podwozka_request": ["", "timber", "date"],
 	"podwozka_pickup": ["", "offset"],
 	"podwozka_gps": ["river", "zone", "oldtown", "rechotka", "reroute", "arrive"],
-	"podwozka_passenger": ["", "believer", "hurry", "followed", "timber"],
+	"podwozka_passenger": ["", "believer", "hurry", "followed", "timber", "date"],
 	"podwozka_rating": ["5", "4", "low", "police", "cancel"],
 	"podwozka_driver": ["arrive", "reroute", "river"],
 }
