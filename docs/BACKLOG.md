@@ -4,6 +4,16 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Miodowa's palaces from F's photos (F, 2026-11-07; spec docs/landmarks/specs/miodowa.md)
+
+Built: seven palaces in photo-read skins (Branickich, Młodziejowskiego, Szaniawskich, Chodkiewiczów, Arcybiskupi,
+Paca, Collegium Nobilium) and Pałac Branickich's modelled Miodowa front. Left, photos in F's `warsaw-other-buildings-part-1` (M197-M204):
+- Pałac Młodziejowskiego: the pediment block and the two voluted wing gables round the cour d'honneur, the iron fence (M198).
+- Pałac Paca: the round gate court and the green-copper roofs' shapes (M197); Collegium Nobilium: the tower block and the roof balustrade (M202).
+- Pałac Szaniawskich's pediment and arched ground floor (M204); Pałac Prymasowski and Pałac Blanka on Senatorska have no ground photo yet.
+- Branickich: Mac look check of the storey count under the cornice and the end pavilions.
+
+
 ## Street blocks across the city (F, 2026-11-06)
 
 512 plain blocks are modelled, 50 of them along Nowy Świat with colours checked against street

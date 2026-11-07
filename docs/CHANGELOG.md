@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-07
 - The padel call now rings first, with a word about who's calling, and when you make it to the DESKA court in time you actually play: three points, where you pick a lob, a shot off the glass or a smash. Win all three and the club hoodie is yours. Land the helicopter by the court and reception has something to say about it.
+- Miodowa's palaces look like themselves: cream and pink plaster under tile-red roofs (Paca's are green copper), and Pałac Branickich's long front has pink pilaster strips, a cornice, an attic crowded with statues, three scrolled dormers and its balconied gate.
 - Marszałkowska: 16 more houses got street fronts from real photos, from Hotel Saski to the long block at number 140.
 - Aleje Jerozolimskie: 21 more houses along the avenue got street fronts from real photos.
 - Świętokrzyska, Chmielna, Nowy Świat and Aleje Ujazdowskie: 25 more houses got street fronts from real photos.
