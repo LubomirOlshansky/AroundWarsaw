@@ -10,6 +10,8 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-07
+- Miodowa's palaces look like themselves: cream and pink plaster under tile-red roofs (Paca's are green copper), and Pałac Branickich's long front has pink pilaster strips, a cornice, an attic crowded with statues, three scrolled dormers and its balconied gate.
+
 
 - A motorboat now waits at the race pontoon by Port Czerniakowski: stop there and take it out on the Vistula whenever you like. A boat sign marks it on the map.
 - Marszałkowska: 16 more houses got street fronts from real photos, from Hotel Saski to the long block at number 140.

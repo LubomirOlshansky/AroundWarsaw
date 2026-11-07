@@ -167,7 +167,7 @@ often, known to every visitor; **B** characteristic, known to locals, gives a st
 | 96 | Plan B's corner, Plac Zbawiciela's café row | Plac Zbawiciela | bars | ○ | the summer crowd on the pavement (crowds.gd) |
 | 97 | Kawiarnia and bar street of Chmielna, Mokotowska, Hoża, Poznańska | Chmielna / Mokotowska / Poznańska | street of bars | ○ | more parody fascias and terraces per block |
 | 98 | Kina: Muranów, Atlantic, Luna, Kultura, Elektronik, Femina, Kinoteka, Iluzjon (south of the box) | Andersa / Chmielna / Marszałkowska / Krakowskie Przedmieście / Aleja Solidarności | cinemas | ○ | marquee signs are in; poster facades and evening queues |
-| 99 | Pałac Paca, Pałac Branickich (Miodowa), Pałac Prymasowski, Pałac Blanka, Pałac Jabłonowskich | Miodowa / Senatorska | palaces | ✗ | Miodowa street pass: palace fronts from photos |
+| 99 | Pałac Paca, Pałac Branickich (Miodowa), Pałac Prymasowski, Pałac Blanka, Pałac Jabłonowskich | Miodowa / Senatorska | palaces | ◐ | 2026-11-07 from F's photos (spec `miodowa.md`): Branickich front modelled; Paca, Młodziejowskiego, Szaniawskich, Chodkiewiczów, Arcybiskupi and Collegium Nobilium in photo-read skins. Left: Młodziejowskiego's pediment block, Paca's gate court, Nobilium's tower block; Prymasowski and Blanka (Senatorska) |
 | 100 | Katedra polowa, the Cerkiew, Kapucyni (Miodowa churches) | Miodowa | churches | ◐ | church kit; photo check |
 | 101 | Synagoga Nożyków and Próżna's pre-war tenements (Kamienica Zalmana Nożyka, Kamienica Wolanowskiego) | Próżna / Twarda | synagogue, tenements | ◐ | the synagogue is the church kit's; Próżna's facades ✗ (photo build) |
 | 102 | Plac Grzybowski and Kościół Wszystkich Świętych | Plac Grzybowski | square, church | ◐ | photo check; the square's fountain and benches |
