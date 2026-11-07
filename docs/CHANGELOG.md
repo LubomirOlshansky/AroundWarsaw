@@ -10,7 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-07
-- Small beta fixes: the crazy taxi and courier drivers now really shout at you after cutting you off, speech bubbles no longer cover the steering hint at the start, the job arrow no longer lands on the brake button, and the tram strip on Grochowska at the east edge is closed like the road beside it.
+- Small beta fixes: the crazy taxi and courier drivers now really shout at you after cutting you off, speech bubbles no longer cover the steering hint at the start, the job arrow no longer lands on the brake button, and the tram strip on Grochowska at the east edge is closed like the road beside it. Holding a spot on the map no longer teleports you away in the middle of a race, a job, a rescue or a police chase.
 
 ## 2026-11-06
 - The Bridge by Plac Europejski looks like itself now: its glass folds along long diagonal seams, the south corner steps down under a dark crown, ERZATZ (the bank's parody) glows blue at the top, and a tall timber lobby with leaning concrete columns sits under it. The brick and stone block at Grzybowska 77 in front got its stone piers, long balcony, framed windows and attic.

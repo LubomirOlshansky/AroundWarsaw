@@ -12,7 +12,7 @@ Order: fixes waiting for proof, then what F asked about, then the plan rows neve
 
 - [x] T1 PT-23 and PT-24 (#460): the offer over the ride app at `-735,1722`, backing off at `-680,725` · 2026-11-06 run -100916: offer in 10.8 s at the yard, 8.05 s at the barrier, tow taken at both: PT-23, PT-24 verified
 - [ ] T2 PT-25 crazy drivers' lines: with `--crazy-log`, why 5 cut-ins gave no line · fix built 2026-11-07 (a refused line waits 6 s instead of being spent): re-run near the Patelnia, expect lines > 0
-- [ ] T3 PT-19: the map teleport hold at `-700,900` leaves the car in place
+- [ ] T3 PT-19: the map teleport hold at `-700,900` leaves the car in place · 2026-11-07: the teleport lands there headless (`--teleport-test`); the map's refusal was unwired in play and is fixed; re-run the hold, and a hold mid-job must say "Nie teraz"
 - [ ] T4 The P2 re-checks: PT-11 (first race), PT-15 (two offers at once), PT-16 (order result card)
 - [ ] T5 PT-18 ramp stop on Solec and PT-20 toast, on the next P11 and P13 runs
 
