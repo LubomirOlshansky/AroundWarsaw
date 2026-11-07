@@ -364,12 +364,13 @@ static func _merge(mb, raw: Array) -> Array:
 ## PT-28 (2026-11-07): a tram strip between two closed carriageways (Grochowska at the east edge)
 ## was an open way out: the car drove up it level with the barriers. The strip gets a collider
 ## across it on the barrier line, from one closure's end to the other's, and barriers drawn on it
-## wherever a tram's sides (TRAM_CLEAR m from its track) leave room: the trams still run out over the
-## line (trams.gd, no physics), so their own way stays clear to see. {at, dir, half, y, rails (the
-## tracks' offsets along the line)} each, in the closures' frame (`frame`). A tram crossing with a
-## closure on one side only, or none within RAIL_REACH m, is left to the edge wall.
+## wherever a tram's sides (TRAM_CLEAR m from its track: half a 2.4 m car and a little) leave room:
+## the trams still run out over the line (trams.gd, no physics), so their own way stays clear.
+## {at, dir, half, y, rails (the tracks' offsets along the line)} each, in the closures' frame
+## (`frame`). A tram crossing with a closure on one side only, or none within RAIL_REACH m, is left
+## to the edge wall.
 const RAIL_REACH := 12.0
-const TRAM_CLEAR := 1.9
+const TRAM_CLEAR := 1.4
 
 
 static func rail_gaps(mb) -> Array:
