@@ -44,6 +44,7 @@ from collections import defaultdict
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import road_smooth as RS  # noqa: E402  (the asphalt tests, the tram beds, the polyline helpers)
+import map_shape  # noqa: E402  (the map's outline: nothing runs on past it)
 
 VERSION = 1
 # --check ratchets (2026-11-07, the whole map after the first pass). Lower them, never raise them.
@@ -505,6 +506,14 @@ def move_arrows(out, mi, asphalt, dry=False):
     return moved, dropped
 
 
+def _tests(out):
+    """The asphalt and raised tests, the asphalt only inside the map's outline (a crossing run on
+    to the kerb never leaves the map: check_outline O1)."""
+    asphalt, raised = RS._street_tests(out)
+    shape = map_shape.of(out)
+    return (lambda x, z: shape.contains(x, z) and asphalt(x, z)), raised
+
+
 def _run_from(test, x, z, ux, uz, limit, step=0.25):
     """How far from (x, z) along (ux, uz) test() holds (sampled every step), at most limit."""
     t = 0.0
@@ -700,7 +709,7 @@ def fix_cycle_crossings(out, asphalt, raised, dry=False):
 
 def measure(out):
     """What is left (the --check numbers)."""
-    asphalt, raised = RS._street_tests(out)
+    asphalt, raised = _tests(out)
     on_bed = RS._bed_index(out)
     nodes = junction_nodes(out)
     all_ribbons = Ribbons(out, lambda r: True)
@@ -718,7 +727,7 @@ def apply(out):
     """Fixes the finished map data in place; returns a one-line summary."""
     if int(out.get("road_fixes", 0)) >= VERSION:
         return "already fixed"
-    asphalt, raised = RS._street_tests(out)
+    asphalt, raised = _tests(out)
     on_bed = RS._bed_index(out)
     all_ribbons = Ribbons(out, lambda r: True)
     dots, run_on, partners = fix_zebras(out, asphalt, raised, on_bed, all_ribbons)
