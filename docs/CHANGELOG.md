@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-07
+- On 11 November the city celebrates: crowds with white-and-red flags at Rondo Dmowskiego, barriers that stop cars (the helicopter can fly over), the Palace of Culture, Złota 44 and the National Stadium lit white and red, and a red glow at dusk.
 - Hala Mirowska has its glazed gallery along the market front, and the Metropolitan's top floor is silver metal, both from real photos.
 - The Novotel by Rondo Dmowskiego looks like itself: a white tower with rows of small paired windows, its name in blue neon down both narrow ends and in light boxes on the roof, a glazed podium with a lit edge, and a curved cream entrance canopy under a blue sign.
 - Miodowa's palaces look like themselves: cream and pink plaster under tile-red roofs (Paca's are green copper), and Pałac Branickich's long front has pink pilaster strips, a cornice, an attic crowded with statues, three scrolled dormers and its balconied gate.
