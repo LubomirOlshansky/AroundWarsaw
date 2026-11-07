@@ -17,7 +17,7 @@ after the build. Code: `game/scripts/street_meet.gd`, check `game/tools/check_st
 | Who / what | In game | Parody of |
 | --- | --- | --- |
 | The club | WARSAW NIGHT RACING CLUB (WNRC on TYGRAM) | generic, F's own words |
-| Your friend | Kamil „Bawarka", dark-blue Bawarka 3.2 saloon, two-part grille | a Bavarian saloon |
+| Your friend | Darek „Bawarka", dark-blue Bawarka 3.2 saloon, two-part grille | a Bavarian saloon |
 | The drifter | Lena „Bokiem" ("sideways"), silver Porszę 912, duck tail | a Stuttgart coupe |
 | The drag boss | Tadek, matte black Nisan Skajlajner, tinted glass, tall wing | a Japanese GT |
 | The messenger | TYGRAM (as in the Dżemini job) | a messenger app |
@@ -31,9 +31,9 @@ No characters, quotes, catchphrases or memes from the films or games that inspir
 1. **The call** (night, 21:00-04:00, nothing else on; 4-8 minutes into a night, then 25-40 min
    apart). ODBIERZ / ODRZUĆ, then JADĘ! / NIE DZIŚ. The rescue calls pause.
 2. **Meet 1, Plac Defilad** (the plaza east of the Palace). Six tuned cars in a ring (the traffic's
-   pool cars in neon paints) with neon slabs under them, Kamil's Bawarka, 16 people round the ring,
+   pool cars in neon paints) with neon slabs under them, Darek's Bawarka, 16 people round the ring,
    and Lena spinning donuts in the middle: tyre smoke (22 puffs) and a circle of black marks. Stop in
-   the ring's gap: six lines from Kamil, Lena, Tadek and the crowd.
+   the ring's gap: six lines from Darek, Lena, Tadek and the crowd.
 3. **Raid 1.** NALOT! `police.raid` brings two or three patrol cars in from the roads round the
    plaza, lights on, koguty 2 on you at once (no grace, no cooldown). The crowd runs off, every car
    glides off the plaza to the road and drives off fast. Get 220 m away (a meet off the road is no
@@ -46,7 +46,7 @@ No characters, quotes, catchphrases or memes from the films or games that inspir
 6. **The drag** (Aleja Zieleniecka, 904 m straight, two southbound lanes 3 m apart; the line 80 m
    from the north end, 402 m to the finish). Stop by the start: two exhibition pairs launch in front
    of you, then **START DRAG** puts you on the line next to Tadek. The tree: three ambers 0.5 s apart,
-   green after up to 0.45 s more; moving before green is FALSTART. Kamil's ECU map gives the car
+   green after up to 0.45 s more; moving before green is FALSTART. Darek's ECU map gives the car
    1.5× its top over four gears (34 / 57 / 79 / 100 %); at the top of each gear the button says
    BIEG! ⬆ TERAZ: within 0.35 s a perfect shift (×1.7 pull for 1.1 s), later a plain shift,
    before it a bog, and after 1 s the box shifts itself. NITRO works (a bottle on loan without the
@@ -62,7 +62,7 @@ the drag (no chase starts).
 ## Cost
 
 Idle: one 0.25 s look. At a meet: marks, smoke, the neon slabs and the crowd (one draw call each),
-Kamil's and Lena's cars and their lights (four); the ring's cars are traffic pool cars (no new draw
+Darek's and Lena's cars and their lights (four); the ring's cars are traffic pool cars (no new draw
 calls). At the drag: Tadek's car and two exhibition cars at a time (two draw calls each with the
 lights). Bench by the meet still to do on the phone.
 
@@ -74,7 +74,7 @@ lines are short bubbles, no branching talk.
 
 ## Left (BACKLOG "Night racing club")
 
-- Voice for Kamil, Lena and Tadek (ElevenLabs, F said later).
+- Voice for Darek, Lena and Tadek (ElevenLabs, F said later).
 - Autopilot run on the Mac (F asked): call, meet, raid, race, drag.
 - Phone check: the drift's smoke and marks, the tree's size, the BIEG! button's place under a thumb.
 - Pay to enter the drag (a stake)? Parked for F; built without.

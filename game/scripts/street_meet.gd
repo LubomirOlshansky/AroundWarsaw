@@ -1,12 +1,12 @@
 extends Node3D
 ## Nocny spot (F's ask 2026-11-06, docs/design/night-meet.md): the WARSAW NIGHT RACING CLUB.
 ##
-## **The call.** At night (NIGHT_HOURS, the game clock) with nothing else on, Kamil „Bawarka"
+## **The call.** At night (NIGHT_HOURS, the game clock) with nothing else on, Darek „Bawarka"
 ## (his car: the Bawarka 3.2, a parody of a Bavarian saloon) rings: the club meets tonight on Plac
 ## Defilad. ODBIERZ / ODRZUĆ, then JADĘ! / NIE DZIŚ.
 ##
 ## **Meet 1, Plac Defilad** (MEETS[0], the plaza east of the Palace). Six tuned cars parked in a
-## ring with neon under them, Kamil's Bawarka, a ring of people with their phones out, and in the
+## ring with neon under them, Darek's Bawarka, a ring of people with their phones out, and in the
 ## middle Lena „Bokiem" spinning donuts in her Porszę 912 (a parody of a Stuttgart coupe): tyre
 ## smoke and a circle of black marks. Stop in the gap of the ring (the beacon): the club talks
 ## (MEET_LINES) for MEET_TALK s.
@@ -39,7 +39,7 @@ extends Node3D
 ## (marks, smoke, glow, the crowd, three own cars and their lights), the parked racers are the
 ## traffic's pool cars (no new draw calls).
 ##
-## Flags (main.gd): --meet-call (Kamil rings now), --meet=on (night rules at any hour), --meet=0,
+## Flags (main.gd): --meet-call (Darek rings now), --meet=on (night rules at any hour), --meet=0,
 ## --meet-at=raid|race|meet2|drag|stage (jump to that beat), --meet-log.
 
 const Models := preload("res://scripts/models.gd")
@@ -52,7 +52,7 @@ const Rave := preload("res://scripts/rave.gd")
 const Lang := preload("res://scripts/lang.gd")
 
 const CLUB := "WARSAW NIGHT RACING CLUB"
-const FRIEND := "Kamil „Bawarka”"
+const FRIEND := "Darek „Bawarka”"
 const DRIFTER := "Lena „Bokiem”"
 const BOSS := "Tadek"
 const COLOUR := Color("#ff3d6e")        ## the club's colour: hot neon red
@@ -119,7 +119,7 @@ const PLACE_PAY := [[200, 40], [120, 25], [60, 12], [0, 5]]
 ## The drag win and the loss.
 const DRAG_PAY := [300, 80]
 const DRAG_LOSE := [0, 10]
-## The drag car: top speed × DRAG_TOP (Kamil's map on the ECU), four gears as shares of it.
+## The drag car: top speed × DRAG_TOP (Darek's map on the ECU), four gears as shares of it.
 const DRAG_TOP := 1.5
 const GEARS := [0.34, 0.57, 0.79, 1.0]
 ## The BIEG! button: shown from SHIFT_SHOW of the gear's top, "TERAZ" from SHIFT_AT; pressed within
@@ -318,7 +318,7 @@ func setup(world: Node3D, seed_value := -1) -> void:
 	var names := PackedStringArray()
 	for m in meets:
 		names.append("%s %d,%d" % [m["id"], roundi(m["at"].x), roundi(m["at"].z)])
-	_log("%d meets (%s), strip %s; Kamil in %.0f s" % [meets.size(), ", ".join(names),
+	_log("%d meets (%s), strip %s; Darek in %.0f s" % [meets.size(), ", ".join(names),
 			"%d,%d" % [roundi(strip["start"].x), roundi(strip["start"].y)] if bool(strip.get("ok", false)) else "none", call_in])
 
 
@@ -475,7 +475,7 @@ func strip_yaw() -> float:
 
 # --- the meshes -------------------------------------------------------------------------------
 
-## The quest's own cars: "bawarka" Kamil's dark saloon (a two-part grille, M-ish stripes), "porsze"
+## The quest's own cars: "bawarka" Darek's dark saloon (a two-part grille, M-ish stripes), "porsze"
 ## Lena's silver coupe (round lamps, a duck tail), "skajlajner" Tadek's black coupe (tinted glass,
 ## a tall wing, violet stripes), "show_a"/"show_b" the exhibition pair's (lime hatch, orange saloon).
 static func car_mesh(kind: String) -> ArrayMesh:
@@ -600,7 +600,7 @@ func _build_scene() -> void:
 	_smoke_at.resize(SMOKE)
 	for i in SMOKE:
 		mm.set_instance_color(i, Color(1, 1, 1, 0))
-	# Neon under the cars: one glow slab per car (ring cars, Kamil, Lena).
+	# Neon under the cars: one glow slab per car (ring cars, Darek, Lena).
 	var slab := BoxMesh.new()
 	slab.size = Vector3(2.4, 0.04, 4.8)
 	var gm := MultiMesh.new()
@@ -826,8 +826,8 @@ func ring() -> bool:
 	state = State.RING
 	_hold_t = 0.0
 	_t = 0.0
-	hud.show_side_card("📞 KAMIL „BAWARKA” DZWONI", "Kumpel od aut. Jeździ Bawarką 3.2 i mówi o niej „ona”.",
-			PackedStringArray(["ODBIERZ|ANSWER", "ODRZUĆ|DECLINE"]), COLOUR, "Kamil \"Bawarka\" is calling",
+	hud.show_side_card("📞 DAREK „BAWARKA” DZWONI", "Kumpel od aut. Jeździ Bawarką 3.2 i mówi o niej „ona”.",
+			PackedStringArray(["ODBIERZ|ANSWER", "ODRZUĆ|DECLINE"]), COLOUR, "Darek \"Bawarka\" is calling",
 			"Your car mate. Drives a Bawarka 3.2 and calls it \"she\".")
 	hud.ticker_out()
 	Access.buzz(60, 0.6)
@@ -846,7 +846,7 @@ func _t_ring(dt: float) -> void:
 func _offer() -> void:
 	state = State.OFFER
 	_t = 0.0
-	hud.show_side_card("📞 KAMIL", "„Siema! Dziś spot %s na Placu Defilad. Lena kręci bączki, Tadek przywiózł Skajlajnera. Wpadasz? Tylko cicho, bo psy też czytają internet.”" % CLUB,
+	hud.show_side_card("📞 DAREK", "„Siema! Dziś spot %s na Placu Defilad. Lena kręci bączki, Tadek przywiózł Skajlajnera. Wpadasz? Tylko cicho, bo psy też czytają internet.”" % CLUB,
 			PackedStringArray(["JADĘ!|ON MY WAY", "NIE DZIŚ|NOT TONIGHT"]), COLOUR, FRIEND,
 			"\"Hey! The %s meets tonight on Plac Defilad. Lena's doing donuts, Tadek brought the Skajlajner. You in? Keep it quiet, the cops read the internet too.\"" % CLUB)
 
@@ -858,7 +858,7 @@ func _on_card(i: int) -> void:
 				_offer()
 			else:
 				hud.hide_card()
-				hud.toast("Odrzucono. Kamil pojedzie sam. Bokiem.", "Declined. Kamil goes alone. Sideways.")
+				hud.toast("Odrzucono. Darek pojedzie sam. Bokiem.", "Declined. Darek goes alone. Sideways.")
 				_reset()
 		State.OFFER:
 			hud.hide_card()
@@ -902,7 +902,7 @@ func accept() -> void:
 # --- the meets --------------------------------------------------------------------------------
 
 ## The scene at meet `i`: the marks and the drift in the middle (meet 0 only), the crowd, the ring
-## of parked racers (traffic's pool cars, or the racers who got here), Kamil's car.
+## of parked racers (traffic's pool cars, or the racers who got here), Darek's car.
 func _show_meet(i: int) -> void:
 	meet_i = i
 	var m: Dictionary = meets[i]
@@ -1082,7 +1082,7 @@ func _glides(dt: float) -> void:
 		_glow_frame()
 
 
-## A racer at the road: into traffic (a pool car unparks, Kamil's and Lena's cars become node
+## A racer at the road: into traffic (a pool car unparks, Darek's and Lena's cars become node
 ## drivers) and away, fast; or parked in the new ring ("park").
 func _hand_over(r: Dictionary, then: String, e: int, s: float) -> void:
 	if then != "drive":
@@ -1220,7 +1220,7 @@ func _race_done(p: int) -> void:
 	_put_node(_skajlajner, c + (last - c) * 0.6, atan2(-(c.x - last.x), -(c.z - last.z)))
 
 
-## The racers leave the quest: back to ordinary traffic (released out of sight), Kamil's and Lena's
+## The racers leave the quest: back to ordinary traffic (released out of sight), Darek's and Lena's
 ## node drivers gone.
 func _release_racers() -> void:
 	for r in _racers:
@@ -1565,7 +1565,7 @@ func _clear_strip(all := false) -> void:
 
 func _give_up() -> void:
 	hud.hide_status()
-	hud.toast("„Spoko, następnym razem.” Kamil odjeżdża bokiem.", "\"No worries, next time.\" Kamil leaves sideways.")
+	hud.toast("„Spoko, następnym razem.” Darek odjeżdża bokiem.", "\"No worries, next time.\" Darek leaves sideways.")
 	_log("gave up in %s" % STATES[state])
 	_finish()
 

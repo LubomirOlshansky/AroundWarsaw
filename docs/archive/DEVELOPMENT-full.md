@@ -5760,7 +5760,7 @@ Command-line options (after `--`):
 | `--rave=on` / `--rave=day` / `--rave=0` | secret rave: the night rig on now (the lights in the lit look), the day rave's crowd now, or no raves and no calls |
 | `--rave-spot=ID` | secret rave: tonight's spot (`wiadukt`, `zajezdnia`, `hala`; `plaza` is the day spot) |
 | `--rave-log` | secret rave: print `rave:` lines (tease, the call, pickup, meeting point, door questions and answers, pay, the rig's mode, the room) |
-| `--meet-call` | night racing club (`street_meet.gd`): Kamil „Bawarka" rings now, whatever the time |
+| `--meet-call` | night racing club (`street_meet.gd`): Darek „Bawarka" rings now, whatever the time |
 | `--meet=on` / `--meet=0` | night racing club: the night rules at any hour / none of it |
 | `--meet-at=meet\|raid\|race\|meet2\|drag\|stage` | night racing club: jump to that beat (the car moved to it; `stage` puts it on the drag's line with the tree running) |
 | `--meet-log` | night racing club: the call, meets, raids, race places and drag times in the log |

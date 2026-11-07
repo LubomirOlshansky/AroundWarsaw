@@ -4,12 +4,12 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
-## Night racing club: Kamil, Lena, Tadek (F, 2026-11-06; docs/design/night-meet.md)
+## Night racing club: Darek, Lena, Tadek (F, 2026-11-06; docs/design/night-meet.md)
 
-Built: Kamil's call, the meet on Plac Defilad with Lena's donuts, two police raids, the TYGRAM pin
+Built: Darek's call, the meet on Plac Defilad with Lena's donuts, two police raids, the TYGRAM pin
 and the race to the National Stadium's car park, the drag on Aleja Zieleniecka with START DRAG,
 the tree, BIEG! shifts and nitro. Left:
-- [ ] Voice for Kamil, Lena and Tadek (F: later)
+- [ ] Voice for Darek, Lena and Tadek (F: later)
 - [ ] Autopilot run on the Mac: call, meet, raid, race, drag (F asked)
 - [ ] Phone check: smoke and marks at night, the tree's size, the BIEG! button under a thumb; bench at the meet
 - [ ] A stake to enter the drag? (parked for F, built without)

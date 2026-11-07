@@ -515,7 +515,7 @@ var _crash_auto := false
 ## Smoła night now), --rave=on / --rave=day (that rave on at any hour), --rave-spot=ID, --rave=0,
 ## --rave-log.
 var rave: Rave
-## Nocny spot (street_meet.gd): flags --meet-call (Kamil rings now), --meet=on (night rules at any
+## Nocny spot (street_meet.gd): flags --meet-call (Darek rings now), --meet=on (night rules at any
 ## hour), --meet=0, --meet-at=meet|raid|race|meet2|drag|stage (jump to that beat), --meet-log.
 var meet: StreetMeet
 var meet_flag := ""
@@ -2931,7 +2931,7 @@ func _rave_free() -> bool:
 
 # --- the night racing club -------------------------------------------------------------------
 
-## Kamil's calls, the meets, the raids and the drag (street_meet.gd). None with --no-traffic or --meet=0.
+## Darek's calls, the meets, the raids and the drag (street_meet.gd). None with --no-traffic or --meet=0.
 func _build_meet(data: Dictionary, world: Node3D) -> void:
 	if traffic == null or graph == null or meet_flag == "0":
 		return
