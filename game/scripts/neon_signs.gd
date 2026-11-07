@@ -86,7 +86,10 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		"CUDAK", "POMOSTEK", "RZECZKA", "LEMONIADA", "ZAPIEKANKI",
 		# Towarowa 22 built as finished (2026-11-03): the drone port, the superblock's name and the
 		# gilded last crane's plaque (the "Warsaw of the future" jokes).
-		"WARSZAWA 2050", "DRONOPORT", "TOWAROWA 22", "OSTATNI ŻURAW WOLI"]
+		"WARSZAWA 2050", "DRONOPORT", "TOWAROWA 22", "OSTATNI ŻURAW WOLI",
+		# Prosta 32, Prosta 28 and Łucka City from F's photos (2026-11-06): parodies of the
+		# developer's red roof letters, a tenant's small red logo and the printer's roof board.
+		"MARZYPOL", "PROSTO", "INTERBRUK"]
 ## Tube colours (linear, bright): pink, cyan, violet, and a few words' usual colours.
 const PINK := Color(1.0, 0.1, 0.55)
 const CYAN := Color(0.1, 0.9, 1.0)

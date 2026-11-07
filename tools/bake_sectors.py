@@ -104,7 +104,7 @@ SITE_NAMES = ["Pałac Kultury i Nauki", "Złote Tarasy", "Lumen", "Skylight", "R
               "Warsaw Trade Tower", "Skyliner", "Warsaw Unit", "Mennica Legacy Tower", "Generation Park Y",
               "Skysawa", "Błękitny Wieżowiec", "Warszawskie Centrum Finansowe", "Centrum LIM", "Chałubińskiego 8",
               "Spektrum Tower", "The Bridge", "Bellona", "Hilton Warsaw City", "The Westin Warsaw", "Novotel Warszawa Centrum",
-              "Central Tower", "Ilmet", "Platinum Tower A", "Platinum Tower B", "Łucka City", "Widok Towers", "PZU Tower", "JM Tower",
+              "Central Tower", "Ilmet", "Platinum Tower A", "Platinum Tower B", "Łucka City", "Prosta Tower", "Widok Towers", "PZU Tower", "JM Tower",
               # map north (2026-10-31): Arkadia, for the landmarks lane (docs/DEMO.md 2.2)
               "Westfield Arkadia",
               # first scene item 3 (2026-10-31): the Eastern Wall's stores (landmarks.gd DTC)
@@ -159,6 +159,7 @@ SITE_AREAS = [
     (-445.0, 1605.0, -395.0, 1680.0),       # Kościół Najświętszego Zbawiciela (landmarks.gd ZB_NAVE_AT, ZB_TOWER_AT)
     (-2290.0, 185.0, -2165.0, 235.0),       # Norblin's old works (landmarks.gd NORBLIN_OLD, F's look check 2026-11-03)
     (-2254.0, 232.0, -2234.0, 252.0),       # and its glazed hall on Prosta ("Verit", NORBLIN_HALL_AT)
+    (-2410.0, 160.0, -2345.0, 265.0),       # Prosta 28's tower, annex and wings (unnamed in OSM; landmarks.gd P28_BOX)
     # behind the Eastern Wall (landmarks.gd _find_behind): the 75 m tower and the four 1960s
     # slabs, unnamed in OSM, found by the outline under TOWER75_AT and SLAB_AT (their bboxes)
     (-837.0, 245.0, -804.0, 270.0),

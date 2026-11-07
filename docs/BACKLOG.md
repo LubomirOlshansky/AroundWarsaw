@@ -4,6 +4,20 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Prosta 32, Prosta 28 and Łucka City from F's photos (F, 2026-11-06)
+
+Built from F's photos (specs `prosta32.md`, `prosta28.md`, `lucka.md`). Left open:
+- P28-1: Prosta 28's height. OSM says 80.2 m (tagged while it was being built); the photos and the
+  render put it near 92 m, so the model is scaled to 82 / 89 / 93.5 m. Check against a published
+  figure or a Mac photo with a known neighbour.
+- P28-2: the tenant logos (a small red mark high on the tower, a logo on the annex) are one PROSTO
+  word for now; the annex has none.
+- P32-1: the lattice's diamonds are straight-sided; the real ones are rounded at the joints (the
+  close-up of the arches). Rounding would cost about three times the triangles.
+- LC-1: Łucka City's balconies are not modelled (the wings wear the white punched-window skin;
+  balcony bands read blue from above); the tower's dark top is one colour where the photos show a
+  grid of dark panels.
+
 ## Mrożulo's "Dżemini" call (F, 2026-11-06; docs/design/gaulle-and-food-hype.md G5b)
 - Mac look check: DŻEMINI KEBAB's door on Świętokrzyska (52.23595, 21.0105 is a guess), the sticker's
   height beside the sign, and whether the 40-person queue blocks the pavement there.
