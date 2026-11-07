@@ -541,7 +541,9 @@ func _build_parts(marks, roofs_only: bool) -> void:
 		_drape_bias = 0.1
 		_build_paths(flat)
 		_build_steps(flat)
-		_drape_bias = 0.18
+		# The cutting's floor under the tracks' gravel shoulders (0.18): it had their bias, the
+		# same layer at the same height, and the two greys z-fought (F's phone videos, 2026-11-07).
+		_drape_bias = 0.16
 		_build_cut_floor(flat)
 		_drape_bias = 0.2
 		_build_rail_beds(flat)
@@ -2074,6 +2076,7 @@ func _build_cut_floor(st) -> void:
 		return
 	var keep := _layer
 	_layer = L_GRAVEL
+	_exact_strip = true
 	for t: Dictionary in _cut.tracks:
 		var pts: PackedVector2Array = t["p"]
 		var cut: PackedByteArray = t["cut"]
@@ -2087,6 +2090,7 @@ func _build_cut_floor(st) -> void:
 				run = PackedVector2Array()
 		if run.size() >= 2:
 			_strip(st, run, RailCut.FLOOR_W * 2.0, Y_PATH, CUT_FLOOR, false)
+	_exact_strip = false
 	_layer = keep
 
 
@@ -3946,7 +3950,7 @@ func _draped_tri(st, a: Vector3, b: Vector3, c: Vector3, col: Color, depth: int)
 	var ab := Vector2(a.x - b.x, a.z - b.z).length()
 	var bc := Vector2(b.x - c.x, b.z - c.z).length()
 	var ca := Vector2(c.x - a.x, c.z - a.z).length()
-	if maxf(ab, maxf(bc, ca)) > 12.0 and depth < 16 and not _t_h.is_empty():
+	if maxf(ab, maxf(bc, ca)) > _drape_edge(a, b, c) and depth < 16 and not _t_h.is_empty():
 		if ab >= bc and ab >= ca:
 			var m := (a + b) * 0.5
 			_draped_tri(st, a, m, c, col, depth + 1)
@@ -3961,6 +3965,27 @@ func _draped_tri(st, a: Vector3, b: Vector3, c: Vector3, col: Color, depth: int)
 			_draped_tri(st, m, b, c, col, depth + 1)
 		return
 	_emit_draped(st, a, b, c, col)
+
+
+## The longest edge a draped triangle keeps (m): the terrain grid's, or for the railway's ballast
+## and gravel (`_exact_strip`) in the cutting's cells, drawn in 2 m sub-cells (rail_cut.gd SUB),
+## the sub-cells' own size, so the pieces bend where its banks and floor do. Only in the cutting:
+## elsewhere the 10 m pieces sag a few centimetres (their bias covers it), and the aprons' 1 m
+## sub-cells map-wide would have cost ~400k triangles. The rails keep their pieces (bias 0.46).
+func _drape_edge(a: Vector3, b: Vector3, c: Vector3) -> float:
+	if not _exact_strip or _dk >= 0 or _tn >= 0 or _layer == L_RAIL:
+		return 12.0
+	if not (_cut.box.has_point(Vector2(a.x, a.z)) or _cut.box.has_point(Vector2(b.x, b.z)) or _cut.box.has_point(Vector2(c.x, c.z))):
+		return 12.0
+	_fine_index()
+	if _fine_cells.is_empty():
+		return 12.0
+	var step := float(_terrain["step"])
+	var fine := 0
+	for p: Vector3 in [a, b, c]:
+		var key := Vector2i(floori((p.x - float(_terrain["x0"])) / step), floori((p.z - float(_terrain["z0"])) / step))
+		fine = maxi(fine, int(_fine_cells.get(key, 0)))
+	return 12.0 if fine == 0 else maxf(step / fine, step / RailCut.SUB) * 1.2
 
 
 ## One flat-layer triangle lifted onto the surface (each corner's own y is the layer offset),
@@ -4169,6 +4194,13 @@ func _disc(st, p: Vector2, r: float, y: float, col: Color, segments := 8) -> voi
 ## areas) follow the grid's triangles exactly; the ones higher up (roads 0.3, markings) keep the
 ## 10 m pieces, their bias covers any sag.
 const EXACT_STRIP_BIAS := 0.12
+## Flicker fix (F's phone videos, 2026-11-07): the railway's flat layers (the cutting's floor, the
+## tracks' gravel shoulders and dark beds, the rails) keep their corners on or over the drawn
+## ground, and in the cutting bend with its 2 m sub-cells (`_drape_edge`). In 10 m pieces they
+## sagged up to a metre under it (the cutting's banks and floor bend between the grid's points),
+## and from the helicopter the beige ground tore through the ballast and cut the rails into
+## dashes that crawled as the view moved. check_drape.gd's rail pass counts what it still hides.
+var _exact_strip := false
 
 
 ## A polyline as a flat band; square caps overlap at the joints.
@@ -4197,11 +4229,14 @@ func _strip(st, poly: PackedVector2Array, width: float, y: float, col: Color, ex
 		# Draped: cut into pieces no longer than the terrain grid, so a long thin strip
 		# costs two triangles per piece instead of a fan of slivers.
 		var pieces := maxi(1, ceili(a.distance_to(b) / 10.0)) if _drape_bias >= 0.0 else 1
+		# The railway's layers: their corners never under the drawn ground (`_emit_draped`).
+		_on_grid = _exact_strip and _dk < 0 and _tn < 0
 		for k in pieces:
 			var p := a.lerp(b, float(k) / pieces)
 			var q := a.lerp(b, float(k + 1) / pieces)
 			_quad(st, Vector3(p.x + side.x, y, p.y + side.y), Vector3(q.x + side.x, y, q.y + side.y),
 					Vector3(q.x - side.x, y, q.y - side.y), Vector3(p.x - side.x, y, p.y - side.y), Vector3.UP, col)
+		_on_grid = false
 	_axis = Vector2.ZERO
 
 
@@ -5543,6 +5578,7 @@ func _draped_wall(st, a: Vector2, b: Vector2, y0: float, y1: float, facing: Vect
 ## sleepers every 0.65 m. Same mesh and material as before: no new draw call.
 func _build_rail_beds(st) -> void:
 	var bias := _drape_bias
+	_exact_strip = true
 	for r in Trains.trim_rails(data.get("rails", [])):
 		_dk = int(r.get("dk", -1))
 		var poly := _pts(r["p"])
@@ -5553,12 +5589,14 @@ func _build_rail_beds(st) -> void:
 		_drape_bias = bias
 		_strip(st, poly, 2.7, Y_PATH, Color("#615b54"))
 	_drape_bias = bias
+	_exact_strip = false
 	_dk = -1
 	_layer = L_GROUND
 
 
 func _build_rails(st) -> void:
 	_layer = L_RAIL
+	_exact_strip = true
 	for r in Trains.trim_rails(data.get("rails", [])):
 		_dk = int(r.get("dk", -1))
 		var poly := _pts(r["p"])
@@ -5570,6 +5608,7 @@ func _build_rails(st) -> void:
 			_strip(st, rail, 0.2, Y_MARK + 0.005, Color("#3b3836"))
 			# The rail head: a thin worn-steel line along the top, so the pair reads as rails.
 			_strip(st, rail, 0.07, Y_MARK + 0.008, Color("#a29d94"))
+	_exact_strip = false
 	_dk = -1
 	_layer = L_GROUND
 

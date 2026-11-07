@@ -4,6 +4,21 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Flickering textures from the helicopter (F, 2026-11-07, two phone screen recordings)
+
+Fixed: over the rail yard by Warszawa Główna and the cutting to Ochota the beige ground tore through
+the ballast in jagged, crawling patches and the rails broke into dashes. Two causes: the cutting's
+floor had the gravel shoulders' depth bias (same layer, same height: z-fighting), and the railway's
+flat layers were laid in 10 m pieces that sagged up to a metre under the cutting's 2 m ground. Now
+the floor sits under the shoulders (bias 0.16), the railway layers keep their corners on the drawn
+ground and bend with the cutting's sub-cells (`map_builder._drape_edge`); check_drape's rail pass
+(ground over them in the cutting: 6,589 m2 before, 330 m2 after, +137k flat triangles map-wide, +4 %). Left:
+- Rail beds outside the cutting still sag under the 10 m grid in places (~3,300 m2 of gravel
+  shoulders, ~700 m2 of beds, mostly by bridges and aprons); a phone look decides if it shows.
+- The second recording (Rondo Daszyńskiego area, by car) shows a shimmer on the long window rows of
+  slab blocks while the camera moves: the shader's window grid near the pixel size (aliasing), not
+  z-fighting. Candidate fix: fade the window pattern by fwidth like the roofs do; needs a phone look.
+
 ## Miodowa's palaces from F's photos (F, 2026-11-07; spec docs/landmarks/specs/miodowa.md)
 
 Built: seven palaces in photo-read skins (Branickich, Młodziejowskiego, Szaniawskich, Chodkiewiczów, Arcybiskupi,
