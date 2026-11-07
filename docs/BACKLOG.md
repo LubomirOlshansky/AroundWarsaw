@@ -1637,6 +1637,15 @@ Plan: docs/design/railway.md. One PR per item, in this order:
   the phone's speaker, the coloured light washes under the saucer (the game's camera never sees the
   underside, so none were built), the projected line patterns of F's night photo, planters.
 
+- **Railway audit (F, 2026-11-07).** Built: light signals (`map_builder` `rail_signal_spots`,
+  `_build_rail_signals`: 50, in the walls surface, +0 draw calls; `check_rail_signals` in verify),
+  train sounds (`trains.gd` `_sounds`; `train_rumble`, `train_bridge`, `train_horn`, `station_gong`
+  from tools/make_sfx.py), red tail lamps on a train's last car. Open: the signals' look and the
+  sounds' levels on the phone (the rumble's body is low, the phone's speaker loses some of it);
+  signals stay at one aspect (they do not change as a train passes); no signals on the bridges or at
+  Główna's yard islands; Stacja Muzeum (the railway museum and its locomotives, photos on the Mac);
+  S3d Gdańska.
+
 ## Krakowskie Przedmieście street by street (F, 2026-11-02), pass 1
 Built (cloud, Sonnet): eight shopfronts (`Storefronts.KRAKOWSKIE`, 93 venue signs in check_parodies), original names, at the mapped house numbers 20/22, 19, 27, 56, 45, 58/60, 64, 69. Open:
 - Mac look check of the eight signs (QUESTIONS); move them to real doors.

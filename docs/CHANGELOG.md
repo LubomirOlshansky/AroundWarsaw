@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-07
+- The railway got its signals: green and red lights at every platform's end and both tunnel mouths, trains rumble past (louder on the bridge), sound their horn out of the tunnel and get a platform gong, and show red lamps at the back.
 - Miodowa's palaces look like themselves: cream and pink plaster under tile-red roofs (Paca's are green copper), and Pałac Branickich's long front has pink pilaster strips, a cornice, an attic crowded with statues, three scrolled dormers and its balconied gate.
 
 
