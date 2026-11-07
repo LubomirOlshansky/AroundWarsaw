@@ -548,7 +548,6 @@ so OSM nodes on bridges and viaducts were drawn on the ground under the deck.
 - [ ] P9: 14 signal poles far from any crossing (list in objects.md): Mapillary check, then a mid-block crossing or REMOVE
 - [ ] P8: 10 benches, bins and racks on steps: keep the amphitheatre ones, move the rest
 - [ ] Models: a picnic roof and a smoking shelter for the ex-bus-shelter spots (a bench stands there now); bollards or a gate frame at the cut gates
-- [ ] Signal poles that stood in a carriageway with no free pavement spot were removed (part of P2's 29): a crossing may now have one pole fewer; check on the phone at Lubelska
 
 ## Operation Unslop: streets that don't look generated (F, 2026-11-05)
 

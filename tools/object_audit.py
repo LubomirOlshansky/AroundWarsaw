@@ -43,6 +43,8 @@ import os
 import sys
 from collections import Counter, defaultdict
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 CELL = 16.0
 DOUBLE = {"lamp": 1.2, "signal": 0.6, "bench": 0.5, "bin": 0.5, "bike": 0.5, "column": 1.5, "shelter": 2.0}
@@ -139,6 +141,8 @@ class World:
 
     def __init__(self, d):
         self.d = d
+        import check_streets
+        self.asphalt = check_streets.pole_tests(d)
         self.blds = Grid()
         for b in d.get("buildings", []):
             if b.get("kind") in NO_ROOM or float(b.get("mh", 0.0)) > 1.5:
@@ -327,6 +331,10 @@ def audit(d, sd_items, keep=None):
         if base in PAVEMENT or base in ("car", "signal"):
             g, road = w.lane_gap(p)
             limit = {"car": -0.9, "signal": -0.5}.get(base, -0.25)
+            if base in ("lamp", "signal"):
+                # Poles: on the asphalt as drawn (tapered bands, carriage areas), check_streets S1's test.
+                drawn = w.asphalt[0](x, z) and not w.asphalt[1](x, z)
+                g = min(g, limit - 0.01) if drawn else max(g, 0.0)
             if g < limit and road is not None and road.get("k") not in ("service",) and not w.on_island(p):
                 hit.append(("P11" if base == "car" else "P2", f"{-g:.1f} m into {road.get('name') or road.get('k')}"))
         if base != "signal" and w.on_line(w.zebras, p, pad=0.2, mid=True):

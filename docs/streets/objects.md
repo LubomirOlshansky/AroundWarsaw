@@ -16,12 +16,12 @@ fence, wall and hedge from OpenStreetMap, tested against the finished map:
 | Rule | Artifact | Found | Verdict |
 | --- | --- | --- | --- |
 | P1 | inside a building at least 1.5 m high (pokes out of the wall) | 138 (64 parked cars, 42 bike racks, 18 bins, 13 lamps) | REMOVE |
-| P2 | a pavement object or signal pole in a carriageway | 82 (38 lamps, 22 signals, 22 bins) | MOVE to the pavement (53), else REMOVE (29) |
+| P2 | a pavement object in a carriageway; a lamp or signal pole only on the asphalt as drawn (check_streets S1's test: the nominal OSM width is wider than the drawn road, 60 poles there are fine) | 22 bins | MOVE to the pavement (13), else REMOVE (9) |
 | P3 | on the middle of a zebra | 0 | REMOVE |
 | P4 | on the tram rails (under 1.2 m from a track; centre poles stay) | 4 lamps | REMOVE |
 | P5 | in the river | 2 lamps | REMOVE (the bridge has the bake's own deck lamps) |
 | P6 | under a bridge or viaduct deck: drawn on the ground in the slab's shade | 23 (13 signals) | REMOVE |
-| P7 | the same object twice within 0.5-2 m | 14 | REMOVE the second |
+| P7 | the same object twice within 0.5-2 m | 14 (lamps and signal pairs) | REMOVE the second |
 | P8 | a bench, bin or rack on a flight of steps | 10 | CHECK (amphitheatre seats are real) |
 | P9 | a signal pole over 30 m from any junction or crossing | 14 | CHECK |
 | P10 | a "bus shelter" away from any road a bus or tram uses: OSM's amenity=shelter in a park, a yard or a car park; drawn as a bus stop it also became a stop for the ring buses | 17 | REPLACE with a bench |
@@ -33,19 +33,19 @@ fence, wall and hedge from OpenStreetMap, tested against the finished map:
 | L5 | the wall or fence that frames a flight of steps (underpass, metro, park stairs), drawn as the 1.6-1.9 m grey slab | 192 | RESTYLE as the 1 m `balustrade_rail` (street_pass B5, now city-wide) |
 
 Barriers with a street-pass override (game/data/road_objects.json) are never touched.
-After the fix: 810 findings → 24, all CHECK (P8 10, P9 14).
+After the fix: 750 findings → 24, all CHECK (P8 10, P9 14).
 
 ## Street by street (before → after)
 
-Findings within 30 m of a named street (`python3 -I tools/object_audit.py --by-street`). 433 more are
+The table counts the first rule set (poles judged on the OSM width; 60 of them were off the drawn asphalt and now stay). Findings within 30 m of a named street (`python3 -I tools/object_audit.py --by-street`). 433 more are
 off the streets (yards, parks, courtyards). After the fix every street below is at 0 except the
 CHECK rules.
 
 | Street | Before | What |
 | --- | --- | --- |
 | Aleje Jerozolimskie | 33 | 14 stair slabs → balustrades, 10 lamps/bins out of the carriageway, 4 stubs |
-| Aleja Jana Pawła II | 29 | 10 signals under the deck, 7 stair slabs, 4 objects in the road, 4 in buildings |
-| Lubelska | 18 | 16 lamps and bins standing in the road |
+| Aleja Jana Pawła II | 29 | 10 signals under the deck, 7 stair slabs, 4 in buildings (its 4 "in the road" poles are off the drawn asphalt and stay) |
+| Lubelska | 18 | bins standing in the road (the lamps there are off the drawn asphalt and stay) |
 | Aleja „Solidarności” | 17 | 8 fences across footways, 6 stair slabs |
 | Piotra Antoniego Steinkellera | 13 | 7 barriers inside buildings, 3 doubles |
 | Prosta | 12 | 4 lamps on the tram rails, 2 in the road, stairs, gates |
@@ -61,7 +61,7 @@ CHECK rules.
 ## Before/after shots
 
 Project files `street-objects/` (cloud, day, `--quality=low`, runtime path):
-A bus shelter in a car park (gone, a bench instead); B lamp and signal in Lubelska's road; C the
+A bus shelter in a car park (gone, a bench instead); B Lubelska's crossing (the shot is of the first rule set, which also moved the poles; poles now stay unless on the drawn asphalt); C the
 underpass stair walls by Most Świętokrzyski become open balustrades and the park fence gets its gate;
 D the stair walls by the Emilii Plater cycle paths; F a lamp off Jerozolimskie's asphalt; G, H
 signals and bins under decks and inside the station.

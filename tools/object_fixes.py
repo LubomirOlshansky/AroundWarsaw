@@ -98,13 +98,17 @@ def pave_spot(w, p, base):
         return None   # on the centreline: no side to push to
     nx, nz = nx / n, nz / n
     want = float(road.get("w", 6.0)) * 0.5 + PAVE.get(base, PAVE_OTHER)
-    q = (fx + nx * want, fz + nz * want)
+    q = (round(fx + nx * want, 1), round(fz + nz * want, 1))
     if math.hypot(q[0] - p[0], q[1] - p[1]) > SHIFT_MAX.get(base, SHIFT_OTHER):
         return None
     g2, _ = w.lane_gap(q)
+    if base in ("lamp", "signal") and w.asphalt is not None:
+        on, up = w.asphalt
+        if on(q[0], q[1]) and not up(q[0], q[1]):
+            return None   # check_streets S1: a pole on the drawn asphalt (a tapered band, a carriage area)
     if g2 < 0.2 or w.in_building(q, 0.0) or w.in_water(q) or w.on_line(w.zebras, q, pad=-0.3):
         return None
-    return (round(q[0], 1), round(q[1], 1))
+    return q
 
 
 def split_gates(flat, cuts):
