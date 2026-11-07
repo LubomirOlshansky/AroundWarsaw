@@ -537,6 +537,19 @@ the steering. Review, findings and the A/B list: `docs/design/beta-values.md`.
 - [ ] GAMEPLAY_PLAN 1.5 items 2, 3, 5: wall look-ahead, junction pick, camera lead at junctions
 - [ ] If F picks them: the delivery streak "Seria", a smooth tip, slipstream, a shorter card wait
 
+## Street objects unslopped (F, 2026-11-07; docs/streets/objects.md)
+
+F dropped the road geometry rework for now and asked for the objects on and along the roads instead.
+Found: every OSM `amenity=shelter` was drawn as a bus shelter and became a ring-bus stop (17 in parks,
+yards and car parks); fences ran unbroken across footways (the bake never read gate nodes); stair walls
+were 1.9 m grey slabs city-wide (street_pass B5 only fixed Marszałkowska); props stand on terrain_height,
+so OSM nodes on bridges and viaducts were drawn on the ground under the deck.
+- [x] Audit and fix pass, whole map, verify `objects` (2026-11-07)
+- [ ] P9: 14 signal poles far from any crossing (list in objects.md): Mapillary check, then a mid-block crossing or REMOVE
+- [ ] P8: 10 benches, bins and racks on steps: keep the amphitheatre ones, move the rest
+- [ ] Models: a picnic roof and a smoking shelter for the ex-bus-shelter spots (a bench stands there now); bollards or a gate frame at the cut gates
+- [ ] Signal poles that stood in a carriageway with no free pavement spot were removed (part of P2's 29): a crossing may now have one pole fewer; check on the phone at Lubelska
+
 ## Operation Unslop: streets that don't look generated (F, 2026-11-05)
 
 F: "unslop the roads and the objects on them, make the streets prettier, street by street, using
