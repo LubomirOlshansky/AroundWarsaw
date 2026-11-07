@@ -34,9 +34,25 @@ The low block of Centrum LIM (1989) under the hotel tower, the long front on Ale
 - 7.6-10.6 m: the gallery, 2 m in (glass, lit warm); on the street face a pink-lit stretch
   (u 80-103) and green-grey glass (u 124-146).
 - 10.6-12.2 m panel band, 12.2-13.1 m dark ribbon window 0.3 m in, 13.1-15 m the top band.
-- Roof #9a9c9c; the plant screen #1b1d20 with fins, its top #5c5f62.
 
-## 4. Signs (parodies, east to west on the street face; u from the west end)
+## 4. Roof
+
+Flat at 15 m (#9a9c9c). On the west half the black louvred plant screen (15-18 m, the map's part)
+with a flat top (#5c5f62); two LED screens on legs (section 7).
+
+## 5. Colour and material
+
+| Part | Colour | Material code |
+| --- | --- | --- |
+| Panel bands | #d9d8d1 | M_STONE |
+| Shop glass, gallery glass | #8fa2a6, #7f989a | M_PAVILION (lit warm) |
+| Gallery tints | #8a5a72 pink, #5f7c74 green | M_LAMP, M_STONE |
+| Ribbon window | #1f262b | M_SKIN S_DARK |
+| Columns | #e4e2dc | M_STONE |
+| Plant screen | #1b1d20 | M_SKIN S_FINS |
+| Signs' marks, screens | their colours | M_LAMP |
+
+## 6. Signs (parodies, east to west on the street face; u from the west end)
 
 | Real (in the photos) | In the game | Where |
 | --- | --- | --- |
@@ -51,7 +67,7 @@ The low block of Centrum LIM (1989) under the hotel tower, the long front on Ale
 | Rossmann, Millennium | ROSZMAN, MILENIUSZ | over the shop glass, u 88 / 116 |
 | Chery on the Oxford Tower behind | CZERY | Chałubińskiego 8's crown |
 
-## 5. LED screens
+## 7. LED screens
 
 | Where | Size | Advert (the game's own) |
 | --- | --- | --- |
@@ -59,13 +75,34 @@ The low block of Centrum LIM (1989) under the hotel tower, the long front on Ale
 | On the roof west of the tower, u 90, 8 m back | 11 × 7.5 m, legs | violet, HYM (the fashion chain's) |
 | On the tower's north face, east part, from 17.5 m | 11 × 8.5 m | red, LEKSUS (the car ad) |
 
-## 6. Life
+## 8. Ground and night
 
-The arcade, the pavement and the Dworzec Centralny tram platforms are a busy place for the walkers
+The pavement and arcade are the map's. At night the gallery and shop glass light warm, the signs
+and screens glow. The arcade, the pavement and the Dworzec Centralny tram platforms are a busy place for the walkers
 (main.gd `LIM_BUSY_*`, pedestrians.gd `add_busy`), and the two platforms get waiting crowds that
 never drop under 40 % even at night (crowds.gd `STOP_CENTRALNY`).
 
-## 7. Open
+## 9. Detail level and budget
+
+L2 for the bands and gallery, L3 for the signs' marks: triangle budget 1700 (1421 measured, in
+`check_mesh_quality.gd`). Shots: from Aleje Jerozolimskie with `--yaw=180`, by night and day.
+
+## 10. Parts table
+
+| id | shape | size | position | material | feature |
+| --- | --- | --- | --- | --- | --- |
+| ground | prism | ground-floor outline, 4.6 m | the map's 0-5 m part | M_PAVILION | shop glass |
+| columns | 8-sided prism | r 0.45, 10.6 m | 1.1 m in from the bands, every ~7.5 m | M_STONE | arcade |
+| band_a | prism | upper outline, 4.6-7.6 m | the map's 5-15 m part | M_STONE | panels |
+| gallery | prism | outline 2 m in, 7.6-10.6 m | inside band_a | M_PAVILION | lit floor |
+| band_b | prism | upper outline, 10.6-12.2 m | over the gallery | M_STONE | panels |
+| ribbon | prism | outline 0.3 m in, 12.2-13.1 m | over band_b | M_SKIN | dark window |
+| band_top | prism | upper outline, 13.1-15 m | top | M_STONE | the signs |
+| louvre | prism | the map's 15-18 m part | west roof | M_SKIN | plant screen |
+| screens | box on legs | 11-12 × 7.5-8.5 m | section 7 | M_LAMP | adverts |
+| marks | flat polygons | 0.9-1.5 m | beside the signs | M_LAMP | crown, bison, plus, chip |
+
+## 11. Open
 
 - The tower's own night look (PRESIDENTIAL and SAMSUNG on all four faces in the photos; the game
   has them on two) and its lit cells.
