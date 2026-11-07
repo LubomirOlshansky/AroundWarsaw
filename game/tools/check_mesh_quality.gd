@@ -23,6 +23,15 @@ extends SceneTree
 const Landmarks := preload("res://scripts/landmarks.gd")
 ## Triangles a site may hold: measured on 2026-10-31 plus about 20 % (raise on purpose only).
 const BUDGET := {
+	"scena_relax": 600,
+	"tides": 8000,
+	"ujazdowskie47": 3000,
+	"krasinski_ogrod": 900,
+	"lawrynowicz": 8000,
+	"wedel": 8000,
+	"szpitalna5": 8000,
+	"gigantami": 4000,
+	"filtry": 3000,
 	"level26_club": 860,
 	"church_alberta": 310,
 	"church_antoniego": 990,
@@ -81,7 +90,8 @@ const BUDGET := {
 	"wyszynski": 300,
 	"arkadia": 20300,
 	"blekitny": 910,
-	"bridge": 110,
+	"bridge": 700,
+	"grzybowska77": 2000,
 	"buw": 2900,
 	"central": 340,
 	"centralna": 1650,
@@ -114,7 +124,7 @@ const BUDGET := {
 	"lim": 300,
 	"loretka": 1120,
 	"lucka": 470,
-	"marszalkowska94": 490,
+	"marszalkowska94": 590,  # rebuilt from F's photos (2026-11-07): 402 -> 490 tris
 	"mariensztat": 660,
 	"mennica": 650,
 	"mirowska": 2050,
@@ -172,7 +182,7 @@ const BUDGET := {
 	"plac_centralny_lamps": 700,
 	"getto": 650,
 	"ochota": 1420,
-	"powisle": 1770,
+	"powisle": 6800,
 	"barka_wieczor": 1820,
 	"barka_biala": 1400,
 	"barka_marina": 2240,
@@ -213,6 +223,7 @@ const BUDGET := {
 	"wcf": 190,
 	"wszystkich": 950,
 	"wizytki": 690,
+	"branickich": 1500,
 	"archikatedra": 1100,
 	"sw_anna": 620,
 	"widok": 450,
@@ -314,7 +325,8 @@ func _initialize() -> void:
 	var marks = Landmarks.new(map, data)
 	var keys: Array[String] = []
 	for s: Dictionary in marks.sites:
-		keys.append(s["key"])
+		if not s.has("block") and not s.has("fronts"):  # city fabric, not landmarks: no budget of their own
+			keys.append(s["key"])
 	keys.sort()
 	var measured := {}
 	for key in keys:

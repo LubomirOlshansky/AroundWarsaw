@@ -5,7 +5,7 @@ extends SceneTree
 ##     dialogue.json line), each at most 70 characters, a reward (respect), a trigger kind, a
 ##     place that exists (places.json, or eggs.gd's five spots); a waiting egg names what it
 ##     waits for; unique ids; 48 cards (5 of v0.65 + vision's 40 + loop MW-2's two: the Frogs
-##     triple corner and the standing Leżak, and the Cringulo van's easter_mlask);
+##     triple corner and the standing Leżak, and the Mrożulo van's easter_mlask);
 ##   - every reachable egg fires on synthetic inputs of its kind (the vehicle at its place, its
 ##     time, day and weather; a lap, a street, a circle driven), and an egg with a condition does
 ##     not fire without it (by day, too fast, in the rain, another station);

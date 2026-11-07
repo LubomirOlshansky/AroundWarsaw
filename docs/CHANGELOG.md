@@ -9,13 +9,49 @@ that day here, in plain words a player would understand (no file names, no spoil
 rows in the progress log but no section here is listed automatically from the log's labels until
 someone writes its lines.
 
+## 2026-11-07
+- The Novotel by Rondo Dmowskiego looks like itself: a white tower with rows of small paired windows, its name in blue neon down both narrow ends and in light boxes on the roof, a glazed podium with a lit edge, and a curved cream entrance canopy under a blue sign.
+- Miodowa's palaces look like themselves: cream and pink plaster under tile-red roofs (Paca's are green copper), and Pałac Branickich's long front has pink pilaster strips, a cornice, an attic crowded with statues, three scrolled dormers and its balconied gate.
+
+
+- Podwózka taxi rides now come with stories: 18 passengers, from a Mordor office worker heading for Warsaw Spire to a film star off to the Palace of Culture, a saxophonist late for jazz under the Powiśle UFO and a beekeeper invited to the Presidential Palace, chat on the way to real places and ask you a question; your answer changes the tip and a good talk earns half a star.
+- Marszałkowska: 16 more houses got street fronts from real photos, from Hotel Saski to the long block at number 140.
+- Aleje Jerozolimskie: 21 more houses along the avenue got street fronts from real photos.
+- Świętokrzyska, Chmielna, Nowy Świat and Aleje Ujazdowskie: 25 more houses got street fronts from real photos.
+- Krakowskie Przedmieście, Senatorska and Miodowa: 41 more houses got their real colours and fronts.
+- Długa, Aleja Jana Pawła II and Krucza: 41 more houses got street fronts from real photos.
+- Mokotowska and Hoża: 61 more houses got street fronts from real photos.
+- Wilcza, Piękna and Targowa: 83 more houses got street fronts from real photos.
+- 46 named buildings across the centre got street fronts from real photos.
+
 ## 2026-11-06
+- The project's licence is now source-available for non-commercial use; the website says so.
+- Boat race on the Vistula: your mate Szymek calls and you race him, old Pan Zdzisiek in his Złota Rybka and Kamil on a jet ski from Port Czerniakowski down under four bridges to the Old Town, through rings in a slalom. Miss three and you're out, then go again or head back. Rings in a row speed you up, gold rings give a boost, and a sand barge going the other way throws waves you can jump.
+- The Bridge by Plac Europejski looks like itself now: its glass folds along long diagonal seams, the south corner steps down under a dark crown, ERZATZ (the bank's parody) glows blue at the top, and a tall timber lobby with leaning concrete columns sits under it. The brick and stone block at Grzybowska 77 in front got its stone piers, long balcony, framed windows and attic.
+- Warszawa Powiśle's "UFO" pavilion looks like the real one now: the yellow WARSZAWA POWIŚLE letters in their dark boxes on the rim, warm bulbs all round it, orange deck chairs and café tables, and every evening from 18:30 a jazz band plays on a little stage under the saucer, with people listening and music you can hear as you drive by.
+- Secret techno raves: lights and dancers under the viaduct, in Praga and by the tracks at night, a day rave on the Praga beach, LEKTI breaking into MORDOR FM with the password, and Ziomek calling you to drive him there, past a strict door with three questions and a cash-only ticket, into a jungle-filled club with a fairy-lit patio out the back.
+- The food blogger from the Mlask job is now called Mrożulo (was Cringulo), on his van, the signs, the fans and the news.
 
 - The four streets round the Palace of Culture look hand-made: lane lines stop at the zebras and carry on past bus bays and driveways, the pale ribbons across the medians on Świętokrzyska and Emilii Plater are now low granite kerbs round planted islands, and the edge lines sit inside the kerbs.
+- The Tides by the Vistula is a full model now: folded copper walls, irregular windows and a black roof.
+- 18 more houses got real street fronts from photos, including Pałac Karnickich, Hotel Indigo and Krucza 51.
+- Aleje Ujazdowskie 47 stands in its dark grey render, with balconies and the green pharmacy signs.
+- The garden in front of Pałac Krasińskich has its flower ring, gravel cross and clipped hedges.
+- Kamienica Ławrynowicza on Aleje Ujazdowskie is back in its striped yellow and red brick, with arcades and stepped gables.
+- Kamienica Wedla is white and ornate now, with its zinc corner roof and a neon zebra that glows at night.
+- Szpitalna 5 is a real corner tenement now, in peach plaster with iron balconies and its blind arch.
+- Kamienica Pod Gigantami stands on Aleje Ujazdowskie with its two stone giants, and some passengers now need a fast ride to a date there.
+- Stacja Filtrów has its brick water tower, raised lawns and a history card, plus new radio lines about its past.
+- More than 500 plain blocks across the city now have their real shapes, and Nowy Świat's houses have real windows, cornices and dormers that light up one by one at night.
+- Your mate Bartek calls: his electric TESŁO died at 0 %. Answer, and you take the helicopter, hook his car on a rope and carry it, swinging, to a charger while he jokes about winter range, free parking with green plates and the diesel parked at the charger. Dead TESŁOs with hazard lights now and then block a lane, and you can lift those to a charger too, for a tip.
+- A cobalt-blue motorboat now sits on the roof of the Forest tower, next to the PEPEO ŻUBR crown.
+- The underpass entrances at Emilii Plater and Aleje Jerozolimskie are real stairs going down now instead of walled boxes: granite parapets round the two wells, steel canopies over the pavement stairs (Śródmieście's green ones with posters on the south side), and people walking down into the passage and coming up out of it.
+- The railway from Centralna to Ochota is rebuilt: the cutting has a flat track bed with straight grass banks, concrete walls at the tunnel mouth and fences along the top, steel gantries carry the wires over the tracks, Warszawa Główna has real raised platforms and its footbridge crosses high over the wires with stairs and lifts down to each platform; trains stop there too, people get off and on at every door, the local trains look like modern red or white-and-green units, and the long-distance train has a locomotive pulling its coaches.
 - When your car is stuck, the POMOC DROGOWA tow button now comes up even while the ride app button is on screen, and it also comes when you keep backing off a wall and trying again.
 
 ## 2026-11-05
 
+- On phones the roadworks at the map's edges were invisible walls; now you can see the barriers, signs and diggers that stop you.
 - Roads no longer jump sideways where they change width: the asphalt now narrows or widens smoothly over 20-30 m, the dark blobs at the kerb are gone, and lane lines curve across instead of breaking off; the widening asphalt follows the kerb instead of poking into the tram tracks or a driveway; streets now run straight up to the tram tracks, and driveways no longer show through the street as pale flags.
 - Crossings over the big streets look finished: zebras sit right beside the red cycle crossing and reach the far kerb, a paved walk joins them across the tram tracks, and drivers get a stop line, solid lane lines and traffic lights before them; stray wedges of pavement between driveways and streets are now asphalt or painted islands, and street lamps no longer stand in the widened road.
 - Tram tracks on their own bed now show sleepers on gravel; cars, walkers and U-turns cross the tracks on clean asphalt or paving instead of stray kerb lines; driveways are the same asphalt as the street; and metro stairs darken as they go down into the station.
@@ -23,6 +59,7 @@ someone writes its lines.
 - Foksal 13 and 15 look like the real restored tenements: salmon and ochre brick framed in white and cream stone, the arched gate with its two stone figures, crested gables, iron balconies and red window frames.
 - Three of Warsaw's best modernist blocks are built from photos: Młotek on Smolna with its hammer head jutting over the escarpment, Kozia 9 climbing a storey at a time to its round tower, and Karowa 18a with its columns of hanging boxes.
 - The title screen no longer freezes while the city loads: a loading bar with a percentage fills up until "Tap to drive", and the city is all there when you start.
+- The Patelnia by Metro Centrum is a sunken square again: 3.4 m under the street behind retaining walls and railings, with stairs down from Marszałkowska and the wide steps from the park, and the metro's two ribbed glass vaults over the stairs to the station. By the Rotunda, the entrance to the underpass is a stair going down to a glass door instead of a walled box, and the grey slab in front of Wars is a low planter edge.
 - The street where the game starts shows its shops as they are now: UNIKAT, the LUKA bakery, the huge new TAK MAKS on four floors, the two-storey FROGS XXL on the corner with its green seats and parasols, lit shop signs under the stores and new banners on the street side; and the Świętokrzyska metro entrances got their glass-and-steel triangle roofs.
 - Crazy drivers join the traffic: Szkoda Oktawia taxis and Szprynter courier vans speed, tailgate, overtake and cut in right in front of you, and once in a while the legendary Pasatini 1.9 TDJ storms past (black smoke, left lane, no indicator). They honk and shout when they cut you off, and KEBAB FM reports Pasatini sightings.
 - Race rivals drive like people now: they launch past you and make you chase, take shortcuts across squares, lawns and car parks, cut in front of you and block your line, and sometimes run wide in a corner or take a wrong turn. Each one has a style: Zbyszek knows every shortcut, Seba blocks, Słoik follows his satnav, and Mike is as fast as your car.
@@ -97,7 +134,7 @@ someone writes its lines.
 - In your first race Pani Halina waits at the start until you move, and if you sit still she tells you to step on it and follow the pink arrow, with a finger showing how to drive.
 - One-way streets that bikes may ride both ways show it like in Warsaw, with a white bike and arrow against the traffic, and bike symbols mark the bus lanes open to bikes and the shared lanes.
 - Warsaw's monuments are on the map: about 300 statues, busts, memorial stones and talking benches stand where the real ones do, Ogród Saski's sandstone statues stand at their real spots, and 520 Uprising memorial plaques hang on the walls with candles below them.
-- The quest list on the full map works with a gamepad (X switches between car and helicopter quests, the D-pad picks one, Y takes it) and lists more to do: the "Na czasie" trend deliveries, Cringulo's van, the Friday pistachio drop, the next rival on the ladder (the arrow follows them through traffic), Seba's night race and the peacock stuck on a roof. While something is on, it shows at the top of the list.
+- The quest list on the full map works with a gamepad (X switches between car and helicopter quests, the D-pad picks one, Y takes it) and lists more to do: the "Na czasie" trend deliveries, Mrożulo's van, the Friday pistachio drop, the next rival on the ladder (the arrow follows them through traffic), Seba's night race and the peacock stuck on a roof. While something is on, it shows at the top of the list.
 - Driving onto a bridge ramp at an angle no longer drops you under the bridge: the car climbs onto the ramp, at Most Poniatowskiego, Towarowa and the Vistula boulevard road too.
 - The full map has a quest list: ZADANIA AUTO and ZADANIA HELI, each showing what you can start right now (a kebab stand, a jar station, the garage, a ride, a cassette on a roof, a helicopter rescue call) with how far it is and which way. Tap a place and an arrow leads you there; tap a ride or a rescue call and it starts.
 - With larger text on, the mission panel, the race banner and the ride app cards now fit the smaller phones and stay clear of your car.
@@ -146,8 +183,8 @@ someone writes its lines.
 - Nowy Świat gets three more neon shops: an old-fashioned confectioner (BLIKLINA OD 1869), a coffee spot at Chmielna and a vinyl bar at Foksal.
 - Two more Powiśle buildings look like themselves: Hortus on Topiel, glass offices round a garden with tenement-style flats on Drewniana, and Modernka on Zajęcza, an old tenement joined to a new glass wing.
 - Rondo Daszyńskiego fills with office workers on weekday rush hours and at lunch: groups in white shirts and navy jackets wait at the metro exits and zebra crossings, more stream across the crossings towards the towers, and they chat in bubbles about KPIs, OKRs, "let's circle back" and "spotkanie które mogło być mailem".
-- Cringulo's cream van now carries CRINGULO TV in dark letters on both sides.
-- Evening rides in Podwózka sometimes carry a first-date passenger from the dating app TIMBER, heading for the LORETKA roof bar. Cringulo's van now has a handful of fans standing behind it, chatting, and parking right by the van while he films finds a new easter egg.
+- Mrożulo's cream van now carries MROŻULO TV in dark letters on both sides.
+- Evening rides in Podwózka sometimes carry a first-date passenger from the dating app TIMBER, heading for the LORETKA roof bar. Mrożulo's van now has a handful of fans standing behind it, chatting, and parking right by the van while he films finds a new easter egg.
 - Powiśle's Piano House now has a keyboard for a front, white keys and black window strips, and Cube House next door is a white cube with its bays stepping out floor by floor.
 - The police keep up with a tuned car: a bought Ołdi TT or a better engine no longer leaves every patrol behind, so the nitro is the way to open a gap. On a gamepad the nitro is LB or RB, and the right stick turns the view.
 - The city no longer just stops at an invisible wall: every road at the edge of the map is closed by Warsaw roadworks, with red-and-white barriers, ROBOTY DROGOWE and OBJAZD signs, cones, an excavator and a site fence, and amber lamps blinking at night.
@@ -251,8 +288,8 @@ someone writes its lines.
 - The railway has its overhead wires now, hung from grey masts along the tracks, and the cross-city tunnel has concrete mouths where the trains disappear.
 - Trains run through the city: green-and-white suburban units, the red city line and long grey-blue expresses come out of the cross-city tunnel and the map's edges, stop at Ochota, Powiśle and Stadion, and roll over the bridge.
 - Two 1960s railway stations are landmarks now: Warszawa Ochota's white concrete saddle roof floating over its glass hall above the tracks, and Warszawa Powiśle's kite-roofed pavilion over the tunnel's mouth, its round "UFO" pavilion with the red neon, and the X-shaped canopies on the platforms.
-- New side job "Mlask": Cringulo the food reviewer parks his cream van somewhere in the centre. Fetch him a bite from a new place, bring it while it's warm, read his review, then take his sticker back to the place and watch the queue explode.
-- Warsaw loves a queue: the KUKŁA crêpe place always has one, couples wait for the lift to LORETKA, the pink rooftop date bar on HOTEL PIURE, and new neons light up KOSZTA COFFEE, GREEN CAFFE NERWO and the Party House's bars. Plus jokes about TIMBER dates and Cringulo's sold-out pizza at Frogs.
+- New side job "Mlask": Mrożulo the food reviewer parks his cream van somewhere in the centre. Fetch him a bite from a new place, bring it while it's warm, read his review, then take his sticker back to the place and watch the queue explode.
+- Warsaw loves a queue: the KUKŁA crêpe place always has one, couples wait for the lift to LORETKA, the pink rooftop date bar on HOTEL PIURE, and new neons light up KOSZTA COFFEE, GREEN CAFFE NERWO and the Party House's bars. Plus jokes about TIMBER dates and Mrożulo's sold-out pizza at Frogs.
 - The game now plays with a game controller (Xbox, PlayStation or MFi): drive, fly, open Settings and the map; touch works as before.
 - General de Gaulle now marches on his tall dark plinth by the Palm's roundabout, on his stepped circle, and the white Party House behind him has its roof sign (ROBUR) and its courtyard fountain.
 - Marszałkowska by the start has Warsaw's navy street name plates at the corners, glass shelters and a ticket machine on the tram island, a city bike dock and bollards along Plac Centralny.
