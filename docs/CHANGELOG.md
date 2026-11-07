@@ -10,8 +10,8 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-06
-
 - The project's licence is now source-available for non-commercial use; the website says so.
+- Boat race on the Vistula: your mate Szymek calls and you race him, old Pan Zdzisiek in his Złota Rybka and Kamil on a jet ski from Port Czerniakowski down under four bridges to the Old Town, through rings in a slalom. Miss three and you're out, then go again or head back. Rings in a row speed you up, gold rings give a boost, and a sand barge going the other way throws waves you can jump.
 - The Bridge by Plac Europejski looks like itself now: its glass folds along long diagonal seams, the south corner steps down under a dark crown, ERZATZ (the bank's parody) glows blue at the top, and a tall timber lobby with leaning concrete columns sits under it. The brick and stone block at Grzybowska 77 in front got its stone piers, long balcony, framed windows and attic.
 - Warszawa Powiśle's "UFO" pavilion looks like the real one now: the yellow WARSZAWA POWIŚLE letters in their dark boxes on the rim, warm bulbs all round it, orange deck chairs and café tables, and every evening from 18:30 a jazz band plays on a little stage under the saucer, with people listening and music you can hear as you drive by.
 - Secret techno raves: lights and dancers under the viaduct, in Praga and by the tracks at night, a day rave on the Praga beach, LEKTI breaking into MORDOR FM with the password, and Ziomek calling you to drive him there, past a strict door with three questions and a cash-only ticket, into a jungle-filled club with a fairy-lit patio out the back.
