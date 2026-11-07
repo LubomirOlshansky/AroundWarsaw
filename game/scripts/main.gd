@@ -131,6 +131,8 @@ const OldTram := preload("res://scripts/old_tram.gd")
 const CrashScenes := preload("res://scripts/crash_scenes.gd")
 ## Sekretny rave (rave.gd, F's ask 2026-11-06): LEKTI on MORDOR FM, Ziomek's call, the raves' rigs.
 const Rave := preload("res://scripts/rave.gd")
+## Nocny spot (street_meet.gd, F's ask 2026-11-06): the WARSAW NIGHT RACING CLUB's meets, raids and drag.
+const StreetMeet := preload("res://scripts/street_meet.gd")
 ## Inside the club after the door (club.gd): the cutaway room.
 const Club := preload("res://scripts/club.gd")
 const EvTow := preload("res://scripts/ev_tow.gd")
@@ -511,6 +513,15 @@ var _crash_auto := false
 ## Smoła night now), --rave=on / --rave=day (that rave on at any hour), --rave-spot=ID, --rave=0,
 ## --rave-log.
 var rave: Rave
+## Nocny spot (street_meet.gd): flags --meet-call (Kamil rings now), --meet=on (night rules at any
+## hour), --meet=0, --meet-at=meet|raid|race|meet2|drag|stage (jump to that beat), --meet-log.
+var meet: StreetMeet
+var meet_flag := ""
+var meet_at := ""
+var meet_log := false
+var _meet_auto := false
+## The ground's material (the skids' and the meet's tyre marks).
+var _ground_mat: Material
 var club: Club
 var rave_flag := ""
 var rave_spot := ""
@@ -1285,6 +1296,7 @@ func _build_world() -> void:
 	var flat_mat := ShaderMaterial.new()
 	flat_mat.shader = load("res://shaders/ground.gdshader")
 	flat_mat.set_shader_parameter("debug_ao", debug_ao)
+	_ground_mat = flat_mat
 	flat_mat.set_shader_parameter("ao_strength", 0.0 if no_ao else 1.0)
 
 	var data: Dictionary
@@ -1559,6 +1571,7 @@ func _build_world() -> void:
 	_build_old_tram(world)
 	_build_crash_scenes()
 	_build_rave(data, world)
+	_build_meet(data, world)
 	_build_ev_tow(world)
 	_build_storefronts(data, world)
 	_build_packs(data, world)
@@ -2789,6 +2802,8 @@ func _on_club_left() -> void:
 func _rave_free() -> bool:
 	if club != null and club.inside:
 		return false
+	if meet != null and meet.busy():
+		return false
 	if ev_tow != null and ev_tow.busy():
 		return false
 	if title != null or _phone_bench or _bench_ghost != null or (spacer != null and spacer.on):
@@ -2802,6 +2817,61 @@ func _rave_free() -> bool:
 	if rivals != null and rivals.busy():
 		return false
 	return not flying and not car.in_water
+
+
+# --- the night racing club -------------------------------------------------------------------
+
+## Kamil's calls, the meets, the raids and the drag (street_meet.gd). None with --no-traffic or --meet=0.
+func _build_meet(data: Dictionary, world: Node3D) -> void:
+	if traffic == null or graph == null or meet_flag == "0":
+		return
+	meet = StreetMeet.new()
+	meet.name = "StreetMeet"
+	meet.hud = hud
+	meet.dialogue = dialogue
+	meet.wallet = wallet
+	meet.missions = missions
+	meet.map = map
+	meet.graph = graph
+	meet.traffic = traffic
+	meet.police = police
+	meet.car = car
+	meet.flat_mat = _ground_mat
+	meet.origin = data.get("origin", [52.234, 21.024])
+	meet.log_on = meet_log
+	meet.auto = _meet_auto
+	meet.force = meet_flag == "on"
+	meet.vehicle = func() -> Array:
+		if flying:
+			return [heli.global_position, heli.speed() * 3.6, true]
+		return [car.global_position, car.vel.length() * 3.6, false]
+	meet.clock = tod.local_clock
+	meet.free_now = _meet_free
+	meet.place_car = _place_car
+	world.add_child(meet)
+	meet.setup(world)
+	if rivals != null:
+		rivals.meet = meet
+	if meet_flag == "call":
+		get_tree().create_timer(1.0).timeout.connect(func() -> void: meet.ring())
+	if meet_at != "":
+		get_tree().create_timer(1.0).timeout.connect(func() -> void: meet.jump(meet_at))
+
+
+## Nothing else on (as the rave's), and no rave night under way.
+func _meet_free() -> bool:
+	return _rave_free() and not (rave != null and rave.busy())
+
+
+## Puts the car at `at` heading `yaw` at once (the meet's START DRAG), the camera cut with it.
+func _place_car(at: Vector3, yaw: float) -> void:
+	car.global_position = at + Vector3(0, 0.05, 0)
+	car.rotation.y = yaw
+	car.vel = Vector3.ZERO
+	car.forward_speed = 0.0
+	car.reset_physics_interpolation()
+	_cut_camera()
+	print("teleport: the car to %.0f, %.0f for the meet" % [at.x, at.z])
 
 
 # --- dead electric cars ----------------------------------------------------------------------
@@ -2838,6 +2908,8 @@ func _build_ev_tow(world: Node3D) -> void:
 ## Nothing else on: no title, bench, Spacer, guide, card, rescue, ride, job, race or tow.
 func _ev_free() -> bool:
 	if (rave != null and rave.busy()) or (club != null and club.inside):
+		return false
+	if meet != null and meet.busy():
 		return false
 	if title != null or _phone_bench or _bench_ghost != null or (spacer != null and spacer.on):
 		return false
@@ -4274,6 +4346,14 @@ func _parse_args() -> void:
 			rave_flag = arg.trim_prefix("--rave=")
 		elif arg == "--rave-log":
 			rave_log = true
+		elif arg == "--meet-call":
+			meet_flag = "call"
+		elif arg.begins_with("--meet-at="):
+			meet_at = arg.trim_prefix("--meet-at=")
+		elif arg.begins_with("--meet="):
+			meet_flag = arg.trim_prefix("--meet=")
+		elif arg == "--meet-log":
+			meet_log = true
 		elif arg == "--ev-call" or arg == "--ev-tow" or arg == "--ev-stranded":
 			ev_flag = arg.trim_prefix("--ev-")
 		elif arg.begins_with("--ev-tow="):
@@ -4500,6 +4580,7 @@ func _parse_args() -> void:
 	# The crash scenes' timer: a normal launch only (a test run with --crash=on or =now too).
 	_crash_auto = not test_run
 	_rave_auto = not test_run
+	_meet_auto = not test_run
 	_ev_auto = not test_run
 	# Loop G1b: test runs (and --last-session=) never write Auto's image state, even with the
 	# governor on and without --nosave.
@@ -6033,6 +6114,8 @@ func _make_stats() -> BenchStats:
 		b.systems["storefronts"] = [storefronts, "spent_usec", true]  # loop MW-2
 	if packs != null:
 		b.systems["packs"] = [packs, "spent_usec", true]  # running clubs, cycling packs, raves
+	if meet != null:
+		b.systems["meet"] = [meet, "spent_usec", true]  # the night racing club
 	if fans != null:
 		b.systems["fans"] = [fans, "spent_usec", true]  # the fans by Stadion Leguminy
 	if wellness != null:
@@ -6317,6 +6400,15 @@ func _show_target() -> void:
 		hud.set_target(on_v, rave.target_label(mv), rave.target_colour(), mv > 12)
 		_put_target(Vector2(vp.x, vp.z), rave.target_colour(), false)
 		_new_target("job", vp)
+	if meet != null and meet.has_target() and not flying:
+		var kp: Vector3 = meet.target_position()
+		var at_k := _vehicle_position()
+		var mk := roundi(Vector2(kp.x - at_k.x, kp.z - at_k.z).length())
+		var on_k := cam.unproject_position(kp + Vector3(0, 3.5, 0)) * float(view.stretch_shrink)
+		hud.set_target(on_k, "%d m" % mk, meet.target_colour(), mk > 12)
+		_put_target(Vector2(kp.x, kp.z), meet.target_colour(), false)
+		_new_target("job", kp)
+		return
 	if ev_tow != null and ev_tow.has_target():
 		var ep: Vector3 = ev_tow.target_position()
 		var at_e := _vehicle_position()

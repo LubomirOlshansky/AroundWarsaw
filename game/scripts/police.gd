@@ -32,6 +32,9 @@ extends Node
 ## zone pill, the whistle and the run, the guards' car, the guard conversation, the clamp).
 ## Phantom Camera's chase framing and the PixelLab portraits are still to come.
 
+## Night meets (street_meet.gd): a chase or a pull-over ended, and how (`_end`'s words).
+signal chase_ended(how: String)
+
 ## Time spent in this script's per-frame work since the bench last read it (µs).
 var spent_usec := 0
 ## The night-buses loop (E25, buses.gd): times a speed trap caught the player speeding past it.
@@ -1000,6 +1003,7 @@ func _end(how: String) -> void:
 		sfx.police_siren(Vector3.INF)
 	hud.set_koguty(0, 0)
 	_log("wallet %d zł → %d zł" % [_zl0, wallet.zl])
+	chase_ended.emit(how)
 
 
 func _chaser():
@@ -1118,6 +1122,66 @@ func scene_car(e: int, lane: int, s: float, at: Vector3, yaw: float, shape: int)
 func scene_leave(d) -> void:
 	if d != null and d.active:
 		traffic.remove(d)
+
+
+# --- the night meets' raids -------------------------------------------------------------------
+
+## Night meets (street_meet.gd, F's ask 2026-11-06): a raid on a street racers' meet at `at`. Up to
+## `n` patrol cars come in, lights on, from lanes RAID_FROM..RAID_TO m round it (headed in where a
+## lane allows), and a chase at koguty `lvl` starts on the player at once: no start grace and no
+## cooldown (the raid is the quest's beat). Still never one in Spacer (`gentle`) or while the player
+## flies. Returns the cars placed (0: none, no chase).
+const RAID_FROM := 70.0
+const RAID_TO := 140.0
+
+
+func raid(at: Vector3, n: int, lvl := 2) -> int:
+	if gentle or flying or graph == null or phase == Phase.PULLOVER:
+		return 0
+	var placed: Array = []
+	var a0 := randf() * TAU
+	for k in 12:
+		if placed.size() >= n:
+			break
+		var q := Vector2(at.x, at.z) + Vector2.from_angle(a0 + TAU * k / 12.0) * randf_range(RAID_FROM, RAID_TO)
+		var hit: Array = graph.snap(q, 40.0, Vector2.ZERO, true, true)
+		if hit.is_empty():
+			continue
+		var e: int = hit[0]
+		var s := clampf(float(hit[2]), graph.e_s0[e] + 2.0, graph.e_s1[e] - 2.0)
+		# Headed towards the meet: the lane whose way points at it.
+		var to := Vector2(at.x, at.z) - graph.point_at(e, s)
+		if graph.direction(e, s).dot(to) < 0.0 and graph.e_reverse[e] >= 0:
+			var r: int = graph.e_reverse[e]
+			s = clampf(graph.e_len[e] - s, graph.e_s0[r] + 2.0, graph.e_s1[r] - 2.0)
+			e = r
+		var p := graph.point_at(e, s)
+		var near := false
+		for u in placed:
+			if Vector2(u.driver.pos.x, u.driver.pos.z).distance_to(p) < 25.0:
+				near = true
+		if near:
+			continue
+		var d = traffic.add_police(e, 0, s)
+		if d == null:
+			break
+		var u = _bind(d, "patrol")
+		if u == null:
+			traffic.remove(d)
+			break
+		d.v = graph.e_speed[e] * 0.7
+		traffic.set_lights(d, true)
+		placed.append(u)
+	if placed.is_empty():
+		_log("raid at %.0f, %.0f: no lane for a car" % [at.x, at.z])
+		return 0
+	_track_player()
+	if phase == Phase.CALM:
+		_start_chase(clampi(lvl, 1, 3), placed[0], "raid")
+	for u in placed:
+		_engage(u, "chaser")
+	_log("raid at %.0f, %.0f: %d cars" % [at.x, at.z, placed.size()])
+	return placed.size()
 
 
 # --- blocker and roadblock -------------------------------------------------------------------

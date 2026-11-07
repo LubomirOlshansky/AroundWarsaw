@@ -5755,6 +5755,10 @@ Command-line options (after `--`):
 | `--rave=on` / `--rave=day` / `--rave=0` | secret rave: the night rig on now (the lights in the lit look), the day rave's crowd now, or no raves and no calls |
 | `--rave-spot=ID` | secret rave: tonight's spot (`wiadukt`, `zajezdnia`, `hala`; `plaza` is the day spot) |
 | `--rave-log` | secret rave: print `rave:` lines (tease, the call, pickup, meeting point, door questions and answers, pay, the rig's mode, the room) |
+| `--meet-call` | night racing club (`street_meet.gd`): Kamil „Bawarka" rings now, whatever the time |
+| `--meet=on` / `--meet=0` | night racing club: the night rules at any hour / none of it |
+| `--meet-at=meet\|raid\|race\|meet2\|drag\|stage` | night racing club: jump to that beat (the car moved to it; `stage` puts it on the drag's line with the tree running) |
+| `--meet-log` | night racing club: the call, meets, raids, race places and drag times in the log |
 | `--ev-call` / `--ev-tow` / `--ev-tow=carry` / `--ev-stranded` / `--ev=0` | dead electric cars (`ev_tow.gd`): Bartek's call rings a second in; `--ev-tow`: accepted, the helicopter over his car; `=carry`: his car already on the sling, the helicopter climbing to 22 m; `--ev-stranded`: a stranded TESŁO about 30 m ahead now; `0`: none (the call and the stranded cars run on their timers in a normal launch only) |
 | `--ev-log` | dead electric cars: print `ev:` lines: the chargers found, the timers, the call, the car's street and charger, the hook, Bartek's lines, the set-down and pay, each stranded car |
 | `--loud=N` | loud cars (`loud_cars.gd`, city-life satire #1): at most N loud supercars in traffic at once (default 3, up to 16 for shots); `0`: none, and no car meet at Browary nor its crowd |
