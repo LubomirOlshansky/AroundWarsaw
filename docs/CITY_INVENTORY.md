@@ -109,14 +109,14 @@ often, known to every visitor; **B** characteristic, known to locals, gives a st
 | 43 | Zamek Ujazdowski | Jazdów (Aleje Ujazdowskie) | castle, art centre | ◐ | photo check |
 | 44 | Zachęta | Plac Małachowskiego | gallery | ★ | the back and the roof |
 | 45 | Kościół Świętej Trójcy | Plac Małachowskiego | church | ★ | oculi count |
-| 46 | Metropolitan | Plac Piłsudskiego | offices | ◐ | photo check |
+| 46 | Metropolitan | Plac Piłsudskiego | offices | ◐ | photo pass 2026-11-07 (`warsaw-needed-photos`): the seventh storey and plant rooms in silver metal; still to do: the recessed glazed ground floor on round piers, the curved silver roof canopy, a parody sign for the bank on the corner |
 | 47 | Muzeum Narodowe and Muzeum Wojska Polskiego's yard | Aleje Jerozolimskie | museum | ◐ | **photo build**: the 1930s front, the tanks and planes in the yard |
 | 48 | Dom Partii (OSM: Centrum Bankowo-Finansowe) and Rondo de Gaulle'a's palm | Nowy Świat / Aleje Jerozolimskie | offices, monument | ◐ | photo check |
 | 49 | Pawilony za Nowym Światem | Nowy Świat | bar pavilions | ◐ | photo check (neon, string lights) |
 | 50 | Plac Konstytucji and MDM | Marszałkowska | socialist-realist square | ◐ | photo re-pass: arcades, reliefs, the candelabras |
 | 51 | Kościół Najświętszego Zbawiciela and Plac Zbawiciela | Marszałkowska | church, square | ◐ | photo check: towers, the square's arcades |
 | 52 | Rondo Dmowskiego and Patelnia (Metro Centrum) | Marszałkowska | square, metro | ◐ | Mac look check |
-| 53 | Hala Mirowska and Hala Gwardii | Plac Mirowski | market halls | ◐ | photo check: brick, lantern |
+| 53 | Hala Mirowska and Hala Gwardii | Plac Mirowski | market halls | ◐ | photo pass 2026-11-07 (`warsaw-needed-photos`): Mirowska's glazed gallery and dark fascia on the east front added; still to do: the big lattice-glazed arch in the gable and the HALA MIROWSKA letters (needs a neon atlas word); Gwardii not yet |
 | 54 | Hala Koszyki | Koszykowa | food hall | ◐ | photo check |
 | 55 | Elektrownia Powiśle | Dobra | shopping centre in a power station | ◐ | photo check: chimneys |
 | 56 | Fabryka Norblina (OSM: Plater, Galwan) | Prosta | shopping and offices | ★ | moved onto its real block, courts, trees and green roofs from the photo report (2026-11-02); facades: photo check (no facade photo of the new halls yet); F's look-check answers applied 2026-11-03 (BACKLOG "Landmark look-check fixes"). |
@@ -125,7 +125,7 @@ often, known to every visitor; **B** characteristic, known to locals, gives a st
 | 59 | Forest | Aleja Jana Pawła II | office tower | ★ | F's photos (2026-11-03); Mac look check |
 | 60 | Rondo Daszyńskiego towers: Warsaw Unit, Skyliner, The Warsaw HUB, Mennica Legacy Tower, Generation Park Y | Rondo Daszyńskiego / Prosta | office skyscrapers | ★ | rebuilt 2026-11-03 from the Mac's photo reports (`skyliner.md`, `warsaw_unit.md`, `mennica.md`, `gpy.md`, `warsaw_hub.md`): Skyliner's cut roof, fin and black crown (NOSE AGENCY on it), Unit's black crown and strips, flat tops for Mennica, GPY and the HUB, the HUB's hotel tower; left: Unit's taper, Mennica's arcade, GPY's black patches |
 | 61 | Wola towers: The Bridge, Generation Park X and Z, Atlas Tower, Pekao Tower, Warsaw Towers | Grzybowska / Aleje Jerozolimskie / Sienna | office skyscrapers | ◐ | The Bridge photo-built from F's photos with Grzybowska 77 (2026-11-06, spec bridge.md); Atlas is the table's; Pekao Tower and Warsaw Towers ✗; photo build |
-| 62 | Centrum LIM (Marriott) and Novotel | Aleje Jerozolimskie / Marszałkowska | hotel towers | ★ | Novotel from the Rondo photos; LIM's lit cells |
+| 62 | Centrum LIM (Marriott) and Novotel | Aleje Jerozolimskie / Marszałkowska | hotel towers | ★ | Novotel rebuilt from F's five photos (2026-11-07, `novotel.md`); LIM's lit cells |
 | 63 | Błękitny Wieżowiec and Plac Bankowy | Plac Bankowy | skyscraper, square | ○ | photo check of the glass |
 | 64 | Plac Bankowy's palaces: Ratusz (OSM: Urząd Miasta Stołecznego Warszawy), Mazowiecki Urząd Wojewódzki, Gmach Giełdy i Banku Polskiego, Arsenał | Plac Bankowy / Długa | palaces | ★ | photo build 2026-11-02 (spec `bankowy.md`): the Ratusz's colonnaded wings and giant portico, the Bank Polski's rounded corner, drum and green dome, cream walls under copper; left: the Voivodeship wing's own front, the Arsenał |
 | 65 | Pomnik Juliusza Słowackiego and Pomnik Stefana Starzyńskiego | Plac Bankowy | monuments | ⏳ | a generic stand-in from OSM since 2026-11-02 (tools/bake_monuments.py); the photo build is the monuments thread |
