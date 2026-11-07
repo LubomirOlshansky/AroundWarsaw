@@ -890,6 +890,19 @@ func _on_context(owner: String) -> void:
 		_shift_pressed()
 
 
+## Darek in person at the start spot (story_quests.gd's WCHODZĘ!): the same as JADĘ! on the call.
+func meet_in_person() -> bool:
+	if meets.size() < 2 or not bool(strip.get("ok", false)) or state != State.IDLE:
+		return false
+	accept()
+	return true
+
+
+## True when the night may start (not ringing, not running): story_quests.gd skips the greeting otherwise.
+func idle() -> bool:
+	return state == State.IDLE
+
+
 ## JADĘ!: the meet goes up on Plac Defilad, the beacon in the ring's gap.
 func accept() -> void:
 	_calls_were = missions.paused if missions != null else false
