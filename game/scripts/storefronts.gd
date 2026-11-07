@@ -85,6 +85,8 @@ const MIESZANE_TUBE := Color(1.0, 0.45, 0.12)
 const DALEJ_TUBE := Color(0.55, 1.0, 0.8)
 ## KRINGULA PIZZA, the hyped pizzeria (a parody; F's ideas #6): a tomato red.
 const KRINGULA_TUBE := Color(1.0, 0.3, 0.22)
+## DŻEMINI KEBAB (F, 2026-11-06): the kebab an AI agent carves, in the agent's blue-violet.
+const DZEMINI_TUBE := Color(0.45, 0.55, 1.0)
 ## The cinemas' marquee tubes: amber, a deep red and a cool white-blue, so a street of them is not one colour.
 const CINEMA_TUBE := Color(1.0, 0.72, 0.25)
 const CINEMA_TUBE_B := Color(1.0, 0.25, 0.3)
@@ -178,6 +180,9 @@ const VENUES := {
 	"dalej_gelato": [["DALEJ DALLA", "GELATO LODY"], DALEJ_TUBE, 2.8],
 	# F's ideas #6 (2026-11-02): the pizzeria everyone queues and cries for; the sign is final, the joke is not.
 	"kringula_pizza": [["KRINGULA", "PIZZA"], KRINGULA_TUBE, 3.0],
+	# F (2026-11-06): the new kebab whose meat an AI agent carves; Mrożulo's MLASK makes it the
+	# city's longest queue (trend_job.gd "Dżemini", crowds.gd DZEMINI_ID).
+	"dzemini_kebab": [["DŻEMINI", "KEBAB 24H"], DZEMINI_TUBE, 2.8],
 	# Warsaw's classic and arthouse cinemas (F, 2026-11-02): the real independent halls under their
 	# own names (place names, not brands; the multiplex chains stay out), amber marquee tubes.
 	"kino_muranow": [["KINO", "MURANÓW"], CINEMA_TUBE, 3.2],
@@ -350,6 +355,8 @@ const HYPE := {
 	"dalej_gelato": [52.237885, 21.027375],
 	# KRINGULA PIZZA on Poznańska, the street of the new places (corner approximate; Mac look check parked).
 	"kringula_pizza": [52.22725, 21.01575],
+	# DŻEMINI KEBAB, new on the north side of Świętokrzyska, its front to the camera (an invented shop; the Mac look check parks the door).
+	"dzemini_kebab": [52.23595, 21.0105],
 }
 ## Warsaw's classic and arthouse cinemas (F, 2026-11-02; BACKLOG "Lore: coffee raves and arthouse
 ## cinemas"): Kino Muranów (Andersa 1), Atlantic (Chmielna 33), Luna (Marszałkowska 28), Kultura
@@ -1247,6 +1254,9 @@ func _place_venue(i: int, space: PhysicsDirectSpaceState3D) -> void:
 	v["px"] = px
 	v["off"] = 0.14
 	v["wall"] = Vector2(p.x, p.z)
+	v["p"] = p
+	v["n"] = n
+	v["t"] = t
 	v["state"] = 1
 	if log_on:
 		print("storefronts: venue %s \"%s\" on the wall at %.1f, %.1f, %.2f m out, letter pixel %.2f m" % [v["id"],
@@ -1917,6 +1927,17 @@ func restore_collected() -> int:
 
 
 ## For the bench's and the check's counters.
+## A placed venue's wall (trend_job.gd's MLASK sticker on DŻEMINI): {p: Vector3 on the wall's foot,
+## n (out of the wall), t (along it), up (the sign's bottom, m)}, or {} until its sector placed it.
+func venue_wall(id: String) -> Dictionary:
+	for v: Dictionary in venues:
+		if str(v["id"]) == id:
+			if int(v["state"]) != 1 or not v.has("n"):
+				return {}
+			return {"p": v["p"], "n": v["n"], "t": v["t"], "up": float(v["up"])}
+	return {}
+
+
 func summary() -> String:
 	var placed := 0
 	var failed := 0

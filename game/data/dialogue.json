@@ -135,7 +135,7 @@
       "Breaking: Mrożulo ate pierogi in Mokotów. The queue's on Puławska."
     ],
     [
-      "Pizza Cringula znowu wyprzedana. Frogsy proszą: nie stójcie w drzwiach.",
+      "Pizza Mrożula znowu wyprzedana. Frogsy proszą: nie stójcie w drzwiach.",
       "Mrożulo's pizza is sold out again. Frogs asks: don't block the door."
     ],
     [
@@ -2683,6 +2683,104 @@
       {
         "only": "mieszane"
       }
+    ],
+    [
+      "Nowe miejsce. Kebab kręci agent AI. Jeszcze nikt nie wie.",
+      "New place. An AI agent carves the kebab. Nobody knows yet.",
+      {
+        "only": "dzemini_new"
+      }
+    ],
+    [
+      "Otwarte od wczoraj. Agent prosi każdego o feedback.",
+      "Opened yesterday. The agent asks everyone for feedback.",
+      {
+        "only": "dzemini_new"
+      }
+    ],
+    [
+      "Zamówiłem mieszane. Agent dał mi trzy wersje do wyboru.",
+      "Ordered it mixed. The agent gave me three versions to pick from.",
+      {
+        "only": "dzemini_new"
+      }
+    ],
+    [
+      "Mrożulo powiedział „wjeżdżam w to”. Stoję od szóstej.",
+      "Mrożulo said \"I'm going in\". I've been here since six.",
+      {
+        "only": "dzemini"
+      }
+    ],
+    [
+      "Kebab od agenta AI. Sos wygenerowany, ale smakuje.",
+      "A kebab by an AI agent. The sauce is generated, but it tastes good.",
+      {
+        "only": "dzemini"
+      }
+    ],
+    [
+      "Agent przeprosił, że wyhalucynował frytki w rollo.",
+      "The agent apologised for hallucinating fries into my wrap.",
+      {
+        "only": "dzemini"
+      }
+    ],
+    [
+      "Proszę ostry. Agent: „Rozumiem. Oto plan w pięciu krokach.”",
+      "Spicy, please. The agent: \"Understood. Here's a five-step plan.\"",
+      {
+        "only": "dzemini"
+      }
+    ],
+    [
+      "Ta kolejka jest widoczna z tarasu Pałacu Kultury.",
+      "You can see this queue from the Palace of Culture's terrace.",
+      {
+        "only": "dzemini"
+      }
+    ],
+    [
+      "Kebab z kontekstem na milion tokenów. Pamięta mój sos.",
+      "A kebab with a million-token context. It remembers my sauce.",
+      {
+        "only": "dzemini"
+      }
+    ],
+    [
+      "Kolega z IT mówi, że to tylko dobrze napisany prompt.",
+      "My mate in IT says it's just a well-written prompt.",
+      {
+        "only": "dzemini"
+      }
+    ],
+    [
+      "Naklejka MLASK na szybie. Teraz już nie odpuszczę.",
+      "The MLASK sticker's on the window. No giving up now.",
+      {
+        "only": "dzemini"
+      }
+    ],
+    [
+      "Wjeżdżam w to. Za godzinę. Może za dwie.",
+      "I'm going in. In an hour. Maybe two.",
+      {
+        "only": "dzemini"
+      }
+    ],
+    [
+      "Agent pyta, czy rozważałem falafel. Nie rozważałem.",
+      "The agent asks if I've considered falafel. I haven't.",
+      {
+        "only": "dzemini"
+      }
+    ],
+    [
+      "Agent wydał paragon w formie wiersza. Zachowam go.",
+      "The agent printed the receipt as a poem. I'm keeping it.",
+      {
+        "only": "dzemini"
+      }
     ]
   ],
   "runners": [
@@ -2951,7 +3049,7 @@
       }
     ],
     [
-      "Pizzy Cringula nie ma od wtorku. Pytają co pięć minut.",
+      "Pizzy Mrożula nie ma od wtorku. Pytają co pięć minut.",
       "No Mrożulo pizza since Tuesday. They ask every five minutes."
     ],
     [
@@ -3777,7 +3875,7 @@
       "Sticking it on the window. Tomorrow the queue reaches the Palace."
     ],
     [
-      "Mlask od Cringula? Mama będzie dumna. Kucharz płacze.",
+      "Mlask od Mrożula? Mama będzie dumna. Kucharz płacze.",
       "A smack from Mrożulo? Mum will be proud. The chef is crying."
     ],
     [

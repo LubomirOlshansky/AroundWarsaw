@@ -4,6 +4,19 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Mrożulo's "Dżemini" call (F, 2026-11-06; docs/design/gaulle-and-food-hype.md G5b)
+- Mac look check: DŻEMINI KEBAB's door on Świętokrzyska (52.23595, 21.0105 is a guess), the sticker's
+  height beside the sign, and whether the 40-person queue blocks the pavement there.
+- Phone: does the call come at a good moment (5 min in, van hours only)? Maybe tie it to the main
+  line's first chapter instead.
+- A TYGRAM inbox: the card is a one-off now; a phone screen with past messages could gather it,
+  the DESKA call and Mrożulo's other news.
+- A voice line for "Wjeżdżam w to" (radio takes tooling, Mac only).
+- Found while building it: Mrożulo's van spot `hala_koszyki` has no road within 80 m of its place
+  pin, so on that weekday the Mlask van never parks (trend_job.gd `_park_van` logs it with
+  `--trend-log`). The Dżemini call falls back to his next spot; the Mlask job still needs the pin
+  moved or a `near` hint.
+
 ## Novotel Warszawa Centrum from F's photos (F, 2026-11-07; docs/landmarks/novotel.md)
 
 Built: the white tiled slab with its paired windows and the lift core's blank strip, the blank narrow ends round

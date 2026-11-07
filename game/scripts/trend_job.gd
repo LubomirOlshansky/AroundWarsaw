@@ -19,11 +19,20 @@ extends Node
 ## reviewer on wheels (a parody type, never the real man), parks his cream van at one of four
 ## spots by the weekday (ML_SPOTS), 11:00-21:00. Stop by it: he wants a bite of a new place (the
 ## nearest open Wiralek slot on its days 1-3, else KUKŁA's nearest door). Stop 2 s there ("na
-## wynos dla Cringula"), bring it back while it's warm (5 min), get his review on a card in his
+## wynos dla Mrożula"), bring it back while it's warm (5 min), get his review on a card in his
 ## grade, the MLASK, then take his sticker to the place in 4 min: 40 zł + 10 zł a km (both legs),
 ## +15 respect, a 15 zł tip *guess*, and the "Mrożulo effect": that place's queue stands at its
 ## longest for the rest of the game day (crowds.gd `mrozulo`). A cold delivery: three MLASKI,
 ## half the pay, no tip, no respect, the queue grows anyway (any review is a review).
+##
+## **"Dżemini" · Mrożulo's call** (F, 2026-11-06; docs/design/gaulle-and-food-hype.md G5b): once
+## per save, after DZ_FIRST s of play in his van's hours, Mrożulo phones: a new kebab, DŻEMINI
+## KEBAB on Świętokrzyska, whose meat an AI agent carves (a parody of the AI assistant). Stop 2 s by
+## its queue, bring the kebab to his van while it's warm (5 min). He bites: "Wjeżdżam w to." Then a
+## TYGRAM (the messenger parody) message from him, and for good: the MLASK sticker on DŻEMINI's wall
+## and the city's longest line at its door (crowds.gd `dzemini_mlask`, the `viral` "dzemini" jokes),
+## kept in the save (`keep` DZ_KEEP). Skipped, he rings again DZ_COOL s later. 60 zł + 10 zł a km,
+## +25 respect, a 20 zł tip *guess*; cold: half, no tip, no respect, the sticker all the same.
 
 const Beacon := preload("res://scripts/beacon.gd")
 const Models := preload("res://scripts/models.gd")
@@ -100,6 +109,19 @@ const ML_RESPECT := 15
 const ML_COLOUR := Color("#ffbf5f")
 const ML_GRADES := [7.5, 8.0, 8.5, 9.0, 9.5]
 const ML_COLD_GRADE := 3.0
+## "Dżemini" (G5b): the shop (crowds.gd / storefronts.gd id), the save key, the first call after this
+## much play (s), again this long after a skip, the pay *guess*, the TYGRAM card's blue, the sticker.
+const DZ_SITE := "dzemini_kebab"
+const DZ_KEEP := "dzemini_mlask"
+const DZ_FIRST := 300.0
+const DZ_COOL := 900.0
+const DZ_BASE := 60
+const DZ_PER_KM := 10
+const DZ_TIP := 20
+const DZ_RESPECT := 25
+const TYGRAM_COLOUR := Color("#3aa0e8")
+const STICKER_YELLOW := Color("#ffd23f")
+const STICKER_PX := 0.04
 const PixelFont := preload("res://scripts/pixel_font.gd")
 const VAN_CREAM := Color("#efe6cf")
 const VAN_PINK := Color("#d9467f")
@@ -162,6 +184,7 @@ var _hold := 0.0
 var _beacon: Node3D
 var _rng := RandomNumberGenerator.new()
 var _session := 0.0
+var _world: Node3D
 ## Set by the game each frame: where the player is (the car, or the helicopter in the air).
 var player_pos := Vector3.ZERO
 ## When the DESKA call may ring next (_session seconds).
@@ -177,6 +200,12 @@ var _fans: MeshInstance3D
 var _fan_t := 8.0
 var _egg_t := 0.0
 var egg: Callable
+## "Dżemini": storefronts.gd (the shop's wall, for the sticker; may be null), whether the job is done
+## (the save), when the call may ring next (_session s), the sticker's node once placed.
+var storefronts: Node
+var dz_done := false
+var _dz_at := DZ_FIRST
+var _sticker: MeshInstance3D
 
 
 ## The pay for a delivery `road_m` metres by road on the trend's day `day`: {zl, base, tip,
@@ -221,6 +250,11 @@ func setup(nodes: Dictionary, places: Dictionary, world: Node3D) -> void:
 	car = nodes["car"]
 	life = nodes["life"]
 	crowds = nodes.get("crowds")
+	storefronts = nodes.get("storefronts")
+	dz_done = wallet != null and bool(wallet.keep.get(DZ_KEEP, false))
+	if dz_done and crowds != null and crowds.has_method("dzemini_mlask"):
+		crowds.dzemini_mlask()
+	_world = world
 	_rng.randomize()
 	_dest = places.get(DEST_ID, Vector2.INF)
 	_places = places
@@ -298,6 +332,8 @@ func _process(dt: float) -> void:
 	_t += dt
 	if not away:
 		_session += dt
+	if dz_done and _sticker == null and int(_t * 2.0) != int((_t - dt) * 2.0):
+		_place_sticker()
 	match state:
 		State.IDLE:
 			if int(_session * 2.0) != int((_session - dt) * 2.0):
@@ -317,6 +353,9 @@ func _process(dt: float) -> void:
 			if _is_ml() and str(order.get("stage", "")) == "review":
 				if autopilot and _t > 2.0:
 					_start_sticker()
+			elif _is_dz() and str(order.get("stage", "")) == "review":
+				if (autopilot and _t > 2.0) or _t > RESULT_LIFE:
+					_dz_tygram()
 			elif _t > RESULT_LIFE:
 				_release()
 	last_usec = Time.get_ticks_usec() - t0
@@ -333,6 +372,10 @@ func _look() -> void:
 			and _session >= float(_cool.get(-3, 0.0)):
 		_cool[-3] = _session + ML_COOL
 		if offer_mlask():
+			return
+	if not dz_done and van_out(hour) and _session >= _dz_at:
+		_dz_at = _session + DZ_COOL
+		if offer_dzemini():
 			return
 	if crowds != null and Crowds.pistacja_drop(hour, life.weekday_now()) and crowds.by_id.has(Crowds.PISTACJA_ID):
 		var site: Dictionary = crowds.sites[crowds.by_id[Crowds.PISTACJA_ID]]
@@ -379,7 +422,7 @@ func offer_places() -> Array:
 					"name": ["Na czasie · %s" % st["word"], "On trend · %s" % st["word"]]})
 	if not van.is_empty() and van_out(hour) and _session >= float(_cool.get(-3, 0.0)):
 		out.append({"group": "mlask", "at": Vector2(van["ring"].x, van["ring"].z), "colour": ML_COLOUR,
-				"name": ["Mlask · van Cringula", "Smack · Mrożulo's van"]})
+				"name": ["Mlask · van Mrożula", "Smack · Mrożulo's van"]})
 	if crowds != null and Crowds.pistacja_drop(hour, life.weekday_now()) and crowds.by_id.has(Crowds.PISTACJA_ID) \
 			and _session >= float(_cool.get(-1, 0.0)):
 		var site: Dictionary = crowds.sites[crowds.by_id[Crowds.PISTACJA_ID]]
@@ -623,7 +666,7 @@ func _van_tick(hour: float, weekday: int) -> void:
 	if weekday != _van_day:
 		_van_day = weekday
 		van = _park_van(van_spot(weekday))
-	var show := out and not van.is_empty()
+	var show := (out or (_is_dz() and busy())) and not van.is_empty()
 	if _van_node != null and _van_node.visible != show:
 		_van_node.visible = show
 	if show:
@@ -656,14 +699,20 @@ func _fans_tick(_hour: float) -> void:
 func _park_van(spot: String, near := Vector2.INF) -> Dictionary:
 	var p: Vector2 = near if near != Vector2.INF else _places.get(spot, Vector2.INF)
 	if p == Vector2.INF:
+		if log_on:
+			print("trend job: Mrożulo's van: no place %s" % spot)
 		return {}
 	var hit: Array = graph.snap(p, 80.0)
 	if hit.is_empty():
+		if log_on:
+			print("trend job: Mrożulo's van: no road within 80 m of %s" % spot)
 		return {}
 	var road: Vector2 = graph.point_at(hit[0], hit[2])
 	var toward := road if road.distance_to(p) > 1.0 else p + Vector2(4.0, 0.0)
 	var k: Dictionary = jobs._kerb(road + (p - road).normalized() * 0.5 if road.distance_to(p) > 1.0 else p, toward, 3.5, [1.4, 2.2, 3.0])
 	if k.is_empty():
+		if log_on:
+			print("trend job: Mrożulo's van: no kerb by %s" % spot)
 		return {}
 	var side: Vector2 = k["side"]
 	var c: Vector2 = k["centre"]
@@ -810,6 +859,140 @@ func _arrive_ml_sticker() -> void:
 			int(r["base"]), int(r["tip"]), int(r["respect"])])
 
 
+# --- "Dżemini": Mrożulo's call (G5b) ----------------------------------------------------------
+
+func _is_dz() -> bool:
+	return str(order.get("kind", "")) == "dzemini"
+
+
+## The "Dżemini" pay for `road_m` metres by road (the shop to the van): {zl, base, tip, respect}.
+static func dz_pay(road_m: float, warm: bool) -> Dictionary:
+	var base := DZ_BASE + roundi(DZ_PER_KM * road_m / 1000.0)
+	var tip := DZ_TIP if warm else 0
+	return {"zl": (base if warm else roundi(base * 0.5)) + tip, "base": base, "tip": tip, "respect": DZ_RESPECT if warm else 0}
+
+
+## Mrożulo's call (--trend-job=8 too, with `force`): pickup by DŻEMINI's queue, delivery to his van
+## at today's spot. False with a job on (unless forced), or no shop, kerb or van spot.
+func offer_dzemini(force := false) -> bool:
+	if not force and not _free():
+		return false
+	if crowds == null or not crowds.by_id.has(DZ_SITE):
+		return false
+	var site: Dictionary = crowds.sites[crowds.by_id[DZ_SITE]]
+	if not site.has("door") or not site.has("out"):
+		return false
+	var door: Vector2 = site["door"]
+	var k: Dictionary = jobs._kerb(door, door - (site["out"] as Vector2) * 4.0, 3.5, [1.4, 2.2, 3.0])
+	if k.is_empty():
+		return false
+	var kerb: Vector2 = (k["centre"] as Vector2) + (k["side"] as Vector2) * 2.0
+	if van.is_empty() and life != null:
+		# Today's spot, else the next of his spots that has a kerb.
+		_van_day = life.weekday_now()
+		for k2 in ML_SPOTS.size():
+			van = _park_van(van_spot(_van_day + k2))
+			if not van.is_empty():
+				break
+	if van.is_empty():
+		if log_on:
+			print("trend job: Dżemini: no van spot")
+		return false
+	if _van_node != null:
+		_van_node.visible = true
+	var vr: Vector3 = van["ring"]
+	var road := kerb.distance_to(Vector2(vr.x, vr.z)) * 1.3
+	order = {"kind": "dzemini", "stage": "fetch", "slot": -1, "word": "DŻEMINI", "day": 0,
+			"ring": Vector3(kerb.x, graph.surface(k["edge"], kerb), kerb.y), "door_ring": vr, "road": road,
+			"name": "Mrożulo", "customer": "Mrożulo", "site": DZ_SITE}
+	state = State.OFFER
+	_t = 0.0
+	hud.show_side_card("📞 MROŻULO DZWONI",
+			"„Siema, tu Mrożulo! Na Świętokrzyskiej otworzyli DŻEMINI KEBAB, mięso kroi agent AI. Kup mi jednego i przywieź do vana, póki ciepły!”",
+			PackedStringArray(["JADĘ", "NIE TERAZ"]), ML_COLOUR, "Mrożulo is calling",
+			"\"Hi, Mrożulo here! DŻEMINI KEBAB just opened on Świętokrzyska, an AI agent carves the meat. Get me one and bring it to my van while it's warm!\"")
+	hud.ticker_out()
+	if log_on:
+		print("trend job: Dżemini call from Mrożulo: the van at %s, %.0f m by road" % [van["spot"], road])
+	return true
+
+
+## At the van: he bites ("Wjeżdżam w to."), the pay, and for good the MLASK on DŻEMINI (the save,
+## the queue, the sticker). The TYGRAM message follows when the card closes.
+func _arrive_dz() -> void:
+	var warm := _clock <= ML_WARM
+	var r := dz_pay(float(order["road"]), warm)
+	dz_done = true
+	wallet.keep[DZ_KEEP] = true
+	wallet.pay(int(r["zl"]), int(r["respect"]), "trend")
+	done += 1
+	if crowds != null and crowds.has_method("dzemini_mlask"):
+		crowds.dzemini_mlask()
+	_place_sticker()
+	var line := ["*mlask* … Wjeżdżam w to.", "*smack* … I'm going in."] if warm \
+			else ["Letni, ale… *mlask* … wjeżdżam w to.", "Lukewarm, but… *smack* … I'm going in."]
+	order["stage"] = "review"
+	order["warm"] = warm
+	state = State.RESULT
+	_t = 0.0
+	hud.hide_status()
+	_beacon.waving = false
+	_beacon.place(order["door_ring"], ARRIVE - 0.5, false, true)
+	hud.show_side_card("MROŻULO · +%d zł" % int(r["zl"]),
+			"„%s”\n+%d zł (napiwek %d zł), +%d szacunku" % [line[0], int(r["zl"]), int(r["tip"]), int(r["respect"])],
+			PackedStringArray(["OK"]), ML_COLOUR, "Mrożulo · +%d zł" % int(r["zl"]),
+			"\"%s\"\n+%d zł (tip %d zł), +%d respect" % [line[1], int(r["zl"]), int(r["tip"]), int(r["respect"])])
+	print("trend job: Dżemini kebab to Mrożulo in %.0f s (%s): +%d zł (base %d, tip %d), +%d respect, MLASK on DŻEMINI for good" % [
+			_clock, "warm" if warm else "cold", int(r["zl"]), int(r["base"]), int(r["tip"]), int(r["respect"])])
+
+
+## The TYGRAM message from Mrożulo (the messenger parody's blue card), then the job ends.
+func _dz_tygram() -> void:
+	order["stage"] = "tygram"
+	_t = 0.0
+	hud.show_side_card("TYGRAM · MROŻULO",
+			"„DŻEMINI: MLASK! Naklejka już wisi na szybie. Jutro kolejka do Marszałkowskiej. Dzięki, kierowco!”",
+			PackedStringArray(["OK"]), TYGRAM_COLOUR, "TYGRAM · Mrożulo",
+			"\"DŻEMINI: SMACK! The sticker's on the window. Tomorrow the queue reaches Marszałkowska. Thanks, driver!\"")
+	print("trend job: TYGRAM from Mrożulo: DŻEMINI gets the MLASK")
+
+
+## The MLASK sticker on DŻEMINI's wall beside its sign, once the shop's sector has placed it.
+func _place_sticker() -> void:
+	if _sticker != null or _world == null or storefronts == null or not storefronts.has_method("venue_wall"):
+		return
+	var w: Dictionary = storefronts.venue_wall(DZ_SITE)
+	if w.is_empty():
+		return
+	var n: Vector3 = w["n"]
+	var t: Vector3 = w["t"]
+	_sticker = MeshInstance3D.new()
+	_sticker.name = "DzeminiSticker"
+	_sticker.mesh = sticker_mesh()
+	_sticker.material_override = Models.material()
+	_sticker.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_sticker.visibility_range_end = 260.0
+	_world.add_child(_sticker)
+	var at: Vector3 = (w["p"] as Vector3) + Vector3.UP * maxf(float(w["up"]) - 0.9, 1.5) + t * 1.8 + n * 0.16
+	_sticker.global_transform = Transform3D(Basis(t, Vector3.UP, n), at)
+	if log_on:
+		print("trend job: the MLASK sticker on DŻEMINI at %.1f, %.1f" % [at.x, at.z])
+
+
+## The sticker: a yellow decal with a pink edge and "MLASK" in dark pixel letters (~200 triangles).
+## Local frame: x along the wall, y up, +z out of it.
+static func sticker_mesh() -> ArrayMesh:
+	var st := Models._begin()
+	var tw := PixelFont.width("MLASK") * STICKER_PX
+	var w := tw + 0.24
+	var h := PixelFont.ROWS * STICKER_PX + 0.12
+	Models.box(st, Vector3(0, 0, 0.005), Vector3(w + 0.08, h + 0.08, 0.01), VAN_PINK)
+	Models.box(st, Vector3(0, 0, 0.012), Vector3(w, h, 0.014), STICKER_YELLOW)
+	PixelFont.add_quads(st, "MLASK", Vector3(-tw * 0.5, PixelFont.ROWS * STICKER_PX * 0.5, 0.02), Vector3.RIGHT, Vector3.DOWN,
+			STICKER_PX, VAN_DARK, Models.FIXED)
+	return st.commit()
+
+
 func _is_cz() -> bool:
 	return str(order.get("kind", "")) == "czwarty"
 
@@ -834,6 +1017,8 @@ func _on_card(index: int) -> void:
 		State.RESULT:
 			if _is_ml() and str(order.get("stage", "")) == "review":
 				_start_sticker()
+			elif _is_dz() and str(order.get("stage", "")) == "review":
+				_dz_tygram()
 			else:
 				_release()
 
@@ -850,11 +1035,13 @@ func _accept() -> void:
 	missions.paused = true
 	hud.hide_pill()
 	hud.hide_challenge()
-	_beacon.recolour(ML_COLOUR if _is_ml() else (DROP_COLOUR if _is_drop() else (CZ_COLOUR if _is_cz() else COLOUR)))
+	_beacon.recolour(ML_COLOUR if _is_ml() or _is_dz() else (DROP_COLOUR if _is_drop() else (CZ_COLOUR if _is_cz() else COLOUR)))
 	_beacon.waving = false
 	_beacon.place(order["ring"], PICKUP - 0.5, true, false)
 	if _is_ml():
-		hud.toast("Mlask: na wynos dla Cringula", "Smack: a takeaway for Mrożulo")
+		hud.toast("Mlask: na wynos dla Mrożula", "Smack: a takeaway for Mrożulo")
+	elif _is_dz():
+		hud.toast("Dżemini: kebab dla Mrożula, Świętokrzyska", "Dżemini: a kebab for Mrożulo, on Świętokrzyska")
 	elif _is_drop():
 		hud.toast("Limitka: stań w kolejce po pudełko", "Limited drop: join the queue for a box")
 	elif _is_cz():
@@ -898,7 +1085,9 @@ func _pickup_tick(dt: float) -> void:
 			_beacon.waving = true
 			_beacon.place(order["door_ring"], ARRIVE - 0.5)
 			if _is_ml():
-				hud.toast("Kolejka przepuszcza: to dla Cringula! Wieź, póki ciepłe", "The queue lets you through: it's for Mrożulo! Bring it warm")
+				hud.toast("Kolejka przepuszcza: to dla Mrożula! Wieź, póki ciepłe", "The queue lets you through: it's for Mrożulo! Bring it warm")
+			elif _is_dz():
+				hud.toast("Agent: „Na pewno kebab? Mogę też napisać o nim wiersz.”", "The agent: \"Sure about the kebab? I can also write a poem about it.\"")
 			elif _is_cz():
 				hud.toast("Jest! Na kort, grają bez ciebie", "Got them! To the court, they're starting without you")
 			elif drop:
@@ -913,6 +1102,10 @@ func _pickup_tick(dt: float) -> void:
 	if drop:
 		hud.show_status("LIMITKA · KOLEJKA", "", "%d m" % roundi(d), "Stań w kolejce", _hold / hold_for, DROP_COLOUR, "", {},
 				"Wait in the queue")
+		return
+	if _is_dz():
+		hud.show_status("DŻEMINI · ODBIÓR", "", "%d m" % roundi(d), "Stań przy kolejce", _hold / PICKUP_HOLD, ML_COLOUR, "", {},
+				"Stop by the queue")
 		return
 	if _is_ml():
 		hud.show_status("MLASK · %s" % order["word"], "", "%d m" % roundi(d), "Stań przy kolejce", _hold / PICKUP_HOLD, ML_COLOUR, "", {},
@@ -936,7 +1129,7 @@ func _deliver_tick(dt: float) -> void:
 	if d < ARRIVE and car.vel.length() < ARRIVE_SPEED and not flying:
 		_arrive()
 		return
-	if _is_ml():
+	if _is_ml() or _is_dz():
 		_ml_status(d)
 		return
 	var drop := _is_drop()
@@ -957,14 +1150,17 @@ func _ml_status(d: float) -> void:
 	var limit := ML_STICKER if sticker else ML_WARM
 	var left := limit - _clock
 	var clock := ("%d:%02d" % [int(left) / 60, int(left) % 60]) if left > 0.0 else "+%d:%02d" % [int(-left) / 60, int(-left) % 60]
-	var hint := ["Stań przy drzwiach", "Stop at the door"] if sticker else ["Do vana Cringula, póki ciepłe", "To Mrożulo's van while it's warm"]
+	var hint := ["Stań przy drzwiach", "Stop at the door"] if sticker else ["Do vana Mrożula, póki ciepłe", "To Mrożulo's van while it's warm"]
 	if left <= 0.0:
 		hint = ["Spóźnione, ale dowieź", "Late, but deliver it"] if sticker else ["Stygnie… jedź dalej", "It's going cold… keep going"]
-	hud.show_status(("MLASK → %s" % order["word"]) if sticker else "MLASK → MROŻULO", clock, "%d m" % roundi(d), hint[0],
+	hud.show_status(("MLASK → %s" % order["word"]) if sticker else ("DŻEMINI → MROŻULO" if _is_dz() else "MLASK → MROŻULO"), clock, "%d m" % roundi(d), hint[0],
 			clampf(_clock / limit, 0.0, 1.0), ML_COLOUR if left > 0.0 else FAIL_COLOUR, "", {}, hint[1])
 
 
 func _arrive() -> void:
+	if _is_dz():
+		_arrive_dz()
+		return
 	if _is_ml():
 		if str(order.get("stage", "")) == "sticker":
 			_arrive_ml_sticker()
