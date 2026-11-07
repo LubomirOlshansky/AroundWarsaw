@@ -352,6 +352,7 @@ then the Launch gate.
 - [ ] The estate, the halls and Jana Pawła II (F, 2026-11-01; BACKLOG section):
   - [x] Osiedle Za Żelazną Bramą: eleven blocks as a model with its own skin, 2026-11-01
   - [x] Hala Mirowska: market stalls on the square, 2026-11-01 (the hall itself was done)
+  - [x] Hala Mirowska glazed east gallery and the Metropolitan's silver top storey, from F's photos, 2026-11-07 (rest of the photo pass: BACKLOG)
   - [x] Aleja Jana Pawła II: mid-century plasters on every plain building along it, 2026-11-01
   - [ ] Mac photo checks for the estate and the stalls (QUESTIONS); then the boulevard street by street
 - [x] Street blocks across the city (F, 2026-11-06): 512 plain blocks modelled, Nowy Świat's 50 with real windows, trim, dormers and roofs (BACKLOG "Street blocks across the city") Marszałkowska added 16 photo fronts Aleje Jerozolimskie 21 and the streets from Świętokrzyska to Ujazdowskie 25, Krakowskie Przedmieście, Senatorska and Miodowa 41, Długa, Jana Pawła II and Krucza 41, Mokotowska and Hoża 61, Wilcza, Piękna and Targowa 83, and 46 named buildings on 2026-11-07 (351 in all).

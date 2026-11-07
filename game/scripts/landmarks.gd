@@ -10121,7 +10121,8 @@ func _build_metropolitan(site: Dictionary) -> void:
 	# The seventh storey, set back from the fins and from the courtyard.
 	var upper := _largest(Geometry2D.offset_polygon(ring, -METRO_SETBACK, Geometry2D.JOIN_MITER))
 	var court2 := _circle(METRO_COURT, METRO_COURT_R + METRO_SETBACK, 40)
-	var light := METRO_GLASS.lightened(0.1)
+	# the seventh storey and the plant rooms are silver metal over a glazed band (photo 2026-11-07)
+	var light := Color("#aab5ba")
 	if upper.size() >= 3:
 		_prism(upper, g + METRO_H, g + METRO_RING_H, light, none, M_GLASS)
 		_inside_wall(court2, g + METRO_H, g + METRO_RING_H, light, M_GLASS)
@@ -10679,6 +10680,10 @@ func _build_mirowska(site: Dictionary) -> void:
 	for k in 8:
 		var v := clampf(k * pitch, 0.25, hv - 0.25)
 		_lbox(hu + 0.15, v, 0.15, 0.25, g + 1.2, g + 9.0, MIROWSKA_TRIM, M_STONE, MIROWSKA_TRIM)
+	# the glazed gallery on the east front (photo 2026-11-07, `warsaw-needed-photos`): a dark glass
+	# band across the front over the market's ground floor, under a thin dark fascia
+	_lbox(hu + 0.9, nave_v, 0.9, hv * 0.5 - 3.0, g + 3.6, g + 8.8, MIROWSKA_GLASS, M_GLASS, none)
+	_lbox(hu + 0.95, nave_v, 1.0, hv * 0.5 - 2.9, g + 8.8, g + 9.5, Color("#4b2e29"), M_STONE, Color("#5a3a33"))
 	# the portal's steps
 	for k in 3:
 		_lbox(hu + 0.4 + (2 - k) * 0.4, nave_v, 0.4 + (2 - k) * 0.4, 2.6, g - 0.5, g + 0.4 * (k + 1), MIROWSKA_PLINTH, M_STONE,
