@@ -271,6 +271,8 @@ var _drifting := false
 var _shows: Array[Dictionary] = []
 var _rival_profile := PackedFloat32Array()
 var _rival_k := 1.0
+## His run\'s time from the line (s): shown on the card when you beat him before he crossed.
+var _rival_time := 0.0
 var _tree: DragTree
 var _tree_t := 0.0
 var _green_at := 0.0
@@ -1380,6 +1382,7 @@ func _stage() -> void:
 	var rr := rival_run(float(car.accel) * _accel_was, float(car.max_speed) * _top_was * DRAG_TOP)
 	_rival_profile = rr[0]
 	_rival_k = rr[1]
+	_rival_time = float(rr[2])
 	if police != null and "gentle" in police:
 		_gentle_was = bool(police.gentle)
 		police.gentle = true
@@ -1525,7 +1528,8 @@ func _drag_end(won: bool, how: String) -> void:
 			wallet.keep["wnrc_wins"] = int(wallet.keep.get("wnrc_wins", 0)) + 1
 			wallet.record("drag_402", drag_time)
 	var react := "%.2f s" % _react if _react >= 0.0 else "—"
-	var tad := "%.2f s" % _rival_done if _rival_done > 0.0 else "—"
+	# Not across yet: his run's own time (he finishes it behind you).
+	var tad := "%.2f s" % (_rival_done if _rival_done > 0.0 else maxf(_rival_time, drag_time + 0.01))
 	var body := ""
 	var body_en := ""
 	var title := ""
