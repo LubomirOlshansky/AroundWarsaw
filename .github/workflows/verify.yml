@@ -75,7 +75,9 @@ jobs:
   map:
     name: map (${{ matrix.part }})
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    # 60 (was 45): with a sector-cache miss the bake alone takes ~11 min, and the landmarks half
+    # (landmarks, water, plain, ram, teleport) passed its fourth step at 44 min on PR #516.
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
