@@ -9,6 +9,9 @@ extends SceneTree
 ##   autopilot) ends with every boat finished or out inside RACE_MAX s, the player's careful boat
 ##   with no miss inside the expected time, the times spread (they are not one boat four times);
 ## - three misses put the player out (ODPADASZ!), JESZCZE RAZ starts the grid again, WYJDŹ ends it;
+## - the free ride (F 2026-11-07): the bowrider is moored in open water clear of the pontoon; the
+##   marina card's POPŁYWAJ takes it out, full throttle gets it away from the pontoon and up to
+##   speed without the rivals or the rings, ✕ ends the ride and it is back at its mooring;
 ## - the race's dialogue lines exist in Polish and English for every rival's situations.
 ##   godot --headless --path game --script res://tools/check_boat_race.gd
 
@@ -123,6 +126,7 @@ func _initialize() -> void:
 	root.add_child(hud)
 	var race := _race(map, hud)
 	_fail_path(race, hud)
+	_free(race, map)
 	_lines()
 	if _fails.is_empty():
 		print("check_boat_race: OK")
@@ -296,6 +300,42 @@ func _fail_path(race: Node3D, hud: FakeHud) -> void:
 	race._quit()
 	if race.state != BoatRace.State.IDLE or race.boating():
 		_fail("WYJDŹ did not end the race")
+
+
+func _free(race: Node3D, map: WaterMap) -> void:
+	var m: Vector2 = BoatRace.MOOR
+	if map.shore_distance(m.x, m.y) < 2.5:
+		_fail("the bowrider's mooring %s is %.1f m from the bank" % [m, map.shore_distance(m.x, m.y)])
+	race._marina_card()
+	if race.state != BoatRace.State.MENU:
+		_fail("the pill did not open the marina card")
+	race._on_card(0)
+	if race.state != BoatRace.State.FREE or not race.boating() or race.player != race.free_boat:
+		_fail("POPŁYWAJ did not start the free ride (state %d)" % race.state)
+		return
+	var b: Node3D = race.free_boat
+	if b.pos.distance_to(m) > 0.5:
+		_fail("the free ride did not start at the mooring")
+	# Full throttle, the bow to the river: out past the pontoon's end and onto the plane.
+	b.throttle = 1.0
+	var t := 0.0
+	var best := 0.0
+	while t < 10.0:
+		race._process(STEP)
+		t += STEP
+		best = maxf(best, b.forward_speed())
+	var gone: float = b.pos.distance_to(m)
+	if gone < 60.0 or best < 0.75 * b.top():
+		_fail("the bowrider got %.0f m from its mooring at %.1f m/s top in 10 s (stuck by the pontoon?)" % [gone, best])
+	for k in race.boats.size():
+		if race.boats[k].visible:
+			_fail("a race boat is out during the free ride")
+	print("check_boat_race: free ride %.0f m out, %.1f m/s top" % [gone, best])
+	race.hud.abort_pressed.emit()
+	if race.state != BoatRace.State.IDLE or race.boating() or race.player == race.free_boat:
+		_fail("✕ did not end the free ride")
+	if race.free_boat.pos.distance_to(m) > 0.5 or not race.free_boat.visible:
+		_fail("the bowrider is not back at its mooring")
 
 
 func _lines() -> void:

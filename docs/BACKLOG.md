@@ -57,6 +57,24 @@ barge and its wake. Left:
 - [ ] The marina (PR #251) as the start once the harbour's 8 m entrance can be widened or raced in single file
 - [ ] Pan Zdzisiek fishing from the Złota Rybka after the race; Kamil's "relacja" as a ticker joke
 
+### Free ride and the marina's access (F, 2026-11-07)
+
+Built: the bowrider "Kobolt 23" moored by the start pontoon, the PRZYSTAŃ pill and the marina card
+(POPŁYWAJ / WYŚCIG / NIE TERAZ), the free ride (no rings, clock or rivals; the barge passes for its
+wake) with ✕ back to the car, the boat mark on the minimap and the full map. Left:
+- [ ] **F's photos** of the real place before any rebuild (landmarks-photos rule): the pontoon area at
+  the tip of Cypel Czerniakowski from the promenade and from the water side; the drive in from Solec
+  along Zaruskiego (the gate or barrier, the car park, the kerbs and surface); the promenade from the
+  gangway both ways; the harbour mouth and the club house from the spit; any real rental or
+  motorboat jetty on the Port Czerniakowski side. Then rebuild the pontoon, its gangway and the access
+  road from them
+- [ ] The access now: the car reaches the stop over the grass of the spit from the service road (no
+  mapped road reaches the promenade); keep it until the photos say what is really there
+- [ ] The PRZYSTAŃ pill is up (logged, on screen at the top centre) but missing from the cloud's
+  `--shots` frames; check on the Mac that it shows when the car stops by the pontoon
+- [ ] Phone feel of the bowrider (heavier, top 70 km/h), a way back to the mooring that parks it
+  (now ✕ anywhere), an engine sound
+
 ## The Emilii Plater underpass entrances (F, 2026-11-06)
 
 F's screenshots: walled boxes with steps on flat ground. Done 2026-11-06 (spec

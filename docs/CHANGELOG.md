@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-07
 
+- A motorboat now waits at the race pontoon by Port Czerniakowski: stop there and take it out on the Vistula whenever you like. A boat sign marks it on the map.
 - Marszałkowska: 16 more houses got street fronts from real photos, from Hotel Saski to the long block at number 140.
 - Aleje Jerozolimskie: 21 more houses along the avenue got street fronts from real photos.
 - Świętokrzyska, Chmielna, Nowy Świat and Aleje Ujazdowskie: 25 more houses got street fronts from real photos.

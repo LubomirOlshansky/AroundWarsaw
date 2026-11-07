@@ -92,16 +92,33 @@ there. Its wake rings are the big jumps.
 
 ## 6. Cost
 
-Idle: a timer and the pontoon (1 draw call, static). Racing: 4 boats + the barge (5), the next 3
+Idle: a timer, the pontoon and the moored bowrider (2 draw calls, static). Free ride: the bowrider,
+the barge and the foam (3), one sphere test a frame. Racing: 4 boats + the barge (5), the next 3
 rings and the finish (≤4), the foam (1): about +10 draw calls; four sphere tests a frame; the wave
 sum ~1k terms a frame.
 
 ## 7. Flags
 
 `--boat-race` / `--boat-race=call` (Szymek rings now), `=race` (the car at the pontoon and straight
-onto the grid), `=auto` (that, with the player's boat driven by the rivals' driver), `=0` (none);
-`--boat-log`.
+onto the grid), `=auto` (that, with the player's boat driven by the rivals' driver), `=free` (the
+car at the pontoon, out in the bowrider), `=marina` (the car there, the marina card up), `=0`
+(none); `--boat-log`.
 
-## 8. Left
+## 8. Free ride (F, 2026-11-07)
+
+F: "a boat parked at the pier, some Cobalt; whoever drives there can always take it and ride; mark
+it on the map as a boat." The bowrider "Kobolt 23" (a parody name, no real make: 7 m, white over
+cobalt-blue sides, open bow, walk-through screen, a tow pylon; a navy cover over the cockpit while
+parked) lies alongside the start pontoon's upstream side (`MOOR`, 5 m off the deck's centre line
+because the current sets it on the deck). Stop by the pontoon: the pill PRZYSTAŃ opens the marina
+card, POPŁYWAJ (free ride), WYŚCIG (the race, as the old pill), NIE TERAZ. On the free ride there are
+no rings, rivals or clock; the panel shows the speed and the way back to the marina, the sand barge
+passes for its wake, ✕ ends it and the car is where it was left, the bowrider back at its mooring.
+Spec `Kind.BOWRIDER`: top 19.5 m/s, pull 5.6, turn 1.4, grip 1.3 → 3.4, mass 1.5. The mark
+(MapIcons.POI_BOAT, a white motorboat on a cobalt disc) stands with the job places on the minimap
+and the full map. Which real place this is and the photos it needs: BACKLOG "Free ride and the
+marina's access".
+
+## 9. Left
 
 In docs/BACKLOG.md "Boat race".

@@ -22,7 +22,7 @@ extends Node3D
 ##
 ## Frame: +Z forward (the mesh, `yaw` from +Z towards +X), origin at the waterline.
 
-enum Kind { RUNABOUT, TUB, JETSKI }
+enum Kind { RUNABOUT, TUB, JETSKI, BOWRIDER }
 
 ## Per kind: top speed (m/s), pull at rest (m/s²), turn (rad/s), grip across at rest and on the
 ## plane (1/s), the speed where it planes (m/s), mass (bumps), radius (m), length (m), the wake's
@@ -34,6 +34,10 @@ const SPECS := {
 			"mass": 1.8, "r": 2.6, "len": 6.4, "wake": 0.42},
 	Kind.JETSKI: {"top": 22.6, "pull": 8.0, "turn": 2.1, "grip0": 0.9, "grip1": 2.6, "plane": 7.0,
 			"mass": 0.55, "r": 1.4, "len": 3.2, "wake": 0.2},
+	# The free-ride bowrider at the start pontoon (F 2026-11-07): heavier and a touch slower than
+	# the runabout, a softer slide; r 2.2 so it sits just clear of the pontoon at its mooring.
+	Kind.BOWRIDER: {"top": 19.5, "pull": 5.6, "turn": 1.4, "grip0": 1.3, "grip1": 3.4, "plane": 8.5,
+			"mass": 1.5, "r": 2.2, "len": 7.0, "wake": 0.4},
 }
 const DRAG := 0.06           # water drag on top of the thrust curve (1/s)
 const REVERSE := 4.0         # m/s back
@@ -106,6 +110,11 @@ func setup(k: int, mesh: ArrayMesh, material: Material) -> void:
 	_mesh.material_override = material
 	_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_body.add_child(_mesh)
+
+
+## Swap the hull's mesh (the free-ride bowrider: parked empty, or with the player at the wheel).
+func set_mesh(mesh: ArrayMesh) -> void:
+	_mesh.mesh = mesh
 
 
 func place(at: Vector2, heading: float) -> void:
@@ -468,4 +477,55 @@ static func jetski_mesh() -> ArrayMesh:
 	Models.box(st, Vector3(0.22, 1.2, 0.5), Vector3(0.1, 0.1, 0.6), Color("#1b1c20"))
 	Models.box(st, Vector3(-0.22, 1.2, 0.5), Vector3(0.1, 0.1, 0.6), Color("#1b1c20"))
 	_nav(st, 0.4, 0.66, 0.9, -1.45, 0.62)
+	return st.commit()
+
+
+## The free-ride bowrider "Kobolt 23" (F 2026-11-07: "some Cobalt, a boat parked at the pier"; a
+## parody name, no real make): 7 m, a white deep-V hull with cobalt-blue sides under a white
+## sheer band, an open bow with a U of seats, a walk-through windscreen, a helm and a bench aft,
+## a sterndrive leg under a swim platform. `driver` false: parked, nobody aboard.
+static func bowrider_mesh(driver: bool) -> ArrayMesh:
+	var st := Models._begin()
+	_part = Models.HERO
+	_glow = 0.35
+	var cobalt := Color("#1f4fa8")
+	var cream := Color("#ece6d6")
+	var stations := [[-3.1, 1.2, 0.45, 0.78], [-1.6, 1.3, 0.55, 0.82], [0.2, 1.28, 0.6, 0.88],
+			[1.8, 1.0, 0.55, 0.96], [2.9, 0.5, 0.36, 1.02], [3.5, 0.05, 0.14, 1.06]]
+	_hull(st, stations, cobalt, cream, Color("#16213a"))
+	# the white sheer band over the blue sides, and a thin silver rub rail on top
+	for s: float in [-1.0, 1.0]:
+		for i in stations.size() - 1:
+			var a: Array = stations[i]
+			var b: Array = stations[i + 1]
+			_quad(st, Vector3(s * a[1] * 1.005, a[3] - 0.24, a[0]), Vector3(s * b[1] * 1.005, b[3] - 0.24, b[0]),
+					Vector3(s * b[1] * 1.005, b[3], b[0]), Vector3(s * a[1] * 1.005, a[3], a[0]), WHITE, s)
+			_quad(st, Vector3(s * a[1] * 1.01, a[3] - 0.03, a[0]), Vector3(s * b[1] * 1.01, b[3] - 0.03, b[0]),
+					Vector3(s * b[1] * 1.01, b[3] + 0.02, b[0]), Vector3(s * a[1] * 1.01, a[3] + 0.02, a[0]), Color("#c9ccd1"), s)
+	# the open bow: a U of white cushions round the bow well
+	Models.box(st, Vector3(0.62, 0.92, 2.0), Vector3(0.36, 0.22, 1.5), WHITE)
+	Models.box(st, Vector3(-0.62, 0.92, 2.0), Vector3(0.36, 0.22, 1.5), WHITE)
+	Models.box(st, Vector3(0, 0.95, 2.85), Vector3(0.7, 0.22, 0.4), WHITE)
+	# the walk-through windscreen: two raked panes either side of a gap, a dark dash under them
+	Models.box(st, Vector3(0.62, 0.98, 0.95), Vector3(0.9, 0.22, 0.55), Color("#2a2d33"))
+	Models.box(st, Vector3(-0.62, 0.98, 0.95), Vector3(0.9, 0.22, 0.55), Color("#2a2d33"))
+	for s: float in [-1.0, 1.0]:
+		_quad(st, Vector3(s * 0.2, 1.08, 1.15), Vector3(s * 1.15, 1.08, 1.1), Vector3(s * 1.05, 1.45, 0.85), Vector3(s * 0.25, 1.45, 0.9), GLASS, s)
+	# the helm seat, the co-pilot's, the bench across the stern
+	Models.box(st, Vector3(0.6, 0.85, 0.15), Vector3(0.62, 0.4, 0.62), WHITE)
+	Models.box(st, Vector3(-0.6, 0.85, 0.15), Vector3(0.62, 0.4, 0.62), WHITE)
+	Models.box(st, Vector3(0, 0.82, -1.9), Vector3(2.1, 0.36, 0.7), WHITE)
+	Models.box(st, Vector3(0, 1.1, -2.3), Vector3(2.1, 0.4, 0.2), cream)
+	# the swim platform and the sterndrive leg under it
+	Models.box(st, Vector3(0, 0.36, -3.4), Vector3(2.0, 0.1, 0.6), Color("#b08a60"))
+	Models.box(st, Vector3(0, 0.0, -3.35), Vector3(0.26, 0.7, 0.4), DARK)
+	# a tow pylon (the wakeboard bar), steel
+	Models.box(st, Vector3(0, 1.5, -1.3), Vector3(0.1, 1.0, 0.1), Color("#c9ccd1"))
+	Models.box(st, Vector3(0, 2.0, -1.3), Vector3(0.6, 0.1, 0.1), Color("#c9ccd1"))
+	if driver:
+		_driver(st, Vector3(0.6, 0.85, 0.2), Color("#ff8a1a"), Color("#3a2a1c"))
+	else:
+		# parked: the cockpit cover over the helm, navy canvas
+		Models.box(st, Vector3(0, 1.05, -0.6), Vector3(2.2, 0.06, 2.4), Color("#1d2a44"))
+	_nav(st, 1.05, 1.0, 1.9, -3.0, 1.35)
 	return st.commit()

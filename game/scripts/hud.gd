@@ -2163,6 +2163,18 @@ func poi_mark(at: Vector2, half: float, colour: Color, shape: int) -> void:
 		MapIcons.POI_SCOOTER:
 			_tri_fan(at, half * 0.8 + o, 0.0, TAU, Color(OUTLINE, colour.a))
 			_tri_fan(at, half * 0.8, 0.0, TAU, colour)
+		MapIcons.POI_BOAT:
+			# A disc with a white motorboat in profile: the hull (bow right), the windscreen.
+			_tri_fan(at, half * 1.15 + o, 0.0, TAU, Color(OUTLINE, colour.a))
+			_tri_fan(at, half * 1.15, 0.0, TAU, colour)
+			var h := half * 1.15
+			var a0 := at + Vector2(-h * 0.7, h * 0.05)
+			var a1 := at + Vector2(h * 0.78, h * 0.05)
+			var a2 := at + Vector2(h * 0.42, h * 0.42)
+			var a3 := at + Vector2(-h * 0.6, h * 0.42)
+			_tri(a0, a1, a2, white, white, white)
+			_tri(a0, a2, a3, white, white, white)
+			_tri(at + Vector2(-h * 0.2, h * 0.05), at + Vector2(h * 0.3, h * 0.05), at + Vector2(-h * 0.2, -h * 0.26), white, white, white)
 		_:
 			_tri_rect(Rect2(at - Vector2.ONE * (half + o), Vector2.ONE * (half + o) * 2.0), Color(OUTLINE, colour.a))
 			_tri_rect(Rect2(at - Vector2.ONE * half, Vector2.ONE * half * 2.0), colour)
