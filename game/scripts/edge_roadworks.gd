@@ -42,6 +42,10 @@ const EDGE_END := CLOSE_IN - 1.0
 ## A road that runs along the edge (no crossing of the CLOSE_IN line within WALK m) is closed where it
 ## comes within ALONG_IN m of the outline instead, just before the wall: barriers across the road.
 const ALONG_IN := 6.5
+## Each end of such a line stays ALONG_END m inside the outline (the wall is 5 m in), stepping back
+## at most ALONG_BACK_STEPS half metres.
+const ALONG_END := 6.0
+const ALONG_BACK_STEPS := 5
 ## A small road's barriers that would stand within TIGHT_GAP m of a street's carriageway move out to
 ## TIGHT_IN m from the outline (or go, the wall closing the road).
 const TIGHT_GAP := 2.5
@@ -351,6 +355,12 @@ static func _merge(mb, raw: Array) -> Array:
 		if along_edge:
 			# No room for the works behind the barriers before the wall.
 			tier = mini(tier, Tier.MEDIUM)
+			# An outline slanting across the road brings the wall nearer on one side: step the line
+			# back until both its ends stand in front of the wall (Bonifraterska's lane 0, PT W3).
+			var back := 0
+			while back < ALONG_BACK_STEPS and not (mb.in_map(at + side * half, -ALONG_END) and mb.in_map(at - side * half, -ALONG_END)):
+				at -= dir * 0.5
+				back += 1
 		var y: float = mb.ground_height(at.x, at.y) if deck else mb.terrain_height(at.x, at.y)
 		out.append({"at": at, "dir": dir, "half": half, "tier": tier, "y": y, "name": name, "ends": parts.size(),
 				"along": along_edge})

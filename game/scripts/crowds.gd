@@ -141,6 +141,14 @@ const STOP_STREET := "Marszałkowska"
 const STOP_REACH := 25.0
 const STOP_AREA := 22.0
 const STOP_MAX := 12
+## F's LIM photos (2026-11-06): the Dworzec Centralny tram stop on Aleje Jerozolimskie, in front
+## of Centrum LIM, is full at all hours (the station across the street). Its platforms (centres
+## within STOP_CENTRALNY_REACH m of the point) get `stop` sites too, up to STOP_CENTRALNY_MAX
+## people each, never under STOP_CENTRALNY_FLOOR of that even at night.
+const STOP_CENTRALNY := Vector2(-1410.0, 660.0)
+const STOP_CENTRALNY_REACH := 40.0
+const STOP_CENTRALNY_MAX := 16
+const STOP_CENTRALNY_FLOOR := 0.4
 const DAWN_MIN := 20
 const DAWN_MAX := 40
 ## The night's minute log (--night-log).
@@ -1122,6 +1130,11 @@ func _add_stops(data: Dictionary) -> void:
 		if near and cap >= 3:
 			_add_site({"id": "stop_marsz_%d" % idx, "kind": "stop", "at": c, "poly": poly, "max": cap})
 			idx += 1
+		elif c.distance_to(STOP_CENTRALNY) <= STOP_CENTRALNY_REACH:
+			cap = clampi(roundi(poly_area(flat) / STOP_AREA), 3, STOP_CENTRALNY_MAX)
+			_add_site({"id": "stop_centralny_%d" % idx, "kind": "stop", "at": c, "poly": poly, "max": cap,
+					"floor": STOP_CENTRALNY_FLOOR})
+			idx += 1
 
 
 func _add_site(s: Dictionary) -> void:
@@ -1923,7 +1936,7 @@ func tick(step: float) -> void:
 					lvl = club_level(hour, weekday, month, rain)
 				want = roundi(int(s["max"]) * k * lvl)
 			"stop":
-				want = roundi(int(s["max"]) * k * stop_level(hour, weekday, rain))
+				want = roundi(int(s["max"]) * k * maxf(stop_level(hour, weekday, rain), float(s.get("floor", 0.0))))
 			"office":
 				want = office_count(int(s["max"]), hour, weekday, rain, k)
 			"meet":

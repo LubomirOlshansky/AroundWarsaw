@@ -303,6 +303,14 @@ var _mini_final := Vector2.INF
 var _mini_final_colour := Color.WHITE
 const GARAGE_REACH := 1500.0
 var _mini_poi_colours := PackedColorArray()
+## The questlines' starts (story_quests.gd `marks`): points and colours; empty in quest focus.
+var _mini_story := PackedVector2Array()
+var _mini_story_colours := PackedColorArray()
+var _story_names := PackedStringArray()
+const STORY_REACH := 1500.0
+## Quest focus (main.gd `_story_tick`): something runs; the minimap and the full map hide the side
+## places, the garage, the "?" marks and the starts, and the main star dims.
+var quest_focus := false
 ## G11: the shape of each place's mark (MapIcons.POI_*), parallel to _mini_pois; a short or empty array
 ## means squares.
 var _mini_poi_shapes := PackedInt32Array()
@@ -2054,7 +2062,9 @@ func _paint_minimap_overlay() -> void:
 	_tri_begin()
 	# Side-job places: small blinking squares, pinned to the rim up to 700 m away.
 	var blink := 0.55 + 0.45 * sin(Time.get_ticks_msec() * 0.006)
-	for i in _mini_pois.size():
+	# Quest focus (story_quests.gd, F 2026-11-07): while something runs, the side places, the garage
+	# and the "?" marks stay off the minimap; only what the player is doing shows.
+	for i in (0 if quest_focus else _mini_pois.size()):
 		if _mini_pois[i].distance_to(_mini_car) > 700.0:
 			continue
 		var r := ((_mini_pois[i] - _mini_car) * s).rotated(_mini_yaw)
@@ -2063,7 +2073,7 @@ func _paint_minimap_overlay() -> void:
 		var half := (2.0 if far else 3.2) * pt
 		poi_mark(centre + r, half, Color(_mini_poi_colours[i], blink), _mini_poi_shapes[i] if i < _mini_poi_shapes.size() else MapIcons.POI_SQUARE)
 	# The garage loop: the garage's diamond, pinned to the rim up to GARAGE_REACH m away.
-	if _mini_garage != Vector2.INF and _mini_garage.distance_to(_mini_car) <= GARAGE_REACH:
+	if not quest_focus and _mini_garage != Vector2.INF and _mini_garage.distance_to(_mini_car) <= GARAGE_REACH:
 		var g := ((_mini_garage - _mini_car) * s).rotated(_mini_yaw).limit_length(_mini_radius - 6.0 * pt)
 		_tri_diamond(centre + g, 4.6 * pt, _mini_garage_colour)
 	# Loop 3h slice 3's diamond at the final's start is the main line's star now (main_line.gd).
@@ -2083,10 +2093,17 @@ func _paint_minimap_overlay() -> void:
 			_tri_rect(Rect2(at - Vector2(2.8, 1.8) * pt, Vector2(4.0, 3.6) * pt), POLICE_BLUE)
 			_tri_rect(Rect2(at + Vector2(0.6, -0.4) * pt, Vector2(2.2, 4.0) * pt), POLICE_BLUE)
 	# Loop MW-1: the notebook's undiscovered places, a gold "?" on a dark plate (never a name).
-	for q in _mini_unknown:
+	for q in (PackedVector2Array() if quest_focus else _mini_unknown):
 		var r := ((q - _mini_car) * s).rotated(_mini_yaw)
 		if r.length() < _mini_radius - 6.0 * pt:
 			_tri_question(centre + r)
+	# The questlines' starts (story_quests.gd): a "!" badge in each one's colour, pinned to the rim
+	# up to STORY_REACH m away (the list is empty in quest focus).
+	for i in _mini_story.size():
+		if _mini_story[i].distance_to(_mini_car) > STORY_REACH:
+			continue
+		var r := ((_mini_story[i] - _mini_car) * s).rotated(_mini_yaw).limit_length(_mini_radius - 7.0 * pt)
+		story_badge(centre + r, 0.85, _mini_story_colours[i])
 	if _scene_mark != Vector2.INF:
 		# A crash scene: an amber dot with a white ring, pulsing slowly (not the chasers' flicker).
 		var r := ((_scene_mark - _mini_car) * s).rotated(_mini_yaw)
@@ -2111,7 +2128,7 @@ func _paint_minimap_overlay() -> void:
 	if _main_at != Vector2.INF:
 		# The main line: a gold star in a pulsing ring, pinned to the rim at any distance.
 		var mr := ((_main_at - _mini_car) * s).rotated(_mini_yaw).limit_length(_mini_radius - 8.0 * pt)
-		main_star(centre + mr, 1.3)
+		main_star(centre + mr, 1.3, quest_focus)
 	var d := _car_dir.normalized()
 	var side := Vector2(-d.y, d.x)
 	var tip := centre + d * 6.0 * pt
@@ -2130,13 +2147,35 @@ func _paint_minimap_overlay() -> void:
 
 ## The main line's marker at `at` (k: its size, 1 on the minimap): a gold five-point star with a
 ## dark rim in a ring that pulses (into the overlay's one triangle batch).
-func main_star(at: Vector2, k: float) -> void:
+## F (2026-11-07): "like in the Witcher, a big glowing blob" for the main quest: a soft gold glow
+## (three fans fading out) breathes under the star, so it is the one mark that shines. `dim` (quest
+## focus: a side quest is on) drops the glow and pulse, the star stays as a quiet reminder.
+func main_star(at: Vector2, k: float, dim := false) -> void:
 	var pulse := 0.5 + 0.5 * sin(Time.get_ticks_msec() * 0.005)
-	var ring := Color(MainLine.COLOUR, 0.25 + 0.45 * pulse)
-	var r0 := (5.6 + 1.2 * pulse) * pt * k
-	_tri_ring(at, r0, r0 + 1.4 * pt * k, 0.0, TAU, ring)
-	_tri_star(at, 5.2 * pt * k, MainLine.RIM)
-	_tri_star(at, 4.0 * pt * k, MainLine.COLOUR)
+	if not dim:
+		for g: Array in [[13.0, 0.10], [10.0, 0.16], [7.6, 0.24]]:
+			_tri_fan(at, (float(g[0]) + 2.0 * pulse) * pt * k, 0.0, TAU, Color(MainLine.COLOUR, float(g[1]) * (0.7 + 0.3 * pulse)))
+		var ring := Color(MainLine.COLOUR, 0.25 + 0.45 * pulse)
+		var r0 := (5.6 + 1.2 * pulse) * pt * k
+		_tri_ring(at, r0, r0 + 1.4 * pt * k, 0.0, TAU, ring)
+	var a := 0.75 if dim else 1.0
+	_tri_star(at, 5.2 * pt * k, Color(MainLine.RIM, a))
+	_tri_star(at, 4.0 * pt * k, Color(MainLine.COLOUR, a))
+
+
+## A questline's start (story_quests.gd) at `at` (k: its size, 1 about 7 pt across): a slow halo
+## in its colour, a dark rim, the colour disc with a white ring and a bold white "!", so it reads
+## apart from the main star (gold, five points) and the street jobs' small icons.
+func story_badge(at: Vector2, k: float, colour: Color) -> void:
+	var c := Access.tint(colour)
+	var pulse := 0.5 + 0.5 * sin(Time.get_ticks_msec() * 0.003)
+	_tri_fan(at, (8.2 + 1.6 * pulse) * pt * k, 0.0, TAU, Color(c, 0.18 + 0.12 * pulse))
+	_tri_fan(at, 6.6 * pt * k, 0.0, TAU, OUTLINE)
+	_tri_fan(at, 5.6 * pt * k, 0.0, TAU, Color(1, 1, 1, 0.97))
+	_tri_fan(at, 4.5 * pt * k, 0.0, TAU, c)
+	var w := 1.5 * pt * k
+	_tri_rect(Rect2(at + Vector2(-w * 0.5, -3.1 * pt * k), Vector2(w, 3.6 * pt * k)), Color.WHITE)
+	_tri_rect(Rect2(at + Vector2(-w * 0.5, 1.4 * pt * k), Vector2(w, w)), Color.WHITE)
 
 
 ## G11: a place's mark at `at` (`half`: about half its width) in `colour`, by shape (MapIcons.POI_*), each
@@ -2285,6 +2324,17 @@ func set_minimap_garage(p: Vector2, colour: Color) -> void:
 func set_minimap_final(p: Vector2, colour: Color) -> void:
 	_mini_final = p
 	_mini_final_colour = colour
+
+
+## The questlines' starts on the minimap and the full map, and quest focus (main.gd, a few
+## times a second; both only when they change).
+func set_story(points: PackedVector2Array, colours: PackedColorArray, focus: bool, names := PackedStringArray()) -> void:
+	_mini_story = points
+	_mini_story_colours = colours
+	_story_names = names
+	quest_focus = focus
+	if full_map != null and full_map.is_open():
+		full_map.set_story(points, colours, focus, names)
 
 
 ## Side-job places on the minimap (map coordinates), drawn as blinking squares.
@@ -2822,6 +2872,7 @@ func open_full_map(car_xz: Vector2, car_yaw: float, found: PackedVector2Array) -
 	full_map.side_spots = _mini_pois
 	full_map.side_colours = _mini_poi_colours
 	full_map.side_shapes = _mini_poi_shapes
+	full_map.set_story(_mini_story, _mini_story_colours, quest_focus, _story_names)
 	full_map.set_main_line(_main_at, main_goal[0], main_goal[1])
 	full_map.open(car_xz, car_yaw)
 
