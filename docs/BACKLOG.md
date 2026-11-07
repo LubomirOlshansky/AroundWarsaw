@@ -131,6 +131,11 @@ Left:
 - PT-25 (suspect): crazy drivers honk but said no line in 5 cut-ins.
 - PT-26, PT-27 (S3): a bubble over the steering hint; the KEBAB label over BRAKE.
 
+## Autopilot findings in the Old Town (2026-11-07; docs/PLAYTEST.md, row P4)
+
+- PT-35 (S3): with Classic controls the KEBAB distance label covers the steering strip's right arrow.
+- PT-36 (suspect): two dead stops with an unstick at the edge of Podwale's bends (-987,-1668; -834,-1507).
+
 ## Road design rollout: every street on the map (F, 2026-11-06; docs/design/road-design-rollout.md)
 
 **Decision (F, 2026-11-07): main as base, small fixes.** F compared the area 3-7 redesigns with main
