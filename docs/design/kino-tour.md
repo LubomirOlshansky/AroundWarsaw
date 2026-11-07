@@ -61,3 +61,10 @@ it gives up by itself after 40 minutes.
 
 The premiere evening as a scene (a queue in berets at Muranów, a short screening cut), a voice for
 Wiktor, a notebook card, the posters' parody titles as text, a lasting evening crowd at Muranów.
+
+## On the quest map
+
+The tour is a questline on the quest map (story_quests.gd, docs/design/quest-map.md): its start is
+the pickup on Plac Zbawiciela in the tour's red, Wiktor greets the player there in person from 14 to
+23 h (`meet` starts the tour; outside the hours he says when to come back), and the questline list
+and his phone call start it too.

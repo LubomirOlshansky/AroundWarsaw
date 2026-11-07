@@ -145,6 +145,21 @@ func busy() -> bool:
 	return state != State.IDLE and state != State.RING
 
 
+## Idle: not ringing, not touring (the questline may start now: story_quests.gd).
+func idle() -> bool:
+	return state == State.IDLE
+
+
+## Met in person on Plac Zbawiciela (the quest map's start, story_quests.gd): the tour starts, and
+## Wiktor gets in as soon as the car stands by him.
+func meet() -> bool:
+	if state != State.IDLE:
+		return false
+	_log("met Wiktor on Plac Zbawiciela")
+	start()
+	return true
+
+
 func has_target() -> bool:
 	return state == State.TO_PICKUP or state == State.LEG
 
