@@ -68,6 +68,7 @@ const Models := preload("res://scripts/models.gd")
 const TimeOfDay := preload("res://scripts/time_of_day.gd")
 const Radio := preload("res://scripts/radio.gd")
 const OpeningAudio := preload("res://scripts/opening_audio.gd")
+const GreetingClips := preload("res://scripts/greeting_clips.gd")
 const Title := preload("res://scripts/title.gd")
 const Wallet := preload("res://scripts/wallet.gd")
 const Dialogue := preload("res://scripts/dialogue.gd")
@@ -133,6 +134,9 @@ const CrashScenes := preload("res://scripts/crash_scenes.gd")
 const Rave := preload("res://scripts/rave.gd")
 ## "Wiślana Szprotka", the boat race down the Vistula (boat_race.gd, F's ask 2026-11-06).
 const BoatRace := preload("res://scripts/boat_race.gd")
+## Wątki (story_quests.gd, F's ask 2026-11-07): the questlines' starts on the map, the friend in
+## person at the start, the beta list; quest focus (the map goes quiet while a quest runs).
+const StoryQuests := preload("res://scripts/story_quests.gd")
 ## Inside the club after the door (club.gd): the cutaway room.
 const Club := preload("res://scripts/club.gd")
 const EvTow := preload("res://scripts/ev_tow.gd")
@@ -526,6 +530,17 @@ var _rave_auto := false
 ## pontoon, straight onto the grid), =auto (that, with the player's boat driven by the rivals'
 ## driver), =0 (none); --boat-log.
 var boat_race: BoatRace
+## The questlines (story_quests.gd); --stories-log prints what they do.
+var stories: StoryQuests
+var stories_log := false
+## --story=ID: that questline starts from the beta list 1.5 s into the drive (its friend phones).
+var story_flag := ""
+## --story-meet: the friend's WCHODZĘ pressed by itself a second after they walk up.
+var story_meet_flag := false
+## --quest-tab=N: the full map's ZADANIA card opens on tab N (0 AUTO, 1 HELI, 2 WĄTKI; shots).
+var quest_tab_flag := -1
+var _story_t := 0.0
+var _story_key := ""
 var boat_flag := ""
 var boat_log := false
 var _boat_mask := Vector2i.ZERO
@@ -1578,6 +1593,7 @@ func _build_world() -> void:
 	_build_rave(data, world)
 	_build_boat_race(world)
 	_build_ev_tow(world)
+	_build_stories(world)
 	_build_storefronts(data, world)
 	_build_packs(data, world)
 	_build_fans(data, world)
@@ -2769,6 +2785,87 @@ func _build_boat_race(world: Node3D) -> void:
 		get_tree().create_timer(1.0).timeout.connect(func() -> void: boat_race.ring())
 
 
+## The questlines (story_quests.gd): each big quest joins with one `stories.add` here. A new quest
+## thread adds its own block (id, names, friend, words, start spot, colour, hours, call / meet /
+## busy / idle); nothing else changes.
+func _build_stories(world: Node3D) -> void:
+	stories = StoryQuests.new()
+	stories.name = "Stories"
+	stories.hud = hud
+	stories.log_on = stories_log
+	stories.auto_yes = story_meet_flag or autopilot
+	stories.vehicle = func() -> Array:
+		if flying:
+			return [heli.global_position, heli.speed() * 3.6, true]
+		return [car.global_position, car.vel.length() * 3.6, false]
+	stories.free_now = _boat_free
+	stories.ground = func(x: float, z: float) -> float: return map.ground_height(x, z)
+	stories.clock = func() -> Array:
+		var c: Dictionary = tod.local_clock()
+		return [float(c["hour"]), int(c["weekday"])]
+	add_child(stories)
+	stories.setup(world)
+	if jobs != null:
+		jobs.others_busy = _quest_running  # one activity at a time: no kebab rings during a questline
+	if boat_race != null:
+		boat_race.walk_up_pill = false  # Szymek walks up instead (the pill was the old walk-up)
+		stories.add({"id": "boat", "pl": BoatRace.NAME, "en": BoatRace.NAME, "who": ["Szymek", "Szymek"],
+				"hello": ["„O, jesteś! Pan Zdzisiek już grzeje Złotą Rybkę, Kamil zakłada kask. Trzy kółka pudła i odpadasz. Płyniemy pod Śląsko-Dąbrowski?”",
+						"\"Oh, you're here! Pan Zdzisiek is warming up the Złota Rybka, Kamil's putting his helmet on. Three missed rings and you're out. Down to Śląsko-Dąbrowski?\""],
+				"closed": ["„Po ciemku nie pływamy, policja wodna nie śpi. Wpadnij za dnia”", "\"No racing in the dark, the river police never sleep. Come by in the daytime\""],
+				"at": BoatRace.CAR_SPOT, "colour": BoatRace.COLOUR, "hours": Vector2(BoatRace.HOURS[0], BoatRace.HOURS[1]),
+				"call": boat_race.ring, "meet": boat_race.meet, "busy": boat_race.busy, "idle": boat_race.idle})
+	if rave != null and not rave.home.is_empty():
+		var h: Vector3 = rave.home["at"]
+		stories.add({"id": "rave", "pl": "Sekretny rave", "en": "Secret rave", "who": ["Ziomek", "Ziomek"],
+				"hello": ["„Siema! Słyszałeś? Lekti robi dziś sekretny rave. Ja wiem, jak tam trafić. Wsiadam?”",
+						"\"Hey! Did you hear? Lekti's throwing a secret rave tonight. I know how to get there. Can I get in?\""],
+				"closed": ["„Rave? Dziś cisza. Lekti gra od czwartku do soboty, wpadnij wieczorem”",
+						"\"A rave? Nothing tonight. Lekti plays Thursday to Saturday, come by in the evening\""],
+				"at": Vector2(h.x, h.z), "colour": Rave.COLOUR, "hours": Rave.TEASE_HOURS, "days": Rave.NIGHT_DAYS,
+				"call": func() -> bool: return rave.ring(), "meet": rave.meet_in_person, "busy": rave.busy, "idle": rave.idle})
+	if story_flag != "":
+		get_tree().create_timer(1.5).timeout.connect(func() -> void: stories.start(story_flag))
+	print("stories: %d questlines (%s)" % [stories.defs.size(), ", ".join(stories.defs.map(func(d: Dictionary) -> String:
+			return "%s %s" % [d["id"], "%.0f,%.0f" % [d["at"].x, d["at"].y] if d["at"] != Vector2.INF else "no start"]))])
+
+
+## Something runs: a race, a job, a ride, a rescue, a questline, a tow (quest focus: the map goes quiet).
+func _quest_running() -> bool:
+	if (rivals != null and rivals.busy()) or (jobs != null and jobs.busy()) or (missions != null and missions.has_target()):
+		return true
+	if (boat_race != null and boat_race.busy()) or (rave != null and rave.busy()) or (ev_tow != null and ev_tow.busy()):
+		return true
+	if stories != null:
+		for d: Dictionary in stories.defs:
+			var b: Callable = d.get("busy", Callable())
+			if b.is_valid() and bool(b.call()):
+				return true
+	return false
+
+
+## A few times a second: quest focus and the starts on the minimap and the full map (sent only when
+## they change).
+func _story_tick() -> void:
+	if stories == null or hud == null:
+		return
+	var focus := _quest_running()
+	stories.focus = focus
+	var m: Array = StoryQuests.marks(stories.defs, focus or flying)
+	var names := PackedStringArray()
+	if not (focus or flying):
+		for d: Dictionary in stories.defs:
+			if d["at"] != Vector2.INF:
+				names.append(Lang.pick(str(d["pl"]), str(d["en"])))
+	var key := "%s %d %s" % [focus, (m[0] as PackedVector2Array).size(), Lang.pick("pl", "en")]
+	if key == _story_key:
+		return
+	_story_key = key
+	hud.set_story(m[0], m[1], focus, names)
+	if stories_log:
+		print("stories: focus %s, %d starts on the map" % ["on" if focus else "off", (m[0] as PackedVector2Array).size()])
+
+
 ## Nothing else on, on the ground (the rave's test, and no rave either).
 func _boat_free() -> bool:
 	if rave != null and rave.busy():
@@ -3554,20 +3651,33 @@ func _on_station_changed(_index: int, info: Dictionary) -> void:
 	hud.set_radio_colour(info.get("colour", Color.WHITE) if not info.is_empty() else Color("#c9c4d8"))
 
 
-## Beta radio (2026-11-02): when the title goes on a first start or a new game, the host says good morning (or evening) to
+## Beta radio (2026-11-02): when the title goes, the host says good morning (or evening) to
 ## Warsaw with the weather and the temperature for the game's hour and month, 4 s after the
-## station's caption.
+## station's caption: as ticker text on a first start or a new game (with the opening line), and
+## on every later launch as her three voice clips plus the same text (greeting_clips.gd).
 func _radio_greeting() -> void:
 	# F (2026-11-02): only on the first start and after a new game (the same launches as the
 	# opening flyover: the first-10 guide is due), never on every launch.
-	if first10 == null or not first10.guide:
-		return
+	# F (2026-11-05): every later launch gets her spoken greeting (greeting_clips.gd) instead; the
+	# first start and a new game keep the opening line only.
+	var later := first10 == null or not first10.guide
 	await get_tree().create_timer(4.0).timeout
 	if not is_inside_tree() or radio == null or dialogue == null:
 		return
 	var st := _egg_state()
 	var day: int = int(st["date"]) % 100 if int(st["date"]) > 0 else int(Time.get_date_dict_from_system()["day"])
-	dialogue.greet(float(st["hour"]), bool(st["rain"]), int(st["month"]), day)
+	if not later:
+		dialogue.greet(float(st["hour"]), bool(st["rain"]), int(st["month"]), day)
+		return
+	# Her voice is KEBAB FM's: another station (or none) stays quiet.
+	if radio.station < 0 or str(radio.stations[radio.station]["id"]) != "nocna_fm":
+		return
+	var clips := GreetingClips.new()
+	add_child(clips)
+	if clips.start(radio, dialogue.greeting_parts(float(st["hour"]), bool(st["rain"]), int(st["month"]), day)):
+		dialogue.greet(float(st["hour"]), bool(st["rain"]), int(st["month"]), day)
+	else:
+		clips.queue_free()
 
 
 ## The eggs' probe (egg_book.gd `tick`, tape.gd's E36/E37): the vehicle and the game clock.
@@ -4404,6 +4514,14 @@ func _parse_args() -> void:
 			rave_flag = arg.trim_prefix("--rave=")
 		elif arg == "--rave-log":
 			rave_log = true
+		elif arg == "--stories-log":
+			stories_log = true
+		elif arg == "--story-meet":
+			story_meet_flag = true
+		elif arg.begins_with("--story="):
+			story_flag = arg.trim_prefix("--story=")
+		elif arg.begins_with("--quest-tab="):
+			quest_tab_flag = int(arg.trim_prefix("--quest-tab="))
 		elif arg.begins_with("--boat-race"):
 			boat_flag = arg.trim_prefix("--boat-race=") if arg.contains("=") else "call"
 		elif arg == "--boat-log":
@@ -4824,10 +4942,15 @@ func _open_full_map() -> void:
 	hud.set_night(tod.lights_on)  # its palette (the minimap's), even before the first frame
 	_main_t = 0.0
 	_main_line_tick(0.0)  # the main line's step as it is now (the map can open before the first look)
+	_story_key = ""
+	_story_tick()  # the questlines' starts and quest focus as they are now (the same)
 	print("full map: open (paused), %d places found on it" % found.size())
 	_blip_sound()
 	get_tree().paused = true
+	if hud.full_map != null:
+		hud.full_map.hospitals = missions != null and missions.has_target()  # only a rescue needs them
 	hud.open_full_map(Vector2(pos.x, pos.z), yaw, found)
+	hud.full_map.hospitals = missions != null and missions.has_target()
 	if fullmap_span > 0.0:
 		hud.full_map.show_span(fullmap_span)
 		fullmap_span = 0.0
@@ -4838,6 +4961,9 @@ func _open_full_map() -> void:
 		hud.full_map.set_ladder(rivals.ladder_rows())  # loop 3h slice 3: the DRABINKA card
 	hud.full_map.set_quests(_quest_entries(), Lines.Line.HELI if flying else Lines.Line.CAR,
 			str(quest_pin.get("id", "")))  # G12 part 2: the ZADANIA card
+	if quest_tab_flag >= 0:
+		hud.full_map.show_line(quest_tab_flag)
+		quest_tab_flag = -1
 	if not hud.full_map.closed.is_connected(_close_full_map):
 		hud.full_map.closed.connect(_close_full_map)
 		hud.full_map.teleport.connect(_teleport_from_map)
@@ -4903,6 +5029,9 @@ func _quest_entries() -> Array:
 		if missions.peacock_open():
 			out.append(Lines.entry("peacock", "peacock", Lines.Line.HELI, "Pan Paw · utknął na dachu",
 					"Mr Peacock · stuck on a roof", Vector2.INF, Lines.HELI_COLOUR, "peacock"))
+	if stories != null:
+		var c: Array = stories.clock.call()
+		out.append_array(StoryQuests.entries(stories.defs, float(c[0]), int(c[1])))  # the WĄTKI tab
 	if cassettes != null and cassettes.ready_ok:
 		for c: Dictionary in cassettes.entries:
 			var at: Vector3 = c.get("pos", Vector3.INF)
@@ -4960,6 +5089,11 @@ func _on_quest_picked(e: Dictionary) -> void:
 		"peacock":
 			missions.request_peacock()
 			quest_pin = {}
+		"story":
+			# The beta list: the questline's friend phones now, any hour (story_quests.gd `start`).
+			quest_pin = {}
+			if not stories.start(str(e.get("story", ""))):
+				hud.toast("Nie teraz: najpierw skończ to, co trwa", "Not now: finish what's on first")
 		Lines.NOW:
 			return  # G12c: the quest under way keeps its own arrow
 		_:
@@ -5964,6 +6098,10 @@ func _process(dt: float) -> void:
 	_show_target()
 	_stop_assist()
 	_main_line_tick(dt)
+	_story_t -= dt
+	if _story_t <= 0.0:
+		_story_t = StoryQuests.TICK
+		_story_tick()
 	var heading: float = heli.rotation.y if flying else car.rotation.y
 	hud.update_minimap(Vector2(pos.x, pos.z), heading, deg_to_rad(cam_yaw))
 	# The see-through hole: aimed at the cabin and smaller for the helicopter, which is
@@ -6573,13 +6711,13 @@ func _show_target() -> void:
 		var on_m := cam.unproject_position(Vector3(ma.x, map.ground_height(ma.x, ma.y) + 3.5, ma.y)) * float(view.stretch_shrink)
 		hud.set_target(on_m, "★ %d m" % mm, MainLine.COLOUR, mm > 12)
 		_put_target(Vector2.INF, Color.WHITE, false)
-		_free_now = true
+		_free_now = not _quest_running()
 		return
 	if not missions.has_target():
 		hud.set_target(Vector2.ZERO, "", Color.WHITE, false)
 		_put_target(Vector2.INF, Color.WHITE, false)
 		_last_target_source = ""
-		_free_now = true
+		_free_now = not _quest_running()  # quest focus: no main-line toast over a countdown or a door
 		return
 	var t: Vector3 = missions.target_position()
 	var colour: Color = missions.target_colour()

@@ -11,10 +11,12 @@ someone writes its lines.
 
 ## 2026-11-07
 - The + button zooms one step closer than before, and Settings → Picture has a new camera angle choice: 30°, 40° or 50° from above.
+- Hala Mirowska has its glazed gallery along the market front, and the Metropolitan's top floor is silver metal, both from real photos.
 - The Novotel by Rondo Dmowskiego looks like itself: a white tower with rows of small paired windows, its name in blue neon down both narrow ends and in light boxes on the roof, a glazed podium with a lit edge, and a curved cream entrance canopy under a blue sign.
 - Miodowa's palaces look like themselves: cream and pink plaster under tile-red roofs (Paca's are green copper), and Pałac Branickich's long front has pink pilaster strips, a cornice, an attic crowded with statues, three scrolled dormers and its balconied gate.
 
 
+- The map shows what matters: the main story's star glows gold, the big quests (the boat race, the secret rave) have their own "!" badges at their start spots, and while you're on a quest everything else hides. Drive up to a start and your friend comes out to talk in person, and a new STORIES tab on the map starts any big quest right away. Landmarks on the map are now quiet little drawings instead of big pins.
 - Podwózka taxi rides now come with stories: 18 passengers, from a Mordor office worker heading for Warsaw Spire to a film star off to the Palace of Culture, a saxophonist late for jazz under the Powiśle UFO and a beekeeper invited to the Presidential Palace, chat on the way to real places and ask you a question; your answer changes the tip and a good talk earns half a star.
 - Marszałkowska: 16 more houses got street fronts from real photos, from Hotel Saski to the long block at number 140.
 - Aleje Jerozolimskie: 21 more houses along the avenue got street fronts from real photos.
@@ -51,6 +53,9 @@ someone writes its lines.
 
 ## 2026-11-05
 
+- On every launch after the first, the KEBAB FM host now says hello, the weather and goodbye out loud.
+- Both radio stations now have their own jingles between songs: KEBAB FM in a warm woman's voice, MORDOR FM in a dry man's.
+- KEBAB FM and MORDOR FM now play real music: six vaporwave tracks and six minimal-techno tracks replace the first test loops.
 - On phones the roadworks at the map's edges were invisible walls; now you can see the barriers, signs and diggers that stop you.
 - Roads no longer jump sideways where they change width: the asphalt now narrows or widens smoothly over 20-30 m, the dark blobs at the kerb are gone, and lane lines curve across instead of breaking off; the widening asphalt follows the kerb instead of poking into the tram tracks or a driveway; streets now run straight up to the tram tracks, and driveways no longer show through the street as pale flags.
 - Crossings over the big streets look finished: zebras sit right beside the red cycle crossing and reach the far kerb, a paved walk joins them across the tram tracks, and drivers get a stop line, solid lane lines and traffic lights before them; stray wedges of pavement between driveways and streets are now asphalt or painted islands, and street lamps no longer stand in the widened road.
