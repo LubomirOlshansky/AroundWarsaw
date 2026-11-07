@@ -16,6 +16,12 @@ verify step `coffee` (`--trend-job=8 --autopilot`).
 1. **The call.** 8:00-19:00, after 7 minutes of play and then every 25 minutes, within 1.8 km of
    the dock, when nothing else is on: "📞 ZUZIA DZWONI", Zuzia being your psiapsi. JADĘ / NIE TERAZ.
    Test flag `--trend-job=8` puts the car by the dock and rings at once.
+   **On the quest map** (story_quests.gd, 2026-11-07): Zuzia also waits at the dock as a questline
+   start (latte-brown beacon, 8:00-19:00, every day). Stop there and she walks up: WCHODZĘ starts
+   the run in person, no call (the car is already at the dock, so the bike comes next); out of
+   hours she says to come back from eight. The WĄTKI list's start makes her phone. After a run she
+   rests 5 minutes (`REST`) before walking up again. Hooks: trend_job.gd `kawa_ring`, `kawa_meet`,
+   `kawa_busy`, `kawa_idle`; lines `HELLO`, `CLOSED` in coffee_run.gd.
 2. **The ROWERILO dock** by Elektrownia Powiśle (a real `bicycle_rental` point; ROWERILO is the
    game's Veturilo parody, city_life.gd). Drive there and stop: the car stays parked at the dock
    (a still copy) and you ride a cream ROWERILO bike with a paper cup in the basket (car.gd model

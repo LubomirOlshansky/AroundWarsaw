@@ -3,7 +3,7 @@ extends SceneTree
 ## kind "kawa", car.gd model "bike"), headless, from the committed map data (map/centrum.json):
 ##   1. the words: no real brand (data/brand_denylist.json, whole words, lower case) anywhere in
 ##      coffee_run.gd or trend_job.gd's coffee-run section; every ride and stamp line PL + EN, the
-##      Polish ≤ 70 characters;
+##      Polish ≤ 70 characters; the quest map's in-person lines (HELLO, CLOSED) PL + EN;
 ##   2. the places: the dock is a real ROWERILO dock (pois `bicycle_rental`, within 1 m), each café
 ##      door a real address door (pois `address`, within 2 m) or its notebook place, each within
 ##      30 m of a road or a path, every leg ≤ 600 m and the loop ≤ 2.2 km (the stops close
@@ -67,6 +67,9 @@ func _words() -> void:
 			problems.append("a line without PL + EN: %s" % [l])
 		elif str(l[0]).length() > 70:
 			problems.append("Polish line over 70 characters: %s" % l[0])
+	for l: Array in [CoffeeRun.HELLO, CoffeeRun.CLOSED]:
+		if l.size() != 2 or str(l[0]).is_empty() or str(l[1]).is_empty():
+			problems.append("Zuzia's in-person line without PL + EN: %s" % [l])
 	if CoffeeRun.call_text().size() != 3:
 		problems.append("the call card needs a title and both bodies")
 

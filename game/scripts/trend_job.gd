@@ -170,6 +170,9 @@ var _deski_at := DESKI_FIRST
 ## The coffee run (coffee_run.gd, order kind "kawa"): when Zuzia calls next (s of play), the car
 ## left at the ROWERILO dock while the player rides, the world it stands in, the joke's clock.
 var _kawa_at := CoffeeRun.FIRST
+## Session time before which Zuzia doesn't walk up again (set when a run ends: no fresh offer the
+## moment you hand the bike back at the dock).
+var _kawa_rest := 0.0
 var _parked: Node3D
 var _world: Node3D
 var _line_t := 0.0
@@ -1121,6 +1124,31 @@ func offer_kawa_call(force := false) -> bool:
 	return true
 
 
+## The quest map's hooks (main.gd `_build_stories`, story_quests.gd). Zuzia phones from the list:
+## never over another job.
+func kawa_ring() -> bool:
+	return state == State.IDLE and offer_kawa_call(true)
+
+
+## Zuzia met in person at the ROWERILO dock (she walks up, the player said WCHODZĘ): no call card,
+## straight to the run (the car is already at the dock, so the bike comes next). False unless idle.
+func kawa_meet() -> bool:
+	if state != State.IDLE or not offer_kawa_call(true):
+		return false
+	_accept_kawa()
+	return true
+
+
+## True while the coffee run runs (quest focus).
+func kawa_busy() -> bool:
+	return _is_kawa() and busy()
+
+
+## Idle: no job, no call, and not just after a run (the coffee run may start now).
+func kawa_idle() -> bool:
+	return state == State.IDLE and _session >= _kawa_rest
+
+
 func _ring_at(at: Vector2) -> Vector3:
 	return Vector3(at.x, map.terrain_height(at.x, at.y), at.y)
 
@@ -1277,6 +1305,8 @@ func _kawa_finish() -> void:
 
 ## Off the bike and into the car (the run ended, failed or was cancelled); the still copy goes.
 func _kawa_car_back() -> void:
+	if _is_kawa():
+		_kawa_rest = _session + CoffeeRun.REST
 	if car != null and car.model == "bike":
 		car.set_model(str(order.get("prev", "hatch")))
 	if _parked != null:

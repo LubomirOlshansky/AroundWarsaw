@@ -30,6 +30,8 @@ const STAMP_HOLD := 1.5
 const HOURS := [8.0, 19.0]
 const FIRST := 420.0
 const COOL := 1500.0
+## After a run Zuzia rests this long before she walks up at the dock again (the quest map).
+const REST := 300.0
 ## Pay: Zuzia returns what you paid (on time) plus THANKS zł and RESPECT; late, half back, nothing
 ## more. A stamp the wallet can't afford is "na koszt Zuzi" (she BLIKs it there and then).
 const THANKS := 40
@@ -65,6 +67,12 @@ const RIDE_LINES := [
 	["Kubek z przegródką na ego. Gratis.", "A cup with a sleeve for your ego. Free."],
 	["Filtrowana, bo espresso jest dla boomerów.", "Filter, because espresso is for boomers."],
 ]
+
+## The quest map (story_quests.gd): Zuzia waits at the dock and walks up, in person [pl, en].
+const HELLO := ["„Psiapsi, jesteś! Rowery stoją, paszport kawowy mam. Cztery kawiarnie, pięć minut. Jedziemy?”",
+		"\"Bestie, you made it! The bikes are here, I've got the coffee passport. Four cafés, five minutes. Shall we?\""]
+const CLOSED := ["„Kawiarnie już zamknięte, trzecia fala śpi. Wpadnij rano, od ósmej”",
+		"\"The cafés are shut, the third wave's asleep. Come by in the morning, from eight\""]
 
 ## The call card's text [title, body pl, body en].
 static func call_text() -> Array:
