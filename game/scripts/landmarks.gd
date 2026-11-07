@@ -4202,6 +4202,11 @@ const SKINS := [
 	# crescent's green-teal curtain wall (M_GLASS) and Senator's pale cladding with punched windows.
 	{"key": "saski", "osm": "Saski Crescent", "hull": true, "mode": M_GLASS, "wall": "#5f948f", "roof": "#7d8589"},
 	{"key": "senator", "osm": "Senator", "mode": M_SKIN + float(S_PUNCHED) / 16.0, "wall": "#dbd0bc", "roof": "#a3a7a8"},
+	# The office pass from F's photos (2026-11-07, docs/landmarks/specs/offices.md): Brama Zachodnia's apricot
+	# cladding, Proximo I's glass with ochre mullions, Proximo II's dark glass.
+	{"key": "brama_zach", "osm": "Brama Zachodnia", "hull": true, "mode": M_SKIN + float(S_PUNCHED) / 16.0, "wall": "#d9a27c", "roof": "#878d8f"},
+	{"key": "proximo1", "osm": "Proximo I", "hull": true, "mode": M_GLASS, "wall": "#667f93", "roof": "#6d7377"},
+	{"key": "proximo2", "osm": "Proximo II", "hull": true, "mode": M_SKIN + float(S_DARK) / 16.0, "wall": "#35495b", "roof": "#596168"},
 ]
 
 

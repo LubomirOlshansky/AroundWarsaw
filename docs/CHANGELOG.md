@@ -23,6 +23,7 @@ someone writes its lines.
 - 46 named buildings across the centre got street fronts from real photos.
 
 - Saski Crescent is green-teal glass now and Senator pale cladding, as in the photos.
+- Brama Zachodnia, Proximo I and Proximo II on Aleje Jerozolimskie wear their photo colours: ochre punched cladding, light blue glass, dark navy glass.
 
 ## 2026-11-06
 - The project's licence is now source-available for non-commercial use; the website says so.

@@ -220,6 +220,8 @@ then the Launch gate.
   - [ ] Miodowa's palaces, the rest: Młodziejowskiego's pediment block and fence, Paca's gate court, Collegium Nobilium's tower block, Pałac Prymasowski and Pałac Blanka
 
   - [x] Saski Crescent and Senator in photo-read skins (2026-11-07, spec `saski.md`)
+  - [x] Brama Zachodnia, Proximo I and II in photo-read skins (2026-11-07, spec `offices.md`)
+  - [ ] Offices: stepped crowns, name strips, ochre mullions, parody signs; Equator and Crown Square need photos
   - [ ] Saski Crescent's stone wing, dark crown and SASKI ROGAL sign; Senator's glass light well
 - [ ] **Warsaw modernism and brutalism, high priority** (F, 2026-11-03; docs/design/modernism-collection.md,
       CITY_INVENTORY 147-153, BACKLOG "Warsaw modernism and brutalism"): photo builds from the Mac's `refs/<slug>/`
