@@ -111,6 +111,8 @@ var start_heat := 1.0
 var start_broken := 0
 ## Loop 2d-1: the Podwózka job (rides.gd), so the two never run at once.
 var rides: Node
+## () -> bool: something else runs (main.gd `_quest_running`: a questline, a tow): no stands' rings.
+var others_busy: Callable
 ## Loop MW-4: the "Na czasie" job (trend_job.gd), likewise.
 var trend: Node
 ## Loop 3g-2 (police.md 8.3): the kebab's heat stands still while a pull-over's card is open
@@ -584,6 +586,8 @@ func target_colour() -> Color:
 func _free() -> bool:
 	if flying or missions.has_target():
 		return false
+	if others_busy.is_valid() and state == State.IDLE and bool(others_busy.call()):
+		return false  # story_quests.gd: a questline (boat race, rave...) is on
 	if rides != null and rides.busy():
 		return false  # loop 2d-1: one activity at a time
 	if trend != null and trend.busy():
