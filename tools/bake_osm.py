@@ -479,6 +479,10 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
     # the lane lines stitched across them, small line kinks rounded (tools/road_smooth.py).
     import road_smooth
     print("road_smooth: " + road_smooth.apply(out))
+    # The buses thread (2026-11-07): the stops' white zigzag (P-17) and yellow kerb line, on the
+    # smoothed lanes (tools/bus_stops.py; the same code runs on a baked map).
+    import bus_stops
+    bus_stops.apply(out)
     # Loop "content POIs" (2026-10-31): the corner shops, metro entrances, city bike docks, the
     # places' missing addresses and the Leżaks with their zones, appended after every older poi
     # on the finished data (they keep clear of its solids; tools/bake_street_pois.py).

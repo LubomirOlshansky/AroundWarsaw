@@ -182,7 +182,8 @@
 # the map: stale file, blocked spots, plaques on walls, hand-built monuments left alone); `monumentmesh` runs
 # game/tools/check_monuments.gd (every kind builds as one surface, a cell's triangle budget with the park pieces); CI too.
 # Bus stops (G8/G9, 2026-11-01): `stops` runs tools/check_stops.py (every bus-road shelter on the kerb and
-# turned to the road, benches facing the walk, none in a building or the water, cafe sets on a shopfront).
+# turned to the road, benches facing the walk, none in a building or the water, cafe sets on a shopfront;
+# the stops' zigzags and yellow kerb lines from tools/bus_stops.py current and in place, 2026-11-07).
 # The main line (2026-10-31): `mainline` runs game/tools/check_main_line.gd: main_line.gd's step from
 # the facts in each chapter (the guide, the ladder, the final, the jobs to the end card), its words
 # and the ladder's pacing (the side quests' respect to the final); no map (CI too).

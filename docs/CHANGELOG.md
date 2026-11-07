@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-07
+- Bus stops look like Warsaw's: the white zigzag on the road where the bus pulls in, the yellow line along the kerb, red-framed glass shelters with a lit poster and the red stop pole with its timetable, and shorter 12 m buses now run beside the long bendy ones.
 - Miodowa's palaces look like themselves: cream and pink plaster under tile-red roofs (Paca's are green copper), and Pałac Branickich's long front has pink pilaster strips, a cornice, an attic crowded with statues, three scrolled dormers and its balconied gate.
 
 
