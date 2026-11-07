@@ -781,6 +781,13 @@ vec3 landmark(int mode, float param, vec3 col, vec2 uv, float top, bool wall, ve
 		}
 		return col * (wall && uv.y > top - 0.2 ? 1.12 : 1.0);
 	} else if (mode == M_GOLD) {
+		if (param > 0.25) {
+			// Polished steel (M_GOLD + 0.5: the Warsaw Spire's columns and mirrored canopy): streaks
+			// of sky and ground slide over it, no warm glow at night.
+			float streak = value_noise(vec2(wp.y * 0.9 + (wp.x + wp.z) * 0.35, (wp.x - wp.z) * 0.15));
+			vec3 mirror = mix(col, srgb_to_linear(sky_colour) * 1.15, 0.4 * smoothstep(0.3, 0.9, streak));
+			return mirror * (0.8 + 0.45 * streak) * mix(0.35, 1.0, daylight);
+		}
 		float sheen = 0.75 + 0.5 * smoothstep(0.2, 1.0, value_noise(vec2(wp.y * 0.6, wp.x + wp.z)));
 		if (lights_on > 0.001) {
 			glow = col * vec3(1.0, 0.8, 0.45) * 1.25;

@@ -95,6 +95,8 @@ const FirstScene := preload("res://scripts/first_scene.gd")
 const SkwerZlota := preload("res://scripts/skwer_zlota.gd")
 ## The 3D corner screen on Skylight at Złote Tarasy (2026-11-05, tarasy_screen.gd).
 const TarasyScreen := preload("res://scripts/tarasy_screen.gd")
+## The Warsaw Spire's LED ticker and plaza jets (2026-11-06, spire_motion.gd).
+const SpireMotion := preload("res://scripts/spire_motion.gd")
 ## Street details along the main line (street_details.gd, tools/bake_street_details.py).
 const StreetDetails := preload("res://scripts/street_details.gd")
 ## Park details: statues, a carousel, ducks, people on the benches (park_details.gd, tools/bake_park_details.py).
@@ -1527,6 +1529,7 @@ func _build_world() -> void:
 	_build_first_scene(world)
 	_build_skwer_zlota(world)
 	_build_tarasy_screen(world)
+	_build_spire_motion(world)
 	_build_street_details(world)
 	_build_park_details(world)
 	_build_garage(world)
@@ -1772,6 +1775,18 @@ func _build_tarasy_screen(world: Node3D) -> void:
 	ts.map = map
 	world.add_child(ts)
 	ts.build()
+
+
+## The Warsaw Spire's moving parts (spire_motion.gd): the crown's LED ticker and the plaza's jets,
+## on both city paths.
+func _build_spire_motion(world: Node3D) -> void:
+	if solo_site != "" and solo_site != "spire":
+		return
+	var sm := SpireMotion.new()
+	sm.name = "SpireMotion"
+	sm.map = map
+	world.add_child(sm)
+	sm.build()
 
 
 ## Street details along the main line (street_details.gd): kiosks, stalls, cafés, planters and

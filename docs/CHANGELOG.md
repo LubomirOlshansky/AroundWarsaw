@@ -28,6 +28,7 @@ someone writes its lines.
 - 46 named buildings across the centre got street fronts from real photos.
 
 ## 2026-11-06
+- The Warsaw Spire is rebuilt from photos: the tower now flares out from a slim foot with inward-curving sides to a pointed glass crown, polished steel columns stand round its lobby under a mirrored canopy, an LED sign runs SAMSONG adverts round the top, and Spire B and C have their pale top storeys; the plaza between them has fountains, a pebble water channel, planted islands and trees.
 - Three towers on Prosta are built from F's photos: Prosta 32 in its white lace of concrete diamonds over blue glass, the new green Prosta 28 on steel X braces with trees on its stepped top, and the white Łucka City behind them with its dark top and a blue roof board.
 - A new mission: Mrożulo phones and asks for a kebab from DŻEMINI KEBAB, the new place on Świętokrzyska where an AI agent carves the meat. Bring it to his van while it's warm, he says "Wjeżdżam w to", sends you a TYGRAM message, and from then on the shop wears his MLASK sticker and has the longest queue in town, full of jokes about the agent.
 - Every open-air railway station now has shelters, benches, bins, lamps and blue name boards on its platforms, and people stand waiting and get on the next train.

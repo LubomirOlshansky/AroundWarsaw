@@ -64,7 +64,7 @@ often, known to every visitor; **B** characteristic, known to locals, gives a st
 | 3 | Domy Towarowe Centrum: Junior, Sawa, Wars | Marszałkowska | department stores | ★ | Pasaż Wiecha and its pavilions behind them built 2026-11-02 (site `wiecha`); phone look; F's look-check answers applied 2026-11-03 (BACKLOG "Landmark look-check fixes"). |
 | 4 | Muzeum Sztuki Nowoczesnej | Marszałkowska (Plac Defilad) | museum | ★ | R8: the ribbon and the roofline |
 | 5 | Złota 44 | Złota | upscale flats, skyscraper | ★ | Mac look check |
-| 6 | Warsaw Spire | Plac Europejski | office skyscraper | ★ | Mac look check |
+| 6 | Warsaw Spire (with Spire B, Spire C and the fountain plaza) | Plac Europejski | office skyscraper | ★ | rebuilt from F's ten photos 2026-11-06 (LED ticker, plaza water); phone look |
 | 7 | Varso Tower (with Varso I, Varso II) | Chmielna | office skyscraper | ◐ | photo re-pass of the crown, the spire and the two low towers |
 | 8 | Złote Tarasy (with Lumen, Skylight) | Złota / Aleja Jana Pawła II | shopping centre, offices | ◐ | photo re-pass: the wave, Lumen's ribbons, Skylight's crown |
 | 9 | Warszawa Centralna | Aleje Jerozolimskie | station | ★ | the wings' walls (QUESTIONS) |
