@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-07
 - Street objects tidied across the city: no more lamps, bins or traffic lights standing in the road, inside walls, in the river or under bridges; underpass stairs have open railings instead of tall grey walls; park paths go through gates in the fences; picnic shelters in parks and car parks are no longer bus stops.
+- The Novotel by Rondo Dmowskiego looks like itself: a white tower with rows of small paired windows, its name in blue neon down both narrow ends and in light boxes on the roof, a glazed podium with a lit edge, and a curved cream entrance canopy under a blue sign.
 - Miodowa's palaces look like themselves: cream and pink plaster under tile-red roofs (Paca's are green copper), and Pałac Branickich's long front has pink pilaster strips, a cornice, an attic crowded with statues, three scrolled dormers and its balconied gate.
 
 

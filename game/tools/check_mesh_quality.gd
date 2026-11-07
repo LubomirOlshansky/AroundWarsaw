@@ -124,7 +124,7 @@ const BUDGET := {
 	"lim": 300,
 	"loretka": 1120,
 	"lucka": 470,
-	"marszalkowska94": 490,
+	"marszalkowska94": 590,  # rebuilt from F's photos (2026-11-07): 402 -> 490 tris
 	"mariensztat": 660,
 	"mennica": 650,
 	"mirowska": 2050,
