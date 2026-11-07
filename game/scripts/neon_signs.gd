@@ -14,7 +14,7 @@ const PixelFont := preload("res://scripts/pixel_font.gd")
 const WORDS := ["KEBAB 24H", "BAR MLECZNY", "APTEKA", "KWIATY", "HOTEL", "KANTOR", "PIZZA", "KLUB", "NOCNY"]
 ## The landmarks loop: words only the landmarks wear (never a shop's), after WORDS in the atlas:
 ## the parody of the brand on Warsaw Spire's crown, the mall by Rondo Radosława's.
-const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA", "CHILTON", "INTERKONTI", "N", "O", "W", "T", "E", "L", "BANK POLSKA", "PEPEO ŻUBR",
+const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA", "CHILTON", "INTERKONTI", "N", "O", "W", "T", "E", "L", "BANK POLSKA", "PEPEO ŻUBR", "ERZATZ",
 		"METROPOLKA", "ENELMEDIK", "ACORN", "HOTELS", "--",
 		# First scene item 3: the Eastern Wall's stores (parodies of their roof names).
 		"JUNIOREK", "SAWKA", "WARSIK",
@@ -48,6 +48,9 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		"ZACHODNIE", "POLE", "KARFUREK", "MERLINEK", "KINO SITKO",
 		# The railway (docs/design/railway.md, S2): the round pavilion's letters at Powiśle.
 		"WARSZAWA", "POWIŚLE",
+		# F's photos (2026-11-06): the round pavilion's letters one box each (the ones N, O, W, T, E, L
+		# don't give), and the jazz stage's valance.
+		"A", "R", "S", "Z", "P", "I", "Ś", "JAZZ",
 		# S3a: Warszawa Stadion's roof letters.
 		"STADION",
 		# S3e: Warszawa Wschodnia's fascia letters (with WARSZAWA above).
