@@ -6554,6 +6554,9 @@ func _build_crossings(st) -> void:
 			continue
 		_dk = int(p.get("dk", -1))
 		var poly := _pts(p["p"])
+		# Road design (tools/road_design.py): a zebra may say how wide it is (`w`, 4-10 m in the
+		# centre); the bars run 0.2 m short of each edge. Without it the old 3.6 m.
+		var bar := _zebra_bar(p)
 		for i in poly.size() - 1:
 			var a := poly[i]
 			var seg := poly[i + 1] - a
@@ -6564,9 +6567,14 @@ func _build_crossings(st) -> void:
 			var t := 0.6
 			while t < length - 0.4:
 				var c := a + dir * t
-				_strip(st, PackedVector2Array([c - dir * 0.25, c + dir * 0.25]), 3.6, Y_MARK, COL["mark"], false)
+				_strip(st, PackedVector2Array([c - dir * 0.25, c + dir * 0.25]), bar, Y_MARK, COL["mark"], false)
 				t += 1.0
 	_dk = -1
+
+
+## A zebra's bar length across the crossing: its `w` less 0.4 m, else 3.6 m (TACTILE_WIDE).
+static func _zebra_bar(p: Dictionary) -> float:
+	return maxf(2.0, float(p["w"]) - 0.4) if p.has("w") else TACTILE_WIDE
 
 
 ## First-scene item 5 (2026-11-02): Warsaw's crossings end in a strip of yellow tactile paving
@@ -6592,14 +6600,15 @@ func _build_tactile(st) -> void:
 		var n := poly.size()
 		if n < 2 or poly[0].distance_to(poly[n - 1]) < 1.0:
 			continue
-		_tactile_pad(st, poly[0], (poly[0] - poly[1]).normalized())
-		_tactile_pad(st, poly[n - 1], (poly[n - 1] - poly[n - 2]).normalized())
+		var wide := _zebra_bar(p)
+		_tactile_pad(st, poly[0], (poly[0] - poly[1]).normalized(), wide)
+		_tactile_pad(st, poly[n - 1], (poly[n - 1] - poly[n - 2]).normalized(), wide)
 	_layer = L_GROUND
 
 
 ## The pad at a zebra's end `end`, `out` pointing off the carriageway: on the kerb line nearest
 ## the end along the zebra's line (from 1.5 m back inside to TACTILE_REACH beyond).
-func _tactile_pad(st, end: Vector2, out: Vector2) -> void:
+func _tactile_pad(st, end: Vector2, out: Vector2, wide: float = TACTILE_WIDE) -> void:
 	var from := end - out * 1.5
 	var to := end + out * TACTILE_REACH
 	var best := INF
@@ -6618,8 +6627,8 @@ func _tactile_pad(st, end: Vector2, out: Vector2) -> void:
 	var a := hit + out * KERB_W
 	var b := a + out * TACTILE_DEEP
 	var mid := (a + b) * 0.5
-	_strip(st, PackedVector2Array([a, b]), TACTILE_WIDE, Y_MARK + raise_at(mid.x, mid.y), TACTILE_COL, false)
-	_lowered_kerb(st, hit, out)
+	_strip(st, PackedVector2Array([a, b]), wide, Y_MARK + raise_at(mid.x, mid.y), TACTILE_COL, false)
+	_lowered_kerb(st, hit, out, wide)
 
 
 ## First-scene item 5, lowered kerbs (2026-11-02): a crossing's kerb is dropped. A concrete wedge
@@ -6631,8 +6640,8 @@ const RAMP_RUN := 0.55
 const RAMP_COL := Color("#aeaca5")
 
 
-func _lowered_kerb(st, hit: Vector2, out: Vector2) -> void:
-	var side := Vector2(-out.y, out.x) * (TACTILE_WIDE * 0.5)
+func _lowered_kerb(st, hit: Vector2, out: Vector2, wide: float = TACTILE_WIDE) -> void:
+	var side := Vector2(-out.y, out.x) * (wide * 0.5)
 	var foot := hit - out * RAMP_RUN
 	var top := hit + out * KERB_W
 	var keep := _layer
