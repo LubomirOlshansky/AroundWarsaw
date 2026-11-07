@@ -216,6 +216,21 @@ func _check_trends() -> void:
 	var cl := TrendJob.cz_pay(1500.0, false)
 	_expect(int(cp["base"]) == 69 and int(cp["zl"]) == 84 and int(cp["respect"]) == TrendJob.CZ_RESPECT, "czwarty pay on time: %s" % [cp])
 	_expect(int(cl["zl"]) == 35 and int(cl["respect"]) == 0, "czwarty pay late: %s" % [cl])
+	# The DESKA call: a bio for every caller, three distinct rallies, each with a shot to win it;
+	# 6 zł and 2 respect a point won, 5 more respect for landing by helicopter.
+	for who: String in TrendJob.DESKI_CALLERS:
+		_expect(TrendJob.DESKI_BIOS.has(who), "deski call: no bio for %s" % who)
+	for seed_n in 12:
+		var rl: Array = TrendJob.match_rallies(seed_n)
+		var seen := {}
+		for k: int in rl:
+			seen[k] = true
+		_expect(rl.size() == TrendJob.DESKI_POINTS and seen.size() == rl.size(), "deski match rallies %d: %s" % [seed_n, rl])
+	for rally: Array in TrendJob.RALLIES:
+		_expect(int(rally[1]) >= 0 and int(rally[1]) < TrendJob.SHOTS.size(), "deski rally best shot: %s" % [rally[0][1]])
+	_expect(TrendJob.MATCH_SCORES.size() == TrendJob.DESKI_POINTS + 1, "deski match scores: one per result")
+	var dm := TrendJob.match_pay(3, true)
+	_expect(int(dm["zl"]) == 18 and int(dm["respect"]) == 11 and int(TrendJob.match_pay(0, false)["zl"]) == 0, "deski match pay: %s" % [dm])
 	# "Mlask" (docs/design/gaulle-and-food-hype.md G5): 40 zł + 10 zł a km both ways, tip 15 when
 	# warm and on time, half otherwise; his grade's Polish forms; the van's spots and hours, its mesh.
 	var mp := TrendJob.ml_pay(1500.0, true, true)

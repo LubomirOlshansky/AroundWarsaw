@@ -32,6 +32,7 @@ const Missions := preload("res://scripts/missions.gd")
 const CityLife := preload("res://scripts/city_life.gd")
 const Crowds := preload("res://scripts/crowds.gd")
 const LaneGraph := preload("res://scripts/lane_graph.gd")
+const Access := preload("res://scripts/access.gd")
 
 ## Wiralek's pink (not the kebab's orange, not the passengers' teal).
 const COLOUR := Color("#ff7ac8")
@@ -82,8 +83,51 @@ const DESKI_FIRST := 150.0
 const DESKI_COOL := 1200.0
 const DESKI_LIMIT := 480.0
 const DESKI_FLY_R := 28.0
+## No call within this many metres of the gate.
+const DESKI_NEAR := 250.0
 const DESKI_CALLERS := ["Kuba", "Zuzia", "Bartek", "Iga", "Olek", "Magda"]
 const DESKI_INJURED := ["Marta", "Ola", "Michał od Excela", "Prezes z Mokotowa"]
+## The DESKA call's opening (as Szymek's boat race and Ziomek's rave): the phone rings first, with
+## who it is, ODBIERZ / ODRZUĆ, and only an answered call says what it wants. A short bio per caller.
+const DESKI_BIOS := {
+	"Kuba": ["Kumpel z liceum. Od marca „zaczyna padla od poniedziałku”. Ma już trzy rakiety.", "Your mate from school. Since March he has been \"starting padel on Monday\". He has three rackets already."],
+	"Zuzia": ["Koleżanka z pracy. Bluzę klubową kupiła, zanim zagrała pierwszy mecz.", "A friend from work. She bought the club hoodie before her first game."],
+	"Bartek": ["Kumpel z osiedla. Rezerwuje korty o 6:00 rano, bo tylko wtedy są wolne.", "Your mate from the estate. He books courts at 6 a.m., the only free slot."],
+	"Iga": ["Znajoma z kursu salsy. Teraz mówi tylko o vibora i bandeja.", "A friend from salsa class. Now all she talks about is the vibora and the bandeja."],
+	"Olek": ["Kuzyn. Grał w tenisa, więc myśli, że w padla też umie. Nie umie.", "Your cousin. He played tennis, so he thinks he can play padel. He can't."],
+	"Magda": ["Sąsiadka z góry. Prowadzi grupę „Padel Powiśle” na 412 osób.", "The neighbour upstairs. She runs the \"Padel Powiśle\" group, 412 members."],
+}
+## The match at DESKA (an answered call that arrived on time): DESKI_POINTS points, one card each,
+## three shots (LOB, ZE ŚCIANY, SMECZ). Each rally: [situation pl, en], the best shot's index, the
+## line when it wins [pl, en], when it loses [pl, en]. Every point won: MATCH_ZL zł, MATCH_RESPECT.
+const DESKI_POINTS := 3
+const MATCH_ZL := 6
+const MATCH_RESPECT := 2
+const SHOTS := [["LOB", "Lob"], ["ZE ŚCIANY", "OFF THE GLASS"], ["SMECZ", "SMASH"]]
+const RALLIES := [
+	[["Piłka odbija się od tylnej szyby i wraca wysoko na środek kortu.", "The ball comes off the back glass and floats high over the middle."], 2,
+		["Smecz! Piłka wylatuje za kort. Kibice z kawiarni klaszczą.", "Smash! The ball flies off the court. The café crowd claps."],
+		["Lob z takiej piłki? Rywale dziękują i kończą punkt.", "A lob off that ball? The other pair says thanks and finishes it."]],
+	[["Rywale stoją przy siatce. Prezes z Mokotowa macha rakietą jak packą na muchy.", "The other pair is up at the net. Prezes z Mokotowa swats like it's a fly."], 0,
+		["Lob nad Prezesem! Odwraca się, piłka już leży za nim.", "A lob over Prezes! By the time he turns, it's down behind him."],
+		["Prosto w Prezesa. Odbija, nawet nie wiedząc jak.", "Straight at Prezes. He gets it back without knowing how."]],
+	[["Szybka piłka w róg, prosto w szybę za tobą.", "A fast ball into the corner, straight at the glass behind you."], 1,
+		["Czekasz, piłka wraca od szyby, kontra po linii. Ściana jest częścią gry!", "You wait, it comes off the glass, a counter down the line. The wall is part of the game!"],
+		["Bierzesz ją z powietrza i trafiasz w siatkę. Ściana by ci pomogła.", "You take it on the volley and hit the net. The wall would have helped."]],
+	[["Krótka, niska piłka tuż za siatką. Trener Dominik krzyczy: „Nie biegaj, ustaw się!”", "A short, low ball just over the net. Trener Dominik shouts: \"Don't run, get in place!\""], 0,
+		["Podbijasz lobem wysoko. Rywale cofają się do szyby i gubią rytm.", "You lift it high. The other pair backs off to the glass and loses the rhythm."],
+		["Smecz z kolan? Piłka ląduje w siatce, Dominik łapie się za głowę.", "A smash from your knees? Into the net, and Dominik holds his head."]],
+	[["Lob rywali leci nad tobą i spada za linią, przy samej szybie.", "Their lob sails over you and drops behind the line, right by the glass."], 1,
+		["Odwracasz się, piłka odbija od szyby, odgrywasz spokojnie. Pani Basia z recepcji kiwa głową.", "You turn, it comes off the glass, you play it back calmly. Pani Basia from reception nods."],
+		["Gonisz piłkę jak w tenisie i wpadasz na szybę. To nie tenis.", "You chase it like tennis and run into the glass. It isn't tennis."]],
+]
+## The score line per points won (0..3): [pl, en].
+const MATCH_SCORES := [["2:6, 1:6", "2-6, 1-6"], ["4:6, 6:7", "4-6, 6-7"], ["6:4, 4:6, 10:8 w tie-breaku", "6-4, 4-6, 10-8 in the tie-break"], ["6:2, 6:3", "6-2, 6-3"]]
+## Landing the helicopter by the court counts (DESKI_FLY_R) and earns the reception's remark and
+## FLY_RESPECT more.
+const FLY_RESPECT := 5
+## A point not played within this long (s) is lost (the ball went by).
+const POINT_LIFE := 25.0
 const CZ_PLAYERS := ["Prezes z Mokotowa", "Pani Basia", "Trener Dominik", "kuzyn Kuby", "Ola z recepcji", "Michał od Excela"]
 ## "Mlask" (G5): the van's spots (places.json ids) by weekday, its hours, the offer's reach, the
 ## legs' limits, the pay *guess*.
@@ -306,7 +350,7 @@ func _process(dt: float) -> void:
 			if flying or away or (jobs != null and jobs.own_busy()) or (rides != null and rides.busy()):
 				_withdraw()
 			elif autopilot and _t > 2.0:
-				_accept()
+				_on_card(0)
 			elif _t > OFFER_LIFE:
 				_withdraw()
 		State.PICKUP:
@@ -314,7 +358,12 @@ func _process(dt: float) -> void:
 		State.DELIVER:
 			_deliver_tick(dt)
 		State.RESULT:
-			if _is_ml() and str(order.get("stage", "")) == "review":
+			if str(order.get("stage", "")) == "match":
+				if autopilot and _t > 2.0:
+					_match_answer(int(RALLIES[int(order["rallies"][int(order["point"])])][1]))
+				elif _t > POINT_LIFE:
+					_match_answer(-1)
+			elif _is_ml() and str(order.get("stage", "")) == "review":
 				if autopilot and _t > 2.0:
 					_start_sticker()
 			elif _t > RESULT_LIFE:
@@ -486,8 +535,10 @@ func offer_czwarty() -> bool:
 	return true
 
 
-## The DESKA call (--trend-job=7 too): a friend phones, the club is short of a fourth. Accepting
-## sets the gate as the target at once (no pickup). False in the air or with a job on.
+## The DESKA call (--trend-job=7 too): a friend phones, the club is short of a fourth. It rings
+## first (the caller and a bio, ODBIERZ / ODRZUĆ, as Szymek's boat race and Ziomek's rave); an
+## answered call says what it wants (_deski_offer). Accepting sets the gate as the target at once
+## (no pickup). False in the air or with a job on.
 func offer_deski_call(force := false) -> bool:
 	if not force and not _free():
 		return false
@@ -497,19 +548,38 @@ func offer_deski_call(force := false) -> bool:
 	var hurt: String = DESKI_INJURED[rng.randi() % DESKI_INJURED.size()]
 	var gy: float = map.terrain_height(DESKI_GATE.x, DESKI_GATE.y)
 	var dist := Vector2(player_pos.x, player_pos.z).distance_to(DESKI_GATE)
-	order = {"kind": "czwarty", "call": true, "slot": -1, "word": "PADEL", "day": 0, "ring": Vector3(DESKI_GATE.x, gy, DESKI_GATE.y),
+	# Not when the player is already by the court ("come over, 8 minutes" from 13 m: Mac run
+	# 2026-11-07); the next call waits the full DESKI_COOL either way (the flag's call too).
+	if not force and dist < DESKI_NEAR:
+		return false
+	_deski_at = maxf(_deski_at, _session + DESKI_COOL)
+	order = {"kind": "czwarty", "call": true, "stage": "ring", "slot": -1, "word": "PADEL", "day": 0, "ring": Vector3(DESKI_GATE.x, gy, DESKI_GATE.y),
 			"door_ring": Vector3(DESKI_GATE.x, gy, DESKI_GATE.y), "road": dist * 1.3,
-			"name": "WTS DESKA", "customer": who, "from": "", "hurt": hurt}
+			"name": "WTS DESKA", "customer": who, "from": "", "hurt": hurt, "seed": rng.randi()}
 	state = State.OFFER
 	_t = 0.0
-	hud.show_side_card("📞 %s DZWONI" % who.to_upper(),
-			"„Halo? Gramy na Desce w padla, a jedno z nas ma nogę w gipsie po pole dance (%s) i wypadło z gry! Brakuje czwartego. Dojedź albo doleć na kort DESKA przy Zaruskiego, 8 minut!”" % hurt,
-			PackedStringArray(["PRZYJEDŹ", "NIE TERAZ"]), CZ_COLOUR, "%s is calling" % who,
-			"\"Hello? We're playing padel at DESKA, but one of us has a leg in plaster after pole dance (%s) and dropped out! We need a fourth. Drive or fly to the court on Zaruskiego, 8 minutes!\"" % hurt)
+	var bio: Array = DESKI_BIOS.get(who, ["Znajomy z padla.", "A friend from padel."])
+	hud.show_side_card("📞 %s DZWONI" % who.to_upper(), bio[0],
+			PackedStringArray(["ODBIERZ|ANSWER", "ODRZUĆ|DECLINE"]), CZ_COLOUR, "%s is calling" % who, bio[1])
 	hud.ticker_out()
+	Access.buzz(60, 0.6)
 	if log_on:
-		print("trend job: DESKA call from %s: %s broke a leg, %.0f m away" % [who, hurt, dist])
+		print("trend job: DESKA call ringing from %s, %.0f m away" % [who, dist])
 	return true
+
+
+## The answered DESKA call: what the friend wants.
+func _deski_offer() -> void:
+	order["stage"] = "offer"
+	_t = 0.0
+	var who: String = order["customer"]
+	var hurt: String = order["hurt"]
+	hud.show_side_card("%s: „BRAKUJE CZWARTEGO!”" % who.to_upper(),
+			"„Halo? Gramy na Desce w padla, a %s ma nogę w gipsie po pole dance i wypadło z gry! Dojedź albo doleć na kort przy Zaruskiego, 8 minut. Kort opłacony do pełnej godziny!”" % hurt,
+			PackedStringArray(["JADĘ!|ON MY WAY", "NIE DZIŚ|NOT TODAY"]), CZ_COLOUR, "%s: \"We need a fourth!\"" % who,
+			"\"Hello? We're playing padel at DESKA, but %s has a leg in plaster after pole dance and dropped out! Drive or fly to the court on Zaruskiego, 8 minutes. The court is paid till the hour!\"" % hurt)
+	if log_on:
+		print("trend job: DESKA call answered: %s broke a leg" % hurt)
 
 
 # --- "Mlask": Mrożulo's review (G5) ----------------------------------------------------------
@@ -827,12 +897,18 @@ func _withdraw() -> void:
 func _on_card(index: int) -> void:
 	match state:
 		State.OFFER:
-			if index == 0:
+			if index == 0 and str(order.get("stage", "")) == "ring":
+				_deski_offer()
+			elif index == 0:
 				_accept()
 			else:
+				if log_on and bool(order.get("call", false)):
+					print("trend job: DESKA call declined (%s)" % order.get("stage", ""))
 				_withdraw()
 		State.RESULT:
-			if _is_ml() and str(order.get("stage", "")) == "review":
+			if str(order.get("stage", "")) == "match":
+				_match_answer(index)
+			elif _is_ml() and str(order.get("stage", "")) == "review":
 				_start_sticker()
 			else:
 				_release()
@@ -1005,28 +1081,126 @@ func _arrive() -> void:
 
 
 func _arrive_cz() -> void:
-	var on_time := _clock <= (DESKI_LIMIT if bool(order.get("call", false)) else CZ_LIMIT)
+	var call := bool(order.get("call", false))
+	var on_time := _clock <= (DESKI_LIMIT if call else CZ_LIMIT)
+	if call:
+		order["flew"] = flying
+		if on_time:
+			_start_match()
+			return
 	var r := cz_pay(float(order["road"]), on_time)
 	wallet.pay(int(r["zl"]), int(r["respect"]), "trend")
 	done += 1
 	var line := ["Jesteśmy w czterech! Ściana nas nie zje.", "Four of us! The wall won't eat us."]
-	if bool(order.get("call", false)):
-		line = ["Czwarty jest! Gramy do dwóch setów. %s kibicuje z gipsem." % order["hurt"], "The fourth is here! We play two sets. %s cheers from the bench in a cast." % order["hurt"]]
-		if not on_time:
-			line = ["Zagraliśmy w trzech, ale piłka i tak wróciła. Dzięki, że dojechałeś.", "We played three-a-side, the ball came back anyway. Thanks for coming."]
 	if not on_time:
 		line = ["Zagraliśmy w trzech. Piłka i tak wróciła.", "We played three-a-side. The ball came back anyway."]
+		if call:
+			line = ["Zagraliśmy w trzech, ale piłka i tak wróciła. Dzięki, że dojechałeś.", "We played three-a-side, the ball came back anyway. Thanks for coming."]
 	var head := "CZWARTY · +%d zł" % int(r["zl"])
 	var body := "„%s” · %s\n+%d zł (napiwek %d zł), +%d szacunku" % [line[0], order["customer"], int(r["zl"]), int(r["tip"]), int(r["respect"])]
 	var body_en := "\"%s\"\n+%d zł (tip %d zł), +%d respect" % [line[1], int(r["zl"]), int(r["tip"]), int(r["respect"])]
 	state = State.RESULT
 	_t = 0.0
-	hud.hide_status()
-	_beacon.waving = false
-	_beacon.place(order["door_ring"], ARRIVE - 0.5, false, true)
 	hud.show_side_card(head, body, PackedStringArray(["OK"]), CZ_COLOUR, "Fourth player · +%d zł" % int(r["zl"]), body_en)
 	print("trend job: delivered %s (Czwarty) to %s in %.0f s (%s): +%d zł (base %d, tip %d), +%d respect" % [order["customer"], order["name"], _clock,
 			"on time" if on_time else "late", int(r["zl"]), int(r["base"]), int(r["tip"]), int(r["respect"])])
+
+
+## The DESKA call's rallies for `seed`: DESKI_POINTS distinct indices into RALLIES.
+static func match_rallies(seed: int) -> Array:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed
+	var pool: Array = range(RALLIES.size())
+	var out: Array = []
+	while out.size() < DESKI_POINTS:
+		out.append(pool.pop_at(rng.randi() % pool.size()))
+	return out
+
+
+## The match's pay on top of the call's (cz_pay on time): {zl, respect} for `won` points, landing
+## by helicopter (`flew`) adds FLY_RESPECT.
+static func match_pay(won: int, flew: bool) -> Dictionary:
+	return {"zl": MATCH_ZL * won, "respect": MATCH_RESPECT * won + (FLY_RESPECT if flew else 0)}
+
+
+## On time at DESKA: the match, one card per point, the three shots in a row (stacked, the side
+## card grew taller than the room beside the car and never showed: Mac run 2026-11-07).
+func _start_match() -> void:
+	state = State.RESULT
+	order["stage"] = "match"
+	order["rallies"] = match_rallies(int(order.get("seed", done)))
+	order["point"] = 0
+	order["won"] = 0
+	order["said"] = ""
+	_ask_point()
+	if log_on:
+		print("trend job: DESKA match starts (%s)" % ("landed by helicopter" if bool(order["flew"]) else "by car"))
+
+
+func _ask_point() -> void:
+	_t = 0.0
+	var i: int = order["point"]
+	var rally: Array = RALLIES[int(order["rallies"][i])]
+	var buttons := PackedStringArray()
+	for shot: Array in SHOTS:
+		buttons.append("%s|%s" % [shot[0], shot[1]])
+	var said: String = order["said"]
+	var said_en: String = order.get("said_en", "")
+	var lead := ""
+	var lead_en := ""
+	if i == 0:
+		lead = "Pani Basia z recepcji: „Parking dla helikopterów jest od strony Wisły.” " if bool(order["flew"]) else "%s podaje ci rakietę. " % order["customer"]
+		lead_en = "Pani Basia from reception: \"The helicopter parking is on the river side.\" " if bool(order["flew"]) else "%s hands you a racket. " % order["customer"]
+	elif said != "":
+		lead = said + " "
+		lead_en = said_en + " "
+	hud.show_side_card("PADEL · PUNKT %d/%d · %d:%d" % [i + 1, DESKI_POINTS, int(order["won"]), i - int(order["won"])],
+			lead + str(rally[0][0]), buttons, CZ_COLOUR, "Padel · point %d/%d · %d-%d" % [i + 1, DESKI_POINTS, int(order["won"]), i - int(order["won"])],
+			lead_en + str(rally[0][1]))
+
+
+func _match_answer(index: int) -> void:
+	var rally: Array = RALLIES[int(order["rallies"][int(order["point"])])]
+	var won := index == int(rally[1])
+	if won:
+		order["won"] = int(order["won"]) + 1
+	order["said"] = str(rally[2][0] if won else rally[3][0])
+	order["said_en"] = str(rally[2][1] if won else rally[3][1])
+	if index < 0:
+		order["said"] = "Piłka przeleciała obok. Rywale nawet nie czekali."
+		order["said_en"] = "The ball went by. The other pair didn't wait."
+	if log_on:
+		print("trend job: DESKA point %d: %s, %s" % [int(order["point"]) + 1, SHOTS[index][1] if index >= 0 else "none", "won" if won else "lost"])
+	order["point"] = int(order["point"]) + 1
+	if int(order["point"]) < DESKI_POINTS:
+		_ask_point()
+		return
+	_end_match()
+
+
+## The match's end: the call's pay (on time) and the match's, the score on a card.
+func _end_match() -> void:
+	order["stage"] = "done"
+	var won: int = order["won"]
+	var flew := bool(order["flew"])
+	var r := cz_pay(float(order["road"]), true)
+	var m := match_pay(won, flew)
+	var zl := int(r["zl"]) + int(m["zl"])
+	var respect := int(r["respect"]) + int(m["respect"])
+	wallet.pay(zl, respect, "trend")
+	done += 1
+	var score: Array = MATCH_SCORES[won]
+	var line: Array = [["Przegraliśmy, ale zdjęcie na story wyszło świetnie.", "We lost, but the story photo came out great."],
+			["Przegraliśmy po walce. %s z gipsem mówi, że to przez kort." % order["hurt"], "We lost after a fight. %s in plaster says it was the court." % order["hurt"]],
+			["Wygrane w tie-breaku! %s stuka gipsem w ławkę." % order["hurt"], "Won in the tie-break! %s bangs the cast on the bench." % order["hurt"]],
+			["Wygrane! Bluza klubowa twoja. Od poniedziałku grasz z nami na stałe.", "We won! The club hoodie is yours. From Monday you're our regular fourth."]][won]
+	_t = 0.0
+	hud.show_side_card("PADEL · %s · +%d zł" % [score[0], zl],
+			"%s\n„%s” · %s\n+%d zł (napiwek %d zł, punkty %d zł), +%d szacunku" % [order["said"], line[0], order["customer"], zl, int(r["tip"]), int(m["zl"]), respect],
+			PackedStringArray(["OK"]), CZ_COLOUR, "Padel · %s · +%d zł" % [score[1], zl],
+			"%s\n\"%s\"\n+%d zł (tip %d zł, points %d zł), +%d respect" % [order["said_en"], line[1], zl, int(r["tip"]), int(m["zl"]), respect])
+	print("trend job: DESKA match %d/%d (%s), %s: +%d zł (base %d, tip %d, points %d), +%d respect" % [won, DESKI_POINTS, score[1],
+			"landed by helicopter" if flew else "by car", zl, int(r["base"]), int(r["tip"]), int(m["zl"]), respect])
 
 
 func _arrive_drop() -> void:
