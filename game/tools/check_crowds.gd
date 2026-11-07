@@ -713,6 +713,18 @@ func _check_office(c: Crowds, data: Dictionary, dlg: FakeDialogue) -> void:
 	var want := Crowds.office_count(Crowds.OFFICE_MAX, 8.5, 3, false)
 	_expect(c.office_on and c.walk_mode == "office" and c.walkers.size() == want, "office walkers on a Wednesday at 08:30: %d (want %d)" % [c.walkers.size(), want])
 	_expect(float(c.levels.get("office", 0.0)) == 1.0, "the office level for the eggs")
+	# F's ask (2026-11-07): waves at the crossings. Routes know their zebras, and over two minutes
+	# of walking some walkers wait at a red kerb; nobody is ever inside a zebra's span
+	# without having entered it on a walk phase (checked as: the held count grows, and a
+	# walker never stands held inside a crossing).
+	var with_xs := 0
+	for r: Dictionary in c.office_routes:
+		if not (r["xs"] as Array).is_empty():
+			with_xs += 1
+	_expect(with_xs >= 3, "office: %d routes with a crossing recorded (want 3 or more)" % with_xs)
+	_run_ticks(c, 120.0)
+	_expect(c.held_ticks > 20, "office: walkers waited at red kerbs: %d walker-ticks in 120 s (want more than 20)" % c.held_ticks)
+	_expect(c.walkers.size() == want, "office walkers after 2 min: %d (want %d)" % [c.walkers.size(), want])
 	for s: Dictionary in offices:
 		_expect(int(s["n"]) >= int(s["max"]) - 1, "office site %s holds %d at 08:30 (max %d)" % [s["id"], s["n"], s["max"]])
 	var said := 0

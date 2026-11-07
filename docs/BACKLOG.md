@@ -958,8 +958,18 @@ Left:
 
 Built (`crowds.gd` OFFICE, `office_level`, `_office`; dialogue group `office`, 65 lines tagged
 morning, lunch, evening, rain; check_crowds step 10): the office crowd on weekday rush hours.
-Open:
-- Phone look check and a bench on the rondo at 08:30 (QUESTIONS).
+Crossing waves (F, 2026-11-07, done): all seven metro entrances have a standing crowd (five more
+sites), up to 104 walkers (was 56), and each walker stops at the kerb of a zebra whose walk phase is
+off (60 s cycle, 24 s walk, three offset phases, a queue up to 2.4 m deep), so the flow crosses in
+waves. The phases are a guess and not the cars' signals (those controllers exist only with the
+traffic). Open:
+- Phone look check and a bench on the rondo at 08:30 (QUESTIONS); the cloud measured only the
+  crowd's CPU tick (check_crowds), no phone bench.
+- Tie the zebra phases to the real signal controllers (lane_graph.gd) so cars stop when the wave
+  crosses.
+- Waiting walkers keep their walking pose in place (one shared mesh).
+- Rondo Daszyńskiego's metro entrance models are checked only by F's red-wing photos; the other
+  stations' entrances (audit and missing designs) and real tram stops across the map are in their own threads (F, 2026-11-07).
 - Props: lanyards, laptop bags and coffee cups are only in the lines; a figure with a bag or cup
   needs a variant of the shared person mesh (a mesh/draw-call decision, not done).
 - The walkers' routes end at a kerb and restart elsewhere (the dawn crowd's behaviour), so a pop

@@ -123,12 +123,30 @@ const OFFICE := {
 	"office_zebra_s": [Vector2(-2742.0, 445.0), 14, 12.0],
 	"office_zebra_e": [Vector2(-2650.0, 425.0), 14, 12.0],
 	"office_hub": [Vector2(-2672.0, 366.0), 14, 12.0],
+	# F's ask (2026-11-07): the other five of the station's seven entrances (OSM refs 5, 6, 7, 2, 1),
+	# so every mouth has its crowd, not two.
+	"office_metro_5": [Vector2(-2878.4, 485.1), 10, 10.0],
+	"office_metro_6": [Vector2(-2890.5, 440.1), 10, 10.0],
+	"office_metro_7": [Vector2(-2845.5, 424.8), 10, 10.0],
+	"office_metro_2": [Vector2(-2771.8, 416.4), 10, 10.0],
+	"office_metro_1": [Vector2(-2786.5, 400.2), 10, 10.0],
 }
 const OFFICE_AT := Vector2(-2795.0, 442.0)
 const OFFICE_REACH := 230.0
 const OFFICE_ENDS := [["office_spire", Vector2(-2700.0, 195.0)], ["office_hub_b", Vector2(-2670.0, 565.0)]]
 ## Most walkers at once (before `amount`), and how far from their box the view wakes them.
-const OFFICE_MAX := 56
+const OFFICE_MAX := 104
+## F's ask (2026-11-07): waves at the crossings. A walker reaching a zebra's kerb on a red waits
+## there (a queue XING_QUEUE m deep) and the whole bunch crosses when it turns green, so the
+## flow comes in waves like the real rondo. Each zebra has a XING_CYCLE s cycle with XING_WALK s
+## of walk, offset by one of XING_PHASES (so the approaches take turns); nobody steps out in the
+## last XING_LATE s of the walk. All *guesses*; not the cars' signals (lane_graph.gd), whose
+## controllers are only built with the traffic.
+const XING_CYCLE := 60.0
+const XING_WALK := 24.0
+const XING_LATE := 5.0
+const XING_PHASES := 3
+const XING_QUEUE := 2.4
 const OFFICE_NEAR := 450.0
 ## A bubble from an office walker or group every OFFICE_GAP seconds on screen.
 const OFFICE_GAP := Vector2(12.0, 25.0)
@@ -521,6 +539,10 @@ var _route_mode := "dawn"
 var _dawn_asked := false
 var _office_asked := false
 var _office_bubble := 0.0
+## The zebras (polylines) the office walkers may cross; a route's `xs` index into this.
+var _office_zebras: Array[PackedVector2Array] = []
+## Walker-ticks spent waiting at a red kerb (for the check).
+var held_ticks := 0
 var _night_key := -1
 var _last_hour := 0.0
 ## F's asks: Level 26's violet band (null until built: no tall roof there, or no map).
@@ -1117,6 +1139,7 @@ func _setup_office(data: Dictionary) -> void:
 	# Both kerbs of every zebra crossing round the rondo: a route from an exit to the far kerb
 	# has to cross the road, so the walkers use the crossings.
 	var zi := 0
+	_office_zebras.clear()
 	for p: Dictionary in data.get("paths", []):
 		if str(p.get("k", "")) != "zebra":
 			continue
@@ -1124,6 +1147,10 @@ func _setup_office(data: Dictionary) -> void:
 		var a := Vector2(float(flat[0]), float(flat[1]))
 		var b := Vector2(float(flat[flat.size() - 2]), float(flat[flat.size() - 1]))
 		if a.distance_to(OFFICE_AT) <= OFFICE_REACH + 40.0:
+			var line := PackedVector2Array()
+			for i in range(0, flat.size() - 1, 2):
+				line.append(Vector2(float(flat[i]), float(flat[i + 1])))
+			_office_zebras.append(line)
 			to.append(["office_zebra_%d_a" % zi, a])
 			to.append(["office_zebra_%d_b" % zi, b])
 			zi += 1
@@ -2378,6 +2405,7 @@ func _office(hour: float, weekday: int, rain: bool, step: float, eye2: Vector2) 
 	for w in walkers:
 		if float(w["s"]) + float(w["v"]) * (t - float(w["t"])) >= float(office_routes[int(w["r"])]["len"]):
 			_restart(w)
+	_gate_office(step)
 	_office_bubble -= step
 	if _office_bubble > 0.0:
 		return
@@ -2437,7 +2465,8 @@ func _finish_routes() -> void:
 			h.append(map.deck_height(dk[i], pts[i].x, pts[i].y) if map != null else 0.0)
 		if office and run < 40.0:
 			continue
-		made.append({"pts": pts, "h": h, "cum": cum, "len": run, "from": r["from"], "to": r["to"], "end": pts[pts.size() - 1]})
+		made.append({"pts": pts, "h": h, "cum": cum, "len": run, "from": r["from"], "to": r["to"], "end": pts[pts.size() - 1],
+				"xs": _route_crossings(pts, cum) if office else []})
 	if office:
 		office_routes = made
 		if log_on:
@@ -2456,6 +2485,57 @@ func _finish_routes() -> void:
 		_route_in["to"] = []  # nothing to walk: the dawn crowd stays home
 
 
+## The zebras a route walks over: [[from s, to s, zebra index], ...] in order along it, found
+## from the route's pieces that lie on a zebra and run along it.
+func _route_crossings(pts: PackedVector2Array, cum: PackedFloat32Array) -> Array:
+	var out: Array = []
+	for k in pts.size() - 1:
+		var d := pts[k + 1] - pts[k]
+		if d.length() < 0.5:
+			continue
+		var m := (pts[k] + pts[k + 1]) * 0.5
+		for zi in _office_zebras.size():
+			var z := _office_zebras[zi]
+			var best := INF
+			var along := 0.0
+			for j in z.size() - 1:
+				var cp := Geometry2D.get_closest_point_to_segment(m, z[j], z[j + 1])
+				var dd := cp.distance_to(m)
+				if dd < best:
+					best = dd
+					along = absf(d.normalized().dot((z[j + 1] - z[j]).normalized()))
+			if best < 1.3 and along > 0.9:
+				if not out.is_empty() and int(out[out.size() - 1][2]) == zi and absf(float(out[out.size() - 1][1]) - cum[k]) < 0.5:
+					out[out.size() - 1][1] = cum[k + 1]
+				else:
+					out.append([cum[k], cum[k + 1], zi])
+				break
+	return out
+
+
+## Is zebra `zi`'s walk phase on (and, for someone about to step out, not nearly over)?
+func xing_walk(zi: int, entering: bool) -> bool:
+	var ph := fposmod(t + float(zi % XING_PHASES) * XING_CYCLE / XING_PHASES, XING_CYCLE)
+	return ph < XING_WALK - (XING_LATE if entering else 0.0)
+
+
+## Holds the office walkers at the kerb of a zebra whose walk phase is off: their clock is put
+## back by `dt`, so they stand where they are and the next walkers pile up behind them.
+func _gate_office(dt: float) -> void:
+	for w in walkers:
+		var xs: Array = office_routes[int(w["r"])]["xs"]
+		var s := float(w["s"]) + float(w["v"]) * (t - float(w["t"]))
+		for x: Array in xs:
+			if s >= float(x[1]):
+				continue
+			if s < float(x[0]) - 0.8 - float(w["q"]):
+				break
+			if s < float(x[0]) + 0.3 and not xing_walk(int(x[2]), true):
+				w["t"] = float(w["t"]) + dt
+				held_ticks += 1
+			break
+
+
 func _spawn_walkers(count: int, spread: bool) -> void:
 	var left := count
 	while left > 0:
@@ -2465,7 +2545,7 @@ func _spawn_walkers(count: int, spread: bool) -> void:
 		var v := _rng.randf_range(0.9, 1.25)
 		for i in g:
 			walkers.append({"r": r, "s": s0 - i * 0.9, "t": t, "v": v, "off": (i - (g - 1) * 0.5) * 0.7 + _rng.randf_range(-0.1, 0.1),
-					"k": 0, "shirt": _walker_shirt(),
+					"k": 0, "shirt": _walker_shirt(), "q": _rng.randf() * XING_QUEUE,
 					"tr": _rng.randf() * 0.99})
 		left -= g
 

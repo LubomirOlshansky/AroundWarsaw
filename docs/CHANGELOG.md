@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-07
+- Rondo Daszyńskiego is full of people on working days: crowds at all seven metro entrances, many more office workers, and they wait at the kerb for the green and cross the zebras together in waves.
 - Under Trasa Łazienkowska, the bridges and the viaducts, the see-through circle now opens the deck over you, so you see your car and the traffic around it instead of a glowing outline.
 - The railway by Warszawa Główna no longer flickers from the helicopter: the ground stops tearing through the ballast and the rails stay whole.
 - Small beta fixes: the crazy taxi and courier drivers now really shout at you after cutting you off, speech bubbles no longer cover the steering hint at the start, the job arrow no longer lands on the brake button, and the tram strip on Grochowska at the east edge is closed like the road beside it. Holding a spot on the map no longer teleports you away in the middle of a race, a job, a rescue or a police chase.
