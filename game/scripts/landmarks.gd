@@ -9457,6 +9457,10 @@ const KM_STEP := 0.15                             # the round platform's steps (
 const KM_TREAD := 0.4                             # tread,
 const KM_STEPS := 3                               # count; the platform runs 1.6 m round the basin
 const KM_PLAT_R := KM_FOUNT_R + 1.6
+## The bench row by the metro parapet (map_builder BENCH_ROWS sets OSM's benches in it): its
+## middle and direction in game x/z; the site paves a strip under it (the street photo).
+const KM_BENCH_MID := Vector2(-1623.8, -1213.9)
+const KM_BENCH_DIR := Vector2(-0.49, 0.872)
 const KM_WALL := Color("#e7dcb6")
 const KM_CORNICE := Color("#efe7cc")
 const KM_GREY := Color("#8c8b86")
@@ -9677,23 +9681,50 @@ func _km_terrace(top: float) -> void:
 func _km_fountain() -> void:
 	var c := _km(KM_FOUNT.x, KM_FOUNT.y)
 	var g0 := float(map.terrain_height(c.x, c.y))
-	# The steps, outermost first: a riser from below the ground and a tread ring inside it.
+	# The steps, on the half towards the cinema only (photo 4; the street photo from Andersa has the
+	# basin's paving ring level with the benches): outermost first, a riser from below the ground
+	# and a tread ring inside it. Round the other half the platform ends in one low stone kerb.
+	var unit := _circle(Vector2.ZERO, 1.0, 24)
+	var stepped: Array[bool] = []
+	for k in 24:
+		stepped.append(((unit[k] + unit[(k + 1) % 24]) * 0.5).dot(-KM_V) > 0.0)
 	for s in KM_STEPS:
 		var ro := KM_PLAT_R + KM_TREAD * (KM_STEPS - 1 - s)
 		var ri := ro - KM_TREAD if s < KM_STEPS - 1 else KM_FOUNT_R - 0.05
-		var y0 := g0 + KM_STEP * s - (0.25 if s == 0 else 0.0)
 		var y1 := g0 + KM_STEP * (s + 1)
-		var o_ring := _circle(c, ro, 24)
-		var i_ring := _circle(c, ri, 24)
 		var shade := KM_STEP_STONE.darkened(0.04 * (KM_STEPS - 1 - s))
 		for k in 24:
-			var a := o_ring[k]
-			var b := o_ring[(k + 1) % 24]
+			var top := s == KM_STEPS - 1
+			if not stepped[k] and not top:
+				continue
+			var y0 := g0 - 0.25 if s == 0 or not stepped[k] else g0 + KM_STEP * s
+			var a := c + unit[k] * ro
+			var b := c + unit[(k + 1) % 24] * ro
 			var o := ((a + b) * 0.5 - c).normalized()
 			_quad(Vector3(a.x, y0, a.y), Vector3(b.x, y0, b.y), Vector3(b.x, y1, b.y), Vector3(a.x, y1, a.y), Vector3(o.x, 0.0, o.y), shade.darkened(0.12))
-			var ia := i_ring[k]
-			var ib := i_ring[(k + 1) % 24]
+			var ia := c + unit[k] * ri
+			var ib := c + unit[(k + 1) % 24] * ri
 			_quad(Vector3(a.x, y1, a.y), Vector3(b.x, y1, b.y), Vector3(ib.x, y1, ib.y), Vector3(ia.x, y1, ia.y), Vector3.UP, shade)
+			# Where the flight ends, the side of this step's band.
+			if not top:
+				for side in 2:
+					var j := k + side
+					if stepped[(k + 2 * side - 1 + 24) % 24]:
+						continue
+					var e := unit[j % 24]
+					var t := Vector2(-e.y, e.x) * (1.0 if side == 1 else -1.0)
+					var p0 := c + e * (ro - KM_TREAD)
+					var p1 := c + e * ro
+					_quad(Vector3(p0.x, g0 - 0.25, p0.y), Vector3(p1.x, g0 - 0.25, p1.y), Vector3(p1.x, y1, p1.y), Vector3(p0.x, y1, p0.y), Vector3(t.x, 0.0, t.y), shade.darkened(0.08))
+	# The paved strip under the bench row, its front towards the fountain.
+	var bd := KM_BENCH_DIR.normalized()
+	var bf := Vector2(-bd.y, bd.x)
+	if bf.dot(c - KM_BENCH_MID) < 0.0:
+		bf = -bf
+	var gb := float(map.terrain_height(KM_BENCH_MID.x, KM_BENCH_MID.y))
+	var m := KM_BENCH_MID
+	var strip := PackedVector2Array([m - bd * 5.4 - bf * 1.0, m + bd * 5.4 - bf * 1.0, m + bd * 5.4 + bf * 1.7, m - bd * 5.4 + bf * 1.7])
+	_prism(strip, gb - 0.2, gb + 0.03, KM_STEP_STONE.darkened(0.15), KM_STEP_STONE.darkened(0.05), M_STONE, M_STONE)
 	var g := g0 + KM_STEP * KM_STEPS
 	var outer := _circle(c, KM_FOUNT_R, 20)
 	var inner := _circle(c, KM_FOUNT_R - 0.4, 20)

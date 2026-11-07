@@ -5623,6 +5623,8 @@ const BARRIER_STYLE := {
 	"tram_railing": ["#22262a", 0.06, 1.1, [0.0, "#22262a"]],
 	"balustrade": ["#8f8f8a", 0.3, 1.0],
 	"balustrade_rail": ["#a9a59d", 0.2, 1.0, [0.45, "#2a2e33"]],
+	# Kino Muranów's white balustrade (the terrace's, landmarks KM_BALUSTER) down its stairs.
+	"balustrade_white": ["#ece8dc", 0.26, 1.05],
 }
 
 
@@ -5778,30 +5780,50 @@ func _in_island(flat: Array) -> bool:
 	return false
 
 
-## Walls a landmark site builds itself, by the line's first point: Kino Muranów's fountain basin
-## (OSM draws it as a ring `wall`; at 1.9 m it stood as a grey drum where photo 4 has steps up to
-## the basin, F 2026-11-07).
-const SITE_WALLS := [Vector2(-1639.7, -1217.3)]
+## Walls (and fences) drawn otherwise than OSM's 1.9 m grey wall, by the line's first point: [point, style],
+## the style a BARRIER_STYLE key, or "" when a landmark site builds the wall itself. Kino
+## Muranów's square (F, 2026-11-07, with a street photo and the aerial): the fountain basin's ring
+## is the site's; the metro Ratusz Arsenał stair by the fountain has a granite parapet with a
+## steel rail round it, not walls; the stairs up to the cinema's roof terrace at both ends of the
+## pavilion have the terrace's white balustrade down their sides (photos 2 and 4).
+const SITE_WALLS := [
+	[Vector2(-1639.7, -1217.3), ""],
+	[Vector2(-1667.0, -1217.7), "balustrade_white"],
+	[Vector2(-1657.7, -1219.1), "balustrade_white"],
+	[Vector2(-1644.7, -1190.0), "balustrade_white"],
+	[Vector2(-1656.4, -1197.6), "balustrade_white"],
+	[Vector2(-1624.6, -1230.3), "balustrade_rail"],
+	[Vector2(-1621.2, -1219.2), "balustrade_rail"],
+	[Vector2(-1625.5, -1232.3), "balustrade_rail"],
+	[Vector2(-1628.1, -1232.1), "balustrade_rail"],
+	# The pair of `fence` lines along the ramp south of the fountain: its handrails.
+	[Vector2(-1635.1, -1234.3), "tram_railing"],
+	[Vector2(-1635.7, -1235.6), "tram_railing"],
+]
 
 
-func _site_wall(flat: Array) -> bool:
+## The SITE_WALLS entry for a wall line, or [] when it has none.
+func _site_wall(flat: Array) -> Array:
 	if flat.size() < 4:
-		return false
+		return []
 	var first := Vector2(flat[0], flat[1])
-	for at: Vector2 in SITE_WALLS:
-		if first.distance_to(at) < 0.5:
-			return true
-	return false
+	for e: Array in SITE_WALLS:
+		if first.distance_to(e[0]) < 0.5:
+			return e
+	return []
 
 
 func _build_barriers(st) -> void:
 	_uv2 = Vector2(0.5, -1.0)
 	_load_object_overrides()
 	for l in data.get("lines", []):
-		if l["k"] == "wall" and _site_wall(l["p"]):
+		var site_wall: Array = _site_wall(l["p"]) if l["k"] == "wall" or l["k"] == "fence" else []
+		if not site_wall.is_empty() and str(site_wall[1]) == "":
 			continue
 		var style: Array = BARRIER_STYLE.get(l["k"], ["#999999", 0.3, 1.0])
-		if l["k"] == "wall":
+		if not site_wall.is_empty():
+			style = BARRIER_STYLE[str(site_wall[1])]
+		elif l["k"] == "wall":
 			if _garden_ring(l["p"]):
 				style = GARDEN_RING
 			elif _low_wall(l["p"]):
@@ -8992,13 +9014,45 @@ func _cylinder(st, centre: Vector3, radius: float, height: float, sides: int, co
 
 
 ## Benches, bins, bike racks, bus shelters and Warsaw's advertising columns. The easy-driving
+## Benches OSM puts down loosely that stand in a straight row: [the row's middle, its direction,
+## the point it faces, the radius that takes OSM's benches in]. Kino Muranów's square (F,
+## 2026-11-07, a street photo): the four benches by the metro parapet stand in one line, square to
+## the fountain; OSM had them on a crooked line, one turned round.
+const BENCH_ROWS := [[Vector2(-1623.8, -1213.9), Vector2(-0.49, 0.872), Vector2(-1636.8, -1221.6), 4.5]]
+const BENCH_GAP := 2.3
+
+
+## `list` ([x, z, yaw] flat) with BENCH_ROWS' benches set in their rows.
+static func _bench_rows(list: Array) -> Array:
+	var out := list.duplicate()
+	for row: Array in BENCH_ROWS:
+		var mid: Vector2 = row[0]
+		var dir: Vector2 = (row[1] as Vector2).normalized()
+		var idx: Array[int] = []
+		for i in range(0, out.size() - 2, 3):
+			if Vector2(float(out[i]), float(out[i + 1])).distance_to(mid) < float(row[3]):
+				idx.append(i)
+		# In order along the row, evenly spaced about its middle, all facing the point's side.
+		idx.sort_custom(func(a: int, b: int) -> bool:
+			return Vector2(float(out[a]), float(out[a + 1])).dot(dir) < Vector2(float(out[b]), float(out[b + 1])).dot(dir))
+		var f := Vector2(-dir.y, dir.x)
+		if f.dot((row[2] as Vector2) - mid) < 0.0:
+			f = -f
+		for k in idx.size():
+			var p := mid + dir * BENCH_GAP * (k - (idx.size() - 1) * 0.5)
+			out[idx[k]] = p.x
+			out[idx[k] + 1] = p.y
+			out[idx[k] + 2] = atan2(-f.x, -f.y)
+	return out
+
+
 ## loop (2026-10-30, the user's call): the small ones (benches, bins, bike racks, columns) are not
 ## obstacles, the car drives through them like the lamps and signal poles; shelters stay solid.
 func _build_props() -> void:
 	_make_shared()
 	var metal: Material = _shared["prop_metal"]
 	var none: Array[Color] = []
-	var split := _split_chopin_benches(data.get("benches", []))
+	var split := _split_chopin_benches(_bench_rows(data.get("benches", [])))
 	_props(_shared["bench"], metal, split[0], 0.0, none, true)
 	_props(_shared["bench_chopin"], metal, split[1], 0.0, none, true)
 	_props(_shared["bin"], metal, data.get("bins", []), 0.0, none, true)

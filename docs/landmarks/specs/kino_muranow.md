@@ -54,10 +54,17 @@ lamps (M_LAMP: their colour by day, lit at night).
 ## Ground and night
 
 - The fountain at (u -0.3, v 19.2), on OSM's ring `wall` (the basin; map_builder SITE_WALLS keeps
-  it from standing as a 1.9 m drum): a round platform up three steps (0.15 m rise, 0.4 m tread,
-  photo 4) running 1.6 m round a 5.0 m stone basin with water, a pedestal, four putti round a
-  column, the bowl at 4.1-4.3 m over the platform. Trees are kept 1 m clear of the bottom step.
-  The steps to the square are the map's (OSM `steps`).
+  it from standing as a 1.9 m drum): a round platform running 1.6 m round a 5.0 m stone basin
+  with water, up three steps (0.15 m rise, 0.4 m tread) on the half towards the cinema (photo 4)
+  and edged by one low kerb on the other half (F's street photo from Andersa, 2026-11-07); a
+  pedestal, four putti round a column, the bowl at 4.1-4.3 m over the platform. Trees are kept
+  1 m clear of the bottom step. The steps to the square are the map's (OSM `steps`).
+- The square towards Andersa (F's street photo and aerial, 2026-11-07): OSM's four benches by the
+  metro stair set in one straight row square to the fountain (map_builder BENCH_ROWS) on a paved
+  strip; the metro Ratusz Arsenał stair's walls drawn as a granite parapet with a rail
+  (map_builder SITE_WALLS, `balustrade_rail`), the straight wall by the steps low (LOW_WALLS),
+  and the walls down the terrace stairs at both ends as the terrace's white balustrade
+  (`balustrade_white`).
 - The café garden by the left posters: five small tables with two folding chairs each.
 - Night (photo 3): a festoon along the front's top between five hooks, festoons from it out to
   four posts and between the posts, six paper lanterns under the front festoon.
