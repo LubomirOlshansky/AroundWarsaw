@@ -13,6 +13,7 @@ Camera angle" picks 30° (default), 40° or 50° (follow_camera.gd PITCHES, sett
   so more draw calls; needs a bench on the iPhone 11 first if F wants it.
 - [ ] Some tuning still assumes 30°: the helicopter's aim (main.gd AIM_*) and check_drape's
   PITCH_SIN. Fine in the shots at 40° and 50°; revisit if something looks off on the phone.
+
 ## Novotel Warszawa Centrum from F's photos (F, 2026-11-07; docs/landmarks/novotel.md)
 
 Built: the white tiled slab with its paired windows and the lift core's blank strip, the blank narrow ends round
