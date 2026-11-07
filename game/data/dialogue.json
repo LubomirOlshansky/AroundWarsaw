@@ -6009,5 +6009,252 @@
       "O świcie puszczam ptaki. Prawdziwe przylatują same.",
       "At dawn I play birdsong. The real ones turn up on their own."
     ]
+  ],
+  "boat_race": [
+    [
+      "Gaz do dechy! Znaczy… do pokładu!",
+      "Pedal to the metal! I mean… to the deck!",
+      {
+        "only": "szymek_start"
+      }
+    ],
+    [
+      "Kto ostatni pod mostem, ten stawia lody!",
+      "Last one under the bridge buys the ice cream!",
+      {
+        "only": "szymek_start"
+      }
+    ],
+    [
+      "Pa pa! Widzimy się na mecie!",
+      "Bye bye! See you at the finish!",
+      {
+        "only": "szymek_pass"
+      }
+    ],
+    [
+      "Wisła jest szeroka, a ty jedziesz moim torem!",
+      "The Vistula's wide and you're on my line!",
+      {
+        "only": "szymek_pass"
+      }
+    ],
+    [
+      "Ej! To była moja fala!",
+      "Hey! That was my wave!",
+      {
+        "only": "szymek_passed"
+      }
+    ],
+    [
+      "Dobra, dobra, jeszcze się policzymy przy Poniatowskim.",
+      "Fine, fine, we'll settle this by Poniatowski.",
+      {
+        "only": "szymek_passed"
+      }
+    ],
+    [
+      "Kółko się przesunęło! Przysięgam!",
+      "The ring moved! I swear!",
+      {
+        "only": "szymek_miss"
+      }
+    ],
+    [
+      "Pudło. Nic nie widziałeś.",
+      "Missed. You saw nothing.",
+      {
+        "only": "szymek_miss"
+      }
+    ],
+    [
+      "Trzy pudła… Płynę po lody. Sam.",
+      "Three misses… I'm off for ice cream. Alone.",
+      {
+        "only": "szymek_out"
+      }
+    ],
+    [
+      "Lakier! Mój lakier!",
+      "The paint! My paint!",
+      {
+        "only": "szymek_bump"
+      }
+    ],
+    [
+      "To nie autodrom, tylko Wisła!",
+      "This isn't bumper cars, it's the Vistula!",
+      {
+        "only": "szymek_bump"
+      }
+    ],
+    [
+      "Meta! Gdzie moje lody?",
+      "Finish! Where's my ice cream?",
+      {
+        "only": "szymek_finish"
+      }
+    ],
+    [
+      "Spokojnie, panowie. Rzeka nie ucieka.",
+      "Easy, lads. The river isn't going anywhere.",
+      {
+        "only": "zdzisiek_start"
+      }
+    ],
+    [
+      "Złota Rybka pływała, jak was jeszcze na świecie nie było.",
+      "The Złota Rybka was sailing before you were born.",
+      {
+        "only": "zdzisiek_start"
+      }
+    ],
+    [
+      "Powoli, ale do przodu. Jak tramwaj.",
+      "Slow but forward. Like a tram.",
+      {
+        "only": "zdzisiek_pass"
+      }
+    ],
+    [
+      "Młody, kółko trzeba trafić, nie wyprzedzić.",
+      "Son, you hit the ring, you don't outrun it.",
+      {
+        "only": "zdzisiek_pass"
+      }
+    ],
+    [
+      "Leć, leć. Zobaczymy przy barce.",
+      "Off you go. We'll see by the barge.",
+      {
+        "only": "zdzisiek_passed"
+      }
+    ],
+    [
+      "Za moich czasów wyprzedzało się z kulturą.",
+      "In my day you overtook politely.",
+      {
+        "only": "zdzisiek_passed"
+      }
+    ],
+    [
+      "Okulary zostały w domu…",
+      "Left my glasses at home…",
+      {
+        "only": "zdzisiek_miss"
+      }
+    ],
+    [
+      "No to wędka i do domu.",
+      "Right, out with the rod and home.",
+      {
+        "only": "zdzisiek_out"
+      }
+    ],
+    [
+      "Ostrożnie! To jeszcze z Gierka!",
+      "Careful! She's from the seventies!",
+      {
+        "only": "zdzisiek_bump"
+      }
+    ],
+    [
+      "Rybki mi wystraszysz!",
+      "You'll scare the fish!",
+      {
+        "only": "zdzisiek_bump"
+      }
+    ],
+    [
+      "Kto pomału, ten na mecie.",
+      "Slow and steady makes the finish.",
+      {
+        "only": "zdzisiek_finish"
+      }
+    ],
+    [
+      "Nagrywam! Lajk, sub i do przodu!",
+      "I'm recording! Like, sub and go!",
+      {
+        "only": "kamil_start"
+      }
+    ],
+    [
+      "Skuter wodny, jedenaście lajków na sekundę!",
+      "Jet ski, eleven likes a second!",
+      {
+        "only": "kamil_start"
+      }
+    ],
+    [
+      "Wjeżdżam w to, ziomek!",
+      "I'm all in, mate!",
+      {
+        "only": "kamil_pass"
+      }
+    ],
+    [
+      "To idzie na rolkę!",
+      "That's going in the reel!",
+      {
+        "only": "kamil_pass"
+      }
+    ],
+    [
+      "Ej, nie było mnie w kadrze!",
+      "Hey, I was out of the shot!",
+      {
+        "only": "kamil_passed"
+      }
+    ],
+    [
+      "To się nie liczy, miałem selfie!",
+      "Doesn't count, I was taking a selfie!",
+      {
+        "only": "kamil_passed"
+      }
+    ],
+    [
+      "Kółko? Jakie kółko? To był content!",
+      "Ring? What ring? That was content!",
+      {
+        "only": "kamil_miss"
+      }
+    ],
+    [
+      "Celowo. Dla zasięgów.",
+      "On purpose. For the reach.",
+      {
+        "only": "kamil_miss"
+      }
+    ],
+    [
+      "Odpadłem, ale relacja wyszła sztos.",
+      "I'm out, but the story looks great.",
+      {
+        "only": "kamil_out"
+      }
+    ],
+    [
+      "Uważaj na kamerkę!",
+      "Mind the camera!",
+      {
+        "only": "kamil_bump"
+      }
+    ],
+    [
+      "Kontakt! To będzie miniaturka!",
+      "Contact! That's the thumbnail!",
+      {
+        "only": "kamil_bump"
+      }
+    ],
+    [
+      "Meta! Wrzucam od razu!",
+      "Finish! Posting right now!",
+      {
+        "only": "kamil_finish"
+      }
+    ]
   ]
 }
