@@ -431,8 +431,9 @@ then the Launch gate.
       → Muranów, `jobs.gd` GDANSKI) and the Łazienki peacock rescue (a roof by Ujazdów, helicopter,
       `missions.gd` `_find_peacock`); the Old Town tourist is the "fainted" rescue on Rynek Starego Miasta;
       verify step `rescues`. Phone check of both is open (below)
-- [ ] Loop 3i juice: sparks and dust (no particles yet), money pops, district ambiences,
-      haptics working on the iPhone
+- [x] Loop 3i juice (checked 2026-11-07, all in code): crash sparks and dust (`crash_fx.gd`), the
+      wallet's "+54 zł" pop (`hud.gd` `set_wallet`), district beds (`sfx.gd` DISTRICT_BEDS: river,
+      park, yard, the square's talk). Haptics on the iPhone is a phone check (the bench line below)
 - [x] DEMO 6.3 counts, rescues and słoiki: the second słoiki station is done (Dworzec Gdański,
       `jobs.gd`); the Old Town tourist rescue is the "fainted" call on Rynek Starego Miasta (ticked
       2026-11-03: a stale duplicate of the line above)
