@@ -119,6 +119,9 @@
 # 09-19, Live Jun-Sep) and one run an hour, the follow count and its reset, the look's draw-call
 # budget (2 car meshes, no node added), a run on the real tracks finding E39 once; centrum.json only
 # (CI too).
+# The tram fleet (2026-11-06): `tramfleet` runs game/tools/check_tram_fleet.gd: the four looks' meshes
+# (one surface, size, vertex cap), the eight trams carrying FLEET's looks (never more car meshes than
+# three), the vintage swap on an old pair and back, a minute of running; centrum.json only (CI too).
 # The railway (docs/design/railway.md T1): `trains` runs game/tools/check_trains.gd: the track graph's
 # ways in and out (the map's edges, both tunnel mouths), the cars' meshes (one surface, 400 tris), 40
 # simulated minutes: trains come and go, stop at Ochota, Powiśle and Stadion (the long-distance kind
@@ -225,8 +228,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads smooth streets outline pois streetdetails streetpass design models overrides stops streetmesh parkdetails parkmesh monuments monumentmesh spiremotion tarasyscreen spec lod2 courts drape ground drive drive-prebuilt deckxray stuckspots stuckspots-prebuilt lanedrive finite steering laneassist stuckoffer handling stopassist questlines stories settings credits language tiers governor heliview hud places edge roadworks roadworks-prebuilt eggs tape crowds life buses zaglebie crashes rave boatrace evtow loud crazy oldtram trains packs wellness fans garage save districts syrenki cassettes ladder racecuts first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram teleport firstlife heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads smooth streets outline pois streetdetails streetpass design models overrides stops streetmesh parkdetails parkmesh monuments monumentmesh spiremotion tarasyscreen spec drape drive deckxray stuckspots finite steering laneassist stuckoffer handling stopassist questlines stories settings credits language tiers governor heliview hud places edge roadworks eggs tape crowds life buses zaglebie crashes rave boatrace evtow loud crazy oldtram trains packs wellness fans garage save districts syrenki cassettes ladder racecuts first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds police plain ram teleport firstlife prebuilt)
+STEPS_ALL=(map roads smooth streets outline pois streetdetails streetpass design models overrides stops streetmesh parkdetails parkmesh monuments monumentmesh spiremotion tarasyscreen spec lod2 courts drape ground drive drive-prebuilt deckxray stuckspots stuckspots-prebuilt lanedrive finite steering laneassist stuckoffer handling stopassist questlines stories settings credits language tiers governor heliview hud places edge roadworks roadworks-prebuilt eggs tape crowds life buses zaglebie crashes rave boatrace evtow loud crazy oldtram tramfleet trains packs wellness fans garage save districts syrenki cassettes ladder racecuts first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram teleport firstlife heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads smooth streets outline pois streetdetails streetpass design models overrides stops streetmesh parkdetails parkmesh monuments monumentmesh spiremotion tarasyscreen spec drape drive deckxray stuckspots finite steering laneassist stuckoffer handling stopassist questlines stories settings credits language tiers governor heliview hud places edge roadworks eggs tape crowds life buses zaglebie crashes rave boatrace evtow loud crazy oldtram tramfleet trains packs wellness fans garage save districts syrenki cassettes ladder racecuts first10 mainline chatter endcard opening parodies jobs2 rescues couriers delivery rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds police plain ram teleport firstlife prebuilt)
 # Operation Unslop review (2026-11-05): the road loop ran the whole --quick (~100 steps, most start
 # the game) after every tweak. --roads keeps only the steps a road rule can break; steps not in
 # STEPS_ALL on this branch (e.g. `smooth` before the smooth-roads PR) are skipped.
@@ -919,6 +922,8 @@ for s in $want; do
 		# Crazy drivers: Szkoda taxis, Szprynter couriers, the Pasatini.
 		crazy) check crazy '^check_crazy_drivers:' --script res://tools/check_crazy_drivers.gd ;;
 		oldtram) check oldtram '^check_old_tram:' --script res://tools/check_old_tram.gd ;;
+		# The tram fleet: the newest tram, the old pairs and today's, on the real tracks.
+		tramfleet) check tramfleet '^check_tram_fleet:' --script res://tools/check_tram_fleet.gd ;;
 		# The railway (docs/design/railway.md T1): the trains on the rail tracks.
 		trains) check trains '^check_trains:' --script res://tools/check_trains.gd ;;
 		# Packs: running clubs, cycling packs, coffee raves, the big guys with tiny dogs.
