@@ -15,7 +15,8 @@ extends Node3D
 ##    night.
 ## Loop MW-3: the crowds (crowds.gd `add_crowd`) add **murmur** (a queue's or the steps' talk,
 ## `crowd_murmur`) and the steps' **guitar** (`steps_guitar`, within 20 m), each sounding while
-## its crowd says so (`when`). The dog barks wait for MW-4.
+## its crowd says so (`when`). The dog barks wait for MW-4. F (2026-11-06): the Powiśle saucer's
+## jazz band (**jazz**, `jazz_trio`) from its stage while the band is on it.
 ## At most MAX_LIVE players sound at once: the nearest emitters that are sounding, each only
 ## within its kind's reach. Everything is decided twice a second (TICK) from the camera's focus
 ## and the game clock (time_of_day.gd local_clock); nothing runs per frame but a timer. Headless
@@ -42,8 +43,11 @@ const KINDS := {
 	# The wellness circles (wellness.gd): a sound-healing ring's gong and bowls, the techno-yoga speaker's thump.
 	"gong": {"file": "gong_bowls", "db": -13.0, "unit": 8.0, "reach": 60.0, "up": 1.0},
 	"thump": {"file": "techno_thump", "db": -12.0, "unit": 8.0, "reach": 70.0, "up": 1.0},
+	# F (2026-11-06): the jazz band under the Powiśle saucer (crowds.gd's `jazz` site), heard across
+	# the square and from Kruczkowskiego while the concert is on.
+	"jazz": {"file": "jazz_trio", "db": -9.0, "unit": 12.0, "reach": 95.0, "up": 2.0},
 }
-const LOOPING := ["club", "busker", "murmur", "guitar", "queue", "chant", "gong", "thump"]
+const LOOPING := ["club", "busker", "murmur", "guitar", "queue", "chant", "gong", "thump", "jazz"]
 ## A train below a metro entrance every 3-4 minutes (vision.md 3.5).
 const METRO_GAP := Vector2(180.0, 240.0)
 ## The Patelnia's busker from 19:00 to 22:00 (vision.md 3.10: "at 19:00").
