@@ -103,7 +103,7 @@ often, known to every visitor; **B** characteristic, known to locals, gives a st
 | 37 | Pałac Potockich, Kordegarda (OSM: Galeria Kordegarda), Pałac Czapskich | Krakowskie Przedmieście | palaces | ★ | photos gathered (`refs/krakowskie/`); built 2026-11-02 from them, Czapski whole, Potocki's gates and colours, the Kordegarda (specs `czapski.md`, `potocki.md`, `kordegarda.md`); F's look on the Mac or the phone |
 | 38 | Plac Zamkowy's houses and Mariensztat | Plac Zamkowy / Mariensztat | tenements | ○ | photo re-pass of the gables; Mariensztat's reliefs |
 | 39 | Old Town and New Town tenements: Kamienica Pod Bazyliszkiem, Pod Murzynkiem, Fukierowska, Baryczkowska, Pod Okrętem | Rynek Starego Miasta / Freta | tenements | ○ | photo pass per famous house (signs, portals, painted fronts) |
-| 40 | Nowy Świat tenements and palaces (Zamoyski, Mikulski, Bürger, Jasiński, Kossakowski) | Nowy Świat | tenements | ○ | photo pass of the fronts |
+| 40 | Nowy Świat tenements and palaces (Zamoyski, Mikulski, Bürger, Jasiński, Kossakowski) | Nowy Świat | tenements | ◐ | 50 blocks modelled (BACKLOG "Street blocks across the city"); #29 left |
 | 41 | Kościół Świętego Aleksandra and Plac Trzech Krzyży | Plac Trzech Krzyży | church, square | ◐ | photo check; the square's houses (Kamienica pod Gryfami) |
 | 42 | Sejm and Senat (OSM: Sala posiedzeń Sejmu RP, Senat RP) | Wiejska | parliament | ◐ | photo check; the Senate and the Sejm's office slabs are ✗ |
 | 43 | Zamek Ujazdowski | Jazdów (Aleje Ujazdowskie) | castle, art centre | ◐ | photo check |
