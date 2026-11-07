@@ -89,7 +89,11 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		"WARSZAWA 2050", "DRONOPORT", "TOWAROWA 22", "OSTATNI ŻURAW WOLI",
 		# Prosta 32, Prosta 28 and Łucka City from F's photos (2026-11-06): parodies of the
 		# developer's red roof letters, a tenant's small red logo and the printer's roof board.
-		"MARZYPOL", "PROSTO", "INTERBRUK"]
+		"MARZYPOL", "PROSTO", "INTERBRUK",
+		# SOWA CLUB and CITY 25 (F's photos, 2026-11-06): the pavilion's parody names, its menu
+		# words, the soda's and the beer's parodies on its panel and terrace banners.
+		"SOWA", "CLUB", "CITY", "25", "RESTAURANT", "GRILL BAR", "CITY 25", "PEPSZY", "STEKI", "BURGERY",
+		"ZAPRASZAMY", "24H", "KACBERG"]
 ## Tube colours (linear, bright): pink, cyan, violet, and a few words' usual colours.
 const PINK := Color(1.0, 0.1, 0.55)
 const CYAN := Color(0.1, 0.9, 1.0)
@@ -128,6 +132,7 @@ const FONT := {
 	"-": [".....", ".....", ".....", "#####", ".....", ".....", "....."],
 	"2": [".###.", "#...#", "....#", "...#.", "..#..", ".#...", "#####"],
 	"4": ["...#.", "..##.", ".#.#.", "#..#.", "#####", "...#.", "...#."],
+	"5": ["#####", "#....", "####.", "....#", "....#", "#...#", ".###."],
 }
 
 

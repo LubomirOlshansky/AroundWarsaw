@@ -60,6 +60,18 @@ Built from F's photos (specs `prosta32.md`, `prosta28.md`, `lucka.md`). Left ope
   `--trend-log`). The Dżemini call falls back to his next spot; the Mlask job still needs the pin
   moved or a `near` hint.
 
+## SOWA CLUB and CITY 25 (F, 2026-11-06)
+
+F's three photos of the Sogo Club / City 24 pavilion. Done 2026-11-06 (site `sowa`, landmarks.gd
+`_build_sowa`; crowds.gd `SOWA`, lines `sowa_club`): the pavilion on the lawn in front of
+Al. Jerozolimskie 4-6, every name a parody (SOWA CLUB, CITY 25, PEPSZY, KACBERG). Left:
+- **Where it stood**: the 2026 street photos and the GUGiK orthophoto show lawns there now and OSM
+  has no outline, so the footprint (36 x 10 m plus the terrace) is placed from the photos against
+  the block. A Mac photo gather (Commons, older orthophotos) would pin its real size and spot.
+- **The printed glass**: the upper storey's car and city pictures, the round "24h / 7 dni" discs
+  and the terrace's printed banner are plain colour; a texture pass would add them.
+- **Phone**: the look of the pink glass and tubes at night, and a bench there (1,298 triangles,
+  one shader branch for the pink glow).
 ## Novotel Warszawa Centrum from F's photos (F, 2026-11-07; docs/landmarks/novotel.md)
 
 Built: the white tiled slab with its paired windows and the lift core's blank strip, the blank narrow ends round

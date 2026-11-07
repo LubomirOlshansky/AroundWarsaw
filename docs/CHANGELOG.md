@@ -28,6 +28,7 @@ someone writes its lines.
 - 46 named buildings across the centre got street fronts from real photos.
 
 ## 2026-11-06
+- A pink neon glass pavilion is back on Aleje Jerozolimskie by Rondo de Gaulle'a: SOWA CLUB and the CITY 25 grill, open 25 hours a day, with a terrace, an info card and night owls outside with plenty to say.
 - Warsaw's trams now come new and old: the newest trams with their dark glass face and smiling yellow nose, the old boxy yellow-and-red pairs with the round red "t", and rebuilt pairs with a new front, all running beside today's yellow trams.
 - Ilmet's tower at Rondo ONZ is now terracotta-coloured and its top steps in twice, like the real one.
 - Five Old Town and Aleje Jerozolimskie landmarks rebuilt from real photos: the National Museum's wings now have their tall stone piers, its green-roofed entrance block, three dark doors, wide steps, six flagpoles with blue banners and the black spear-topped iron fence with the gate standing open; St John's Cathedral has its true front (three tall pointed windows, deep buttresses, a stone frieze and a six-step brick gable with white panels) and the copper bell turret on the roof; the Barbican has terracotta cone roofs and stone-capped merlons; St Anne's has its giant four-column order, statues in niches and the little copper-domed bell tower; Holy Cross has its real baroque front (a small columned portal, paired pilasters, the round-headed window, a curved attic) with the black "Sursum corda" statue by the steps.
