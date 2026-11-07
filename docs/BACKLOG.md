@@ -15,6 +15,18 @@ Done 2026-11-06 (spec `docs/landmarks/specs/lim-podium.md`, site `lim`). Left:
 - **Phone**: look and bench by Centralna at night (the signs are in the landmark signs' MultiMesh,
   the screens and marks a few hundred triangles in the building mesh).
 
+## Secret rave: LEKTI, Ziomek, Smoła (F, 2026-11-06; docs/design/secret-rave.md)
+
+Built: night and day raves, LEKTI's voiced break-in on MORDOR FM, Ziomek's call and ride, the
+strict three-question door, Smoła's cutaway room (option A). Left:
+- [ ] Portraits and icons in one style (PixelLab, on the Mac with F's OK, about 50 generations): Ziomek, Bartek, LEKTI, Pan Kołek and the doorman on the call cards, icons for the door's questions
+- [ ] Techno tracks for MORDOR FM (it has one mall track, so "pick a track" in the room is not built yet); ElevenLabs Music on F's Creator plan, then a track button in the room
+- [ ] Phone check: the rig's beams and strobe at night, the room's look and the TAŃCZ timing on the iPhone; bench by an active spot (4 draw calls expected) and inside the room (3-4)
+- [ ] Other cards (rides, jobs) can still pop up during the quest; hold them while it runs
+- [ ] The dawn after: leaving at 05:00-06:00, Ziomek's last line, the city in the dawn look
+- [ ] Opaski (wristbands) collected per spot, a card in the notebook
+- [ ] Option B: a walk-around room (a person controller inside), only if A plays well
+
 ## The Emilii Plater underpass entrances (F, 2026-11-06)
 
 F's screenshots: walled boxes with steps on flat ground. Done 2026-11-06 (spec
@@ -116,6 +128,16 @@ Found and left:
 - MPW: the platform's overhang direction (west/south) stays provisional.
 - The Norblin copper glow at night is flat and strong at phone size; a phone look should say if it
   needs toning down.
+
+## The Bridge and Grzybowska 77 from F's photos (F, 2026-11-06)
+
+Done (spec `docs/landmarks/specs/bridge.md`; photos in the project files, `bridge/photos/`).
+Left open:
+- The folds are drawn as seams over facets shaded a step apart; the real faces tilt in and out by
+  a metre or more (the base corner tapers): a true folded mesh if the look check asks for it.
+- The atrium's timber slats are only seen as the lobby glass's warm tone; no interior.
+- Grzybowska 77's attic height (3 m over the cornice) is estimated from the aerial; OSM says 20.8 m in all.
+- Phone look check: the tower and the block by day and night, the blue ERZATZ from the Towarowa side.
 
 ## Foksal 13 and 15 from F's photos (F, 2026-11-05)
 
@@ -357,6 +379,23 @@ experience". The plan, the road audit and the causes are in docs/GAMEPLAY_PLAN.m
 - [ ] 3.x ~~Lane assist~~ (built 2026-11-04 behind a switch, see "Beta values"), wall look-ahead, junction pick, deck cut in the ghost, F's phone run
 - [ ] 4.1 Running clubs read as a blue blob at crossings: mixed kit, pairs, spread out
 - [ ] 4.2 Varso Place masses from photos (the gap between the tower and Varso 1/2)
+
+## Dead electric cars: Bartek's TESŁO and stranded EVs (F, 2026-11-06)
+
+Built (`game/scripts/ev_tow.gd`, check `evtow`): a call from Bartek (ODBIERZ / ODRZUĆ, then LECĘ!),
+the helicopter takes off, the TESŁO Model Ś (parody: white fastback, green plates) hooks on a 10 m
+sling (damped pendulum, the loaded helicopter 25 % slower), set down on a charger bay by
+Elektrownia Powiśle, Hala Koszyki, Złote Tarasy or the Palace (Marszałkowska); 180 zł + 30
+respect, +60 zł under 150 s. Bartek's lines (`ev_tow`), stranded drivers (`ev_stranded`), KEBAB FM
+(`radio_host` tag `ev`); "tesla", "elon musk", "supercharger", "cybertruck" on the brand denylist.
+Stranded TESŁOs (every 3-5 min, kerb lane of a main road, hazards blinking, traffic goes round an
+invisible parked car) can be carried from the helicopter for a 60 zł tip. Open:
+- [ ] Phone feel of the swing and the slower loaded helicopter (QUESTIONS), and of the first call at 5-8 min
+- [ ] A ringtone and a winch sound (sfx.gd has none; Access.buzz only)
+- [ ] The charger bays are the kerb lane by each place: real charger spots from OSM (`amenity=charging_station` is not in our extracts) and a Mac photo check
+- [ ] The car hangs through roofs lower than it (it rides over them): fine for arcade, check it reads on the phone
+- [ ] A QUESTS list row for the call (quest_lines.gd) and a map marker for stranded cars
+- [ ] An egg-book card "Zielone tablice" after three carries
 
 ## Crazy drivers in traffic (F, 2026-11-05)
 
@@ -1513,8 +1552,13 @@ the OSM outlines, no photos; specs in docs/landmarks/specs/):
 Plan: docs/design/railway.md. One PR per item, in this order:
 - ~~S1 Warszawa Ochota and S2 Warszawa Powiśle as landmarks~~ Done 2026-11-01 (sites `ochota`,
   `powisle`, specs in docs/landmarks/specs/). Left: Mac photo checks (Ochota's stripes, supports and
-  stairs; Powiśle's arches, the saucer's profile, the canopies' length, the neon's letters); the
-  stairs from the round pavilion up to the platforms; a WARSZAWA OCHOTA sign if the real one has it.
+  stairs; Powiśle's arches, the canopies' length); the stairs from the round pavilion up to the
+  platforms; a WARSZAWA OCHOTA sign if the real one has it. The round pavilion's saucer and letters
+  were rebuilt from F's photos on 2026-11-06 (jazz nights, below).
+- Powiśle jazz nights (F, 2026-11-06, spec `powisle.md` 9), open: the phone's look of the letter
+  boxes and the bulbs (draw calls unchanged, triangles up), the jazz loop's level against the radio on
+  the phone's speaker, the coloured light washes under the saucer (the game's camera never sees the
+  underside, so none were built), the projected line patterns of F's night photo, planters.
 
 ## Krakowskie Przedmieście street by street (F, 2026-11-02), pass 1
 Built (cloud, Sonnet): eight shopfronts (`Storefronts.KRAKOWSKIE`, 93 venue signs in check_parodies), original names, at the mapped house numbers 20/22, 19, 27, 56, 45, 58/60, 64, 69. Open:

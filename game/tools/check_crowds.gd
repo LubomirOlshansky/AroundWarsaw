@@ -367,6 +367,20 @@ func _check_sites(c: Crowds) -> void:
 			and Crowds.loretka_terrace(0.5, 7, 7, false, 16) == 16 and Crowds.loretka_terrace(16.0, 5, 7, false, 16) == 0
 			and Crowds.loretka_terrace(20.0, 5, 11, false, 16) == 0 and Crowds.loretka_terrace(20.0, 5, 7, true, 16) == 0
 			and Crowds.loretka_terrace(1.5, 6, 7, false, 16) == 0, "LORETKA's terrace: its couples by hour, month and rain")
+	# F (2026-11-06): the jazz evenings under the Powiśle saucer: the band only while the concert is on.
+	_expect(not Crowds.jazz_on(17.0) and Crowds.jazz_on(19.0) and Crowds.jazz_on(23.0) and not Crowds.jazz_on(0.5)
+			and Crowds.jazz_level(21.0, 5, 7, false) == 1.0 and Crowds.jazz_level(21.0, 2, 7, false) < 0.6
+			and Crowds.jazz_level(21.0, 5, 7, true) < 1.0 and Crowds.jazz_level(14.0, 5, 7, false) == 0.0
+			and Crowds.jazz_cafe_level(9.0, 7, false) == 0.0 and Crowds.jazz_cafe_level(20.0, 7, false) > 0.5,
+			"Powiśle jazz: the concert's and the café's hours")
+	for jid: String in [Crowds.JAZZ_ID, Crowds.JAZZ_CAFE_ID]:
+		_expect(c.by_id.has(jid), "no crowd at %s" % jid)
+	if c.by_id.has(Crowds.JAZZ_ID):
+		var js: Dictionary = c.sites[c.by_id[Crowds.JAZZ_ID]]
+		var jsl: Array = js.get("slots", [])
+		_expect(jsl.size() == int(js["max"]) and jsl.size() > Crowds.JAZZ_BAND + 20, "Powiśle jazz: %d places of %d" % [jsl.size(), int(js["max"])])
+		if jsl.size() > Crowds.JAZZ_BAND:
+			_expect(jsl[0].has("y") and not jsl[Crowds.JAZZ_BAND].has("y"), "Powiśle jazz: the band on the stage first, then the audience")
 	_expect(c.by_id.has(Crowds.LORETKA_ID), "no crowd on LORETKA's terrace")
 	if c.by_id.has(Crowds.LORETKA_ID):
 		var lt: Dictionary = c.sites[c.by_id[Crowds.LORETKA_ID]]
