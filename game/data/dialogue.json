@@ -6010,7 +6010,6 @@
       "At dawn I play birdsong. The real ones turn up on their own."
     ]
   ],
-<<<<<<< HEAD
   "sowa_club": [
     [
       "Steki o czwartej rano. Tylko tu i tylko w tej różowej poświacie.",
@@ -6051,7 +6050,8 @@
     [
       "Nocne sowy przylatują po pierwszej. Ranne ptaszki już wychodzą.",
       "The night owls fly in after one. The early birds are already leaving."
-=======
+    ]
+  ],
   "boat_race": [
     [
       "Gaz do dechy! Znaczy… do pokładu!",
@@ -6297,7 +6297,6 @@
       {
         "only": "kamil_finish"
       }
->>>>>>> origin/main
     ]
   ]
 }
