@@ -1722,6 +1722,10 @@ func _build_life(data: Dictionary, world: Node3D) -> void:
 	# First scene item 6: busier pavements on Marszałkowska by the start.
 	var busy := walkers.set_busy(FirstScene.FRAME_O, FirstScene.FRAME_S, FirstScene.FRAME_T, FirstScene.BUSY_BANDS, FIRST_SCENE)
 	print("first scene: %d busy pavement points" % busy)
+	# F's LIM photos (2026-11-06): the pavement under Centrum LIM's arcade and the Dworzec Centralny
+	# tram stop in front of it, busy at every hour.
+	busy = walkers.add_busy(LIM_BUSY_O, LIM_BUSY_S, LIM_BUSY_T, LIM_BUSY_BANDS, LIM_BUSY_BOX)
+	print("centrum lim: %d busy pavement points" % busy)
 	traffic.bumped_driver.connect(dialogue.on_driver_bumped)
 	traffic.blocked_by_player.connect(dialogue.on_driver_blocked)
 	rivals = Rivals.new()
@@ -1799,6 +1803,14 @@ func _build_park_details(world: Node3D) -> void:
 ## first frame wants them when the camera reaches the car, not long gone while the title was up;
 ## the first of them to pass the car rings its bell (trams.gd greet).
 const FIRST_SCENE := Rect2(-1080.0, -160.0, 200.0, 420.0)
+## F's LIM photos (2026-11-06): Centrum LIM's street face (its west corner, along it eastwards,
+## out towards Aleje Jerozolimskie) and the busy bands [s0, s1, t0, t1] in that frame: the arcade
+## and the pavement, then the Dworzec Centralny tram platforms; the box where the boost applies.
+const LIM_BUSY_O := Vector2(-1427.8, 702.2)
+const LIM_BUSY_S := Vector2(0.946, -0.325)
+const LIM_BUSY_T := Vector2(-0.325, -0.946)
+const LIM_BUSY_BANDS := [[-15.0, 160.0, -7.0, 14.0], [-45.0, 70.0, 14.0, 45.0]]
+const LIM_BUSY_BOX := Rect2(-1480.0, 600.0, 230.0, 130.0)
 const MARSZALKOWSKA_NORTH := Vector2(-0.349, -0.937)
 const FIRST_UP_V := 7.0
 const FIRST_DOWN_V := 8.0

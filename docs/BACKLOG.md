@@ -40,6 +40,16 @@ Paca, Collegium Nobilium) and Pałac Branickich's modelled Miodowa front. Left, 
 - Pałac Szaniawskich's pediment and arched ground floor (M204); Pałac Prymasowski and Pałac Blanka on Senatorska have no ground photo yet.
 - Branickich: Mac look check of the storey count under the cornice and the end pavilions.
 
+## Centrum LIM's podium from F's night photos (F, 2026-11-06)
+
+Done 2026-11-06 (spec `docs/landmarks/specs/lim-podium.md`, site `lim`). Left:
+- **The tower's night look**: the photos show the hotel's name and the phone maker's name on all
+  four faces; the game has them on two (south and east), and the lit cells are random.
+- **A day look check**: only night photos so far; the panel colour and the signs by day are a guess.
+- **The screens are still pictures**: real ones cycle adverts; a moving screen would need a script
+  like Warsaw Spire's ticker.
+- **Phone**: look and bench by Centralna at night (the signs are in the landmark signs' MultiMesh,
+  the screens and marks a few hundred triangles in the building mesh).
 
 ## Street blocks across the city (F, 2026-11-06)
 
@@ -576,6 +586,25 @@ the steering. Review, findings and the A/B list: `docs/design/beta-values.md`.
 - [ ] A real-map hands-off drive with the lane assist (Wisłostrada, Trasa Łazienkowska, the bridges): `check_lane_drive` with a Classic driver
 - [ ] GAMEPLAY_PLAN 1.5 items 2, 3, 5: wall look-ahead, junction pick, camera lead at junctions
 - [ ] If F picks them: the delivery streak "Seria", a smooth tip, slipstream, a shorter card wait
+
+## Main's road bugs (F, 2026-11-07: main as base, small fixes)
+
+Checked on the photo against main at Marszałkowska × Królewska, Świętokrzyska × Mazowiecka and × Jasna,
+then whole-map in `tools/road_fixes.py` (run after road_smooth; verify step `fixes`, ratchets).
+- [x] Lane, centre, solid and bus lines ran on past the zebra or stop line into the junction: cut in 1,682
+  mouths (7.7 km), and on another main street's ribbon (90 m); a line whose cut would read as a jog stays
+- [x] Turn arrows painted past the zebra (some on the stripes): 406 moved behind the stop line, 60 dropped
+  (the lane already had an arrow there, or no asphalt behind)
+- [x] 61 zebras under 1 m (dots left by the asphalt clip) dropped; zebra ends short of the kerb run on (158 m)
+- [x] Dark patches in junction boxes: not in the game (every ribbon and area is one colour at one height);
+  they came from the flat comparison pictures, which draw ribbons half transparent over the photo
+Found:
+- [ ] Zebras and cycle crossings already run kerb to kerb (or kerb to median) on the data: no dual
+  carriageway crossed on one side only, 1 cycle crossing shorter than its zebra. What still reads as
+  "short" on the photo is the stripe length: the game paints 3.6 m everywhere, the photo shows 4-6 m on
+  main streets (a map_builder change, not done: F's call, main as base)
+- [ ] Lane lines through a junction where the same street turns (one name both ways) are kept
+- [ ] Unsignalled crossings more than 12 m from the junction's ribbons count as mid-block (lines kept)
 
 ## Operation Unslop: streets that don't look generated (F, 2026-11-05)
 
