@@ -7,7 +7,9 @@ description: Rebuilds a stretch of Around Warsaw's streets from zero with the ro
 
 Why and how it works: docs/design/road-design-system.md (sections 1-5). The first area was the
 Palace of Culture block (`docs/roads/palace.json`, results in docs/design/road-design-palace-results.md).
-One area per thread and PR. Opus for the measuring and the junctions (map geometry); Sonnet can extend a
+**F, 2026-11-07: main as base.** Outside the Palace block, keep main's roads and fix only real bugs;
+the area 3-7 redesigns lost to main in every scene (they dropped arrows, medians, islands, cycle paths).
+A new design needs F's ask and must carry every such OSM detail over. One area per thread and PR. Opus for the measuring and the junctions (map geometry); Sonnet can extend a
 spec that already has its pattern (another mid-block stretch, another opening).
 
 ## The loop
@@ -60,11 +62,20 @@ spec that already has its pattern (another mid-block stretch, another opening).
 
 ## Rules that keep it clean
 
+- Every area meets the AAA checklist in docs/design/road-design-quality.md (all of F's review
+  lessons); its before/after page shows each line.
+
 - Never patch a designed street's output; change the spec and rebuild. Applying twice is refused
   (`road_design` marker in the map); start from main's map.
 - Kerbs run continuous past zebras (the renderer lowers them and lays tactile pads there); they break
   only at openings and junction mouths.
 - Every side road the old map had needs an opening or a gap, or it ends at a kerb.
+- A roundabout is a junction with `ring` (docs/roads/rondo.json): its arms end at the centre, the
+  island and the outer circle come from the ring, `mouth` puts the arm medians' noses on the ring.
+  Measure it on a polar unroll of the ortho round the centre (lane lines become straight rows).
+  Arms that leave the ring sideways (docs/roads/degaulle.json) end on the ring instead: use
+  `halves`, a larger `corners` circle where an arm's outer kerb never comes inside `ro`, and tight
+  `radii` at the noses between two such arms.
 - Every zebra and cycle crossing meets its footway / cycle track at the kerb: apply_design moves
   pavements the wider kerb covers out to it, bends cut paths onto the nearest crossing and paints
   crossings over side-road mouths; a crossing the old map had and the design lacks shows up as a

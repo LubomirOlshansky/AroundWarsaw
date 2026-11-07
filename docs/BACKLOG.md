@@ -80,6 +80,32 @@ Left:
 - PT-25 (suspect): crazy drivers honk but said no line in 5 cut-ins.
 - PT-26, PT-27 (S3): a bubble over the steering hint; the KEBAB label over BRAKE.
 
+## Road design rollout: every street on the map (F, 2026-11-06; docs/design/road-design-rollout.md)
+
+**Decision (F, 2026-11-07): main as base, small fixes.** F compared the area 3-7 redesigns with main
+scene by scene and found main better in every one (Królewska, Świętokrzyska × Mazowiecka and Jasna,
+Rondo Dmowskiego's arms, Jerozolimskie east, Nowy Świat south, Marszałkowska south). The redesigns
+were measured truer to the photo but dropped what made main's streets read well: grass medians,
+turn arrows, islands, slip lanes and lay-bys, cycle paths and crossings. They are taken out
+(docs/roads/ keeps only palace.json, areas 1-2, which F approved; the dropped specs are in git
+history at 0cfc1ff). Areas and progress: docs/plan/road-areas.json, `python3 -I tools/road_progress.py`.
+
+- Areas 3-12 and tiers B and C: keep main's roads and fix only real bugs against the photo
+  (ribbons overlapping in junction boxes, zebras shorter than the carriageway, tram beds paved to
+  the stop line, broken mouths), never removing main's medians, arrows, islands or cycle paths.
+  One area per round, before/after per fix.
+- Lesson for any future design: carry over every OSM detail the photo cannot show (turn arrows,
+  cycle paths and crossings, islands, slip lanes, lay-bys) and compare each scene with main before
+  calling it better.
+- Apply the Palace design (areas 1-2) to the shipped map after a phone bench.
+- Main's real bugs, seen on the photo vs main at Marszałkowska × Królewska, Świętokrzyska ×
+  Mazowiecka and × Jasna (2026-11-07), the same across the map, so they are fixed once in the bake,
+  not per area: (1) zebras cover only part of the carriageway (often one lane or one direction);
+  they should run kerb to kerb, or kerb to median; (2) cycle crossings are short red bars across a
+  single lane, not the band across the street beside the zebra; (3) lane lines run on through the
+  junction box; they should stop at the stop line or the zebra; (4) overlapping ribbons show darker
+  patches in the junction boxes. Each fix keeps main's medians, arrows, islands and cycle paths.
+
 ## Road design system: round 2 (F, 2026-11-06; docs/design/road-design-palace-results.md)
 
 - Seams where a designed street ends in the middle of a block: the old lane lines carry on up to 2.4 m
@@ -143,6 +169,16 @@ Found and left:
 - MPW: the platform's overhang direction (west/south) stays provisional.
 - The Norblin copper glow at night is flat and strong at phone size; a phone look should say if it
   needs toning down.
+
+## The Bridge and Grzybowska 77 from F's photos (F, 2026-11-06)
+
+Done (spec `docs/landmarks/specs/bridge.md`; photos in the project files, `bridge/photos/`).
+Left open:
+- The folds are drawn as seams over facets shaded a step apart; the real faces tilt in and out by
+  a metre or more (the base corner tapers): a true folded mesh if the look check asks for it.
+- The atrium's timber slats are only seen as the lobby glass's warm tone; no interior.
+- Grzybowska 77's attic height (3 m over the cornice) is estimated from the aerial; OSM says 20.8 m in all.
+- Phone look check: the tower and the block by day and night, the blue ERZATZ from the Towarowa side.
 
 ## Foksal 13 and 15 from F's photos (F, 2026-11-05)
 

@@ -32,13 +32,25 @@ Spec (docs/roads/AREA.json), map metres, +x east, +z south; offsets are to the r
                 "gaps": [{"s0": 140, "s1": 160}],
                 "start": "j1", "end": "cut"}],
    "junctions": [{"id": "j1", "r": 9, "arms": {"marsz": {"x": 3.5}, ...}}]}
-  lanes: d +1 along the axis, -1 against; k lane (default), bus, bike; t turn arrows (L T R LT TR U);
-  w width (else an equal share of what is left). med: tram, grass, island (one per gap between
+  lanes: d +1 along the axis, -1 against; k lane (default), bus, bike, park, gap (hatched; "plain":
+  true for an unhatched strip between two solid lines); t turn arrows (L T R LT TR U);
+  w width (else an equal share of what is left; "shift": true on a carriageway that moves
+  sideways to the next section keeps its lane lines sliding with it). med: tram, grass, island (one per gap between
   carriageways; "none" for a painted gap). crossings: mid-block zebras (bs: a cycle crossing beside
   it). openings: a side road or driveway leaving one side (kerb break, two kerb returns). gaps: the
   median broken where a side street or U-turn crosses (paved; the lanes' paint runs on). closed:
   [{"s0", "s1", "side"}] where the map has a road crossing the kerb but the photo has an unbroken
   kerb (a footway-only service way, a plaza access): no automatic opening there.
+  greens: [{"s0", "s1", "l", "r", "med"}] grass strips inside a tram median (offsets, or "edge" for
+  the median's own edge on that side), raised and kerbed.
+  A junction with "ring": {"c", "u", "ri", "rd", "track", "ro", "corners", "r", "lines"} is a
+  roundabout: the island round c (ri, ri + rd on the diagonals of the frame u), the ring's outer
+  edge a circle ro (per corner "a/b") met by each arm's kerbs in fillets of radius r, its dashed
+  lane lines at the radii `lines`, all broken over a tram cross `track` m either side of the
+  axes ("tram_axes": "v" for one tram line along v); "island": true draws the island itself (raised
+  paving either side of the tram); "halves": true cuts the ring's asphalt in two along v instead of
+  fanning it (for arms that leave the ring sideways); "radii" per corner "a/b" (a tight nose; where
+  two arms' kerbs meet outside the circle the corner is a plain kerb return); an arm's "mouth" is where its medians end, "stop" where its stop line is.
   park_cars (area level): true puts parked cars along every `park` lane (road_design.park_cars).
   open_ends (area level): [{"x", "z", "note"}] path ends checked on the ortho that really stop at
   the kerb with no crossing; the continuity gate passes them.
@@ -260,6 +272,7 @@ class Street:
         self.meds = self.sections[0].get("med", ["none"] * (n - 1))
         self.s0 = 0.0          # the mouths (set by the junctions)
         self.s1 = self.L
+        self.kerb_from = {}    # (end, side) -> metres from that end where the outer kerb starts (roundabouts)
 
     def at(self, s):
         """(point, tangent) on the axis s metres along."""
@@ -288,29 +301,38 @@ class Street:
             return add(p, mul(d, s - self.L)), d
         return self.at(s)
 
-    def section_at(self, s):
-        """(previous section, this section, blend 0..1) for the kerbs' smooth taper."""
-        cur = self.sections[0]
-        prev = cur
-        for sec in self.sections:
-            if sec["s"] <= s + 1e-6:
-                prev, cur = cur, sec
-        # blend: the change between prev and cur ramps over [cur.s - taper, cur.s]
-        idx = self.sections.index(cur)
-        nxt = self.sections[idx + 1] if idx + 1 < len(self.sections) else None
-        if nxt is not None:
-            taper = nxt.get("taper", TAPER)
-            if s > nxt["s"] - taper:
-                return cur, nxt, smoothstep((s - (nxt["s"] - taper)) / taper)
-        return cur, cur, 1.0
+    def cw_blend(self, nxt, i, s, edge=""):
+        """How far (0..1) carriageway i has moved towards section `nxt` at s: over the section's
+        taper before its s, or the carriageway's own ("at": where it arrives, "taper"; "l_at",
+        "l_taper", "r_at", "r_taper" for one kerb) so a kerb can step square at a stairwell
+        while the rest bends slowly."""
+        cb = nxt["cw"][i]
+        end = float(cb.get(edge + "at", cb.get("at", nxt["s"])))
+        tp = float(cb.get(edge + "taper", cb.get("taper", nxt.get("taper", TAPER))))
+        if s <= end - tp:
+            return 0.0
+        if s >= end:
+            return 1.0
+        return smoothstep((s - (end - tp)) / tp)
 
     def edges(self, s):
         """[(l, r)] of every carriageway at s, tapered."""
-        a, b, t = self.section_at(s)
+        idx = 0
+        for k, x in enumerate(self.sections):
+            if x["s"] <= s + 1e-6:
+                idx = k
+        cur = self.sections[idx]
+        nxt = self.sections[idx + 1] if idx + 1 < len(self.sections) else None
         out = []
         for i in range(self.ncw):
-            ca, cb = a["cw"][i], b["cw"][i]
-            out.append((ca["l"] + (cb["l"] - ca["l"]) * t, ca["r"] + (cb["r"] - ca["r"]) * t))
+            ca = cur["cw"][i]
+            if nxt is None:
+                out.append((ca["l"], ca["r"]))
+                continue
+            cb = nxt["cw"][i]
+            tl = self.cw_blend(nxt, i, s, "l_")
+            tr = self.cw_blend(nxt, i, s, "r_")
+            out.append((ca["l"] + (cb["l"] - ca["l"]) * tl, ca["r"] + (cb["r"] - ca["r"]) * tr))
         return out
 
     def bounds(self, sec, s):
@@ -346,27 +368,42 @@ class Street:
         rows = self.bounds(sec, s)
         nxt = self.sections[idx + 1] if idx + 1 < len(self.sections) else None
         if nxt is not None:
-            taper = float(nxt.get("taper", TAPER))
-            if s > nxt["s"] - taper:
-                t = smoothstep((s - (nxt["s"] - taper)) / taper)
-                ahead = self.bounds(nxt, nxt["s"])
-                here = self.bounds(nxt, s)
-                for i, (lanes, xs) in enumerate(rows):
-                    at_end = self.bounds(sec, nxt["s"])[i][1]
-                    target = ahead[i][1][1:-1]
-                    used = set()
+            ahead = here = None
+            for i, (lanes, xs) in enumerate(rows):
+                t = self.cw_blend(nxt, i, s)
+                if max(t, self.cw_blend(nxt, i, s, "l_"), self.cw_blend(nxt, i, s, "r_")) <= 0.0:
+                    continue
+                if ahead is None:
+                    ahead = self.bounds(nxt, nxt["s"])
+                    here = self.bounds(nxt, s)
+                at_end = self.bounds(sec, nxt["s"])[i][1]
+                target = ahead[i][1][1:-1]
+                used = set()
+                if len(target) == len(xs) - 2 and sec["cw"][i].get("shift") is not None:
+                    # a carriageway that moves sideways ("shift": true) keeps its lanes: each
+                    # line slides to the same line of the next section (at once where a kerb
+                    # steps on its own: the lanes share the carriageway between its kerbs)
+                    own = any(k in nxt["cw"][i] for k in ("l_at", "r_at", "l_taper", "r_taper"))
+                    nom = ahead[i][1]
                     for b in range(1, len(xs) - 1):
-                        best = None
-                        for c, y in enumerate(target):
-                            if c in used:
-                                continue
-                            dd = abs(y - at_end[b])
-                            if dd <= 2.0 and (best is None or dd < best[0]):
-                                best = (dd, c)
-                        if best is not None:
-                            used.add(best[1])
-                            goal = here[i][1][best[1] + 1]
-                            xs[b] = xs[b] + (goal - xs[b]) * t
+                        if own:
+                            f = (nom[b] - nom[0]) / (nom[-1] - nom[0])
+                            xs[b] = xs[0] + (xs[-1] - xs[0]) * f
+                        else:
+                            xs[b] = xs[b] + (here[i][1][b] - xs[b]) * t
+                    continue
+                for b in range(1, len(xs) - 1):
+                    best = None
+                    for c, y in enumerate(target):
+                        if c in used:
+                            continue
+                        dd = abs(y - at_end[b])
+                        if dd <= 2.0 and (best is None or dd < best[0]):
+                            best = (dd, c)
+                    if best is not None:
+                        used.add(best[1])
+                        goal = here[i][1][best[1] + 1]
+                        xs[b] = xs[b] + (goal - xs[b]) * t
         out = []
         for lanes, xs in rows:
             out.append([(x, xs[n], xs[n + 1]) for n, x in enumerate(lanes)])
@@ -400,6 +437,7 @@ class Design:
         self.out = {k: [] for k in ("carriage", "kerbs", "islands", "medians", "markings", "symbols",
                                     "zebras", "cyclecross", "tram_xings")}
         self.footprint = []     # polygons of designed asphalt and medians
+        self.ring_islands = []  # (centre, radius) of roundabout islands the design draws itself
         self.mouths = []        # side-road mouths: old kerbs and lines go, the side road stays
         self.crossings = {}     # street id -> [(s0, s1)] where kerbs and lines break
         self.stops = {}         # street id -> [(s of the stop line, direction of the lanes it stops)]
@@ -439,6 +477,23 @@ class Design:
 
     def build_junction(self, j):
         arms = self.arms(j)
+        n = len(arms)
+        ring_spec = j.get("ring")
+        if ring_spec:
+            # round a roundabout the arms go in the order of where they meet the ring
+            C = tuple(ring_spec["c"])
+            for a in arms:
+                q = add(a["p"], mul(a["dir"], 30.0))
+                a["ang"] = math.atan2(q[1] - C[1], q[0] - C[0])
+            arms.sort(key=lambda a: a["ang"])
+        corners = self.ring_corners(j, arms) if ring_spec else self.plain_corners(j, arms)
+        self._finish_junction(j, arms, corners)
+        if ring_spec:
+            self.ring_details(j)
+        return arms
+
+    def plain_corners(self, j, arms):
+        """Kerb returns: each pair of neighbouring arms meets in an arc of radius r (j.r, radii)."""
         R = float(j.get("r", KERB_RETURN))
         n = len(arms)
         corners = []
@@ -467,12 +522,243 @@ class Design:
             a1 = math.atan2(p1[1] - centre[1], p1[0] - centre[0])
             a2 = math.atan2(p2[1] - centre[1], p2[0] - centre[0])
             corners.append({"a": a, "b": b, "ta": ta, "tb": tb, "arc": arc(centre, r, a1, a2)})
+        return corners
+
+    def _kerb_return(self, a, b, r):
+        """A corner arc of radius r between arm a's +1 kerb and arm b's -1 kerb, or None."""
+        pa = self.arm_kerb(a, +1, 0.0)
+        pb = self.arm_kerb(b, -1, 0.0)
+        hit = line_hit(pa, a["dir"], pb, b["dir"])
+        if hit is None:
+            return None
+        phi = math.acos(max(-1.0, min(1.0, dot(a["dir"], b["dir"]))))
+        if phi < 1e-3 or phi > math.radians(170):
+            return None
+        corner = add(pa, mul(a["dir"], hit[0]))
+        t = r / math.tan(phi / 2.0)
+        p1 = add(corner, mul(a["dir"], t))
+        p2 = add(corner, mul(b["dir"], t))
+        centre = add(corner, mul(norm(add(a["dir"], b["dir"])), r / math.sin(phi / 2.0)))
+        a1 = math.atan2(p1[1] - centre[1], p1[0] - centre[0])
+        a2 = math.atan2(p2[1] - centre[1], p2[0] - centre[0])
+        return {"a": a, "b": b, "ta": hit[0] + t, "tb": hit[1] + t, "arc": arc(centre, r, a1, a2)}
+
+    # roundabouts ---------------------------------------------------------------------------
+
+    @staticmethod
+    def ring_frame(g):
+        """(centre, u, v) of a roundabout: u along one street through it, v square to u."""
+        C = tuple(g["c"])
+        u = norm(tuple(g.get("u", (0.0, 1.0))))
+        return C, u, (u[1], -u[0])
+
+    def ring_island(self, g, phi):
+        """The central island's edge at frame angle phi: ri at the tram cross, ri + rd on the
+        diagonals (the Rondo Dmowskiego island, landmarks.gd _rondo_r)."""
+        C, u, v = self.ring_frame(g)
+        r = float(g["ri"]) + float(g.get("rd", 0.0)) * math.sin(2.0 * phi) ** 2
+        return add(C, add(mul(v, r * math.cos(phi)), mul(u, r * math.sin(phi))))
+
+    def ring_phi(self, g, p):
+        C, u, v = self.ring_frame(g)
+        q = sub(p, C)
+        return math.atan2(dot(q, u), dot(q, v))
+
+    def _ring_fillet(self, C, a, side, rc, r):
+        """Where arm a's outer kerb (side +1 towards the next arm) turns into the ring's outer
+        circle rc: (distance out along the arm, kerb tangent point, circle tangent point, centre)."""
+        d = a["dir"]
+        nrm = (-d[1], d[0]) if side > 0 else (d[1], -d[0])
+        # the distance out along the arm where a circle of radius r on the pavement side of the
+        # kerb touches the ring's circle from outside (bisection: the arm need not point at C,
+        # an arm that leaves the ring sideways ends on the ring, not at its centre)
+        f = lambda t: math.dist(add(self.arm_kerb(a, side, t), mul(nrm, r)), C) - (rc + r)
+        lo, hi = 0.0, 120.0
+        if f(lo) >= 0.0:
+            hi = lo
+        for _ in range(50):
+            if hi - lo < 0.01:
+                break
+            mid = (lo + hi) / 2.0
+            if f(mid) < 0.0:
+                lo = mid
+            else:
+                hi = mid
+        t = hi
+        k = self.arm_kerb(a, side, t)
+        centre = add(k, mul(nrm, r))
+        q = add(C, mul(sub(centre, C), rc / math.dist(centre, C)))
+        return t, k, q, centre
+
+    def ring_corners(self, j, arms):
+        """A roundabout's outer edge: between two arms a circle round the centre (ring.ro, or
+        ring.corners["a/b"] for that corner), met by each arm's kerb in a fillet of radius ring.r
+        (ring.radii["a/b"] for that corner: a tight nose where an arm leaves the ring sideways)."""
+        g = j["ring"]
+        C = tuple(g["c"])
+        r = float(g.get("r", KERB_RETURN))
+        n = len(arms)
+        corners = []
+        for i in range(n):
+            a, b = arms[i], arms[(i + 1) % n]
+            key = "%s/%s" % (a["st"].id, b["st"].id)
+            rc = float(g.get("corners", {}).get(key, g["ro"]))
+            rr = float(g.get("radii", {}).get(key, r))
+            ta, ka, qa, ca = self._ring_fillet(C, a, +1, rc, rr)
+            tb, kb, qb, cb = self._ring_fillet(C, b, -1, rc, rr)
+            ang = lambda c, p: math.atan2(p[1] - c[1], p[0] - c[0])
+            arc_a = arc(ca, rr, ang(ca, ka), ang(ca, qa))
+            a1, a2 = ang(C, qa), ang(C, qb)
+            sweep = (a2 - a1) % (2 * math.pi)
+            if sweep > 1.5 * math.pi:
+                # the two fillets overlap: the arms' kerbs meet outside the ring's circle, so the
+                # corner is a plain kerb return between them (an arm beside another's mouth)
+                plain = self._kerb_return(a, b, rr)
+                if plain:
+                    corners.append(plain)
+                    continue
+            m = max(2, int(sweep * rc / 1.0))
+            circ = [add(C, (rc * math.cos(a1 + sweep * k / m), rc * math.sin(a1 + sweep * k / m))) for k in range(m + 1)]
+            arc_b = arc(cb, rr, ang(cb, qb), ang(cb, kb))
+            corners.append({"a": a, "b": b, "ta": ta, "tb": tb, "arc": dedupe(arc_a + circ + arc_b)})
+        return corners
+
+    def ring_pieces(self, g, loop):
+        """The ring's asphalt without its island: the outer edge `loop` (counter-clockwise in
+        atan2 terms round the centre) fanned in to the island edge, in pieces of about 10 degrees.
+        A piece ends only at a vertex no earlier vertex passes in angle and no later one falls
+        back behind (a kerb running out along an arm turns back a little), so the straight edge
+        from the island to that vertex never crosses the outer edge."""
+        C = tuple(g["c"])
+        th = []
+        for p in loop:
+            a = math.atan2(p[1] - C[1], p[0] - C[0])
+            if th:
+                a = th[-1] + (a - th[-1] + math.pi) % (2 * math.pi) - math.pi
+            th.append(a)
+        loop = loop + [loop[0]]
+        th = th + [th[0] + 2 * math.pi]
+        n = len(loop)
+        pre = list(th)
+        for k in range(1, n):
+            pre[k] = max(pre[k - 1], th[k])
+        suf = list(th)
+        for k in range(n - 2, -1, -1):
+            suf[k] = min(suf[k + 1], th[k])
+        cuts = [k for k in range(n) if pre[k] <= th[k] + 1e-9 and th[k] <= suf[k] + 1e-9]
+        _, u, v = self.ring_frame(g)
+
+        def island(a):
+            w = (math.cos(a), math.sin(a))
+            return self.ring_island(g, math.atan2(dot(w, u), dot(w, v)))
+        pieces = []
+        i = cuts[0]
+        for j in cuts[1:]:
+            if th[j] - th[i] < math.radians(10.0) and j != cuts[-1] and j - i < 40:
+                continue
+            outer = loop[i:j + 1]
+            m = max(1, int(math.degrees(th[j] - th[i]) / 2.0))
+            inner = [island(th[j] - (th[j] - th[i]) * k / m) for k in range(m + 1)]
+            piece = dedupe(outer + inner)
+            if len(piece) >= 3 and abs(ring_area(piece)) > 0.05:
+                pieces.append(piece)
+            i = j
+        return pieces
+
+    def ring_halves(self, g, loop):
+        """The ring's asphalt as two pieces cut along the frame's v axis (where the arms along
+        it cross the ring): for a ring whose outer edge runs out and back along arms that leave
+        it sideways, where a fan from the centre would cross itself. None if a cut ray does
+        not cross the outer edge exactly once."""
+        C, u, v = self.ring_frame(g)
+        n = len(loop)
+        hits = []
+        for sgn in (1.0, -1.0):
+            ray = mul(v, sgn)
+            found = []
+            for i in range(n):
+                p, q = loop[i], loop[(i + 1) % n]
+                h = line_hit(C, ray, p, sub(q, p))
+                if h and h[0] > 0.0 and 0.0 <= h[1] < 1.0:
+                    found.append((i, add(p, mul(sub(q, p), h[1])), sgn))
+            if len(found) != 1:
+                return None
+            hits.append(found[0])
+        pieces = []
+        for (i0, p0, s0), (i1, p1, s1) in (hits, hits[::-1]):
+            chain = [p0]
+            k = i0
+            while k != i1:
+                k = (k + 1) % n
+                chain.append(loop[k])
+            chain.append(p1)
+            # back along the island, through the same half as the chain: from the far cut's
+            # side (phi 0 on +v, pi on -v) to the near one's
+            mid = chain[len(chain) // 2]
+            upper = dot(sub(mid, C), u) > 0.0          # the half with phi in (0, pi)
+            phi1 = 0.0 if s1 > 0 else math.pi
+            phi0 = 0.0 if s0 > 0 else math.pi
+            if upper:
+                a1, a2 = phi1, phi0                    # both in [0, pi]
+            else:
+                a1 = phi1 + (2 * math.pi if phi1 == 0.0 else 0.0)
+                a2 = phi0 + (2 * math.pi if phi0 == 0.0 else 0.0)   # both in [pi, 2 pi]
+            m = max(4, int(abs(a2 - a1) * float(g["ri"]) / 1.0))
+            inner = [self.ring_island(g, a1 + (a2 - a1) * k / m) for k in range(m + 1)]
+            piece = dedupe(chain + inner)
+            pieces.append(piece)
+        return pieces
+
+    def ring_details(self, j):
+        """The island's kerb (broken where the tram runs through it) and the ring's dashed lane
+        lines (ring.lines: radii), broken over the tracks (ring.track: their half width;
+        ring.tram_axes "uv" for a tram cross, "v" for one line along v)."""
+        g = j["ring"]
+        track = float(g.get("track", 0.0))
+        cross = bool(g.get("tram", track > 0.0))
+        sectors = (4 if g.get("tram_axes", "uv") == "uv" else 2) if cross else 1
+        size = 2 * math.pi / sectors
+        r0 = float(g["ri"])
+        gap = math.asin(min(0.9, track / r0)) if cross else 0.0
+        for q in range(sectors):
+            span = size - 2 * gap
+            n = max(4, int(span * r0 / 1.0))
+            pts = [self.ring_island(g, q * size + gap + span * k / n) for k in range(n + 1)]
+            self.out["kerbs"].append({"p": flat(pts)})          # the island on its right
+            if g.get("island") and cross:
+                # a paved island the tram crosses at grade: one raised piece either side
+                self.out["islands"].append({"p": flat(pts)})
+        if g.get("island"):
+            self.ring_islands.append((tuple(g["c"]), float(g["ri"]) + float(g.get("rd", 0.0))))
+        C, u, v = self.ring_frame(g)
+        for rl in g.get("lines", []):
+            rl = float(rl)
+            gl = math.asin(min(0.9, (track + 0.5) / rl)) if cross else 0.0
+            for q in range(sectors):
+                p0 = q * size + gl
+                span = size - 2 * gl
+                n = max(4, int(span * rl / 1.0))
+                pts = [add(C, add(mul(v, rl * math.cos(p0 + span * k / n)), mul(u, rl * math.sin(p0 + span * k / n))))
+                       for k in range(n + 1)]
+                self.out["markings"].append({"k": "lane", "p": flat(pts)})
+
+    def _finish_junction(self, j, arms, corners):
+        n = len(arms)
+        ring_spec = j.get("ring")
         # each arm's mouth: past both of its corners' tangents
         for i, a in enumerate(arms):
             right = corners[i]["ta"]                  # this arm is corner i's `a`
             left = corners[(i - 1) % n]["tb"]         # and corner i-1's `b`
             a["mouth"] = max(right, left, 0.0) + MIN_MOUTH
             a["mouth"] = max(a["mouth"], float(a["cfg"].get("mouth", 0.0)))
+            if ring_spec and "mouth" in a["cfg"]:
+                # a roundabout arm's medians end at the ring's edge, inside the corner fillets
+                a["mouth"] = float(a["cfg"]["mouth"])
+                # its outer kerbs start where the corner fillets leave them, not at the mouth
+                st = a["st"]
+                for side, t in ((+1, right), (-1, left)):
+                    street_side = side if a["end"] == 0 else -side
+                    st.kerb_from[(a["end"], street_side)] = t
             cfg = a["cfg"]
             spans = []          # (near, far) metres out: the zebra and the cycle crossing
             a["zebra"] = None
@@ -498,7 +784,17 @@ class Design:
                 st.t1 = st.L - a["throat"]
         # the junction's asphalt: round the arms' mouths and the corner arcs
         ring = []
+        halves = bool(ring_spec and ring_spec.get("halves"))
         for i, a in enumerate(arms):
+            if halves:
+                # the outer edge crosses each arm where its corner fillets leave the kerbs (the
+                # throat covers the rest down to the mouth), so it never doubles back on a kerb
+                # that flares out towards the ring
+                ring.append(self.arm_kerb(a, -1, max(a["mouth"], corners[(i - 1) % n]["tb"])))
+                ring.append(self.arm_kerb(a, +1, max(a["mouth"], corners[i]["ta"])))
+                ring.append(self.arm_kerb(a, +1, corners[i]["ta"]))
+                ring += corners[i]["arc"]
+                continue
             ring.append(self.arm_kerb(a, -1, a["mouth"]))
             ring.append(self.arm_kerb(a, +1, a["mouth"]))
             c = corners[i]
@@ -506,8 +802,14 @@ class Design:
             ring += c["arc"]
             ring += [self.arm_kerb(c["b"], -1, d) for d in self._up(c["tb"], c["b"]["mouth"])]
         ring = dedupe(ring)
-        self.out["carriage"].append({"k": j.get("k", "secondary"), "p": flat(ring)})
-        self.footprint.append(ring)
+        if ring_spec:
+            pieces = self.ring_halves(ring_spec, ring) if ring_spec.get("halves") else None
+            for piece in pieces or self.ring_pieces(ring_spec, ring):
+                self.out["carriage"].append({"k": j.get("k", "secondary"), "p": flat(piece)})
+                self.footprint.append(piece)
+        else:
+            self.out["carriage"].append({"k": j.get("k", "secondary"), "p": flat(ring)})
+            self.footprint.append(ring)
         # corner kerbs: from one arm's nearest crossing round the arc into the next arm's
         for i, c in enumerate(corners):
             a, b = c["a"], c["b"]
@@ -520,7 +822,6 @@ class Design:
                 self.out["kerbs"].append({"p": flat(list(reversed(run)))})
         for a in arms:
             self.arm_details(j, a)
-        return arms
 
     @staticmethod
     def _down(d0, d1, step=1.0):
@@ -553,10 +854,11 @@ class Design:
         if a["cycle"]:
             x, w = a["cycle"]
             self.cycle_crossing(st, self.arm_s(a, x), w)
-        if a["zebra"] or a["cycle"]:
+        if a["zebra"] or a["cycle"] or "stop" in a["cfg"]:
             # the lanes heading into the junction stop STOP_GAP behind the farthest crossing
+            # (cfg stop: x metres out, where a signalled arm has a stop line but no crossing)
             d_in = -1 if a["end"] == 0 else 1
-            s_stop = self.arm_s(a, a["throat"] + STOP_GAP)
+            s_stop = self.arm_s(a, float(a["cfg"]["stop"]) if "stop" in a["cfg"] else a["throat"] + STOP_GAP)
             self.stops.setdefault(st.id, []).append((s_stop, d_in))
             for row in st.lanes(s_stop):
                 run = [x for x in row if int(x[0].get("d", 1)) == d_in and x[0].get("k", "lane") in ("lane", "bus")]
@@ -615,6 +917,20 @@ class Design:
                     self.out["kerbs"].append({"p": flat(st.line(u0, u1, ml))})   # the bed on its right
                     self.out["kerbs"].append({"p": flat(st.line(u1, u0, mr))})
                 self.footprint.append(st.line(m0, m1, ml) + st.line(m1, m0, mr))
+                # grass strips inside the tram median (greens: s0, s1, l, r; "edge" for the
+                # median's own edge on that side), raised and kerbed like a grass median
+                for gr in st.spec.get("greens", []):
+                    if int(gr.get("med", 0)) != i:
+                        continue
+                    g0, g1 = max(m0, float(gr["s0"])), min(m1, float(gr["s1"]))
+                    if g1 - g0 < 2.0:
+                        continue
+                    gl = ml if gr["l"] == "edge" else (lambda s, v=float(gr["l"]): v)
+                    gr_ = mr if gr["r"] == "edge" else (lambda s, v=float(gr["r"]): v)
+                    strip = []
+                    for s in frange(g0, g1, 2.0):
+                        strip += list(st.point(s, gl(s))) + list(st.point(s, gr_(s)))
+                    self.out["medians"].append({"k": "grass", "s": [round(v, 2) for v in strip]})
             else:
                 # a raised median (grass or paving) with rounded noses short of the crossings,
                 # broken where a side street crosses (gaps), the break paved as carriageway
@@ -651,7 +967,9 @@ class Design:
             breaks.append(self.opening(st, op))
         for side in (-1, +1):
             own = [b for b in breaks if not (isinstance(b, tuple) and len(b) == 3 and b[2] != side)]
-            for (u0, u1) in self.runs_minus(t0, t1, [(b[0], b[1]) for b in own]):
+            k0 = max(t0, st.kerb_from.get((0, side), 0.0))
+            k1 = min(t1, st.L - st.kerb_from.get((1, side), 0.0))
+            for (u0, u1) in self.runs_minus(k0, k1, [(b[0], b[1]) for b in own]):
                 if side < 0:
                     self.out["kerbs"].append({"p": flat(st.line(u1, u0, lambda s: st.outer(s, -1)))})
                 else:
@@ -813,7 +1131,7 @@ class Design:
             if not self.in_crossing(st, s):
                 for row in st.lanes(s):
                     for (x, l, r) in row:
-                        if x.get("k") == "gap" and r - l > 0.8:
+                        if x.get("k") == "gap" and not x.get("plain") and r - l > 0.8:
                             a = st.point(s, l + 0.2)
                             b = st.point(min(s + (r - l) * 0.8, s1), r - 0.2)
                             self.out["markings"].append({"k": "stripe", "p": flat([a, b])})
@@ -1349,7 +1667,7 @@ def lead_to_crossings(paths, d):
             continue
         p = pts_of(g["p"])
         for at_end in (0, 1):
-            if cut[at_end] is not True:
+            if cut[at_end] not in (True, "near"):
                 continue
             run = p if at_end else list(reversed(p))     # run[-1] is the cut end
             E = run[-1]
@@ -1365,19 +1683,18 @@ def lead_to_crossings(paths, d):
                 # beyond a few metres the path must head on over the crossing (u_in: from this end
                 # into the road), not along the kerb or back from it
                 u_in = u if n % 2 == 0 else mul(u, -1.0)
-                if dd > 6.0 and dot(head, norm(sub(T, E))) < -0.2:
+                if dd > 8.0 and dot(head, norm(sub(T, E))) < -0.2:
                     continue                 # behind the end: another way's crossing
                 if dd > 10.0 and (abs(dot(head, u)) < 0.3 or dot(head, u_in) < -0.3):
                     continue
                 if best is None or dd < best[0]:
-                    best = (dd, T, u)
+                    best = (dd, T, u_in)
             if best is None or best[0] < 0.6:
                 continue
-            _, T, u = best
-            sgn = 1.0 if dot(head, u) > 0 else -1.0
-            # meet the kerb straight on: the last metre runs along the crossing
-            T_in = sub(T, mul(u, sgn * 1.2))
-            lead = max(LEAD_BACK, 1.5 * best[0])
+            _, T, u_in = best
+            # meet the kerb straight on: the last metre runs on the crossing's line, outside it
+            T_in = sub(T, mul(u_in, 1.2))
+            lead = min(max(LEAD_BACK, 1.5 * best[0]), 0.7 * plen(back))
             acc, keep = 0.0, [back[-1]]
             for i in range(len(back) - 1, 0, -1):
                 acc += math.dist(back[i], back[i - 1])
@@ -1390,7 +1707,7 @@ def lead_to_crossings(paths, d):
                 start = back[0]
             stem = back[:max(1, len(back) - len(keep) + 1)]
             # the bend runs on the pavement: a lead that would cut over the asphalt is no lead
-            if sum(1 for q in dense([stem[-1], T_in], 0.5) if asphalt.has(*q)) > 2:
+            if sum(1 for q in dense([stem[-1], T_in], 0.5) if asphalt.has(*q)) > (4 if best[0] <= 8.0 else 2):
                 continue
             new = simplify_run(stem + [T_in, T])
             p = new if at_end else list(reversed(new))
@@ -1409,6 +1726,64 @@ def on_street(d, q):
         if any(l - 0.3 <= off <= r + 0.3 for (l, r) in st.edges(s)):
             return True
     return False
+
+
+NEAR_END = 3.0    # m: a footway / cycle track ending this close to the new asphalt is led to a crossing
+SERVE_R = 15.0    # m: a crossing end with no path of its kind gets one from the nearest such path
+
+
+def kerb_ends(d):
+    """The ends of the design's zebras and cycle crossings that sit on a kerb with pavement behind
+    (not on a median or a tram island): (kind, end, outward direction)."""
+    asphalt = Footprint(d.footprint, -0.2)
+    islands = Footprint([pts_of(f["p"]) for f in d.out.get("islands", []) + d.out.get("medians", [])
+                         if len(f.get("p", [])) >= 6], 0.3)
+    out = []
+    for kind, layer in (("foot", "zebras"), ("cycle", "cyclecross")):
+        for z in d.out[layer]:
+            q = pts_of(z["p"])
+            if len(q) < 2 or math.dist(q[0], q[-1]) < 1.0:
+                continue
+            u = norm(sub(q[-1], q[0]))
+            for T, uo in ((q[0], mul(u, -1.0)), (q[-1], u)):
+                b = add(T, mul(uo, 1.5))
+                if not asphalt.has(*b) and not islands.has(*b):
+                    out.append((kind, T, uo))
+    return out
+
+
+def serve_crossings(paths, d):
+    """Every zebra and cycle crossing end on a kerb meets a path of its kind: where none arrives
+    (the old path went to the old crossing elsewhere), a short link runs from the crossing end
+    straight out over the kerb and on to the nearest point of the nearest such path, never over
+    asphalt. A cycle crossing that meets a painted cycle lane is served by it."""
+    asphalt = Footprint(d.footprint, -0.2)
+    lanes = [pts_of(m["p"]) for m in d.out["markings"] if m.get("k") == "cyclefill"]
+    made = 0
+    for kind, T, uo in kerb_ends(d):
+        own = [pts_of(g["p"]) for g in paths if g.get("k") == kind and g.get("dk") is None]
+        if near_any(T, own, 1.5) or (kind == "cycle" and near_any(T, lanes, 2.5)):
+            continue
+        T_out = add(T, mul(uo, 1.2))
+        best = None
+        for g in paths:
+            if g.get("k") != kind or g.get("dk") is not None:
+                continue
+            for Q in dense(pts_of(g["p"]), 1.0):
+                dd = math.dist(T_out, Q)
+                if dd > SERVE_R or (best is not None and dd >= best[0]):
+                    continue
+                if dot(sub(Q, T), uo) < -0.5:
+                    continue             # behind the crossing: over the road
+                if sum(1 for x in dense([T_out, Q], 0.5) if asphalt.has(*x)) > 1:
+                    continue
+                best = (dd, Q, g)
+        if best is None:
+            continue
+        paths.append({"k": kind, "w": best[2].get("w", 2.2 if kind == "foot" else 2.0),
+                      "p": flat([T, T_out, best[1]])})
+        made += 1
+    return made
 
 
 def bridge_mouths(paths, d):
@@ -1431,6 +1806,8 @@ def bridge_mouths(paths, d):
             ends.append((g, at_end, back[-1], head))
     made = 0
     used = set()
+    xpaths = [pts_of(z["p"]) for z in d.out["zebras"] + d.out["cyclecross"]] + \
+        [pts_of(g["p"]) for g in paths if g.get("k") in ("zebra", "cyclecross")]
     for i, (g1, e1, E1, h1) in enumerate(ends):
         best = None
         for j, (g2, e2, E2, h2) in enumerate(ends):
@@ -1447,6 +1824,8 @@ def bridge_mouths(paths, d):
                 continue
             if any(on_street(d, q) for q in mid):
                 continue                 # over a designed street's lanes: not a side road's mouth
+            if near_any(lerp(E1, E2, 0.5), xpaths, 8.0) or near_any(E1, xpaths, 6.0) or near_any(E2, xpaths, 6.0):
+                continue                 # a crossing is already there: the ends are led to it
             if best is None or dd < best[0]:
                 best = (dd, j, E2)
         if best is None:
@@ -1544,7 +1923,11 @@ def apply_design(out, d):
                 tails += 1
     stats["carriage kept past free ends"] = tails
     drop("asphalt_fills", lambda f: centre_in(f))
-    drop("islands", lambda f: f.get("dk") is None and centre_in(f))
+    def in_ring_island(f):
+        p = pts_of(f["p"])
+        c = (sum(q[0] for q in p) / len(p), sum(q[1] for q in p) / len(p))
+        return any(math.dist(c, rc) < rr for rc, rr in d.ring_islands)
+    drop("islands", lambda f: f.get("dk") is None and (centre_in(f) or in_ring_island(f)))
     drop("tram_noses", lambda f: centre_in(f))
     drop("tram_xings", lambda f: centre_in(f))
     drop("medians", lambda f: f.get("dk") is None and centre_in(f, "s"))
@@ -1574,8 +1957,39 @@ def apply_design(out, d):
             g["_cut"] = [math.dist(run[0], p[0]) > 0.5 and math.dist(run[0], p[-1]) > 0.5,
                          math.dist(run[-1], p[0]) > 0.5 and math.dist(run[-1], p[-1]) > 0.5]
             paths.append(g)
+    # paths that end by the new kerb without being cut ended at the old crossings: they are
+    # led to the new ones too
+    near = Footprint(d.footprint, NEAR_END)
+    for g in paths:
+        if g.get("k") not in ("foot", "cycle") or g.get("dk") is not None or g.get("_cut"):
+            continue
+        q = pts_of(g["p"])
+        if len(q) >= 2 and (near.has(*q[0]) or near.has(*q[-1])):
+            g["_cut"] = ["near" if near.has(*q[0]) else False, "near" if near.has(*q[-1]) else False]
     stats["crossings over side-road mouths"] = bridge_mouths(paths, d)
     stats["path ends led to a crossing"] = lead_to_crossings(paths, d)
+    stats["crossing ends given a path"] = serve_crossings(paths, d)
+    # a short stub that led to an old crossing and now leads nowhere, off a path that goes on: gone
+    nodes = {}
+    for g in paths:
+        if g.get("k") in ("foot", "cycle"):
+            for e in (g["p"][0:2], g["p"][-2:]):
+                nodes[(round(e[0]), round(e[1]), g["k"])] = nodes.get((round(e[0]), round(e[1]), g["k"]), 0) + 1
+    keep, dropped = [], 0
+    for g in paths:
+        c = g.get("_cut")
+        if c and g.get("k") in ("foot", "cycle") and plen(pts_of(g["p"])) < 10.0:
+            q = pts_of(g["p"])
+            for i, (e, o) in enumerate(((q[0], q[-1]), (q[-1], q[0]))):
+                if c[i] in (True, "near") and nodes.get((round(o[0]), round(o[1]), g["k"]), 0) >= 2:
+                    dropped += 1
+                    break
+            else:
+                keep.append(g)
+            continue
+        keep.append(g)
+    paths[:] = keep
+    stats["dead stubs removed"] = dropped
     # the ends the asphalt cut, kept for the continuity gate (continuity(), --check-all)
     cut_ends = []
     for g in paths:
@@ -1802,6 +2216,18 @@ def continuity(out, d):
     asphalt = Footprint(d.footprint, 0.3)
     open_ends = [(float(e["x"]), float(e["z"])) for e in d.spec.get("open_ends", [])]
     problems = []
+    # every crossing end on a kerb has a path of its kind arriving
+    allp = {"foot": [], "cycle": []}
+    for f in out.get("paths", []):
+        if f["k"] in allp:
+            allp[f["k"]].append(pts_of(f["p"]))
+    fills = [pts_of(m["p"]) for m in out.get("markings", []) if m.get("k") == "cyclefill"]
+    for kind, T, uo in kerb_ends(d):
+        if any(math.dist(T, o) < 3.0 for o in open_ends):
+            continue
+        if not near_any(T, allp[kind], 1.5) and not (kind == "cycle" and near_any(T, fills, 2.5)):
+            problems.append("%s at (%.1f, %.1f) has no %s arriving" % (
+                "zebra" if kind == "foot" else "cycle crossing", T[0], T[1], "footway" if kind == "foot" else "cycle track"))
     if d.area in out.get("road_design", {}) and d.area not in out.get("road_design_ends", {}):
         problems.append("%s applied without its cut path ends: apply it again from the map before" % d.area)
     for row in out.get("road_design_ends", {}).get(d.area, []):
