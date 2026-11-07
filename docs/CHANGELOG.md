@@ -17,6 +17,7 @@ someone writes its lines.
 - Krakowskie Przedmieście, Senatorska and Miodowa: 41 more houses got their real colours and fronts.
 - Długa, Aleja Jana Pawła II and Krucza: 41 more houses got street fronts from real photos.
 - Mokotowska and Hoża: 61 more houses got street fronts from real photos.
+- Wilcza, Piękna and Targowa: 83 more houses got street fronts from real photos.
 
 ## 2026-11-06
 - The Bridge by Plac Europejski looks like itself now: its glass folds along long diagonal seams, the south corner steps down under a dark crown, ERZATZ (the bank's parody) glows blue at the top, and a tall timber lobby with leaning concrete columns sits under it. The brick and stone block at Grzybowska 77 in front got its stone piers, long balcony, framed windows and attic.
