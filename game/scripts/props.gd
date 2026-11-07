@@ -570,6 +570,8 @@ static func add_metro_entrance(st: SurfaceTool, xf: Transform3D, form := "canopy
 			_xbox(st, xf, Vector3(0, 0.6, 2.05), Vector3(2.66, 1.2, 0.2), concrete)
 		"tent":
 			_metro_tent(st, xf)
+		"wings":
+			_metro_wings(st, xf)
 		_:
 			# The canopy: steel sill and posts, glass sides and back, a vaulted glass roof on three
 			# ribs (seven points on an ellipse 1.35 m out and 0.7 m up from the 2.2 m springing).
@@ -599,6 +601,8 @@ static func add_metro_entrance(st: SurfaceTool, xf: Transform3D, form := "canopy
 	_xbox(st, xf, post + Vector3(0, 3.3, 0), Vector3(0.9, 0.9, 0.08), Color("#c8171f"), LIT_SIGN)
 	_metro_m(st, xf, post + Vector3(0, 3.3, 0), 0.095, [-1.0, 1.0], 0.08)
 	if lift:
+		if form == "wings":
+			glass = Color("#b0202c")  # Rondo Daszyńskiego's lifts wear the same red glass
 		# The lift: a steel frame round a lit glass shaft, a dark door on the open side (-z).
 		var c := Vector3(-2.3, 0, -0.6)
 		_xbox(st, xf, c + Vector3(0, 1.3, 0), Vector3(1.3, 2.5, 1.3), glass, LIT_WINDOW)
@@ -671,6 +675,50 @@ static func _metro_tent(st: SurfaceTool, xf: Transform3D) -> void:
 			tri(st, xf * (rc + Vector3(0, 0, 0.04 * s)), xf * (rc + Vector3(0.48 * cos(a0), 0.48 * sin(a0), 0.04 * s)),
 					xf * (rc + Vector3(0.48 * cos(a1), 0.48 * sin(a1), 0.04 * s)), basis * Vector3(0, 0, s), Color("#f6c813"), LIT_SIGN)
 	_metro_m(st, xf, rc, 0.07, [-1.0], 0.08, Color("#d3202a"))
+
+
+## Metro Rondo Daszyński's M2 entrances (F's photos, 2026-11-06): two wings of red glass on a
+## steel frame folding up from a keel over the escalators, so the mouth reads as a wide M: the
+## outer tips stand 5.6 m high and lean out past the opening, the keel runs from 2.6 m at the mouth
+## down into the ground behind it; tube edges and two ribs a wing, both faces glazed (lit at
+## night), dark red side walls to the opening, and the yellow roundel with the red M on the keel's
+## front. Local frame as add_metro_entrance's (open front -z). ~250 triangles.
+static func _metro_wings(st: SurfaceTool, xf: Transform3D) -> void:
+	var red := Color("#d02634")
+	var tube := Color("#9a9ea3")
+	var wall := Color("#5a1d22")
+	var basis := xf.basis.orthonormalized()
+	var z0 := -2.3
+	var z1 := 2.3
+	# The opening's low side walls (the escalators' balustrades): dark red panels.
+	for x in [-1.25, 1.25]:
+		_xbox(st, xf, Vector3(x, 0.5, 0.0), Vector3(0.22, 1.0, z1 - z0), wall)
+	var keel0 := Vector3(0, 2.6, z0)
+	var keel1 := Vector3(0, 0.4, z1 + 0.6)
+	for side: float in [-1.0, 1.0]:
+		var tip := Vector3(side * 3.3, 5.6, z0 - 0.5)
+		var foot := Vector3(side * 2.4, 0.5, z1)
+		var n := basis * Vector3(side * 0.6, -0.8, 0.0).normalized()
+		for s: float in [1.0, -1.0]:
+			tri(st, xf * keel0, xf * tip, xf * foot, n * s, red, LIT_SIGN)
+			tri(st, xf * keel0, xf * foot, xf * keel1, n * s, red, LIT_SIGN)
+		_xbeam(st, xf, keel0, tip, 0.14, 0.14, tube)
+		_xbeam(st, xf, tip, foot, 0.12, 0.12, tube)
+		_xbeam(st, xf, foot, keel1, 0.12, 0.12, tube)
+		for k: float in [0.35, 0.7]:
+			_xbeam(st, xf, keel0.lerp(keel1, k), tip.lerp(foot, k), 0.08, 0.08, tube)
+		# a strut from the side wall up to the wing
+		_xbeam(st, xf, Vector3(side * 1.25, 1.0, z0 + 0.6), keel0.lerp(tip, 0.55), 0.1, 0.1, tube)
+	_xbeam(st, xf, keel0, keel1, 0.22, 0.3, Color("#3a3d42"))
+	# The roundel on the keel's front: a yellow octagon (0.9 m) with the red M.
+	var rc := keel0 + Vector3(0, 0.6, -0.2)
+	for i in 8:
+		var a0 := TAU * (i + 0.5) / 8
+		var a1 := TAU * (i + 1.5) / 8
+		for s: float in [-1.0, 1.0]:
+			tri(st, xf * (rc + Vector3(0, 0, 0.04 * s)), xf * (rc + Vector3(0.45 * cos(a0), 0.45 * sin(a0), 0.04 * s)),
+					xf * (rc + Vector3(0.45 * cos(a1), 0.45 * sin(a1), 0.04 * s)), basis * Vector3(0, 0, s), Color("#f6c813"), LIT_SIGN)
+	_metro_m(st, xf, rc, 0.065, [-1.0], 0.08, Color("#d3202a"))
 
 
 ## A beam between two points of an entrance's local frame, `w` wide along its z, through `xf`.

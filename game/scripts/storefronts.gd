@@ -1482,6 +1482,8 @@ static func metro_form(station: String, f: String) -> String:
 		return "tube"
 	if station == "Świętokrzyska" and f == "canopy":
 		return "tent"
+	if station == "Rondo Daszyńskiego" and f == "canopy":
+		return "wings"  # F's photos (2026-11-06): the red glass butterfly canopies
 	return f
 
 

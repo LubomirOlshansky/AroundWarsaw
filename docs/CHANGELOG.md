@@ -28,6 +28,7 @@ someone writes its lines.
 - 46 named buildings across the centre got street fronts from real photos.
 
 ## 2026-11-06
+- The towers at Rondo Daszyńskiego got their details: Warsaw Unit narrows towards its crown and stands on a glass hall, Mennica Legacy Tower rests on a row of steel columns, Generation Park Y has its black window patches and roof terraces with trees, and the HUB has its parapets and a glass skylight between the towers. The metro entrances at the Rondo are now the red glass butterfly canopies.
 - A pink neon glass pavilion is back on Aleje Jerozolimskie by Rondo de Gaulle'a: SOWA CLUB and the CITY 25 grill, open 25 hours a day, with a terrace, an info card and night owls outside with plenty to say.
 - Warsaw's trams now come new and old: the newest trams with their dark glass face and smiling yellow nose, the old boxy yellow-and-red pairs with the round red "t", and rebuilt pairs with a new front, all running beside today's yellow trams.
 - Ilmet's tower at Rondo ONZ is now terracotta-coloured and its top steps in twice, like the real one.
