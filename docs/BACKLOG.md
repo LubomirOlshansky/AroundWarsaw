@@ -50,6 +50,17 @@ to 185 MB. Left:
 - **Photo fronts, Mokotowska and Hoża (2026-11-07)**: 61 more houses. Left: the small Mokotowska 69 rotunda and the shrine at 65, which fronts can't show; Hoża 1's bare firewall.
 - **Photo fronts, Wilcza, Piękna, Targowa (2026-11-07)**: 83 more houses, which closes part 1 of the list (305 houses with street fronts in all). Left: part 2 (named buildings) and part 3 of the photo folder, and rows with aerial photos only.
 - **Photo fronts, named buildings (2026-11-07)**: 46 more across the centre, 351 houses in all. Left for their own builds: Mała PAST-a, Pałac Przezdzieckich, the Elektoralna 12 portico, Mokotowska 25; Old Town rows 778 and 795 stay as they are; 189 named rows have no street photo yet.
+## Quest map and starts (F, 2026-11-07; docs/design/quest-map.md)
+
+Built: three map tiers (the main star's glow, questline "!" badges, street job icons), quest focus
+(the map goes quiet while anything runs), the friend in person at a questline's start, and the
+full map's WĄTKI tab that starts any questline now. Boat race and rave are in. Left:
+- [ ] Padel, cinema tour, coffee run and night meet: one `stories.add` each in `main.gd` `_build_stories` (their own threads)
+- [ ] Phone look: the badge's "!" at minimap size, the glow under the main star, the WĄTKI tab with ten rows scrolling
+- [ ] The friend at the start is the beacon's generic waving figure; give each friend their own look (Szymek's shirt, Ziomek in black)
+- [ ] A speech bubble over the friend as they walk up, besides the card
+- [ ] Bench by a start (the beacon: about 10 draw calls expected) on the phone
+
 ## Secret rave: LEKTI, Ziomek, Smoła (F, 2026-11-06; docs/design/secret-rave.md)
 
 Built: night and day raves, LEKTI's voiced break-in on MORDOR FM, Ziomek's call and ride, the
