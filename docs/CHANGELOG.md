@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-06
+- The low building under the Prezydent hotel tower opposite Centralna is rebuilt from photos: silver-white panel bands, a lit glass restaurant floor, shops behind columns, its tenants' signs (PEPEO ŻUBR with the orange bison, KASYNOS, LOD, LUZMED, MROSTA and more), three big LED screens on the roof and the tower, and crowds on the pavement and at the tram stop in front; the tower behind it now wears CZERY.
 - The food blogger from the Mlask job is now called Mrożulo (was Cringulo), on his van, the signs, the fans and the news.
 
 - A cobalt-blue motorboat now sits on the roof of the Forest tower, next to the PEPEO ŻUBR crown.

@@ -114,7 +114,7 @@ const BUDGET := {
 	"jp2_21": 280,
 	"kopernik": 1720,
 	"legia": 700,
-	"lim": 300,
+	"lim": 1700,  # the podium from F's photos (2026-11-06): 1415 measured
 	"loretka": 1120,
 	"lucka": 470,
 	"marszalkowska94": 490,

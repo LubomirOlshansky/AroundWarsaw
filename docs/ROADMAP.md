@@ -40,6 +40,9 @@ then the Launch gate.
 - [x] Warsaw Spire rebuilt to the real shape (F's photos, 2026-11-02; spec `spire.md`): a shaft that widens
       upward over a lit glass lobby, a domed roof with a fin and two masts, the mirrored entrance canopy on
       V legs, the two curved 15-storey wings and the paved plaza; Mac look check parked (QUESTIONS)
+- [x] Centrum LIM's podium rebuilt from F's night photos (2026-11-06; spec `lim-podium.md`): panel bands, the
+      set-back gallery, the arcade, the tenants' parody signs (PEPEO ŻUBR's bison and more), three LED screens,
+      busy pavement and Dworzec Centralny tram stop; phone look check open
 - [x] Royal Castle pass 2 and its gardens (F, 2026-11-02; spec `zamek.md`): the Clock Tower and helm, corner
       turrets, the cream Vistula front with its dome, Kubicki's Arcades and the Upper and Lower Gardens from
       the Krajobraz project, photos and the orthophoto; Mac look check parked (QUESTIONS)

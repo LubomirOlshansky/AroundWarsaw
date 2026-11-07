@@ -109,7 +109,10 @@ const TOWERS := [
 	# (-1308, 697)), so the one site is dressed as it: dark green-black glass in a fine grid,
 	# dark bands, a lattice mast and the names (_marriott).
 	{"key": "lim", "osm": "Centrum LIM", "style": S_GRID, "glass": "#24343a", "roof": "#6f777b", "sign": "PREZYDENT", "marriott": true},
-	{"key": "chalubinskiego8", "osm": "Chałubińskiego 8", "style": S_FINS, "glass": "#2f6f8f", "roof": "#c9cfd2", "mapped": true},
+	# Chałubińskiego 8 (Oxford Tower): the car maker's lit name on its crown (F's LIM photos,
+	# 2026-11-06), as the parody CZERY.
+	{"key": "chalubinskiego8", "osm": "Chałubińskiego 8", "style": S_FINS, "glass": "#2f6f8f", "roof": "#c9cfd2", "mapped": true,
+			"sign": "CZERY"},
 	{"key": "spektrum", "osm": "Spektrum Tower", "style": S_BANDS, "glass": "#2f5563", "roof": "#7c878c", "mapped": true},
 	{"key": "bridge", "osm": "The Bridge", "style": S_FINS, "glass": "#6d8da6", "roof": "#b0bac2"},
 	# The second pass: the rest of the skyline over 80 m (the hotels by their addresses).
@@ -3114,6 +3117,10 @@ func _build_tower(site: Dictionary) -> void:
 	var roof := Color(spec["roof"])
 	var skin := M_SKIN + float(spec["style"]) / 16.0
 	var parts := _parts_in(zone, func(b: Dictionary) -> bool: return float(b["h"]) > float(b["mh"]) + 0.5)
+	if spec["key"] == "lim":
+		# Centrum LIM: the podium is built from F's photos (_lim_podium), not in the tower's glass
+		# (its ground floor is the part named like the outline, so before the filter below).
+		parts = _lim_parts(parts, g)
 	if parts.size() > 1:
 		parts = parts.filter(func(b: Dictionary) -> bool: return str(b.get("name", "")) != spec.get("osm", ""))
 	var boxes: Array[Rect2] = []
@@ -3404,6 +3411,314 @@ func _marriott(poly: PackedVector2Array, g: float, h: float) -> void:
 	_prism(_square(c, 3.0), roof + 14.0, roof + 14.6, steel.darkened(0.15), steel, M_STONE, M_STONE)
 	_prism(_square(c, 0.4), roof + 26.0, roof + 26.8, DUSK_RED, DUSK_RED, M_LAMP, M_LAMP)
 	_crown_signs(poly, mid, "SAMSONG", DUSK_WARM, 0.0, 0.75)
+
+
+# --- Centrum LIM's podium (F's night photos, 2026-11-06) ----------------------------------------
+
+## Centrum LIM's podium on Aleje Jerozolimskie 65/79 (1989), opposite Warszawa Centralna, rebuilt
+## from F's six night photos (docs/landmarks/specs/lim-podium.md). Until now it was the tower's
+## dark glass in three boxes. Base to top: the ground floor's shop glass behind an arcade of round
+## columns (the map's ground-floor part stands 5-9 m in from the upper floors); a band of
+## silver-white panels (LIM_GROUND to LIM_BAND_A); a glazed gallery floor 2 m in
+## (restaurants: warm, a pink-lit stretch west of the tower, green glass at the east end); a
+## second panel band with a dark ribbon window; the top band with the tenants' signs (parodies,
+## LIM_SIGNS); on the west roof the black louvred plant screen (the map's 15-18 m part). Two LED
+## screens stand on the roof and one hangs on the tower's north face (LIM_SCREENS).
+const LIM_PANEL := Color("#d9d8d1")
+const LIM_SHOP := Color("#8fa2a6")
+const LIM_GALLERY_GLASS := Color("#7f989a")
+const LIM_RIBBON_GLASS := Color("#1f262b")
+const LIM_LOUVRE := Color("#1b1d20")
+const LIM_ROOF := Color("#9a9c9c")
+const LIM_COLUMN := Color("#e4e2dc")
+const LIM_GROUND := 4.6     # the ground floor's top: the first panel band's underside
+const LIM_BAND_A := 7.6     # the first panel band's top: the gallery's floor
+const LIM_GALLERY := 10.6   # the gallery's top
+const LIM_RIBBON := Vector2(12.2, 13.1)  # the dark window strip under the top band
+const LIM_TOP := 15.0       # the roof (the map's upper part)
+const LIM_LOUVRE_TOP := 18.0
+## Colours of the parodied signs (lit at night; F's photos).
+const LIM_GOLD := Color(1.0, 0.8, 0.42)
+const LIM_WHITE := Color(1.0, 0.98, 0.94)
+const LIM_RED := Color(1.0, 0.12, 0.1)
+const LIM_ORANGE := Color(1.0, 0.42, 0.08)
+## The tenants' signs on the north (street) face, east to west in F's photos: the hotel's name
+## with its crown at both ends, the casino chain, the airline, the clinic, the bank with its bison,
+## the frozen-food maker, the small casino, then the shops' names lower down. Each row: word, u
+## (metres from the face's west end), band ("top" 13.1-15 m, "mid" the band under the ribbon,
+## "a" the first panel band, "gf" the shop glass), letter-row height (m), colour, extra.
+const LIM_SIGNS := [
+	["PREZYDENT", 16.0, "top", 1.5, LIM_GOLD, "crown"],
+	["WAWKA", 31.0, "top", 1.2, LIM_RED, "box"],
+	["KASYNKO", 41.0, "top", 1.3, LIM_WHITE, "redbox"],
+	["MROSTA", 57.0, "top", 1.5, Color(0.3, 0.42, 1.0), ""],
+	["PEPEO ŻUBR", 78.0, "top", 1.4, LIM_WHITE, "bison"],
+	["LINIE LODOWE", 93.0, "top", 0.9, LIM_WHITE, ""],
+	["LOD", 104.0, "top", 1.9, LIM_WHITE, ""],
+	["LUZMED", 97.0, "mid", 1.3, Color(0.3, 1.0, 0.35), "plus"],
+	["KASYNOS", 119.0, "top", 1.5, Color(0.25, 0.45, 1.0), "chip"],
+	["PREZYDENT", 138.0, "top", 1.5, LIM_GOLD, "crown"],
+	["TYGRYS", 70.0, "a", 1.3, LIM_WHITE, "kopenhaga"],
+	["ROSZMAN", 88.0, "gf", 0.9, LIM_RED, ""],
+	["MILENIUSZ", 116.0, "gf", 0.9, Color(0.9, 0.2, 0.45), ""],
+]
+## The LED screens: [u (m from the face's west end), metres back from the face, width, height,
+## panel colour, the advert's word, its colour, "louvre" (stands on the plant screen) / "roof" /
+## "tower" (hangs on the tower's north face)]. The adverts are the game's own parodies of those
+## in the photos (a fashion chain, a box of pretzel sticks, a car).
+const LIM_SCREENS := [
+	[48.0, 7.0, 12.0, 7.5, Color("#e8661a"), "PALUSZKI", LIM_WHITE, "louvre"],
+	[90.0, 8.0, 11.0, 7.5, Color("#6a3fc4"), "HYM", LIM_WHITE, "roof"],
+	[0.0, 0.0, 11.0, 8.5, Color("#c8284a"), "LEKSUS", LIM_WHITE, "tower"],
+]
+## The flat lit marks beside the words (x along the wall, y up, metres; drawn centred).
+const LIM_CROWN := [Vector2(-0.8, 0.0), Vector2(0.8, 0.0), Vector2(0.8, 0.9), Vector2(0.45, 0.45), Vector2(0.0, 1.1),
+		Vector2(-0.45, 0.45), Vector2(-0.8, 0.9)]
+## The clinic's plus, one outline (two crossed bars would overlap in one plane).
+const LIM_PLUS := [Vector2(-0.18, 0.0), Vector2(0.18, 0.0), Vector2(0.18, 0.42), Vector2(0.6, 0.42), Vector2(0.6, 0.78),
+		Vector2(0.18, 0.78), Vector2(0.18, 1.2), Vector2(-0.18, 1.2), Vector2(-0.18, 0.78), Vector2(-0.6, 0.78), Vector2(-0.6, 0.42),
+		Vector2(-0.18, 0.42)]
+## The bison, facing west (left, seen from the street): head low with its beard, the hump, a horn.
+const LIM_BISON := [Vector2(0.0, 0.3), Vector2(0.05, 0.2), Vector2(0.18, 0.12), Vector2(0.28, 0.25), Vector2(0.32, 0.03),
+		Vector2(0.4, 0.03), Vector2(0.43, 0.3), Vector2(1.03, 0.3), Vector2(1.07, 0.03), Vector2(1.15, 0.03), Vector2(1.2, 0.45),
+		Vector2(1.22, 0.62), Vector2(1.05, 0.72), Vector2(0.7, 0.8), Vector2(0.45, 0.98), Vector2(0.25, 0.88), Vector2(0.14, 0.72),
+		Vector2(0.1, 0.8), Vector2(0.07, 0.66), Vector2(0.02, 0.55)]
+
+
+## The podium (see LIM_PANEL): `outer` the upper floors' outline (5-15 m), `ground` the ground
+## floor's, `louvre` the plant screen's (15-18 m), `tower` the hotel tower's, from the map's parts.
+func _lim_podium(outer: PackedVector2Array, ground: PackedVector2Array, louvre: PackedVector2Array,
+		tower: PackedVector2Array, g: float) -> void:
+	var none := Color(0, 0, 0, 0)
+	var panels := M_STONE
+	_prism(ground, g - 0.4, g + LIM_GROUND, LIM_SHOP, none, M_PAVILION)
+	# The arcade's columns: 0.9 m round, about every 7.5 m, 1.1 m in from the panel bands' face,
+	# from the pavement up through the gallery floor.
+	for i in outer.size():
+		var a := outer[i]
+		var b := outer[(i + 1) % outer.size()]
+		var l := a.distance_to(b)
+		if l < 6.0:
+			continue
+		var o := _out(outer, a, b)
+		var n := maxi(1, roundi(l / 7.5))
+		for k in n:
+			var c := a.lerp(b, (k + 0.5) / n) - o * 1.1
+			if Geometry2D.is_point_in_polygon(c, ground) or Geometry2D.is_point_in_polygon(c, tower):
+				continue
+			_prism(_circle(c, 0.45, 8), g - 0.4, g + LIM_GALLERY, LIM_COLUMN, none, M_STONE)
+	_prism(outer, g + LIM_GROUND, g + LIM_BAND_A, LIM_PANEL, none, panels)
+	_mode = M_STONE
+	_cap(outer, g + LIM_BAND_A, LIM_PANEL.darkened(0.2))
+	var gallery := _largest(Geometry2D.offset_polygon(outer, -2.0, Geometry2D.JOIN_MITER))
+	_prism(gallery, g + LIM_BAND_A, g + LIM_GALLERY, LIM_GALLERY_GLASS, none, M_PAVILION)
+	_prism(outer, g + LIM_GALLERY, g + LIM_RIBBON.x, LIM_PANEL, none, panels)
+	_mode = M_STONE
+	_cap(outer, g + LIM_RIBBON.x, LIM_PANEL.darkened(0.2))
+	var ribbon := _largest(Geometry2D.offset_polygon(outer, -0.3, Geometry2D.JOIN_MITER))
+	_prism(ribbon, g + LIM_RIBBON.x, g + LIM_RIBBON.y, LIM_RIBBON_GLASS, none, M_SKIN + float(S_DARK) / 16.0)
+	_prism(outer, g + LIM_RIBBON.y, g + LIM_TOP, LIM_PANEL, LIM_ROOF, panels, M_STONE)
+	if louvre.size() >= 3:
+		_prism(louvre, g + LIM_TOP, g + LIM_LOUVRE_TOP, LIM_LOUVRE, Color("#5c5f62"), M_SKIN + float(S_FINS) / 16.0, M_STONE)
+	_collide(outer)
+	# The street face: the longest edge facing north-west to north (Aleje Jerozolimskie), measured
+	# from its west end.
+	var fi := _edge_facing(outer, Vector2(-0.33, -0.94), 40.0)
+	if fi < 0:
+		return
+	var fa := outer[fi]
+	var fb := outer[(fi + 1) % outer.size()]
+	var n := _out(outer, fa, fb)
+	var d := (fb - fa).normalized()
+	var west := fa
+	if d.x < 0.0:
+		d = -d
+		west = fb
+	var span := fa.distance_to(fb) + 6.0  # the short stretch round the corner runs on in line
+	_lim_gallery_tints(west, d, n, g)
+	for s: Array in LIM_SIGNS:
+		_lim_sign(s, west, d, n, minf(float(s[1]), span - 3.0), ground, g)
+	# The hotel's name on the east (Emilii Plater) face's top band too.
+	var ei := _edge_facing(outer, Vector2(0.94, -0.33), 30.0)
+	if ei >= 0 and ei != fi:
+		var ea := outer[ei]
+		var eb := outer[(ei + 1) % outer.size()]
+		var en := _out(outer, ea, eb)
+		# Near the corner with the street face (F's photo from the corner), the crown towards it.
+		var corner := west + d * span
+		var near := ea if ea.distance_to(corner) < eb.distance_to(corner) else eb
+		var far := eb if near == ea else ea
+		_lim_sign(["PREZYDENT", 0.0, "top", 1.5, LIM_GOLD, "crown"], near.lerp(far, 0.35), (near - far).normalized(), en, 0.0,
+				ground, g)
+	for sc: Array in LIM_SCREENS:
+		if sc[7] == "tower":
+			var ti := _edge_facing(tower, n, 15.0)
+			if ti < 0:
+				continue
+			var ta := tower[ti]
+			var tb := tower[(ti + 1) % tower.size()]
+			var tn := _out(tower, ta, tb)
+			var td := (tb - ta).normalized()
+			if td.dot(d) < 0.0:
+				td = -td
+			var at := (ta + tb) * 0.5 + td * 0.18 * ta.distance_to(tb) + tn * 0.65
+			_lim_screen(at, td, tn, float(sc[2]), float(sc[3]), g + LIM_TOP + 2.5, g + LIM_TOP + 2.5, sc[4], sc[5], sc[6])
+		else:
+			var foot := g + (LIM_LOUVRE_TOP if sc[7] == "louvre" else LIM_TOP)
+			var at := west + d * float(sc[0]) - n * float(sc[1])
+			_lim_screen(at, d, n, float(sc[2]), float(sc[3]), foot, foot + 0.8, sc[4], sc[5], sc[6])
+
+
+## Centrum LIM's parts: builds the podium from the upper floors' part (5-15 m), the ground
+## floor's and the plant screen's (15-18 m), and gives back the rest (the tower, the small boxes).
+func _lim_parts(parts: Array[Dictionary], g: float) -> Array[Dictionary]:
+	var outer := PackedVector2Array()
+	var ground := PackedVector2Array()
+	var louvre := PackedVector2Array()
+	var tower := PackedVector2Array()
+	var rest: Array[Dictionary] = []
+	for b in parts:
+		var q := _pts(b["p"])
+		var h := float(b["h"])
+		var mh := float(b["mh"])
+		var big := _box_of([q]).size.length() > 60.0
+		if big and mh > 3.0 and h < 17.0:
+			outer = q
+		elif big and mh < 0.5 and h < 10.0:
+			ground = q
+		elif big and mh > 13.0 and h < 25.0:
+			louvre = q
+		else:
+			if h > 100.0:
+				tower = q
+			rest.append(b)
+	if outer.size() < 3 or ground.size() < 3:
+		return parts
+	_lim_podium(outer, ground, louvre, tower, g)
+	return rest
+
+
+## The gallery's tints on the street face (F's photos): a pink-lit restaurant west of the tower
+## and green-grey glass at the east end, panels 6 cm out from the gallery glass.
+func _lim_gallery_tints(west: Vector2, d: Vector2, n: Vector2, g: float) -> void:
+	var keep := _mode
+	for t: Array in [[80.0, 103.0, Color("#8a5a72"), M_LAMP], [124.0, 146.0, Color("#5f7c74"), M_STONE]]:
+		var p0 := west + d * float(t[0]) - n * 1.94
+		var p1 := west + d * float(t[1]) - n * 1.94
+		_mode = float(t[3])
+		_quad(Vector3(p0.x, g + LIM_BAND_A + 0.3, p0.y), Vector3(p1.x, g + LIM_BAND_A + 0.3, p1.y),
+				Vector3(p1.x, g + LIM_GALLERY - 0.3, p1.y), Vector3(p0.x, g + LIM_GALLERY - 0.3, p0.y), Vector3(n.x, 0.0, n.y), t[2])
+	_mode = keep
+
+
+## One of LIM_SIGNS at `u` m along the face from `west` (direction `d`, outward `n`), with its mark.
+func _lim_sign(s: Array, west: Vector2, d: Vector2, n: Vector2, u: float, ground: PackedVector2Array, g: float) -> void:
+	var word := str(s[0])
+	var tall := float(s[3])
+	var col: Color = s[4]
+	var mark := str(s[5])
+	var at := west + d * u
+	var y := 0.0
+	match str(s[2]):
+		"top":
+			y = LIM_RIBBON.y + 0.5 * (LIM_TOP - LIM_RIBBON.y) - 0.5 * tall
+		"mid":
+			y = LIM_GALLERY + 0.5 * (LIM_RIBBON.x - LIM_GALLERY) - 0.5 * tall
+		"a":
+			y = LIM_GROUND + 0.62 * (LIM_BAND_A - LIM_GROUND) - 0.5 * tall
+		"gf":
+			# Over the shop doors on the glass, back under the arcade: walk in to the ground floor.
+			var best := INF
+			for i in ground.size():
+				var hit: Variant = Geometry2D.segment_intersects_segment(at, at - n * 15.0, ground[i], ground[(i + 1) % ground.size()])
+				if hit != null and at.distance_to(hit) < best:
+					best = at.distance_to(hit)
+			if best == INF:
+				return
+			at -= n * (best - 0.08)
+			y = LIM_GROUND - 0.35 - tall
+	var k := tall / (Neon.ROW_H * Neon.PIXEL)
+	var half := 0.5 * k * Neon.length_of(word)
+	var p := at + n * 0.08
+	if mark == "box" or mark == "redbox":
+		# A lit panel behind the word: white for the small casino's red name, red for its white one.
+		var box := LIM_WHITE if mark == "box" else LIM_RED.darkened(0.3)
+		_lim_flat(PackedVector2Array([Vector2(-half - 0.3, -0.1), Vector2(half + 0.3, -0.1), Vector2(half + 0.3, tall + 0.1),
+				Vector2(-half - 0.3, tall + 0.1)]), at, d, n, g + y, box, 0.05)
+		p = at + n * 0.12
+	signs.append([word, Vector3(p.x, g + y, p.y), Vector3(n.x, 0.0, n.y), k, col])
+	# Marks: on the east side of the word (larger u) unless said otherwise.
+	match mark:
+		"crown":
+			_lim_flat(_shape(LIM_CROWN, 0.9), at + d * (half + 1.0), d, n, g + y + 0.15 * tall, col)
+		"bison":
+			var bison := _shape(LIM_BISON, 1.25)
+			for i in bison.size():
+				bison[i] -= Vector2(0.75, 0.0)
+			_lim_flat(bison, at + d * (half + 1.2), d, n, g + y, LIM_ORANGE)
+			# The bank's red-orange rule under its name.
+			_lim_flat(PackedVector2Array([Vector2(-half, 0.0), Vector2(half + 2.0, 0.0), Vector2(half + 2.0, 0.14),
+					Vector2(-half, 0.14)]), at + d * 0.9, d, n, g + y - 0.3, LIM_RED)
+		"plus":
+			_lim_flat(_shape(LIM_PLUS, 1.0), at + d * (half + 0.9), d, n, g + y, Color(0.1, 0.8, 0.9))
+		"chip":
+			# The casino chain's red emblem: a disc with a light rim, to the word's east.
+			_lim_flat(_circle(Vector2(0.0, 0.75), 0.75, 12), at + d * (half + 1.1), d, n, g + y, LIM_RED)
+			_lim_flat(PackedVector2Array([Vector2(-half, -0.25), Vector2(half, -0.25), Vector2(half, -0.12), Vector2(-half, -0.12)]),
+					at, d, n, g + y, LIM_RED)
+		"kopenhaga":
+			var k2 := 0.55 / (Neon.ROW_H * Neon.PIXEL)
+			signs.append(["KOPENHAGA", Vector3(p.x, g + y - 0.6, p.y), Vector3(n.x, 0.0, n.y), k2, col])
+
+
+## `pts` scaled by `k`, as a polygon.
+func _shape(pts: Array, k: float) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	for q: Vector2 in pts:
+		out.append(q * k)
+	return out
+
+
+## A flat lit shape on a wall: `shape` (x along `d`, y up, metres) round `at`, `off` m out along
+## `n`, from height `y`. Drawn in M_LAMP: its colour by day, glowing at night.
+func _lim_flat(shape: PackedVector2Array, at: Vector2, d: Vector2, n: Vector2, y: float, col: Color, off := 0.08) -> void:
+	var tris := Geometry2D.triangulate_polygon(shape)
+	var n3 := Vector3(n.x, 0.0, n.y)
+	var keep := _mode
+	_mode = M_LAMP
+	var base := at + n * off
+	for i in range(0, tris.size(), 3):
+		var v: Array[Vector3] = []
+		for j in 3:
+			var q := shape[tris[i + j]]
+			var p := base + d * q.x
+			v.append(Vector3(p.x, y + q.y, p.y))
+		_tri(v[0], v[1], v[2], n3, col, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0, false)
+	_mode = keep
+
+
+## An LED screen: a dark box `w` × `h` × 0.6 m from `y0` with its lit face towards `n` and the
+## advert's word on it, on two legs down to `foot` when it stands above it.
+func _lim_screen(c: Vector2, d: Vector2, n: Vector2, w: float, h: float, foot: float, y0: float, panel: Color, word: String,
+		ink: Color) -> void:
+	var frame := Color("#1a1c1f")
+	var l := c - d * w * 0.5
+	var r := c + d * w * 0.5
+	_prism(PackedVector2Array([l, r, r - n * 0.6, l - n * 0.6]), y0, y0 + h, frame, frame, M_STONE, M_STONE)
+	if y0 > foot + 0.1:
+		for s: float in [-0.3, 0.3]:
+			_prism(_square(c + d * w * s - n * 0.3, 0.2), foot, y0, frame, frame, M_STONE, M_STONE)
+	var f0 := c - d * (w * 0.5 - 0.25) + n * 0.06
+	var f1 := c + d * (w * 0.5 - 0.25) + n * 0.06
+	var keep := _mode
+	_mode = M_LAMP
+	_quad(Vector3(f0.x, y0 + 0.25, f0.y), Vector3(f1.x, y0 + 0.25, f1.y), Vector3(f1.x, y0 + h - 0.25, f1.y),
+			Vector3(f0.x, y0 + h - 0.25, f0.y), Vector3(n.x, 0.0, n.y), panel)
+	_mode = keep
+	var k := minf(0.85 * (w - 0.5) / Neon.length_of(word), 0.6 * h / (Neon.ROW_H * Neon.PIXEL))
+	var rh := Neon.ROW_H * Neon.PIXEL * k
+	var p := c + n * 0.12
+	signs.append([word, Vector3(p.x, y0 + 0.5 * h - 0.5 * rh, p.y), Vector3(n.x, 0.0, n.y), k, ink])
 
 
 ## An axis-aligned square round `c`, half-width `r`.
@@ -9801,7 +10116,7 @@ static func loretka_plan(data: Dictionary) -> Dictionary:
 		for i in n:
 			if i == best:
 				continue
-			var hit = Geometry2D.segment_intersects_segment(from, from + b * 60.0, outline[i], outline[(i + 1) % n])
+			var hit: Variant = Geometry2D.segment_intersects_segment(from, from + b * 60.0, outline[i], outline[(i + 1) % n])
 			if hit != null:
 				depth = minf(depth, from.distance_to(hit) + 0.05)
 	if depth == INF or depth < 8.0:
