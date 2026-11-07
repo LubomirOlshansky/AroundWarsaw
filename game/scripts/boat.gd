@@ -68,6 +68,11 @@ const PUSH := 0.35           # share of the speed into a wall that bounces back
 ## prop wash over it), so the player can turn off the bank instead of having to reverse.
 const CONTACT_BITE := 0.55
 const CONTACT_HOLD := 0.8
+## A boat still pinned on a bank or the pontoon after PIN_TIME s of throttle (a long hull whose
+## rudder can't swing it off) gets pushed back off the contact at PIN_PUSH m/s, so the player is
+## never left grinding there (Autopilot, 2026-11-07: Czarna Pantera sat 12 s at 0.4 km/h).
+const PIN_TIME := 1.2
+const PIN_PUSH := 3.0
 
 ## The kind's spec, and the boost the race grants (rhythm, gold rings): top speed × `boost`.
 var kind := Kind.RUNABOUT
@@ -107,6 +112,8 @@ var solid: Callable = Callable()
 ## the wall or boat), a landing's strength.
 var bumped := 0.0
 var _contact := 0.0
+var _contact_n := Vector2.ZERO
+var _pinned := 0.0
 var landed := 0.0
 ## The race's boats on the same water (for the boat-to-boat bumps).
 var others: Array = []
@@ -138,6 +145,7 @@ func place(at: Vector2, heading: float) -> void:
 	vel = Vector2.ZERO
 	yaw_rate = 0.0
 	_contact = 0.0
+	_pinned = 0.0
 	y = 0.0
 	vy = 0.0
 	air = false
@@ -220,6 +228,12 @@ func step(dt: float) -> void:
 	_contact = maxf(0.0, _contact - dt)
 	if _contact > 0.0 and throttle > 0.1 and on_water:
 		authority = maxf(authority, CONTACT_BITE)
+		_pinned = _pinned + dt if absf(vf) < 1.0 else 0.0
+		if _pinned > PIN_TIME:
+			rel += _contact_n * PIN_PUSH
+			_pinned = 0.0
+	else:
+		_pinned = 0.0
 	if bool(spec.get("jet", false)) and on_water:
 		# Jet steering: the nozzle turns the thrust, so no gas means (almost) no turn, and gas
 		# turns it even from a standstill.
@@ -324,6 +338,7 @@ func _boats() -> void:
 
 func _hit(n: Vector2) -> void:
 	_contact = CONTACT_HOLD
+	_contact_n = n
 	var into := vel.dot(n)
 	if into < 0.0:
 		vel -= n * into * (1.0 + PUSH)

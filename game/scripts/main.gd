@@ -2788,6 +2788,9 @@ func _boat_free() -> bool:
 ## The boat race's share of the car's speed zoom (the river is open: the rest of the zoom only
 ## shrank the boats).
 const BOAT_ZOOM := 0.45
+## A free ride's view (one boat, no rings to read): this share of the base view, so the hull's
+## lean and pitch read on the phone (Autopilot, 2026-11-07: the boat was a few pixels long).
+const BOAT_FREE_VIEW := 0.7
 
 
 ## The player takes the boat: the car waits on the bank, out of the world (no process, no
@@ -7227,10 +7230,14 @@ func _update_camera(dt: float) -> void:
 		focus_rate = 3.5
 	else:
 		var zoom := base_size * FollowCamera.SPEED_ZOOM * clampf(speed / (car.max_speed * car.top_mult), 0.0, 1.0)
+		var view := base_size
 		if boat_race != null and boat_race.boating():
 			zoom *= BOAT_ZOOM  # the boat race: the rings and the rivals stay big enough to read
-		size = base_size + zoom
-		_view_size = fcam.zoom_step(_view_size, base_size, zoom, dt)
+			if boat_race.state == BoatRace.State.FREE:
+				view *= BOAT_FREE_VIEW
+				zoom *= BOAT_FREE_VIEW
+		size = view + zoom
+		_view_size = fcam.zoom_step(_view_size, view, zoom, dt)
 	# The look-ahead along the way it goes, and the dead zone's window (follow_camera.gd).
 	var forward := Vector3(-basis.z.x, 0.0, -basis.z.z).normalized() \
 			if follow and not flying and controls.scheme == Controls.CLASSIC else Vector3.ZERO

@@ -367,6 +367,8 @@ func _free(race: Node3D, map: WaterMap) -> void:
 		for k in race.boats.size():
 			if race.boats[k].visible:
 				_fail("a race boat is out during the free ride")
+		if i == FLEET_PIN:
+			_pin(race, b, m)
 		race.hud.abort_pressed.emit()
 		if race.state != BoatRace.State.IDLE or race.boating() or race.player == race.fleet[i]:
 			_fail("✕ did not end the free ride in %s" % name)
@@ -385,6 +387,29 @@ func _free(race: Node3D, map: WaterMap) -> void:
 		_fail("the jet ski turns %.2f rad/s off the gas (jet steering wants under half of %.2f)" % [sk["coast"], sk["gas"]])
 	if not (float(of["gas"]) < float(el["gas"]) and float(el["gas"]) < float(sk["gas"])):
 		_fail("turn rates on the gas: jet ski %.2f, electric %.2f, offshore %.2f (want that order)" % [sk["gas"], el["gas"], of["gas"]])
+
+
+## The long offshore nosed into the bank at full throttle, wheel straight: it must not sit pinned
+## there (the pin push-off in boat.gd; Autopilot found it stuck 12 s on 2026-11-07).
+const FLEET_PIN := 2
+
+
+func _pin(race: Node, b: Node3D, m: Vector2) -> void:
+	var to: Vector2 = BoatRace.CAR_SPOT - m
+	b.place(m, atan2(to.x, to.y))
+	b.target_dir = Vector3.ZERO
+	b.steer = 0.0
+	b.throttle = 1.0
+	var still := 0.0
+	var worst := 0.0
+	for f in int(8.0 / STEP):
+		race._process(STEP)
+		still = still + STEP if b.vel.length() < 0.5 else 0.0
+		worst = maxf(worst, still)
+	b.throttle = 0.0
+	print("check_boat_race: pinned on the bank at most %.1f s" % worst)
+	if worst > 2.5:
+		_fail("%s sat pinned on the bank for %.1f s at full throttle" % [BoatRace.FLEET[FLEET_PIN]["name"], worst])
 
 
 func _lines() -> void:

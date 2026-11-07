@@ -85,7 +85,15 @@ with ✕ back to the car, the boat mark on the minimap and the full map. Left:
   `--shots` frames; check on the Mac that it shows when the car stops by the pontoon
 - [ ] Phone feel of the three (jet steering off the gas, the offshore's slow start), a way back to
   the mooring that parks it (now ✕ anywhere), an engine sound each (the electric one near silent)
-- [ ] Mac Autopilot run of the three free rides (F asked 2026-11-07)
+- [ ] Free-ride Autopilot run on the Mac, 2026-11-07. Fixed in the same PR:
+  - Czarna Pantera got pinned on the bank: added a push-off after 1.2 s.
+  - The free-ride camera is now closer.
+  - The card no longer says "almost 100 km/h"; the real top speed is about 75.
+  Still open:
+  - The wake breaks into "tyre track" pieces in turns.
+  - Srebrna Strzała stops hard when the throttle is let go (43 km/h to 0 in 5 s).
+  - Autopilot's ui() does not list the ✕ chip.
+  - Not yet tested by driving: the PRZYSTAŃ pill when the car arrives from Solec, and reverse.
 
 ## The Emilii Plater underpass entrances (F, 2026-11-06)
 

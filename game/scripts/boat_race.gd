@@ -508,8 +508,8 @@ func _marina_card() -> void:
 	for f: Dictionary in FLEET:
 		buttons.append(String(f["short"]))
 	buttons.append("WYŚCIG")
-	hud.show_card("PRZYSTAŃ · wybierz łódź", "Rekin X: skuter. Srebrna Strzała: elektryczna. Czarna Pantera: offshore, prawie 100 km/h.",
-			buttons, FREE_COLOUR, false, "MARINA · pick a boat", "Rekin X: jet ski. Srebrna Strzała: electric. Czarna Pantera: offshore, almost 100 km/h.")
+	hud.show_card("PRZYSTAŃ · wybierz łódź", "Rekin X: skuter. Srebrna Strzała: elektryczna. Czarna Pantera: offshore, najszybsza, ponad 70 km/h.",
+			buttons, FREE_COLOUR, false, "MARINA · pick a boat", "Rekin X: jet ski. Srebrna Strzała: electric. Czarna Pantera: offshore, the fastest, over 70 km/h.")
 	_log("marina card")
 
 
