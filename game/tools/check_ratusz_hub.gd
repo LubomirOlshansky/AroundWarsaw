@@ -2,7 +2,8 @@ extends SceneTree
 ## The Ratusz Arsenał interchange (ratusz_hub.gd, F's photos 2026-11-07) against the committed map:
 ## the three hub platforms are found with the tracks on their front side, each gets its arched
 ## canopy (arches, benches, two boards), the whole hub is one surface inside its triangle budget,
-## the tower and its railings keep clear of the tracks, the generic shelters on the hub platforms
+## Gruba Kaśka stands between the two Solidarności platforms, Andersa's stop 03 has none, the tower
+## and its railings keep clear of the tracks, the generic shelters on the hub platforms
 ## are dropped and no others, the station's entrances take the Ratusz forms and each form builds,
 ## and the trams carry passengers. No renderer, no derived map files (CI too).
 ##   godot --headless --path game --script res://tools/check_ratusz_hub.gd
@@ -19,6 +20,8 @@ const MAX_TRIS := 16000
 const MAX_FORM_TRIS := 1200
 ## The tower's wall to the nearest track's centre line, at least (a tram is 2.4 m wide).
 const TOWER_CLEAR := 1.7
+## Stop 03 on Andersa: no canopy there (F, 2026-11-07).
+const ANDERSA_03 := Vector2(-1586.5, -1202.7)
 ## A tram car's passengers, at most (6 triangles each).
 const MAX_PASSENGER_TRIS := 400
 
@@ -79,6 +82,14 @@ func _init() -> void:
 	_expect(clear - RatuszHub.TOWER_R - 0.22 >= TOWER_CLEAR, "the tower stands %.2f m from a track" % (clear - RatuszHub.TOWER_R - 0.22))
 	for p: Dictionary in plats:
 		_expect(not Geometry2D.is_point_in_polygon(RatuszHub.TOWER, p["poly"]), "the tower stands on a platform")
+		_expect((p["c"] as Vector2).distance_to(ANDERSA_03) > 30.0, "stop 03 on Andersa got a canopy (it has ordinary shelters)")
+	# Gruba Kaśka stands between the two platforms: on the far side of each from the other's view.
+	if plats.size() == 2:
+		var c0: Vector2 = plats[0]["c"]
+		var c1: Vector2 = plats[1]["c"]
+		var t := Geometry2D.get_closest_point_to_segment_uncapped(RatuszHub.TOWER, c0, c1)
+		var k := (t - c0).dot(c1 - c0) / (c1 - c0).length_squared()
+		_expect(k > 0.1 and k < 0.9, "the tower is not between the two Solidarności platforms (%.2f)" % k)
 	# The shelters: the hub's dropped, the rest kept.
 	var shelters: Array = data.get("shelters", [])
 	var dropped := 0

@@ -32,14 +32,16 @@ const LIT_WINDOW := Models.LIT_WINDOW
 ## The station (OSM's name on the entrances).
 const STATION := "Ratusz-Arsenał"
 ## The hub platforms' centres (the bake's tram platforms at the junction): a platform whose centre
-## lies within MATCH m of one of these carries a canopy.
-const PLATFORMS := [Vector2(-1488.1, -1188.9), Vector2(-1480.5, -1170.0), Vector2(-1586.5, -1202.7)]
+## lies within MATCH m of one of these carries a canopy. Only the two Solidarności platforms (stops
+## 09 and 10, covered on both sides); stop 03 on Andersa keeps its ordinary shelters (F, 2026-11-07).
+const PLATFORMS := [Vector2(-1488.1, -1188.9), Vector2(-1480.5, -1170.0)]
 const MATCH := 8.0
-## The tower: on the setts strip east of Andersa's tracks, across from the canopy (F's street photo).
-const TOWER := Vector2(-1575.0, -1204.0)
-const TOWER_R := 1.85
+## Gruba Kaśka na Tłomackiem (the 18th-century well house): between the two Solidarności tracks,
+## across from the east end of the north canopy (F's satellite view and photos, 2026-11-07).
+const TOWER := Vector2(-1461.0, -1192.5)
+const TOWER_R := 2.1
 ## Railings round the tower at this radius; a railing piece within RAIL_CLEAR m of a track stays out.
-const FENCE_R := 3.3
+const FENCE_R := 3.5
 const RAIL_CLEAR := 2.3
 ## Canopy: the arches' spacing (m), the longest canopy (m), its share of the platform's length,
 ## its deepest reach from the back edge (m), and the inset from the platform's edges (m).
@@ -62,7 +64,8 @@ const SHADE := Color("#a9a59d")
 const STONE := Color("#dccfae")
 const STONE_JOINT := Color("#b8a988")
 const ROOF := Color("#4d6358")
-const ZINC := Color("#9fa5a6")
+const COPPER := Color("#5a9c80")
+const BASE_GREY := Color("#8d8b86")
 const GOLD := Color("#d6a83e")
 const DOOR := Color("#4a3f35")
 const RAILING := Color("#232427")
@@ -182,7 +185,11 @@ func build(data: Dictionary) -> void:
 	for p: Dictionary in hub_platforms(data):
 		_canopy(st, p, _top(p))
 	var g: float = map.terrain_height(TOWER.x, TOWER.y) if map != null else 0.0
-	_tower(st, Vector3(TOWER.x, g, TOWER.y))
+	var face := Vector2(1, 0)
+	var plats := hub_platforms(data)
+	if not plats.is_empty():
+		face = ((plats[0]["c"] as Vector2) - TOWER).normalized()
+	_tower(st, Vector3(TOWER.x, g, TOWER.y), Vector3(face.x, 0.0, face.y))
 	_railings(st, g, _track_segments(data, TOWER, 30.0))
 	var mesh := st.commit()
 	if mesh.get_surface_count() == 0:
@@ -199,9 +206,9 @@ func build(data: Dictionary) -> void:
 	var shape := CollisionShape3D.new()
 	var cyl := CylinderShape3D.new()
 	cyl.radius = TOWER_R + 0.15
-	cyl.height = 6.0
+	cyl.height = 7.0
 	shape.shape = cyl
-	shape.position = Vector3(TOWER.x, g + 3.0, TOWER.y)
+	shape.position = Vector3(TOWER.x, g + 3.5, TOWER.y)
 	body.add_child(shape)
 	add_child(body)
 
@@ -308,40 +315,49 @@ static func _board(st: SurfaceTool, at: Vector3, a: Vector2) -> void:
 					Color("#ffb21e"), LIT_SIGN)
 
 
-## The round tower at `base` (its foot's centre on the ground).
-func _tower(st: SurfaceTool, base: Vector3) -> void:
-	var sides := 16
-	_frustum(st, base, TOWER_R + 0.22, 0.0, TOWER_R + 0.22, 0.55, sides, STONE_JOINT.darkened(0.1), true)
-	_frustum(st, base, TOWER_R, 0.55, TOWER_R, 4.55, sides, STONE, false)
+## Gruba Kaśka at `base` (its foot's centre on the ground), its door facing `door` (F's photos): a
+## grey base, a tall cream ashlar drum, a roundel frieze under a projecting cornice, a stepped
+## dark roof, a tall green-copper spire and a gold ball; a tall dark wooden door, a barred window.
+func _tower(st: SurfaceTool, base: Vector3, door: Vector3) -> void:
+	var sides := 18
+	var r := TOWER_R
+	_frustum(st, base, r + 0.18, 0.0, r + 0.18, 0.7, sides, BASE_GREY, true)
+	_frustum(st, base, r + 0.18, 0.7, r, 0.82, sides, BASE_GREY.lightened(0.1), true)
+	_frustum(st, base, r, 0.82, r, 5.3, sides, STONE, false)
 	# The ashlar's bed joints.
-	for k in 7:
-		var y := 1.1 + k * 0.5
-		_frustum(st, base, TOWER_R + 0.012, y, TOWER_R + 0.012, y + 0.035, sides, STONE_JOINT, false)
-	# The frieze band with its roundels, the cornice and its dentils.
-	_frustum(st, base, TOWER_R + 0.06, 4.55, TOWER_R + 0.06, 5.15, sides, STONE.lightened(0.05), false)
+	for k in 9:
+		var y := 1.25 + k * 0.45
+		_frustum(st, base, r + 0.012, y, r + 0.012, y + 0.03, sides, STONE_JOINT, false)
+	# The frieze band with its roundels, the cornice projecting over it.
+	_frustum(st, base, r + 0.04, 5.3, r + 0.04, 5.85, sides, STONE.lightened(0.05), false)
 	for k in 12:
 		var ang := TAU * (k + 0.5) / 12.0
 		var dir := Vector3(cos(ang), 0.0, sin(ang))
-		var cen := base + dir * (TOWER_R + 0.075) + Vector3.UP * 4.85
-		Props.obox(st, cen, Basis(dir.cross(Vector3.UP), Vector3.UP, dir), Vector3(0.36, 0.36, 0.02), STONE_JOINT)
-	_frustum(st, base, TOWER_R + 0.12, 5.15, TOWER_R + 0.3, 5.42, sides, STONE.lightened(0.08), true)
-	# The low roof, the spire, the ball.
-	_frustum(st, base, TOWER_R + 0.34, 5.42, 0.62, 6.2, sides, ROOF, true)
-	_frustum(st, base, 0.6, 6.2, 0.62, 6.45, 8, ZINC, true)
-	_frustum(st, base, 0.55, 6.45, 0.08, 8.75, 8, ZINC, true)
-	_frustum(st, base, 0.1, 8.75, 0.22, 8.95, 6, GOLD, false)
-	_frustum(st, base, 0.22, 8.95, 0.0, 9.2, 6, GOLD, false)
-	# The door (facing the platform, -x side of the tower) and the barred window above it.
-	var dir := Vector3(-0.874, 0.0, 0.486)
-	var b := Basis(dir.cross(Vector3.UP).normalized(), Vector3.UP, dir)
-	Props.obox(st, base + dir * (TOWER_R + 0.02) + Vector3.UP * 1.65, b, Vector3(1.0, 2.2, 0.08), DOOR)
-	Props.obox(st, base + dir * (TOWER_R + 0.07) + Vector3.UP * 0.62, b, Vector3(1.3, 0.16, 0.5), STONE_JOINT)
-	var w := -dir
+		var cen := base + dir * (r + 0.06) + Vector3.UP * 5.575
+		Props.obox(st, cen, Basis(dir.cross(Vector3.UP), Vector3.UP, dir), Vector3(0.32, 0.32, 0.03), STONE_JOINT)
+	_frustum(st, base, r + 0.06, 5.85, r + 0.42, 6.05, sides, STONE.lightened(0.08), false)
+	_frustum(st, base, r + 0.42, 6.05, r + 0.42, 6.18, sides, STONE.lightened(0.08), true)
+	# The stepped dark roof, the green-copper spire, the gold ball.
+	var y := 6.18
+	for ring: float in [2.35, 1.95, 1.55, 1.2]:
+		_frustum(st, base, ring, y, ring - 0.12, y + 0.18, sides, ROOF, true)
+		y += 0.18
+	_frustum(st, base, 0.75, y, 0.18, 9.0, 10, COPPER, true)
+	_frustum(st, base, 0.06, 9.0, 0.06, 9.08, 6, GOLD, false)
+	_frustum(st, base, 0.06, 9.08, 0.32, 9.3, 8, GOLD, false)
+	_frustum(st, base, 0.32, 9.3, 0.0, 9.6, 8, GOLD, false)
+	# The tall door on its stone step, with a stone surround, and the barred window round the back.
+	var b := Basis(door.cross(Vector3.UP).normalized(), Vector3.UP, door)
+	Props.obox(st, base + door * (r + 0.2) + Vector3.UP * 1.4, b, Vector3(1.36, 2.7, 0.06), STONE_JOINT)
+	Props.obox(st, base + door * (r + 0.23) + Vector3.UP * 1.33, b, Vector3(1.0, 2.5, 0.06), DOOR)
+	Props.obox(st, base + door * (r + 0.27) + Vector3.UP * 1.33, b, Vector3(0.03, 2.5, 0.03), DOOR.darkened(0.3))
+	Props.obox(st, base + door * (r + 0.45) + Vector3.UP * 0.06, b, Vector3(1.5, 0.12, 0.5), BASE_GREY)
+	var w := -door
 	var bw := Basis(w.cross(Vector3.UP).normalized(), Vector3.UP, w)
-	Props.obox(st, base + w * (TOWER_R + 0.02) + Vector3.UP * 3.6, bw, Vector3(0.55, 0.42, 0.05), Color("#1e1f22"))
+	Props.obox(st, base + w * (r + 0.02) + Vector3.UP * 3.9, bw, Vector3(0.5, 0.6, 0.05), Color("#1e1f22"))
 	for k in 3:
-		Props.obox(st, base + w * (TOWER_R + 0.05) + Vector3.UP * 3.6 + bw.x * (-0.15 + k * 0.15), bw,
-				Vector3(0.03, 0.42, 0.03), RAILING)
+		Props.obox(st, base + w * (r + 0.05) + Vector3.UP * 3.9 + bw.x * (-0.15 + k * 0.15), bw,
+				Vector3(0.03, 0.6, 0.03), RAILING)
 
 
 ## A ring of `n` sides from radius r0 at y0 to r1 at y1 (over `base`), with a top cap when `cap`.

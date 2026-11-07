@@ -6,8 +6,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
 
 ## Ratusz Arsenał interchange and passengers (F, 2026-11-07, six photos)
 
-Built: `ratusz_hub.gd` (the arched tram canopies on the three platforms at the Solidarności/Andersa junction, lit
-arches at night, benches, departure boards; the round stone tower with its spire and gold ball; railings), the
+Built: `ratusz_hub.gd` (the arched tram canopies on the two Solidarności platforms, stops 09 and 10, lit arches at
+night, benches, departure boards; stop 03 on Andersa keeps its ordinary shelters; Gruba Kaśka na Tłomackiem between
+the two tracks: grey base, cream ashlar drum, roundel frieze, cornice, stepped roof, green copper spire, gold ball,
+tall wooden door; railings), the
 station's own entrances in `Props._metro_ratusz` (glass escalator pavilion, stone M1 entrance with the white canopy,
 stone stairwells, yellow roundels), seated passengers in every tram window (`Models.passengers`), and people
 waiting on every tram platform (crowds.gd `stop` sites; the bus stops already had buses.gd's waiting figures).
@@ -16,8 +18,9 @@ Check `ratuszhub`. Left:
   tram (old_tram.gd) and the new fleet (PR #487, tram_fleet.gd) want the same call.
 - Other M1 stations (Politechnika, Centrum's side exits, Świętokrzyska's plain stairs, Dworzec Gdański) have the
   same stone stairwells: `metro_form` can give them "stone_steps" once someone checks photos of each.
-- The tower's real name and story for an info card (F: is it the old guardhouse/pump house?); the pavilion's exact
-  footprint against an ortho (OSM's entrance 5 is its stair, so the box may sit a few metres off); Mac look check
+- Gruba Kaśka's info card (the 18th-century well house of the city waterworks); its spot is read off F's satellite
+  view, since the cloud can't reach the GUGiK ortho or Overpass (proxy 403): a Mac check against the ortho should
+  confirm it, the canopies' east ends and the pavilion's footprint (OSM's entrance 5 is its stair); Mac look check
   of the canopies' curve against F's photos.
 - buses.gd's waiting figures (≤ 10 near the view, 06-22) could sit on the shelter benches too.
 ## Novotel Warszawa Centrum from F's photos (F, 2026-11-07; docs/landmarks/novotel.md)
