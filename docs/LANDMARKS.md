@@ -206,7 +206,7 @@ Checks: `check_landmarks.gd` runs on the full map for EVERY site that has a card
 | The Bridge | S_FINS | - | - |
 | Chilton (Hilton Warsaw City, Grzybowska 63) | S_BANDS | parody sign CHILTON | - |
 | Westynka (The Westin, Jana Pawła II 21) | S_GRID | mapped, sign WESTYNKA | - |
-| Nowotel (Novotel, Marszałkowska 94/98) | S_TILE (white tiled shaft, floodlit; 2026-10-31 Rondo photos) | vertical blue neon N-O-W-O-T-E-L (`vsign`, one letter per sign), two setbacks at the top (`chamfer`); the ACCOR line is not built | - |
+| Nowotel (Novotel, Marszałkowska 94/98) | S_TILE's cool variant: punched windows in pairs (F's photos, 2026-11-07) | modelled whole (`_build_novotel`, log `docs/landmarks/novotel.md`): NOWOTEL letter over letter on both core bays with the orange rule and ACORN HOTELS, roof light boxes, glazed podium, east entrance | entrance side, Marszałkowska front |
 | Central Tower | S_DARK | - | - |
 | Ilmet | S_BANDS | brown glass | - |
 | Platinum Tower A / B | S_RIBBON | two entries | - |
