@@ -621,10 +621,13 @@ var rides: Rides
 var quest_pin: Dictionary = {}
 ## --ride=N: ride N's request, the car by its passenger; --ride-quirk=, --passenger=, --stars=X
 ## (the live rating's start), --ignore-app (the autopilot drives the shortest road, not the
-## app's), --parody-log (`ride:` and `gps:` lines).
+## app's), --parody-log (`ride:` and `gps:` lines). Story rides (taxi_stories.json): --ride-story=ID
+## (that passenger, "none" for no story), --ride-answer=0|1 (the autopilot's answer to the question).
 var start_ride := -1
 var ride_quirk := ""
 var ride_passenger := ""
+var ride_story := ""
+var ride_answer := -1
 var ride_stars := -1.0
 var ignore_app := false
 var parody_log := false
@@ -2261,6 +2264,8 @@ func _build_side_jobs(data: Dictionary, world: Node3D) -> void:
 	rides.log_on = parody_log
 	rides.force_quirk = ride_quirk
 	rides.force_passenger = ride_passenger
+	rides.force_story = ride_story
+	rides.force_answer = ride_answer
 	rides.start_stars = ride_stars
 	rides.gps_first = gps_in
 	add_child(rides)
@@ -4365,6 +4370,10 @@ func _parse_args() -> void:
 			ride_quirk = arg.trim_prefix("--ride-quirk=").to_lower()
 		elif arg.begins_with("--passenger="):
 			ride_passenger = arg.trim_prefix("--passenger=").to_lower()
+		elif arg.begins_with("--ride-story="):
+			ride_story = arg.trim_prefix("--ride-story=").to_lower()
+		elif arg.begins_with("--ride-answer="):
+			ride_answer = clampi(int(arg.trim_prefix("--ride-answer=")), 0, 1)
 		elif arg.begins_with("--stars="):
 			ride_stars = clampf(float(arg.trim_prefix("--stars=")), 1.0, 5.0)
 		elif arg == "--ignore-app":
