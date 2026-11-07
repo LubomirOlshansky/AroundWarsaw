@@ -18,6 +18,52 @@ Built from F's photos (specs `prosta32.md`, `prosta28.md`, `lucka.md`). Left ope
   balcony bands read blue from above); the tower's dark top is one colour where the photos show a
   grid of dark panels.
 
+## Novotel Warszawa Centrum from F's photos (F, 2026-11-07; docs/landmarks/novotel.md)
+
+Built: the white tiled slab with its paired windows and the lift core's blank strip, the blank narrow ends round
+their core bays with NOWOTEL in blue neon letter over letter, the orange rule and ACORN HOTELS, the top storey's
+blue band, the plant room and the two white light boxes with the name on the roof, the glazed podium with its lit
+fascia and canopies, and the east entrance (bowed cream bay, revolving door, blue NOWOTEL board, stone pier,
+planters). Left:
+- Which face the entrance is on: built on the east face (the mapped canopy is there); F's entrance photo does not show
+  the street. Check on the Mac or with one more photo of the corner.
+- The window rhythm (pairs in 6.2 m bays, 31 floors of 2.95 m) is read from one daytime photo; the lift core strip's
+  place along the face is a guess (the middle bay).
+- The podium's Marszałkowska front has no photo: built as two glazed storeys under a lit fascia.
+
+
+## Miodowa's palaces from F's photos (F, 2026-11-07; spec docs/landmarks/specs/miodowa.md)
+
+Built: seven palaces in photo-read skins (Branickich, Młodziejowskiego, Szaniawskich, Chodkiewiczów, Arcybiskupi,
+Paca, Collegium Nobilium) and Pałac Branickich's modelled Miodowa front. Left, photos in F's `warsaw-other-buildings-part-1` (M197-M204):
+- Pałac Młodziejowskiego: the pediment block and the two voluted wing gables round the cour d'honneur, the iron fence (M198).
+- Pałac Paca: the round gate court and the green-copper roofs' shapes (M197); Collegium Nobilium: the tower block and the roof balustrade (M202).
+- Pałac Szaniawskich's pediment and arched ground floor (M204); Pałac Prymasowski and Pałac Blanka on Senatorska have no ground photo yet.
+- Branickich: Mac look check of the storey count under the cornice and the end pavilions.
+
+
+## Street blocks across the city (F, 2026-11-06)
+
+512 plain blocks are modelled, 50 of them along Nowy Świat with colours checked against street
+photos (`game/data/street_blocks/`, one gzipped file each; sites `blk_<id>`, `_find_blocks`,
+`_build_block`; panes M_PANE). They join the city mesh, are no landmarks (no card, no icon), and
+collide on our outline. Blocks with real window openings bring their own roofs; the others keep
+LoD2's measured roof over their walls (`keeps_lod2_roof`). Bench, prebuilt: Nowy Świat 131 draw
+calls before and after, triangles 0.57 M to 1.10 M, video memory 323 MB to 405 MB, sectors 164 MB
+to 185 MB. Left:
+- **Phone**: the triangle total and memory on the iPhone.
+- **#29 Nowy Świat**: still its old block; its LoD2 is one mesh with the wing behind.
+- **Detail worth adding**: the long iron balconies of Nowy Świat 54/56 and 58.
+- **Outside Nowy Świat** the blocks had a look for breakage, not a house-by-house photo check.
+- **Photo fronts (2026-11-06)**: 17 houses keep LoD2's mass under street fronts read from F's photos (`game/data/photo_fronts.json`, `_build_photo_fronts`; styles classic, plain, ribbon, glass, fins). Weak evidence, check again: Aleje Jerozolimskie 11/19 (no facade photo), Solec 24 (photo shows the small house beside it).
+- **Photo fronts, Marszałkowska (2026-11-07)**: 16 more houses from F's photos (Hotel Saski, Saski Park, Marszałkowska 41 to 140, ids `b<building index>`). Left: rows M015 to M019 and M023 to M035 have aerial photos only, so their fronts wait for street photos; Hotel Saski's curve and arcade are not modelled yet.
+- **Photo fronts, Aleje Jerozolimskie (2026-11-07)**: 21 more houses along the avenue, Hotel Polonia's block and Nordic Park among them. Left: rows without street photos, and the murals at numbers 8 and 12, which are blank walls in the game.
+- **Photo fronts, Świętokrzyska to Ujazdowskie (2026-11-07)**: 25 more houses on Świętokrzyska, Warecka, Chmielna, Nowy Świat and Aleje Ujazdowskie. Left: rows whose photo shows only a gateway, a courtyard or a detail (Mariańska 1, Chmielna 102, 126, 128, Żelazna 22) need a street front photo.
+- **Photo fronts, Krakowskie Przedmieście, Senatorska, Miodowa (2026-11-07)**: 41 more houses, including the coloured row from number 37 to 67. Collegium Nobilium and Pałac Chodkiewiczów are left to the Miodowa palaces work. Left: Pałac Jabłonowskich and Małachowskich need their own builds.
+- **Photo fronts, Długa, Aleja Jana Pawła II, Krucza (2026-11-07)**: 41 more houses, Freta and the Muranów blocks among them. Left: Aleja Jana Pawła II 32 has no usable front edge in its outline and stays as it is.
+- **Photo fronts, Mokotowska and Hoża (2026-11-07)**: 61 more houses. Left: the small Mokotowska 69 rotunda and the shrine at 65, which fronts can't show; Hoża 1's bare firewall.
+- **Photo fronts, Wilcza, Piękna, Targowa (2026-11-07)**: 83 more houses, which closes part 1 of the list (305 houses with street fronts in all). Left: part 2 (named buildings) and part 3 of the photo folder, and rows with aerial photos only.
+- **Photo fronts, named buildings (2026-11-07)**: 46 more across the centre, 351 houses in all. Left for their own builds: Mała PAST-a, Pałac Przezdzieckich, the Elektoralna 12 portico, Mokotowska 25; Old Town rows 778 and 795 stay as they are; 189 named rows have no street photo yet.
 ## Secret rave: LEKTI, Ziomek, Smoła (F, 2026-11-06; docs/design/secret-rave.md)
 
 Built: night and day raves, LEKTI's voiced break-in on MORDOR FM, Ziomek's call and ride, the
@@ -29,6 +75,25 @@ strict three-question door, Smoła's cutaway room (option A). Left:
 - [ ] The dawn after: leaving at 05:00-06:00, Ziomek's last line, the city in the dawn look
 - [ ] Opaski (wristbands) collected per spot, a card in the notebook
 - [ ] Option B: a walk-around room (a person controller inside), only if A plays well
+
+## Boat race "Wiślana Szprotka" (F, 2026-11-06; docs/design/boat-race.md)
+
+Built: Szymek's call, the start pontoon at the mouth of Port Czerniakowski, the 3.2 km course of 26
+rings under four bridges, three misses and you're out (JESZCZE RAZ / WYJDŹ), the rhythm and gold
+rings, the planing physics with wakes and jumps, three rivals with their own temperaments, the sand
+barge and its wake. Left:
+- [ ] Phone feel (F): the turn and slide on the plane, the jump off the barge's wake, whether 16 m rings are too easy or too hard at the iso scale, the rings' readability at night
+- [ ] The race panel (top right) covers rings and rivals ahead in some frames (Mac Autopilot, 2026-11-06): shift the boat lower in the frame while racing, or a slimmer race panel. The fail path (3 misses, ODPADASZ, JESZCZE RAZ, WYJDŹ back to the car) passed on the Mac
+- [ ] A tall dark wedge at the top of the frame 11-13 s into the race (Mac frames): find what it is (a lamp post or a bridge pylon seen from above?)
+- [ ] Ring 7 by Most Poniatowskiego's pier: a straight line from ring 6 brushes the pier (52 → 26 km/h in the Mac run); the rivals' curved line clears it. Maybe move ring 7 a few metres off
+- [ ] `--boat-race=call` rings under the title screen and the 12 s card expires before the first tap (flag only; the real call waits 5 min of driving)
+- [ ] A boat engine sound (the car's engine plays now) and a splash on landing; a rooster tail of spray behind the jet ski
+- [ ] The ring's light at night (now bright unshaded colour, no glow); the rivals' boats are dark at night apart from their hulls
+- [ ] Bench on the phone during a race (expected about +10 draw calls)
+- [ ] A best-time record and a leaderboard line ("Ranking ulicy" has a place for it)
+- [ ] More courses: upstream to Łazienkowski and back, a night course with lit buoys, the Port Czerniakowski channel as a slow slalom
+- [ ] The marina (PR #251) as the start once the harbour's 8 m entrance can be widened or raced in single file
+- [ ] Pan Zdzisiek fishing from the Złota Rybka after the race; Kamil's "relacja" as a ticker joke
 
 ## The Emilii Plater underpass entrances (F, 2026-11-06)
 
@@ -79,6 +144,44 @@ Left:
 - PT-24 (suspect): backing off a wall resets the stall timer, so the offer may never come.
 - PT-25 (suspect): crazy drivers honk but said no line in 5 cut-ins.
 - PT-26, PT-27 (S3): a bubble over the steering hint; the KEBAB label over BRAKE.
+
+## Road design rollout: every street on the map (F, 2026-11-06; docs/design/road-design-rollout.md)
+
+**Decision (F, 2026-11-07): main as base, small fixes.** F compared the area 3-7 redesigns with main
+scene by scene and found main better in every one (Królewska, Świętokrzyska × Mazowiecka and Jasna,
+Rondo Dmowskiego's arms, Jerozolimskie east, Nowy Świat south, Marszałkowska south). The redesigns
+were measured truer to the photo but dropped what made main's streets read well: grass medians,
+turn arrows, islands, slip lanes and lay-bys, cycle paths and crossings. They are taken out
+(docs/roads/ keeps only palace.json, areas 1-2, which F approved; the dropped specs are in git
+history at 0cfc1ff). Areas and progress: docs/plan/road-areas.json, `python3 -I tools/road_progress.py`.
+
+- Areas 3-12 and tiers B and C: keep main's roads and fix only real bugs against the photo
+  (ribbons overlapping in junction boxes, zebras shorter than the carriageway, tram beds paved to
+  the stop line, broken mouths), never removing main's medians, arrows, islands or cycle paths.
+  One area per round, before/after per fix.
+- Lesson for any future design: carry over every OSM detail the photo cannot show (turn arrows,
+  cycle paths and crossings, islands, slip lanes, lay-bys) and compare each scene with main before
+  calling it better.
+- Apply the Palace design (areas 1-2) to the shipped map after a phone bench.
+- Main's real bugs, seen on the photo vs main at Marszałkowska × Królewska, Świętokrzyska ×
+  Mazowiecka and × Jasna (2026-11-07), the same across the map, so they are fixed once in the bake,
+  not per area: (1) zebras cover only part of the carriageway (often one lane or one direction);
+  they should run kerb to kerb, or kerb to median; (2) cycle crossings are short red bars across a
+  single lane, not the band across the street beside the zebra; (3) lane lines run on through the
+  junction box; they should stop at the stop line or the zebra; (4) overlapping ribbons show darker
+  patches in the junction boxes. Each fix keeps main's medians, arrows, islands and cycle paths.
+
+## Road design system: round 2 (F, 2026-11-06; docs/design/road-design-palace-results.md)
+
+- Seams where a designed street ends in the middle of a block: the old lane lines carry on up to 2.4 m
+  to the side (7 line jogs for `road_smooth --check`, and street_pass K2/L2 rise). Close the area on
+  junctions before applying it to the shipped map.
+- Emilii Plater × Świętokrzyska and × Jerozolimskie (IMG_7264 "Y", IMG_7266 stepped widening) still
+  come from the OSM ribbons.
+- Marszałkowska's two U-turns through the tram bed (s 191, 283-291 from the junction): the spec has no
+  paved gap in a tram median yet.
+- The traffic lane graph still follows the OSM ways; make it from the spec's lanes.
+- The GUGiK ortho predates the Marszałkowska crossings at Sienkiewicza and by the metro (taken from OSM).
 
 ## Loading bar on the title screen (F, 2026-11-05)
 
@@ -147,7 +250,6 @@ Left open:
 Built (site `foksal`, spec docs/landmarks/specs/foksal.md). Open:
 - Night: the warm uplights on the stone frames and under the balconies, and the glowing ground floor, as in the developer's night render (needs a lamp strip or a floodlit code for small fronts; measure the bench).
 - F's look check on the phone or the Mac: the brick tones in the north front's shade, the gables' height, Foksal 15's dormers (LoD2's as they stand; no ortho was gathered).
-- The pack's model of Foksal 13 (Tiny Warsaw 14556781) had its details on the courtyard side: any port of the pack needs a per-building photo check first (the A/B review).
 
 ## Lessons from Tiny Warsaw (F, 2026-11-04; docs/design/tiny-warsaw-comparison.md)
 
@@ -569,7 +671,7 @@ short `bar-crawl.md`), then build on the Podwózka rides (`rides.gd`, `ride_rule
 F asked for two things; both are plan only, nothing is built (Sonnet for the lines, Opus for the quest design; docs/design/ gets the plan first).
 
 - **Vitkac quests.** Quests that start or end at the Vitkac block on Bracka (the photo-built landmark, PR #385; CITY_INVENTORY #80). Ideas to design: a personal-shopper job (carry bags from the door to a car or hotel on time), a "queue for the drop" gag outside the doors, a Podwózka stop with its own result card. Hook into the ZADANIA list (`main.gd` `_quest_entries`, quest-lists) and `StopAssist`. The name on screen: Vitkac is a real place name and fine; any shop or label inside is a parody (warsaw-tone, never a real brand). Add-ons check at build time (NPC talk: Dialogue Manager or not).
-- **Every ride has its own passenger story.** Today `rides.gd` has a handful of passenger types with one request line and one result line. Make each ride a short story told in the car: a named passenger or group, a request line, 2-4 lines spoken at set points during the drive (distance or street triggers, Nawigacja style), and a drop-off line. F's example: a fancy couple living in Wilanów going to Vitkac to shop, who bicker about the budget and the dog's outfit on the way. Needs: a story table (passenger, from, to, lines), a pick that fits the route (Wilanów pickups need a far start or a spawn "from" label), polish in Polish with English (warsaw-tone), parody names only, no line over two HUD rows on a phone. Check: `--ride-quirk` / `--passenger` flags and the `ride:` log lines; extend the rides check.
+- **Ride stories: what's left** (the stories themselves were built 2026-11-07: `data/taxi_stories.json`, `scripts/taxi_stories.gd`, 15 passengers, 3 lines + a two-answer question each, `--ride-story=ID --ride-answer=0|1`). Each story has its real destination (`to`, 2026-11-07); the big sites with no address door (Pałac Kultury, Dworzec Centralny, the Castle, the Stadium) end at the junction nearest them, not a modelled drop-off bay. Left: drop-off bays at those four; F's example couple from Wilanów to Vitkac (needs a pickup `from` too); a story told by two passengers (the couple bickering); recorded voices for the question line; more stories past 15 so the rotation is longer (the format is in the file's `_about`); the phone look of the question card while driving (stacked buttons beside the car).
 
 ## Loud cars at Browary (F, 2026-11-02)
 
