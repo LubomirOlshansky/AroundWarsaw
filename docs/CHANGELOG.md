@@ -19,6 +19,7 @@ someone writes its lines.
 - Mokotowska and Hoża: 61 more houses got street fronts from real photos.
 - Wilcza, Piękna and Targowa: 83 more houses got street fronts from real photos.
 - 46 named buildings across the centre got street fronts from real photos.
+- 21 more houses got their real wall colours after a check against street photos, from Filtrowa to Marszałkowska.
 
 ## 2026-11-06
 - Boat race on the Vistula: your mate Szymek calls and you race him, old Pan Zdzisiek in his Złota Rybka and Kamil on a jet ski from Port Czerniakowski down under four bridges to the Old Town, through rings in a slalom. Miss three and you're out, then go again or head back. Rings in a row speed you up, gold rings give a boost, and a sand barge going the other way throws waves you can jump.
