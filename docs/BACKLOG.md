@@ -428,8 +428,11 @@ experience". The plan, the road audit and the causes are in docs/GAMEPLAY_PLAN.m
   and the traffic under the Trasa, Most Łazienkowski's land spans and the viaducts show as they
   are (`ground.gdshader` deck ghost: a deck's surface 2.5 m or more over the car's ground, from the
   surface map's deck height; the slab, piers and rails were already ghosted by `building.gdshader`).
-  The silhouette stays for tunnels (and decks with --no-ghost). Open: the phone's look and its cost
-  (the ground shader now has a discard; iPhone 11 bench needs F's device run)
+  The silhouette stays for tunnels (and decks with --no-ghost). Phone bench (iPhone 16 Pro Max, iOS
+  27.0.1, Ultra, A/B alternated): no cost from the ground shader's new discard: 60 fps everywhere,
+  1 % low 55.5-56.9 both builds under the Trasa and the Poniatowski viaduct, bench route 51.2 / 50.5,
+  one draw call fewer under decks (the silhouette's). Open: the iPhone 11 bench (its developer
+  certificate wasn't trusted) and F's look on the phone
 - [ ] 0.4 Helicopter high up: heli framed at the top, far plane clips the ground (floating buildings,
   blue sky), height cap, horizon haze
 - [ ] 0.5 Plac Piłsudskiego's paving reads as a chessboard: lower the panel contrast, speckle
