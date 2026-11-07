@@ -116,6 +116,9 @@ var story_colours := PackedColorArray()
 ## The questlines' names (in the language shown) by start, for their labels.
 var story_names := PackedStringArray()
 var focus := false
+## F (2026-11-07): the hospitals only matter to a rescue; their marks show only while one is on
+## (main.gd sets it on open).
+var hospitals := false
 ## The minimap's night (kept for hud.gd; the full map has one look day and night).
 var night := 0.0
 ## Loop 3h slice 1: districts.gd `view()` (names, label point, polygons, found, pct) and the total %.
@@ -895,6 +898,8 @@ func _paint() -> void:
 	var named: Array[Dictionary] = []
 	var close_in := _view().y / ppm <= NAMES_M
 	for ic in icons:
+		if str(ic["shape"]) == "hospital" and not hospitals:
+			continue
 		var tip := to_screen(ic["at"])
 		if not view.grow(r * 2.0).has_point(tip):
 			continue

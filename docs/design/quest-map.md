@@ -41,7 +41,8 @@ What carries over to a phone-sized isometric drive:
 - *Landmarks, metro, hospitals* (F, 2026-11-07: "they jump out too much"): no more pins and
   badges on the full map. Each is a small silhouette printed on the map in its category's colour,
   darkened, on a faint cream halo, with its name in dark ink like a paper map's own labels; fainter
-  still while a quest runs. So the only loud marks are the main star and the "!" badges.
+  still while a quest runs. Hospitals show only while a rescue is on (F: "do we need them?").
+  So the only loud marks are the main star and the "!" badges.
 
 **Quest focus.** While anything runs (a race, a job, a ride, a rescue, the boat race, the rave, a
 tow), the minimap and the full map hide the street jobs, the garage, the "?" places and the
