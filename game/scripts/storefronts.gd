@@ -1466,12 +1466,26 @@ func _load_metros(pois: Array) -> void:
 
 ## The entrance's look by station: Centrum's 1990s tubes (F, 2026-11-02); Świętokrzyska's mapped
 ## canopies are M2's steel-and-glass triangle tents (F's photo, Feb 2026), its plain stairs stay
-## stairs; elsewhere the bake's `f`.
+## stairs; Rondo ONZ wears the same tents, Stadion Narodowy, Kopernik and Gdanski their glass
+## crystals, Nowy Swiat-Uniwersytet its violet box; elsewhere the bake's `f`.
 static func metro_form(station: String, f: String) -> String:
 	if station == "Centrum":
 		return "tube"
 	if station == "Świętokrzyska" and f == "canopy":
 		return "tent"
+	# Street photos (Mapillary, 2026-11-07): M2's other stations, each with its own pavilion.
+	if f == "canopy":
+		match station:
+			"Rondo ONZ":
+				return "tent"  # the same steel-and-glass A-frame with the yellow roundel
+			"Stadion Narodowy":
+				return "crystal"
+			"Centrum Nauki Kopernik":
+				return "crystal_aqua"
+			"Dworzec Gdański":
+				return "crystal_clear"
+			"Nowy Świat-Uniwersytet":
+				return "box"
 	return f
 
 
