@@ -216,6 +216,8 @@ then the Launch gate.
   - [x] Plac Bankowy's colonnades and the Bank Polski corner, Filharmonia, Teatr Polski from the Mac photo reports (2026-11-02, specs `bankowy.md`, `filharmonia.md`, `teatr_polski.md`)
   - [x] Poczta Główna and PAST-a from the Mac photo reports (2026-11-03, specs `poczta.md`, `pasta.md`)
   - [ ] Narodowy Bank Polski (waits on its photo report)
+  - [x] Miodowa's palaces from F's photos (2026-11-07, spec `miodowa.md`): Branickich's front modelled, six more palaces in photo-read skins
+  - [ ] Miodowa's palaces, the rest: Młodziejowskiego's pediment block and fence, Paca's gate court, Collegium Nobilium's tower block, Pałac Prymasowski and Pałac Blanka
 - [ ] **Warsaw modernism and brutalism, high priority** (F, 2026-11-03; docs/design/modernism-collection.md,
       CITY_INVENTORY 147-153, BACKLOG "Warsaw modernism and brutalism"): photo builds from the Mac's `refs/<slug>/`
   - [x] The plan: the buildings ranked M1-M17, the modelling recipe, the quest design (2026-11-03, docs only)
