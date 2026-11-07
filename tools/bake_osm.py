@@ -483,6 +483,10 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
     # junctions' mouths, zebras and cycle crossings run on to the kerbs (tools/road_fixes.py).
     import road_fixes
     print("road_fixes: " + road_fixes.apply(out))
+    # Tram stops (F, 2026-11-07): tram islands 0.3 m high (not a train's 0.9 m), their boarding
+    # edge and the railing along the road found once (tools/tram_stops.py).
+    import tram_stops
+    print("tram_stops: " + tram_stops.apply(out))
     # Loop "content POIs" (2026-10-31): the corner shops, metro entrances, city bike docks, the
     # places' missing addresses and the Leżaks with their zones, appended after every older poi
     # on the finished data (they keep clear of its solids; tools/bake_street_pois.py).
