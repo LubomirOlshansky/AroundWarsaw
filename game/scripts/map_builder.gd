@@ -6124,6 +6124,8 @@ const SHORE_UP := 0.45
 const SHORE_WALL := 3.0
 const SHORE_PIECE := 2.0
 const SHORE_CLEAR := 3.2
+## A water area's edge this far out on the water (water.bin) is a seam, not a shore.
+const SEAM_WET := 6.0
 const SHORE_TOP := Color("#c9c4b8")
 const SHORE_FACE := Color("#8d8a83")
 ## The runs, each [polyline, water side (+1 left, -1 right), natural (0 built, 1 a sandy bank,
@@ -6342,7 +6344,10 @@ func _shore_under_decks(baked: Array[PackedVector2Array]) -> Array[PackedVector2
 		var start := -1
 		for k in samples.size():
 			var p := samples[k]
-			var want := in_map(p, -1.0) and not _near_segments(grid, CELL, p, 0.75)
+			# Not a seam between two water areas out on the water (the Vistula's polygons meet
+			# across the river by Most Śląsko-Dąbrowski: a wall there stopped the boat race).
+			var want := in_map(p, -1.0) and not _near_segments(grid, CELL, p, 0.75) \
+					and shore_distance(p.x, p.y) < SEAM_WET
 			if want:
 				var g := terrain_height(p.x, p.y)
 				for d in _decks_at(p.x, p.y):
@@ -7370,8 +7375,11 @@ func _build_lod2(walls, marks) -> Array:
 					hi = hi.max(q)
 				t1 += 3
 		if marks.replaces((lo + hi) * 0.5):
+			# A modelled block on a LoD2 roof: only the walls go, the measured roof stays.
+			var roofs: bool = marks.keeps_lod2_roof((lo + hi) * 0.5)
 			for t in range(t0, t1, 3):
-				dropped[t / 3] = 1
+				if not roofs or absf(nrm[t].y) < 0.3:
+					dropped[t / 3] = 1
 		else:
 			# The landmarks loop: a kept building in a landmark's own stone (Muzeum Narodowe).
 			var skin: Dictionary = marks.skin_at(Rect2(lo, hi - lo))

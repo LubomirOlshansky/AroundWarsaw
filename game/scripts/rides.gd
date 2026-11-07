@@ -46,6 +46,8 @@ const HURRY_SHARE := 0.10
 ## G3 leftover: in the evening (18:00-01:00) a "timber" passenger, off to a date from the dating
 ## app TIMBER, takes this share of the normal rides (club doors at dawn still win).
 const TIMBER_SHARE := 0.2
+const DATE_SHARE := 0.08  # a date at Pod Gigantami
+const DATE_DOOR := Vector2(-36.0, 778.0)  # its gate, on Aleje Ujazdowskie
 const TIMBER_HOURS := [18.0, 25.0]
 const BOARD := StopAssist.RING
 const BOARD_SPEED := StopAssist.STOP_SPEED
@@ -736,6 +738,18 @@ func _make_ride(n: int, e: int, s: float, from: Vector2, lo: float, hi: float) -
 		kind = "club"
 	if force_passenger != "":
 		kind = force_passenger
+	# Pod Gigantami (F, 2026-11-06): now and then the passenger is late for a date there.
+	if (kind == "normal" and rng.randf() < DATE_SHARE) or force_passenger == "date":
+		var by_date := func(a: Dictionary) -> bool: return (a["door"] as Vector2).distance_to(DATE_DOOR) < 90.0
+		var date: Dictionary = jobs._pick_address(r["p_e"], r["p_s"], kerb, RIDE_MIN, 6000.0, rng, by_date)
+		if not date.is_empty() and date["reached"]:
+			kind = "date"
+			r["dest"] = "Pod Gigantami"
+			r["ring"] = date["ring"]
+			r["road"] = float(date["road"])
+			r["finish"] = int(date["finish"])
+		elif force_passenger == "date":
+			kind = "normal"
 	r["type"] = kind
 	r["club"] = club
 	# Loop MW-4: on a Hyrax Saturday morning the one in a hurry is a late competitor.
@@ -765,8 +779,8 @@ func _make_ride(n: int, e: int, s: float, from: Vector2, lo: float, hi: float) -
 	r["shirt"] = Color(SHIRTS[rng.randi() % SHIRTS.size()])
 	r["night"] = _night()
 	r["rain"] = _rain()
-	r["eta"] = Rules.eta_for(r["road"], kind == "hurry")
-	var l: Array = dialogue.line("podwozka_request", kind, true) if kind == "club" or kind == "timber" else dialogue.line("podwozka_request")
+	r["eta"] = Rules.eta_for(r["road"], kind == "hurry" or kind == "date")
+	var l: Array = dialogue.line("podwozka_request", kind, true) if kind == "club" or kind == "timber" or kind == "date" else dialogue.line("podwozka_request")
 	r["note"] = [l[0], l[1]] if not l.is_empty() else []
 	return r
 

@@ -79,6 +79,8 @@ levels (if their folder is given) to balance the buses against.
       in unison at 120 BPM, a cheer at the phrase's end (an 8 s loop)
   gong_bowls     the sound-healing rings (wellness.gd): a gong every 6 s and a singing bowl between (a 12 s loop)
   techno_thump   the techno-yoga speaker (wellness.gd): a muffled four-on-the-floor at 128 BPM (a 7.5 s loop)
+  jazz_trio      the jazz evenings under the Powiśle saucer (city_sounds.gd `jazz`): an original swung
+      tune in F at 132 BPM, walking bass, ride and brushes, piano comping, vibraphone (a 14.5 s loop)
 
   --only=club_leak,busker  makes just those (the city's sounds: club_leak, metro_chime,
   church_bell, busker, crowd_murmur, steps_guitar; loop MW-4's bark_small, bark_mid, bark_big,
@@ -1251,6 +1253,169 @@ def amb_yard(seed):
 
 # --- output and checks ------------------------------------------------------------
 
+def jazz_trio(seed):
+    """The jazz evenings under the Powiśle saucer (crowds.gd's `jazz` site, city_sounds.gd's
+    `jazz`): an original quartet tune at 132 BPM, swung, eight bars in F that loop (Gm7 C7 Fmaj7
+    D7b9 Gm7 C7 | Am7 D7 | Gm7 C7). A walking upright bass (Karplus-Strong, damped, with a finger
+    thump), a ride cymbal's ding-ding-a-ding (inharmonic partials over noise) and the hi-hat's
+    chick on 2 and 4, brushes swishing on the snare, piano comping on rootless voicings, and a
+    vibraphone's melody with its tremolo. Heard across the square from the stage: low-passed, a
+    little room. Every note lands on the grid and tails wrap, so it loops (14.5 s)."""
+    rnd = random.Random(seed)
+    beat = round(RATE * 60.0 / 132.0)
+    n = beat * 32
+    sw = 2.0 / 3.0  # a swung eighth's "and"
+    bass_out, ride_out, drum_out, piano_out, vib_out = zeros(n), zeros(n), zeros(n), zeros(n), zeros(n)
+
+    def hz(m):
+        return 440.0 * 2 ** ((m - 69) / 12.0)
+
+    def at(bar, pos):
+        return int((bar * 4 + pos) * beat + rnd.uniform(-0.004, 0.004) * RATE)
+
+    # The bass: four walking notes a bar, the last a step into the next bar's root.
+    walk = [[43, 45, 46, 47], [48, 46, 43, 42], [41, 45, 48, 51], [50, 48, 45, 44],
+            [43, 46, 50, 49], [48, 52, 55, 46], [45, 48, 50, 44], [43, 50, 48, 44]]
+
+    def pluck(m, length):
+        period = RATE / hz(m)
+        d = int(period)
+        k = int(length * RATE)
+        buf = [rnd.uniform(-1, 1) for _ in range(d + 1)]
+        # A softer excitation (a finger, not a pick): smooth the burst first.
+        for _ in range(3):
+            buf = [(buf[i - 1] + buf[i] + buf[(i + 1) % (d + 1)]) / 3.0 for i in range(d + 1)]
+        sig = zeros(k)
+        p = 0
+        for i in range(k):
+            a = buf[p]
+            b = buf[(p + 1) % (d + 1)]
+            sig[i] = a * min(1.0, (k - i) / (0.03 * RATE))
+            buf[p] = 0.4975 * (a + b)
+            p = (p + 1) % (d + 1)
+        # The finger's thump on the string.
+        f0 = hz(m)
+        for i in range(min(k, int(0.05 * RATE))):
+            sig[i] += 0.5 * math.sin(TAU * f0 * i / RATE) * math.exp(-i / (0.012 * RATE))
+        return sig
+
+    for bar, notes in enumerate(walk):
+        for b, m in enumerate(notes):
+            place(bass_out, pluck(m, 0.95 * beat / RATE), at(bar, b), 1.0 if b % 2 == 0 else 0.85)
+
+    # The ride: partials a little out of tune with each other over a hiss, a long shimmer.
+    def ride():
+        k = int(0.9 * RATE)
+        parts = [(3170.0, 1.0, 0.5), (4410.0, 0.7, 0.4), (5230.0, 0.6, 0.35), (6870.0, 0.4, 0.3), (8120.0, 0.3, 0.25)]
+        sig = bell(k, parts)
+        hiss = biquad(noise(k, rnd), "hp", 5000.0, 0.7)
+        for i in range(k):
+            sig[i] = 0.25 * sig[i] + 0.5 * hiss[i] * math.exp(-i / (0.35 * RATE))
+        return sig
+
+    def chick():
+        k = int(0.05 * RATE)
+        w = biquad(noise(k, rnd), "bp", 7000.0, 1.0)
+        return [w[i] * math.exp(-i / (0.01 * RATE)) for i in range(k)]
+
+    def brush():
+        k = int(0.2 * RATE)
+        w = biquad(noise(k, rnd), "bp", 3200.0, 0.6)
+        return [w[i] * min(1.0, i / (0.015 * RATE)) * math.exp(-i / (0.06 * RATE)) for i in range(k)]
+
+    rd, ch, br = ride(), chick(), brush()
+    for bar in range(8):
+        for pos, g in ((0.0, 0.9), (1.0, 1.0), (1.0 + sw, 0.6), (2.0, 0.9), (3.0, 1.0), (3.0 + sw, 0.6)):
+            place(ride_out, rd, at(bar, pos), g * rnd.uniform(0.85, 1.0))
+        for pos in (1.0, 3.0):
+            place(drum_out, ch, at(bar, pos), 0.7)
+            place(drum_out, br, at(bar, pos), 0.8)
+        if bar % 4 == 3:
+            # A little fill into the next four bars: two brush taps.
+            place(drum_out, br, at(bar, 3.0 + sw), 0.5)
+            place(drum_out, br, at(bar, 2.0 + sw), 0.4)
+
+    # The piano: rootless voicings, comped (Charleston, anticipations), a soft felt tone.
+    G7, C7, F7, D7, A7 = [58, 62, 65, 69], [58, 62, 64, 69], [57, 60, 64, 67], [54, 57, 60, 63], [55, 60, 64, 67]
+    comp = [[(0.0, G7, 0.35), (1.0 + sw, G7, 0.5)], [(sw, C7, 0.3), (2.0, C7, 0.6)],
+            [(0.0, F7, 0.5), (2.0 + sw, F7, 0.4)], [(1.0 + sw, D7, 0.5), (3.0 + sw, G7, 0.4)],
+            [(1.0, G7, 0.35), (2.0 + sw, G7, 0.4)], [(0.0, C7, 0.35), (1.0 + sw, C7, 0.6)],
+            [(0.0, A7, 0.5), (2.0, D7, 0.5)], [(0.0, G7, 0.5), (2.0, C7, 0.4), (3.0 + sw, G7, 0.3)]]
+    tones = {}
+
+    def piano(m, length):
+        key = (m, round(length, 2))
+        if key in tones:
+            return tones[key]
+        k = int((length + 0.12) * RATE)
+        f0 = hz(m)
+        sig = zeros(k)
+        for h in range(1, 9):
+            f = f0 * h * (1.0 + 0.0004 * h * h)
+            if f > RATE * 0.45:
+                break
+            amp = 1.0 / h ** 1.4
+            dec = 1.2 / (1.0 + 0.6 * h)
+            w = TAU * f / RATE
+            for i in range(k):
+                sig[i] += amp * math.sin(w * i) * math.exp(-i / (dec * RATE))
+        r = int(0.12 * RATE)
+        for i in range(r):
+            sig[k - 1 - i] *= i / r
+        for i in range(int(0.004 * RATE)):
+            sig[i] *= i / (0.004 * RATE)
+        tones[key] = sig
+        return sig
+
+    for bar, hits in enumerate(comp):
+        for pos, chord, length in hits:
+            for j, m in enumerate(chord):
+                place(piano_out, piano(m, length * 60.0 / 132.0 * 2.0), at(bar, pos) + int(j * 0.006 * RATE), 0.22)
+
+    # The vibraphone: a sine with its 4x partial, the motor's tremolo, damped at the note's end.
+    tune = [[(1.0, 70, 0.6), (1.0 + sw, 72, 0.3), (2.0, 74, 0.9), (3.0, 77, 0.6), (3.0 + sw, 76, 0.3)],
+            [(0.0, 74, 0.6), (sw, 72, 0.3), (1.0, 70, 0.6), (1.0 + sw, 69, 0.3), (2.0, 67, 1.4), (3.0 + sw, 68, 0.3)],
+            [(0.0, 69, 1.8), (2.0, 72, 0.6), (2.0 + sw, 76, 0.3), (3.0, 79, 1.0)],
+            [(0.0, 78, 0.6), (sw, 75, 0.3), (1.0, 74, 0.6), (1.0 + sw, 72, 0.3), (2.0, 69, 0.6), (2.0 + sw, 66, 0.3), (3.0, 69, 1.0)],
+            [(0.0, 70, 1.5), (1.0 + sw, 74, 0.3), (2.0, 77, 0.6), (2.0 + sw, 81, 0.3), (3.0, 79, 1.0)],
+            [(0.0, 76, 0.6), (sw, 79, 0.3), (1.0, 82, 1.0), (2.0, 81, 0.6), (2.0 + sw, 79, 0.3), (3.0, 76, 1.0)],
+            [(0.0, 72, 1.0), (1.0, 76, 0.6), (1.0 + sw, 72, 0.3), (2.0, 78, 0.6), (2.0 + sw, 74, 0.3), (3.0, 72, 0.6), (3.0 + sw, 69, 0.3)],
+            [(0.0, 70, 1.0), (1.0, 67, 0.6), (1.0 + sw, 70, 0.3), (2.0, 69, 0.6), (2.0 + sw, 67, 0.3), (3.0, 64, 1.0)]]
+
+    def vibe(m, beats):
+        length = beats * 60.0 / 132.0
+        k = int((length + 0.08) * RATE)
+        f0 = hz(m)
+        sig = zeros(k)
+        for i in range(k):
+            t = i / RATE
+            trem = 1.0 - 0.28 * (0.5 + 0.5 * math.sin(TAU * 5.6 * t))
+            v = math.sin(TAU * f0 * t) * math.exp(-t / 1.4) + 0.22 * math.sin(TAU * f0 * 3.98 * t) * math.exp(-t / 0.25)
+            v += 0.1 * math.sin(TAU * f0 * 9.2 * t) * math.exp(-t / 0.04)
+            sig[i] = v * trem
+        r = int(0.08 * RATE)
+        for i in range(r):
+            sig[k - 1 - i] *= i / r
+        return sig
+
+    for bar, notes in enumerate(tune):
+        for pos, m, beats in notes:
+            place(vib_out, vibe(m, beats), at(bar, pos), 0.45 * rnd.uniform(0.85, 1.0))
+
+    band = mix((0.8, biquad(bass_out, "lp", 900.0, 0.7, True)), (0.2, ride_out), (0.5, drum_out),
+               (1.0, biquad(piano_out, "lp", 3000.0, 0.7, True)), (1.0, vib_out))
+    # A small room (the saucer over the stage): a few wrapped reflections.
+    room = zeros(n)
+    for d, g in ((0.031, 0.32), (0.047, 0.24), (0.083, 0.18), (0.121, 0.12), (0.173, 0.08)):
+        place(room, band, int(d * RATE), g)
+    out = mix((1.0, band), (1.0, biquad(room, "lp", 2500.0, 0.7, True)))
+    # The square's air and a far murmur under it, so it never drops to dead silence.
+    air = biquad(noise(n, rnd), "lp", 600.0, 0.7, True)
+    for i in range(n):
+        out[i] += 0.015 * air[i]
+    return biquad(biquad(out, "lp", 8000.0, 0.7, True), "hp", 45.0, 0.7, True)
+
+
 def normalise(chans, peak_db):
     peak = max(max(abs(v) for v in c) for c in chans)
     g = 10 ** (peak_db / 20.0) / max(peak, 1e-9)
@@ -1521,7 +1686,8 @@ def techno_thump(seed):
 
 LOOPS = ["engine_idle", "engine_mid", "engine_high", "tyre_roll", "tyre_wet", "tyre_squeal", "rotor",
          "city_day", "city_night", "rain", "police_siren", "club_leak", "busker", "crowd_murmur", "steps_guitar",
-         "queue_chatter", "amb_river", "amb_park", "amb_square", "amb_yard", "fan_chant", "gong_bowls", "techno_thump"]
+         "queue_chatter", "amb_river", "amb_park", "amb_square", "amb_yard", "fan_chant", "gong_bowls", "techno_thump",
+         "jazz_trio"]
 
 
 def loud_rev(seed):
@@ -1624,7 +1790,9 @@ CITY = {"club_leak": lambda: [club_leak(71)], "metro_chime": lambda: [metro_chim
         # The fans by Stadion Leguminy (fans.gd, through city_sounds.gd's `chant`).
         "fan_chant": lambda: [fan_chant(99)],
         # The wellness circles (wellness.gd, through city_sounds.gd's `gong` and `thump`).
-        "gong_bowls": lambda: [gong_bowls(100)], "techno_thump": lambda: [techno_thump(101)]}
+        "gong_bowls": lambda: [gong_bowls(100)], "techno_thump": lambda: [techno_thump(101)],
+        # The jazz evenings under the Powiśle saucer (crowds.gd's `jazz`, city_sounds.gd's `jazz`).
+        "jazz_trio": lambda: [jazz_trio(102)]}
 
 
 def main(out_dir, radio_dir=None, only=None):
