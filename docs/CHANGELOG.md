@@ -55,6 +55,7 @@ someone writes its lines.
 
 ## 2026-11-05
 
+- Złote Tarasy has its big curved 3D screen: it wraps the corner of the Skylight tower above the glass entrance and shows glowing flowers, a cat leaning out of the frame and the SCENA WARSZAWA title, floating in 3D as you drive past
 - On every launch after the first, the KEBAB FM host now says hello, the weather and goodbye out loud.
 - Both radio stations now have their own jingles between songs: KEBAB FM in a warm woman's voice, MORDOR FM in a dry man's.
 - KEBAB FM and MORDOR FM now play real music: six vaporwave tracks and six minimal-techno tracks replace the first test loops.
