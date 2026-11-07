@@ -779,7 +779,7 @@ traffic). Open:
   crosses.
 - Waiting walkers keep their walking pose in place (one shared mesh).
 - Rondo Daszyńskiego's metro entrance models are checked only by F's red-wing photos; the other
-  stations' entrances and real tram stops across the map are separate items (F, 2026-11-07).
+  stations' entrances (audit and missing designs) and real tram stops across the map are in their own threads (F, 2026-11-07).
 - Props: lanyards, laptop bags and coffee cups are only in the lines; a figure with a bag or cup
   needs a variant of the shared person mesh (a mesh/draw-call decision, not done).
 - The walkers' routes end at a kerb and restart elsewhere (the dawn crowd's behaviour), so a pop
