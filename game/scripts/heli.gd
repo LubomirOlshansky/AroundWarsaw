@@ -39,6 +39,11 @@ var input_dir := Vector3.ZERO
 var climb := 0.0
 ## Fly straight down to whatever is below and emit `landed`.
 var landing := false
+## A car hangs under it on the sling (ev_tow.gd, 0..1): top speed LOAD_SLOW and the easing
+## LOAD_EASE lower, so the load swings less and the machine feels its weight.
+var sling := 0.0
+const LOAD_SLOW := 0.25
+const LOAD_EASE := 0.5
 
 ## The world, set by the game: ground or bridge deck under a point, and the top of
 ## anything (ground, deck, roof) within a radius of a point.
@@ -127,8 +132,8 @@ func _step(dt: float) -> void:
 	var p := global_position
 	var before := vel
 	# A heavy machine, not a cursor: ease towards the wanted velocity.
-	var want := Vector3.ZERO if landing else input_dir.limit_length(1.0) * MAX_SPEED
-	vel = vel.lerp(want, 1.0 - exp(-1.3 * dt))
+	var want := Vector3.ZERO if landing else input_dir.limit_length(1.0) * MAX_SPEED * (1.0 - LOAD_SLOW * sling)
+	vel = vel.lerp(want, 1.0 - exp(-1.3 * (1.0 - LOAD_EASE * sling) * dt))
 
 	# Move sideways, but never into anything taller than the skids; slide along it instead.
 	var nx := p.x + vel.x * dt
