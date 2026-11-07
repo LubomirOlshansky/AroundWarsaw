@@ -118,6 +118,44 @@ Left:
 - PT-25 (suspect): crazy drivers honk but said no line in 5 cut-ins.
 - PT-26, PT-27 (S3): a bubble over the steering hint; the KEBAB label over BRAKE.
 
+## Road design rollout: every street on the map (F, 2026-11-06; docs/design/road-design-rollout.md)
+
+**Decision (F, 2026-11-07): main as base, small fixes.** F compared the area 3-7 redesigns with main
+scene by scene and found main better in every one (Królewska, Świętokrzyska × Mazowiecka and Jasna,
+Rondo Dmowskiego's arms, Jerozolimskie east, Nowy Świat south, Marszałkowska south). The redesigns
+were measured truer to the photo but dropped what made main's streets read well: grass medians,
+turn arrows, islands, slip lanes and lay-bys, cycle paths and crossings. They are taken out
+(docs/roads/ keeps only palace.json, areas 1-2, which F approved; the dropped specs are in git
+history at 0cfc1ff). Areas and progress: docs/plan/road-areas.json, `python3 -I tools/road_progress.py`.
+
+- Areas 3-12 and tiers B and C: keep main's roads and fix only real bugs against the photo
+  (ribbons overlapping in junction boxes, zebras shorter than the carriageway, tram beds paved to
+  the stop line, broken mouths), never removing main's medians, arrows, islands or cycle paths.
+  One area per round, before/after per fix.
+- Lesson for any future design: carry over every OSM detail the photo cannot show (turn arrows,
+  cycle paths and crossings, islands, slip lanes, lay-bys) and compare each scene with main before
+  calling it better.
+- Apply the Palace design (areas 1-2) to the shipped map after a phone bench.
+- Main's real bugs, seen on the photo vs main at Marszałkowska × Królewska, Świętokrzyska ×
+  Mazowiecka and × Jasna (2026-11-07), the same across the map, so they are fixed once in the bake,
+  not per area: (1) zebras cover only part of the carriageway (often one lane or one direction);
+  they should run kerb to kerb, or kerb to median; (2) cycle crossings are short red bars across a
+  single lane, not the band across the street beside the zebra; (3) lane lines run on through the
+  junction box; they should stop at the stop line or the zebra; (4) overlapping ribbons show darker
+  patches in the junction boxes. Each fix keeps main's medians, arrows, islands and cycle paths.
+
+## Road design system: round 2 (F, 2026-11-06; docs/design/road-design-palace-results.md)
+
+- Seams where a designed street ends in the middle of a block: the old lane lines carry on up to 2.4 m
+  to the side (7 line jogs for `road_smooth --check`, and street_pass K2/L2 rise). Close the area on
+  junctions before applying it to the shipped map.
+- Emilii Plater × Świętokrzyska and × Jerozolimskie (IMG_7264 "Y", IMG_7266 stepped widening) still
+  come from the OSM ribbons.
+- Marszałkowska's two U-turns through the tram bed (s 191, 283-291 from the junction): the spec has no
+  paved gap in a tram median yet.
+- The traffic lane graph still follows the OSM ways; make it from the spec's lanes.
+- The GUGiK ortho predates the Marszałkowska crossings at Sienkiewicza and by the metro (taken from OSM).
+
 ## Loading bar on the title screen (F, 2026-11-05)
 
 Built: `main.gd` loads `index.res` and `proxies.scn` with threaded requests under the title, the
@@ -606,7 +644,7 @@ short `bar-crawl.md`), then build on the Podwózka rides (`rides.gd`, `ride_rule
 F asked for two things; both are plan only, nothing is built (Sonnet for the lines, Opus for the quest design; docs/design/ gets the plan first).
 
 - **Vitkac quests.** Quests that start or end at the Vitkac block on Bracka (the photo-built landmark, PR #385; CITY_INVENTORY #80). Ideas to design: a personal-shopper job (carry bags from the door to a car or hotel on time), a "queue for the drop" gag outside the doors, a Podwózka stop with its own result card. Hook into the ZADANIA list (`main.gd` `_quest_entries`, quest-lists) and `StopAssist`. The name on screen: Vitkac is a real place name and fine; any shop or label inside is a parody (warsaw-tone, never a real brand). Add-ons check at build time (NPC talk: Dialogue Manager or not).
-- **Every ride has its own passenger story.** Today `rides.gd` has a handful of passenger types with one request line and one result line. Make each ride a short story told in the car: a named passenger or group, a request line, 2-4 lines spoken at set points during the drive (distance or street triggers, Nawigacja style), and a drop-off line. F's example: a fancy couple living in Wilanów going to Vitkac to shop, who bicker about the budget and the dog's outfit on the way. Needs: a story table (passenger, from, to, lines), a pick that fits the route (Wilanów pickups need a far start or a spawn "from" label), polish in Polish with English (warsaw-tone), parody names only, no line over two HUD rows on a phone. Check: `--ride-quirk` / `--passenger` flags and the `ride:` log lines; extend the rides check.
+- **Ride stories: what's left** (the stories themselves were built 2026-11-07: `data/taxi_stories.json`, `scripts/taxi_stories.gd`, 15 passengers, 3 lines + a two-answer question each, `--ride-story=ID --ride-answer=0|1`). Each story has its real destination (`to`, 2026-11-07); the big sites with no address door (Pałac Kultury, Dworzec Centralny, the Castle, the Stadium) end at the junction nearest them, not a modelled drop-off bay. Left: drop-off bays at those four; F's example couple from Wilanów to Vitkac (needs a pickup `from` too); a story told by two passengers (the couple bickering); recorded voices for the question line; more stories past 15 so the rotation is longer (the format is in the file's `_about`); the phone look of the question card while driving (stacked buttons beside the car).
 
 ## Loud cars at Browary (F, 2026-11-02)
 
