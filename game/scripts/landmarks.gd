@@ -117,7 +117,8 @@ const TOWERS := [
 	# The second pass: the rest of the skyline over 80 m (the hotels by their addresses).
 	{"key": "grzybowska63", "osm": "Hilton Warsaw City", "style": S_BANDS, "glass": "#4d7590", "roof": "#9aa5ad", "sign": "CHILTON"},
 	{"key": "jp2_21", "osm": "The Westin Warsaw", "style": S_GRID, "glass": "#86aca7", "roof": "#a9b5b3", "mapped": true, "sign": "WESTYNKA"},
-	{"key": "marszalkowska94", "osm": "Novotel Warszawa Centrum", "style": S_TILE, "glass": "#d9dcdf", "roof": "#c9c9c2", "vsign": "NOWOTEL", "chamfer": true},
+	# The Novotel is modelled whole from F's five photos (2026-11-07): _build_novotel.
+	{"key": "marszalkowska94", "osm": "Novotel Warszawa Centrum", "style": S_TILE, "glass": "#d9dcdf", "roof": "#c9c9c2", "novotel": true},
 	{"key": "central", "osm": "Central Tower", "style": S_DARK, "glass": "#3e5c78", "roof": "#6f7d88"},
 	{"key": "ilmet", "osm": "Ilmet", "style": S_BANDS, "glass": "#7d5a48", "roof": "#8c8278"},
 	{"key": "platinum_a", "osm": "Platinum Tower A", "style": S_RIBBON, "glass": "#6b7f8e", "roof": "#c4c8c8"},
@@ -3230,6 +3231,9 @@ func _osm(value, fallback: Color) -> Color:
 func _build_tower(site: Dictionary) -> void:
 	var spec: Dictionary = site["tower"]
 	var zone: PackedVector2Array = site["zone"][0]
+	if spec.get("novotel", false):
+		_build_novotel(zone)
+		return
 	_g = _ground_under(zone)
 	var g := _g
 	var glass := Color(spec["glass"])
@@ -21354,6 +21358,163 @@ func _bulwary_fish(u: float, v: float, flen: float, yaw: float, col: Color, g: f
 	# The dorsal fin over the shoulder, a small raised sail.
 	var sh: Vector3 = pt.call(0.4)
 	_beam(sh + Vector3.UP * flen * 0.06, sh + Vector3.UP * flen * 0.2 + (tail - head).normalized() * flen * 0.05, 0.025 * flen, col.darkened(0.15))
+
+
+# --- Novotel Warszawa Centrum (the 1974 Forum hotel) --------------------------------------------
+## F's five photos (2026-11-07: by day from the rondo, the entrance, three at night) over the mapped
+## outlines (centrum.json: the tower part and the podium) and the LoD2 heights (the map pack: the
+## podium's roof 8.8 m, the shaft's 92.2 m, the sign's frame to about 100 m). A white tiled slab
+## 55.8 x 15.6 m, its long faces in nine 6.2 m bays of paired small windows (S_TILE's cool
+## variant) with a blank strip in the middle (the lift core), its narrow ends blank round a
+## projecting core bay that carries the name in blue neon, letter over letter, an orange rule and
+## the chain's line under it (parodies: NOWOTEL, ACORN HOTELS); the top storey's blue glass band
+## at the north end; on the roof a dark plant room and two white light boxes, one over each long
+## face, with the name and the chain's line. Under it the two-storey glazed podium out to
+## Marszałkowska with its canopies and lit fascia, and on the east face the entrance: a long
+## cream canopy, the bowed two-step bay over the revolving door, the blue board with the name,
+## a stone pier and two box planters. Local frame: u along the shaft (north, Al. Jerozolimskie,
+## to south), v out of the east face; the shaft's centre is the origin.
+const NV_O := Vector2(-726.0028, 509.8392)
+const NV_A := Vector2(0.3328, 0.94292)
+const NV_HU := 27.9          # the long faces' half length: nine bays of 6.2 m
+const NV_HV := 7.8           # the shaft's half depth
+const NV_PODIUM := 8.8       # LoD2: the podium's roof over the pavement
+const NV_ROOF := 92.2        # LoD2: the shaft's roof (31 floors of 2.95 m from the pavement, no row cut)
+const NV_DOOR := 9.0         # the entrance's middle along the east face (u)
+const NV_WALL := Color("#d9dcdf")    # cool: S_TILE draws the punched windows
+const NV_BLANK := Color("#dcdcdc")   # neutral: the same tiles, no windows
+const NV_COPING := Color("#e9e9e6")
+const NV_GLASS := Color("#5b6a73")
+const NV_FASCIA := Color("#d6d4cd")
+const NV_ROOF_COL := Color("#6b6e70")
+const NV_PLANT := Color("#4e5357")
+const NV_BOX := Color("#eef0f1")
+const NV_CREAM := Color("#e4dccb")
+const NV_BOARD := Color("#1d3a80")
+const NV_STONE := Color("#cdbd9f")
+const NV_TOP_BAND := Color("#3d6eae")
+const NV_GLOW := Color("#f1e3c4")
+## The shaft's plan: the slab with a core bay on each narrow end, its corners cut (the tower part).
+const NV_SHAFT := [Vector2(-27.9, -7.8), Vector2(27.9, -7.8), Vector2(27.9, -6.6), Vector2(31.0, -4.3), Vector2(31.0, 4.3),
+		Vector2(27.9, 6.6), Vector2(27.9, 7.8), Vector2(-27.9, 7.8), Vector2(-27.9, 6.6), Vector2(-31.0, 4.3), Vector2(-31.0, -4.3),
+		Vector2(-27.9, -6.6)]
+## The podium's plan (the mapped part, straightened), round the shaft's foot.
+const NV_PODIUM_RING := [Vector2(-38.0, -35.1), Vector2(-38.0, -5.3), Vector2(-39.2, -5.3), Vector2(-39.2, 10.3),
+		Vector2(-30.3, 10.3), Vector2(-30.3, 9.0), Vector2(-2.8, 9.0), Vector2(-2.8, 7.8), Vector2(26.2, 7.8), Vector2(26.2, 7.2),
+		Vector2(31.0, 7.2), Vector2(31.0, -6.0), Vector2(30.0, -8.0), Vector2(30.0, -50.6), Vector2(-10.5, -50.4),
+		Vector2(-10.5, -47.5), Vector2(-24.8, -47.9)]
+
+
+func _nv_ring(pts: Array) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	for q: Vector2 in pts:
+		out.append(_w(q.x, q.y))
+	return out
+
+
+func _build_novotel(zone: PackedVector2Array) -> void:
+	_o = NV_O
+	_a = NV_A
+	_b = Vector2(_a.y, -_a.x)   # out of the east face
+	_g = _ground_under(zone)
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	var skin := M_SKIN + float(S_TILE) / 16.0
+	var y0 := g + NV_PODIUM
+	var top := g + NV_ROOF
+	# The shaft: the long faces in three pieces (windows, the core's blank 6.2 m strip, windows),
+	# their run counted from the north corner so the bays line up; every other edge blank.
+	var shaft := _nv_ring(NV_SHAFT)
+	_mode = skin
+	for side: float in [-1.0, 1.0]:
+		var v := NV_HV * side
+		for piece: Vector3 in [Vector3(-NV_HU, -3.1, 1.0), Vector3(-3.1, 3.1, 0.0), Vector3(3.1, NV_HU, 1.0)]:
+			_wall(_w(piece.x, v), _w(piece.y, v), y0, top, _b * side, NV_WALL if piece.z > 0.5 else NV_BLANK, piece.x + NV_HU)
+	_prism(shaft, y0, top, NV_BLANK, none, skin, M_STONE)
+	# The top storey's blue glass band over the north end's three bays (lit cool at night), and
+	# the pale coping round the roof.
+	for side: float in [-1.0, 1.0]:
+		var v := (NV_HV + 0.08) * side
+		_mode = M_PAVILION + 0.5
+		_wall(_w(-NV_HU + 0.6, v), _w(-9.3, v), top - 2.85, top - 1.55, _b * side, NV_TOP_BAND)
+	_mode = M_STONE
+	var coping := Geometry2D.offset_polygon(shaft, 0.12, Geometry2D.JOIN_MITER)
+	if coping.size() == 1:
+		_prism(coping[0], top - 0.3, top + 0.35, NV_COPING, NV_ROOF_COL, M_STONE, M_STONE)
+	# The roof: the dark plant room, a lift head, the two light boxes with the name.
+	_lbox(0.0, 0.0, 12.0, 4.4, top + 0.35, top + 4.6, NV_PLANT, M_STONE, NV_PLANT.darkened(0.1))
+	_lbox(-17.0, 1.5, 2.6, 2.2, top + 0.35, top + 3.2, NV_PLANT, M_STONE, NV_PLANT.darkened(0.1))
+	for side: float in [-1.0, 1.0]:
+		var vf := (NV_HV - 0.7) * side
+		_lbox(0.0, vf - 0.18 * side, 13.0, 0.18, top + 0.35, top + 8.4, NV_BOX, M_STONE, NV_BOX.darkened(0.08))
+		var n := _b * side
+		var n3 := Vector3(n.x, 0.0, n.y)
+		var right := Vector2(n.y, -n.x)   # the way the text reads from outside
+		var c := _w(0.0, vf)
+		var k := 22.0 / Neon.length_of("NOWOTEL")
+		signs.append(["NOWOTEL", Vector3(c.x, top + 2.6, c.y), n3, k, VSIGN_BLUE])
+		var small := 0.62
+		for w: Array in [["ACORN", -3.0], ["HOTELS", 2.9]]:
+			var p: Vector2 = c + right * float(w[1])
+			signs.append([w[0], Vector3(p.x, top + 0.9, p.y), n3, small, VSIGN_BLUE])
+	# The name down each narrow end's core bay, letter over letter from two floors under the roof;
+	# the orange rule and the chain's line under it (F's night photos).
+	for end: float in [-1.0, 1.0]:
+		var n := _a * end
+		var n3 := Vector3(n.x, 0.0, n.y)
+		var c := _w(31.0 * end, 0.0)
+		var kv := 2.5
+		var step := Neon.ROW_H * Neon.PIXEL * kv
+		var y := top - 3.0
+		for letter in "NOWOTEL":
+			y -= step
+			signs.append([letter, Vector3(c.x, y, c.y), n3, kv, VSIGN_BLUE])
+		signs.append(["--", Vector3(c.x, y - 1.3, c.y), n3, 1.1, Color(1.0, 0.35, 0.15)])
+		signs.append(["ACORN", Vector3(c.x, y - 3.6, c.y), n3, 0.85, VSIGN_BLUE])
+		signs.append(["HOTELS", Vector3(c.x, y - 5.6, c.y), n3, 0.62, VSIGN_BLUE])
+	# The podium: two glazed storeys under a pale fascia with a lit strip, its roof and plant.
+	var podium := _nv_ring(NV_PODIUM_RING)
+	_prism(podium, g - 0.6, y0, NV_GLASS, none, M_GLASS, M_STONE)
+	var wide := Geometry2D.offset_polygon(podium, 0.2, Geometry2D.JOIN_MITER)
+	if wide.size() == 1:
+		_prism(wide[0], y0 - 1.1, y0 + 0.5, NV_FASCIA, NV_ROOF_COL, M_STONE, M_STONE)
+		var lit := Geometry2D.offset_polygon(podium, 0.27, Geometry2D.JOIN_MITER)
+		if lit.size() == 1:
+			_prism(lit[0], y0 - 1.3, y0 - 1.15, NV_GLOW, none, M_LAMP)
+	_mode = M_STONE
+	for box: Rect2 in [Rect2(-5.9, -16.9, 14.4, 2.2), Rect2(-17.6, -22.7, 4.7, 6.9), Rect2(-31.0, -28.0, 5.0, 4.0),
+			Rect2(-26.0, -41.0, 4.0, 4.0), Rect2(10.0, -42.0, 4.5, 3.5), Rect2(15.5, -12.5, 4.0, 3.5)]:
+		_prism(_lrect(box), y0 + 0.5, y0 + 2.4, NV_PLANT.lightened(0.2), NV_PLANT, M_STONE, M_STONE)
+	# The canopies along Marszałkowska, Al. Jerozolimskie and the south side (1.3 m, the mapped
+	# roofs), and the long cream one down the east face, broken by the entrance's.
+	for r: Rect2 in [Rect2(-10.5, -51.9, 40.5, 1.3), Rect2(-39.9, -35.0, 0.7, 29.7), Rect2(30.0, -50.6, 1.0, 42.6)]:
+		_prism(_lrect(r), g + 4.2, g + 4.6, NV_CREAM, NV_FASCIA, M_STONE, M_STONE)
+	for span: Vector2 in [Vector2(-30.3, NV_DOOR - 7.6), Vector2(NV_DOOR + 7.6, 31.0)]:
+		_prism(_lrect(Rect2(span.x, NV_HV, span.y - span.x, 10.3 - NV_HV)), g + 3.9, g + 4.25, NV_CREAM, NV_FASCIA, M_STONE, M_STONE)
+	# The entrance: the stone pier on its north side, the revolving door, the bowed bay over it in
+	# two cream steps, the flat canopy and the blue board with the name in white, two planters.
+	var fv := NV_HV
+	_lbox(NV_DOOR - 6.3, fv + 0.55, 1.5, 0.55, g - 0.3, g + 4.6, NV_STONE, M_STONE, NV_STONE.darkened(0.08))
+	var door := _w(NV_DOOR, fv + 0.9)
+	_prism(_circle(door, 1.6, 10), g - 0.2, g + 3.0, Color("#8ea2ad"), NV_CREAM, M_PAVILION, M_STONE)
+	var arcs: Array = [[Vector2(4.6, 2.9), 3.0, 3.75], [Vector2(5.8, 3.9), 3.75, 4.55]]
+	for arc: Array in arcs:
+		var r: Vector2 = arc[0]
+		var bay := PackedVector2Array()
+		for i in 9:
+			var t := PI * float(i) / 8.0
+			bay.append(_w(NV_DOOR + r.x * cos(t), fv + 0.05 + r.y * sin(t)))
+		_prism(bay, g + float(arc[1]), g + float(arc[2]), NV_CREAM, NV_CREAM.darkened(0.04), M_STONE, M_STONE)
+	_lbox(NV_DOOR, fv + 2.6, 7.6, 2.6, g + 4.55, g + 4.95, NV_CREAM, M_STONE, NV_FASCIA)
+	_lbox(NV_DOOR, fv + 5.05, 7.6, 0.15, g + 4.75, g + 7.0, NV_BOARD, M_STONE, NV_BOARD.darkened(0.1))
+	var bp := _w(NV_DOOR, fv + 5.2)
+	var bk := 6.4 / Neon.length_of("NOWOTEL")
+	signs.append(["NOWOTEL", Vector3(bp.x, g + 5.25, bp.y), Vector3(_b.x, 0.0, _b.y), bk, Color(0.96, 0.97, 1.0)])
+	for u: float in [NV_DOOR - 4.2, NV_DOOR + 4.2]:
+		_lbox(u, fv + 2.4, 0.5, 0.5, g - 0.2, g + 0.8, Color("#c3c4c2"), M_STONE, Color("#c3c4c2"))
+		_lbox(u, fv + 2.4, 0.42, 0.42, g + 0.8, g + 1.55, Color("#3f5a34"), M_STONE, Color("#4b6a3c"))
+	_mode = M_STONE
+	_collide(_simplify(zone, 0.3))
 
 
 # --- Hotel Warszawa (the 1933 Prudential) -------------------------------------------------------
