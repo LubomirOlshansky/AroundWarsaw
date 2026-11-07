@@ -4,6 +4,28 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Street blocks across the city (F, 2026-11-06)
+
+512 plain blocks are modelled, 50 of them along Nowy Świat with colours checked against street
+photos (`game/data/street_blocks/`, one gzipped file each; sites `blk_<id>`, `_find_blocks`,
+`_build_block`; panes M_PANE). They join the city mesh, are no landmarks (no card, no icon), and
+collide on our outline. Blocks with real window openings bring their own roofs; the others keep
+LoD2's measured roof over their walls (`keeps_lod2_roof`). Bench, prebuilt: Nowy Świat 131 draw
+calls before and after, triangles 0.57 M to 1.10 M, video memory 323 MB to 405 MB, sectors 164 MB
+to 185 MB. Left:
+- **Phone**: the triangle total and memory on the iPhone.
+- **#29 Nowy Świat**: still its old block; its LoD2 is one mesh with the wing behind.
+- **Detail worth adding**: the long iron balconies of Nowy Świat 54/56 and 58.
+- **Outside Nowy Świat** the blocks had a look for breakage, not a house-by-house photo check.
+- **Photo fronts (2026-11-06)**: 17 houses keep LoD2's mass under street fronts read from F's photos (`game/data/photo_fronts.json`, `_build_photo_fronts`; styles classic, plain, ribbon, glass, fins). Weak evidence, check again: Aleje Jerozolimskie 11/19 (no facade photo), Solec 24 (photo shows the small house beside it).
+- **Photo fronts, Marszałkowska (2026-11-07)**: 16 more houses from F's photos (Hotel Saski, Saski Park, Marszałkowska 41 to 140, ids `b<building index>`). Left: rows M015 to M019 and M023 to M035 have aerial photos only, so their fronts wait for street photos; Hotel Saski's curve and arcade are not modelled yet.
+- **Photo fronts, Aleje Jerozolimskie (2026-11-07)**: 21 more houses along the avenue, Hotel Polonia's block and Nordic Park among them. Left: rows without street photos, and the murals at numbers 8 and 12, which are blank walls in the game.
+- **Photo fronts, Świętokrzyska to Ujazdowskie (2026-11-07)**: 25 more houses on Świętokrzyska, Warecka, Chmielna, Nowy Świat and Aleje Ujazdowskie. Left: rows whose photo shows only a gateway, a courtyard or a detail (Mariańska 1, Chmielna 102, 126, 128, Żelazna 22) need a street front photo.
+- **Photo fronts, Krakowskie Przedmieście, Senatorska, Miodowa (2026-11-07)**: 41 more houses, including the coloured row from number 37 to 67. Collegium Nobilium and Pałac Chodkiewiczów are left to the Miodowa palaces work. Left: Pałac Jabłonowskich and Małachowskich need their own builds.
+- **Photo fronts, Długa, Aleja Jana Pawła II, Krucza (2026-11-07)**: 41 more houses, Freta and the Muranów blocks among them. Left: Aleja Jana Pawła II 32 has no usable front edge in its outline and stays as it is.
+- **Photo fronts, Mokotowska and Hoża (2026-11-07)**: 61 more houses. Left: the small Mokotowska 69 rotunda and the shrine at 65, which fronts can't show; Hoża 1's bare firewall.
+- **Photo fronts, Wilcza, Piękna, Targowa (2026-11-07)**: 83 more houses, which closes part 1 of the list (305 houses with street fronts in all). Left: part 2 (named buildings) and part 3 of the photo folder, and rows with aerial photos only.
+- **Photo fronts, named buildings (2026-11-07)**: 46 more across the centre, 351 houses in all. Left for their own builds: Mała PAST-a, Pałac Przezdzieckich, the Elektoralna 12 portico, Mokotowska 25; Old Town rows 778 and 795 stay as they are; 189 named rows have no street photo yet.
 ## Secret rave: LEKTI, Ziomek, Smoła (F, 2026-11-06; docs/design/secret-rave.md)
 
 Built: night and day raves, LEKTI's voiced break-in on MORDOR FM, Ziomek's call and ride, the
@@ -168,7 +190,6 @@ Left open:
 Built (site `foksal`, spec docs/landmarks/specs/foksal.md). Open:
 - Night: the warm uplights on the stone frames and under the balconies, and the glowing ground floor, as in the developer's night render (needs a lamp strip or a floodlit code for small fronts; measure the bench).
 - F's look check on the phone or the Mac: the brick tones in the north front's shade, the gables' height, Foksal 15's dormers (LoD2's as they stand; no ortho was gathered).
-- The pack's model of Foksal 13 (Tiny Warsaw 14556781) had its details on the courtyard side: any port of the pack needs a per-building photo check first (the A/B review).
 
 ## Lessons from Tiny Warsaw (F, 2026-11-04; docs/design/tiny-warsaw-comparison.md)
 
