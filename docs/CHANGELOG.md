@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-07
+- The guide for new players now points you down to Powiśle and the river after about seven minutes, as it was meant to (that step was silently broken).
 - The Novotel by Rondo Dmowskiego looks like itself: a white tower with rows of small paired windows, its name in blue neon down both narrow ends and in light boxes on the roof, a glazed podium with a lit edge, and a curved cream entrance canopy under a blue sign.
 - Miodowa's palaces look like themselves: cream and pink plaster under tile-red roofs (Paca's are green copper), and Pałac Branickich's long front has pink pilaster strips, a cornice, an attic crowded with statues, three scrolled dormers and its balconied gate.
 
