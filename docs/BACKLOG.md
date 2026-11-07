@@ -2019,6 +2019,7 @@ Plan: docs/design/railway.md. One PR per item, in this order:
   sounds' levels on the phone (the rumble's body is low, the phone's speaker loses some of it);
   signals stay at one aspect (they do not change as a train passes); no signals on the bridges or at
   Główna's yard islands; S3d Gdańska.
+- **check_trains is not repeatable (found 2026-11-07).** The same commit gives different runs: main f7b6cc58 ran three times gave Główna 2, 0 and 1 stops, so "no train stopped at Główna" (and "no train turned back") fail now and then. The trains' `_rng` is seeded (1955) and the check has no map or view, so the drift comes from somewhere else in `trains.gd`; find it, or loosen those two asserts to a longer run.
 - **Stacja Muzeum (paused by F's freeze, 2026-11-07).** Done: 19 Commons photos on F's Mac
   (`~/Documents/warsaw-needed-photos/stacja-muzeum{,-claude}/`, sources.txt; `small/` holds 1100 px
   copies), read; the museum's four sidings kept free of trains, wires and signals
