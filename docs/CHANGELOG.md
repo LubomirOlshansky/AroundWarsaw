@@ -34,6 +34,7 @@ someone writes its lines.
 - Secret techno raves: lights and dancers under the viaduct, in Praga and by the tracks at night, a day rave on the Praga beach, LEKTI breaking into MORDOR FM with the password, and Ziomek calling you to drive him there, past a strict door with three questions and a cash-only ticket, into a jungle-filled club with a fairy-lit patio out the back.
 - The food blogger from the Mlask job is now called Mrożulo (was Cringulo), on his van, the signs, the fans and the news.
 
+- The four streets round the Palace of Culture look hand-made: lane lines stop at the zebras and carry on past bus bays and driveways, the pale ribbons across the medians on Świętokrzyska and Emilii Plater are now low granite kerbs round planted islands, and the edge lines sit inside the kerbs.
 - The Tides by the Vistula is a full model now: folded copper walls, irregular windows and a black roof.
 - 18 more houses got real street fronts from photos, including Pałac Karnickich, Hotel Indigo and Krucza 51.
 - Aleje Ujazdowskie 47 stands in its dark grey render, with balconies and the green pharmacy signs.
