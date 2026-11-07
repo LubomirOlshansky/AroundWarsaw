@@ -56,38 +56,22 @@ Left:
 
 ## Road design rollout: every street on the map (F, 2026-11-06; docs/design/road-design-rollout.md)
 
-Areas and progress: docs/plan/road-areas.json, `python3 -I tools/road_progress.py` (main streets 7.9%,
-all streets 4.6% after areas 1-6 and 7 part 1). Quality bar: docs/design/road-design-quality.md.
+**Decision (F, 2026-11-07): main as base, small fixes.** F compared the area 3-7 redesigns with main
+scene by scene and found main better in every one (Królewska, Świętokrzyska × Mazowiecka and Jasna,
+Rondo Dmowskiego's arms, Jerozolimskie east, Nowy Świat south, Marszałkowska south). The redesigns
+were measured truer to the photo but dropped what made main's streets read well: grass medians,
+turn arrows, islands, slip lanes and lay-bys, cycle paths and crossings. They are taken out
+(docs/roads/ keeps only palace.json, areas 1-2, which F approved; the dropped specs are in git
+history at 0cfc1ff). Areas and progress: docs/plan/road-areas.json, `python3 -I tools/road_progress.py`.
 
-- Area 3 done (docs/roads/krolewska.json): Marszałkowska Świętokrzyska to Królewska, the junction,
-  Królewska both ways, Marszałkowska north to the Plac Bankowy bend. Left: side streets (Zielna,
-  Rysia, Bagno, Próżna) keep their shapes; bus-stop zigzags not painted; Królewska east's fence on
-  its island not modelled; junction turn arrows guessed where the photo is blurred.
-- Area 4 done (docs/roads/swietokrzyska.json): Świętokrzyska to Nowy Świat, the Mazowiecka junction,
-  Mazowiecka to short of Kredytowa. Left: the shaded stretch Mazowiecka-Czackiego (north parking
-  assumed), the Mazowiecka bike box drawn as a cycle crossing, Kredytowa junction.
-- Area 6 done (docs/roads/rondo.json): Rondo Dmowskiego as a real roundabout (`ring` junctions in
-  tools/road_design.py) with its four arms. Left: no stop lines in the ring before the tram
-  crossings (the photo does not show them clearly; question for F); the slip lanes south-east and
-  east of the ring and the stairwell beds stay as mapped; the ring traffic still follows the OSM
-  ring edges.
-- Area 5 done (docs/roads/jerozolimskie_e.json, docs/roads/degaulle.json): Jerozolimskie from Rondo
-  Dmowskiego with the Krucza junction, and Rondo de Gaulle'a with its Nowy Świat arms. Left: the
-  south side was measured in shadow; the ring's red cycle track is not in the map (no cycle
-  crossings drawn until it is); the far half of the 16 m zebra east of the ring; the Nowy Świat Y
-  stays as mapped; turn arrows left out.
-- Area 7 part 1 done (docs/roads/marszalkowska_s.json): Marszałkowska from Rondo Dmowskiego to
-  Wilcza with five junctions. Left: Plac Konstytucji and on to Plac Zbawiciela (part 2); angled
-  parking bays as pavement; side-street parking guessed.
-- Tier A core, next: 7 part 2 Plac Konstytucji to Plac Zbawiciela, 8 Emilii Plater south + Chałubińskiego, 9 Rondo ONZ +
-  Świętokrzyska west, 10 Królewska + Plac Małachowskiego, 11 Jerozolimskie west, 12 Plac Trzech
-  Krzyży + Ujazdowskie. Each with an in-game before/after page for F.
-- Ortho tiles for areas 3-12: fetched 2026-11-06 into refs/road_design2/ (87 tiles, 64 MB, Mac;
-  staged to the cloud thread). Tier B needs more tiles.
-- Tier B arterials B1-B10 after the core; tier C 500 m grid after that, nearest the Palace first.
-- Apply the designs to the shipped map once area 6 closes the core with no free ends; phone bench
-  first.
-- Traffic lane graph from the spec's lanes (today the OSM edges are moved onto the designed lanes).
+- Areas 3-12 and tiers B and C: keep main's roads and fix only real bugs against the photo
+  (ribbons overlapping in junction boxes, zebras shorter than the carriageway, tram beds paved to
+  the stop line, broken mouths), never removing main's medians, arrows, islands or cycle paths.
+  One area per round, before/after per fix.
+- Lesson for any future design: carry over every OSM detail the photo cannot show (turn arrows,
+  cycle paths and crossings, islands, slip lanes, lay-bys) and compare each scene with main before
+  calling it better.
+- Apply the Palace design (areas 1-2) to the shipped map after a phone bench.
 
 ## Road design system: round 2 (F, 2026-11-06; docs/design/road-design-palace-results.md)
 

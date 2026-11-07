@@ -7,7 +7,9 @@ description: Rebuilds a stretch of Around Warsaw's streets from zero with the ro
 
 Why and how it works: docs/design/road-design-system.md (sections 1-5). The first area was the
 Palace of Culture block (`docs/roads/palace.json`, results in docs/design/road-design-palace-results.md).
-One area per thread and PR. Opus for the measuring and the junctions (map geometry); Sonnet can extend a
+**F, 2026-11-07: main as base.** Outside the Palace block, keep main's roads and fix only real bugs;
+the area 3-7 redesigns lost to main in every scene (they dropped arrows, medians, islands, cycle paths).
+A new design needs F's ask and must carry every such OSM detail over. One area per thread and PR. Opus for the measuring and the junctions (map geometry); Sonnet can extend a
 spec that already has its pattern (another mid-block stretch, another opening).
 
 ## The loop

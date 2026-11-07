@@ -124,3 +124,14 @@ done when a design in docs/roads/ covers it, applied to the map or not.
   east-side opening. Continuity 0; check 0; lane drive passes 15 routes. Left: angled parking bays
   stay pavement; side-street parking lanes guessed from widths; the rondo's east slip road as
   mapped. Part 2 is Plac Konstytucji to Plac Zbawiciela (the street bends east past Wilcza).
+
+## Decision 2026-11-07: main as base, small fixes
+
+F compared every area 3-7 page with main and found main better in each scene, and chose "main as
+base, small fixes". The redesigns were taken out of docs/roads/ (their specs are in git history at
+0cfc1ff); palace.json (areas 1-2, approved) stays as it was after round 2. Why the redesigns lost:
+they were truer to the photo but emptier. They dropped OSM's turn arrows, cycle paths and their
+crossings, grass medians the photo shows paved or not at all, islands, slip lanes and lay-bys, and
+an auto-detected side-road mouth became a jagged hole (Marszałkowska at Nowogrodzka). From now on the
+rest of the map keeps main's roads, and each area gets only the fixes for real bugs against the
+photo, with a before/after for each.
