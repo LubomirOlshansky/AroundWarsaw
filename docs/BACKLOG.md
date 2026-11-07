@@ -14,6 +14,7 @@ crown's LED ticker (SAMSONG parody adverts), the plaza's pools, channel, islands
 - The real canopy's double curve and the crown's points are approximations of the photos.
 - The paving half disc north of the lobby is the first rebuild's; the plaza's own paving pattern
   (pale slabs, curved walks, hedge beds in IMG_7334) is the map's.
+
 ## Novotel Warszawa Centrum from F's photos (F, 2026-11-07; docs/landmarks/novotel.md)
 
 Built: the white tiled slab with its paired windows and the lift core's blank strip, the blank narrow ends round
