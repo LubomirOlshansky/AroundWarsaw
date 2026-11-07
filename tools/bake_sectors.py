@@ -103,7 +103,7 @@ SITE_NAMES = ["Pałac Kultury i Nauki", "Złote Tarasy", "Lumen", "Skylight", "R
               "Złota 44", "Warsaw Spire", "Q22", "Rondo 1", "InterContinental", "Cosmopolitan",
               "Warsaw Trade Tower", "Skyliner", "Warsaw Unit", "Mennica Legacy Tower", "Generation Park Y",
               "Skysawa", "Błękitny Wieżowiec", "Warszawskie Centrum Finansowe", "Centrum LIM", "Chałubińskiego 8",
-              "Spektrum Tower", "The Bridge", "Hilton Warsaw City", "The Westin Warsaw", "Novotel Warszawa Centrum",
+              "Spektrum Tower", "The Bridge", "Bellona", "Hilton Warsaw City", "The Westin Warsaw", "Novotel Warszawa Centrum",
               "Central Tower", "Ilmet", "Platinum Tower A", "Platinum Tower B", "Łucka City", "Widok Towers", "PZU Tower", "JM Tower",
               # map north (2026-10-31): Arkadia, for the landmarks lane (docs/DEMO.md 2.2)
               "Westfield Arkadia",

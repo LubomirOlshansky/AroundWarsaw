@@ -16,6 +16,8 @@ then the Launch gate.
 
 ### Done (built and checked headless)
 - [x] SOWA CLUB and CITY 25 (F's photos, 2026-11-06): the neon glass pavilion on Al. Jerozolimskie 2-6 (the club's glass box lit pink, pink tubes on every edge, the restaurant's white box and roof sign round a blue crescent, a terrace with KACBERG banners and umbrellas, the PEPSZY panel), an info card and a night-owl crowd with its own lines (PR pending; phone look and bench open)
+- [x] Secret rave quest line (F, 2026-11-06; `secret-rave.md`): night raves with beams, lasers and a strobe at three spots, a day rave on the Praga beach, LEKTI's voiced break-in on MORDOR FM with the password, Ziomek's call, pickup, meeting point and the strict three-question door, the cash-only ticket, Smoła's cutaway room in a jungle with the DJ, dancers, Pan Kołek, tap-to-talk and TAŃCZ, and its patio (courtyard, fairy-lit trees, mirror ball, lighter music) (`check_rave`, verify step `rave`; PR pending; phone feel, PixelLab portraits, techno tracks open)
+- [x] Dead electric cars (F, 2026-11-06, `ev_tow.gd`): Bartek phones, his TESŁO Model Ś is at 0 %; LECĘ! takes you up in the helicopter, the car hooks onto a sling and swings under you to a charger by Elektrownia Powiśle, Hala Koszyki, Złote Tarasy or the Palace while he talks EV memes (winter range, green plates, a diesel on the charger); stranded TESŁOs with hazards block a kerb lane now and then and can be carried for a tip (`check_ev_tow`, verify step `evtow`; phone feel and ringtone open)
 - [x] Loading bar on the title screen (F, 2026-11-05: the start looked frozen, then the city popped in): the map files load on threads, the build yields between its steps, a neon bar with "building the city… 42 %" runs to "TAP TO DRIVE" (PR pending; phone timing check open)
 - [x] Crazy drivers in traffic (F, 2026-11-05; spec `crazy-drivers.md`): Szkoda Oktawia taxis, Szprynter couriers and one Pasatini 1.9 TDJ in the race rivals' racer mode with no route: fast, tailgating, passing, cutting in and blocking, a fresh red now and then; a horn and a line when one cuts you off, KEBAB FM's Pasatini sightings (`check_crazy_drivers`, verify step `crazy`; phone feel open)
 - [x] Readable messages (F, 2026-11-05): speech bubbles, toasts and the radio ticker stay up by text length (chatter.gd `read_time`, 3-11 s, more with large text), never shorter than before (PR pending; tap to dismiss/recall not built)
@@ -59,10 +61,12 @@ then the Launch gate.
       people walking in and out (F, 2026-11-06; spec `underpass-emilii-plater.md`; site `underpass`)
 - [x] Arkadka redesign, roof car park, BANK PEPEO sign and the Forest roof terrace (F, 2026-11-01; spec `arkadia.md`)
 - [x] Cobalt-style motorboat on the Forest tower's roof (F, 2026-11-06; spec `forest.md` section 4)
+- [x] Warszawa Powiśle's round pavilion rebuilt from F's photos with jazz nights: the saucer's knife edge, WARSZAWA POWIŚLE in yellow tube letters in dark boxes on the rim, bulbs round the rim and out over the terrace, orange deck chairs, red café tables, a jazz stage with a band of four, an audience and our own swung jazz tune every evening 18:30-23:30 (F, 2026-11-06; spec `powisle.md` sections 1 and 9; phone look and sound level open)
 - [x] Arkadka rebuilt from F's photos: the fountain plaza, curved entrance with piers, canopies and fanned glass gables, the sign tower with its crown, logo panels and screen, the office wing, the brick wing and rotunda with yellow awnings, the letter sign (F, 2026-11-03; spec `arkadia.md`)
 - [x] Forest rebuilt from F's photos: the stepped three-slab tower with colour fins and PEPEO ŻUBR in its crown, the finned wings with black top storeys and roof gardens, the courtyard amphitheatre and trees (F, 2026-11-03; spec `forest.md`; wing heights parked)
 - [x] Towarowa 22 built as finished, the "Warsaw of the future": tower row, the printing hall's yellow frame over a garden, Park Słowa, a drone port and the gilded last crane of Wola (F, 2026-11-03; spec `towarowa22.md`, from F's renders; look check parked)
 - [x] Rondo Daszyńskiego towers rebuilt from Mac photos: Skyliner, Warsaw Unit, Mennica Legacy, Generation Park Y, The Warsaw HUB and its hotel tower (F, 2026-11-03; reports in docs/landmarks/photo-reports/; Mac look check parked)
+- [x] The Bridge (folded glass facets, the dark notched crown, the ERZATZ sign, the timber atrium) and Grzybowska 77 in front of it, rebuilt from F's photos (F, 2026-11-06; spec `bridge.md`)
 
 
 - [x] Powiśle streets: eight small neon-signed shops on Tamka, Dobra, Browarna, Topiel and Solec (F, 2026-11-02; signs only, positions need a Mac look)
@@ -170,7 +174,7 @@ then the Launch gate.
       Elektrownia Powiśle at their tallest cell (the box middle is open air), the Most
       Śląsko-Dąbrowski place hint sits on the bridge (`places` WARN gone). Still needs a Mac run
       (no terrain in the cloud): Łazienkowski's slab edges, deck 4's parapet, the Karowa footbridge's end
-- [ ] Loop 3e leftovers still open: the rail cutting (Mac re-bake); deck 4 fixed 2026-11-03 (walls cut
+- [ ] Loop 3e leftovers still open: the rail cutting (shaped at load from the tracks since 2026-11-06, `rail_cut.gd`; a Mac re-bake would give the real 1 m banks); deck 4 fixed 2026-11-03 (walls cut
       from deck ends, `bake_structures.py` `BARRIER_TOP`); the Karowa footbridge and Łazienkowski's loop
       ramps parked (QUESTIONS). Most Łazienkowski's east edge settled
       2026-11-02: the river crossing is whole, the Praga viaducts end at the outline under edge roadworks
@@ -397,6 +401,7 @@ then the Launch gate.
   - [ ] Łazienki Królewskie (Palace on the Isle, Chopin monument, peacocks): south of the map's edge, waits for a map extension (QUESTIONS)
   - [x] Footbridges over a trench sagged onto the floor (Armii Ludowej (380, 1500), Ochota cutting (-2170, 880) x2, (-2324, 927); deck 48 at (1590, 1650) too): `_lift_sagging_deck` lifts a path deck to the line between its ends, 2026-11-05 (F's night screenshot); bake solver left as is (Mac re-bake would fix at the source), Mac look check
   - [x] Plac Zawiszy: rails, sleepers, wires and trains cut at the cutting's end (`Trains.trim_rails`, polygon `TUNNEL_ZAWISZY`), the tunnel mouth moved to (-1964, 812), 2026-11-05 (F's screenshot); left: the cutting's slopes on the 10 m grid (Mac 1 m corridor), wire clutter over the 12 tracks, Mac look check
+  - [x] Centralna to Ochota reworked (F, 2026-11-06): the cutting with a flat track bed, straight grass banks, concrete retaining walls with pilasters at the tunnel mouth, fences along the top, lattice gantries over the multi-track runs; Warszawa Główna's island platforms (OSM maps them as footways) raised with tiles, white edge, yellow line and lamps; the Główna footbridge held over the catenary with glass parapets, a stair and a glass lift down to each platform; trains stop at Główna and turn back at its buffers; people get off and on at every door; the suburban units are modern low-floor units (sloped nose, black windscreen, yellow doors), the long-distance train is a locomotive with coaches; Mac look check
   - [x] The map's edges: the land runs on past the outline (ground fading into the sky, a tree line, blocks beyond, the rails and roads running out), Wschodnia and Gdańska first, 2026-11-01; the Mac look check parked
   - [x] Roadworks close every road at the map's edge (barriers, ROBOTY DROGOWE and OBJAZD boards, cones, an excavator, a tarp fence, blinking lamps; solid; traffic stops there), 2026-11-02; the Mac look check parked
   - [x] The roadworks' boards speak the player's language (ROAD WORKS / DETOUR → in English), 2026-11-02
