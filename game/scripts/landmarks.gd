@@ -4200,7 +4200,7 @@ const SKINS := [
 
 	# Saski Crescent and Senator from F's photos (2026-11-07, docs/landmarks/specs/saski.md): the
 	# crescent's green-teal curtain wall (M_GLASS) and Senator's pale cladding with punched windows.
-	{"key": "saski", "osm": "Saski Crescent", "mode": M_GLASS, "wall": "#5f948f", "roof": "#7d8589"},
+	{"key": "saski", "osm": "Saski Crescent", "hull": true, "mode": M_GLASS, "wall": "#5f948f", "roof": "#7d8589"},
 	{"key": "senator", "osm": "Senator", "mode": M_SKIN + float(S_PUNCHED) / 16.0, "wall": "#dbd0bc", "roof": "#a3a7a8"},
 ]
 
@@ -4211,7 +4211,8 @@ func _find_skins() -> void:
 		var outline := _landmark_near(t["osm"], t["near"], 60.0) if t.has("near") else _landmark(t["osm"])
 		if outline.size() < 3:
 			continue
-		_add_site(t["key"], [outline])
+		# `hull`: a curved plan's centre falls outside it (Saski Crescent), so the hull joins the zone
+		_add_site(t["key"], [outline, Geometry2D.convex_hull(outline)] if t.get("hull", false) else [outline])
 		if not sites.is_empty() and sites[-1]["key"] == t["key"]:
 			sites[-1]["skin"] = {"mode": t["mode"], "wall": Color(t["wall"]), "roof": Color(t["roof"])}
 			if t.has("steep"):
