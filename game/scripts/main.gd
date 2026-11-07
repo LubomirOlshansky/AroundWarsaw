@@ -92,6 +92,8 @@ const Cassettes := preload("res://scripts/cassettes.gd")
 const FirstScene := preload("res://scripts/first_scene.gd")
 ## Skwer Linearny na Złotej (2026-11-02): the park's stone blocks, benches, cafés (skwer_zlota.gd).
 const SkwerZlota := preload("res://scripts/skwer_zlota.gd")
+## Plac Pięciu Rogów (2026-11-06): the square's cubes, lamps, cafés and egg (plac_pieciu_rogow.gd).
+const PlacPieciuRogow := preload("res://scripts/plac_pieciu_rogow.gd")
 ## Street details along the main line (street_details.gd, tools/bake_street_details.py).
 const StreetDetails := preload("res://scripts/street_details.gd")
 ## Park details: statues, a carousel, ducks, people on the benches (park_details.gd, tools/bake_park_details.py).
@@ -1505,6 +1507,7 @@ func _build_world() -> void:
 	_build_cassettes(world)
 	_build_first_scene(world)
 	_build_skwer_zlota(world)
+	_build_plac_pieciu_rogow(world)
 	_build_street_details(world)
 	_build_park_details(world)
 	_build_garage(world)
@@ -1738,6 +1741,17 @@ func _build_skwer_zlota(world: Node3D) -> void:
 	sz.map = map
 	world.add_child(sz)
 	sz.build()
+
+
+## Plac Pięciu Rogów (plac_pieciu_rogow.gd): the square's furniture, on both city paths.
+func _build_plac_pieciu_rogow(world: Node3D) -> void:
+	if solo_site != "":
+		return
+	var pr := PlacPieciuRogow.new()
+	pr.name = "PlacPieciuRogow"
+	pr.map = map
+	world.add_child(pr)
+	pr.build()
 
 
 ## Street details along the main line (street_details.gd): kiosks, stalls, cafés, planters and

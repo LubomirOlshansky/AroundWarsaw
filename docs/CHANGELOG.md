@@ -24,6 +24,7 @@ someone writes its lines.
 - 46 named buildings across the centre got street fronts from real photos.
 
 ## 2026-11-06
+- Plac Pięciu Rogów looks as it has since 2022: no road across it any more, one level of pale slabs, stone cubes with wooden seats, café umbrellas, slim lamps, the blue egg and the shallow water patch. Chmielna got its café gardens and lamps, and Krucza is as wide as the real one, with parked cars along it.
 - The project's licence is now source-available for non-commercial use; the website says so.
 - Boat race on the Vistula: your mate Szymek calls and you race him, old Pan Zdzisiek in his Złota Rybka and Kamil on a jet ski from Port Czerniakowski down under four bridges to the Old Town, through rings in a slalom. Miss three and you're out, then go again or head back. Rings in a row speed you up, gold rings give a boost, and a sand barge going the other way throws waves you can jump.
 - The Bridge by Plac Europejski looks like itself now: its glass folds along long diagonal seams, the south corner steps down under a dark crown, ERZATZ (the bank's parody) glows blue at the top, and a tall timber lobby with leaning concrete columns sits under it. The brick and stone block at Grzybowska 77 in front got its stone piers, long balcony, framed windows and attic.
