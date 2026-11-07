@@ -233,6 +233,21 @@ func _idle_tick() -> void:
 
 # --- the call --------------------------------------------------------------------------------------
 
+## Claire met in person at Centralna (story_quests.gd: she walks up, the player said WCHODZĘ):
+## no call, the tour starts with her already at the car. False unless idle.
+func meet() -> bool:
+	if state != State.IDLE:
+		return false
+	_log("met Claire at Centralna")
+	start()
+	return true
+
+
+## Idle: not ringing, not touring (a questline may start now).
+func idle() -> bool:
+	return state == State.IDLE
+
+
 ## Claire phones.
 func ring() -> bool:
 	if state != State.IDLE:

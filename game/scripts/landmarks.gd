@@ -572,6 +572,27 @@ const INFO := {
 	"getto": ["Pomnik Bohaterów Getta",
 			"Natan Rapaport, 1948: pomnik bojowników powstania w getcie warszawskim z 1943 roku.",
 			"Nathan Rapoport, 1948: the memorial to the fighters of the 1943 Warsaw Ghetto Uprising."],
+	"nike": ["Pomnik Bohaterów Warszawy",
+			"Warszawska Nike Mariana Koniecznego, 1964: z mieczem w ręku, nad Trasą W-Z. Przeniesiona tu z placu Teatralnego w 1997 roku.",
+			"The Warsaw Nike by Marian Konieczny, 1964, sword in hand over Trasa W-Z. Moved here from Plac Teatralny in 1997."],
+	"slowacki": ["Pomnik Juliusza Słowackiego",
+			"Poeta w długim płaszczu, z pochyloną głową, na wysokim słupie przed pałacem Ministra Skarbu.",
+			"The poet in a long cloak, head bowed, on a tall pillar before the Treasury Minister's palace."],
+	"starzynski": ["Pomnik Stefana Starzyńskiego",
+			"Prezydent Warszawy, który we wrześniu 1939 roku poprowadził obronę miasta. Zapada się w wielki brązowy fotel.",
+			"The mayor who led the city's defence in September 1939, sinking into a huge bronze armchair."],
+	"maly_powstaniec": ["Pomnik Małego Powstańca",
+			"Chłopiec w za dużym hełmie, z pistoletem maszynowym: pamięć dzieci, które walczyły w Powstaniu Warszawskim. Jerzy Jarnuszkiewicz, 1983.",
+			"A boy in a helmet far too big, with a submachine gun: for the children who fought in the Warsaw Rising. Jerzy Jarnuszkiewicz, 1983."],
+	"kilinski": ["Pomnik Jana Kilińskiego",
+			"Szewc, który w 1794 roku poprowadził warszawiaków w insurekcji kościuszkowskiej. Stanisław Jackowski, 1936.",
+			"The shoemaker who led the people of Warsaw in the 1794 Kościuszko Rising. Stanisław Jackowski, 1936."],
+	"umschlagplatz": ["Umschlagplatz",
+			"Stąd w latach 1942–1943 Niemcy wywieźli setki tysięcy Żydów z warszawskiego getta do obozu zagłady w Treblince.",
+			"From here, in 1942–1943, the Germans deported hundreds of thousands of Jews from the Warsaw Ghetto to the Treblinka death camp."],
+	"pomnik_wschod": ["Pomnik Poległym i Pomordowanym na Wschodzie",
+			"Wagon pełen krzyży na torach, na podkładach nazwy miejsc kaźni. Pamięć ofiar sowieckiej napaści z 17 września 1939 roku.",
+			"A wagon full of crosses on a track whose sleepers name the places of killing: for the victims of the Soviet invasion of 17 September 1939."],
 	"vitkac": ["Vipkac",
 			"Luksusowy dom towarowy przy Brackiej: ciemny kamień, ogród na dachu.",
 			"A luxury store on Bracka: dark stone outside, a garden on the roof."],
@@ -1077,6 +1098,8 @@ func _find_sites() -> void:
 	_find_cedet()
 	# Muranów (2026-11-02, spec polin.md): POLIN and the Ghetto Heroes Monument before it.
 	_find_polin()
+	# The monuments pass, part 2 (2026-11-02): seven monuments from the Mac's photo reports.
+	_find_monuments()
 	# The railway (docs/design/railway.md, S1): Warszawa Ochota's hall and its saddle roof.
 	_find_ochota()
 	# S2: Warszawa Powiśle's two pavilions and the platform canopies.
@@ -1700,6 +1723,20 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_polin(s)
 			"getto":
 				_build_getto(s)
+			"nike":
+				_build_nike(s)
+			"slowacki":
+				_build_slowacki(s)
+			"starzynski":
+				_build_starzynski(s)
+			"maly_powstaniec":
+				_build_maly_powstaniec(s)
+			"kilinski":
+				_build_kilinski(s)
+			"umschlagplatz":
+				_build_umschlagplatz(s)
+			"pomnik_wschod":
+				_build_pomnik_wschod(s)
 			"ochota":
 				_build_ochota(s)
 			"powisle":
@@ -10137,7 +10174,8 @@ func _build_metropolitan(site: Dictionary) -> void:
 	# The seventh storey, set back from the fins and from the courtyard.
 	var upper := _largest(Geometry2D.offset_polygon(ring, -METRO_SETBACK, Geometry2D.JOIN_MITER))
 	var court2 := _circle(METRO_COURT, METRO_COURT_R + METRO_SETBACK, 40)
-	var light := METRO_GLASS.lightened(0.1)
+	# the seventh storey and the plant rooms are silver metal over a glazed band (photo 2026-11-07)
+	var light := Color("#aab5ba")
 	if upper.size() >= 3:
 		_prism(upper, g + METRO_H, g + METRO_RING_H, light, none, M_GLASS)
 		_inside_wall(court2, g + METRO_H, g + METRO_RING_H, light, M_GLASS)
@@ -10695,6 +10733,10 @@ func _build_mirowska(site: Dictionary) -> void:
 	for k in 8:
 		var v := clampf(k * pitch, 0.25, hv - 0.25)
 		_lbox(hu + 0.15, v, 0.15, 0.25, g + 1.2, g + 9.0, MIROWSKA_TRIM, M_STONE, MIROWSKA_TRIM)
+	# the glazed gallery on the east front (photo 2026-11-07, `warsaw-needed-photos`): a dark glass
+	# band across the front over the market's ground floor, under a thin dark fascia
+	_lbox(hu + 0.9, nave_v, 0.9, hv * 0.5 - 3.0, g + 3.6, g + 8.8, MIROWSKA_GLASS, M_GLASS, none)
+	_lbox(hu + 0.95, nave_v, 1.0, hv * 0.5 - 2.9, g + 8.8, g + 9.5, Color("#4b2e29"), M_STONE, Color("#5a3a33"))
 	# the portal's steps
 	for k in 3:
 		_lbox(hu + 0.4 + (2 - k) * 0.4, nave_v, 0.4 + (2 - k) * 0.4, 2.6, g - 0.5, g + 0.4 * (k + 1), MIROWSKA_PLINTH, M_STONE,
@@ -22909,6 +22951,381 @@ func _menorah(p: Vector2, y: float, s: float) -> void:
 			_beam(elbow, foot + up * 1.9 + side * sd * r, 0.08 * s, GETTO_BRONZE)
 
 
+# --- The monuments pass, part 2 (photo builds, 2026-11-02) ---------------------------------------
+
+## Seven monuments built from the Mac's photo reports (docs/landmarks/photo-reports/: Commons
+## photos and the GUGiK ortho read in game coordinates). Until now each stood as a generic OSM
+## piece (tools/bake_monuments.py); they are in its SKIP list now. Each has its own frame
+## (_o, _a forward / the way it faces, _b = its right) and a small zone that drops the mapped
+## specks under it (Słowacki's OSM parts).
+const NIKE := Vector2(-1010.0, -1317.0)
+const NIKE_A := Vector2(0.7071, -0.7071)        # she lunges north-east, toward Trasa W-Z
+const NIKE_GRANITE := Color("#c8c0b0")
+const NIKE_BRONZE := Color("#2e302c")
+const SLOWACKI := Vector2(-1480.0, -978.0)
+const SLOWACKI_A := Vector2(1.0, 0.0)           # east, out to Plac Bankowy, his back to the palace
+const SLOWACKI_STONE := Color("#4a4a4c")
+const SLOWACKI_BRONZE := Color("#33342f")
+const STARZYNSKI := Vector2(-1499.0, -1101.0)
+const STARZYNSKI_A := Vector2(0.7071, 0.7071)   # south-east, the Blue Tower behind him
+const STARZYNSKI_BRONZE := Color("#3d3a33")
+const MALY := Vector2(-981.0, -1689.0)
+const MALY_A := Vector2(0.924, 0.383)           # away from the city wall (NNE-SSW) to Podwale
+const MALY_BRICK := Color("#b5573c")
+const MALY_BRONZE := Color("#4a4c48")
+const KILINSKI := Vector2(-896.0, -1573.0)
+const KILINSKI_A := Vector2(-0.7071, 0.7071)    # south-west, along Podwale
+const KILINSKI_GRANITE := Color("#2d2d2f")
+const KILINSKI_BRONZE := Color("#35362f")
+const UMSCHLAG := Vector2(-2382.0, -2020.0)
+const UMSCHLAG_A := Vector2(0.870, -0.493)      # along Stawki; +v (its right) is the street side
+const UMSCHLAG_MARBLE := Color("#dadad6")
+const UMSCHLAG_BLACK := Color("#26282a")
+const WSCHOD := Vector2(-1718.0, -2183.0)
+const WSCHOD_A := Vector2(0.991, -0.131)        # along Muranowska's median, east: the way the wagon faces
+const WSCHOD_STONE := Color("#8e8478")
+const WSCHOD_BRONZE := Color("#3e3f33")
+const MON_GREEN := Color("#4d6b3a")
+const MON_LANTERN := Color("#ffd9a0")
+
+
+func _mon_frame(c: Vector2, a: Vector2) -> void:
+	_o = c
+	_a = a.normalized()
+	_b = Vector2(-_a.y, _a.x)
+
+
+## A point of the frame at height y.
+func _mon_p(u: float, v: float, y: float) -> Vector3:
+	var p := _w(u, v)
+	return Vector3(p.x, y, p.y)
+
+
+func _find_monuments() -> void:
+	_mon_frame(NIKE, NIKE_A)
+	_add_site("nike", [_rect(0.0, 0.0, 3.2, 3.2)])
+	_mon_frame(SLOWACKI, SLOWACKI_A)
+	_add_site("slowacki", [_rect(0.0, 0.0, 6.2, 5.2)])
+	_mon_frame(STARZYNSKI, STARZYNSKI_A)
+	_add_site("starzynski", [_rect(-0.5, 0.0, 2.4, 2.8)])
+	_mon_frame(MALY, MALY_A)
+	_add_site("maly_powstaniec", [_rect(-1.0, 0.0, 2.2, 2.2)])
+	_mon_frame(KILINSKI, KILINSKI_A)
+	_add_site("kilinski", [_rect(0.0, 0.0, 2.3, 2.3)])
+	_mon_frame(UMSCHLAG, UMSCHLAG_A)
+	_add_site("umschlagplatz", [_rect(0.0, 0.0, 8.2, 5.2)])
+	_mon_frame(WSCHOD, WSCHOD_A)
+	_add_site("pomnik_wschod", [_rect(0.9, 0.0, 23.9, 4.6)])
+
+
+## A standing bronze figure `h` tall from y in the current frame (u forward, +v his right), the
+## same build as de Gaulle's: with `stride` > 0 the legs walk (that much step at 3.3 m), else a
+## cloak falls to the feet (`flare` widens its hem). `lh`/`rh` are the hands (u, v, height) at
+## the 3.3 m scale; `cap` a fur cap's height (0: bare head). Returns the right hand's point.
+func _mon_figure(y: float, h: float, col: Color, stride: float, lh: Vector3, rh: Vector3, flare := 1.0, cap := 0.0) -> Vector3:
+	var k := h / 3.3
+	var none := Color(0, 0, 0, 0)
+	var hem := y
+	if stride > 0.0:
+		hem = y + 1.0 * k
+		for side: float in [1.0, -1.0]:
+			var hip := _w(0.0, 0.14 * side * k)
+			var foot := _w(stride * 0.5 * side * k, 0.15 * side * k)
+			_beam(Vector3(hip.x, y + 1.62 * k, hip.y), Vector3(foot.x, y + 0.08 * k, foot.y), 0.24 * k, col)
+	_mode = M_STONE
+	_frustum(_rect(0.0, 0.0, 0.34 * k * flare, 0.33 * k * flare), hem, _rect(0.0, 0.0, 0.23 * k, 0.27 * k), y + 1.75 * k, col)
+	_prism(_rect(0.0, 0.0, 0.2 * k, 0.27 * k), y + 1.75 * k, y + 2.5 * k, col, none, M_STONE)
+	_frustum(_rect(0.0, 0.0, 0.2 * k, 0.29 * k), y + 2.5 * k, _rect(0.0, 0.0, 0.14 * k, 0.18 * k), y + 2.66 * k, col, col)
+	for arm: Array in [[-1.0, lh], [1.0, rh]]:
+		var hand: Vector3 = arm[1]
+		_beam(_mon_p(0.0, 0.31 * float(arm[0]) * k, y + 2.55 * k), _mon_p(hand.x * k, hand.y * k, y + hand.z * k), 0.13 * k, col)
+	_prism(_rect(0.0, 0.0, 0.06 * k, 0.06 * k), y + 2.62 * k, y + 2.72 * k, col, none, M_STONE)
+	_prism(_rect(0.02 * k, 0.0, 0.11 * k, 0.1 * k), y + 2.72 * k, y + 2.98 * k, col, col if cap <= 0.0 else none, M_STONE, M_STONE)
+	if cap > 0.0:
+		_frustum(_circle(_w(0.0, 0.0), 0.13 * k, 8), y + 2.98 * k, _circle(_w(0.0, 0.0), 0.15 * k, 8), y + (2.98 + cap) * k, col.darkened(0.1), col.darkened(0.15))
+	return _mon_p(rh.x * k, rh.y * k, y + rh.z * k)
+
+
+## A flat quad from its four corners, the normal from its own geometry (bronze cloaks, plates).
+func _mon_sheet(a: Vector3, b: Vector3, c: Vector3, d: Vector3, col: Color) -> void:
+	var n := (b - a).cross(d - a).normalized()
+	_quad(a, b, c, d, n, col)
+
+
+## A vertical half disc standing on y across the frame's u (centre cu, cv), radius r, depth d.
+func _mon_halfdisc(cu: float, cv: float, y: float, r: float, d: float, col: Color) -> void:
+	var n := 10
+	var nb := Vector3(_b.x, 0.0, _b.y)
+	for i in n:
+		var t0 := PI * i / n
+		var t1 := PI * (i + 1) / n
+		for side: float in [-1.0, 1.0]:
+			var v := cv + side * d * 0.5
+			_tri(_mon_p(cu, v, y), _mon_p(cu + r * cos(t0), v, y + r * sin(t0)), _mon_p(cu + r * cos(t1), v, y + r * sin(t1)),
+					nb * side, col, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+		var tm := (t0 + t1) * 0.5
+		var out := Vector3(_a.x * cos(tm), sin(tm), _a.y * cos(tm)).normalized()
+		_quad(_mon_p(cu + r * cos(t0), cv - d * 0.5, y + r * sin(t0)), _mon_p(cu + r * cos(t1), cv - d * 0.5, y + r * sin(t1)),
+				_mon_p(cu + r * cos(t1), cv + d * 0.5, y + r * sin(t1)), _mon_p(cu + r * cos(t0), cv + d * 0.5, y + r * sin(t0)), out, col)
+
+
+## Pomnik Bohaterów Warszawy, the Warsaw Nike (Marian Konieczny, 1964), from refs/nike/: a
+## light granite pylon 3 m square at the foot, tapering, 9 m tall, "BOHATEROM WARSZAWY
+## 1939-1945" low on its south-east face (the open side of the path loop); on it the dark
+## bronze Nike, about 5 m, lunging north-east, the left arm up, the sword swung up and back in
+## the right, her cloak flying. Shrub beds round the foot, open to the path on the south-east.
+func _build_nike(_site: Dictionary) -> void:
+	_mon_frame(NIKE, NIKE_A)
+	_g = _ground_under(_rect(0.0, 0.0, 2.2, 2.2))
+	var g := _g
+	_lbox(0.0, 0.0, 3.2, 3.2, g - 0.3, g + 0.1, Color("#a9a49a"), M_STONE, Color("#b4afa5"))
+	_lbox(0.0, 0.0, 2.1, 2.1, g + 0.1, g + 0.55, NIKE_GRANITE.darkened(0.06), M_STONE, NIKE_GRANITE)
+	_mode = M_STONE
+	_frustum(_rect(0.0, 0.0, 1.5, 1.5), g + 0.55, _rect(0.0, 0.0, 1.2, 1.2), g + 9.0, NIKE_GRANITE, NIKE_GRANITE.lightened(0.04))
+	_lbox(0.0, 1.47, 1.0, 0.05, g + 1.3, g + 2.1, Color("#3a3834"))
+	for bed: Array in [[-4.3, 0.0, 0.6, 2.6], [0.0, -4.3, 2.6, 0.6], [4.3, 0.0, 0.6, 2.6]]:
+		_lbox(float(bed[0]), float(bed[1]), float(bed[2]), float(bed[3]), g - 0.2, g + 0.7, MON_GREEN, M_STONE, MON_GREEN.lightened(0.1))
+	var y := g + 9.0
+	var bz := NIKE_BRONZE
+	_lbox(0.0, 0.0, 0.9, 0.7, y, y + 0.3, bz)
+	y += 0.3
+	# legs: the back one stretched, the front one bent at the knee
+	_beam(_mon_p(-0.15, 0.1, y + 2.2), _mon_p(-1.1, 0.2, y + 0.1), 0.38, bz)
+	_beam(_mon_p(0.15, -0.1, y + 2.2), _mon_p(0.8, -0.15, y + 1.3), 0.38, bz)
+	_beam(_mon_p(0.8, -0.15, y + 1.3), _mon_p(0.85, -0.2, y + 0.1), 0.36, bz)
+	# the skirt and the body, leaning into the lunge
+	_frustum(_rect(0.2, 0.0, 0.7, 0.5), y + 1.2, _rect(0.3, 0.0, 0.4, 0.4), y + 2.4, bz)
+	_frustum(_rect(0.3, 0.0, 0.4, 0.4), y + 2.4, _rect(0.6, 0.0, 0.32, 0.45), y + 3.6, bz, bz)
+	_beam(_mon_p(0.62, 0.0, y + 3.5), _mon_p(0.8, 0.0, y + 4.1), 0.38, bz)
+	# the left arm up and forward, the right with the sword up and back
+	_beam(_mon_p(0.6, -0.42, y + 3.45), _mon_p(1.6, -0.6, y + 4.7), 0.18, bz)
+	_beam(_mon_p(0.6, 0.42, y + 3.45), _mon_p(-0.1, 0.7, y + 4.6), 0.18, bz)
+	_beam(_mon_p(-0.1, 0.7, y + 4.6), _mon_p(-1.3, 0.8, y + 5.4), 0.1, bz.lightened(0.12))
+	_beam(_mon_p(-0.05, 0.45, y + 4.55), _mon_p(-0.15, 0.95, y + 4.65), 0.08, bz)
+	# the cloak flying back from her shoulders
+	_mon_sheet(_mon_p(0.45, -0.45, y + 3.5), _mon_p(0.45, 0.45, y + 3.5), _mon_p(-1.4, 0.7, y + 2.6), _mon_p(-1.4, -0.9, y + 2.9), bz.darkened(0.05))
+	_collide(_rect(0.0, 0.0, 2.1, 2.1))
+
+
+## Pomnik Juliusza Słowackiego on Plac Bankowy, from refs/slowacki/: a broad two-step dark
+## granite platform (12 x 10 m), a dark granite pillar 1.8 m square and 6 m tall with the name
+## cut in its face, the poet on it in a long cloak, head down, 4.5 m of dark bronze, looking
+## east over the square with Corazzi's arcaded palace behind; two-lantern lamps on the
+## platform's corners. The OSM parts under it (the platform and the pillar as boxes) go.
+func _build_slowacki(_site: Dictionary) -> void:
+	_mon_frame(SLOWACKI, SLOWACKI_A)
+	_g = _ground_under(_rect(0.0, 0.0, 6.0, 5.0))
+	var g := _g
+	var st := SLOWACKI_STONE
+	_lbox(0.0, 0.0, 6.0, 5.0, g - 0.3, g + 0.2, st.darkened(0.06), M_STONE, st.lightened(0.08))
+	_lbox(0.0, 0.0, 5.2, 4.2, g + 0.2, g + 0.45, st.darkened(0.04), M_STONE, st.lightened(0.05))
+	_lbox(0.0, 0.0, 1.15, 1.15, g + 0.45, g + 1.0, Color("#2e2e30"))
+	_lbox(0.0, 0.0, 0.9, 0.9, g + 1.0, g + 6.2, Color("#353537"))
+	_lbox(0.0, 0.0, 1.05, 1.05, g + 6.2, g + 6.45, Color("#2e2e30"), M_STONE, Color("#3a3a3c"))
+	_lbox(0.93, 0.0, 0.03, 0.55, g + 4.9, g + 5.25, Color("#9a968c"))
+	_mon_figure(g + 6.45, 4.4, SLOWACKI_BRONZE, 0.0, Vector3(0.25, -0.15, 1.95), Vector3(0.25, 0.12, 2.05), 1.3)
+	for corner: Vector2 in [Vector2(5.0, 4.0), Vector2(5.0, -4.0), Vector2(-5.0, 4.0), Vector2(-5.0, -4.0)]:
+		var top := g + 4.2
+		_beam(_mon_p(corner.x, corner.y, g + 0.45), _mon_p(corner.x, corner.y, top + 0.1), 0.14, Color("#2a2a2a"))
+		_beam(_mon_p(corner.x - 0.5, corner.y, top), _mon_p(corner.x + 0.5, corner.y, top), 0.08, Color("#2a2a2a"))
+		for du: float in [-0.45, 0.45]:
+			_prism(_square(_w(corner.x + du, corner.y), 0.15), top + 0.04, top + 0.5, MON_LANTERN, MON_LANTERN, M_LAMP, M_LAMP)
+	_collide(_rect(0.0, 0.0, 6.0, 5.0))
+
+
+## Pomnik Stefana Starzyńskiego on Plac Bankowy, from refs/starzynski/: the mayor of 1939
+## sinking into a huge faceted bronze armchair of folded plates, only his head and shoulders
+## and his hands on its edge above it, on a low rough granite block with STARZYŃSKI cut in it;
+## at the foot of the Blue Tower, facing south-east over the square.
+func _build_starzynski(_site: Dictionary) -> void:
+	_mon_frame(STARZYNSKI, STARZYNSKI_A)
+	_g = _ground_under(_rect(0.0, 0.0, 1.25, 2.0))
+	var g := _g
+	var bz := STARZYNSKI_BRONZE
+	_lbox(0.0, 0.0, 1.25, 2.0, g - 0.2, g + 1.2, Color("#8b8984"), M_STONE, Color("#9a9893"))
+	_lbox(1.27, 0.0, 0.03, 1.5, g + 0.45, g + 0.85, Color("#4a4844"))
+	_lbox(-2.3, 0.0, 0.45, 2.6, g - 0.2, g + 0.6, MON_GREEN, M_STONE, MON_GREEN.lightened(0.1))
+	_mode = M_STONE
+	# the chair: a mass leaning back, and its folded plates standing up behind like broken slabs
+	_frustum(_rect(-0.1, 0.0, 1.05, 1.9), g + 1.2, _rect(-0.55, 0.0, 0.45, 1.6), g + 3.6, bz, bz.lightened(0.06))
+	var plates := [[-1.35, 4.0, 0.05], [-0.5, 4.3, -0.04], [0.5, 4.15, 0.04], [1.35, 3.8, -0.05]]
+	for p: Array in plates:
+		var v := float(p[0])
+		_frustum(_rect(-0.55, v, 0.3, 0.42), g + 2.0, _rect(-0.95, v * (1.1 + float(p[2])), 0.12, 0.3), g + float(p[1]), bz.lightened(0.04), bz)
+	# the mayor: shoulders and head above the chair's front, his hands on its edge
+	_lbox(0.3, 0.0, 0.25, 0.48, g + 2.6, g + 3.05, bz.darkened(0.04))
+	_lbox(0.35, 0.0, 0.13, 0.12, g + 3.05, g + 3.4, bz.darkened(0.04))
+	for side: float in [-1.0, 1.0]:
+		_lbox(0.85, 0.55 * side, 0.12, 0.09, g + 2.2, g + 2.36, bz.lightened(0.05))
+	_collide(_rect(0.0, 0.0, 1.3, 2.05))
+
+
+## Pomnik Małego Powstańca on Podwale (Jerzy Jarnuszkiewicz, 1983), from refs/maly_powstaniec/:
+## a 1.4 m bronze boy in a far-too-big helmet with a white and red band, a submachine gun on
+## its strap, on a narrow dark stone post; behind him against the inner face of the city wall
+## a semicircular brick terrace with cobbles, a low brick wall, a black railing on its back
+## edge, a bronze plaque, red and white flowers and grave candles.
+func _build_maly_powstaniec(_site: Dictionary) -> void:
+	_mon_frame(MALY, MALY_A)
+	_g = _ground_under(_rect(-1.0, 0.0, 2.0, 2.0))
+	var g := _g
+	# the terrace floor: a half disc behind the post, opening forward
+	var floor := PackedVector2Array()
+	var arc: Array[Vector2] = []
+	for i in 9:
+		var t := PI * 0.5 + PI * i / 8.0
+		arc.append(Vector2(-1.0 + 2.1 * cos(t), 2.1 * sin(t)))
+	for q: Vector2 in arc:
+		floor.append(_w(q.x, q.y))
+	floor.append(_w(0.9, -2.1))
+	floor.append(_w(0.9, 2.1))
+	_prism(floor, g - 0.2, g + 0.08, MALY_BRICK.darkened(0.1), Color("#8d8a84"), M_STONE, M_STONE)
+	# the low brick wall round the arc, the railing along its back
+	for i in 8:
+		var a0: Vector2 = arc[i]
+		var a1: Vector2 = arc[i + 1]
+		var c0 := Vector2(-1.0, 0.0)
+		var seg := PackedVector2Array([_w(a0.x, a0.y), _w(a1.x, a1.y), _wl(c0 + (a1 - c0) * 0.85), _wl(c0 + (a0 - c0) * 0.85)])
+		_prism(seg, g + 0.08, g + 0.65, MALY_BRICK, MALY_BRICK.lightened(0.08), M_STONE, M_STONE)
+	for i in range(2, 7):
+		var a0: Vector2 = arc[i]
+		var a1: Vector2 = arc[i + 1]
+		_beam(Vector3(_wl(a0).x, g + 0.65, _wl(a0).y), Vector3(_wl(a0).x, g + 1.5, _wl(a0).y), 0.05, Color("#1f1f20"))
+		_beam(Vector3(_wl(a0).x, g + 1.45, _wl(a0).y), Vector3(_wl(a1).x, g + 1.45, _wl(a1).y), 0.05, Color("#1f1f20"))
+	_beam(Vector3(_wl(arc[7]).x, g + 0.65, _wl(arc[7]).y), Vector3(_wl(arc[7]).x, g + 1.5, _wl(arc[7]).y), 0.05, Color("#1f1f20"))
+	_lbox(-2.9, 0.0, 0.04, 0.45, g + 0.6, g + 1.25, Color("#6b5a3e"))
+	# flowers (red and white) and candles on the terrace
+	var beds := [[-2.3, -1.0, Color("#c0392b")], [-2.5, 0.0, Color("#eeeeea")], [-2.3, 1.0, Color("#c0392b")]]
+	for b: Array in beds:
+		_lbox(float(b[0]), float(b[1]), 0.3, 0.32, g + 0.08, g + 0.36, b[2], M_STONE, b[2])
+	for cv: float in [-0.6, -0.3, 0.3, 0.6]:
+		_prism(_square(_w(-0.2, cv), 0.06), g + 0.08, g + 0.26, Color("#d9442f"), Color("#ffb347"), M_LAMP, M_LAMP)
+	# the post and the boy on it
+	_lbox(0.6, 0.0, 0.25, 0.25, g + 0.08, g + 1.38, Color("#3b3b3c"))
+	_o = _w(0.6, 0.0)
+	var y := g + 1.38
+	var h := 1.45
+	var k := h / 3.3
+	_mon_figure(y, h, MALY_BRONZE, 0.3, Vector3(0.35, -0.1, 1.95), Vector3(0.3, 0.2, 1.75), 1.15)
+	# the helmet, far too big, with its white and red band
+	var head := _w(0.02 * k, 0.0)
+	_mode = M_STONE
+	_frustum(_circle(head, 0.2, 8), y + 2.86 * k, _circle(head, 0.1, 8), y + 3.3 * k, MALY_BRONZE.darkened(0.05), MALY_BRONZE.darkened(0.05))
+	_prism(_circle(head, 0.205, 8), y + 2.86 * k, y + 2.92 * k, Color("#eeeeea"), Color(0, 0, 0, 0), M_STONE)
+	_prism(_circle(head, 0.205, 8), y + 2.92 * k, y + 2.98 * k, Color("#c0392b"), Color(0, 0, 0, 0), M_STONE)
+	_beam(_mon_p(0.42 * k, 0.28 * k, y + 1.55 * k), _mon_p(0.48 * k, -0.25 * k, y + 2.1 * k), 0.06, Color("#2a2a2a"))
+	_o = MALY
+	_collide(_rect(-1.0, 0.0, 2.2, 2.2))
+
+
+## Pomnik Jana Kilińskiego on Podwale (Stanisław Jackowski, 1936; here since 1959), from
+## refs/kilinski/: a polished dark granite pedestal 2 m square and 4.5 m tall with a bronze
+## plaque, on two steps; on it the shoemaker of the 1794 Rising striding south-west along
+## Podwale in his long kontusz and fur cap, the sabre raised high in his right hand, the left
+## at his belt.
+func _build_kilinski(_site: Dictionary) -> void:
+	_mon_frame(KILINSKI, KILINSKI_A)
+	_g = _ground_under(_rect(0.0, 0.0, 2.2, 2.2))
+	var g := _g
+	var gr := KILINSKI_GRANITE
+	_lbox(0.0, 0.0, 2.2, 2.2, g - 0.3, g + 0.3, Color("#6f6e6b"), M_STONE, Color("#7d7c79"))
+	_lbox(0.0, 0.0, 1.75, 1.75, g + 0.3, g + 0.6, Color("#5f5e5b"), M_STONE, Color("#6d6c69"))
+	_lbox(0.0, 0.0, 1.15, 1.15, g + 0.6, g + 1.0, gr, M_STONE, gr.lightened(0.06))
+	_lbox(0.0, 0.0, 1.0, 1.0, g + 1.0, g + 4.1, gr.lightened(0.03))
+	_lbox(0.0, 0.0, 1.15, 1.15, g + 4.1, g + 4.5, gr, M_STONE, gr.lightened(0.06))
+	_lbox(1.03, 0.0, 0.03, 0.5, g + 2.2, g + 3.0, Color("#5d5440"))
+	var bz := KILINSKI_BRONZE
+	var hand := _mon_figure(g + 4.5, 3.5, bz, 0.9, Vector3(0.05, -0.38, 1.6), Vector3(0.1, 0.45, 3.55), 1.15, 0.24)
+	var k := 3.5 / 3.3
+	var tip := hand + Vector3(_a.x, 0.0, _a.y) * 0.3 * k + Vector3.UP * 1.0 * k
+	_beam(hand, tip, 0.06 * k, bz.lightened(0.15))
+	_collide(_rect(0.0, 0.0, 2.2, 2.2))
+
+
+## Pomnik Umschlagplatz (Hanna Szmalenberg and Władysław Klamerus, 1988), from
+## refs/umschlagplatz/: an open-topped enclosure of white-grey marble slabs, 16 m along Stawki,
+## 10 m deep and 4 m high; in the middle of the street side a tall narrow gate under a black
+## stone semicircle; a black band round the outside at two thirds of the height with the name
+## cut in it; the names on the walls inside. A quiet place: no props, no gags.
+func _build_umschlagplatz(_site: Dictionary) -> void:
+	_mon_frame(UMSCHLAG, UMSCHLAG_A)
+	_g = _ground_under(_rect(0.0, 0.0, 8.0, 5.0))
+	var g := _g
+	var m := UMSCHLAG_MARBLE
+	var bk := UMSCHLAG_BLACK
+	var top := g + 4.0
+	_mode = M_STONE
+	_cap(_rect(0.0, 0.0, 7.6, 4.6), g + 0.06, Color("#bdbdb8"))
+	_lbox(0.0, -4.8, 8.0, 0.2, g - 0.3, top, m, M_STONE, m.lightened(0.04))
+	for s: float in [-1.0, 1.0]:
+		_lbox(7.8 * s, 0.0, 0.2, 4.6, g - 0.3, top, m, M_STONE, m.lightened(0.04))
+		_lbox(4.7 * s, 4.8, 3.3, 0.2, g - 0.3, top, m, M_STONE, m.lightened(0.04))
+		_lbox(1.1 * s, 4.8, 0.3, 0.3, g - 0.3, g + 4.6, m.darkened(0.03), M_STONE, m)
+		# the black band outside, at two thirds of the height
+		_lbox(8.03 * s, 0.0, 0.03, 5.0, g + 2.6, g + 3.1, bk)
+		_lbox(4.7 * s, 5.03, 3.3, 0.03, g + 2.6, g + 3.1, bk)
+		# the names: a slightly darker field on the side walls inside
+		_lbox(7.57 * s, 0.0, 0.03, 3.8, g + 0.8, g + 3.4, m.darkened(0.08))
+	_lbox(0.0, -5.03, 8.06, 0.03, g + 2.6, g + 3.1, bk)
+	_lbox(0.0, -4.57, 6.5, 0.03, g + 0.8, g + 3.4, m.darkened(0.08))
+	# the gate: a lintel over the narrow opening, the black semicircle on it
+	_lbox(0.0, 4.8, 0.8, 0.3, g + 3.9, g + 4.6, bk)
+	_mon_halfdisc(0.0, 4.8, g + 4.6, 1.4, 0.4, bk)
+	_collide(_rect(0.0, 0.0, 8.1, 5.1))
+
+
+## Pomnik Poległym i Pomordowanym na Wschodzie (Maksymilian Biskupski, 1995), from
+## refs/pomnik_wschod/: in Muranowska's wide median a bronze railway flatcar piled with crosses
+## (Latin and Orthodox, a matzevah and a Muslim tombstone among them), up to 6 m over the
+## street, at the east end of a track of 41 bronze sleepers with the places' names, laid on a
+## low mound of rounded field stones 37 m long. Respectful, like Umschlagplatz.
+func _build_pomnik_wschod(_site: Dictionary) -> void:
+	_mon_frame(WSCHOD, WSCHOD_A)
+	_g = _ground_under(_rect(0.0, 0.0, 22.0, 2.0))
+	var g := _g
+	var bz := WSCHOD_BRONZE
+	_lbox(0.9, 0.0, 23.9, 4.6, g - 0.3, g + 0.05, Color("#77746f"), M_STONE, Color("#827f79"))
+	_mode = M_STONE
+	_frustum(_rect(0.0, 0.0, 22.2, 2.0), g + 0.05, _rect(0.0, 0.0, 22.0, 1.5), g + 0.45, WSCHOD_STONE, WSCHOD_STONE.lightened(0.05))
+	# the 41 named sleepers west of the wagon, and the plain ones under it
+	for i in 48:
+		var u := -21.6 + 0.9 * i
+		_lbox(u, 0.0, 0.13, 1.3, g + 0.45, g + 0.6, bz.lightened(0.04 * (i % 3)), M_STONE, bz.lightened(0.08))
+	for s: float in [-1.0, 1.0]:
+		_lbox(0.0, 0.72 * s, 21.9, 0.04, g + 0.6, g + 0.72, bz.lightened(0.12))
+	# the flatcar on its two bogies at the track's east end
+	for u: float in [16.4, 20.6]:
+		_lbox(u, 0.0, 0.9, 0.85, g + 0.72, g + 1.1, bz.darkened(0.15))
+	_lbox(18.5, 0.0, 3.5, 1.25, g + 1.1, g + 1.4, bz.darkened(0.08), M_STONE, bz)
+	# the crosses, packed and leaning a little; every fourth Orthodox
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 1795
+	var deck := g + 1.4
+	for i in 24:
+		var cu := rng.randf_range(15.4, 21.6)
+		var cv := rng.randf_range(-0.95, 0.95)
+		var hh := rng.randf_range(2.2, 4.6)
+		var lean := Vector3(rng.randf_range(-0.25, 0.25), 0.0, rng.randf_range(-0.25, 0.25))
+		var foot := _mon_p(cu, cv, deck)
+		var head := foot + Vector3.UP * hh + lean
+		var col := bz.lightened(rng.randf_range(0.0, 0.12))
+		_beam(foot, head, 0.14, col)
+		var arm := 0.28 * hh
+		var at := foot.lerp(head, 0.74)
+		var across := Vector3(_b.x, 0.0, _b.y) * arm * 0.5 if i % 2 == 0 else Vector3(_a.x, 0.0, _a.y) * arm * 0.5
+		_beam(at - across, at + across, 0.12, col)
+		if i % 4 == 1:
+			var top := foot.lerp(head, 0.88)
+			_beam(top - across * 0.5, top + across * 0.5, 0.1, col)
+			var low := foot.lerp(head, 0.4)
+			_beam(low - across * 0.5 - Vector3.UP * 0.12, low + across * 0.5 + Vector3.UP * 0.12, 0.1, col)
+	# the matzevah (a round-topped slab) and the Muslim tombstone (a pointed one)
+	_lbox(16.0, -0.6, 0.08, 0.35, deck, deck + 1.2, bz.lightened(0.1))
+	_frustum(_rect(16.0, -0.6, 0.08, 0.35), deck + 1.2, _rect(16.0, -0.6, 0.08, 0.18), deck + 1.42, bz.lightened(0.1), bz.lightened(0.1))
+	_lbox(21.2, 0.55, 0.08, 0.25, deck, deck + 1.0, bz.lightened(0.06))
+	_pyramid(_rect(21.2, 0.55, 0.08, 0.25), deck + 1.0, deck + 1.4, bz.lightened(0.06))
+	# the cobbled apron round it (4.6 m each side, 2 m past the buffers): the kerb a car meets
+	_collide(_rect(0.9, 0.0, 23.9, 4.6))
 ## Sąd Najwyższy's colonnade (Marek Budzyński and Zbigniew Badowski, 1999; spec
 ## docs/landmarks/specs/sad_najwyzszy.md, from the Mac's Plac Krasińskich photo reports, 2026-11-02).
 ## OpenStreetMap maps the court's columns as 2 m boxes 12 m tall under 2 m beams (12-14 m) in
