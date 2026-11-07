@@ -36,6 +36,16 @@ Paca, Collegium Nobilium) and Pałac Branickich's modelled Miodowa front. Left, 
 - Pałac Szaniawskich's pediment and arched ground floor (M204); Pałac Prymasowski and Pałac Blanka on Senatorska have no ground photo yet.
 - Branickich: Mac look check of the storey count under the cornice and the end pavilions.
 
+## Centrum LIM's podium from F's night photos (F, 2026-11-06)
+
+Done 2026-11-06 (spec `docs/landmarks/specs/lim-podium.md`, site `lim`). Left:
+- **The tower's night look**: the photos show the hotel's name and the phone maker's name on all
+  four faces; the game has them on two (south and east), and the lit cells are random.
+- **A day look check**: only night photos so far; the panel colour and the signs by day are a guess.
+- **The screens are still pictures**: real ones cycle adverts; a moving screen would need a script
+  like Warsaw Spire's ticker.
+- **Phone**: look and bench by Centralna at night (the signs are in the landmark signs' MultiMesh,
+  the screens and marks a few hundred triangles in the building mesh).
 
 ## Street blocks across the city (F, 2026-11-06)
 
@@ -432,6 +442,22 @@ in, with window bays every 3.6 m and storey. The Palace already had its courts (
 - Mac look check: the three courts from the helicopter and the game's angle, day and night (the court
   walls' windows light like the model's own bays).
 
+## Trybunał Konstytucyjny, al. Szucha 12a (F, 2026-11-06: parked until the map grows south)
+
+F asked for the Constitutional Tribunal as a landmark. The building is OSM way 30871847 (52.215631 N
+21.023906 E), game x -6, z 2031, footprint x -35..22, z 2013..2049 (about 57 x 35 m, 3 levels, hipped
+roof). The baked map ends at z 1736, so there is no ground, street, LoD2 or neighbour there (the Prime
+Minister's Chancellery, way 30871838 near x 38, z 2012, and the modern semicircular hall south of the
+Tribunal are missing too). F chose to park it (2026-11-06). The job: grow the map south by about 330 m
+(map lane: bake_osm BBOX and tools/map_shape.py, the whole chain, check_map_data counts on purpose, new
+map pack, bench before and after), then build it from the photos gathered on the Mac (refs/trybunal/:
+6 Commons photos, GUGiK ortho, osm_way.json, REPORT.md). What the photos show: ground floor, tall upper
+floor with a Greek-key frieze, dark metal mansard roof with 5 round dormers, bowed corner bays, a
+sandstone portal with an arched door and a stair each side, a flagpole at the roof centre, a round
+cobbled drive. Open: which face of the U carries the entrance (the ortho shows a planted courtyard with
+no drive); heights are estimates (eaves about 11-12 m, ridge 17-18 m). Landmark model needs
+`_collide_raw` and pocket_rings.
+
 ## Grow the map north-east (F, 2026-11-03: not now)
 
 Koneser (1426, -2355), Park Fontann (the Multimedia Fountain Park, -868, -2208) and Ząbkowska's bar
@@ -556,6 +582,25 @@ the steering. Review, findings and the A/B list: `docs/design/beta-values.md`.
 - [ ] A real-map hands-off drive with the lane assist (Wisłostrada, Trasa Łazienkowska, the bridges): `check_lane_drive` with a Classic driver
 - [ ] GAMEPLAY_PLAN 1.5 items 2, 3, 5: wall look-ahead, junction pick, camera lead at junctions
 - [ ] If F picks them: the delivery streak "Seria", a smooth tip, slipstream, a shorter card wait
+
+## Main's road bugs (F, 2026-11-07: main as base, small fixes)
+
+Checked on the photo against main at Marszałkowska × Królewska, Świętokrzyska × Mazowiecka and × Jasna,
+then whole-map in `tools/road_fixes.py` (run after road_smooth; verify step `fixes`, ratchets).
+- [x] Lane, centre, solid and bus lines ran on past the zebra or stop line into the junction: cut in 1,682
+  mouths (7.7 km), and on another main street's ribbon (90 m); a line whose cut would read as a jog stays
+- [x] Turn arrows painted past the zebra (some on the stripes): 406 moved behind the stop line, 60 dropped
+  (the lane already had an arrow there, or no asphalt behind)
+- [x] 61 zebras under 1 m (dots left by the asphalt clip) dropped; zebra ends short of the kerb run on (158 m)
+- [x] Dark patches in junction boxes: not in the game (every ribbon and area is one colour at one height);
+  they came from the flat comparison pictures, which draw ribbons half transparent over the photo
+Found:
+- [ ] Zebras and cycle crossings already run kerb to kerb (or kerb to median) on the data: no dual
+  carriageway crossed on one side only, 1 cycle crossing shorter than its zebra. What still reads as
+  "short" on the photo is the stripe length: the game paints 3.6 m everywhere, the photo shows 4-6 m on
+  main streets (a map_builder change, not done: F's call, main as base)
+- [ ] Lane lines through a junction where the same street turns (one name both ways) are kept
+- [ ] Unsignalled crossings more than 12 m from the junction's ribbons count as mid-block (lines kept)
 
 ## Operation Unslop: streets that don't look generated (F, 2026-11-05)
 
@@ -704,12 +749,16 @@ is the order of the next threads. Found while building it:
   obelisks, Ogród Saski's 19 allegories at their real spots instead of 16 random ones) and 520 sandstone
   wall plaques with candles (Tchorek's Uprising plaques and the rest), built in park_details' per-cell
   meshes (+3 draw calls on the bench route). Checks `monuments` and `monumentmesh`.
-- **Monuments pass, part 2 (open):** photo builds of Nike, Słowacki, Starzyński, Mały Powstaniec, Kiliński,
-  the Eastern memorial and Umschlagplatz from the Mac's photo reports (docs/landmarks/photo-reports/); each
-  lands as a site and joins `bake_monuments.SKIP`. Then rows 113-116 and 142. ~~Plac Piłsudskiego's
-  (Piłsudski, Smolensk, Kaczyński)~~ done 2026-11-02 (sites `smolensk`, `pilsudski`, `kaczynski`,
-  `plac_maszty`, the paving's chequer in ground.gdshader; spec `plac_pilsudskiego.md`; the chequer
-  softened 2026-11-03 after the playtest read it as a chess board, phone look check open).
+- ~~**Monuments pass, part 2:** photo builds of Nike, Słowacki, Starzyński, Mały Powstaniec, Kiliński, the Eastern
+  memorial and Umschlagplatz~~ Done 2026-11-02 from the Mac's photo reports (docs/landmarks/photo-reports/):
+  sites `nike`, `slowacki`, `starzynski`, `maly_powstaniec`, `kilinski`, `umschlagplatz`, `pomnik_wschod` in
+  landmarks.gd (120-1064 tris each, no draw call of their own), all in `bake_monuments.SKIP` (808 generic pieces
+  left). Low ones get their own heli height in check_landmarks (LOW_MONUMENTS). Open: F's look on the Mac
+  (QUESTIONS); Nike's facing is the photos' best guess (north-east); the reliefs (Umschlagplatz's broken trees,
+  the names inside, the sleepers' place names) are plain fields, not lettering.
+- **Monuments pass, part 3 (open):** rows 113-116 and 142. Plac Piłsudskiego's (Piłsudski, Smolensk, Kaczyński) was
+  done 2026-11-02 (sites `smolensk`, `pilsudski`, `kaczynski`, `plac_maszty`, the paving's chequer in ground.gdshader; spec
+  `plac_pilsudskiego.md`; the chequer softened 2026-11-03 after the playtest read it as a chess board, phone look check open).
 - **Plaques without a wall:** 49 OSM plaques have no drawn wall within 12 m (free-standing ones, courtyards)
   and are left out; a post-mounted plaque piece would place them. A plaque's wall is the LoD2 footprint, so
   a deep shop recess can leave it on a pier rather than the door's wall (fine so far in shots).
