@@ -174,7 +174,7 @@ often, known to every visitor; **B** characteristic, known to locals, gives a st
 | 103 | Dom pod Orłami and Skwer Linearny na Złotej | Jasna / Złota | historic office, new park | ★ | Mac look check |
 | 104 | Hotel Wiktoria (Sofitel Victoria) and Królewska (OSM: Sofitel Victoria) | Królewska | hotel | ◐ | photo check |
 | 105 | Ministerstwo Finansów | Świętokrzyska | ministry | ◐ | photo check |
-| 106 | Saski Crescent, Saski Park, Senator | Królewska / Bielańska | offices | ✗ | photo build of the curved glass on the Saxon Garden |
+| 106 | Saski Crescent, Saski Park, Senator | Królewska / Bielańska | offices | ◐ | 2026-11-07 from F's photos (spec `saski.md`): Saski Crescent in teal curtain-wall skin, Senator in pale cladding; left: the stone wing, dark crown and SASKI ROGAL sign, Senator's light well, Saski Park |
 | 107 | Gmach Główny Politechniki Warszawskiej (OSM: Gmach Główny PW) | Noakowskiego / Plac Politechniki | university | ✗ | **photo build**: the courtyard hall's front and the dome |
 | 108 | Uniwersytet: Auditorium Maximum, Stary BUW, Biblioteka Królewska | Krakowskie Przedmieście | university | ✗ | photo pass of the campus |
 | 109 | Pałac Pod Blachą and Biblioteka Królewska | Plac Zamkowy / Wybrzeże Gdańskie | palace | ✗ | with the Castle (after PR #299) |
@@ -193,7 +193,7 @@ often, known to every visitor; **B** characteristic, known to locals, gives a st
 | 122 | Osiedle Za Żelazną Bramą | Plac Żelaznej Bramy | 1960s estate | ◐ | photo check |
 | 123 | Aleja Jana Pawła II's blocks and Kaskada | Aleja Jana Pawła II | 1950s blocks, offices | ○ | block-by-block pass from photos |
 | 124 | Babka Tower, Atrium 2, Intraco Prime, North Gate | Aleja Jana Pawła II / Stawki / Bonifraterska | offices, flats | ✗ | photo build (Babka is the north's tallest) |
-| 125 | Equator, Equator II, Brama Zachodnia, Proximo I and II, Crown Square, Prosta Office Center | Aleje Jerozolimskie / Prosta / Przyokopowa | office buildings | ✗ | office pass: skins by photo |
+| 125 | Equator, Equator II, Brama Zachodnia, Proximo I and II, Crown Square, Prosta Office Center | Aleje Jerozolimskie / Prosta / Przyokopowa | office buildings | ◐ | Brama Zachodnia, Proximo I/II skinned (offices.md); Equator, Crown, Prosta lack photos |
 | 126 | Warsaw Corporate Centre, Centrum Giełdowe, Mysia 3, Liberty Corner, Nautilus, Ethos | Emilii Plater / Książęca / Mysia / Nowogrodzka | office buildings | ✗ | office pass |
 | 127 | Żyletkowiec, Dom Słowa Polskiego, Dom Chłopa, Smyk's corner | Wspólna / Miedziana / Plac Powstańców / Krucza | modernist landmarks | ✗ | **high priority**: the modernism set (docs/design/modernism-collection.md M4, M5, M12; Smyk is Cedet, #30); photo build, Żyletkowiec first |
 | 128 | Atelier Residence, Rezydencja Foksal, Apartamenty Flare, Solec Residence, Złota Chmielna | Bagno / Kopernika / Grzybowska / Solec / Złota | upscale flats | ✗ | photo pass (Młotek moved to #147, the modernism set) |
