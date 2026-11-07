@@ -532,7 +532,9 @@ var rave_log := false
 var _rave_auto := false
 ## The boat race (boat_race.gd): --boat-race=call (Szymek phones now), =race (the car at the
 ## pontoon, straight onto the grid), =auto (that, with the player's boat driven by the rivals'
-## driver), =0 (none); --boat-log.
+## driver), =free / free0..2 (the car at the pontoon, out in a free-ride boat: 0 the jet ski,
+## 1 the electric (default), 2 the offshore), =marina (the car there, the
+## marina card up), =0 (none); --boat-log.
 var boat_race: BoatRace
 ## The questlines (story_quests.gd); --stories-log prints what they do.
 var stories: StoryQuests
@@ -2823,12 +2825,25 @@ func _build_boat_race(world: Node3D) -> void:
 	boat_race.setup(world)
 	boat_race.boarded.connect(_on_boat_boarded)
 	boat_race.left_boat.connect(_on_boat_left)
+	if jobs != null:
+		# The free-ride boat's mark on the minimap and the full map, with the job places.
+		jobs.boat_spot = BoatRace.fleet_spot(1)
+		jobs._show_places(jobs._places_shown, true)
 	if boat_flag in ["race", "auto"]:
 		get_tree().create_timer(1.0).timeout.connect(func() -> void:
 			var at := BoatRace.CAR_SPOT
 			car.global_position = Vector3(at.x, map.ground_height(at.x, at.y), at.y)
 			car.reset_physics_interpolation()
 			boat_race._board())
+	elif boat_flag.begins_with("free") or boat_flag == "marina":
+		get_tree().create_timer(1.0).timeout.connect(func() -> void:
+			var at := BoatRace.CAR_SPOT
+			car.global_position = Vector3(at.x, map.ground_height(at.x, at.y), at.y)
+			car.reset_physics_interpolation()
+			if boat_flag.begins_with("free"):
+				boat_race.free_ride(int(boat_flag.trim_prefix("free")) if boat_flag.length() > 4 else 1)
+			else:
+				boat_race._marina_card())
 	elif boat_flag == "call":
 		get_tree().create_timer(1.0).timeout.connect(func() -> void: boat_race.ring())
 
@@ -2924,6 +2939,9 @@ func _boat_free() -> bool:
 ## The boat race's share of the car's speed zoom (the river is open: the rest of the zoom only
 ## shrank the boats).
 const BOAT_ZOOM := 0.45
+## A free ride's view (one boat, no rings to read): this share of the base view, so the hull's
+## lean and pitch read on the phone (Autopilot, 2026-11-07: the boat was a few pixels long).
+const BOAT_FREE_VIEW := 0.7
 
 
 ## The player takes the boat: the car waits on the bank, out of the world (no process, no
@@ -7457,10 +7475,14 @@ func _update_camera(dt: float) -> void:
 		focus_rate = 3.5
 	else:
 		var zoom := base_size * FollowCamera.SPEED_ZOOM * clampf(speed / (car.max_speed * car.top_mult), 0.0, 1.0)
+		var view := base_size
 		if boat_race != null and boat_race.boating():
 			zoom *= BOAT_ZOOM  # the boat race: the rings and the rivals stay big enough to read
-		size = base_size + zoom
-		_view_size = fcam.zoom_step(_view_size, base_size, zoom, dt)
+			if boat_race.state == BoatRace.State.FREE:
+				view *= BOAT_FREE_VIEW
+				zoom *= BOAT_FREE_VIEW
+		size = view + zoom
+		_view_size = fcam.zoom_step(_view_size, view, zoom, dt)
 	# The look-ahead along the way it goes, and the dead zone's window (follow_camera.gd).
 	var forward := Vector3(-basis.z.x, 0.0, -basis.z.z).normalized() \
 			if follow and not flying and controls.scheme == Controls.CLASSIC else Vector3.ZERO

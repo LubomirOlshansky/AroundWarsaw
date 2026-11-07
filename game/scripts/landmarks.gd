@@ -695,6 +695,12 @@ const INFO := {
 	"barka_marina": ["Marinka Warszawka",
 			"Barka w stylu marynarskim między Kopernikiem a kładką. Granat, biel, cień.",
 			"A nautical barge between the Copernicus Centre and the footbridge: navy and white."],
+	"port_majami": ["Majami Wawa",
+			"Klub na cyplu Portu Czerniakowskiego: drewniany taras pod wierzbami, czerwony namiot, ogniska i biały ponton na Wiśle.",
+			"The club on the tip of Port Czerniakowski: a timber deck under the willows, a red tent, fire pits and a white pontoon on the Vistula."],
+	"port_wtw": ["WTW · Warszawskie Towarzystwo Wioślarskie",
+			"Klub wioślarski od 1878 roku, Zaruskiego 12: biały hangar z niebieskim dachem, kotwice przy bramie.",
+			"A rowing club since 1878, Zaruskiego 12: a white boathouse under a blue roof, anchors at the gate."],
 	"marina": ["Przystań w Porcie Czerniakowskim",
 			"Port żeglarski przy Zaruskiego: klubowy domek, pomosty i jachty, które zimują tu od pokoleń.",
 			"The sailing harbour by Zaruskiego street: a club house, finger piers and yachts that have wintered here for generations."],
@@ -1159,6 +1165,8 @@ func _find_sites() -> void:
 	# The river's bar barges and houseboats (2026-11-01, spec docs/landmarks/specs/barki.md).
 	_find_barges()
 	_find_marina()
+	# Port Czerniakowski's spit and basin (F, 2026-11-07, his photos: port-czerniakowski).
+	_find_port()
 	# The boulevards' dressing (2026-11-02, spec docs/landmarks/specs/bulwary.md).
 	_find_bulwar_dress()
 	_find_bulwary_pool()
@@ -1802,6 +1810,16 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_barge(s)
 			"marina":
 				_build_marina(s)
+			"port_majami":
+				_build_port_majami(s)
+			"port_wtw":
+				_build_port_wtw(s)
+			"port_halls":
+				_id = 0  # club halls and sheds: no card, not on the picking grid
+				_build_port_halls(s)
+			"port_basin":
+				_id = 0  # moored boats: no card, not on the picking grid
+				_build_port_basin(s)
 			"houseboats":
 				_id = 0  # private homes: no card, not on the picking grid
 				_build_houseboats(s)
@@ -17994,6 +18012,12 @@ const BARGE_STYLE := {
 			"frame": Color("#f5f4ee"), "glass": Color("#b9805a"), "roof": Color("#e9e7e1"),
 			"brella": Color("#22406b"), "word": "MARINKA", "tube": Color(1.0, 0.55, 0.3),
 			"house": Vector2(0.14, 0.92), "terrace": true, "stalls": 0, "canopy": true},
+	# Majami Wawa's floating pontoon (F's photos, 2026-11-07): a white two-storey pontoon, glass
+	# below, an open upper deck with navy planks behind a white tube railing, orange lifebuoys.
+	"port_majami": {"hull": Color("#f3f3f0"), "band": Color("#1d2f52"), "deck": Color("#23324f"),
+			"frame": Color("#f7f7f4"), "glass": Color("#7d98a4"), "roof": Color("#24345a"),
+			"brella": Color("#f2f0ea"), "word": "MAJAMI", "tube": Color(1.0, 0.45, 0.35),
+			"house": Vector2(0.12, 0.78), "terrace": true, "stalls": 0},
 	"barka_kaskada": {"hull": Color("#1c1d1f"), "band": Color("#5b2320"), "deck": Color("#6f5a46"),
 			"frame": Color("#e6e6e2"), "glass": Color("#3d4f58"), "roof": Color("#2a2b2e"),
 			"brella": Color("#26272a"), "word": "KASKADKA", "tube": Color(1.0, 1.0, 1.0),
@@ -18451,6 +18475,392 @@ func _find_marina() -> void:
 	_add_site("marina", zone)
 	if not sites.is_empty() and sites[-1]["key"] == "marina":
 		sites[-1]["club"] = q
+
+
+# --- Port Czerniakowski: the spit and the basin (F, 2026-11-07, his photos port-czerniakowski) ---
+## F's ask: design the spit and the harbour properly. Photos: GUGiK aerials, the club's terrace
+## and pontoon, WTW's gate and boathouse, the basin, its boats and houseboats
+## (/mnt/project-files/port-czerniakowski/). OpenStreetMap draws every building on the spit as a
+## default 14 m block. Here:
+## - The tip's block becomes MAJAMI WAWA, the parody of the open-air club: a dark timber deck
+##   behind a heavy railing under the willows, a red-orange stretch tent and a beige one,
+##   festoons, two fire pits, a bar with thatched umbrellas, and its white floating pontoon on
+##   the river side.
+## - WTW's boathouse is long, white and low under a shallow cobalt roof, with the white hexagon
+##   sign and a blue gate on Zaruskiego.
+## - The other blocks become low halls with pitched roofs, white or grey under blue-grey and grey
+##   metal, as the aerials show.
+## - The basin gets boats moored stern-to along both quays between finger piers, motorboats with a
+##   few sailboats, and houseboats along the west quay.
+const PORT_TIP := Vector2(1404.0, 687.0)
+const PORT_WTW := Vector2(1420.0, 794.0)
+## The other blocks on the spit (a point in each): eaves height, wall, roof. The order follows the
+## aerial from north to south: the white kayak hangar with the blue ridge, then the halls.
+const PORT_HALLS := [
+	[Vector2(1395.0, 755.0), 4.3, Color("#efefea"), Color("#e9ebee")],
+	[Vector2(1420.0, 805.0), 4.5, Color("#d9d6cf"), Color("#7f93a6")],
+	[Vector2(1429.0, 825.0), 4.0, Color("#cfcac0"), Color("#8d949b")],
+	[Vector2(1425.0, 835.0), 4.8, Color("#d4d0c6"), Color("#76889a")],
+	[Vector2(1450.0, 864.0), 5.0, Color("#e2dfd6"), Color("#7a8fa3")],
+	[Vector2(1456.0, 890.0), 4.2, Color("#d9d3c6"), Color("#8b9198")],
+	[Vector2(1468.0, 883.0), 4.6, Color("#e6e3dc"), Color("#6f8396")],
+]
+const PORT_WTW_WALL := Color("#f1f1ec")
+const PORT_WTW_ROOF := Color("#1f4fb0")
+const PORT_WTW_BLUE := Color("#2457b8")
+## WTW's gate on Zaruskiego (the service road east of the boathouse) and the street's run there.
+const PORT_WTW_GATE := Vector2(1437.5, 789.0)
+const PORT_WTW_ALONG := Vector2(0.43, 0.9)
+## The basin's run (z) and the strip of x to search for its water.
+const PORT_BASIN_Z := Vector2(728.0, 992.0)
+const PORT_BASIN_X := Vector2(1318.0, 1400.0)
+const PORT_SLIP := 4.6          # stern-to berths: one boat per this many metres of quay
+const PORT_TIMBER := Color("#8a6a4c")
+const PORT_DECK := Color("#4e3a2c")       # Majami's dark terrace planks
+const PORT_TENT_RED := Color("#d2492c")
+const PORT_TENT_BEIGE := Color("#cdbf9f")
+const PORT_STRAW := Color("#c9a764")
+const PORT_HOUSEBOATS := [Color("#3a3d42"), Color("#8f969c"), Color("#2c2f33")]
+const PORT_COPPER := Color("#b26a3a")
+
+
+func _find_port() -> void:
+	var tip := _tallest_at(PORT_TIP)
+	if tip.size() >= 3:
+		var zone: Array = [_largest(Geometry2D.offset_polygon(tip, 1.0, Geometry2D.JOIN_MITER))]
+		_add_site("port_majami", zone)
+		if not sites.is_empty() and sites[-1]["key"] == "port_majami":
+			sites[-1]["tip"] = tip
+			sites[-1]["box"] = (sites[-1]["box"] as Rect2).grow(45.0)
+	var wtw := _tallest_at(PORT_WTW)
+	if wtw.size() >= 3:
+		_add_site("port_wtw", [_largest(Geometry2D.offset_polygon(wtw, 1.0, Geometry2D.JOIN_MITER))])
+		if not sites.is_empty() and sites[-1]["key"] == "port_wtw":
+			sites[-1]["hall"] = wtw
+			sites[-1]["box"] = (sites[-1]["box"] as Rect2).grow(12.0)
+	var zone: Array = []
+	var halls: Array = []
+	for h: Array in PORT_HALLS:
+		var q := _tallest_at(h[0])
+		if q.size() < 3 or q == wtw:
+			continue
+		zone.append(_largest(Geometry2D.offset_polygon(q, 0.8, Geometry2D.JOIN_MITER)))
+		halls.append([q, h[1], h[2], h[3]])
+	if not zone.is_empty():
+		_add_site("port_halls", zone)
+		if not sites.is_empty() and sites[-1]["key"] == "port_halls":
+			sites[-1]["halls"] = halls
+	# The basin: tiny zones at the corners of its extent keep the site's box over every boat.
+	var b := Rect2(PORT_BASIN_X.x, PORT_BASIN_Z.x, PORT_BASIN_X.y - PORT_BASIN_X.x, PORT_BASIN_Z.y - PORT_BASIN_Z.x)
+	var corners: Array = []
+	for c: Vector2 in [b.position, b.end, Vector2(b.position.x, b.end.y), Vector2(b.end.x, b.position.y)]:
+		corners.append(PackedVector2Array([c, c + Vector2(0.2, 0.0), c + Vector2(0.2, 0.2), c + Vector2(0.0, 0.2)]))
+	_add_site("port_basin", corners)
+
+
+## A low hall on a mapped outline: walls up to `h`, a pitched metal roof along its long side
+## with a small overhang, the gable ends in the wall's colour.
+func _port_hall(q: PackedVector2Array, h: float, wall: Color, roof: Color, rise := 1.6) -> float:
+	var none := Color(0, 0, 0, 0)
+	var f := _barge_frame(q)
+	if f.is_empty():
+		return -INF
+	_barge_set(f)
+	var hu: float = f[3]
+	var hv: float = f[4]
+	var g := INF
+	var top := -INF
+	for p in q:
+		var t: float = map.terrain_height(p.x, p.y)
+		g = minf(g, t)
+		top = maxf(top, t)
+	_g = g
+	var eave := top + h
+	_prism(q, g - 0.3, eave, wall, none, M_STONE)
+	_collide(q)
+	# The plinth band and a band of windows along the long sides.
+	_prism(_largest(Geometry2D.offset_polygon(q, 0.06, Geometry2D.JOIN_MITER)), g - 0.3, top + 0.45, wall.darkened(0.35), none, M_STONE)
+	_gable(hu + 0.35, -hu - 0.35, 0.0, hv + 0.45, eave, minf(rise, hv * 0.5), wall, roof)
+	return eave
+
+
+func _build_port_halls(site: Dictionary) -> void:
+	for h: Array in site["halls"]:
+		var eave := _port_hall(h[0], h[1], h[2], h[3])
+		# The kayak hangar's blue ridge stripe (the aerial's white roof with a blue line).
+		if h == site["halls"][0] and eave > -INF:
+			var f := _barge_frame(h[0])
+			var hu: float = f[3]
+			var hv: float = f[4]
+			var rise := minf(1.6, (hv + 0.45) * 0.5)
+			_mode = M_STONE
+			_prism(_rect(0.0, 0.0, hu + 0.35, 0.35), eave + rise - 0.05, eave + rise + 0.08, PORT_WTW_BLUE, PORT_WTW_BLUE, M_STONE, M_STONE)
+
+
+## WTW's boathouse: long, white and low under a shallow cobalt roof with a raised middle; a band of
+## windows; on Zaruskiego the white hexagon sign on two posts, the blue gate and two blue anchors.
+func _build_port_wtw(site: Dictionary) -> void:
+	var q: PackedVector2Array = site["hall"]
+	var eave := _port_hall(q, 3.6, PORT_WTW_WALL, PORT_WTW_ROOF, 0.9)
+	if eave == -INF:
+		return
+	var f := _barge_frame(q)
+	var hu: float = f[3]
+	var hv: float = f[4]
+	_mode = M_STONE
+	# The arch over the middle of the roof (the club's raised entrance bay).
+	_prism(_rect(0.0, 0.0, minf(4.0, hu * 0.25), hv + 0.5), eave, eave + 1.6, PORT_WTW_WALL, PORT_WTW_ROOF, M_STONE, M_STONE)
+	# Windows: a dark band on both long sides.
+	for sd: float in [-1.0, 1.0]:
+		var a := _w(-hu + 1.0, sd * (hv + 0.03))
+		var b := _w(hu - 1.0, sd * (hv + 0.03))
+		_mode = M_PAVILION
+		_quad(Vector3(a.x, eave - 2.2, a.y), Vector3(b.x, eave - 2.2, b.y), Vector3(b.x, eave - 0.9, b.y), Vector3(a.x, eave - 0.9, a.y),
+				Vector3(_b.x, 0.0, _b.y) * sd, Color("#5f7c8c"))
+	_mode = M_STONE
+	# The gate on Zaruskiego, in a frame of its own: u along the street, +v towards it.
+	_o = PORT_WTW_GATE
+	_a = PORT_WTW_ALONG
+	_b = Vector2(PORT_WTW_ALONG.y, -PORT_WTW_ALONG.x)
+	var g: float = map.terrain_height(_o.x, _o.y)
+	_g = g
+	for k in 14:
+		var u := -4.5 + k * 0.7
+		_lbox(u, 0.0, 0.06, 0.06, g, g + 1.9, PORT_WTW_BLUE, M_STONE)
+	_lbox(0.0, 0.0, 4.6, 0.05, g + 1.75, g + 1.9, PORT_WTW_BLUE, M_STONE)
+	_lbox(0.0, 0.0, 4.6, 0.05, g + 0.2, g + 0.32, PORT_WTW_BLUE, M_STONE)
+	# The hexagon sign on two posts beside the gate, facing the street.
+	var su := 6.8
+	for du: float in [-0.9, 0.9]:
+		_lbox(su + du, 0.0, 0.08, 0.08, g, g + 3.4, Color("#e8e8e4"), M_STONE)
+	var sp := _w(su, 0.12)
+	var n := Vector3(_b.x, 0.0, _b.y)
+	_disc(Vector3(sp.x, g + 3.6, sp.y), n, 1.6, 6, Color("#f6f6f2"))
+	_disc(Vector3(sp.x, g + 3.6, sp.y) + n * 0.08, n, 1.35, 6, PORT_WTW_BLUE)
+	signs.append(["WTW", Vector3(sp.x, g + 3.25, sp.y) + n * 0.14, n, 0.36, Color(0.95, 0.97, 1.0)])
+	# Two big blue anchors on slabs either side of the gate: a shank, a stock, two flukes.
+	for du: float in [-6.4, 9.6]:
+		var c := 1.2
+		_lbox(du, c, 0.9, 0.6, g, g + 0.2, Color("#9c9a94"), M_STONE)
+		_lbox(du, c, 0.12, 0.12, g + 0.2, g + 2.3, PORT_WTW_BLUE, M_STONE)
+		_lbox(du, c, 0.75, 0.1, g + 2.0, g + 2.15, PORT_WTW_BLUE, M_STONE)
+		for side: float in [-1.0, 1.0]:
+			var a0 := _w(du, c)
+			var a1 := _w(du + side * 0.75, c)
+			_beam(Vector3(a0.x, g + 0.3, a0.y), Vector3(a1.x, g + 0.9, a1.y), 0.14, PORT_WTW_BLUE)
+
+
+## MAJAMI WAWA at the spit's tip: the dark timber terrace on the mapped outline, its railing,
+## the two tents, festoons on posts, two fire pits on the grass, a bar under thatched umbrellas,
+## and the white floating pontoon on the river side (a BARGE_STYLE barge on a frame of its own).
+func _build_port_majami(site: Dictionary) -> void:
+	var q: PackedVector2Array = site["tip"]
+	var pf := _port_pontoon_frame(q)
+	if not pf.is_empty():
+		_build_barge({"key": "port_majami", "frame": pf})
+	var f := _barge_frame(q)
+	if f.is_empty():
+		return
+	_barge_set(f)
+	var hu: float = f[3]
+	var hv: float = f[4]
+	var top := -INF
+	for p in q:
+		top = maxf(top, map.terrain_height(p.x, p.y))
+	var deck := top + 0.6
+	_prism(q, _g - 0.3, deck, PORT_DECK.darkened(0.25), PORT_DECK, M_STONE, M_STONE)
+	_barge_rail(-hu + 0.2, hu - 0.2, -hv + 0.2, hv - 0.2, deck, 1.0, 0.14, Color("#5b4434"), 1.0, -1.5, 1.5)
+	# The red-orange stretch tent over the north half, the beige one over the south half: low
+	# pyramids on four slim poles.
+	for t: Array in [[-hu * 0.45, PORT_TENT_RED, 4.2], [hu * 0.45, PORT_TENT_BEIGE, 5.4]]:
+		var cu: float = t[0]
+		var tu := minf(4.5, hu * 0.42)
+		var tv := minf(3.8, hv * 0.7)
+		for c: Vector2 in [Vector2(cu - tu, -tv), Vector2(cu + tu, -tv), Vector2(cu + tu, tv), Vector2(cu - tu, tv)]:
+			_lbox(c.x, c.y, 0.06, 0.06, deck, deck + 2.6, Color("#d8d4cc"), M_STONE)
+		_mode = M_STONE
+		_frustum(_rect(cu, 0.0, tu + 0.3, tv + 0.3), deck + 2.5, _rect(cu, 0.0, 0.5, 0.5), deck + float(t[2]), t[1], t[1])
+		# Tables and wicker sofas under it.
+		for k in 3:
+			_lbox(cu - tu * 0.6 + k * tu * 0.6, 0.0, 0.45, 0.45, deck, deck + 0.72, Color("#3a3029"), M_STONE, Color("#6b5a48"))
+	# The bar with thatched umbrellas at the deck's west end.
+	_barge_bar(0.0, -hv + 1.4, minf(3.0, hu * 0.3), 0.4, deck, Color("#7a5a3e"))
+	for k in 3:
+		_barge_umbrella(-hu * 0.6 + k * hu * 0.6, hv - 1.8, deck, 1.3, PORT_STRAW)
+	# Festoons over the deck on six posts round its edge.
+	var posts: Array[Vector3] = []
+	for c: Vector2 in [Vector2(-hu + 0.5, -hv + 0.5), Vector2(0.0, -hv + 0.5), Vector2(hu - 0.5, -hv + 0.5),
+			Vector2(hu - 0.5, hv - 0.5), Vector2(0.0, hv - 0.5), Vector2(-hu + 0.5, hv - 0.5)]:
+		posts.append(_barge_post(c.x, c.y, deck, 3.4))
+	for k in 6:
+		_barge_festoon(posts[k], posts[(k + 1) % 6], 0.5, 7)
+	_barge_festoon(posts[1], posts[4], 0.7, 8)
+	# Two round steel fire pits on the grass beyond the deck's river end, glowing at night.
+	for k in 2:
+		var fp := _w(hu + 3.0, (k - 0.5) * 4.0)
+		var fg: float = map.terrain_height(fp.x, fp.y)
+		_g = fg
+		_prism(_circle(fp, 0.45, 8), fg, fg + 0.45, Color("#2e2b28"), Color("#2e2b28"), M_STONE, M_STONE)
+		var keep := _mode
+		_mode = M_LAMP
+		_prism(_circle(fp, 0.3, 6), fg + 0.45, fg + 0.6, Color(1.0, 0.5, 0.2), Color(1.0, 0.55, 0.25), M_LAMP, M_LAMP)
+		_mode = keep
+		for d: float in [-1.0, 1.0]:
+			var ch := fp + Vector2(d * 1.4, 0.4)
+			_g = map.terrain_height(ch.x, ch.y)
+			_prism(_circle(ch, 0.35, 6), _g, _g + 0.4, Color("#d9cdb4"), Color("#e6dcc4"), M_STONE, M_STONE)
+	_collide(q)
+	_g = top
+	# The name in neon on the deck's railing towards the camera.
+	var best := -INF
+	var at := Vector2.ZERO
+	var out := Vector2.ZERO
+	for face: Array in [[_a, _w(hu + 0.1, 0.0)], [-_a, _w(-hu - 0.1, 0.0)], [_b, _w(0.0, hv + 0.1)], [-_b, _w(0.0, -hv - 0.1)]]:
+		var d := (face[0] as Vector2).dot(BEHIND_FACE)
+		if d > best:
+			best = d
+			out = face[0]
+			at = face[1]
+	signs.append(["MAJAMI WAWA", Vector3(at.x, deck + 1.05, at.y), Vector3(out.x, 0.0, out.y), 0.42, Color(1.0, 0.45, 0.35)])
+
+
+## Where Majami's pontoon floats: off the tip on the river side, its long side along the bank, in
+## water at least 2 m deep in the water map's sense (shore_distance), clear of the race pontoon.
+func _port_pontoon_frame(q: PackedVector2Array) -> Array:
+	if not map.has_method("shore_distance"):
+		return []
+	var c := _centre(q)
+	var hu := 7.0
+	var hv := 2.8
+	for ang_deg: float in [-35.0, -55.0, -15.0, -75.0, 5.0]:
+		var d := Vector2(cos(deg_to_rad(ang_deg)), sin(deg_to_rad(ang_deg)))
+		var t := 8.0
+		while t < 70.0:
+			var p := c + d * t
+			if map.shore_distance(p.x, p.y) > hv + 1.5:
+				# The long side along the bank: across the way out.
+				var a := Vector2(-d.y, d.x)
+				var ok := true
+				for k: Vector2 in [Vector2(-hu, -hv), Vector2(hu, -hv), Vector2(hu, hv), Vector2(-hu, hv)]:
+					var w := p + a * k.x + d * k.y
+					if map.shore_distance(w.x, w.y) < 1.0 or w.distance_to(Vector2(1464.0, 703.0)) < 14.0:
+						ok = false
+				if ok:
+					return [p + d * 1.0, a, d, hu, hv]
+				break
+			t += 1.0
+	return []
+
+
+## The basin's boats: along both quays, stern-to between finger piers, every PORT_SLIP m; along
+## the west quay's north end three houseboats instead. Each quay is found from the water map:
+## for each slip's z, the first and last wet x across PORT_BASIN_X.
+func _build_port_basin(_site: Dictionary) -> void:
+	if not map.has_method("shore_distance"):
+		return
+	var n := 0
+	var z := PORT_BASIN_Z.x
+	var homes := 0
+	while z <= PORT_BASIN_Z.y:
+		var lo := INF
+		var hi := -INF
+		var x := PORT_BASIN_X.x
+		while x <= PORT_BASIN_X.y:
+			if map.shore_distance(x, z) > 0.4:
+				lo = minf(lo, x)
+				hi = maxf(hi, x)
+			x += 0.5
+		if hi - lo >= 14.0 and hi - lo <= 90.0:
+			for side: float in [-1.0, 1.0]:
+				var quay := lo if side < 0.0 else hi
+				var into := -side  # from the quay into the water
+				if side < 0.0 and z < PORT_BASIN_Z.x + 60.0 and homes < 3 and n % 3 == 0:
+					var hc := Vector2(quay + into * 3.2, z)
+					if map.shore_distance(hc.x, hc.y) > 1.6:
+						_port_houseboat(hc, homes)
+						homes += 1
+						n += 1
+						continue
+				# An empty berth now and then, and lengths that don't repeat in step with the colours.
+				if (n * 7 + int(z)) % 11 == 0:
+					n += 1
+					continue
+				var blen := 5.2 + 0.9 * float((n * 5) % 4) + (2.5 if n % 13 == 6 else 0.0)
+				var c := Vector2(quay + into * (0.8 + blen * 0.5), z)
+				if hi - lo < 2.0 * blen + 8.0 or map.shore_distance(c.x, c.y) < 0.9:
+					continue
+				_port_finger(Vector2(quay, z + PORT_SLIP * 0.5), Vector2(into, 0.0), blen * 0.8)
+				if n % 5 == 2:
+					_sailboat(c, Vector2(into, 0.0), blen + 1.0, n)
+				else:
+					_port_motorboat(c, Vector2(into, 0.0), blen, n)
+				n += 1
+		z += PORT_SLIP
+
+
+## A finger pier: a narrow timber walk on posts from the quay into the water.
+func _port_finger(at: Vector2, d: Vector2, length: float) -> void:
+	var g: float = map.terrain_height(at.x + d.x * 2.0, at.y)
+	_g = g
+	var a := at
+	var b := at + Vector2(d.x * length, 0.0)
+	var poly := PackedVector2Array([a + Vector2(0, -0.45), b + Vector2(0, -0.45), b + Vector2(0, 0.45), a + Vector2(0, 0.45)])
+	_prism(poly, g + 0.25, g + 0.45, PORT_TIMBER.darkened(0.3), PORT_TIMBER, M_STONE, M_STONE)
+
+
+## A small motorboat moored at `c`, bow towards `d`: a hull with a dark boot top, a pale deck, a
+## console with a windscreen, a cover over the stern on every other one.
+func _port_motorboat(c: Vector2, d: Vector2, length: float, i: int) -> void:
+	var g: float = map.terrain_height(c.x, c.y)
+	_g = g
+	var a := d.normalized()
+	var b := Vector2(-a.y, a.x)
+	var hl := length * 0.5
+	var hb := length * 0.19
+	var hull := PackedVector2Array([c + a * hl, c + a * hl * 0.4 + b * hb, c - a * hl + b * hb * 0.9,
+			c - a * hl - b * hb * 0.9, c + a * hl * 0.4 - b * hb])
+	var col: Color = MARINA_HULLS[(i * 3) % MARINA_HULLS.size()]
+	_prism(hull, g - 0.3, g + 0.2, Color("#2b2f36"), Color(0, 0, 0, 0), M_STONE)
+	_prism(hull, g + 0.2, g + 0.75, col, Color("#e4ded0"), M_STONE, M_STONE)
+	var cs := c + a * hl * 0.05
+	var con := PackedVector2Array([cs + a * 0.5 + b * hb * 0.5, cs - a * 0.6 + b * hb * 0.5, cs - a * 0.6 - b * hb * 0.5, cs + a * 0.5 - b * hb * 0.5])
+	_prism(con, g + 0.75, g + 1.15, Color("#e9e8e2"), Color("#d6d4cc"), M_STONE, M_STONE)
+	var w0 := cs + a * 0.5 + b * hb * 0.55
+	var w1 := cs + a * 0.5 - b * hb * 0.55
+	_quad(Vector3(w0.x, g + 1.15, w0.y), Vector3(w1.x, g + 1.15, w1.y), Vector3(w1.x, g + 1.55, w1.y), Vector3(w0.x, g + 1.55, w0.y),
+			Vector3(a.x, 0.3, a.y).normalized(), Color("#4b6470"))
+	if i % 2 == 1:
+		var cov := PackedVector2Array([c - a * hl * 0.25 + b * hb * 0.8, c - a * hl * 0.9 + b * hb * 0.75,
+				c - a * hl * 0.9 - b * hb * 0.75, c - a * hl * 0.25 - b * hb * 0.8])
+		_prism(cov, g + 0.75, g + 1.05, Color("#1f3a5f"), Color("#24426b"), M_STONE, M_STONE)
+
+
+## A houseboat along the west quay (F's photos: an anthracite box with a glazed front, a grey
+## converted barge with railings on its flat roof, one with a copper standing-seam gable).
+func _port_houseboat(c: Vector2, i: int) -> void:
+	var g: float = map.terrain_height(c.x, c.y)
+	_g = g
+	_o = c
+	_a = Vector2(0.0, 1.0)
+	_b = Vector2(1.0, 0.0)
+	var hu := 6.0 + 2.0 * float(i % 2)
+	var hv := 2.2
+	var col: Color = PORT_HOUSEBOATS[i % PORT_HOUSEBOATS.size()]
+	_prism(_rect(0.0, 0.0, hu, hv), g - 0.4, g + 0.6, Color("#3b3e43"), Color("#6c5a48"), M_STONE, M_STONE)
+	_prism(_rect(-0.6, 0.0, hu - 1.6, hv - 0.3), g + 0.6, g + 3.2, col, Color(0, 0, 0, 0), M_STONE)
+	_mode = M_PAVILION
+	var f0 := _w(hu - 2.2, -hv + 0.3)
+	var f1 := _w(hu - 2.2, hv - 0.3)
+	_quad(Vector3(f0.x, g + 0.8, f0.y), Vector3(f1.x, g + 0.8, f1.y), Vector3(f1.x, g + 3.0, f1.y), Vector3(f0.x, g + 3.0, f0.y),
+			Vector3(_a.x, 0.0, _a.y), Color("#6e8b96"))
+	_mode = M_STONE
+	if i % 3 == 2:
+		_gable(hu - 1.8, -hu + 0.6, 0.0, hv, g + 3.2, 1.4, col, PORT_COPPER)
+	else:
+		_prism(_rect(-0.6, 0.0, hu - 1.5, hv - 0.2), g + 3.2, g + 3.4, col.lightened(0.1), col.darkened(0.15), M_STONE, M_STONE)
+		if i % 3 == 1:
+			_barge_rail(-hu + 1.0, hu - 2.2, -hv + 0.3, hv - 0.3, g + 3.4, 0.9, 0.05, Color("#c9ccd0"))
+	_collide(_rect(0.0, 0.0, hu, hv))
 
 
 ## True where the water map says there is open water (a boat's centre wants a metre of it).

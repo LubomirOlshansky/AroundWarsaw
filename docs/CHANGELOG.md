@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-07
+- Port Czerniakowski came alive. The tip of the spit has Majami Wawa: a timber terrace under the willows, red and beige tents, string lights, fire pits and a white pontoon on the Vistula. The rowing club WTW has its white boathouse under a blue roof, its gate with a hexagon sign and two big anchors. Boats are moored along both quays, and houseboats sit by the west bank.
 - The + button zooms one step closer than before, and Settings → Picture has a new camera angle choice: 30°, 40° or 50° from above.
 - The bottom of the screen is clear: the data credit line is gone from the game view. Where the map and photo data come from now has its own page, Settings → Dźwięk → Licencje.
 - Rondo Daszyńskiego is full of people on working days: crowds at all seven metro entrances, many more office workers, and they wait at the kerb for the green and cross the zebras together in waves.
@@ -21,6 +22,7 @@ someone writes its lines.
 - Miodowa's palaces look like themselves: cream and pink plaster under tile-red roofs (Paca's are green copper), and Pałac Branickich's long front has pink pilaster strips, a cornice, an attic crowded with statues, three scrolled dormers and its balconied gate.
 
 
+- Three boats now wait at the race pontoon by Port Czerniakowski (a jet ski, a silver electric runabout and a black offshore racer, each handling its own way): stop there, pick one and take it out on the Vistula whenever you like. A boat sign marks them on the map.
 - Junctions across the city look cleaner: lane lines now end at the zebra or the stop line instead of running on into the middle of the junction, turn arrows sit before the stop line instead of on or past the crossing, and a few crossings that stopped short now reach the kerb.
 - The map shows what matters: the main story's star glows gold, the big quests (the boat race, the secret rave) have their own "!" badges at their start spots, and while you're on a quest everything else hides. Drive up to a start and your friend comes out to talk in person, and a new STORIES tab on the map starts any big quest right away. Landmarks on the map are now quiet little drawings instead of big pins.
 - Podwózka taxi rides now come with stories: 18 passengers, from a Mordor office worker heading for Warsaw Spire to a film star off to the Palace of Culture, a saxophonist late for jazz under the Powiśle UFO and a beekeeper invited to the Presidential Palace, chat on the way to real places and ask you a question; your answer changes the tip and a good talk earns half a star.
