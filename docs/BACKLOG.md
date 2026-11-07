@@ -22,6 +22,7 @@ to 185 MB. Left:
 - **Photo fronts, Aleje Jerozolimskie (2026-11-07)**: 21 more houses along the avenue, Hotel Polonia's block and Nordic Park among them. Left: rows without street photos, and the murals at numbers 8 and 12, which are blank walls in the game.
 - **Photo fronts, Świętokrzyska to Ujazdowskie (2026-11-07)**: 25 more houses on Świętokrzyska, Warecka, Chmielna, Nowy Świat and Aleje Ujazdowskie. Left: rows whose photo shows only a gateway, a courtyard or a detail (Mariańska 1, Chmielna 102, 126, 128, Żelazna 22) need a street front photo.
 - **Photo fronts, Krakowskie Przedmieście, Senatorska, Miodowa (2026-11-07)**: 41 more houses, including the coloured row from number 37 to 67. Left: these palaces need their own builds, not fronts: Pałac Paca, Młodziejowskich, Branickich, Borchów, Szaniawskich, Jabłonowskich, Małachowskich.
+- **Photo fronts, Długa, Aleja Jana Pawła II, Krucza (2026-11-07)**: 41 more houses, Freta and the Muranów blocks among them. Left: Aleja Jana Pawła II 32 has no usable front edge in its outline and stays as it is.
 ## Secret rave: LEKTI, Ziomek, Smoła (F, 2026-11-06; docs/design/secret-rave.md)
 
 Built: night and day raves, LEKTI's voiced break-in on MORDOR FM, Ziomek's call and ride, the
