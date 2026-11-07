@@ -4500,8 +4500,13 @@ func _find_skins() -> void:
 ## courtyards (the hull's pieces outside it, over MUZEUM_COURT m²) join the zone, since the LoD2
 ## model's centre falls in one.
 const MUZEUM := Vector2(24.0, 251.0)  # inside its wings (its outline's centre is a courtyard)
-const MUZEUM_STONE := Color("#c9bfa9")
+const MUZEUM_STONE := Color("#cdbfa1")  # photos 1-4: warm sandstone, a little yellower than before
 const MUZEUM_ROOF := Color("#8f8b84")
+const MUZEUM_COPPER := Color("#8fae9f")   # the entrance block's pale green copper roof (photo 4)
+const MUZEUM_DOORS := Color("#25262a")
+const MUZEUM_IRON := Color("#1d1e21")     # the forecourt fence and gate (photos 1, 3, 4)
+const MUZEUM_POLE := Color("#e8e8e4")
+const MUZEUM_BANNER := Color("#3a4496")   # the museum's blue banners (own design; no sponsor logos)
 const MUZEUM_COURT := 1000.0
 func _find_muzeum() -> void:
 	for bld in data["buildings"]:
@@ -8396,7 +8401,8 @@ func _build_muzeum(site: Dictionary) -> void:
 	_b = Vector2(-_a.y, _a.x)
 	var block := _rect(0.0, 7.0, 12.0, 9.5)
 	_bays(ring, 2.0, h - 2.2, 4.4, 1.3, MUZEUM_GLASS, _rect(0.0, 7.0, 12.5, 10.0))
-	_prism(block, g - 0.6, g + MUZEUM_TOP, MUZEUM_STONE, MUZEUM_ROOF, M_STONE, M_STONE)
+	_muzeum_piers(ring, g + 1.3, g + h, 4.4, light, _rect(0.0, 7.0, 12.5, 10.0))
+	_prism(block, g - 0.6, g + MUZEUM_TOP, MUZEUM_STONE, MUZEUM_COPPER, M_STONE, M_STONE)
 	_parapet(block, g + MUZEUM_TOP, 1.0, light)
 	var front := -_b
 	_mode = M_GLASS
@@ -8407,11 +8413,96 @@ func _build_muzeum(site: Dictionary) -> void:
 		_lbox(u, -3.5, 0.55, 0.55, g, g + 12.5, light, M_STONE, light)
 	_lbox(0.0, -3.4, 7.0, 0.95, g + 12.5, g + 13.6, light, M_STONE, light)
 	_lbox(0.0, -6.0, 8.5, 3.5, g - 0.6, g + 0.4, MUZEUM_PLINTH, M_STONE, MUZEUM_PLINTH)
+	_lbox(0.0, -7.1, 9.5, 1.3, g - 0.6, g + 0.15, MUZEUM_PLINTH, M_STONE, MUZEUM_PLINTH)
+	_lbox(0.0, -8.3, 10.5, 1.2, g - 0.6, g - 0.05, MUZEUM_PLINTH, M_STONE, MUZEUM_PLINTH)
+	_muzeum_doors(g)
+	_muzeum_forecourt(g)
 	_collide(ring)
 	_collide(_rect(0.0, -2.5, 7.0, 1.6))
 	# The army museum's hardware on the lawn of the east courtyard, beside its pool, noses north.
 	_tank(MUZEUM_TANK, MUZEUM_YARD_DIR)
 	_field_gun(MUZEUM_GUN, MUZEUM_YARD_DIR.rotated(-0.5))
+
+
+## The wings' stone piers (photos 1-4 of refs/muzeum_narodowe: tall square pilasters between the
+## window strips, every second storey-strip, under a deep cornice): one on every bay boundary of
+## each straight run, 1 m wide and 0.5 m proud, from `y0` to `y1`; none where `skip` (the block in
+## front of that wall) covers the foot. Same rhythm as `_bays`, so each strip sits between two.
+func _muzeum_piers(ring: PackedVector2Array, y0: float, y1: float, step: float, col: Color,
+		skip: PackedVector2Array) -> void:
+	var keep := _mode
+	_mode = M_STONE
+	for i in ring.size():
+		var a := ring[i]
+		var b := ring[(i + 1) % ring.size()]
+		var length := a.distance_to(b)
+		var n := floori((length - 1.5) / step)
+		if n < 1:
+			continue
+		var e := (b - a) / length
+		var out := _out(ring, a, b)
+		var t0 := (length - n * step) * 0.5
+		for k in n + 1:
+			var c := a + e * (t0 + k * step)
+			if skip.size() >= 3 and Geometry2D.is_point_in_polygon(c + out * 0.3, skip):
+				continue
+			var q := PackedVector2Array([c - e * 0.5 - out * 0.1, c + e * 0.5 - out * 0.1,
+					c + e * 0.5 + out * 0.5, c - e * 0.5 + out * 0.5])
+			_prism(q, y0, y1 - 0.5, col, col.lightened(0.05), M_STONE, M_STONE)
+	_mode = keep
+
+
+## The entrance's three dark doors in the recessed wall behind the piers (photo 3: three tall black
+## doors, the middle one under the banner strip), local frame already set to the block's.
+func _muzeum_doors(g: float) -> void:
+	for u in [-3.25, 0.0, 3.25]:
+		_wall(_w(u - 1.1, -2.58), _w(u + 1.1, -2.58), g + 0.4, g + 5.2, -_b, MUZEUM_DOORS)
+
+
+## The forecourt (photos 1, 3, 4): the black spear-topped iron fence across its mouth with the gate
+## standing open in the middle, six flagpoles with blue banners in front of the steps, and the
+## fountain pool in the court. In the block's frame the mouth is v = -62.7, between the wings
+## (u -22 .. 24.7); the court is a pedestrian forecourt, the fence closes it to cars but for the gate.
+func _muzeum_forecourt(g: float) -> void:
+	var vf := -62.7
+	var u0 := -22.0
+	var u1 := 24.7
+	var gate := 3.6
+	var u := u0
+	var fence := MUZEUM_IRON
+	var keep := _mode
+	while u <= u1 + 0.01:
+		if absf(u - 1.35) > gate:
+			var gy: float = map.terrain_height(_w(u, vf).x, _w(u, vf).y)
+			_lbox(u, vf, 0.07, 0.07, gy - 0.1, gy + 2.2, fence, M_STONE, fence)
+			if int(round((u - u0) / 1.2)) % 5 == 0:
+				_lbox(u, vf, 0.16, 0.16, gy - 0.1, gy + 2.5, fence, M_STONE, fence)
+		u += 1.2
+	for seg in [Vector2(u0, 1.35 - gate), Vector2(1.35 + gate, u1)]:
+		var p0 := _w(seg.x, vf)
+		var p1 := _w(seg.y, vf)
+		var y0: float = map.terrain_height(p0.x, p0.y)
+		var y1: float = map.terrain_height(p1.x, p1.y)
+		_beam(Vector3(p0.x, y0 + 2.0, p0.y), Vector3(p1.x, y1 + 2.0, p1.y), 0.08, fence)
+		_beam(Vector3(p0.x, y0 + 0.4, p0.y), Vector3(p1.x, y1 + 0.4, p1.y), 0.08, fence)
+		_collide(_rect((seg.x + seg.y) * 0.5, vf, (seg.y - seg.x) * 0.5, 0.15))
+	# the gate's two open leaves, swung in
+	for side in [-1.0, 1.0]:
+		var hinge: float = 1.35 + side * gate
+		_lbox(hinge, vf, 0.2, 0.2, g - 0.1, g + 2.6, fence, M_STONE, fence)
+		_wall(_w(hinge, vf + 0.5), _w(hinge, vf + 3.0), g, g + 2.2, _w(1.0, 0.0) - _w(0.0, 0.0), fence)
+	# six flagpoles in a row before the steps, a banner hung from each
+	var k := 0
+	for fu in [-9.0, -5.4, -1.8, 1.8, 5.4, 9.0]:
+		var base := _w(fu, -13.0)
+		var by: float = map.terrain_height(base.x, base.y)
+		_beam(Vector3(base.x, by, base.y), Vector3(base.x, by + 11.0, base.y), 0.14, MUZEUM_POLE)
+		_mode = M_STONE
+		var col := MUZEUM_BANNER if k % 2 == 0 else MUZEUM_BANNER.lightened(0.12)
+		_wall(_w(fu + 0.07, -13.0), _w(fu + 1.0, -13.0), by + 6.5, by + 10.6, -_b, col)
+		_wall(_w(fu + 1.0, -13.0), _w(fu + 0.07, -13.0), by + 6.5, by + 10.6, _b, col)
+		k += 1
+	_mode = keep
 
 
 ## A tank on show (a hull on its tracks, an eight-sided turret, the gun), on a pad; `dir` its nose.
@@ -12084,7 +12175,7 @@ func _vase(p: Vector2, g: float) -> void:
 ## conical roofs on its curve. Spec docs/landmarks/specs/barbakan.md. Heights are estimates (no LoD2
 ## in the cloud).
 const BARB_WALL := Color("#ab5a42")
-const BARB_ROOF := Color("#6b4a3c")
+const BARB_ROOF := Color("#a9502f")   # photos 1-2 and the ortho: terracotta tile
 const BARB_STONE := Color("#c4b69a")
 const BARB_HEIGHT := 9.5
 const BARB_TOWER_H := 13.0
@@ -12117,10 +12208,30 @@ func _build_barbakan(site: Dictionary) -> void:
 	# the four turrets: an octagon above the wall, a corbel ring, a steep cone and a finial
 	for c: Vector2 in BARB_TOWERS:
 		var th := g + BARB_TOWER_H
-		_prism(_circle(c, BARB_TOWER_R, 8), g - 1.5, th, BARB_WALL, BARB_STONE, M_GOTHIC, M_STONE)
-		_prism(_circle(c, BARB_TOWER_R + 0.35, 8), th, th + 0.6, BARB_STONE, BARB_STONE, M_STONE, M_STONE)
-		_frustum(_circle(c, BARB_TOWER_R + 0.15, 8), th + 0.6, _circle(c, 0.25, 8), th + 6.8, BARB_ROOF, BARB_ROOF)
-		_lbox_at(c, 0.08, th + 6.8, th + 8.2, BARB_STONE)
+		_prism(_circle(c, BARB_TOWER_R, 12), g - 1.5, th, BARB_WALL, BARB_STONE, M_GOTHIC, M_STONE)
+		_prism(_circle(c, BARB_TOWER_R + 0.3, 12), th, th + 0.5, BARB_WALL.darkened(0.08), BARB_WALL.darkened(0.08), M_STONE, M_STONE)
+		# photo 1: the cone swells out over the tower (a deep eave), then rises to a short spike
+		_frustum(_circle(c, BARB_TOWER_R + 0.75, 12), th + 0.5, _circle(c, BARB_TOWER_R + 0.2, 12), th + 1.1, BARB_ROOF, BARB_ROOF)
+		_frustum(_circle(c, BARB_TOWER_R + 0.2, 12), th + 1.1, _circle(c, 0.2, 12), th + 5.6, BARB_ROOF.lightened(0.04), BARB_ROOF)
+		_lbox_at(c, 0.06, th + 5.6, th + 7.0, BARB_STONE.darkened(0.3))
+	# the merlons' stone caps along the curtain's crest (photo 2: grey-capped brick merlons every
+	# 1.6 m round the bastion), set 0.45 m in from the outer face
+	var cap := 0.0
+	for i in ring.size():
+		var a := ring[i]
+		var b := ring[(i + 1) % ring.size()]
+		var len := a.distance_to(b)
+		if len < 1.6:
+			continue
+		var e := (b - a) / len
+		var inn := -_out(ring, a, b) * 0.45
+		var t := 0.8
+		while t < len - 0.4:
+			var cc := a + e * t + inn
+			var q := PackedVector2Array([cc - e * 0.36, cc + e * 0.36, cc + e * 0.36 + inn.normalized() * 0.5, cc - e * 0.36 + inn.normalized() * 0.5])
+			_prism(q, top + 1.5, top + 1.95, BARB_STONE.darkened(0.25), BARB_STONE.darkened(0.3), M_STONE, M_STONE)
+			t += 1.6
+			cap += 1.0
 	_collide(ring)
 
 
@@ -12849,9 +12960,13 @@ const KRZYZ_MID := 15.65
 const KRZYZ_WALL := Color("#e6dcc2")
 const KRZYZ_TRIM := Color("#f1ebdc")
 const KRZYZ_BASE := Color("#bdb39c")
-const KRZYZ_COPPER := Color("#6a9a8a")
+const KRZYZ_COPPER := Color("#5a8a78")
 const KRZYZ_GOLD := Color("#c9a24a")
 const KRZYZ_DOOR := Color("#3a3d40")
+const KRZYZ_DOOR_WOOD := Color("#6e4228")   # photo 2: the oak doors
+const KRZYZ_PORTAL := Color("#b9ad94")     # the portal columns (photo 1: grey stone)
+const KRZYZ_BLACK := Color("#1f2226")      # the Sursum corda plinth
+const KRZYZ_BRONZE := Color("#3d3f3b")
 
 
 func _build_krzyz(_site: Dictionary) -> void:
@@ -12864,37 +12979,73 @@ func _build_krzyz(_site: Dictionary) -> void:
 	_mode = M_STONE
 	for cu: float in [4.4, 2.0 * m - 4.4]:
 		_krzyz_tower(cu)
-	# the central block: a stone ground floor with the doors, the upper storey in windows
-	_lbox(m, 0.125, 6.75, 0.225, g - 0.6, g + 12.9, KRZYZ_WALL, M_STONE, KRZYZ_WALL)
-	_lbox(m, 0.3, 6.75, 0.3, g + 13.0, g + 21.0, KRZYZ_WALL, M_MONUMENT, KRZYZ_WALL)
+	# From the photos (refs/sw_krzyz 1-2): NO giant portico. The front between the towers is a flat
+	# two-storey baroque wall with paired pilasters; a small portal under a pediment on two
+	# columns in the middle, pedimented windows in the lower storey, a very tall round-headed
+	# window and capped windows in the upper one, a cornice, and a curved, stepped attic with the
+	# gilt cross. In front a stone balustrade the whole width with the steps in the middle, and the
+	# black "Sursum corda" plinth with the bronze Christ carrying the cross beside the portal.
+	_lbox(m, 0.125, 6.75, 0.225, g - 0.6, g + 10.0, KRZYZ_WALL, M_STONE, KRZYZ_WALL)
+	_lbox(m, 0.3, 6.95, 0.35, g + 10.0, g + 11.0, KRZYZ_TRIM, M_STONE, KRZYZ_TRIM)
+	_lbox(m, 0.3, 6.75, 0.3, g + 11.0, g + 19.0, KRZYZ_WALL, M_MONUMENT, KRZYZ_WALL)
 	_lbox(m, 0.3, 7.0, 0.5, g - 0.6, g + 1.6, KRZYZ_BASE, M_STONE, KRZYZ_BASE.lightened(0.05))
+	_lbox(m, 0.5, 7.2, 0.7, g + 19.0, g + 20.0, KRZYZ_TRIM, M_STONE, KRZYZ_TRIM)
+	# paired pilasters
+	for pu: float in [-6.4, -5.5, -2.9, 2.9, 5.5, 6.4]:
+		_lbox(m + pu, 0.5, 0.32, 0.3, g + 1.6, g + 19.0, KRZYZ_TRIM, M_STONE, KRZYZ_TRIM)
+	# windows: lower pedimented pair, upper capped pair, the great round-headed one
 	_mode = M_GLASS
-	for u: float in [-3.8, 0.0, 3.8]:
-		_wall(_w(m + u - 1.1, 0.38), _w(m + u + 1.1, 0.38), g + 1.8, g + 6.4, _b, KRZYZ_DOOR)
+	for wu: float in [-4.2, 4.2]:
+		_wall(_w(m + wu - 0.8, 0.42), _w(m + wu + 0.8, 0.42), g + 3.0, g + 7.0, _b, KRZYZ_DOOR)
+		_wall(_w(m + wu - 0.8, 0.42), _w(m + wu + 0.8, 0.42), g + 12.4, g + 16.6, _b, KRZYZ_DOOR)
+	_arch_panel(_w(m, 0.42), _a, _b, 1.5, g + 11.8, g + 15.6, KRZYZ_DOOR, 0.03, M_GLASS)
+	for u: float in [-5.8, 5.8]:
+		_wall(_w(m + u - 0.6, 0.42), _w(m + u + 0.6, 0.42), g + 1.8, g + 5.0, _b, KRZYZ_DOOR_WOOD)
 	_mode = M_STONE
-	# the stylobate and three steps, the four columns, the entablature with a statue over each
-	_lbox(m, 1.5, 6.9, 1.4, g - 0.6, g + 1.2, KRZYZ_BASE, M_STONE, KRZYZ_BASE.lightened(0.05))
+	for wu: float in [-4.2, 4.2]:
+		_lbox(m + wu, 0.5, 1.1, 0.2, g + 7.0, g + 7.4, KRZYZ_TRIM, M_STONE, KRZYZ_TRIM)
+		_lbox(m + wu, 0.5, 0.7, 0.2, g + 7.4, g + 7.9, KRZYZ_TRIM, M_STONE, KRZYZ_TRIM)
+		_lbox(m + wu, 0.5, 1.1, 0.2, g + 16.6, g + 17.1, KRZYZ_TRIM, M_STONE, KRZYZ_TRIM)
+	# the portal: the great door, two columns, entablature and a small pediment
+	_mode = M_GLASS
+	_wall(_w(m - 1.3, 0.4), _w(m + 1.3, 0.4), g + 1.6, g + 6.0, _b, KRZYZ_DOOR_WOOD)
+	_mode = M_STONE
+	for pu: float in [-1.9, 1.9]:
+		_column(m + pu, 1.9, 0.38, g + 1.2, g + 6.2, KRZYZ_PORTAL)
+	_lbox(m, 1.5, 2.7, 1.5, g + 6.2, g + 7.0, KRZYZ_WALL, M_STONE, KRZYZ_TRIM)
+	var kp := _a
+	var kq := _b
+	_a = kq
+	_b = kp
+	_gable(2.9, 0.6, m, 2.9, g + 7.0, 1.5, KRZYZ_WALL, KRZYZ_PORTAL)
+	_a = kp
+	_b = kq
+	_lbox(m, 1.6, 2.7, 1.6, g - 0.6, g + 1.2, KRZYZ_BASE, M_STONE, KRZYZ_BASE.lightened(0.05))
 	for k in 2:
-		_lbox(m, 3.0 + 0.6 * k, 6.3 - 0.4 * k, 0.5 + 0.6 * k, g - 0.6, g + 0.8 - 0.4 * k, KRZYZ_BASE, M_STONE,
+		_lbox(m, 3.7 + 0.5 * k, 3.0 - 0.3 * k, 0.4 + 0.5 * k, g - 0.6, g + 0.8 - 0.4 * k, KRZYZ_BASE, M_STONE,
 				KRZYZ_BASE.lightened(0.04))
-	for u: float in [-5.6, -2.0, 2.0, 5.6]:
-		_column(m + u, 1.7, 0.58, g + 1.2, g + 11.2, KRZYZ_TRIM)
-		_lbox(m + u, 1.7, 0.5, 0.5, g + 13.0, g + 15.4, KRZYZ_TRIM, M_STONE, KRZYZ_TRIM)
-	_lbox(m, 1.4, 7.0, 1.9, g + 11.2, g + 12.4, KRZYZ_WALL, M_STONE, KRZYZ_TRIM)
-	_lbox(m, 1.4, 7.4, 2.1, g + 12.4, g + 13.0, KRZYZ_TRIM, M_STONE, KRZYZ_TRIM)
-	# the top: cornice, the big pediment with an oculus, a cross on the apex
-	_lbox(m, 0.5, 7.2, 1.0, g + 21.0, g + 21.9, KRZYZ_TRIM, M_STONE, KRZYZ_TRIM)
+	# the balustrade across the front, open at the steps
+	for side: float in [-1.0, 1.0]:
+		_lbox(m + side * (m + 2.1) * 0.5, 4.8, (m - 2.7) * 0.5, 0.22, g, g + 1.0, KRZYZ_BASE.lightened(0.05), M_STONE, KRZYZ_TRIM)
+	# the curved, stepped attic and the gilt cross
 	var ka := _a
 	var kb := _b
-	_a = kb
-	_b = ka
-	_gable(1.5, -0.3, m, 7.0, g + 21.9, 3.2, KRZYZ_WALL, KRZYZ_COPPER)
+	_lbox(m, 0.4, 4.2, 0.6, g + 20.0, g + 21.0, KRZYZ_WALL, M_STONE, KRZYZ_TRIM)
+	_lbox(m, 0.4, 3.0, 0.6, g + 21.0, g + 22.0, KRZYZ_WALL, M_STONE, KRZYZ_TRIM)
+	_lbox(m, 0.4, 1.6, 0.6, g + 22.0, g + 22.9, KRZYZ_WALL, M_STONE, KRZYZ_TRIM)
+	for su: float in [-1.0, 1.0]:
+		_lbox(m + su * 5.3, 0.4, 0.6, 0.5, g + 20.0, g + 21.6, KRZYZ_TRIM, M_STONE, KRZYZ_TRIM)
+	_lbox(m, 0.4, 0.15, 0.15, g + 22.9, g + 25.8, KRZYZ_GOLD, M_STONE, KRZYZ_GOLD)
+	_lbox(m, 0.4, 0.7, 0.15, g + 24.2, g + 24.6, KRZYZ_GOLD, M_STONE, KRZYZ_GOLD)
 	_a = ka
 	_b = kb
-	var oc := _w(m, 1.55)
-	_disc(Vector3(oc.x, g + 23.9, oc.y), Vector3(_b.x, 0.0, _b.y), 0.8, 8, KRZYZ_DOOR)
-	_lbox(m, 0.5, 0.15, 0.15, g + 25.1, g + 27.6, KRZYZ_GOLD, M_STONE, KRZYZ_GOLD)
-	_lbox(m, 0.5, 0.7, 0.15, g + 26.4, g + 26.8, KRZYZ_GOLD, M_STONE, KRZYZ_GOLD)
+	# "Sursum corda": the black plinth and the bronze Christ with the cross (photo 1)
+	_lbox(m - 5.2, 5.6, 0.9, 0.9, g - 0.3, g + 2.4, KRZYZ_BLACK, M_STONE, KRZYZ_BLACK.lightened(0.04))
+	_lbox(m - 5.2, 5.6, 0.4, 0.3, g + 2.4, g + 5.0, KRZYZ_BRONZE, M_STONE, KRZYZ_BRONZE.lightened(0.05))
+	var x0 := _w(m - 5.7, 5.5)
+	var x1 := _w(m - 4.6, 5.9)
+	_beam(Vector3(x0.x, g + 2.6, x0.y), Vector3(x1.x, g + 5.9, x1.y), 0.28, KRZYZ_BRONZE)
+	_collide(_rect(m - 5.2, 5.6, 0.9, 0.9))
 	# the car meets the stylobate and the columns
 	_collide(_rect(m, 1.5, 6.9, 1.4))
 
@@ -12909,6 +13060,9 @@ func _krzyz_tower(cu: float) -> void:
 	_lbox(cu, cv, 4.3, 4.5, g + 1.6, g + 13.0, KRZYZ_WALL, M_STONE, KRZYZ_WALL)
 	_lbox(cu, cv, 4.55, 4.75, g + 13.0, g + 13.8, KRZYZ_TRIM, M_STONE, KRZYZ_TRIM)
 	_lbox(cu, cv, 4.3, 4.5, g + 13.8, g + 22.0, KRZYZ_WALL, M_STONE, KRZYZ_WALL)
+	for qu: float in [-1.0, 1.0]:  # corner pilasters up both stages (photo 2)
+		for qv: float in [-1.0, 1.0]:
+			_lbox(cu + qu * 4.0, cv + qv * 4.2, 0.55, 0.55, g + 1.6, g + 22.0, KRZYZ_TRIM, M_STONE, KRZYZ_TRIM)
 	_mode = M_GLASS
 	_wall(_w(cu - 0.8, 0.33), _w(cu + 0.8, 0.33), g + 16.4, g + 20.4, _b, KRZYZ_DOOR)
 	_wall(_w(cu - 0.8, -8.73), _w(cu + 0.8, -8.73), g + 16.4, g + 20.4, -_b, KRZYZ_DOOR)
@@ -14737,6 +14891,11 @@ const ANNA_BASE := Color("#b9ae96")
 const ANNA_ROOF := Color("#6f5a4e")
 const ANNA_GOLD := Color("#c9a24a")
 const ANNA_DOOR := Color("#3a3d40")
+const ANNA_CAP := Color("#e3d09a")        # the Corinthian capitals (photo 1: gilded cream)
+const ANNA_NICHE := Color("#dccfae")      # the niches and the arched relief
+const ANNA_STATUE := Color("#f3f0e8")     # the white statues
+const ANNA_DOOR_WOOD := Color("#7c4a2a")  # the great door (photo 1: reddish oak)
+const ANNA_COPPER := Color("#6e9c8b")     # the tower's copper (photo 2)
 
 
 func _build_anna(_site: Dictionary) -> void:
@@ -14747,44 +14906,68 @@ func _build_anna(_site: Dictionary) -> void:
 	_g = map.terrain_height(_w(m, 2.0).x, _w(m, 2.0).y)
 	var g := _g
 	_mode = M_STONE
-	# the plinth band and the flanking wings: a stone ground floor, a window storey, a cornice
+	# From the photos (refs/st_anne 1-2): one cream front plane 25.5 m wide on a plinth, framed by
+	# corner pilasters at u = m +- 11.8, a giant Corinthian order of four columns (m +- 3.9 and
+	# +- 7.9, 1.6 m thick, shafts 9 m) under a heavy entablature and a wide pediment with a round
+	# emblem; between the columns pedimented niches with white statues (m +- 5.9 and +- 9.7), small
+	# side doors at m +- 5.9, in the middle bay a plain wall with a round-arched relief over the
+	# great door under its own little two-column porch. Behind the pediment a stepped attic.
 	_lbox(m, 0.3, m + 0.2, 0.4, g - 0.6, g + 1.3, ANNA_BASE, M_STONE, ANNA_BASE.lightened(0.05))
-	for cu: float in [4.0, 2.0 * m - 4.0]:
-		_lbox(cu, 0.0, 4.0, 0.3, g + 1.3, g + 6.2, ANNA_WALL, M_STONE, ANNA_WALL)
-		_lbox(cu, 0.0, 4.0, 0.3, g + 6.2, g + 12.6, ANNA_WALL, M_MONUMENT, ANNA_WALL)
-		_lbox(cu, 0.2, 4.2, 0.55, g + 12.6, g + 13.4, ANNA_TRIM, M_STONE, ANNA_TRIM)
-		for su: float in [-1.0, 1.0]:  # pilasters at the wing's ends
-			_lbox(cu + su * 3.7, 0.35, 0.3, 0.2, g + 1.3, g + 12.6, ANNA_TRIM, M_STONE, ANNA_TRIM)
-	# the central block, behind the portico: wall, a dark door and two side niches
-	_lbox(m, -0.1, 7.6, 0.4, g + 1.3, g + 13.4, ANNA_WALL, M_STONE, ANNA_WALL)
+	_lbox(m, 0.0, 12.9, 0.4, g + 1.3, g + 6.2, ANNA_WALL, M_STONE, ANNA_WALL)
+	_lbox(m, 0.0, 12.9, 0.4, g + 6.2, g + 13.4, ANNA_WALL, M_MONUMENT, ANNA_WALL)
+	_lbox(m, 0.2, 13.1, 0.55, g + 13.4, g + 14.4, ANNA_TRIM, M_STONE, ANNA_TRIM)
+	for su: float in [-1.0, 1.0]:  # the corner pilasters
+		_lbox(m + su * 11.8, 0.55, 0.9, 0.35, g + 1.3, g + 12.2, ANNA_TRIM, M_STONE, ANNA_TRIM)
+		_lbox(m + su * 11.8, 0.55, 1.15, 0.45, g + 12.2, g + 13.4, ANNA_CAP, M_STONE, ANNA_CAP)
+	# the niches: a recess, a white statue, a small pediment over
+	for nu: float in [-9.7, -5.9, 5.9, 9.7]:
+		_lbox(m + nu, 0.43, 0.8, 0.05, g + 4.0, g + 8.6, ANNA_NICHE, M_STONE, ANNA_NICHE)
+		_lbox(m + nu, 0.6, 0.38, 0.22, g + 4.2, g + 6.5, ANNA_STATUE, M_STONE, ANNA_STATUE)
+		_lbox(m + nu, 0.6, 0.2, 0.2, g + 6.5, g + 7.5, ANNA_STATUE, M_STONE, ANNA_STATUE)
+		_lbox(m + nu, 0.5, 1.2, 0.2, g + 8.6, g + 9.0, ANNA_TRIM, M_STONE, ANNA_TRIM)
+		_lbox(m + nu, 0.5, 0.8, 0.2, g + 9.0, g + 9.45, ANNA_TRIM, M_STONE, ANNA_TRIM)
 	_mode = M_GLASS
-	_wall(_w(m - 1.3, 0.32), _w(m + 1.3, 0.32), g + 1.3, g + 6.3, _b, ANNA_DOOR)
-	for u: float in [-4.6, 4.6]:
-		_wall(_w(m + u - 0.8, 0.32), _w(m + u + 0.8, 0.32), g + 3.0, g + 7.6, _b, ANNA_DOOR)
+	for du: float in [-5.9, 5.9]:
+		_wall(_w(m + du - 0.7, 0.42), _w(m + du + 0.7, 0.42), g + 1.3, g + 4.0, _b, ANNA_DOOR)
 	_mode = M_STONE
-	# the portico: stylobate, three steps, four columns, entablature and a pediment
-	_lbox(m, 2.2, 7.0, 2.2, g - 0.6, g + 1.3, ANNA_BASE, M_STONE, ANNA_BASE.lightened(0.05))
+	# the middle bay: the arched relief, the inscription slab, the great door in its porch
+	_arch_panel(_w(m, 0.42), _a, _b, 3.5, g + 8.4, g + 8.9, ANNA_NICHE, 0.03, M_STONE)
+	_lbox(m, 0.45, 2.2, 0.05, g + 5.2, g + 7.2, ANNA_TRIM, M_STONE, ANNA_TRIM)
+	_mode = M_GLASS
+	_wall(_w(m - 1.4, 0.43), _w(m + 1.4, 0.43), g + 1.3, g + 5.0, _b, ANNA_DOOR_WOOD)
+	_mode = M_STONE
+	for pu: float in [-1.8, 1.8]:
+		_column(m + pu, 1.5, 0.3, g + 1.3, g + 5.4, ANNA_TRIM)
+	_lbox(m, 1.2, 2.5, 1.3, g + 5.4, g + 6.0, ANNA_TRIM, M_STONE, ANNA_TRIM)
+	# the giant order: a stylobate, then the four columns with capitals and the entablature
+	_lbox(m, 1.6, 9.3, 1.6, g - 0.6, g + 1.3, ANNA_BASE, M_STONE, ANNA_BASE.lightened(0.05))
 	for k in 2:
-		_lbox(m, 4.5 + 0.6 * k, 5.4 - 0.5 * k, 0.4 + 0.6 * k, g - 0.6, g + 0.95 - 0.5 * k, ANNA_BASE, M_STONE,
+		_lbox(m, 3.4 + 0.5 * k, 3.0 - 0.3 * k, 0.4 + 0.5 * k, g - 0.6, g + 0.95 - 0.5 * k, ANNA_BASE, M_STONE,
 				ANNA_BASE.lightened(0.04))
-	for u: float in [-5.4, -1.8, 1.8, 5.4]:
-		_column(m + u, 3.0, 0.6, g + 1.3, g + 11.8, ANNA_TRIM)
-	_lbox(m, 2.2, 7.2, 2.2, g + 11.8, g + 12.9, ANNA_WALL, M_STONE, ANNA_TRIM)
-	_lbox(m, 2.2, 7.5, 2.4, g + 12.9, g + 13.5, ANNA_TRIM, M_STONE, ANNA_TRIM)
+	for u: float in [-7.9, -3.9, 3.9, 7.9]:
+		_column(m + u, 1.6, 0.8, g + 1.3, g + 10.8, ANNA_TRIM)
+		_lbox(m + u, 1.6, 1.1, 1.1, g + 10.8, g + 12.3, ANNA_CAP, M_STONE, ANNA_CAP)
+	_lbox(m, 1.6, 9.6, 1.5, g + 12.3, g + 13.7, ANNA_WALL, M_STONE, ANNA_TRIM)
+	_lbox(m, 1.6, 9.9, 1.7, g + 13.7, g + 14.4, ANNA_TRIM, M_STONE, ANNA_TRIM)
 	var ka := _a
 	var kb := _b
 	_a = kb
 	_b = ka
-	_gable(4.4, -0.3, m, 7.4, g + 13.5, 3.8, ANNA_WALL, ANNA_ROOF)
+	_gable(3.3, 0.2, m, 9.8, g + 14.4, 3.7, ANNA_WALL, ANNA_ROOF)
 	_a = ka
 	_b = kb
-	var oc := _w(m, 4.45)
-	_disc(Vector3(oc.x, g + 15.4, oc.y), Vector3(_b.x, 0.0, _b.y), 0.9, 8, ANNA_DOOR)
-	_lbox(m, 2.2, 0.15, 0.15, g + 17.3, g + 20.0, ANNA_GOLD, M_STONE, ANNA_GOLD)
-	_lbox(m, 2.2, 0.7, 0.15, g + 18.6, g + 19.0, ANNA_GOLD, M_STONE, ANNA_GOLD)
+	var oc := _w(m, 3.35)
+	_disc(Vector3(oc.x, g + 16.2, oc.y), Vector3(_b.x, 0.0, _b.y), 0.9, 8, ANNA_DOOR)
+	# the stepped attic behind the pediment (photo 2), then the gilt cross
+	_lbox(m, -1.4, 7.0, 1.5, g + 14.4, g + 18.2, ANNA_WALL, M_STONE, ANNA_WALL)
+	_lbox(m, -1.4, 7.3, 1.7, g + 18.2, g + 18.8, ANNA_TRIM, M_STONE, ANNA_TRIM)
+	_lbox(m, -1.6, 3.4, 1.2, g + 18.8, g + 20.8, ANNA_WALL, M_STONE, ANNA_WALL)
+	_lbox(m, -1.6, 3.7, 1.4, g + 20.8, g + 21.4, ANNA_TRIM, M_STONE, ANNA_TRIM)
+	_lbox(m, -1.6, 0.15, 0.15, g + 21.4, g + 24.1, ANNA_GOLD, M_STONE, ANNA_GOLD)
+	_lbox(m, -1.6, 0.7, 0.15, g + 22.6, g + 23.0, ANNA_GOLD, M_STONE, ANNA_GOLD)
 	# the car meets the steps and the stylobate
-	_collide(_rect(m, 4.5, 5.4, 0.4))
-	_collide(_rect(m, 2.2, 7.0, 2.2))
+	_collide(_rect(m, 3.9, 3.0, 0.4))
+	_collide(_rect(m, 1.6, 9.3, 1.6))
 	_anna_tower()
 
 
@@ -14821,10 +15004,17 @@ func _anna_tower() -> void:
 		for sv: float in [-1.0, 1.0]:
 			_lbox(su * (h + 0.38), sv * (h + 0.38), 0.2, 0.2, g + 25.1, g + 26.7, ANNA_WALL, M_STONE, ANNA_WALL)
 	var c := _w(0.0, 0.0)
-	_prism(_circle(c, 2.9, 8), g + 25.1, g + 33.8, ANNA_ROOF, ANNA_ROOF, M_STONE, M_STONE)  # hidden in the octagon: holds the ring up
-	_frustum(_circle(c, 3.9, 8), g + 33.8, _circle(c, 3.4, 8), g + 34.5, ANNA_TRIM, ANNA_TRIM)
-	_lbox(0.0, 0.0, 0.18, 0.18, g + 34.5, g + 38.0, ANNA_GOLD, M_STONE, ANNA_GOLD)
-	_lbox(0.0, 0.0, 0.7, 0.18, g + 36.0, g + 36.4, ANNA_GOLD, M_STONE, ANNA_GOLD)
+	# photo 2: an octagonal belfry in cream with arched louvres under a copper dome and lantern
+	_prism(_circle(c, 2.9, 8), g + 25.1, g + 30.0, ANNA_WALL, ANNA_WALL, M_STONE, M_STONE)
+	for k in 8:
+		var ang := TAU * float(k) / 8.0 + TAU / 16.0
+		var out := Vector2(cos(ang), sin(ang))
+		_arch_panel(c + out * 2.68, Vector2(-out.y, out.x), out, 0.55, g + 26.5, g + 28.3, ANNA_DOOR, 0.03, M_GLASS)
+	_frustum(_circle(c, 3.5, 8), g + 30.0, _circle(c, 3.2, 8), g + 30.6, ANNA_TRIM, ANNA_TRIM)
+	_frustum(_circle(c, 3.2, 8), g + 30.6, _circle(c, 0.5, 8), g + 34.4, ANNA_COPPER, ANNA_COPPER)
+	_prism(_circle(c, 0.5, 8), g + 34.4, g + 35.6, ANNA_COPPER, ANNA_COPPER, M_STONE, M_STONE)
+	_lbox(0.0, 0.0, 0.14, 0.14, g + 35.6, g + 38.0, ANNA_GOLD, M_STONE, ANNA_GOLD)
+	_lbox(0.0, 0.0, 0.55, 0.14, g + 36.8, g + 37.2, ANNA_GOLD, M_STONE, ANNA_GOLD)
 
 
 ## St John's Archcathedral (Archikatedra św. Jana Chrzciciela, Old Town): the nave stays the
@@ -14840,6 +15030,10 @@ const ARCH_BRICK := Color("#9a4b38")
 const ARCH_TRIM := Color("#c8b393")
 const ARCH_ROOF := Color("#5e3a30")
 const ARCH_GLASS := Color("#262a2e")
+const ARCH_GOLD := Color("#c9a24a")
+const ARCH_COPPER := Color("#6f9a8a")   # photo 3: the ridge lantern's weathered copper
+const CATH_SPLAY := Color("#e8e1d2")    # the window splays (photo 1: white plaster)
+const CATH_PANEL := Color("#e3dccf")    # the gable's cream panels
 
 
 func _build_archikatedra(_site: Dictionary) -> void:
@@ -14863,34 +15057,51 @@ func _build_archikatedra(_site: Dictionary) -> void:
 	_gable(2.4, -0.2, m, 4.4, g + 8.5, 3.0, ARCH_BRICK, ARCH_ROOF)
 	_a = ka
 	_b = kb
-	# the stepped gable screen over the nave's end: four tiers, narrowing, each capped in stone
-	_mode = M_GOTHIC
-	var tiers := [[12.8, -0.6, 18.5], [9.4, 18.5, 24.0], [6.0, 24.0, 28.0], [2.6, 28.0, 31.0]]
-	for t: Array in tiers:
-		var hw := float(t[0])
-		_lbox(m, 0.55, hw, 0.8, g + float(t[1]), g + float(t[2]), ARCH_BRICK, M_GOTHIC, ARCH_BRICK)
-		_lbox(m, 0.55, hw + 0.35, 1.05, g + float(t[2]), g + float(t[2]) + 0.45, ARCH_TRIM, M_STONE, ARCH_TRIM)
-	# the great pointed window in the middle tiers
+	# From the photos (refs/archikatedra 1-2): the front is a brick wall 16 m high with three tall
+	# pointed windows in white splays (the middle one narrower and taller), two deep buttresses
+	# beside the portal, and a stone frieze of emblems under a stepped gable of six levels: brick
+	# shafts rising in steps of 3.3 m, 2.2 m apart, cream panels each with a blind lancet between
+	# them, a cross on the top pair.
+	var body_top := 16.0
+	_lbox(m, 0.55, 13.3, 0.8, g - 0.55, g + body_top, ARCH_BRICK, M_GOTHIC, ARCH_BRICK)
+	_lbox(m, 0.55, 14.2, 1.05, g + body_top, g + body_top + 1.2, ARCH_TRIM, M_STONE, ARCH_TRIM)
+	for bu: float in [m - 5.5, m + 5.5]:
+		_lbox(bu, 1.1, 1.3, 0.9, g - 0.45, g + 14.2, ARCH_BRICK, M_GOTHIC, ARCH_TRIM)
+		_lbox(bu, 1.1, 1.45, 1.05, g + 14.2, g + 14.7, ARCH_TRIM, M_STONE, ARCH_TRIM)
+	# the three pointed windows: dark glass in a pale splay, a stone sill
 	_mode = M_GLASS
-	_wall(_w(m - 2.1, 1.36), _w(m + 2.1, 1.36), g + 14.0, g + 22.0, _b, ARCH_GLASS)
+	for wu: float in [m - 9.0, m, m + 9.0]:
+		var ww := 1.15 if absf(wu - m) < 1.0 else 1.0
+		var top := 14.2 if absf(wu - m) < 1.0 else 13.4
+		_arch_panel(_w(wu, 1.34), _a, _b, ww, g + 3.6, g + top - ww - 0.2, ARCH_GLASS, 0.08, M_GLASS)
+		_arch_panel(_w(wu, 1.34), _a, _b, ww + 0.45, g + 3.3, g + top - ww - 0.2, CATH_SPLAY, 0.05, M_STONE)
 	_mode = M_STONE
-	var kc := _a
-	var kd := _b
-	_a = kd
-	_b = kc
-	_gable(1.375, 1.36, m, 2.1, g + 22.0, 3.4, ARCH_GLASS, ARCH_GLASS, false)
-	_a = kc
-	_b = kd
-	# pinnacles: on the tier corners and on the buttresses at the front's ends
-	for pu: float in [m - 12.6, m + 12.6]:
-		_pinnacle(pu, 0.55, 1.2, g + 18.95, 4.2, ARCH_TRIM)
-	for pu: float in [m - 9.2, m + 9.2]:
-		_pinnacle(pu, 0.55, 1.0, g + 24.45, 3.6, ARCH_TRIM)
-	for pu: float in [m - 5.8, m + 5.8]:
-		_pinnacle(pu, 0.55, 0.9, g + 28.45, 3.2, ARCH_TRIM)
+	# the stepped gable: six levels, the outer one the full width
+	var base := g + body_top + 1.2
+	var tops := [4.4, 7.7, 11.0, 14.3, 17.6, 20.9]
+	for i in 6:
+		var hw := 13.0 - 2.2 * float(i)
+		var ty: float = base + float(tops[i])
+		_lbox(m, 0.4, hw, 0.8, base - 0.1, ty, CATH_PANEL, M_STONE, ARCH_BRICK)
+		for sgn: float in [-1.0, 1.0]:
+			_lbox(m + sgn * hw, 0.62, 0.45, 0.62, base - 0.1, ty, ARCH_BRICK, M_GOTHIC, ARCH_BRICK)
+			_pinnacle(m + sgn * hw, 0.62, 0.9, ty, 1.5, ARCH_BRICK)
+			# the blind lancet in the panel outside this shaft's neighbour
+			if i < 5:
+				var lu := m + sgn * (hw - 1.1)
+				_arch_panel(_w(lu, 1.2), _a, _b, 0.5, base + 1.2, base + float(tops[i]) - 1.9, ARCH_BRICK.lightened(0.25), 0.03, M_STONE)
+	_arch_panel(_w(m, 1.2), _a, _b, 0.6, base + 6.0, base + float(tops[5]) - 2.4, ARCH_BRICK.lightened(0.25), 0.03, M_STONE)
 	# the cross on the top step
-	_lbox(m, 0.55, 0.14, 0.14, g + 31.45, g + 35.0, ARCH_TRIM, M_STONE, ARCH_TRIM)
-	_lbox(m, 0.55, 0.65, 0.14, g + 33.2, g + 33.6, ARCH_TRIM, M_STONE, ARCH_TRIM)
+	var cy := base + float(tops[5]) + 0.3
+	_lbox(m, 0.62, 0.14, 0.14, g + body_top + 1.2 + 20.9, g + body_top + 1.2 + 24.4, ARCH_GOLD, M_STONE, ARCH_GOLD)
+	_lbox(m, 0.62, 0.7, 0.14, cy + 2.0, cy + 2.4, ARCH_GOLD, M_STONE, ARCH_GOLD)
+	# the lantern on the roof ridge behind (photo 3): an octagonal copper bell turret with a
+	# pointed cap, a ball and a cross
+	var tc := _w(m, -20.0)
+	_prism(_circle(tc, 0.9, 8), g - 0.6, base + 4.0, ARCH_BRICK, ARCH_BRICK, M_STONE, M_STONE)  # the shaft inside the nave, so the turret stands on something
+	_prism(_circle(tc, 0.95, 8), base + 4.0, base + 8.0, ARCH_COPPER, ARCH_COPPER, M_STONE, M_STONE)
+	_frustum(_circle(tc, 1.25, 8), base + 8.0, _circle(tc, 0.12, 8), base + 11.0, ARCH_COPPER, ARCH_COPPER)
+	_lbox_at(tc, 0.07, base + 11.0, base + 12.8, ARCH_GOLD)
 	_collide(_rect(m, 1.0, 4.4, 1.4))
 
 
