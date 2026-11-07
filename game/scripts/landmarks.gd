@@ -4197,6 +4197,11 @@ const SKINS := [
 	{"key": "arcybiskupi", "osm": "Pałac Arcybiskupi d. Pałac Borchów", "mode": M_MONUMENT, "wall": "#e8dcae", "roof": "#ad6446"},
 	{"key": "paca", "osm": "Pałac Paca", "mode": M_MONUMENT, "wall": "#ebe3cc", "roof": "#7fa391"},
 	{"key": "nobilium", "osm": "Collegium Nobilium", "mode": M_MONUMENT, "wall": "#e8dcc2", "roof": "#8c8f86"},
+
+	# Saski Crescent and Senator from F's photos (2026-11-07, docs/landmarks/specs/saski.md): the
+	# crescent's green-teal curtain wall (M_GLASS) and Senator's pale cladding with punched windows.
+	{"key": "saski", "osm": "Saski Crescent", "mode": M_GLASS, "wall": "#5f948f", "roof": "#7d8589"},
+	{"key": "senator", "osm": "Senator", "mode": M_SKIN + float(S_PUNCHED) / 16.0, "wall": "#dbd0bc", "roof": "#a3a7a8"},
 ]
 
 
