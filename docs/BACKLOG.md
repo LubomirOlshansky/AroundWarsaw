@@ -63,8 +63,10 @@ Left:
 
 - PT-23 (S2): the tow offer never comes while the ride button is up; a pinned car gets no help.
 - PT-24 (suspect): backing off a wall resets the stall timer, so the offer may never come.
-- PT-25 (suspect): crazy drivers honk but said no line in 5 cut-ins.
-- PT-26, PT-27 (S3): a bubble over the steering hint; the KEBAB label over BRAKE.
+- Found 2026-11-07: `check_edge_roadworks` W3 reports lane 0 of edge 4520 (Bonifraterska) running off the
+  map at -1727,-2317 past the barriers, on plain main too with the cloud's map pack (CI's map job skips it).
+- Found 2026-11-07: at 1266x585 (the Autopilot's window) Settings' 'Średnio' fills its button to the
+  pixel (check_hud flags it if that size joins SCREENS); desktop only, phones pass.
 
 ## Loading bar on the title screen (F, 2026-11-05)
 
