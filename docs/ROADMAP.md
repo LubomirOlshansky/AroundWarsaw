@@ -350,7 +350,7 @@ then the Launch gate.
   - [x] Hala Mirowska: market stalls on the square, 2026-11-01 (the hall itself was done)
   - [x] Aleja Jana Pawła II: mid-century plasters on every plain building along it, 2026-11-01
   - [ ] Mac photo checks for the estate and the stalls (QUESTIONS); then the boulevard street by street
-- [x] Street blocks across the city (F, 2026-11-06): 512 plain blocks modelled, Nowy Świat's 50 with real windows, trim, dormers and roofs (BACKLOG "Street blocks across the city") Marszałkowska added 16 photo fronts and Aleje Jerozolimskie 21 on 2026-11-07.
+- [x] Street blocks across the city (F, 2026-11-06): 512 plain blocks modelled, Nowy Świat's 50 with real windows, trim, dormers and roofs (BACKLOG "Street blocks across the city") Marszałkowska added 16 photo fronts Aleje Jerozolimskie 21 and the streets from Świętokrzyska to Ujazdowskie 25 on 2026-11-07.
 - [ ] Nowy Świat street by street (F, 2026-11-01; BACKLOG "Nowy Świat"):
   - [x] N1 café terraces along the whole street (about three times as many) and six named houses with skins and cards, 2026-11-01
   - [x] N2 three more neon shops (BLIKLINA OD 1869 pastry parody near no. 35, Chmielna, Foksal), 2026-11-02
