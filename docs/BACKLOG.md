@@ -20,6 +20,18 @@ Check `ratuszhub`. Left:
   footprint against an ortho (OSM's entrance 5 is its stair, so the box may sit a few metres off); Mac look check
   of the canopies' curve against F's photos.
 - buses.gd's waiting figures (≤ 10 near the view, 06-22) could sit on the shelter benches too.
+## Novotel Warszawa Centrum from F's photos (F, 2026-11-07; docs/landmarks/novotel.md)
+
+Built: the white tiled slab with its paired windows and the lift core's blank strip, the blank narrow ends round
+their core bays with NOWOTEL in blue neon letter over letter, the orange rule and ACORN HOTELS, the top storey's
+blue band, the plant room and the two white light boxes with the name on the roof, the glazed podium with its lit
+fascia and canopies, and the east entrance (bowed cream bay, revolving door, blue NOWOTEL board, stone pier,
+planters). Left:
+- Which face the entrance is on: built on the east face (the mapped canopy is there); F's entrance photo does not show
+  the street. Check on the Mac or with one more photo of the corner.
+- The window rhythm (pairs in 6.2 m bays, 31 floors of 2.95 m) is read from one daytime photo; the lift core strip's
+  place along the face is a guess (the middle bay).
+- The podium's Marszałkowska front has no photo: built as two glazed storeys under a lit fascia.
 
 
 ## Miodowa's palaces from F's photos (F, 2026-11-07; spec docs/landmarks/specs/miodowa.md)
