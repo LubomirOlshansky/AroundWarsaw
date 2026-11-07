@@ -350,6 +350,9 @@ then the Launch gate.
       weekday rush-hour workers in business dress at the metro exits and zebras and walking over the
       crossings (`crowds.gd` OFFICE, mode `office`, up to 56 walkers + 88 standing, scaled by
       `amount`), 65 overheard corporate lines in `dialogue.json` "office"; phone look check parked
+- [x] Rondo Daszyńskiego crowded like the real one, 2026-11-07 (F): up to 104 office walkers, a
+      crowd at all seven metro entrances, and waves at the zebras (walkers wait at a red kerb and
+      cross together; `crowds.gd` XING_*, check_crowds); phone bench parked
 - [ ] The estate, the halls and Jana Pawła II (F, 2026-11-01; BACKLOG section):
   - [x] Osiedle Za Żelazną Bramą: eleven blocks as a model with its own skin, 2026-11-01
   - [x] Hala Mirowska: market stalls on the square, 2026-11-01 (the hall itself was done)
