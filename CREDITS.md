@@ -44,9 +44,19 @@ not cleared for a release.
 
 | Station | Track | Artist | Licence |
 | --- | --- | --- | --- |
-| 87,3 KEBAB FM | Palma de Gaulle'a | Around Warsaw | own: synthesised by `tools/make_music.py` (all rights reserved) |
+| 87,3 KEBAB FM | Neon na Marszałkowskiej | Around Warsaw | own: generated with ElevenLabs (Creator plan, commercial licence) |
+| 87,3 KEBAB FM | Palma de Gaulle'a | Around Warsaw | own: generated with ElevenLabs (Creator plan, commercial licence) |
+| 87,3 KEBAB FM | 87,3 MHz | Around Warsaw | own: generated with ElevenLabs (Creator plan, commercial licence) |
+| 87,3 KEBAB FM | Wisła w różu | Around Warsaw | own: generated with ElevenLabs (Creator plan, commercial licence) |
+| 87,3 KEBAB FM | Sos czosnkowy | Around Warsaw | own: generated with ElevenLabs (Creator plan, commercial licence) |
+| 87,3 KEBAB FM | Sos czosnkowy (druga wersja) | Around Warsaw | own: generated with ElevenLabs (Creator plan, commercial licence) |
 | 86,6 RONDO FM | Rondo Dmowskiego 3 A.M. | Around Warsaw | own: synthesised by `tools/make_music.py` (all rights reserved) |
-| 108,8 MORDOR FM | Mordor Mall Muzak | Around Warsaw | own: synthesised by `tools/make_music.py` (all rights reserved) |
+| 108,8 MORDOR FM | Open Space | Around Warsaw | own: generated with ElevenLabs (Creator plan, commercial licence) |
+| 108,8 MORDOR FM | Deadline | Around Warsaw | own: generated with ElevenLabs (Creator plan, commercial licence) |
+| 108,8 MORDOR FM | Deadline (druga wersja) | Around Warsaw | own: generated with ElevenLabs (Creator plan, commercial licence) |
+| 108,8 MORDOR FM | Winda na 30. piętro | Around Warsaw | own: generated with ElevenLabs (Creator plan, commercial licence) |
+| 108,8 MORDOR FM | Służewiec 3:00 | Around Warsaw | own: generated with ElevenLabs (Creator plan, commercial licence) |
+| 108,8 MORDOR FM | Fajrant | Around Warsaw | own: generated with ElevenLabs (Creator plan, commercial licence) |
 | 86,0 PÓŁNOC FM | Sód | Around Warsaw | own: synthesised by `tools/make_music.py --set=polnoc` (all rights reserved) |
 | 86,0 PÓŁNOC FM | Wiadukt | Around Warsaw | own: synthesised by `tools/make_music.py --set=polnoc` (all rights reserved) |
 | 86,0 PÓŁNOC FM | Nocna przesiadka | Around Warsaw | own: synthesised by `tools/make_music.py --set=polnoc` (all rights reserved) |
