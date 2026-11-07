@@ -142,6 +142,15 @@ Left:
 - PT-25 (suspect): crazy drivers honk but said no line in 5 cut-ins.
 - PT-26, PT-27 (S3): a bubble over the steering hint; the KEBAB label over BRAKE.
 
+## Autopilot findings, Old Town and bridges (2026-11-07; docs/PLAYTEST.md, rows P4, P5)
+
+- PT-35 (S3): with Classic controls the KEBAB distance label covers the steering strip's right arrow.
+- PT-36 (suspect): two dead stops with an unstick at the edge of Podwale's bends (-987,-1668; -834,-1507).
+- PT-37 (suspect): pinned on Poniatowskiego's tram strip for 8 s while the speed reads 60 km/h, no unstick or tow.
+- PT-38 (suspect): an 11 m snap down off the ground above the W-Z tunnel's east portal.
+- PT-39 (suspect, design): a ram of a crash scene's police car starts a chase that is lost in the next frame.
+- Podwózka story ride played by Autopilot (accept, the "!" pickup, boarding, story lines, the question card, +½ star): no bug; the door and the result card still unplayed (the 2 km ride outlasts one Mac run).
+
 ## Road design rollout: every street on the map (F, 2026-11-06; docs/design/road-design-rollout.md)
 
 **Decision (F, 2026-11-07): main as base, small fixes.** F compared the area 3-7 redesigns with main
