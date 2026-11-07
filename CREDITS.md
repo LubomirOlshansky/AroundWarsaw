@@ -30,9 +30,9 @@ made from it) are derived databases and are offered under the same licence, ODbL
   scanned record left out because it is the artificial palm on Rondo de Gaulle'a, which the game
   draws itself.
 
-The game shows "© OpenStreetMap contributors · 3D buildings, aerial photo, terrain: GUGiK" at
-the bottom of the screen while you play, and the full list (this file's data licences, the engine,
-the add-ons and every radio track with its licence) under Settings → DŹWIĘK → LICENCJE
+The game keeps the main screen clear of credits. The full list (this file's data licences, the
+"© OpenStreetMap contributors" and GUGiK lines, the engine, the add-ons and every radio track with
+its licence) is on its own page, Settings → DŹWIĘK → LICENCJE (also the end card's credits line)
 (`game/scripts/credits.gd`; `game/tools/check_credits.gd` keeps it, the add-on folders and
 `radio.json` in step with this file).
 
