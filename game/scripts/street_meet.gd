@@ -31,8 +31,10 @@ extends Node3D
 ## DRAG_TOP × the car's): at the top of each the button says BIEG!: on time (PERFECT s) is a burst
 ## (SHIFT_BOOST), late is just a shift, never is an auto-shift after AUTO_SHIFT s. The nitro button
 ## works (a bottle on loan, LOAN, without the garage's). Tadek's run is the "ok" run of the same car
-## (sim_run) sped up to between it and a perfect run (RIVAL_SKILL), so clean shifts or the nitro
-## win. 402 m. A win: RESPECT, the club card (wallet.keep `wnrc_member`), the best time; a loss:
+## (sim_run) sped up to between it and a clean run (RIVAL_SKILL), so clean shifts or the nitro
+## win. On the line and in the run the car holds the strip's line and any gas is full gas
+## (hold_car): a drag is the launch and the shifts, not the steering (PT-33: the point-to-steer
+## stick's aim and a part push lost 1.4 s against the sums). 402 m. A win: RESPECT, the club card (wallet.keep `wnrc_member`), the best time; a loss:
 ## REWANŻ.
 ##
 ## Nothing here per frame when idle (a TICK s look). During the quest: the meet's few draw calls
@@ -143,7 +145,10 @@ const FALSE_M := 1.2
 const STRIP_HALF := 9.0
 ## Tadek: his reaction, and how far between the "ok" run and a perfect one his time sits.
 const RIVAL_REACT := 0.28
-const RIVAL_SKILL := 0.6
+const RIVAL_SKILL := 0.5
+## The clean run Tadek is measured against: a human reaction and shifts on time (not a robot's).
+const CLEAN_REACT := 0.35
+const CLEAN_DELAY := 0.15
 ## A nitro bottle on loan (with no garage nitro): one full tank.
 const LOAN := true
 const RESULT_LIFE := 30.0
@@ -384,10 +389,10 @@ static func sim_run(accel: float, top: float, react: float, delay: float, boost:
 
 
 ## Tadek's run against a car of `accel`/`top`: the "ok" run's profile and the factor that speeds it
-## up to RIVAL_SKILL of the way to a perfect run's time: [profile, k, his time, ok, perfect].
+## up to RIVAL_SKILL of the way to a clean run's time: [profile, k, his time, ok, perfect].
 static func rival_run(accel: float, top: float) -> Array:
 	var ok: Array = sim_run(accel, top, RIVAL_REACT, 0.6, false)
-	var best: Array = sim_run(accel, top, 0.18, 0.1, true)
+	var best: Array = sim_run(accel, top, CLEAN_REACT, CLEAN_DELAY, true)
 	var target := lerpf(float(ok[0]), float(best[0]), RIVAL_SKILL)
 	return [ok[1], float(ok[0]) / target, target, float(ok[0]), float(best[0])]
 
@@ -990,10 +995,14 @@ func _t_raid(dt: float) -> void:
 	var at: Vector3 = v[0]
 	var m: Vector3 = meets[meet_i]["at"]
 	var away := Vector2(at.x, at.z).distance_to(Vector2(m.x, m.z))
-	if away < PIN_AWAY:
+	if chasing:
+		# The police pill says it all while they chase (PT-34: the two together pushed the pill
+		# down over the car).
+		hud.hide_status()
+	elif away < PIN_AWAY:
 		hud.show_status("NALOT! · UCIEKAJ", "", "%d / %d m" % [roundi(away), roundi(PIN_AWAY)], "Odjedź od spotu", away / PIN_AWAY,
 				COLOUR, "", {}, "Get away from the meet")
-	elif (not _chase_seen and _t > RAID_WAIT) or (_chase_seen and not chasing and _t > 2.0):
+	elif (not _chase_seen and _t > RAID_WAIT) or (_chase_seen and _t > 2.0):
 		hud.hide_status()
 		_pin()
 
@@ -1382,6 +1391,27 @@ func _stage() -> void:
 	_tree.queue_redraw()
 	_line(DRAG_LINES["boss"], 3.0)
 	_log("stage: Tadek's run %.2f s (ok %.2f, perfect %.2f)" % [rr[2], rr[3], rr[4]])
+
+
+## Called by main.gd after the controls set the car's inputs: on the line and in the run the car
+## points down the strip (back to its line if it drifted) and any gas is full gas. On the line the
+## gas still moves it (a false start stays possible).
+func hold_car(c: Node) -> void:
+	if c == null or not (state == State.STAGE or state == State.RUN) or not bool(strip.get("ok", false)):
+		return
+	hold_inputs(c, strip)
+
+
+## hold_car's inputs for a car on a strip ({start, dir, right} as Vector2s), static for the check.
+static func hold_inputs(c: Node, on: Dictionary) -> void:
+	var p := Vector2(c.global_position.x, c.global_position.z)
+	var rel: Vector2 = p - (on["start"] as Vector2)
+	var lat := rel.dot(on["right"])
+	var d: Vector2 = (on["dir"] as Vector2) - (on["right"] as Vector2) * clampf(lat * 0.04, -0.15, 0.15)
+	c.target_dir = Vector3(d.x, 0.0, d.y).normalized()
+	c.steer = 0.0
+	if float(c.throttle) > 0.05 or bool(c.nitro_on):
+		c.throttle = 1.0
 
 
 ## Per frame on the line and in the run.

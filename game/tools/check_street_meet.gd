@@ -9,13 +9,17 @@ extends SceneTree
 ##   5. the drag: the "ok" run, Tadek's and a perfect one in that order of time, all under 30 s,
 ##      nitro faster still; Tadek beatable by a perfect run, not by a lazy one (shifts 0.9 s late,
 ##      a slow start); the profile rises and reaches 402 m;
-##   6. the real lane graph: both meets found with a door on a ground road within 160 m, the ring's
+##   6. the real car (car.gd on a flat floor, its inputs held as hold_car holds them, a stick aimed
+##      20° off at 75 %): a clean run (0.46 s reaction, shifts 0.15 s after BIEG!) beats Tadek, a
+##      lazy one doesn't, and the real time stays within 0.3 s of sim_run's (PT-33);
+##   7. the real lane graph: both meets found with a door on a ground road within 160 m, the ring's
 ##      slots clear of the gap, the strip found and long enough, straight on the southbound lane.
 ## Prints "check_street_meet: OK (...)" or the problems (exit 1).
-##   godot --headless --path game --script res://tools/check_street_meet.gd [-- --verbose]
+##   godot --headless --path game --fixed-fps 60 --script res://tools/check_street_meet.gd [-- --verbose]
 
 const Meet := preload("res://scripts/street_meet.gd")
 const LaneGraph := preload("res://scripts/lane_graph.gd")
+const Car := preload("res://scripts/car.gd")
 const BUBBLE := 90
 
 
@@ -46,6 +50,7 @@ func _run() -> void:
 	_check_lines(digest)
 	_check_rules(digest)
 	_check_drag(digest)
+	await _check_real_car(digest)
 	var data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://map/centrum.json"))
 	var map := FakeMap.new()
 	root.add_child(map)
@@ -147,6 +152,71 @@ func _check_drag(digest: PackedStringArray) -> void:
 	if verbose:
 		print("drag: perfect %.2f, nitro %.2f, Tadek %.2f, ok %.2f, lazy %.2f" % [best, nitro[0], tadek, ok, lazy[0]])
 	digest.append("drag: perfect %.2f < Tadek %.2f < ok %.2f s" % [best, tadek, ok])
+
+
+## One real-car run: [time (s), Tadek's time]. The gear logic is street_meet.gd's _drag_frame.
+func _real_run(react: float, delay: float) -> Array:
+	var world := Node3D.new()
+	root.add_child(world)
+	var floor_body := StaticBody3D.new()
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(60, 1, 1200)
+	shape.shape = box
+	floor_body.add_child(shape)
+	floor_body.position = Vector3(0, -0.5, -500)
+	world.add_child(floor_body)
+	var car := Car.new()
+	world.add_child(car)
+	var on := {"start": Vector2.ZERO, "dir": Vector2(0, -1), "right": Vector2(1, 0)}
+	var top0 := float(car.top_mult)
+	var acc0 := float(car.accel_mult)
+	var rr: Array = Meet.rival_run(float(car.accel) * acc0, float(car.max_speed) * top0 * Meet.DRAG_TOP)
+	var t := 0.0
+	var gear := 0
+	var w := -1.0
+	var boost := 0.0
+	var dt := 1.0 / float(Engine.physics_ticks_per_second)
+	while t < 40.0:
+		await physics_frame
+		t += dt
+		# The stick: aimed 20° off the strip at 75 %, as a thumb would; hold_inputs fixes both.
+		car.target_dir = Vector3(sin(deg_to_rad(20.0)), 0.0, -cos(deg_to_rad(20.0)))
+		car.throttle = 0.75 if t > react else 0.0
+		Meet.hold_inputs(car, on)
+		boost = maxf(0.0, boost - dt)
+		car.accel_mult = acc0 * (Meet.SHIFT_BOOST if boost > 0.0 else 1.0)
+		car.top_mult = top0 * Meet.DRAG_TOP * float(Meet.GEARS[gear])
+		var cap := float(car.max_speed) * float(car.top_mult)
+		if gear < Meet.GEARS.size() - 1 and car.vel.length() >= cap * Meet.SHIFT_AT:
+			w = 0.0 if w < 0.0 else w + dt
+			if w >= minf(delay, Meet.AUTO_SHIFT):
+				gear += 1
+				w = -1.0
+				if delay <= Meet.PERFECT:
+					boost = Meet.BOOST_S
+		if -car.global_position.z >= Meet.QUARTER:
+			break
+	var lat := absf(car.global_position.x)
+	world.free()
+	if lat > 3.0:
+		problems.append("the held car wandered %.1f m off its line" % lat)
+	return [t, float(rr[2])]
+
+
+func _check_real_car(digest: PackedStringArray) -> void:
+	var clean: Array = await _real_run(0.46, 0.15)
+	var lazy: Array = await _real_run(0.6, 0.9)
+	var c := Car.new()
+	var sim: Array = Meet.sim_run(float(c.accel), float(c.max_speed) * Meet.DRAG_TOP, 0.46, 0.15, true)
+	c.free()
+	if float(clean[0]) >= float(clean[1]):
+		problems.append("the real car's clean run (%.2f s) doesn't beat Tadek (%.2f s)" % [clean[0], clean[1]])
+	if float(lazy[0]) <= float(lazy[1]):
+		problems.append("the real car's lazy run (%.2f s) beats Tadek (%.2f s)" % [lazy[0], lazy[1]])
+	if absf(float(clean[0]) - float(sim[0])) > 0.3:
+		problems.append("the real car (%.2f s) and sim_run (%.2f s) differ" % [clean[0], sim[0]])
+	digest.append("real car: clean %.2f < Tadek %.2f < lazy %.2f s" % [clean[0], clean[1], lazy[0]])
 
 
 func _check_map(g: LaneGraph, map: Node3D, origin: Array, digest: PackedStringArray) -> void:

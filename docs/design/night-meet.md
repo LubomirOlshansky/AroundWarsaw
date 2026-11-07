@@ -37,7 +37,8 @@ No characters, quotes, catchphrases or memes from the films or games that inspir
 3. **Raid 1.** NALOT! `police.raid` brings two or three patrol cars in from the roads round the
    plaza, lights on, koguty 2 on you at once (no grace, no cooldown). The crowd runs off, every car
    glides off the plaza to the road and drives off fast. Get 220 m away (a meet off the road is no
-   hiding place) and let the chase end (escape, end of shift or a caution: the night goes on).
+   hiding place) and let the chase end (escape, end of shift or a caution: the night goes on). A
+   raid's chase can't be shaken in its first 15 s and needs 160 m from every chaser (PT-34).
 4. **The pin and the race.** TYGRAM: "📍 Parking pod Narodowym. Kto pierwszy, ten lepszy." Every
    racer races there from wherever it fled (racer mode, 0.86-0.97 of your top). The status shows
    your place live. Place pays 200 / 120 / 60 / 0 zł and 40 / 25 / 12 / 5 respect.
@@ -50,9 +51,12 @@ No characters, quotes, catchphrases or memes from the films or games that inspir
    1.5× its top over four gears (34 / 57 / 79 / 100 %); at the top of each gear the button says
    BIEG! ⬆ TERAZ: within 0.35 s a perfect shift (×1.7 pull for 1.1 s), later a plain shift,
    before it a bog, and after 1 s the box shifts itself. NITRO works (a bottle on loan without the
-   garage's). Tadek's run is the "ok" run of your own car (0.6 s late shifts) sped up to 60 % of the
-   way to a perfect run: clean shifts or the nitro beat him, a lazy run doesn't
-   (hatch: perfect 11.13 s, Tadek 11.62 s, ok 12.35 s, lazy 13.06 s, clean + nitro 10.07 s).
+   garage's). Tadek's run is the "ok" run of your own car (0.6 s late shifts) sped up to half the
+   way to a clean run (0.35 s reaction, shifts 0.15 s after BIEG!): clean shifts or the nitro beat
+   him, a lazy run doesn't (hatch: clean 11.36 s, Tadek 11.85 s, ok 12.35 s, lazy 13.06 s, clean +
+   nitro 10.07 s). On the line and in the run the car holds the strip and any gas is full gas: a
+   drag is the launch and the shifts (PT-33: the stick's aim and a part push lost 1.4 s on the
+   Mac). `check_street_meet` drives the real car.gd too, its stick 20° off at 75 %.
    Win: RESPEKT!, 300 zł and 80 respect, the club card (`wnrc_member` in the save), the best time
    (`drag_402`). Lose: REWANŻ (again from the line) or KONIEC.
 

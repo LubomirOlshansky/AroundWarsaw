@@ -10,7 +10,7 @@ Built: Darek's call, the meet on Plac Defilad with Lena's donuts, two police rai
 and the race to the National Stadium's car park, the drag on Aleja Zieleniecka with START DRAG,
 the tree, BIEG! shifts and nitro. Left:
 - [ ] Voice for Darek, Lena and Tadek (F: later)
-- [ ] Autopilot run on the Mac: call, meet, raid, race, drag (F asked)
+- [ ] Autopilot re-run on the Mac after PT-33/PT-34 (first run 2026-11-07: every beat ran; drag unwinnable and chase pill over the car, fixed in #499; the result card's REWANŻ/KONIEC showed in the cloud at 1280×720, so watch whether Autopilot lists them)
 - [ ] Phone check: smoke and marks at night, the tree's size, the BIEG! button under a thumb; bench at the meet
 - [ ] A stake to enter the drag? (parked for F, built without)
 - [ ] Meet 2 stands on a small plaza with a few trees inside the ring: check the look, move it if it clashes

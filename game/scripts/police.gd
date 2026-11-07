@@ -254,6 +254,10 @@ var _chase_line := 0.0
 var _rise_wait := 0.0
 var _level_at := 0.0
 var _unseen := 0.0
+## The raid's hold left (s; RAID_HOLD from police.raid), 0 outside a raid's chase.
+var _raid_t := 0.0
+## The chase came from a raid (RAID_ESCAPE counts), until it ends.
+var raid_chase := false
 var _search_t := 0.0
 var _still := 0.0
 var _last_seen := Vector3.ZERO
@@ -884,7 +888,7 @@ func _chase_frame(dt: float) -> void:
 	for u in _engaged:
 		if u.driver == null:
 			continue
-		if u.dist < ESCAPE_DIST:
+		if u.dist < (RAID_ESCAPE if raid_chase else ESCAPE_DIST):
 			far = false
 		if u.sees:
 			seen = true
@@ -893,13 +897,14 @@ func _chase_frame(dt: float) -> void:
 			nearest = u
 	if _engaged.is_empty():
 		far = true
+	_raid_t = maxf(0.0, _raid_t - dt)
 	if phase == Phase.CHASE:
 		if seen:
 			_unseen = 0.0
 			_last_seen = p
 		else:
 			_unseen += dt
-		if far or _unseen >= UNSEEN:
+		if (far or _unseen >= UNSEEN) and _raid_t <= 0.0:
 			phase = Phase.SEARCH
 			_search_t = 0.0
 			_log("search (%s)" % ("120 m away" if far else "out of sight %.1f s" % _unseen))
@@ -944,6 +949,8 @@ func _chase_frame(dt: float) -> void:
 ## Ends a chase or a pull-over: "escaped", "shift" (the cap), "heli", "pullover".
 func _end(how: String) -> void:
 	var t := chase_t
+	raid_chase = false
+	_raid_t = 0.0
 	var lost = _chaser()
 	match how:
 		"escaped":
@@ -1131,8 +1138,12 @@ func scene_leave(d) -> void:
 ## lane allows), and a chase at koguty `lvl` starts on the player at once: no start grace and no
 ## cooldown (the raid is the quest's beat). Still never one in Spacer (`gentle`) or while the player
 ## flies. Returns the cars placed (0: none, no chase).
-const RAID_FROM := 70.0
-const RAID_TO := 140.0
+const RAID_FROM := 50.0
+const RAID_TO := 110.0
+## A raid's chase can't be lost in its first RAID_HOLD s, and its escape needs RAID_ESCAPE m from
+## every chaser (PT-34: koguty 2 from a raid was lost in 8 s, the cars came in near ESCAPE_DIST).
+const RAID_HOLD := 15.0
+const RAID_ESCAPE := 160.0
 
 
 func raid(at: Vector3, n: int, lvl := 2) -> int:
@@ -1178,6 +1189,8 @@ func raid(at: Vector3, n: int, lvl := 2) -> int:
 	_track_player()
 	if phase == Phase.CALM:
 		_start_chase(clampi(lvl, 1, 3), placed[0], "raid")
+	_raid_t = RAID_HOLD
+	raid_chase = true
 	for u in placed:
 		_engage(u, "chaser")
 	_log("raid at %.0f, %.0f: %d cars" % [at.x, at.z, placed.size()])

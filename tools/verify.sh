@@ -896,7 +896,7 @@ for s in $want; do
 		# Sekretny rave: LEKTI's lines, the door's questions, the rigs and the club's room, the spots on the real graph.
 		rave) check rave '^check_rave:' --script res://tools/check_rave.gd ;;
 		# Nocny spot: the club's cars, lines, clock, pay, the drag's times, the meets and the strip on the real graph.
-		meet) check meet '^check_street_meet:' --script res://tools/check_street_meet.gd ;;
+		meet) check meet '^check_street_meet:' --fixed-fps 60 --script res://tools/check_street_meet.gd ;;
 		# Boat race: the course in open water, the boat, a whole race, the three-miss rule, the lines.
 		boatrace) check boatrace '^check_boat_race:' --script res://tools/check_boat_race.gd ;;
 		# Dead electric cars: the TESŁO, the lines, the sling, the chargers on the real graph.
