@@ -241,7 +241,6 @@ var _kawa_at := CoffeeRun.FIRST
 ## moment you hand the bike back at the dock).
 var _kawa_rest := 0.0
 var _parked: Node3D
-var _world: Node3D
 var _line_t := 0.0
 ## The call comes only within this many metres of the dock (a coffee run, not a road trip).
 const KAWA_CALL_R := 1800.0
