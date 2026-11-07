@@ -188,6 +188,8 @@ var _piers := {}
 const PIER_CELL := 40.0
 ## Testing aids.
 var force_hours := false
+## The WYŚCIG ŁODZI pill by the pontoon; off when story_quests.gd's in-person start owns the spot.
+var walk_up_pill := true
 
 
 func setup(world: Node3D) -> void:
@@ -311,7 +313,7 @@ func _idle_tick() -> void:
 		return
 	var v: Array = vehicle.call()
 	var p: Vector3 = v[0]
-	var near := Vector2(p.x, p.z).distance_to(CAR_SPOT) < PILL_R and not bool(v[2])
+	var near := walk_up_pill and Vector2(p.x, p.z).distance_to(CAR_SPOT) < PILL_R and not bool(v[2])
 	if near and free_now.call() and hud.pill_free_for("boat"):
 		if not hud.pill_shown("boat"):
 			hud.show_pill("PRZYSTAŃ", "MARINA", "boat")
@@ -325,6 +327,23 @@ func _idle_tick() -> void:
 	if bool(v[2]) or not free_now.call():
 		return
 	ring()
+
+
+## Szymek met in person at the pontoon (story_quests.gd: he walks up, the player said WCHODZĘ):
+## no call, straight to the start. False unless idle.
+func meet() -> bool:
+	if state != State.IDLE:
+		return false
+	if hud.pill_shown("boat"):
+		hud.hide_pill()
+	_log("met Szymek at the pontoon")
+	_go_to_pier()
+	return true
+
+
+## Idle: not ringing, not racing (a questline may start now).
+func idle() -> bool:
+	return state == State.IDLE
 
 
 ## Szymek phones.
