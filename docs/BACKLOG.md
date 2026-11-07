@@ -4,6 +4,17 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Night racing club: Darek, Lena, Tadek (F, 2026-11-06; docs/design/night-meet.md)
+
+Built: Darek's call, the meet on Plac Defilad with Lena's donuts, two police raids, the TYGRAM pin
+and the race to the National Stadium's car park, the drag on Aleja Zieleniecka with START DRAG,
+the tree, BIEG! shifts and nitro. Left:
+- [ ] Voice for Darek, Lena and Tadek (F: later)
+- [ ] Autopilot re-run on the Mac after PT-33/PT-34 (first run 2026-11-07: every beat ran; drag unwinnable and chase pill over the car, fixed in #499; the result card's REWANŻ/KONIEC showed in the cloud at 1280×720, so watch whether Autopilot lists them)
+- [ ] Phone check: smoke and marks at night, the tree's size, the BIEG! button under a thumb; bench at the meet
+- [ ] A stake to enter the drag? (parked for F, built without)
+- [ ] Meet 2 stands on a small plaza with a few trees inside the ring: check the look, move it if it clashes
+- [ ] Later: the club card in the notebook, more meet places (Browary, Wał Miedzeszyński), underglow paint in the garage after a win
 ## Coffee run (F, 2026-11-06)
 
 Built 2026-11-06 (docs/design/coffee-run.md): Zuzia's call, the ROWERILO dock by Elektrownia, the
