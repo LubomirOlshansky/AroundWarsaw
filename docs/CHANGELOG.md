@@ -10,6 +10,8 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-07
+- Stacja Muzeum, Nocny Targ and Kolejowa: the old Warszawa Główna hall has its arched cream front with gold letters, steam engines on red wheels and green tank engines stand on the museum's sidings, the night market glows under two rusty platform roofs with coloured tubes and painted benches, and Kolejowa's old railway warehouses, the pinball museum and the teal club line the street.
+- Wola by Kolejowa looks like itself: the old drug works' plot is a busy building site with bare concrete floors, three cranes and stacks of materials, the estate's blocks have their cream walls and brown window frames, and the two tall towers wear their orange and gold frames.
 - The Palace of Culture's grounds are tidier: knee-high planters instead of grey walls, real shrub beds, a proper car park with painted bays, and the Palace's venues lit at their doors: Kinoteka, the theatres, Sala Kongresowa, the technology museum, the 30th-floor terrace. Teatr Studio has its columned portico with steps, banners and neon, Bar Studio's tables under umbrellas and palms on a granite square with corten planters and trees, busy on summer evenings.
 - Ratusz Arsenał got its real tram stop: white arched canopies that glow at night, departure boards, Gruba Kaśka with its green copper spire between the tracks, the glass escalator pavilion and stone metro entrances. Trams now carry passengers, and people wait on tram platforms all over the city.
 - Metro stations look like themselves: Stadion Narodowy, Kopernik and Gdański get leaning glass pavilions, Nowy Świat-Uniwersytet a violet glass box, Rondo ONZ the glass A-frames.
